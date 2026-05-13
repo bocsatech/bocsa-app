@@ -4,3 +4,4 @@ export interface Maschine {
   maschine_type?: string
   serialnummer?: string
 }
+
