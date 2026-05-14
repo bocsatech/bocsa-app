@@ -91,7 +91,7 @@ export default function LoginPage() {
             fontWeight: 800,
             marginBottom: 40,
             fontSize: 48
-            whiteSpace: 'nowarp'
+            whiteSpace: 'nowarp',
           }}
         >
           BOCSA TECH
