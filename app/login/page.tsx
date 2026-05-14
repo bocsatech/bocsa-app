@@ -1,47 +1,32 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const router = useRouter()
+
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [answer, setAnswer] = useState('')
   const [remember, setRemember] = useState(true)
 
-  const [randomNumber, setRandomNumber] = useState(0)
-  const [operator, setOperator] = useState('+')
+  const [num1, setNum1] = useState(0)
+  const [num2, setNum2] = useState(0)
+  const [answer, setAnswer] = useState('')
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedUsername =
-        window.localStorage.getItem('remember_username')
+    const saved = window.localStorage.getItem('remember_username')
 
-      if (savedUsername) {
-        setUsername(savedUsername)
-      }
-
-      const op = Math.random() > 0.5 ? '+' : '-'
-
-      let rand = 0
-
-      if (op === '+') {
-        rand = Math.floor(Math.random() * 20) + 1
-      } else {
-        rand = Math.floor(Math.random() * 9) + 1
-      }
-
-      setOperator(op)
-      setRandomNumber(rand)
+    if (saved) {
+      setUsername(saved)
     }
+
+    setNum1(Math.floor(Math.random() * 20) + 1)
+    setNum2(Math.floor(Math.random() * 20) + 1)
   }, [])
 
   function handleLogin() {
-    const secretNumber = 10
-
-    const expected =
-      operator === '+'
-        ? secretNumber + randomNumber
-        : secretNumber - randomNumber
+    const expected = num1 + num2
 
     if (
       username === 'admin' &&
@@ -53,14 +38,17 @@ export default function LoginPage() {
           'remember_username',
           username
         )
+      } else {
+        window.localStorage.removeItem(
+          'remember_username'
+        )
       }
 
-      document.cookie =
-        'bocsa_logged_in=true; path=/; max-age=86400'
+      window.localStorage.setItem('logged_in', 'true')
 
-      window.location.href = '/'
+      router.push('/')
     } else {
-      alert('Falsche Anmeldedaten')
+      alert('Falsche Login Daten')
     }
   }
 
@@ -71,17 +59,17 @@ export default function LoginPage() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        background: '#f5f5f5'
+        background: '#f5f5f5',
       }}
     >
       <div
         style={{
           width: 520,
-          maxWidth:  '95%',
+          maxWidth: '95%',
           background: 'white',
           padding: 40,
           borderRadius: 20,
-          boxShadow: '0 5px 30px rgba(0,0,0,0.1)'
+          boxShadow: '0 5px 30px rgba(0,0,0,0.1)',
         }}
       >
         <h1
@@ -91,7 +79,7 @@ export default function LoginPage() {
             fontWeight: 800,
             marginBottom: 40,
             fontSize: 48,
-            whiteSpace: 'nowarp',
+            whiteSpace: 'nowrap',
           }}
         >
           BOCSA TECH
@@ -100,15 +88,17 @@ export default function LoginPage() {
         <input
           placeholder="Benutzername"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) =>
+            setUsername(e.target.value)
+          }
           style={{
             width: '100%',
-            padding: 18,
+            padding: 20,
             marginBottom: 20,
             borderRadius: 12,
             border: '1px solid #ccc',
-            fontSize: 20,
-            color: 'black'
+            fontSize: 18,
+            color: 'black',
           }}
         />
 
@@ -116,42 +106,46 @@ export default function LoginPage() {
           type="password"
           placeholder="Passwort"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
           style={{
             width: '100%',
-            padding: 18,
+            padding: 20,
             marginBottom: 20,
             borderRadius: 12,
             border: '1px solid #ccc',
-            fontSize: 20,
-            color: 'black'
+            fontSize: 18,
+            color: 'black',
           }}
         />
 
         <div
           style={{
-            fontSize: 34,
-            fontWeight: 800,
+            fontSize: 40,
+            fontWeight: 'bold',
             marginBottom: 20,
-            color: 'black'
+            color: 'black',
           }}
         >
-          {operator} {randomNumber} = ?
+          ? + ? =
         </div>
 
         <input
           type="number"
           placeholder="Ergebnis"
           value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
+          onChange={(e) =>
+            setAnswer(e.target.value)
+          }
           style={{
             width: '100%',
-            padding: 18,
+            padding: 20,
             marginBottom: 20,
             borderRadius: 12,
             border: '1px solid #ccc',
-            fontSize: 20,
-            color: 'black'
+            fontSize: 18,
+            color: 'black',
           }}
         />
 
@@ -161,15 +155,16 @@ export default function LoginPage() {
             alignItems: 'center',
             gap: 10,
             marginBottom: 30,
-            color: 'black'
+            color: 'black',
           }}
         >
           <input
             type="checkbox"
             checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
+            onChange={() =>
+              setRemember(!remember)
+            }
           />
-
           Benutzername merken
         </label>
 
@@ -177,14 +172,14 @@ export default function LoginPage() {
           onClick={handleLogin}
           style={{
             width: '100%',
-            padding: 18,
+            padding: 20,
             background: '#9a3f00',
             color: 'white',
             border: 'none',
             borderRadius: 12,
-            fontSize: 28,
-            fontWeight: 700,
-            cursor: 'pointer'
+            fontSize: 24,
+            fontWeight: 'bold',
+            cursor: 'pointer',
           }}
         >
           Anmelden
