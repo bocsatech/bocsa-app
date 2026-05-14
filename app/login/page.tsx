@@ -1,70 +1,178 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const name = "Róbert Bocsa";
-  const [operator, setOperator] = useState<"+" | "-">("+");
-  const [randomNumber, setRandomNumber] = useState(12);
-  const [answer, setAnswer] = useState("");
-  const [error, setError] = useState("");
+  const [username, setUsername] = useState(
+    localStorage.getItem('remember_username') || ''
+  )
 
-  async function login() {
-    const { data, error } = await supabase.rpc("verify_login_challenge", {
-      user_name: name,
-      operator,
+  const [password, setPassword] = useState('')
+  const [remember, setRemember] = useState(true)
+
+  const [randomNumber, setRandomNumber] = useState(0)
+  const [operator, setOperator] = useState('+')
+  const [answer, setAnswer] = useState('')
+
+  useEffect(() => {
+    const rand = Math.floor(Math.random() * 20) + 1
+    const op = Math.random() > 0.5 ? '+' : '-'
+
+    setRandomNumber(rand)
+    setOperator(op)
+  }, [])
+
+  async function handleLogin() {
+    const result = await supabase.rpc('verify_login_challenge', {
+      input_username: username,
+      input_password: password,
+      operator: operator,
       random_number: randomNumber,
-      answer: Number(answer),
-    });
+      answer: Number(answer)
+    })
 
-    if (error) {
-      setError(error.message);
-      return;
+    const user = result.data?.[0]
+
+    if (!user?.success) {
+      alert('Hibás belépés')
+      return
     }
 
-    const result = data?.[0];
+    localStorage.setItem('bocsa_logged_in', 'true')
 
-    if (!result?.success) {
-      setError("Falsche Antwort");
-      return;
+    if (remember) {
+      localStorage.setItem('remember_username', username)
     }
 
-    localStorage.setItem("bocsa_user", JSON.stringify(result));
-    router.push("/");
+    router.push('/')
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "#f5f6f8", color: "#111", display: "flex", alignItems: 
-"center", justifyContent: "center", fontFamily: "Arial" }}>
-      <div style={{ width: 420, background: "white", color: "#111", padding: 36, borderRadius: 24 }}>
-        <h1 style={{ color: "#ff5e00" }}>BOCSA TECH</h1>
-        <h2 style={{ color: "#111" }}>Login</h2>
+    <div
+      style={{
+        height: '100vh',
+        background: '#f5f5f5',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}
+    >
+      <div
+        style={{
+          width: 400,
+          background: 'white',
+          padding: 40,
+          borderRadius: 12,
+          boxShadow: '0 0 20px rgba(0,0,0,0.1)'
+        }}
+      >
+        <h1
+          style={{
+            textAlign: 'center',
+            fontSize: 36,
+            fontWeight: 800,
+            marginBottom: 30,
+            color: 'black'
+          }}
+        >
+          BOCSA TECH
+        </h1>
 
-        <p style={{ color: "#111", fontWeight: 700 }}>Benutzer: {name}</p>
+        <input
+          placeholder="Felhasználónév"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          style={{
+            width: '100%',
+            padding: 12,
+            marginBottom: 15,
+            color: 'black',
+            border: '1px solid #ccc',
+            borderRadius: 8
+          }}
+        />
 
-        <div style={{ color: "#111", fontSize: 28, fontWeight: 700, marginBottom: 20 }}>
-          Deine Nummer {operator} {randomNumber} = ?
+        <input
+          type="password"
+          placeholder="Jelszó"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{
+            width: '100%',
+            padding: 12,
+            marginBottom: 15,
+            color: 'black',
+            border: '1px solid #ccc',
+            borderRadius: 8
+          }}
+        />
+
+        <div
+          style={{
+            color: 'black',
+            marginBottom: 10,
+            fontWeight: 600
+          }}
+        >
+          10 {operator} {randomNumber} = ?
         </div>
 
         <input
-          type="number"
+          placeholder="Eredmény"
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Ergebnis"
-          style={{ width: "100%", padding: 14, color: "#111", background: "#fff", border: "1px solid #999" }}
+          style={{
+            width: '100%',
+            padding: 12,
+            marginBottom: 15,
+            color: 'black',
+            border: '1px solid #ccc',
+            borderRadius: 8
+          }}
         />
 
-        {error && <p style={{ color: "red", fontWeight: 700 }}>{error}</p>}
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            color: 'black',
+            marginBottom: 20
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={() => setRemember(!remember)}
+          />
+          Felhasználónév megjegyzése
+        </label>
 
-        <button onClick={login} style={{ marginTop: 24, width: "100%", padding: 16, background: "#ff5e00", 
-color: "white", fontWeight: 700 }}>
-          Einloggen
+        <button
+          onClick={handleLogin}
+          style={{
+            width: '100%',
+            padding: 14,
+            background: '#ff8800',
+            color: 'white',
+            border: 'none',
+            borderRadius: 8,
+            fontWeight: 700,
+            cursor: 'pointer'
+          }}
+        >
+          Belépés
         </button>
       </div>
-    </main>
-  );
+    </div>
+  )
 }
