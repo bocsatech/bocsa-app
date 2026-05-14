@@ -76,7 +76,8 @@ export default function LoginPage() {
     >
       <div
         style={{
-          width: 420,
+          width: 520,
+          maxWidth:  '95%',
           background: 'white',
           padding: 40,
           borderRadius: 20,
@@ -89,7 +90,8 @@ export default function LoginPage() {
             color: '#9a3f00',
             fontWeight: 800,
             marginBottom: 40,
-            fontSize: 52
+            fontSize: 48
+            whiteSpace: 'nowarp'
           }}
         >
           BOCSA TECH
