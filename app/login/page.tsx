@@ -12,9 +12,7 @@ const supabase = createClient(
 export default function LoginPage() {
   const router = useRouter()
 
-  const savedUsername = localStorage.getItem('remember_username")
-   
-
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
 
@@ -23,10 +21,14 @@ export default function LoginPage() {
   const [answer, setAnswer] = useState('')
 
   useEffect(() => {
-    const savedUsername = LocalStorage.getItem(remember_username")
-    if (savedUsername)  {
-       setUsername(savedUsername)
-     }
+    if (typeof window !== 'undefined') {
+      const savedUsername = window.localStorage.getItem('remember_username')
+
+      if (savedUsername) {
+        setUsername(savedUsername)
+      }
+    }
+
     const rand = Math.floor(Math.random() * 20) + 1
     const op = Math.random() > 0.5 ? '+' : '-'
 
@@ -40,136 +42,146 @@ export default function LoginPage() {
       input_password: password,
       operator: operator,
       random_number: randomNumber,
-      answer: Number(answer)
+      user_answer: Number(answer)
     })
 
-    const user = result.data?.[0]
+    if (result.data === true) {
+      if (remember && typeof window !== 'undefined') {
+        window.localStorage.setItem('remember_username', username)
+      }
 
-    if (!user?.success) {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('logged_in', 'true')
+      }
+
+      router.push('/')
+    } else {
       alert('Hibás belépés')
-      return
     }
-
-    localStorage.setItem('bocsa_logged_in', 'true')
-
-    if (remember) {
-      localStorage.setItem('remember_username', username)
-    }
-
-    router.push('/')
   }
 
   return (
     <div
       style={{
-        height: '100vh',
-        background: '#f5f5f5',
+        minHeight: '100vh',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        background: '#f5f5f5'
       }}
     >
       <div
         style={{
-          width: 400,
           background: 'white',
-          padding: 40,
-          borderRadius: 12,
+          padding: '40px',
+          borderRadius: '20px',
+          width: '420px',
           boxShadow: '0 0 20px rgba(0,0,0,0.1)'
         }}
       >
         <h1
           style={{
             textAlign: 'center',
-            fontSize: 36,
-            fontWeight: 800,
-            marginBottom: 30,
-            color: 'black'
+            fontSize: '36px',
+            fontWeight: 'bold',
+            color: '#c85a00',
+            marginBottom: '30px'
           }}
         >
           BOCSA TECH
         </h1>
 
-        <input
-          placeholder="Felhasználónév"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          style={{
-            width: '100%',
-            padding: 12,
-            marginBottom: 15,
-            color: 'black',
-            border: '1px solid #ccc',
-            borderRadius: 8
-          }}
-        />
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="text"
+            placeholder="Felhasználónév"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '14px',
+              fontSize: '18px',
+              color: 'black',
+              border: '1px solid #ccc',
+              borderRadius: '10px'
+            }}
+          />
+        </div>
 
-        <input
-          type="password"
-          placeholder="Jelszó"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{
-            width: '100%',
-            padding: 12,
-            marginBottom: 15,
-            color: 'black',
-            border: '1px solid #ccc',
-            borderRadius: 8
-          }}
-        />
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="password"
+            placeholder="Jelszó"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '14px',
+              fontSize: '18px',
+              color: 'black',
+              border: '1px solid #ccc',
+              borderRadius: '10px'
+            }}
+          />
+        </div>
 
         <div
           style={{
-            color: 'black',
-            marginBottom: 10,
-            fontWeight: 600
+            marginBottom: '15px',
+            fontSize: '28px',
+            fontWeight: 'bold',
+            color: 'black'
           }}
         >
           10 {operator} {randomNumber} = ?
         </div>
 
-        <input
-          placeholder="Eredmény"
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          style={{
-            width: '100%',
-            padding: 12,
-            marginBottom: 15,
-            color: 'black',
-            border: '1px solid #ccc',
-            borderRadius: 8
-          }}
-        />
+        <div style={{ marginBottom: '20px' }}>
+          <input
+            type="number"
+            placeholder="Eredmény"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '14px',
+              fontSize: '18px',
+              color: 'black',
+              border: '1px solid #ccc',
+              borderRadius: '10px'
+            }}
+          />
+        </div>
 
-        <label
+        <div
           style={{
+            marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
-            color: 'black',
-            marginBottom: 20
+            gap: '10px',
+            color: 'black'
           }}
         >
           <input
             type="checkbox"
             checked={remember}
-            onChange={() => setRemember(!remember)}
+            onChange={(e) => setRemember(e.target.checked)}
           />
-          Felhasználónév megjegyzése
-        </label>
+
+          <span>Felhasználónév megjegyzése</span>
+        </div>
 
         <button
           onClick={handleLogin}
           style={{
             width: '100%',
-            padding: 14,
-            background: '#ff8800',
+            padding: '16px',
+            background: '#c85a00',
             color: 'white',
             border: 'none',
-            borderRadius: 8,
-            fontWeight: 700,
+            borderRadius: '10px',
+            fontSize: '20px',
+            fontWeight: 'bold',
             cursor: 'pointer'
           }}
         >
