@@ -2,7 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
+
+type UserRow = {
+  id: string;
+  username: string;
+  password: string;
+  pin: string | null;
+  role: string;
+  name: string;
+  must_set_pin: boolean;
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,19 +21,25 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [pin, setPin] = useState("");
-
-  const [user, setUser] = useState<any>(null);
-  const [needsPinSetup, setNeedsPinSetup] = useState(false);
+  const [newPin, setNewPin] = useState("");
+  const [remember, setRemember] = useState(true);
+  const [user, setUser] = useState<UserRow | null>(null);
+  const [mustSetPin, setMustSetPin] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("remember_username");
-
-    if (saved) {
-      setUsername(saved);
-    }
+    const savedUsername = window.localStorage.getItem("remember_username");
+    if (savedUsername) setUsername(savedUsername);
   }, []);
 
-  async function login() {
+  async function handleLogin() {
+    if (!username || !password) {
+      alert("Bitte Benutzername und Passwort eingeben");
+      return;
+    }
+
+    setLoading(true);
+
     const { data, error } = await supabase
       .from("users")
       .select("*")
@@ -30,38 +47,57 @@ export default function LoginPage() {
       .eq("password", password)
       .single();
 
+    setLoading(false);
+
     if (error || !data) {
-      alert("Falscher Benutzername oder Passwort");
+      alert("Falscher Benutzername oder falsches Passwort");
       return;
     }
 
-    if (data.must_set_pin) {
-      setUser(data);
-      setNeedsPinSetup(true);
+    const foundUser = data as UserRow;
+
+    if (foundUser.must_set_pin) {
+      setUser(foundUser);
+      setMustSetPin(true);
       return;
     }
 
-    if (data.pin !== pin) {
+    if (!pin || pin.length !== 2) {
+      alert("Bitte 2-stelligen PIN eingeben");
+      return;
+    }
+
+    if (foundUser.pin !== pin) {
       alert("Falscher PIN");
       return;
     }
 
-    finishLogin(data);
+    finishLogin(foundUser);
   }
 
   async function saveNewPin() {
-    if (pin.length !== 2) {
-      alert("PIN muss 2-stellig sein");
+    if (!newPin || newPin.length !== 2) {
+      alert("Der PIN muss 2-stellig sein");
       return;
     }
+
+    if (!user) {
+      alert("Benutzer nicht gefunden");
+      return;
+    }
+
+    setLoading(true);
 
     const { error } = await supabase
       .from("users")
       .update({
-        pin,
+        pin: newPin,
+        basis_nummer: Number(newPin),
         must_set_pin: false,
       })
       .eq("id", user.id);
+
+    setLoading(false);
 
     if (error) {
       alert(error.message);
@@ -70,97 +106,103 @@ export default function LoginPage() {
 
     finishLogin({
       ...user,
-      pin,
+      pin: newPin,
+      basis_nummer: Number(newPin),
       must_set_pin: false,
-    });
+    } as UserRow);
   }
 
-  function finishLogin(userData: any) {
-    localStorage.setItem(
-      "remember_username",
-      username
-    );
+  function finishLogin(userData: UserRow) {
+    if (remember) {
+      window.localStorage.setItem("remember_username", username);
+    } else {
+      window.localStorage.removeItem("remember_username");
+    }
 
-    localStorage.setItem(
-      "bocsa_user",
-      JSON.stringify(userData)
-    );
-
-    document.cookie =
-      "bocsa_logged_in=true; path=/; max-age=86400";
+    window.localStorage.setItem("bocsa_user", JSON.stringify(userData));
+    document.cookie = "bocsa_logged_in=true; path=/; max-age=86400";
 
     router.push("/");
   }
 
   return (
-    <div style={pageStyle}>
+    <main style={pageStyle}>
       <div style={cardStyle}>
         <h1 style={titleStyle}>BOCSA TECH</h1>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>
-            Benutzername
-          </label>
-
+          <label style={labelStyle}>Benutzername</label>
           <input
             value={username}
-            onChange={(e) =>
-              setUsername(e.target.value)
-            }
+            onChange={(e) => setUsername(e.target.value)}
             style={inputStyle}
+            disabled={mustSetPin}
           />
         </div>
 
         <div style={fieldStyle}>
-          <label style={labelStyle}>
-            Passwort
-          </label>
-
+          <label style={labelStyle}>Passwort</label>
           <input
             type="password"
             value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
+            onChange={(e) => setPassword(e.target.value)}
             style={inputStyle}
+            disabled={mustSetPin}
           />
         </div>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>
-            {needsPinSetup
-              ? "Neuen 2-stelligen PIN erstellen"
-              : "PIN"}
+        {!mustSetPin && (
+          <div style={fieldStyle}>
+            <label style={labelStyle}>PIN</label>
+            <input
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 2))}
+              style={inputStyle}
+              maxLength={2}
+            />
+          </div>
+        )}
+
+        {mustSetPin && (
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Neuen 2-stelligen PIN erstellen</label>
+            <input
+              value={newPin}
+              onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 2))}
+              style={inputStyle}
+              maxLength={2}
+            />
+          </div>
+        )}
+
+        {!mustSetPin && (
+          <label style={rememberStyle}>
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+            />
+            Benutzername merken
           </label>
-
-          <input
-            maxLength={2}
-            value={pin}
-            onChange={(e) =>
-              setPin(e.target.value)
-            }
-            style={inputStyle}
-          />
-        </div>
+        )}
 
         <button
-          onClick={
-            needsPinSetup
-              ? saveNewPin
-              : login
-          }
+          onClick={mustSetPin ? saveNewPin : handleLogin}
+          disabled={loading}
           style={buttonStyle}
         >
-          {needsPinSetup
+          {loading
+            ? "Bitte warten..."
+            : mustSetPin
             ? "PIN speichern"
             : "Anmelden"}
         </button>
       </div>
-    </div>
+    </main>
   );
 }
 
-const pageStyle = {
+const pageStyle: CSSProperties = {
   minHeight: "100vh",
   background: "#f5f5f5",
   display: "flex",
@@ -168,52 +210,64 @@ const pageStyle = {
   alignItems: "center",
 };
 
-const cardStyle = {
-  width: 520,
+const cardStyle: CSSProperties = {
+  width: 560,
+  maxWidth: "95%",
   background: "white",
-  borderRadius: 24,
-  padding: 40,
+  borderRadius: 26,
+  padding: 46,
   boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
 };
 
-const titleStyle = {
-  textAlign: "center" as const,
-  color: "#9a3f00",
+const titleStyle: CSSProperties = {
+  textAlign: "center",
   fontSize: 52,
-  fontWeight: 800,
-  marginBottom: 40,
+  fontWeight: 900,
+  color: "#9a3f00",
+  marginBottom: 42,
+  whiteSpace: "nowrap",
 };
 
-const fieldStyle = {
-  marginBottom: 25,
+const fieldStyle: CSSProperties = {
+  marginBottom: 24,
 };
 
-const labelStyle = {
+const labelStyle: CSSProperties = {
   display: "block",
   marginBottom: 10,
-  fontWeight: 700,
-  fontSize: 20,
+  fontSize: 22,
+  fontWeight: 800,
   color: "#222",
 };
 
-const inputStyle = {
+const inputStyle: CSSProperties = {
   width: "100%",
-  height: 64,
-  borderRadius: 14,
+  height: 66,
+  borderRadius: 16,
   border: "2px solid #ddd",
   paddingLeft: 20,
-  fontSize: 22,
+  fontSize: 24,
+  color: "black",
+  background: "white",
+};
+
+const rememberStyle: CSSProperties = {
+  display: "flex",
+  gap: 10,
+  alignItems: "center",
+  marginBottom: 28,
+  fontSize: 18,
   color: "black",
 };
 
-const buttonStyle = {
+const buttonStyle: CSSProperties = {
   width: "100%",
-  height: 70,
+  height: 74,
   borderRadius: 18,
   border: "none",
   background: "#9a3f00",
   color: "white",
-  fontSize: 26,
-  fontWeight: 800,
+  fontSize: 28,
+  fontWeight: 900,
   cursor: "pointer",
 };
