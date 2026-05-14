@@ -12,9 +12,8 @@ const supabase = createClient(
 export default function LoginPage() {
   const router = useRouter()
 
-  const [username, setUsername] = useState(
-    localStorage.getItem('remember_username') || ''
-  )
+  const [username, setUsername] = useState('')
+   
 
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
@@ -24,6 +23,10 @@ export default function LoginPage() {
   const [answer, setAnswer] = useState('')
 
   useEffect(() => {
+    const savedUsername = LocalStorage.getItem(remember_username")
+    if (savedUsername)  {
+       setUsername(savedUsername)
+     }
     const rand = Math.floor(Math.random() * 20) + 1
     const op = Math.random() > 0.5 ? '+' : '-'
 
