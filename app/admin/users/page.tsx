@@ -1,11 +1,42 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-export default function AdminUsersPage() {
+export default function UsersPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("techniker");
+  const [role, setRole] = useState("Techniker");
+
+  async function saveUser() {
+    if (!username || !password) {
+      alert("Bitte Benutzername und Passwort ausfüllen");
+      return;
+    }
+
+    const temporaryPin = Math.floor(10 + Math.random() * 90).toString();
+
+    const { error } = await supabase.from("users").insert([
+      {
+        username,
+        password,
+        role,
+        pin: temporaryPin,
+        must_set_pin: true,
+      },
+    ]);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Benutzer wurde gespeichert");
+
+    setUsername("");
+    setPassword("");
+    setRole("Techniker");
+  }
 
   return (
     <div style={pageStyle}>
@@ -38,12 +69,15 @@ export default function AdminUsersPage() {
             onChange={(e) => setRole(e.target.value)}
             style={inputStyle}
           >
-            <option value="admin">Admin</option>
-            <option value="techniker">Techniker</option>
+            <option value="Techniker">Techniker</option>
+            <option value="Admin">Admin</option>
+            <option value="Service">Service</option>
           </select>
         </div>
 
-        <button style={buttonStyle}>Benutzer speichern</button>
+        <button onClick={saveUser} style={buttonStyle}>
+          Benutzer speichern
+        </button>
       </div>
     </div>
   );
@@ -51,61 +85,59 @@ export default function AdminUsersPage() {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "#f5f5f5",
+  background: "#f4f4f4",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  padding: 20,
 };
 
 const cardStyle = {
-  width: 560,
-  maxWidth: "95%",
+  width: 600,
   background: "white",
-  borderRadius: 20,
-  padding: 40,
-  boxShadow: "0 5px 30px rgba(0,0,0,0.1)",
+  padding: 50,
+  borderRadius: 30,
+  boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
 };
 
 const titleStyle = {
-  color: "#9a3f00",
-  fontSize: 38,
-  marginBottom: 35,
   textAlign: "center" as const,
+  fontSize: 52,
   fontWeight: 800,
+  marginBottom: 40,
+  color: "#9a3f00",
 };
 
 const fieldStyle = {
-  marginBottom: 22,
+  marginBottom: 25,
 };
 
 const labelStyle = {
   display: "block",
-  marginBottom: 8,
+  marginBottom: 10,
   fontWeight: 700,
+  fontSize: 20,
   color: "#222",
-  fontSize: 16,
 };
 
 const inputStyle = {
   width: "100%",
-  padding: 16,
-  borderRadius: 12,
-  border: "1px solid #999",
-  fontSize: 18,
+  height: 64,
+  borderRadius: 14,
+  border: "2px solid #ddd",
+  paddingLeft: 20,
+  fontSize: 22,
   color: "black",
   background: "white",
 };
 
 const buttonStyle = {
   width: "100%",
-  padding: 18,
+  height: 70,
+  borderRadius: 18,
+  border: "none",
   background: "#9a3f00",
   color: "white",
-  border: "none",
-  borderRadius: 12,
-  fontSize: 20,
+  fontSize: 26,
   fontWeight: 800,
   cursor: "pointer",
-  marginTop: 15,
 };
