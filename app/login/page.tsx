@@ -12,7 +12,7 @@ const supabase = createClient(
 export default function LoginPage() {
   const router = useRouter()
 
-  const [username, setUsername] = useState('')
+  const savedUsername = localStorage.getItem('remember_username")
    
 
   const [password, setPassword] = useState('')
