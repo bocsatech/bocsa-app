@@ -1,5 +1,32 @@
 "use client";
 
+
+<button
+  onClick={() => {
+    document.cookie =
+      'bocsa_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
+
+    localStorage.removeItem('bocsa_user')
+
+    window.location.href = '/login'
+  }}
+  style={{
+    background: '#9a3f00',
+    color: 'white',
+    border: 'none',
+    padding: '10px 18px',
+    borderRadius: 10,
+    fontWeight: 700,
+    cursor: 'pointer'
+  }}
+>
+  Abmelden
+</button>
+
+
+
+
+
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
