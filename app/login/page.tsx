@@ -90,7 +90,7 @@ export default function LoginPage() {
             color: '#9a3f00',
             fontWeight: 800,
             marginBottom: 40,
-            fontSize: 48
+            fontSize: 48,
             whiteSpace: 'nowarp',
           }}
         >
