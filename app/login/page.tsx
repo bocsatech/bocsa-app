@@ -133,7 +133,7 @@ export default function LoginPage() {
             color: 'black'
           }}
         >
-          10 {operator} {randomNumber} = ?
+           {operator} {randomNumber} = ?
         </div>
 
         <div style={{ marginBottom: '20px' }}>
