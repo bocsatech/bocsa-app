@@ -1,190 +1,219 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-  const router = useRouter()
+  const router = useRouter();
 
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(true)
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
 
-  const [num1, setNum1] = useState(0)
-  const [num2, setNum2] = useState(0)
-  const [answer, setAnswer] = useState('')
+  const [user, setUser] = useState<any>(null);
+  const [needsPinSetup, setNeedsPinSetup] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('remember_username')
+    const saved = localStorage.getItem("remember_username");
 
     if (saved) {
-      setUsername(saved)
+      setUsername(saved);
+    }
+  }, []);
+
+  async function login() {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("username", username)
+      .eq("password", password)
+      .single();
+
+    if (error || !data) {
+      alert("Falscher Benutzername oder Passwort");
+      return;
     }
 
-    setNum1(Math.floor(Math.random() * 20) + 1)
-    setNum2(Math.floor(Math.random() * 20) + 1)
-  }, [])
-
-  function handleLogin() {
-    const expected = num1 + num2
-
-    if (
-      username === 'admin' &&
-      password === 'AdMiN' &&
-      Number(answer) === expected
-    ) {
-      if (remember) {
-        window.localStorage.setItem(
-          'remember_username',
-          username
-        )
-      } else {
-        window.localStorage.removeItem(
-          'remember_username'
-        )
-      }
-
-      window.localStorage.setItem('logged_in', 'true')
-
-      router.push('/')
-    } else {
-      alert('Falsche Login Daten')
+    if (data.must_set_pin) {
+      setUser(data);
+      setNeedsPinSetup(true);
+      return;
     }
+
+    if (data.pin !== pin) {
+      alert("Falscher PIN");
+      return;
+    }
+
+    finishLogin(data);
+  }
+
+  async function saveNewPin() {
+    if (pin.length !== 2) {
+      alert("PIN muss 2-stellig sein");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("users")
+      .update({
+        pin,
+        must_set_pin: false,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    finishLogin({
+      ...user,
+      pin,
+      must_set_pin: false,
+    });
+  }
+
+  function finishLogin(userData: any) {
+    localStorage.setItem(
+      "remember_username",
+      username
+    );
+
+    localStorage.setItem(
+      "bocsa_user",
+      JSON.stringify(userData)
+    );
+
+    document.cookie =
+      "bocsa_logged_in=true; path=/; max-age=86400";
+
+    router.push("/");
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: '#f5f5f5',
-      }}
-    >
-      <div
-        style={{
-          width: 520,
-          maxWidth: '95%',
-          background: 'white',
-          padding: 40,
-          borderRadius: 20,
-          boxShadow: '0 5px 30px rgba(0,0,0,0.1)',
-        }}
-      >
-        <h1
-          style={{
-            textAlign: 'center',
-            color: '#9a3f00',
-            fontWeight: 800,
-            marginBottom: 40,
-            fontSize: 48,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          BOCSA TECH
-        </h1>
+    <div style={pageStyle}>
+      <div style={cardStyle}>
+        <h1 style={titleStyle}>BOCSA TECH</h1>
 
-        <input
-          placeholder="Benutzername"
-          value={username}
-          onChange={(e) =>
-            setUsername(e.target.value)
-          }
-          style={{
-            width: '100%',
-            padding: 20,
-            marginBottom: 20,
-            borderRadius: 12,
-            border: '1px solid #ccc',
-            fontSize: 18,
-            color: 'black',
-          }}
-        />
+        <div style={fieldStyle}>
+          <label style={labelStyle}>
+            Benutzername
+          </label>
 
-        <input
-          type="password"
-          placeholder="Passwort"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          style={{
-            width: '100%',
-            padding: 20,
-            marginBottom: 20,
-            borderRadius: 12,
-            border: '1px solid #ccc',
-            fontSize: 18,
-            color: 'black',
-          }}
-        />
-
-        <div
-          style={{
-            fontSize: 40,
-            fontWeight: 'bold',
-            marginBottom: 20,
-            color: 'black',
-          }}
-        >
-          ? + ? =
+          <input
+            value={username}
+            onChange={(e) =>
+              setUsername(e.target.value)
+            }
+            style={inputStyle}
+          />
         </div>
 
-        <input
-          type="number"
-          placeholder="Ergebnis"
-          value={answer}
-          onChange={(e) =>
-            setAnswer(e.target.value)
-          }
-          style={{
-            width: '100%',
-            padding: 20,
-            marginBottom: 20,
-            borderRadius: 12,
-            border: '1px solid #ccc',
-            fontSize: 18,
-            color: 'black',
-          }}
-        />
+        <div style={fieldStyle}>
+          <label style={labelStyle}>
+            Passwort
+          </label>
 
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            marginBottom: 30,
-            color: 'black',
-          }}
-        >
           <input
-            type="checkbox"
-            checked={remember}
-            onChange={() =>
-              setRemember(!remember)
+            type="password"
+            value={password}
+            onChange={(e) =>
+              setPassword(e.target.value)
             }
+            style={inputStyle}
           />
-          Benutzername merken
-        </label>
+        </div>
+
+        <div style={fieldStyle}>
+          <label style={labelStyle}>
+            {needsPinSetup
+              ? "Neuen 2-stelligen PIN erstellen"
+              : "PIN"}
+          </label>
+
+          <input
+            maxLength={2}
+            value={pin}
+            onChange={(e) =>
+              setPin(e.target.value)
+            }
+            style={inputStyle}
+          />
+        </div>
 
         <button
-          onClick={handleLogin}
-          style={{
-            width: '100%',
-            padding: 20,
-            background: '#9a3f00',
-            color: 'white',
-            border: 'none',
-            borderRadius: 12,
-            fontSize: 24,
-            fontWeight: 'bold',
-            cursor: 'pointer',
-          }}
+          onClick={
+            needsPinSetup
+              ? saveNewPin
+              : login
+          }
+          style={buttonStyle}
         >
-          Anmelden
+          {needsPinSetup
+            ? "PIN speichern"
+            : "Anmelden"}
         </button>
       </div>
     </div>
-  )
+  );
 }
+
+const pageStyle = {
+  minHeight: "100vh",
+  background: "#f5f5f5",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+};
+
+const cardStyle = {
+  width: 520,
+  background: "white",
+  borderRadius: 24,
+  padding: 40,
+  boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+};
+
+const titleStyle = {
+  textAlign: "center" as const,
+  color: "#9a3f00",
+  fontSize: 52,
+  fontWeight: 800,
+  marginBottom: 40,
+};
+
+const fieldStyle = {
+  marginBottom: 25,
+};
+
+const labelStyle = {
+  display: "block",
+  marginBottom: 10,
+  fontWeight: 700,
+  fontSize: 20,
+  color: "#222",
+};
+
+const inputStyle = {
+  width: "100%",
+  height: 64,
+  borderRadius: 14,
+  border: "2px solid #ddd",
+  paddingLeft: 20,
+  fontSize: 22,
+  color: "black",
+};
+
+const buttonStyle = {
+  width: "100%",
+  height: 70,
+  borderRadius: 18,
+  border: "none",
+  background: "#9a3f00",
+  color: "white",
+  fontSize: 26,
+  fontWeight: 800,
+  cursor: "pointer",
+};
