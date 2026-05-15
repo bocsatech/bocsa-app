@@ -1,289 +1,385 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import type { CSSProperties } from "react";
-import {
-  ClipboardList,
-  Package,
-  Wrench,
-  Clock3,
-  Building2,
-  ShieldCheck,
-  LogOut,
-  Hammer,
-  Truck,
-  PlugZap,
-  Car,
-} from "lucide-react";
 
-export default function DashboardPage() {
-  function logout() {
-    localStorage.removeItem("bocsa_user");
+type UserType = {
+  id: string;
+  username: string;
+  password: string;
+  basis_nummer: number | null;
+  must_set_pin: boolean;
+};
+
+type StepType =
+  | "login"
+  | "set-secret"
+  | "challenge";
+
+export default function LoginPage() {
+  const router = useRouter();
+
+  const [step, setStep] =
+    useState<StepType>("login");
+
+  const [username, setUsername] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [secretNumber, setSecretNumber] =
+    useState("");
+
+  const [answer, setAnswer] =
+    useState("");
+
+  const [user, setUser] =
+    useState<UserType | null>(null);
+
+  const [operator, setOperator] =
+    useState<"+" | "-">("+");
+
+  const [randomNumber, setRandomNumber] =
+    useState(1);
+
+  async function handleLogin() {
+    const { data, error } =
+      await supabase
+        .from("users")
+        .select("*")
+        .eq("username", username)
+        .eq("password", password)
+        .single();
+
+    if (error || !data) {
+      alert("Falsche Login Daten");
+      return;
+    }
+
+    const foundUser = data as UserType;
+
+    setUser(foundUser);
+
+    if (
+      foundUser.must_set_pin === true ||
+      foundUser.basis_nummer === null
+    ) {
+      setStep("set-secret");
+      return;
+    }
+
+    createChallenge();
+
+    setStep("challenge");
+  }
+
+  function createChallenge() {
+    const op =
+      Math.random() > 0.5 ? "+" : "-";
+
+    const number =
+      op === "+"
+        ? Math.floor(Math.random() * 20) + 1
+        : Math.floor(Math.random() * 9) + 1;
+
+    setOperator(op);
+
+    setRandomNumber(number);
+  }
+
+  async function saveSecret() {
+    if (!/^\d{2}$/.test(secretNumber)) {
+      alert(
+        "Bitte 2-stellige Zahl eingeben"
+      );
+      return;
+    }
+
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("users")
+      .update({
+        basis_nummer:
+          Number(secretNumber),
+        must_set_pin: false,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    const updatedUser = {
+      ...user,
+      basis_nummer:
+        Number(secretNumber),
+      must_set_pin: false,
+    };
+
+    setUser(updatedUser);
+
+    createChallenge();
+
+    setStep("challenge");
+  }
+
+  function finishLogin() {
+    if (!user) return;
+
+    const secret =
+      user.basis_nummer || 0;
+
+    const correctResult =
+      operator === "+"
+        ? secret + randomNumber
+        : secret - randomNumber;
+
+    if (
+      Number(answer) !== correctResult
+    ) {
+      alert("Falsches Ergebnis");
+      return;
+    }
+
+    localStorage.setItem(
+      "bocsa_logged_in",
+      "true"
+    );
 
     document.cookie =
-      "bocsa_logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      "bocsa_logged_in=true; path=/;";
 
-    window.location.href = "/login";
+    router.push("/");
   }
 
   return (
     <main style={pageStyle}>
-      <aside style={sidebarStyle}>
-        <div>
-          <div style={logoBoxStyle}>
-            <h1 style={logoStyle}>BOCSA</h1>
+      <div style={cardStyle}>
+        <h1 style={logoStyle}>
+          BOCSA
+        </h1>
 
-            <div style={techStyle}>TECH</div>
-          </div>
-
-          <nav style={menuStyle}>
-            <MenuItem
-              icon={<ClipboardList size={28} />}
-              text="Arbeitsprotokol"
-            />
-
-            <MenuItem
-              icon={<Package size={28} />}
-              text="Lager"
-            />
-
-            <MenuItem
-              icon={<Wrench size={28} />}
-              text="Ersatzteile"
-            />
-
-            <MenuItem
-              icon={<Clock3 size={28} />}
-              text="Arbeitsstunden"
-            />
-
-            <MenuItem
-              icon={<Building2 size={28} />}
-              text="Filiale"
-            />
-
-            <MenuItem
-              icon={<ShieldCheck size={28} />}
-              text="Prüfprotokol"
-            />
-          </nav>
+        <div style={techStyle}>
+          TECH
         </div>
 
-        <button
-          onClick={logout}
-          style={logoutButtonStyle}
-        >
-          <LogOut size={28} />
+        {step === "login" && (
+          <>
+            <h2 style={titleStyle}>
+              Anmeldung
+            </h2>
 
-          Ausloggen
-        </button>
-      </aside>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>
+                Benutzername
+              </label>
 
-      <section style={contentStyle}>
-        <div style={contentCardStyle}>
-          <h1 style={welcomeStyle}>
-            WILLKOMMEN
-          </h1>
+              <input
+                value={username}
+                onChange={(e) =>
+                  setUsername(
+                    e.target.value
+                  )
+                }
+                style={inputStyle}
+              />
+            </div>
 
-          <p style={subtitleStyle}>
-            Wählen Sie eine Kategorie aus
-          </p>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>
+                Passwort
+              </label>
 
-          <div style={gridStyle}>
-            <CategoryCard
-              title="Kleingeräte"
-              icon={<Hammer size={120} />}
-            />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(
+                    e.target.value
+                  )
+                }
+                style={inputStyle}
+              />
+            </div>
 
-            <CategoryCard
-              title="Großgeräte"
-              icon={<Truck size={120} />}
-            />
+            <button
+              onClick={handleLogin}
+              style={buttonStyle}
+            >
+              Weiter
+            </button>
+          </>
+        )}
 
-            <CategoryCard
-              title="Elektrogeräte 230"
-              icon={<PlugZap size={120} />}
-            />
+        {step === "set-secret" && (
+          <>
+            <h2 style={titleStyle}>
+              Eigene geheime Zahl
+            </h2>
 
-            <CategoryCard
-              title="Elektrogeräte 400"
-              icon={<PlugZap size={120} />}
-            />
+            <p style={infoStyle}>
+              Bitte eigene 2-stellige
+              Zahl festlegen
+            </p>
 
-            <CategoryCard
-              title="PKW"
-              icon={<Car size={120} />}
-            />
-          </div>
-        </div>
-      </section>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>
+                Geheime Zahl
+              </label>
+
+              <input
+                value={secretNumber}
+                onChange={(e) =>
+                  setSecretNumber(
+                    e.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 2)
+                  )
+                }
+                maxLength={2}
+                style={inputStyle}
+              />
+            </div>
+
+            <button
+              onClick={saveSecret}
+              style={buttonStyle}
+            >
+              Speichern
+            </button>
+          </>
+        )}
+
+        {step === "challenge" && (
+          <>
+            <h2 style={titleStyle}>
+              Sicherheitsprüfung
+            </h2>
+
+            <div style={challengeStyle}>
+              {user?.basis_nummer}{" "}
+              {operator}{" "}
+              {randomNumber} = ?
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>
+                Ergebnis
+              </label>
+
+              <input
+                value={answer}
+                onChange={(e) =>
+                  setAnswer(
+                    e.target.value.replace(
+                      /\D/g,
+                      ""
+                    )
+                  )
+                }
+                style={inputStyle}
+              />
+            </div>
+
+            <button
+              onClick={finishLogin}
+              style={buttonStyle}
+            >
+              Anmelden
+            </button>
+          </>
+        )}
+      </div>
     </main>
   );
 }
 
-function MenuItem({
-  icon,
-  text,
-}: {
-  icon: React.ReactNode;
-  text: string;
-}) {
-  return (
-    <div style={menuItemStyle}>
-      {icon}
-
-      <span>{text}</span>
-    </div>
-  );
-}
-
-function CategoryCard({
-  title,
-  icon,
-}: {
-  title: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div style={categoryCardStyle}>
-      <div style={categoryTitleStyle}>
-        {title}
-      </div>
-
-      <div style={categoryIconStyle}>
-        {icon}
-      </div>
-    </div>
-  );
-}
-
 const pageStyle: CSSProperties = {
-  width: "100%",
   minHeight: "100vh",
-  background: "#f3f3f3",
   display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  background: "#f5f5f5",
 };
 
-const sidebarStyle: CSSProperties = {
-  width: 320,
-  background:
-    "linear-gradient(180deg, #ff6a00 0%, #c84b00 100%)",
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "space-between",
-  paddingTop: 40,
-  paddingBottom: 40,
-  color: "white",
-  boxShadow: "4px 0 20px rgba(0,0,0,0.15)",
-};
-
-const logoBoxStyle: CSSProperties = {
-  textAlign: "center",
-  marginBottom: 50,
+const cardStyle: CSSProperties = {
+  width: 520,
+  maxWidth: "95%",
+  background: "white",
+  borderRadius: 30,
+  padding: 50,
+  boxShadow:
+    "0 10px 30px rgba(0,0,0,0.1)",
 };
 
 const logoStyle: CSSProperties = {
-  fontSize: 72,
+  textAlign: "center",
+  fontSize: 58,
   fontWeight: 900,
-  letterSpacing: 2,
+  color: "#ff6a00",
   margin: 0,
 };
 
 const techStyle: CSSProperties = {
-  fontSize: 28,
-  fontWeight: 300,
-  letterSpacing: 10,
-};
-
-const menuStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 10,
-};
-
-const menuItemStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 18,
-  height: 80,
-  paddingLeft: 34,
-  fontSize: 28,
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const logoutButtonStyle: CSSProperties = {
-  height: 82,
-  marginLeft: 24,
-  marginRight: 24,
-  borderRadius: 18,
-  border: "2px solid rgba(255,255,255,0.3)",
-  background: "rgba(255,255,255,0.12)",
-  color: "white",
-  fontSize: 28,
-  fontWeight: 800,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 16,
-  cursor: "pointer",
-};
-
-const contentStyle: CSSProperties = {
-  flex: 1,
-  padding: 40,
-};
-
-const contentCardStyle: CSSProperties = {
-  width: "100%",
-  minHeight: "calc(100vh - 80px)",
-  background: "white",
-  borderRadius: 36,
-  padding: 50,
-  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-};
-
-const welcomeStyle: CSSProperties = {
   textAlign: "center",
-  fontSize: 84,
-  fontWeight: 900,
+  fontSize: 24,
+  letterSpacing: 8,
+  marginBottom: 40,
+};
+
+const titleStyle: CSSProperties = {
+  textAlign: "center",
+  fontSize: 34,
+  marginBottom: 20,
+};
+
+const fieldStyle: CSSProperties = {
+  marginBottom: 24,
+};
+
+const labelStyle: CSSProperties = {
+  display: "block",
   marginBottom: 10,
-  color: "#111",
+  fontWeight: 700,
+  fontSize: 20,
 };
 
-const subtitleStyle: CSSProperties = {
-  textAlign: "center",
-  fontSize: 34,
-  color: "#777",
-  marginBottom: 60,
+const inputStyle: CSSProperties = {
+  width: "100%",
+  height: 68,
+  borderRadius: 18,
+  border: "2px solid #ddd",
+  paddingLeft: 20,
+  fontSize: 24,
+  boxSizing: "border-box",
 };
 
-const gridStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns:
-    "repeat(auto-fit, minmax(320px, 1fr))",
-  gap: 34,
-};
-
-const categoryCardStyle: CSSProperties = {
-  height: 320,
-  borderRadius: 30,
-  background: "#fafafa",
-  border: "1px solid #ececec",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+const buttonStyle: CSSProperties = {
+  width: "100%",
+  height: 70,
+  border: "none",
+  borderRadius: 18,
+  background: "#ff6a00",
+  color: "white",
+  fontSize: 26,
+  fontWeight: 800,
   cursor: "pointer",
 };
 
-const categoryTitleStyle: CSSProperties = {
-  fontSize: 34,
-  fontWeight: 800,
-  color: "black",
+const infoStyle: CSSProperties = {
+  textAlign: "center",
+  fontSize: 20,
   marginBottom: 30,
 };
 
-const categoryIconStyle: CSSProperties = {
-  color: "#e45a00",
+const challengeStyle: CSSProperties = {
+  textAlign: "center",
+  fontSize: 42,
+  fontWeight: 900,
+  marginBottom: 30,
 };

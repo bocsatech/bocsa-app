@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import type {
   CSSProperties,
   ReactNode,
@@ -20,13 +21,28 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
+  useEffect(() => {
+    const loggedIn =
+      localStorage.getItem(
+        "bocsa_logged_in"
+      );
+
+    if (loggedIn !== "true") {
+      window.location.href =
+        "/login";
+    }
+  }, []);
+
   function logout() {
-    localStorage.removeItem("bocsa_user");
+    localStorage.removeItem(
+      "bocsa_logged_in"
+    );
 
     document.cookie =
       "bocsa_logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-    window.location.href = "/login";
+    window.location.href =
+      "/login";
   }
 
   return (
@@ -34,14 +50,20 @@ export default function DashboardPage() {
       <aside style={sidebarStyle}>
         <div>
           <div style={logoBoxStyle}>
-            <h1 style={logoStyle}>BOCSA</h1>
+            <h1 style={logoStyle}>
+              BOCSA
+            </h1>
 
-            <div style={techStyle}>TECH</div>
+            <div style={techStyle}>
+              TECH
+            </div>
           </div>
 
           <nav style={menuStyle}>
             <MenuItem
-              icon={<ClipboardList size={28} />}
+              icon={
+                <ClipboardList size={28} />
+              }
               text="Arbeitsprotokol"
             />
 
@@ -61,12 +83,16 @@ export default function DashboardPage() {
             />
 
             <MenuItem
-              icon={<Building2 size={28} />}
+              icon={
+                <Building2 size={28} />
+              }
               text="Filiale"
             />
 
             <MenuItem
-              icon={<ShieldCheck size={28} />}
+              icon={
+                <ShieldCheck size={28} />
+              }
               text="Prüfprotokol"
             />
           </nav>
@@ -89,7 +115,8 @@ export default function DashboardPage() {
           </h1>
 
           <p style={subtitleStyle}>
-            Wählen Sie eine Kategorie aus
+            Wählen Sie eine Kategorie
+            aus
           </p>
 
           <div style={gridStyle}>
@@ -105,12 +132,16 @@ export default function DashboardPage() {
 
             <CategoryCard
               title="Elektrogeräte 230"
-              icon={<PlugZap size={120} />}
+              icon={
+                <PlugZap size={120} />
+              }
             />
 
             <CategoryCard
               title="Elektrogeräte 400"
-              icon={<PlugZap size={120} />}
+              icon={
+                <PlugZap size={120} />
+              }
             />
 
             <CategoryCard
@@ -170,14 +201,13 @@ const pageStyle: CSSProperties = {
 const sidebarStyle: CSSProperties = {
   width: 320,
   background:
-    "linear-gradient(180deg, #ff6a00 0%, #c84b00 100%)",
+    "linear-gradient(180deg,#ff6a00,#c84b00)",
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
   paddingTop: 40,
   paddingBottom: 40,
   color: "white",
-  boxShadow: "4px 0 20px rgba(0,0,0,0.15)",
 };
 
 const logoBoxStyle: CSSProperties = {
@@ -188,47 +218,45 @@ const logoBoxStyle: CSSProperties = {
 const logoStyle: CSSProperties = {
   fontSize: 72,
   fontWeight: 900,
-  letterSpacing: 2,
   margin: 0,
 };
 
 const techStyle: CSSProperties = {
   fontSize: 28,
-  fontWeight: 300,
-  letterSpacing: 10,
+  letterSpacing: 8,
 };
 
 const menuStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: 10,
+  gap: 8,
 };
 
 const menuItemStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: 18,
-  height: 80,
-  paddingLeft: 34,
+  gap: 16,
+  height: 78,
+  paddingLeft: 30,
   fontSize: 28,
   fontWeight: 700,
-  cursor: "pointer",
 };
 
 const logoutButtonStyle: CSSProperties = {
-  height: 82,
+  height: 80,
   marginLeft: 24,
   marginRight: 24,
   borderRadius: 18,
-  border: "2px solid rgba(255,255,255,0.3)",
-  background: "rgba(255,255,255,0.12)",
+  border: "none",
+  background:
+    "rgba(255,255,255,0.15)",
   color: "white",
   fontSize: 28,
   fontWeight: 800,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: 16,
+  gap: 14,
   cursor: "pointer",
 };
 
@@ -238,34 +266,30 @@ const contentStyle: CSSProperties = {
 };
 
 const contentCardStyle: CSSProperties = {
-  width: "100%",
-  minHeight: "calc(100vh - 80px)",
   background: "white",
+  minHeight: "100%",
   borderRadius: 36,
   padding: 50,
-  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-  boxSizing: "border-box",
 };
 
 const welcomeStyle: CSSProperties = {
   textAlign: "center",
-  fontSize: 84,
+  fontSize: 82,
   fontWeight: 900,
   marginBottom: 10,
-  color: "#111",
 };
 
 const subtitleStyle: CSSProperties = {
   textAlign: "center",
-  fontSize: 34,
-  color: "#777",
+  fontSize: 32,
+  color: "#666",
   marginBottom: 60,
 };
 
 const gridStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns:
-    "repeat(auto-fit, minmax(320px, 1fr))",
+    "repeat(auto-fit,minmax(320px,1fr))",
   gap: 34,
 };
 
@@ -273,22 +297,19 @@ const categoryCardStyle: CSSProperties = {
   height: 320,
   borderRadius: 30,
   background: "#fafafa",
-  border: "1px solid #ececec",
+  border: "1px solid #eee",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-  cursor: "pointer",
 };
 
 const categoryTitleStyle: CSSProperties = {
   fontSize: 34,
   fontWeight: 800,
-  color: "black",
   marginBottom: 30,
 };
 
 const categoryIconStyle: CSSProperties = {
-  color: "#e45a00",
+  color: "#ff6a00",
 };
