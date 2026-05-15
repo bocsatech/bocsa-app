@@ -1,4 +1,4 @@
-k"use client";
+"use client";
 
 import { useEffect } from "react";
 import type { CSSProperties, ReactNode } from "react";
