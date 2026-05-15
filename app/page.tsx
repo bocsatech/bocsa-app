@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type {
-  CSSProperties,
-  ReactNode,
-} from "react";
-
+import type { CSSProperties, ReactNode } from "react";
 import {
   ClipboardList,
   Package,
@@ -14,35 +10,32 @@ import {
   Building2,
   ShieldCheck,
   LogOut,
+  Search,
+  QrCode,
+  Monitor,
   Hammer,
   Truck,
-  PlugZap,
+  Plug,
   Car,
 } from "lucide-react";
 
 export default function DashboardPage() {
   useEffect(() => {
-    const loggedIn =
-      localStorage.getItem(
-        "bocsa_logged_in"
-      );
+    const loggedIn = localStorage.getItem("bocsa_logged_in");
 
     if (loggedIn !== "true") {
-      window.location.href =
-        "/login";
+      window.location.href = "/login";
     }
   }, []);
 
   function logout() {
-    localStorage.removeItem(
-      "bocsa_logged_in"
-    );
+    localStorage.removeItem("bocsa_logged_in");
+    localStorage.removeItem("bocsa_user");
 
     document.cookie =
       "bocsa_logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-    window.location.href =
-      "/login";
+    window.location.href = "/login";
   }
 
   return (
@@ -50,104 +43,47 @@ export default function DashboardPage() {
       <aside style={sidebarStyle}>
         <div>
           <div style={logoBoxStyle}>
-            <h1 style={logoStyle}>
-              BOCSA
-            </h1>
-
-            <div style={techStyle}>
-              TECH
-            </div>
+            <div style={logoStyle}>BOCSA</div>
+            <div style={techStyle}>TECH</div>
           </div>
 
           <nav style={menuStyle}>
-            <MenuItem
-              icon={
-                <ClipboardList size={28} />
-              }
-              text="Arbeitsprotokol"
-            />
+            <MenuItem icon={<ClipboardList size={30} />} text="Arbeitsprotokol" />
+            <MenuItem icon={<Package size={30} />} text="Lager" />
+            <MenuItem icon={<Wrench size={30} />} text="Ersatzteile" />
+            <MenuItem icon={<Clock3 size={30} />} text="Arbeitsstunden" />
+            <MenuItem icon={<Building2 size={30} />} text="Filiale" />
+            <MenuItem icon={<ShieldCheck size={30} />} text="Prüfprotokol" />
 
-            <MenuItem
-              icon={<Package size={28} />}
-              text="Lager"
-            />
+            <div style={dividerStyle} />
 
-            <MenuItem
-              icon={<Wrench size={28} />}
-              text="Ersatzteile"
-            />
-
-            <MenuItem
-              icon={<Clock3 size={28} />}
-              text="Arbeitsstunden"
-            />
-
-            <MenuItem
-              icon={
-                <Building2 size={28} />
-              }
-              text="Filiale"
-            />
-
-            <MenuItem
-              icon={
-                <ShieldCheck size={28} />
-              }
-              text="Prüfprotokol"
-            />
+            <MenuItem icon={<Monitor size={30} />} text="All Geräten" />
+            <MenuItem icon={<Search size={30} />} text="Suchen" />
+            <MenuItem icon={<QrCode size={30} />} text="QR Scannen" />
           </nav>
         </div>
 
-        <button
-          onClick={logout}
-          style={logoutButtonStyle}
-        >
-          <LogOut size={28} />
-
-          Ausloggen
+        <button onClick={logout} style={logoutButtonStyle}>
+          <LogOut size={32} />
+          Abmelden
         </button>
       </aside>
 
       <section style={contentStyle}>
         <div style={contentCardStyle}>
-          <h1 style={welcomeStyle}>
-            WILLKOMMEN
-          </h1>
-
-          <p style={subtitleStyle}>
-            Wählen Sie eine Kategorie
-            aus
-          </p>
+          <h1 style={welcomeStyle}>WILLKOMMEN</h1>
+          <p style={subtitleStyle}>Wählen Sie eine Kategorie aus</p>
 
           <div style={gridStyle}>
-            <CategoryCard
-              title="Kleingeräte"
-              icon={<Hammer size={120} />}
-            />
-
-            <CategoryCard
-              title="Großgeräte"
-              icon={<Truck size={120} />}
-            />
-
-            <CategoryCard
-              title="Elektrogeräte 230"
-              icon={
-                <PlugZap size={120} />
-              }
-            />
-
-            <CategoryCard
-              title="Elektrogeräte 400"
-              icon={
-                <PlugZap size={120} />
-              }
-            />
-
-            <CategoryCard
-              title="PKW"
-              icon={<Car size={120} />}
-            />
+            <CategoryCard title="Kleingeräte" icon={<Hammer size={130} />} />
+            <CategoryCard title="Großgeräte" icon={<Truck size={130} />} />
+            <CategoryCard title="Elektrogeräte 230" icon={<Plug size={130} />} />
+            <CategoryCard title="Elektrogeräte 400" icon={<Plug size={130} />} />
+            <CategoryCard title="PKW" icon={<Car size={130} />} />
+            <CategoryCard title="Arbeitsprotokol" icon={<ClipboardList size={130} />} />
+            <CategoryCard title="All Geräten" icon={<Monitor size={130} />} />
+            <CategoryCard title="Suchen" icon={<Search size={130} />} />
+            <CategoryCard title="QR Scannen" icon={<QrCode size={130} />} />
           </div>
         </div>
       </section>
@@ -155,38 +91,20 @@ export default function DashboardPage() {
   );
 }
 
-function MenuItem({
-  icon,
-  text,
-}: {
-  icon: ReactNode;
-  text: string;
-}) {
+function MenuItem({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <div style={menuItemStyle}>
-      {icon}
-
+      <div style={menuIconStyle}>{icon}</div>
       <span>{text}</span>
     </div>
   );
 }
 
-function CategoryCard({
-  title,
-  icon,
-}: {
-  title: string;
-  icon: ReactNode;
-}) {
+function CategoryCard({ title, icon }: { title: string; icon: ReactNode }) {
   return (
     <div style={categoryCardStyle}>
-      <div style={categoryTitleStyle}>
-        {title}
-      </div>
-
-      <div style={categoryIconStyle}>
-        {icon}
-      </div>
+      <div style={categoryTitleStyle}>{title}</div>
+      <div style={categoryIconStyle}>{icon}</div>
     </div>
   );
 }
@@ -194,110 +112,127 @@ function CategoryCard({
 const pageStyle: CSSProperties = {
   width: "100%",
   minHeight: "100vh",
-  background: "#f3f3f3",
+  background: "#ffffff",
   display: "flex",
+  border: "4px solid #f26a00",
+  boxSizing: "border-box",
 };
 
 const sidebarStyle: CSSProperties = {
-  width: 320,
-  background:
-    "linear-gradient(180deg,#ff6a00,#c84b00)",
+  width: 330,
+  background: "linear-gradient(180deg, #ff7a00 0%, #f25a00 100%)",
+  color: "white",
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
-  paddingTop: 40,
-  paddingBottom: 40,
-  color: "white",
+  boxShadow: "4px 0 20px rgba(0,0,0,0.12)",
 };
 
 const logoBoxStyle: CSSProperties = {
   textAlign: "center",
-  marginBottom: 50,
+  paddingTop: 42,
+  paddingBottom: 34,
 };
 
 const logoStyle: CSSProperties = {
-  fontSize: 72,
+  fontSize: 64,
   fontWeight: 900,
-  margin: 0,
+  letterSpacing: 4,
 };
 
 const techStyle: CSSProperties = {
-  fontSize: 28,
-  letterSpacing: 8,
+  fontSize: 26,
+  letterSpacing: 10,
+  fontWeight: 600,
 };
 
 const menuStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: 8,
 };
 
 const menuItemStyle: CSSProperties = {
+  height: 72,
   display: "flex",
   alignItems: "center",
-  gap: 16,
-  height: 78,
-  paddingLeft: 30,
-  fontSize: 28,
-  fontWeight: 700,
+  gap: 20,
+  paddingLeft: 40,
+  fontSize: 24,
+  fontWeight: 800,
+  color: "white",
+};
+
+const menuIconStyle: CSSProperties = {
+  color: "black",
+  width: 38,
+  display: "flex",
+  alignItems: "center",
+};
+
+const dividerStyle: CSSProperties = {
+  height: 1,
+  background: "rgba(255,255,255,0.4)",
+  margin: "22px 28px",
 };
 
 const logoutButtonStyle: CSSProperties = {
-  height: 80,
-  marginLeft: 24,
-  marginRight: 24,
-  borderRadius: 18,
+  height: 78,
+  margin: 28,
+  borderRadius: 16,
   border: "none",
-  background:
-    "rgba(255,255,255,0.15)",
+  background: "rgba(0,0,0,0.12)",
   color: "white",
-  fontSize: 28,
-  fontWeight: 800,
+  fontSize: 25,
+  fontWeight: 900,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: 14,
+  gap: 18,
   cursor: "pointer",
 };
 
 const contentStyle: CSSProperties = {
   flex: 1,
-  padding: 40,
+  padding: 44,
 };
 
 const contentCardStyle: CSSProperties = {
-  background: "white",
-  minHeight: "100%",
-  borderRadius: 36,
-  padding: 50,
+  width: "100%",
+  minHeight: "calc(100vh - 88px)",
+  background: "#ffffff",
+  borderRadius: 34,
+  padding: 44,
+  boxSizing: "border-box",
 };
 
 const welcomeStyle: CSSProperties = {
   textAlign: "center",
-  fontSize: 82,
+  fontSize: 76,
   fontWeight: 900,
+  color: "#000000",
+  margin: 0,
   marginBottom: 10,
 };
 
 const subtitleStyle: CSSProperties = {
   textAlign: "center",
-  fontSize: 32,
-  color: "#666",
-  marginBottom: 60,
+  fontSize: 30,
+  color: "#666666",
+  marginBottom: 52,
 };
 
 const gridStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns:
-    "repeat(auto-fit,minmax(320px,1fr))",
+  gridTemplateColumns: "repeat(4, minmax(220px, 1fr))",
   gap: 34,
 };
 
 const categoryCardStyle: CSSProperties = {
-  height: 320,
-  borderRadius: 30,
-  background: "#fafafa",
-  border: "1px solid #eee",
+  height: 270,
+  borderRadius: 24,
+  background: "#ffffff",
+  border: "1px solid #eeeeee",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -305,11 +240,13 @@ const categoryCardStyle: CSSProperties = {
 };
 
 const categoryTitleStyle: CSSProperties = {
-  fontSize: 34,
-  fontWeight: 800,
-  marginBottom: 30,
+  fontSize: 27,
+  fontWeight: 900,
+  color: "#000000",
+  marginBottom: 28,
+  textAlign: "center",
 };
 
 const categoryIconStyle: CSSProperties = {
-  color: "#ff6a00",
+  color: "#f26a00",
 };

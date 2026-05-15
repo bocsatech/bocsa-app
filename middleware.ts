@@ -1,24 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(
-  request: NextRequest
-) {
-  const loggedIn =
-    request.cookies.get(
-      "bocsa_logged_in"
-    )?.value;
+export function middleware(request: NextRequest) {
+  const loggedIn = request.cookies.get("bocsa_logged_in")?.value;
+  const pathname = request.nextUrl.pathname;
 
-  const pathname =
-    request.nextUrl.pathname;
+  if (pathname === "/login") {
+    return NextResponse.next();
+  }
 
-  if (
-    pathname !== "/login" &&
-    loggedIn !== "true"
-  ) {
-    return NextResponse.redirect(
-      new URL("/login", request.url)
-    );
+  if (loggedIn !== "true") {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   return NextResponse.next();
