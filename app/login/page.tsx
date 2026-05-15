@@ -1,273 +1,289 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import { supabase } from "@/lib/supabase";
+import {
+  ClipboardList,
+  Package,
+  Wrench,
+  Clock3,
+  Building2,
+  ShieldCheck,
+  LogOut,
+  Hammer,
+  Truck,
+  PlugZap,
+  Car,
+} from "lucide-react";
 
-type UserRow = {
-  id: string;
-  username: string;
-  password: string;
-  pin: string | null;
-  role: string;
-  name: string;
-  must_set_pin: boolean;
-};
+export default function DashboardPage() {
+  function logout() {
+    localStorage.removeItem("bocsa_user");
 
-export default function LoginPage() {
-  const router = useRouter();
+    document.cookie =
+      "bocsa_logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [pin, setPin] = useState("");
-  const [newPin, setNewPin] = useState("");
-  const [remember, setRemember] = useState(true);
-  const [user, setUser] = useState<UserRow | null>(null);
-  const [mustSetPin, setMustSetPin] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const savedUsername = window.localStorage.getItem("remember_username");
-    if (savedUsername) setUsername(savedUsername);
-  }, []);
-
-  async function handleLogin() {
-    if (!username || !password) {
-      alert("Bitte Benutzername und Passwort eingeben");
-      return;
-    }
-
-    setLoading(true);
-
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("username", username)
-      .eq("password", password)
-      .single();
-
-    setLoading(false);
-
-    if (error || !data) {
-      alert("Falscher Benutzername oder falsches Passwort");
-      return;
-    }
-
-    const foundUser = data as UserRow;
-
-    if (foundUser.must_set_pin) {
-      setUser(foundUser);
-      setMustSetPin(true);
-      return;
-    }
-
-    if (!pin || pin.length !== 2) {
-      alert("Bitte 2-stelligen PIN eingeben");
-      return;
-    }
-
-    if (foundUser.pin !== pin) {
-      alert("Falscher PIN");
-      return;
-    }
-
-    finishLogin(foundUser);
-  }
-
-  async function saveNewPin() {
-    if (!newPin || newPin.length !== 2) {
-      alert("Der PIN muss 2-stellig sein");
-      return;
-    }
-
-    if (!user) {
-      alert("Benutzer nicht gefunden");
-      return;
-    }
-
-    setLoading(true);
-
-    const { error } = await supabase
-      .from("users")
-      .update({
-        pin: newPin,
-        basis_nummer: Number(newPin),
-        must_set_pin: false,
-      })
-      .eq("id", user.id);
-
-    setLoading(false);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    finishLogin({
-      ...user,
-      pin: newPin,
-      basis_nummer: Number(newPin),
-      must_set_pin: false,
-    } as UserRow);
-  }
-
-  function finishLogin(userData: UserRow) {
-    if (remember) {
-      window.localStorage.setItem("remember_username", username);
-    } else {
-      window.localStorage.removeItem("remember_username");
-    }
-
-    window.localStorage.setItem("bocsa_user", JSON.stringify(userData));
-    document.cookie = "bocsa_logged_in=true; path=/; max-age=86400";
-
-    router.push("/");
+    window.location.href = "/login";
   }
 
   return (
     <main style={pageStyle}>
-      <div style={cardStyle}>
-        <h1 style={titleStyle}>BOCSA TECH</h1>
+      <aside style={sidebarStyle}>
+        <div>
+          <div style={logoBoxStyle}>
+            <h1 style={logoStyle}>BOCSA</h1>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Benutzername</label>
-          <input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            style={inputStyle}
-            disabled={mustSetPin}
-          />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Passwort</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={inputStyle}
-            disabled={mustSetPin}
-          />
-        </div>
-
-        {!mustSetPin && (
-          <div style={fieldStyle}>
-            <label style={labelStyle}>PIN</label>
-            <input
-              value={pin}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 2))}
-              style={inputStyle}
-              maxLength={2}
-            />
+            <div style={techStyle}>TECH</div>
           </div>
-        )}
 
-        {mustSetPin && (
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Neuen 2-stelligen PIN erstellen</label>
-            <input
-              value={newPin}
-              onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 2))}
-              style={inputStyle}
-              maxLength={2}
+          <nav style={menuStyle}>
+            <MenuItem
+              icon={<ClipboardList size={28} />}
+              text="Arbeitsprotokol"
             />
-          </div>
-        )}
 
-        {!mustSetPin && (
-          <label style={rememberStyle}>
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
+            <MenuItem
+              icon={<Package size={28} />}
+              text="Lager"
             />
-            Benutzername merken
-          </label>
-        )}
+
+            <MenuItem
+              icon={<Wrench size={28} />}
+              text="Ersatzteile"
+            />
+
+            <MenuItem
+              icon={<Clock3 size={28} />}
+              text="Arbeitsstunden"
+            />
+
+            <MenuItem
+              icon={<Building2 size={28} />}
+              text="Filiale"
+            />
+
+            <MenuItem
+              icon={<ShieldCheck size={28} />}
+              text="Prüfprotokol"
+            />
+          </nav>
+        </div>
 
         <button
-          onClick={mustSetPin ? saveNewPin : handleLogin}
-          disabled={loading}
-          style={buttonStyle}
+          onClick={logout}
+          style={logoutButtonStyle}
         >
-          {loading
-            ? "Bitte warten..."
-            : mustSetPin
-            ? "PIN speichern"
-            : "Anmelden"}
+          <LogOut size={28} />
+
+          Ausloggen
         </button>
-      </div>
+      </aside>
+
+      <section style={contentStyle}>
+        <div style={contentCardStyle}>
+          <h1 style={welcomeStyle}>
+            WILLKOMMEN
+          </h1>
+
+          <p style={subtitleStyle}>
+            Wählen Sie eine Kategorie aus
+          </p>
+
+          <div style={gridStyle}>
+            <CategoryCard
+              title="Kleingeräte"
+              icon={<Hammer size={120} />}
+            />
+
+            <CategoryCard
+              title="Großgeräte"
+              icon={<Truck size={120} />}
+            />
+
+            <CategoryCard
+              title="Elektrogeräte 230"
+              icon={<PlugZap size={120} />}
+            />
+
+            <CategoryCard
+              title="Elektrogeräte 400"
+              icon={<PlugZap size={120} />}
+            />
+
+            <CategoryCard
+              title="PKW"
+              icon={<Car size={120} />}
+            />
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
 
+function MenuItem({
+  icon,
+  text,
+}: {
+  icon: React.ReactNode;
+  text: string;
+}) {
+  return (
+    <div style={menuItemStyle}>
+      {icon}
+
+      <span>{text}</span>
+    </div>
+  );
+}
+
+function CategoryCard({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div style={categoryCardStyle}>
+      <div style={categoryTitleStyle}>
+        {title}
+      </div>
+
+      <div style={categoryIconStyle}>
+        {icon}
+      </div>
+    </div>
+  );
+}
+
 const pageStyle: CSSProperties = {
+  width: "100%",
   minHeight: "100vh",
-  background: "#f5f5f5",
+  background: "#f3f3f3",
   display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
 };
 
-const cardStyle: CSSProperties = {
-  width: 560,
-  maxWidth: "95%",
-  background: "white",
-  borderRadius: 26,
-  padding: 46,
-  boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+const sidebarStyle: CSSProperties = {
+  width: 320,
+  background:
+    "linear-gradient(180deg, #ff6a00 0%, #c84b00 100%)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  paddingTop: 40,
+  paddingBottom: 40,
+  color: "white",
+  boxShadow: "4px 0 20px rgba(0,0,0,0.15)",
 };
 
-const titleStyle: CSSProperties = {
+const logoBoxStyle: CSSProperties = {
   textAlign: "center",
-  fontSize: 52,
+  marginBottom: 50,
+};
+
+const logoStyle: CSSProperties = {
+  fontSize: 72,
   fontWeight: 900,
-  color: "#9a3f00",
-  marginBottom: 42,
-  whiteSpace: "nowrap",
+  letterSpacing: 2,
+  margin: 0,
 };
 
-const fieldStyle: CSSProperties = {
-  marginBottom: 24,
+const techStyle: CSSProperties = {
+  fontSize: 28,
+  fontWeight: 300,
+  letterSpacing: 10,
 };
 
-const labelStyle: CSSProperties = {
-  display: "block",
-  marginBottom: 10,
-  fontSize: 22,
-  fontWeight: 800,
-  color: "#222",
-};
-
-const inputStyle: CSSProperties = {
-  width: "100%",
-  height: 66,
-  borderRadius: 16,
-  border: "2px solid #ddd",
-  paddingLeft: 20,
-  fontSize: 24,
-  color: "black",
-  background: "white",
-};
-
-const rememberStyle: CSSProperties = {
+const menuStyle: CSSProperties = {
   display: "flex",
+  flexDirection: "column",
   gap: 10,
-  alignItems: "center",
-  marginBottom: 28,
-  fontSize: 18,
-  color: "black",
 };
 
-const buttonStyle: CSSProperties = {
-  width: "100%",
-  height: 74,
+const menuItemStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 18,
+  height: 80,
+  paddingLeft: 34,
+  fontSize: 28,
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const logoutButtonStyle: CSSProperties = {
+  height: 82,
+  marginLeft: 24,
+  marginRight: 24,
   borderRadius: 18,
-  border: "none",
-  background: "#9a3f00",
+  border: "2px solid rgba(255,255,255,0.3)",
+  background: "rgba(255,255,255,0.12)",
   color: "white",
   fontSize: 28,
-  fontWeight: 900,
+  fontWeight: 800,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 16,
   cursor: "pointer",
+};
+
+const contentStyle: CSSProperties = {
+  flex: 1,
+  padding: 40,
+};
+
+const contentCardStyle: CSSProperties = {
+  width: "100%",
+  minHeight: "calc(100vh - 80px)",
+  background: "white",
+  borderRadius: 36,
+  padding: 50,
+  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+};
+
+const welcomeStyle: CSSProperties = {
+  textAlign: "center",
+  fontSize: 84,
+  fontWeight: 900,
+  marginBottom: 10,
+  color: "#111",
+};
+
+const subtitleStyle: CSSProperties = {
+  textAlign: "center",
+  fontSize: 34,
+  color: "#777",
+  marginBottom: 60,
+};
+
+const gridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(320px, 1fr))",
+  gap: 34,
+};
+
+const categoryCardStyle: CSSProperties = {
+  height: 320,
+  borderRadius: 30,
+  background: "#fafafa",
+  border: "1px solid #ececec",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+  cursor: "pointer",
+};
+
+const categoryTitleStyle: CSSProperties = {
+  fontSize: 34,
+  fontWeight: 800,
+  color: "black",
+  marginBottom: 30,
+};
+
+const categoryIconStyle: CSSProperties = {
+  color: "#e45a00",
 };
