@@ -1,46 +1,51 @@
-// app/page.tsx
+// app/login/page.tsx
 
-import Link from "next/link";
-import { useEffect } from "react";
-import { useRouter } from "next/router";
+import { useState } from "react";
+import { supabase } from "@/lib/supabase"; // Győződj meg róla, hogy a Supabase inicializálva van
 
-export default function HomePage() {
-  const router = useRouter();
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  // Ellenőrizzük, hogy a felhasználó be van-e jelentkezve
-  useEffect(() => {
-    const loggedIn = localStorage.getItem("bocsa_logged_in");
-    if (loggedIn !== "true") {
-      router.push("/login");
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      localStorage.setItem("bocsa_logged_in", "true");
+      window.location.href = "/";
     }
-  }, [router]);
+  };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.welcomeTitle}>Üdvözöljük a BOCSA TECH oldalon</h1>
-      <p style={styles.subtitle}>Válasszon egy kategóriát az alábbiak közül:</p>
-      <div style={styles.grid}>
-        <CategoryCard title="Kleingeräte" />
-        <CategoryCard title="Großgeräte" />
-        <CategoryCard title="Elektrogeräte 230" />
-        <CategoryCard title="Elektrogeräte 400" />
-        <CategoryCard title="PKW" />
-        <CategoryCard title="Arbeitsprotokol" />
-        <CategoryCard title="Alle Geräte" />
-        <CategoryCard title="QR Scannen" />
-      </div>
-      <div style={styles.loginLink}>
-        <Link href="/login">Bejelentkezés</Link>
-      </div>
-    </div>
-  );
-}
-
-// Kategória kártya komponens
-function CategoryCard({ title }: { title: string }) {
-  return (
-    <div style={styles.categoryCard}>
-      <h2 style={styles.categoryTitle}>{title}</h2>
+      <h1 style={styles.title}>Bejelentkezés</h1>
+      {error && <p style={styles.error}>{error}</p>}
+      <form onSubmit={handleLogin} style={styles.form}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          style={styles.input}
+        />
+        <input
+          type="password"
+          placeholder="Jelszó"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={styles.input}
+        />
+        <button type="submit" style={styles.button}>Bejelentkezés</button>
+      </form>
     </div>
   );
 }
@@ -57,38 +62,35 @@ const styles = {
     padding: "20px",
     boxSizing: "border-box",
   },
-  welcomeTitle: {
-    fontSize: "2.5rem",
+  title: {
+    fontSize: "2rem",
     marginBottom: "20px",
-    textAlign: "center",
   },
-  subtitle: {
-    fontSize: "1.2rem",
-    marginBottom: "30px",
-    textAlign: "center",
+  error: {
+    color: "red",
+    marginBottom: "20px",
   },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "20px",
+  form: {
+    display: "flex",
+    flexDirection: "column",
     width: "100%",
-    maxWidth: "800px",
+    maxWidth: "400px",
   },
-  categoryCard: {
-    background: "#ffffff",
-    borderRadius: "12px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-    padding: "20px",
-    textAlign: "center",
-    cursor: "pointer",
-    transition: "transform 0.2s",
-  },
-  categoryTitle: {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-  },
-  loginLink: {
-    marginTop: "40px",
+  input: {
+    margin: "10px 0",
+    padding: "10px",
     fontSize: "1rem",
+    borderRadius: "5px",
+    border: "1px solid #ccc",
+  },
+  button: {
+    padding: "10px",
+    fontSize: "1rem",
+    borderRadius: "5px",
+    border: "none",
+    background: "#0070f3",
+    color: "#fff",
+    cursor: "pointer",
+    transition: "background 0.2s",
   },
 };
