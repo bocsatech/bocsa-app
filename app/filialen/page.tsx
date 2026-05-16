@@ -4,7 +4,8 @@ export default function Page() {
   return (
     <SupabaseTable
       table="filialen"
-      title="Filialen"
+      title="filialen"
     />
   );
 }
+
