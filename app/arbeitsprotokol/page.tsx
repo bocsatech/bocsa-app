@@ -8,10 +8,3 @@ export default function Page() {
     />
   );
 }
-
-
-
-
-
-
-
