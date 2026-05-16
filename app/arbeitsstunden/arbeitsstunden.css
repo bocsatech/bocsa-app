@@ -1,0 +1,153 @@
+@import "../arbeitsauftrag-form.css";
+
+.asHoursTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.asHoursTabs button {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.asHoursTabs button.active {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+.asDayGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.asStatCard {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.asStatCard strong {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.asStatCard b {
+  font-size: 22px;
+}
+
+.asStatCard.ok b {
+  color: #047857;
+}
+
+.asStatCard.warn b {
+  color: #b45309;
+}
+
+.asEntriesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.asEntriesTable th,
+.asEntriesTable td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.asEntriesTable th {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.asQuelleBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.asQuelleBadge.protokoll {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.asQuelleBadge.manuell {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.asCompareBars {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.asCompareRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 1fr minmax(64px, auto);
+  gap: 10px;
+  align-items: center;
+}
+
+.asCompareBarTrack {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.asCompareBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  border-radius: 999px;
+}
+
+.asPrintSheet {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  body.asHoursPrinting {
+    background: #fff;
+  }
+
+  body.asHoursPrinting .sidebar,
+  body.asHoursPrinting .appPageTopBar,
+  body.asHoursPrinting .detailTopBar,
+  body.asHoursPrinting .asHoursNoPrint {
+    display: none !important;
+  }
+
+  body.asHoursPrinting .asPrintSheet {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+
+  body.asHoursPrinting .asHoursScreen {
+    display: none !important;
+  }
+}

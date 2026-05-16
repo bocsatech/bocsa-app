@@ -1,0 +1,266 @@
+@import "../arbeitsauftrag-form.css";
+
+.ppPage {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.ppListNewRow {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ppScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px;
+}
+
+.ppSheet {
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 10mm 12mm;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  font-size: 8pt;
+  line-height: 1.25;
+  color: #111827;
+}
+
+.ppSheetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #111827;
+}
+
+.ppSheetHeader h2 {
+  margin: 0;
+  font-size: 11pt;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.ppSheetHeader p {
+  margin: 2px 0 0;
+  font-size: 7.5pt;
+}
+
+.ppLogo {
+  width: 90px;
+  height: 36px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #1f2937, #4b5563);
+  flex-shrink: 0;
+}
+
+.ppSectionTitle {
+  margin: 8px 0 4px;
+  padding: 3px 6px;
+  background: #1f2937;
+  color: #fff;
+  font-size: 7.5pt;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ppGeraetGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px 10px;
+  margin-bottom: 6px;
+}
+
+.ppField {
+  display: grid;
+  gap: 1px;
+}
+
+.ppField span {
+  font-size: 6.5pt;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ppField input {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  border: none;
+  border-bottom: 1px solid #9ca3af;
+  background: transparent;
+  font-size: 8pt;
+  font-weight: 600;
+}
+
+.ppField input:read-only {
+  color: #111827;
+}
+
+.ppFieldManual input {
+  border-bottom-color: #f97316;
+  background: #fff7ed;
+}
+
+.ppCheckSections {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 8px;
+  margin-bottom: 6px;
+}
+
+.ppCheckSection h4 {
+  margin: 0 0 3px;
+  font-size: 6.5pt;
+  font-weight: 800;
+  color: #111827;
+  border-bottom: 1px solid #d1d5db;
+  padding-bottom: 2px;
+}
+
+.ppCheckList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.ppCheckItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 3px;
+  font-size: 6pt;
+  line-height: 1.15;
+}
+
+.ppCheckItem input[type="checkbox"] {
+  width: 10px;
+  height: 10px;
+  margin: 0;
+}
+
+.ppCheckItem code {
+  font-size: 5.5pt;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.ppErgebnisGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.ppErgebnisGrid label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 7pt;
+  font-weight: 600;
+}
+
+.ppTextarea {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 2px;
+}
+
+.ppTextarea span {
+  font-size: 6.5pt;
+  font-weight: 700;
+}
+
+.ppTextarea textarea {
+  width: 100%;
+  min-height: 36px;
+  padding: 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 7pt;
+  resize: vertical;
+}
+
+.ppSignBox {
+  grid-column: 1 / -1;
+  min-height: 28px;
+  border: 1px dashed #9ca3af;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  color: #9ca3af;
+  font-size: 6.5pt;
+}
+
+.ppListFilters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  body.ppPrinting {
+    background: #fff;
+  }
+
+  body.ppPrinting .sidebar,
+  body.ppPrinting .appPageTopBar,
+  body.ppPrinting .detailTopBar,
+  body.ppPrinting .noPrint {
+    display: none !important;
+  }
+
+  body.ppPrinting .ppScroll {
+    overflow: visible;
+    padding: 0;
+  }
+
+  body.ppPrinting .ppSheet {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    page-break-after: avoid;
+  }
+
+  body.ppPrinting .ppField input,
+  body.ppPrinting .ppTextarea textarea {
+    border: none;
+  }
+
+  body.ppPrinting .ppFieldManual input {
+    background: transparent;
+  }
+}
+
+@media (max-width: 900px) {
+  .ppCheckSections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ppGeraetGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

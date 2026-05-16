@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../../lib/supabase";
 
 type Props = {
   table: string;
@@ -18,8 +18,8 @@ export default function SupabaseTable({ table, title }: Props) {
     async function loadRows() {
       const { data, error } = await supabase.from(table).select("*").limit(100);
       if (error) {
-        setError(`Hiba a táblák betöltésekor: \${error.message}`);
-        console.error("Error loading rows:", error); // Hiba kiírása a konzolra
+        setError(`Hiba a táblák betöltésekor: ${error.message}`);
+        console.error("Error loading rows:", error);
       } else {
         setRows(data || []);
       }

@@ -1,10 +1,5 @@
-import SupabaseTable from "../components/SupabaseTable";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <SupabaseTable
-      table="ersatzteile"
-      title="ersatzteile"
-    />
-  );
+export default function ErsatzteilePage() {
+  redirect("/lager");
 }

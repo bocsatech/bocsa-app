@@ -1,0 +1,758 @@
+/* Arbeitsauftrag — Formular, Druckvorschau, Druck */
+
+.aaForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.aaForm .aaBlock,
+.aaForm .protocolSection,
+.arbeitsauftragDocument .protocolSection {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.aaForm .protocolSection.card {
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.aaForm .protocolSection .spacedTitle,
+.arbeitsauftragDocument .spacedTitle {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #374151;
+}
+
+.arbeitsauftragDocument {
+  width: 100%;
+  max-width: 100%;
+}
+
+.arbeitsauftragPrintHeader {
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+  margin-bottom: 12px;
+}
+
+.aaDocTitle,
+.arbeitsauftragPrintTitle {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f97316;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.aaHeaderCols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+  gap: 16px 20px;
+  align-items: start;
+}
+
+.aaColLabel {
+  margin: 0 0 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+}
+
+.aaGeraetNr {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #111827;
+}
+
+.aaGeraetTitle {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.arbeitsauftragPrintMeta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.arbeitsauftragPrintMeta dt {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.arbeitsauftragPrintMeta dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+  color: #111827;
+}
+
+.arbeitsauftragSummaryMedia {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.arbeitsauftragSummaryMedia .machineImagePreview {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.arbeitsauftragSummaryMedia .machineQrImage {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.aaGeraetDl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.aaGeraetDl > div {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);
+  gap: 8px 16px;
+}
+
+.aaGeraetDl dt {
+  margin: 0;
+  font-weight: 700;
+  color: #374151;
+}
+
+.aaGeraetDl dd {
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+  word-break: break-word;
+}
+
+.arbeitsauftragPrintNotes {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.arbeitsauftragPrintFooter,
+.aaFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #d1d5db;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+.aaForm .protocolField.textAreas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aaForm .protocolField.textAreas textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+}
+
+.arbeitsauftragPrintOnly {
+  display: none;
+}
+
+/* Druckvorschau-Overlay */
+body.arbeitsauftrag-print-preview {
+  overflow: hidden;
+  background: #64748b;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewToolbar {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewIntro h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewIntro p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewActions {
+  display: flex;
+  gap: 8px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewViewport {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewPage {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 210mm;
+  height: 297mm;
+  border: 2px solid #94a3b8;
+  pointer-events: none;
+  z-index: 9998;
+  box-sizing: border-box;
+}
+
+body.arbeitsauftrag-print-preview .protocolShell .sidebar,
+body.arbeitsauftrag-print-preview .protocolPage .detailTopBar,
+body.arbeitsauftrag-print-preview .protocolPage .detailTopActions,
+body.arbeitsauftrag-print-preview .arbeitsauftragHideOnPrint {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .protocolPage {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 210mm;
+  min-height: 297mm;
+  max-height: 297mm;
+  margin: 0;
+  padding: 8mm;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #ffffff;
+  z-index: 9999;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument {
+  font-size: 8.5pt;
+  line-height: 1.25;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection {
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 8mm;
+}
+
+@media print {
+  .arbeitsauftragHideOnPrint,
+  .arbeitsauftragPrintPreviewOverlay,
+  .sidebar,
+  .detailTopBar,
+  .detailTopActions {
+    display: none !important;
+  }
+
+  .arbeitsauftragPrintOnly {
+    display: block !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .workorderPage.protocolShell {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+
+  .protocolPage {
+    padding: 0;
+  }
+
+  .arbeitsauftragDocument {
+    font-size: 9pt;
+    line-height: 1.3;
+  }
+
+  .arbeitsauftragDocument .protocolSection {
+    break-inside: avoid;
+    box-shadow: none;
+    margin-bottom: 6px;
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+  }
+
+  .arbeitsauftragPrintHeader {
+    border: 1px solid #111827;
+    border-radius: 0;
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 900px) {
+  .aaHeaderCols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Arbeitsauftrag Protokoll — Wartungsplan + Reparaturdaten */
+
+.aaProtokollBlock {
+  display: grid;
+  gap: 14px;
+}
+
+.aaProtokollHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.aaProtokollHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1 1 280px;
+}
+
+.aaProtokollLagerAddBtn {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.aaProtokollColHinzuf {
+  width: 6.5rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.aaProtokollHinzufBtn {
+  width: 100%;
+  min-width: 5.5rem;
+  padding: 6px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  justify-content: center;
+}
+
+.lagerPickerModal {
+  width: min(960px, calc(100vw - 32px));
+  max-height: min(90vh, 920px);
+}
+
+.lagerPickerList {
+  max-height: 55vh;
+  overflow: auto;
+}
+
+.lagerPickerActionHead,
+.lagerPickerActionCell {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: -6px 0 8px rgba(15, 23, 42, 0.06);
+  min-width: 7rem;
+  text-align: center;
+}
+
+.lagerPickerActionHead {
+  background: #f3f4f6;
+}
+
+.lagerPickerHinzufBtn {
+  min-width: 6.5rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.aaProtokollHeader .spacedTitle {
+  margin: 0;
+}
+
+.aaProtokollScheduleScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.aaProtokollScheduleTable {
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.aaProtokollScheduleTable th {
+  background: #f3f4f6;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  padding: 6px 4px;
+  vertical-align: bottom;
+}
+
+.aaProtokollScheduleTable td {
+  padding: 4px;
+  vertical-align: middle;
+}
+
+.aaProtokollColMaterial {
+  min-width: 130px;
+}
+
+.aaProtokollColJura,
+.aaProtokollColSf {
+  min-width: 100px;
+}
+
+.aaProtokollColStock {
+  width: 5.5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.aaProtokollColMenge {
+  width: 7.5rem;
+}
+
+.aaProtokollMengeStepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.aaProtokollMengeBtn {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.aaProtokollMengeBtn:hover:not(:disabled) {
+  border-color: #f97316;
+  background: #fff7ed;
+}
+
+.aaProtokollMengeBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.aaProtokollMengeBtnPlus {
+  border-color: #fdba74;
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.aaProtokollMengeValue {
+  min-width: 2rem;
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.aaBemerkungCheckSummary {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  background: #fff7ed;
+}
+
+.aaBemerkungCheckSummaryTitle {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a3412;
+}
+
+.aaBemerkungCheckSummaryList {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  display: grid;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.aaProtokollStockValue {
+  font-weight: 700;
+  color: #111827;
+}
+
+.aaProtokollStockMuted {
+  color: #9ca3af;
+}
+
+.aaProtokollStockLow {
+  color: #b45309;
+}
+
+.aaProtokollStockIssued {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.aaProtokollLinkBtn {
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  margin-right: 4px;
+}
+
+.aaProtokollInputMenge {
+  text-align: right;
+  max-width: 4.5rem;
+}
+
+.aaProtokollColActions {
+  width: auto;
+  min-width: 4.5rem;
+  white-space: nowrap;
+}
+
+.aaProtokollInput {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: inherit;
+}
+
+.aaProtokollInputJura,
+.aaProtokollValueJura {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.aaProtokollInputSf,
+.aaProtokollValueSf {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.aaProtokollMarkCell {
+  text-align: center;
+}
+
+.aaProtokollMark,
+.aaProtokollMarkBtn.isActive {
+  color: #15803d;
+  font-weight: 900;
+}
+
+.aaProtokollMarkBtn {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  color: #9ca3af;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.aaProtokollMarkBtn.isActive {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.aaProtokollOilNote {
+  margin: 0;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.aaProtokollOilInput {
+  border: none;
+  border-bottom: 1px solid #93c5fd;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 700;
+  min-width: 6rem;
+}
+
+.aaProtokollRepairTitle {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  background: #7f1d1d;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aaProtokollRepairGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.aaProtokollRepairCol h4 {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.aaProtokollCheckList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.aaProtokollCheckItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.aaProtokollCheckItem label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.aaProtokollCheckItem.tone-blue span,
+.aaProtokollCheckItem.tone-blue label span {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.aaProtokollCheckItem.tone-green span,
+.aaProtokollCheckItem.tone-green label span {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.aaProtokollCheckLabelInput {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: inherit;
+}
+
+.aaProtokollRemoveItem {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.aaProtokollAddCheck {
+  margin-top: 6px;
+  font-size: 0.75rem;
+}
+
+.aaProtokollRepairGridPrint .aaProtokollCheckItem.isChecked {
+  font-weight: 700;
+}
+
+.aaProtokollCheckBox {
+  flex-shrink: 0;
+  width: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .aaProtokollRepairGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .aaProtokollRepairGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .aaProtokollScheduleTablePrint {
+    font-size: 7pt;
+    min-width: 0;
+  }
+
+  .aaProtokollRepairGridPrint {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .aaProtokollRepairTitle {
+    padding: 4px 6px;
+    font-size: 8pt;
+  }
+}

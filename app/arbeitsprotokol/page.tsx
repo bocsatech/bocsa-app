@@ -1,10 +1,6 @@
-import SupabaseTable from "../components/SupabaseTable";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <SupabaseTable
-      table="arbeitsprotokol"
-      title="Arbeitsprotokol"
-    />
-  );
+/** Alte URL → Arbeitsauftrag */
+export default function ArbeitsprotokolRedirectPage() {
+  redirect("/arbeitsauftrag");
 }

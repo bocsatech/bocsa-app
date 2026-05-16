@@ -1,11 +1,17 @@
-import SupabaseTable from "../components/SupabaseTable";
+import AppPageShell from "../components/AppPageShell";
 
-export default function Page() {
+export default function FilialenPage() {
   return (
-    <SupabaseTable
-      table="filialen"
-      title="filialen"
-    />
+    <AppPageShell activeHref="/filialen" subtitle="Üzemeltetés">
+      <div className="welcomePage">
+        <div className="welcomeCard">
+          <h1>Filialen</h1>
+          <p>Ez a lap a Filialen menüponthoz tartozik.</p>
+          <a className="backButton" href="/">
+            Vissza az üdvözlő oldalra
+          </a>
+        </div>
+      </div>
+    </AppPageShell>
   );
 }
-

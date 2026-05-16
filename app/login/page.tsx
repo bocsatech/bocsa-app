@@ -1,96 +1,208 @@
-// app/login/page.tsx
+"use client";
 
-import { useState } from "react";
-import { supabase } from "@/lib/supabase"; // Győződj meg róla, hogy a Supabase inicializálva van
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
+type ChallengeState = {
+  compact: string;
+  operation: "add" | "subtract";
+  ready: boolean;
+  loading: boolean;
+};
+
+const EMPTY_CHALLENGE: ChallengeState = {
+  compact: "",
+  operation: "add",
+  ready: false,
+  loading: false,
+};
+
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/";
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [pinAnswer, setPinAnswer] = useState("");
+  const [challenge, setChallenge] = useState<ChallengeState>(EMPTY_CHALLENGE);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loadSeq = useRef(0);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+  const loadChallenge = useCallback(async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setChallenge(EMPTY_CHALLENGE);
+      return;
+    }
+
+    const seq = ++loadSeq.current;
+    setChallenge((current) => ({ ...current, loading: true, ready: false }));
+    setError(null);
+    setPinAnswer("");
+
+    const response = await fetch("/api/auth/challenge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({ username: trimmed }),
     });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      localStorage.setItem("bocsa_logged_in", "true");
-      window.location.href = "/";
+    const result = await response.json().catch(() => ({}));
+    if (seq !== loadSeq.current) return;
+
+    if (!response.ok) {
+      setChallenge(EMPTY_CHALLENGE);
+      setError(result.error || "Aufgabe konnte nicht erstellt werden.");
+      return;
     }
-  };
+
+    setChallenge({
+      compact: String(result.compact ?? ""),
+      operation: result.operation === "subtract" ? "subtract" : "add",
+      ready: true,
+      loading: false,
+    });
+  }, []);
+
+  useEffect(() => {
+    const trimmed = username.trim();
+    if (!trimmed) {
+      loadSeq.current += 1;
+      setChallenge(EMPTY_CHALLENGE);
+      setPinAnswer("");
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      loadChallenge(trimmed);
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [username, loadChallenge]);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!challenge.ready) {
+      setError("Bitte warten, bis die Aufgabe geladen ist.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({ username, password, pinAnswer }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      setError(result.error || "Anmeldung fehlgeschlagen.");
+      setLoading(false);
+      return;
+    }
+
+    window.location.assign(next);
+  }
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Bejelentkezés</h1>
-      {error && <p style={styles.error}>{error}</p>}
-      <form onSubmit={handleLogin} style={styles.form}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={styles.input}
-        />
-        <input
-          type="password"
-          placeholder="Jelszó"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={styles.input}
-        />
-        <button type="submit" style={styles.button}>Bejelentkezés</button>
-      </form>
-    </div>
+    <main className="loginPage">
+      <section className="loginCard">
+        <div className="loginBrand">
+          <span className="sidebarMark">B</span>
+          <div>
+            <h1>Bocsa</h1>
+            <p>Anmeldung</p>
+          </div>
+        </div>
+
+        <form className="loginForm" onSubmit={handleSubmit}>
+          <label>
+            <span>Benutzername</span>
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              autoComplete="username"
+              autoFocus
+              required
+            />
+          </label>
+
+          <label>
+            <span>Passwort</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </label>
+
+          <div className="challengeBox">
+            <p className="challengeTitle">Geheimzahl-Aufgabe</p>
+            <p className="challengeHint">
+              Rechnen Sie mit Ihrer persönlichen Geheimzahl (0–99). Das Ergebnis wird nicht
+              angezeigt.
+            </p>
+            <div
+              className={`loginChallengeMath ${challenge.operation === "subtract" ? "isSubtract" : "isAdd"}`}
+              aria-live="polite"
+            >
+              {challenge.loading ? (
+                <span className="loginChallengeLoading">…</span>
+              ) : challenge.compact ? (
+                <span className="loginChallengeCompact">{challenge.compact}</span>
+              ) : (
+                <span className="loginChallengePlaceholder">—</span>
+              )}
+            </div>
+          </div>
+
+          <label>
+            <span>Ergebnis (0–99)</span>
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]{1,2}"
+              maxLength={2}
+              value={pinAnswer}
+              onChange={(event) =>
+                setPinAnswer(event.target.value.replace(/\D/g, "").slice(0, 2))
+              }
+              placeholder="••"
+              autoComplete="off"
+              required
+              disabled={!challenge.ready}
+              className="loginPinInput"
+            />
+          </label>
+
+          {error ? <p className="loginError">{error}</p> : null}
+
+          <button
+            type="submit"
+            className="pillButton primary loginSubmit"
+            disabled={loading || !challenge.ready}
+          >
+            {loading ? "Anmeldung…" : "Anmelden"}
+          </button>
+        </form>
+      </section>
+    </main>
   );
 }
 
-// Stílusok
-const styles = {
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: "100vh",
-    background: "#f9f9f9",
-    padding: "20px",
-    boxSizing: "border-box",
-  },
-  title: {
-    fontSize: "2rem",
-    marginBottom: "20px",
-  },
-  error: {
-    color: "red",
-    marginBottom: "20px",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-    maxWidth: "400px",
-  },
-  input: {
-    margin: "10px 0",
-    padding: "10px",
-    fontSize: "1rem",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    padding: "10px",
-    fontSize: "1rem",
-    borderRadius: "5px",
-    border: "none",
-    background: "#0070f3",
-    color: "#fff",
-    cursor: "pointer",
-    transition: "background 0.2s",
-  },
-};
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<main className="loginPage" />}>
+      <LoginForm />
+    </Suspense>
+  );
+}

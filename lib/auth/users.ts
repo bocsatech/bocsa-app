@@ -1,0 +1,190 @@
+import bcrypt from "bcryptjs";
+import { supabase } from "../supabase";
+import { getSupabaseAdmin } from "../supabaseAdmin";
+import { normalizeSecretPin } from "./pin";
+
+export const USERS_TABLE = "users";
+
+export type AppUser = {
+  id: string;
+  username: string;
+  password_hash: string;
+  secret_pin: number | null;
+  full_name?: string | null;
+  position?: string | null;
+  site?: string | null;
+  photo_url?: string | null;
+  signature_url?: string | null;
+  created_at?: string;
+};
+
+function getDb() {
+  return getSupabaseAdmin() ?? supabase;
+}
+
+function mapUser(row: Record<string, unknown> | null): AppUser | null {
+  if (!row) return null;
+
+  const username = row.username;
+  const password_hash = row.password_hash;
+
+  if (typeof username !== "string" || typeof password_hash !== "string") {
+    return null;
+  }
+
+  const secretPinRaw = row.secret_pin;
+  const secret_pin =
+    secretPinRaw === null || secretPinRaw === undefined
+      ? null
+      : Number(secretPinRaw);
+
+  return {
+    id: String(row.id),
+    username,
+    password_hash,
+    secret_pin: Number.isInteger(secret_pin) ? secret_pin : null,
+    full_name:
+      typeof row.full_name === "string" ? row.full_name : null,
+    position:
+      typeof row.position === "string" ? row.position : null,
+    site:
+      typeof row.site === "string" ? row.site : null,
+    photo_url:
+      typeof row.photo_url === "string" ? row.photo_url : null,
+    signature_url:
+      typeof row.signature_url === "string" ? row.signature_url : null,
+    created_at:
+      typeof row.created_at === "string" ? row.created_at : undefined,
+  };
+}
+
+export async function findUserByUsername(username: string) {
+  const db = getDb();
+  const normalized = username.trim().toLowerCase();
+
+  const { data, error } = await db
+    .from(USERS_TABLE)
+    .select(
+      "id, username, password_hash, secret_pin, full_name, position, site, photo_url, signature_url, created_at"
+    )
+    .eq("username", normalized)
+    .maybeSingle();
+
+  if (error) {
+    if (error.code === "PGRST205") {
+      return {
+        user: null,
+        error:
+          'Tabelle "users" fehlt oder Spalten fehlen. Bitte supabase/users-setup.sql im SQL Editor ausführen.',
+      };
+    }
+    return { user: null, error: error.message };
+  }
+
+  return { user: mapUser(data), error: null };
+}
+
+export async function verifyPassword(password: string, passwordHash: string) {
+  if (passwordHash.startsWith("$2a$") || passwordHash.startsWith("$2b$")) {
+    return bcrypt.compare(password, passwordHash);
+  }
+
+  // Temporary support for demo users that were inserted with plain text passwords.
+  return password === passwordHash;
+}
+
+export async function hashPassword(password: string) {
+  return bcrypt.hash(password, 10);
+}
+
+export async function createUser(
+  username: string,
+  password: string,
+  secretPin: number
+) {
+  const pin = normalizeSecretPin(secretPin);
+  if (pin === null) {
+    return { user: null, error: "Geheimzahl muss zwischen 0 und 99 liegen." };
+  }
+
+  const db = getDb();
+  const password_hash = await hashPassword(password);
+
+  const { data, error } = await db
+    .from(USERS_TABLE)
+    .insert({
+      username: username.trim().toLowerCase(),
+      password_hash,
+      secret_pin: pin,
+    })
+    .select("id, username, secret_pin")
+    .single();
+
+  if (error) {
+    return { user: null, error: error.message };
+  }
+
+  return { user: data, error: null };
+}
+
+export async function listUsers() {
+  const db = getDb();
+  const { data, error } = await db
+    .from(USERS_TABLE)
+    .select(
+      "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at"
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) return { users: null, error: error.message };
+  return { users: (data ?? []) as Array<Record<string, unknown>>, error: null };
+}
+
+export async function updateUserById(
+  id: string,
+  patch: {
+    password?: string;
+    secretPin?: number | null;
+    fullName?: string;
+    position?: string;
+    site?: string;
+    photoUrl?: string;
+    signatureUrl?: string;
+  }
+) {
+  const db = getDb();
+  const payload: Record<string, unknown> = {};
+
+  if (typeof patch.password === "string" && patch.password.length > 0) {
+    payload.password_hash = await hashPassword(patch.password);
+  }
+  if (patch.secretPin !== undefined) {
+    const pin = normalizeSecretPin(patch.secretPin);
+    if (pin === null) {
+      return { user: null, error: "Geheimzahl muss zwischen 0 und 99 liegen." };
+    }
+    payload.secret_pin = pin;
+  }
+  if (patch.fullName !== undefined) payload.full_name = patch.fullName.trim() || null;
+  if (patch.position !== undefined) payload.position = patch.position.trim() || null;
+  if (patch.site !== undefined) payload.site = patch.site.trim() || null;
+  if (patch.photoUrl !== undefined) payload.photo_url = patch.photoUrl.trim() || null;
+  if (patch.signatureUrl !== undefined)
+    payload.signature_url = patch.signatureUrl.trim() || null;
+
+  if (Object.keys(payload).length === 0) {
+    return { user: null, error: "Keine Änderungen übergeben." };
+  }
+
+  const { data, error } = await db
+    .from(USERS_TABLE)
+    .update(payload)
+    .eq("id", id)
+    .select(
+      "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at"
+    )
+    .single();
+
+  if (error) return { user: null, error: error.message };
+  return { user: data, error: null };
+}
