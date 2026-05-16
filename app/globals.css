@@ -1,26 +1,50 @@
-@import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* page.module.css */
+
+.container {
+  display: flex;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.sidebar {
+  width: 200px;
+  background-color: orange;
+  padding: 20px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.sidebar h2 {
+  margin-bottom: 20px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.sidebar nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidebar nav ul li {
+  margin: 10px 0;
+}
+
+.sidebar nav ul li a {
+  text-decoration: none;
+  color: black;
+}
+
+.main {
+  flex-grow: 1;
+  padding: 30px;
+}
+
+.categories {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+.category {
+  text-align: center;
+}
+
+.category img {
+  width: 50px; /* Állítsd be az ikon méretét */
+  height: auto;
 }
