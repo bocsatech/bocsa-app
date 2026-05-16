@@ -1,11 +1,12 @@
 // app/login/page.tsx
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase"; // Győződj meg róla, hogy a Supabase inicializálva van
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +16,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      alert("Hiba a bejelentkezéskor: " + error.message);
+      setError(error.message);
     } else {
       localStorage.setItem("bocsa_logged_in", "true");
       window.location.href = "/";
@@ -24,7 +25,8 @@ export default function LoginPage() {
 
   return (
     <div style={styles.container}>
-      <h1>Bejelentkezés</h1>
+      <h1 style={styles.title}>Bejelentkezés</h1>
+      {error && <p style={styles.error}>{error}</p>}
       <form onSubmit={handleLogin} style={styles.form}>
         <input
           type="email"
@@ -59,6 +61,14 @@ const styles = {
     background: "#f9f9f9",
     padding: "20px",
     boxSizing: "border-box",
+  },
+  title: {
+    fontSize: "2rem",
+    marginBottom: "20px",
+  },
+  error: {
+    color: "red",
+    marginBottom: "20px",
   },
   form: {
     display: "flex",
