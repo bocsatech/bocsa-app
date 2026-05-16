@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <SupabaseTable
       table="lager"
-      title="Lager"
+      title="lager"
     />
   );
 }
