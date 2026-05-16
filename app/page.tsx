@@ -1,42 +1,56 @@
-// components/SupabaseTable.tsx
+// app/page.tsx
 
-"use client";
+import SupabaseTable from "../components/SupabaseTable";
+import styles from './page.module.css';
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-
-type Props = {
-  table: string;
-  title: string;
-};
-
-export default function SupabaseTable({ table, title }: Props) {
-  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
-  const [error, setError] = useState<string | null>(null); // Hiba állapot
-
-  useEffect(() => {
-    async function loadRows() {
-      const { data, error } = await supabase.from(table).select("*").limit(100);
-      if (error) {
-        setError(`Hiba a táblák betöltésekor: \${error.message}`);
-        console.error("Error loading rows:", error); // Hiba kiírása a konzolra
-      } else {
-        setRows(data || []);
-      }
-    }
-
-    loadRows();
-  }, [table]);
-
+export default function Page() {
   return (
-    <main style={{ padding: 30 }}>
-      <h1>{title}</h1>
-      {error ? ( // Hibaüzenet megjelenítése
-        <div style={{ color: "red" }}>{error}</div>
-      ) : (
-        <pre>{JSON.stringify(rows, null, 2)}</pre>
-      )}
-    </main>
+    <div className={styles.container}>
+      <aside className={styles.sidebar}>
+        <h2>BOCSA TECH</h2>
+        <nav>
+          <ul>
+            <li><a href="#arbeitsprotokol">Arbeitsprotokol</a></li>
+            <li><a href="#lager">Lager</a></li>
+            <li><a href="#ersatzteile">Ersatzteile</a></li>
+            <li><a href="#arbeitsstunden">Arbeitsstunden</a></li>
+            <li><a href="#filiale">Filiale</a></li>
+            <li><a href="#pruefprotokol">Prüfprotokol</a></li>
+            <li><a href="#alle-gerate">Alle Geräte</a></li> {/* Új menüpont */}
+            <li><a href="#qr-scanen">QR scannen</a></li> {/* Új menüpont */}
+          </ul>
+        </nav>
+      </aside>
+      <main className={styles.main}>
+        <h1>WILLKOMMEN</h1>
+        <p>Wählen Sie eine Kategorie aus:</p>
+        <div className={styles.categories}>
+          <div className={styles.category}>
+            <h3>Kleingeräte</h3>
+            <img src="/icons/saw-icon.png" alt="Saw Icon" />
+          </div>
+          <div className={styles.category}>
+            <h3>Großgeräte</h3>
+            <img src="/icons/tractor-icon.png" alt="Tractor Icon" />
+          </div>
+          <div className={styles.category}>
+            <h3>Elektrogeräte 230</h3>
+            <img src="/icons/electrical-icon-230.png" alt="Electrical Devices 230" />
+          </div>
+          <div className={styles.category}>
+            <h3>Elektrogeräte 400</h3>
+            <img src="/icons/electrical-icon-400.png" alt="Electrical Devices 400" />
+          </div>
+          <div className={styles.category}>
+            <h3>PKW</h3>
+            <img src="/icons/car-icon.png" alt="Car Icon" />
+          </div>
+        </div>
+        <SupabaseTable
+          table="arbeitsprotokol"
+          title="Arbeitsprotokol"
+        />
+      </main>
+    </div>
   );
 }
-
