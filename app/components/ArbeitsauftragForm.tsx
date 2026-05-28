@@ -28,7 +28,9 @@ import {
 import { fetchLagerTeile } from "../../lib/lager";
 import {
   createEmptyWorkOrder,
+  fetchNextAuftragNr,
   formatOrderType,
+  formatWorkOrderNumber,
   getWorkOrders,
   mergeWorkOrder,
   normalizeWorkOrder,
@@ -326,11 +328,12 @@ export default function ArbeitsauftragForm({
         ) : machine && order ? (
           <>
             <div className="aaForm arbeitsauftragHideOnPrint">
-              {isNew ? (
-                <p className="subtitle" style={{ marginBottom: 12 }}>
-                  Neuer Auftrag: {formatOrderType(order.type)}
-                </p>
-              ) : null}
+              <p className="subtitle" style={{ marginBottom: 12 }}>
+                Auftrag-Nr.: <strong>{formatWorkOrderNumber(order)}</strong>
+                {" · "}
+                {isNew ? "Neuer Auftrag: " : null}
+                {formatOrderType(order.type)}
+              </p>
               <MachineHeroSummary machine={machine} />
 
               <MachineStammdatenPanel

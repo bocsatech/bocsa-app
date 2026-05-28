@@ -171,8 +171,7 @@ export function collectProtokollEintraege(
 }
 
 function formatOrderLabel(order: WorkOrderListEntry) {
-  const type = order.type?.trim() || "Auftrag";
-  return type === "Reperatur" ? "Reparatur" : type;
+  return formatWorkOrderNumber(order);
 }
 
 function orderMatchesUserAndDate(

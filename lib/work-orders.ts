@@ -104,12 +104,35 @@ export function deriveLegacyAuftragNrFromWoId(id: string): string {
   return `${yy}${mm}${dd}-${shortSuffix}`;
 }
 
+/** Fehlerhafte alte Werte (z. B. letzte 9 Ziffern des wo_-Timestamps). */
+function isCorruptStoredAuftragNr(stored: string, id: string): boolean {
+  const value = stored.trim();
+  if (!value) return false;
+  if (/^\d{9,}$/.test(value)) return true;
+  const rawId = id.trim();
+  if (!rawId.startsWith("wo_")) return false;
+
+  const body = rawId.slice(3);
+  const sep = body.indexOf("_");
+  if (sep <= 0) return false;
+
+  const ts = body.slice(0, sep);
+  return value === ts || value === ts.slice(-9);
+}
+
+function resolveStoredAuftragNr(order: Pick<WorkOrder, "id" | "auftragNr">): string {
+  const stored = String(order.auftragNr ?? "").trim();
+  if (!stored) return "";
+  if (isCorruptStoredAuftragNr(stored, String(order.id ?? ""))) return "";
+  return stored;
+}
+
 /** Anzeige: gespeichertes auftragNr, sonst Legacy-Ableitung. */
 export function formatWorkOrderNumber(
   order: Pick<WorkOrder, "id" | "auftragNr"> | string
 ): string {
   if (typeof order !== "string") {
-    const stored = String(order.auftragNr ?? "").trim();
+    const stored = resolveStoredAuftragNr(order);
     if (stored) return stored;
     return deriveLegacyAuftragNrFromWoId(String(order.id ?? ""));
   }
@@ -410,12 +433,17 @@ export function normalizeWorkOrder(order: WorkOrder): WorkOrder {
   const serviceParts = servicePartsFromSchedule(protocol.serviceSchedule);
   const id =
     typeof order.id === "string" && order.id.trim() ? order.id.trim() : newWorkOrderId();
-  const auftragNr =
+  const rawAuftragNr =
     typeof record.auftragNr === "string" && record.auftragNr.trim()
       ? record.auftragNr.trim()
       : typeof order.auftragNr === "string" && order.auftragNr.trim()
         ? order.auftragNr.trim()
-        : undefined;
+        : "";
+  const auftragNr = (() => {
+    if (!rawAuftragNr) return undefined;
+    const candidate = { id, auftragNr: rawAuftragNr };
+    return resolveStoredAuftragNr(candidate) || undefined;
+  })();
 
   return {
     ...order,

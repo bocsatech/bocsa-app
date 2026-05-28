@@ -20,7 +20,11 @@ import type { MachineRecord } from "../../../lib/machines";
 import type { Machine } from "../../../lib/types/machine";
 import type { StammdatenField } from "../../../lib/machines";
 import { stripWorkOrdersFromTabData } from "../../../lib/machine-tab-data";
-import { formatOrderType, getWorkOrders } from "../../../lib/work-orders";
+import {
+  formatOrderType,
+  formatWorkOrderNumber,
+  getWorkOrders,
+} from "../../../lib/work-orders";
 
 const ARBEITSAUFTRAG_TYPES = ["Service", "Check", "Reparatur"] as const;
 

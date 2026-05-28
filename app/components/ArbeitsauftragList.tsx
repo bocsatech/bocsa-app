@@ -11,6 +11,7 @@ import {
   EMPTY_WORK_ORDER_FILTERS,
   filterWorkOrderEntries,
   formatOrderType,
+  formatWorkOrderNumber,
   truncateRepairDescription,
   workOrderUserLabel,
   type WorkOrderListEntry,
@@ -133,6 +134,24 @@ export default function ArbeitsauftragList({ initialFilters }: Props) {
                   value={filters.geraetenummer}
                   onChange={(event) => updateFilter("geraetenummer", event.target.value)}
                   placeholder="z. B. GE_017909"
+                />
+              </label>
+              <label className="arbeitsauftragFilterField">
+                <span>Auftrag-Nr.</span>
+                <input
+                  type="search"
+                  value={filters.auftrag}
+                  onChange={(event) => updateFilter("auftrag", event.target.value)}
+                  placeholder="z. B. 000042"
+                />
+              </label>
+              <label className="arbeitsauftragFilterField">
+                <span>Auftragsart</span>
+                <input
+                  type="search"
+                  value={filters.auftragsart}
+                  onChange={(event) => updateFilter("auftragsart", event.target.value)}
+                  placeholder="z. B. Service"
                 />
               </label>
               <label className="arbeitsauftragFilterField">

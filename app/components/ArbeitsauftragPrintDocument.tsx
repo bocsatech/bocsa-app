@@ -42,6 +42,10 @@ export default function ArbeitsauftragPrintDocument({
             </div>
             <dl className="arbeitsauftragPrintMeta">
               <div>
+                <dt>Auftrag-Nr.</dt>
+                <dd>{formatWorkOrderNumber(order)}</dd>
+              </div>
+              <div>
                 <dt>Auftragsart</dt>
                 <dd>{formatOrderType(order.type)}</dd>
               </div>
