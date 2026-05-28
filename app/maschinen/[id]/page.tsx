@@ -1274,6 +1274,7 @@ export default function MaschineDetailPage() {
                   {getWorkOrders(machine).map((order) => (
                     <tr key={order.id}>
                       <td>{order.date || "—"}</td>
+                      <td>{formatWorkOrderNumber(order)}</td>
                       <td>{formatOrderType(order.type)}</td>
                       <td>{order.updatedBy || order.createdBy || "—"}</td>
                       <td>{order.notes?.trim() || order.repairDescription?.trim() || "—"}</td>

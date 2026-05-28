@@ -11,6 +11,8 @@ export type { WorkOrderServicePart } from "./types/work-order-parts";
 
 export type WorkOrder = {
   id: string;
+  /** Persistente Anzeige-Nr. (z. B. 000042) — nach Speichern in der DB */
+  auftragNr?: string;
   type: string;
   depot: string;
   date: string;
@@ -43,7 +45,7 @@ export type WorkOrderListEntry = WorkOrder & {
 
 export type WorkOrderListFilters = {
   geraetenummer: string;
-  /** Auftrag-Nr. (order.id / formatWorkOrderNumber) */
+  /** Auftrag-Nr. */
   auftrag: string;
   /** Auftragsart (Service, Reparatur, …) */
   auftragsart: string;
@@ -70,30 +72,68 @@ export function formatOrderType(type: string) {
   return value;
 }
 
-/** Anzeige der Auftrag-Nr. (ohne wo_-Präfix). */
-export function formatWorkOrderNumber(order: Pick<WorkOrder, "id"> | string): string {
-  const raw =
-    typeof order === "string" ? order.trim() : String(order.id ?? "").trim();
+/** 6-stellige Nr. aus Supabase-Zähler. */
+export function formatAuftragNrFromCounter(value: number): string {
+  const n = Math.floor(value);
+  if (!Number.isFinite(n) || n < 1) return "—";
+  return String(n).padStart(6, "0");
+}
+
+/** Legacy wo_-ID → YYMMDD-KURZ (nicht die letzten 9 Ziffern des Timestamps). */
+export function deriveLegacyAuftragNrFromWoId(id: string): string {
+  const raw = id.trim();
   if (!raw) return "—";
-  if (raw.startsWith("wo_")) return raw.slice(3);
-  return raw;
+  if (!raw.startsWith("wo_")) return raw;
+
+  const body = raw.slice(3);
+  const sep = body.indexOf("_");
+  if (sep <= 0) return body;
+
+  const ts = body.slice(0, sep);
+  const suffix = body.slice(sep + 1);
+  const ms = Number(ts);
+  if (!Number.isFinite(ms) || ms <= 0) {
+    return suffix.slice(0, 8).toUpperCase() || "—";
+  }
+
+  const d = new Date(ms);
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const shortSuffix = suffix.slice(0, 4).toUpperCase();
+  return `${yy}${mm}${dd}-${shortSuffix}`;
 }
 
-export function formatWorkOrderDisplay(order: Pick<WorkOrder, "id" | "type">) {
-  return {
-    number: formatWorkOrderNumber(order),
-    typeLabel: formatOrderType(order.type),
-  };
+/** Anzeige: gespeichertes auftragNr, sonst Legacy-Ableitung. */
+export function formatWorkOrderNumber(
+  order: Pick<WorkOrder, "id" | "auftragNr"> | string
+): string {
+  if (typeof order !== "string") {
+    const stored = String(order.auftragNr ?? "").trim();
+    if (stored) return stored;
+    return deriveLegacyAuftragNrFromWoId(String(order.id ?? ""));
+  }
+
+  const raw = order.trim();
+  if (!raw) return "—";
+  if (!raw.startsWith("wo_")) return raw;
+  return deriveLegacyAuftragNrFromWoId(raw);
 }
 
-function workOrderNumberMatchesFilter(entry: WorkOrderListEntry, filter: string) {
-  const needle = normalizeFilterValue(filter);
-  if (!needle) return true;
-
-  const idNorm = normalizeFilterValue(entry.id);
-  const displayNorm = normalizeFilterValue(formatWorkOrderNumber(entry));
-
-  return idNorm.includes(needle) || displayNorm.includes(needle);
+export async function fetchNextAuftragNr(): Promise<{
+  auftragNr: string;
+  counter: number;
+} | null> {
+  const res = await fetch("/api/arbeitsauftrag/next-nr", {
+    cache: "no-store",
+    credentials: "include",
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) return null;
+  const auftragNr = String(body.auftragNr ?? "").trim();
+  const counter = Number(body.counter);
+  if (!auftragNr || !Number.isFinite(counter)) return null;
+  return { auftragNr, counter };
 }
 
 export function truncateRepairDescription(text: string, maxLength = 42) {
@@ -114,6 +154,22 @@ export function parseWorkHours(value: string): number {
   const num = Number(trimmed.replace(",", "."));
   if (!Number.isFinite(num) || num < 0) return 0;
   return Math.round(num * 100) / 100;
+}
+
+function workOrderNumberMatchesFilter(entry: WorkOrderListEntry, filter: string) {
+  const needle = normalizeFilterValue(filter);
+  if (!needle) return true;
+
+  const display = formatWorkOrderNumber(entry);
+  const idNorm = normalizeFilterValue(entry.id);
+  const displayNorm = normalizeFilterValue(display);
+  const storedNorm = normalizeFilterValue(String(entry.auftragNr ?? ""));
+
+  return (
+    idNorm.includes(needle) ||
+    displayNorm.includes(needle) ||
+    storedNorm.includes(needle)
+  );
 }
 
 export function filterWorkOrderEntries(
@@ -219,6 +275,7 @@ export function createEmptyWorkOrder(options?: {
   type?: string;
   depot?: string;
   username?: string;
+  auftragNr?: string;
 }): WorkOrder {
   const now = new Date();
   const date = toAustriaDateString(now);
@@ -227,6 +284,7 @@ export function createEmptyWorkOrder(options?: {
 
   return {
     id: newWorkOrderId(),
+    auftragNr: options?.auftragNr?.trim() || undefined,
     type: options?.type?.trim() || "Service",
     depot: options?.depot?.trim() || "",
     date,
@@ -352,10 +410,17 @@ export function normalizeWorkOrder(order: WorkOrder): WorkOrder {
   const serviceParts = servicePartsFromSchedule(protocol.serviceSchedule);
   const id =
     typeof order.id === "string" && order.id.trim() ? order.id.trim() : newWorkOrderId();
+  const auftragNr =
+    typeof record.auftragNr === "string" && record.auftragNr.trim()
+      ? record.auftragNr.trim()
+      : typeof order.auftragNr === "string" && order.auftragNr.trim()
+        ? order.auftragNr.trim()
+        : undefined;
 
   return {
     ...order,
     id,
+    auftragNr,
     date: toAustriaDateString(order.date) || String(order.date ?? "").trim(),
     notes: typeof order.notes === "string" ? order.notes : "",
     parts: Array.isArray(order.parts) ? order.parts : [],

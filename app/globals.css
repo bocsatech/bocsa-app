@@ -1825,6 +1825,36 @@ button, input, select, textarea {
   line-height: 1.4;
 }
 
+.machineWorkOrdersSection .machineTable th:nth-child(2),
+.machineWorkOrdersSection .machineTable td:nth-child(2) {
+  width: 6.5rem;
+  max-width: 6.5rem;
+  white-space: nowrap;
+}
+
+.machineWorkOrdersSection .machineTable th:nth-child(3),
+.machineWorkOrdersSection .machineTable td:nth-child(3) {
+  width: 5.5rem;
+  max-width: 5.5rem;
+  white-space: nowrap;
+}
+
+.machineWorkOrdersSection .machineTable th:last-child,
+.machineWorkOrdersSection .machineTable td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.machineWorkOrdersSection .detailTopActions {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.machineWorkOrdersSection .detailTopActions .pillButton {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 @media (max-width: 900px) {
   .arbeitsauftragResultTop {
     grid-template-columns: 1fr;

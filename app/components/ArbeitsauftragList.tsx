@@ -136,24 +136,6 @@ export default function ArbeitsauftragList({ initialFilters }: Props) {
                 />
               </label>
               <label className="arbeitsauftragFilterField">
-                <span>Auftrag-Nr.</span>
-                <input
-                  type="search"
-                  value={filters.auftrag}
-                  onChange={(event) => updateFilter("auftrag", event.target.value)}
-                  placeholder="z. B. 1715891234"
-                />
-              </label>
-              <label className="arbeitsauftragFilterField">
-                <span>Auftragsart</span>
-                <input
-                  type="search"
-                  value={filters.auftragsart}
-                  onChange={(event) => updateFilter("auftragsart", event.target.value)}
-                  placeholder="z. B. Service"
-                />
-              </label>
-              <label className="arbeitsauftragFilterField">
                 <span>Bearbeiter</span>
                 <input
                   type="search"
@@ -266,9 +248,13 @@ export default function ArbeitsauftragList({ initialFilters }: Props) {
 
                         <div className="arbeitsauftragProtocolMeta">
                           <ProtocolField
+                            label="Auftrag-Nr."
+                            value={formatWorkOrderNumber(entry)}
+                            emphasize
+                          />
+                          <ProtocolField
                             label="Auftragsart"
                             value={formatOrderType(entry.type)}
-                            emphasize
                           />
                           <ProtocolField
                             label="Bearbeiter"

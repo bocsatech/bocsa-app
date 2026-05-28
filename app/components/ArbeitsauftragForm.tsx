@@ -29,7 +29,6 @@ import { fetchLagerTeile } from "../../lib/lager";
 import {
   createEmptyWorkOrder,
   formatOrderType,
-  formatWorkOrderNumber,
   getWorkOrders,
   mergeWorkOrder,
   normalizeWorkOrder,
@@ -179,6 +178,12 @@ export default function ArbeitsauftragForm({
     setMessage(null);
 
     let normalized = normalizeWorkOrder(orderToSave);
+    if (!normalized.auftragNr?.trim()) {
+      const nextNr = await fetchNextAuftragNr();
+      if (nextNr?.auftragNr) {
+        normalized = { ...normalized, auftragNr: nextNr.auftragNr };
+      }
+    }
     const { data: lagerTeile } = await fetchLagerTeile();
     if (lagerTeile?.length) {
       normalized = {
@@ -325,13 +330,7 @@ export default function ArbeitsauftragForm({
                 <p className="subtitle" style={{ marginBottom: 12 }}>
                   Neuer Auftrag: {formatOrderType(order.type)}
                 </p>
-              ) : (
-                <p className="subtitle" style={{ marginBottom: 12 }}>
-                  Auftrag-Nr.: <strong>{formatWorkOrderNumber(order)}</strong>
-                  {" · "}
-                  {formatOrderType(order.type)}
-                </p>
-              )}
+              ) : null}
               <MachineHeroSummary machine={machine} />
 
               <MachineStammdatenPanel
