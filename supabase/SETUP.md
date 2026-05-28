@@ -14,6 +14,11 @@ Falls Schritt 7 mit Fehler **`column "counter_key" does not exist`** abbricht: d
 `arbeitsauftrag_nr_counters` wurde früher mit anderem Schema angelegt. Das aktuelle
 `arbeitsauftrag-nr.sql` **komplett noch einmal** im SQL Editor ausführen (es migriert die
 alte Tabelle automatisch und legt `next_arbeitsauftrag_nr()` an).
+Falls **`function public.next_arbeitsauftrag_nr() does not exist`**: zuerst
+`arbeitsauftrag-nr-function-only.sql` ausführen (oder das komplette `arbeitsauftrag-nr.sql`).
+Erst danach testen: `select public.next_arbeitsauftrag_nr();` — die Testzeile allein legt die
+Funktion nicht an.
+
 
 Optional:
 
