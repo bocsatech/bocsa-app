@@ -57,7 +57,7 @@ returns bigint
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $fn$
 declare
   next_val bigint;
 begin
@@ -78,7 +78,7 @@ begin
 
   return next_val;
 end;
-$$;
+$fn$;
 
 grant execute on function public.next_arbeitsauftrag_nr() to service_role;
 

@@ -1,6 +1,5 @@
--- Ha die Tabelle schon OK ist, aber
---   function public.next_arbeitsauftrag_nr() does not exist
--- dann dieses Skript im SQL Editor ausführen (alles markieren → Run).
+-- Schritt A: nur diese Datei im SQL Editor → alles markieren → Run
+-- (Legt Tabelle + Funktion an. Danach Schritt B.)
 
 create table if not exists public.arbeitsauftrag_nr_counters (
   counter_key text primary key default 'global',
@@ -17,7 +16,7 @@ returns bigint
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $fn$
 declare
   next_val bigint;
 begin
@@ -38,8 +37,12 @@ begin
 
   return next_val;
 end;
-$$;
+$fn$;
 
 grant execute on function public.next_arbeitsauftrag_nr() to service_role;
+grant execute on function public.next_arbeitsauftrag_nr() to authenticated;
 
 notify pgrst, 'reload schema';
+
+-- Schritt B (neuer Tab / neue Query — erst nach erfolgreichem Schritt A):
+-- select public.next_arbeitsauftrag_nr();

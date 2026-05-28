@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
-import { formatAuftragNrFromCounter } from "../../../../lib/work-orders";
+import { allocateNextAuftragNr } from "../../../../lib/arbeitsauftrag-nr-server";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -25,25 +25,17 @@ export async function GET() {
     return NextResponse.json({ error: "Supabase nicht konfiguriert." }, { status: 500 });
   }
 
-  const { data, error } = await db.rpc("next_arbeitsauftrag_nr");
+  const { counter, auftragNr, error } = await allocateNextAuftragNr(db);
 
   if (error) {
     return NextResponse.json(
       {
         error: error.message,
-        hint: "SQL ausführen: supabase/arbeitsauftrag-nr.sql",
+        hint: error.hint ?? "SQL: supabase/arbeitsauftrag-nr-function-only.sql",
       },
       { status: 500 }
     );
   }
 
-  const counter = typeof data === "number" ? data : Number(data);
-  if (!Number.isFinite(counter) || counter < 1) {
-    return NextResponse.json({ error: "Ungültige Auftrag-Nr. vom Server." }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    counter,
-    auftragNr: formatAuftragNrFromCounter(counter),
-  });
+  return NextResponse.json({ counter, auftragNr });
 }
