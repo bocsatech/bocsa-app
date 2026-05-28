@@ -9,6 +9,8 @@ import type { WorkOrderListFilters } from "../../lib/work-orders";
 function readListFilters(searchParams: URLSearchParams): Partial<WorkOrderListFilters> {
   return {
     geraetenummer: searchParams.get("geraetenummer") ?? "",
+    auftrag: searchParams.get("auftrag") ?? "",
+    auftragsart: searchParams.get("auftragsart") ?? "",
     bearbeiter: searchParams.get("bearbeiter") ?? "",
     filiale: searchParams.get("filiale") ?? "",
     dateFrom: searchParams.get("dateFrom") ?? "",

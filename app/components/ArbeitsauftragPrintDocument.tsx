@@ -3,7 +3,11 @@
 import { collectCheckedRepairLabels } from "../../lib/arbeitsauftrag-protokoll";
 import { formatValue, hasValue, type StammdatenField } from "../../lib/machines";
 import { formatLagerNumber } from "../../lib/lager";
-import { formatOrderType, type WorkOrder } from "../../lib/work-orders";
+import {
+  formatOrderType,
+  formatWorkOrderNumber,
+  type WorkOrder,
+} from "../../lib/work-orders";
 import type { Machine } from "../../lib/types/machine";
 
 type Props = {

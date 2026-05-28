@@ -43,7 +43,10 @@ export type WorkOrderListEntry = WorkOrder & {
 
 export type WorkOrderListFilters = {
   geraetenummer: string;
+  /** Auftrag-Nr. (order.id / formatWorkOrderNumber) */
   auftrag: string;
+  /** Auftragsart (Service, Reparatur, …) */
+  auftragsart: string;
   bearbeiter: string;
   dateFrom: string;
   dateTo: string;
@@ -53,6 +56,7 @@ export type WorkOrderListFilters = {
 export const EMPTY_WORK_ORDER_FILTERS: WorkOrderListFilters = {
   geraetenummer: "",
   auftrag: "",
+  auftragsart: "",
   bearbeiter: "",
   dateFrom: "",
   dateTo: "",
@@ -64,6 +68,32 @@ export function formatOrderType(type: string) {
   if (!value) return "—";
   if (value === "Reperatur") return "Reparatur";
   return value;
+}
+
+/** Anzeige der Auftrag-Nr. (ohne wo_-Präfix). */
+export function formatWorkOrderNumber(order: Pick<WorkOrder, "id"> | string): string {
+  const raw =
+    typeof order === "string" ? order.trim() : String(order.id ?? "").trim();
+  if (!raw) return "—";
+  if (raw.startsWith("wo_")) return raw.slice(3);
+  return raw;
+}
+
+export function formatWorkOrderDisplay(order: Pick<WorkOrder, "id" | "type">) {
+  return {
+    number: formatWorkOrderNumber(order),
+    typeLabel: formatOrderType(order.type),
+  };
+}
+
+function workOrderNumberMatchesFilter(entry: WorkOrderListEntry, filter: string) {
+  const needle = normalizeFilterValue(filter);
+  if (!needle) return true;
+
+  const idNorm = normalizeFilterValue(entry.id);
+  const displayNorm = normalizeFilterValue(formatWorkOrderNumber(entry));
+
+  return idNorm.includes(needle) || displayNorm.includes(needle);
 }
 
 export function truncateRepairDescription(text: string, maxLength = 42) {
@@ -91,7 +121,7 @@ export function filterWorkOrderEntries(
   filters: WorkOrderListFilters
 ) {
   const geraet = normalizeFilterValue(filters.geraetenummer);
-  const auftrag = normalizeFilterValue(filters.auftrag);
+  const auftragsart = normalizeFilterValue(filters.auftragsart);
   const bearbeiter = normalizeFilterValue(filters.bearbeiter);
   const filiale = normalizeFilterValue(filters.filiale);
   const dateFrom = toIsoDateString(filters.dateFrom.trim());
@@ -102,10 +132,19 @@ export function filterWorkOrderEntries(
       return false;
     }
 
-    if (auftrag) {
+    if (!workOrderNumberMatchesFilter(entry, filters.auftrag)) {
+      return false;
+    }
+
+    if (auftragsart) {
       const typeLabel = normalizeFilterValue(formatOrderType(entry.type));
       const rawType = normalizeFilterValue(entry.type);
-      if (typeLabel !== auftrag && rawType !== auftrag && !rawType.includes(auftrag)) {
+      if (
+        typeLabel !== auftragsart &&
+        rawType !== auftragsart &&
+        !typeLabel.includes(auftragsart) &&
+        !rawType.includes(auftragsart)
+      ) {
         return false;
       }
     }
@@ -311,9 +350,12 @@ export function normalizeWorkOrder(order: WorkOrder): WorkOrder {
   const legacyServiceParts = normalizeServicePartsFromOrder(record);
   const protocol = normalizeProtocol(record.protocol, legacyServiceParts);
   const serviceParts = servicePartsFromSchedule(protocol.serviceSchedule);
+  const id =
+    typeof order.id === "string" && order.id.trim() ? order.id.trim() : newWorkOrderId();
 
   return {
     ...order,
+    id,
     date: toAustriaDateString(order.date) || String(order.date ?? "").trim(),
     notes: typeof order.notes === "string" ? order.notes : "",
     parts: Array.isArray(order.parts) ? order.parts : [],
@@ -332,5 +374,13 @@ function getWorkOrderSortKey(order: Pick<WorkOrder, "date" | "time">) {
 
 function isWorkOrder(value: unknown): value is WorkOrder {
   if (!value || typeof value !== "object") return false;
-  return typeof (value as WorkOrder).id === "string";
+  const record = value as Record<string, unknown>;
+  if (typeof record.id === "string" && record.id.trim()) return true;
+  return (
+    typeof record.type === "string" ||
+    typeof record.date === "string" ||
+    record.protocol != null ||
+    Array.isArray(record.serviceParts) ||
+    Array.isArray(record.parts)
+  );
 }

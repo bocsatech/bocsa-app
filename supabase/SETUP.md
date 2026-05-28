@@ -36,3 +36,7 @@ Nach Änderungen: App neu laden (Hard-Refresh).
 3. Nach Deploy: Arbeitsauftrag öffnen → Protokoll ändern → **Speichern** → Hard-Refresh (Strg+F5).
 
 Arbeitsauftrag-Daten liegen in `maschines.machine_tab_data.work_orders[]` (JSON), inkl. `protocol` (Service-Material + Reparaturdaten). Ohne Speichern gehen Änderungen nach Reload verloren.
+
+Jeder Auftrag hat `id` (z. B. `wo_1715891234_abc12xy`); in der UI wird die **Auftrag-Nr.** ohne `wo_`-Präfix angezeigt. Legacy-Einträge ohne `id` erhalten beim Laden eine neue ID (`normalizeWorkOrder`); nach dem nächsten **Speichern** bleibt sie persistent.
+
+Prüfen: `node scripts/verify-supabase-sync.mjs` (zeigt auch `ohne Auftrag-id` und ob noch `public.arbeitsprotokol` existiert).

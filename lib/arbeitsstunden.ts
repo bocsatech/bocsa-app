@@ -1,4 +1,9 @@
-import { collectAllWorkOrders, parseWorkHours, workOrderUserLabel } from "./work-orders";
+import {
+  collectAllWorkOrders,
+  formatWorkOrderNumber,
+  parseWorkHours,
+  workOrderUserLabel,
+} from "./work-orders";
 import type { WorkOrderListEntry } from "./work-orders";
 import { toAustriaDateString, toIsoDateString } from "./machines";
 import type { Machine } from "./types/machine";

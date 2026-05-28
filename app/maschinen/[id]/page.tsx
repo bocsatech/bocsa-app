@@ -1263,7 +1263,8 @@ export default function MaschineDetailPage() {
                 <thead>
                   <tr>
                     <th>Datum</th>
-                    <th>Auftrag</th>
+                    <th>Auftrag-Nr.</th>
+                    <th>Art</th>
                     <th>Bearbeiter</th>
                     <th>Bemerkung</th>
                     <th />

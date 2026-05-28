@@ -78,21 +78,40 @@ async function main() {
 
   let orderCount = 0;
   let withProtocol = 0;
+  let missingOrderId = 0;
 
   for (const machine of machines ?? []) {
     const orders = machine.machine_tab_data?.work_orders;
     if (!Array.isArray(orders)) continue;
     for (const order of orders) {
       orderCount += 1;
+      const id = typeof order?.id === "string" ? order.id.trim() : "";
+      if (!id) missingOrderId += 1;
       if (order?.protocol && typeof order.protocol === "object") {
         withProtocol += 1;
       }
     }
   }
 
+  const { error: arbeitsprotokolError } = await supabase
+    .from("arbeitsprotokol")
+    .select("id")
+    .limit(1);
+
   console.log("");
   console.log(`Arbeitsaufträge in DB: ${orderCount}`);
   console.log(`davon mit gespeichertem protocol: ${withProtocol}`);
+  console.log(`ohne Auftrag-id (legacy): ${missingOrderId}`);
+  if (arbeitsprotokolError) {
+    console.log("Tabelle arbeitsprotokol: nicht vorhanden oder kein Zugriff");
+  } else {
+    const { count } = await supabase
+      .from("arbeitsprotokol")
+      .select("id", { count: "exact", head: true });
+    console.log(
+      `Tabelle arbeitsprotokol: ${count ?? "?"} Zeilen (ggf. Import nach work_orders nötig)`
+    );
+  }
   console.log("");
 
   if (failed > 0) {

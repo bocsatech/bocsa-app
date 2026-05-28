@@ -29,6 +29,7 @@ import { fetchLagerTeile } from "../../lib/lager";
 import {
   createEmptyWorkOrder,
   formatOrderType,
+  formatWorkOrderNumber,
   getWorkOrders,
   mergeWorkOrder,
   normalizeWorkOrder,
@@ -324,7 +325,13 @@ export default function ArbeitsauftragForm({
                 <p className="subtitle" style={{ marginBottom: 12 }}>
                   Neuer Auftrag: {formatOrderType(order.type)}
                 </p>
-              ) : null}
+              ) : (
+                <p className="subtitle" style={{ marginBottom: 12 }}>
+                  Auftrag-Nr.: <strong>{formatWorkOrderNumber(order)}</strong>
+                  {" · "}
+                  {formatOrderType(order.type)}
+                </p>
+              )}
               <MachineHeroSummary machine={machine} />
 
               <MachineStammdatenPanel
