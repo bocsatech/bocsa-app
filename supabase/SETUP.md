@@ -10,6 +10,11 @@ Führe im **Supabase SQL Editor** nacheinander aus:
 6. `arbeitsstunden-zeitbuch.sql` (Szerelő-Tagesblätter, Berechtigungen `hours.*`)
 7. `arbeitsauftrag-nr.sql` (fortlaufende Auftrag-Nr., z. B. `000042`)
 
+Falls Schritt 7 mit Fehler **`column "counter_key" does not exist`** abbricht: die Tabelle
+`arbeitsauftrag_nr_counters` wurde früher mit anderem Schema angelegt. Das aktuelle
+`arbeitsauftrag-nr.sql` **komplett noch einmal** im SQL Editor ausführen (es migriert die
+alte Tabelle automatisch und legt `next_arbeitsauftrag_nr()` an).
+
 Optional:
 
 - `fix-admin-user-group.sql` — Admin-Gruppe zuweisen
