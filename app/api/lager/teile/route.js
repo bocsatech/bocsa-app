@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 const TABLE = "lager_teile";
 
 const EDITABLE_FIELDS = [
+  "artikelnummer",
   "herstellernummer",
   "bezeichnung",
   "bild",
@@ -31,6 +32,8 @@ function normalizeTeil(row) {
   return {
     ...row,
     lagerstand: row.lagerstand ?? 0,
+    artikelnummer: row.artikelnummer ?? null,
+    last_inventur_at: row.last_inventur_at ?? null,
   };
 }
 

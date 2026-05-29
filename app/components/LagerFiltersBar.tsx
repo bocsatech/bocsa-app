@@ -18,6 +18,16 @@ export default function LagerFiltersBar({ filters, onChange, matchCount, totalCo
     <section className="card lagerListSection lagerFiltersBar">
       <form className="lagerFilters" onSubmit={(event) => event.preventDefault()}>
         <label className="lagerFilterField">
+          <span>Artikelnummer</span>
+          <input
+            type="search"
+            value={filters.artikelnummer}
+            onChange={(event) => update("artikelnummer", event.target.value)}
+            placeholder="Artikelnummer"
+            autoComplete="off"
+          />
+        </label>
+        <label className="lagerFilterField">
           <span>Herstellernummer</span>
           <input
             type="search"

@@ -15,18 +15,65 @@ import {
   periodRange,
   sumByQuelle,
 } from "../../../lib/arbeitsstunden";
+import {
+  dateForDatabaseStorage,
+  germanToday,
+  listDatabaseDatesInRange,
+  normalizeGermanDate,
+} from "../../../lib/dates";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 
 const EINTRAEGE = "arbeitsstunden_eintraege";
 const ABSCHLUSS = "arbeitsstunden_tagesabschluss";
 const MACHINES = "maschines";
 
-function toIsoDate(value) {
-  const trimmed = String(value ?? "").trim();
-  const match = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-  if (match) return `${match[3]}-${match[2]}-${match[1]}`;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-  return "";
+function isMissingHoursTablesError(error) {
+  if (!error) return false;
+  const code = String(error.code ?? "");
+  const message = String(error.message ?? "").toLowerCase();
+  return (
+    code === "42P01" ||
+    code === "PGRST205" ||
+    message.includes("arbeitsstunden_eintraege") ||
+    message.includes("arbeitsstunden_tagesabschluss")
+  );
+}
+
+function normalizeDatumParam(value) {
+  return normalizeGermanDate(value) || "";
+}
+
+function normalizeUsername(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function mergeDerivedProtocolRows(existingRows, derivedRows) {
+  if (!derivedRows.length) return existingRows;
+  const existingProtocolKeys = new Set(
+    existingRows
+      .filter((row) => row.quelle === "protokoll")
+      .map((row) => `${row.username}::${row.datum}::${row.workOrderId ?? ""}`)
+  );
+  const now = new Date().toISOString();
+  const merged = [...existingRows];
+  for (const draft of derivedRows) {
+    const key = `${draft.username}::${draft.datum}::${draft.workOrderId ?? ""}`;
+    if (existingProtocolKeys.has(key)) continue;
+    merged.push({
+      id: `derived-${draft.username}-${draft.datum}-${draft.workOrderId ?? Math.random().toString(36).slice(2)}`,
+      username: draft.username,
+      depot: draft.depot ?? "",
+      datum: draft.datum,
+      quelle: "protokoll",
+      stunden: Number(draft.stunden ?? 0),
+      beschreibung: draft.beschreibung ?? "Arbeitsauftrag",
+      machineId: draft.machineId ?? null,
+      workOrderId: draft.workOrderId ?? null,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+  return merged;
 }
 
 async function loadMachines(db) {
@@ -51,11 +98,13 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get("mode") ?? "tag";
-  const anchor = toIsoDate(searchParams.get("datum") ?? searchParams.get("from")) || new Date().toISOString().slice(0, 10);
+  const anchor =
+    normalizeDatumParam(searchParams.get("datum") ?? searchParams.get("from")) ||
+    germanToday();
   const isAdmin = await currentUserCanAdminHours();
 
-  let from = toIsoDate(searchParams.get("from"));
-  let to = toIsoDate(searchParams.get("to"));
+  let from = normalizeDatumParam(searchParams.get("from"));
+  let to = normalizeDatumParam(searchParams.get("to"));
 
   if (mode === "woche" || mode === "monat" || mode === "jahr") {
     const range = periodRange(mode, anchor);
@@ -74,31 +123,27 @@ export async function GET(request) {
     return NextResponse.json({ error: "Benutzer nicht erlaubt." }, { status: 403 });
   }
 
-  let eintraegeQuery = db
-    .from(EINTRAEGE)
-    .select("*")
-    .gte("datum", from)
-    .lte("datum", to)
-    .order("datum", { ascending: false });
-
-  let abschlussQuery = db
-    .from(ABSCHLUSS)
-    .select("*")
-    .gte("datum", from)
-    .lte("datum", to);
+  const datumList = listDatabaseDatesInRange(from, to);
+  let eintraegeQuery = db.from(EINTRAEGE).select("*").order("datum", { ascending: false });
+  let abschlussQuery = db.from(ABSCHLUSS).select("*");
+  if (datumList.length > 0) {
+    eintraegeQuery = eintraegeQuery.in("datum", datumList);
+    abschlussQuery = abschlussQuery.in("datum", datumList);
+  }
 
   if (!isAdmin) {
     eintraegeQuery = eintraegeQuery.eq("username", username);
     abschlussQuery = abschlussQuery.eq("username", username);
   } else if (requestedUsername) {
-    eintraegeQuery = eintraegeQuery.eq("username", username);
-    abschlussQuery = abschlussQuery.eq("username", username);
+    // Admin filter should be case-insensitive so names like "Thomas"/"thomas" both match.
+    eintraegeQuery = eintraegeQuery.ilike("username", username);
+    abschlussQuery = abschlussQuery.ilike("username", username);
   }
 
   const [{ data: eintraegeRows, error: e1 }, { data: abschlussRows, error: e2 }] =
     await Promise.all([eintraegeQuery, abschlussQuery]);
 
-  if (e1?.code === "42P01" || e2?.code === "42P01") {
+  if (isMissingHoursTablesError(e1) || isMissingHoursTablesError(e2)) {
     return NextResponse.json({
       error:
         "Tabelle fehlt. Bitte supabase/arbeitsstunden-zeitbuch.sql in Supabase ausführen.",
@@ -110,16 +155,23 @@ export async function GET(request) {
 
   const eintraege = (eintraegeRows ?? []).map(mapDbEintrag);
   const abschluesse = (abschlussRows ?? []).map(mapDbAbschluss);
+  let effectiveEintraege = eintraege;
+
+  if (mode === "tag" && !wantsAllUsers && username) {
+    const machines = await loadMachines(db);
+    const derived = collectProtokollEintraege(machines, username, from);
+    effectiveEintraege = mergeDerivedProtocolRows(eintraege, derived);
+  }
 
   if (mode === "vergleich") {
     const groupBy = searchParams.get("groupBy") === "depot" ? "depot" : "username";
-    const rows = aggregateByKey(eintraege, abschluesse, from, to, groupBy);
+    const rows = aggregateByKey(effectiveEintraege, abschluesse, from, to, groupBy);
     return NextResponse.json({ from, to, groupBy, rows });
   }
 
   if (mode === "liste") {
     const days = new Map();
-    for (const entry of eintraege) {
+    for (const entry of effectiveEintraege) {
       const key = `${entry.username}::${entry.datum}`;
       if (!days.has(key)) {
         const abschluss =
@@ -129,7 +181,7 @@ export async function GET(request) {
         days.set(
           key,
           buildDaySummary(
-            eintraege,
+            effectiveEintraege,
             abschluss,
             entry.username,
             entry.datum
@@ -142,7 +194,12 @@ export async function GET(request) {
       if (!days.has(key)) {
         days.set(
           key,
-          buildDaySummary(eintraege, abschluss, abschluss.username, abschluss.datum)
+          buildDaySummary(
+            effectiveEintraege,
+            abschluss,
+            abschluss.username,
+            abschluss.datum
+          )
         );
       }
     }
@@ -152,7 +209,7 @@ export async function GET(request) {
 
   if (mode === "tag" && wantsAllUsers) {
     const days = new Map();
-    for (const entry of eintraege) {
+    for (const entry of effectiveEintraege) {
       const key = `${entry.username}::${entry.datum}`;
       if (!days.has(key)) {
         const abschluss =
@@ -161,7 +218,7 @@ export async function GET(request) {
           ) ?? null;
         days.set(
           key,
-          buildDaySummary(eintraege, abschluss, entry.username, entry.datum)
+          buildDaySummary(effectiveEintraege, abschluss, entry.username, entry.datum)
         );
       }
     }
@@ -170,7 +227,12 @@ export async function GET(request) {
       if (!days.has(key)) {
         days.set(
           key,
-          buildDaySummary(eintraege, abschluss, abschluss.username, abschluss.datum)
+          buildDaySummary(
+            effectiveEintraege,
+            abschluss,
+            abschluss.username,
+            abschluss.datum
+          )
         );
       }
     }
@@ -180,17 +242,37 @@ export async function GET(request) {
     return NextResponse.json({ datum: from, from, to, tage, allUsers: true });
   }
 
+  const normalizedTargetUsername = normalizeUsername(username);
+  const resolvedUsername =
+    effectiveEintraege.find(
+      (e) => normalizeUsername(e.username) === normalizedTargetUsername
+    )?.username ??
+    abschluesse.find(
+      (a) => normalizeUsername(a.username) === normalizedTargetUsername
+    )?.username ??
+    username;
   const abschluss =
-    abschluesse.find((a) => a.username === username && a.datum === from) ?? null;
-  const dayEntries = eintraege.filter(
-    (e) => e.username === username && e.datum === from
+    abschluesse.find(
+      (a) =>
+        normalizeUsername(a.username) === normalizeUsername(resolvedUsername) &&
+        a.datum === from
+    ) ?? null;
+  const dayEntries = effectiveEintraege.filter(
+    (e) =>
+      normalizeUsername(e.username) === normalizeUsername(resolvedUsername) &&
+      e.datum === from
   );
-  const summary = buildDaySummary(eintraege, abschluss, username, from);
+  const summary = buildDaySummary(
+    effectiveEintraege,
+    abschluss,
+    resolvedUsername,
+    from
+  );
   const sums = sumByQuelle(dayEntries);
 
   return NextResponse.json({
     datum: from,
-    username,
+    username: resolvedUsername,
     abschluss,
     eintraege: dayEntries,
     summary,
@@ -228,7 +310,7 @@ export async function POST(request) {
       .eq("datum", datum)
       .eq("quelle", "protokoll");
 
-    if (deleteErr?.code === "42P01") {
+    if (isMissingHoursTablesError(deleteErr)) {
       return { error: "Tabelle fehlt.", needsMigration: true };
     }
     if (deleteErr) return { error: deleteErr.message };
@@ -253,7 +335,8 @@ export async function POST(request) {
   }
 
   if (action === "sync") {
-    const datum = toIsoDate(body.datum) || new Date().toISOString().slice(0, 10);
+    const datum =
+      dateForDatabaseStorage(body.datum) || dateForDatabaseStorage(germanToday());
     const username = await resolveHoursUsername(body.username);
     if (!username) {
       return NextResponse.json({ error: "Benutzer nicht erlaubt." }, { status: 403 });
@@ -271,7 +354,8 @@ export async function POST(request) {
     if (!(await currentUserCanAdminHours())) {
       return NextResponse.json({ error: "Keine Berechtigung." }, { status: 403 });
     }
-    const datum = toIsoDate(body.datum) || new Date().toISOString().slice(0, 10);
+    const datum =
+      dateForDatabaseStorage(body.datum) || dateForDatabaseStorage(germanToday());
     const machines = await loadMachines(db);
     const users = new Set();
     for (const draft of collectProtokollEintraege(machines, session.username, datum)) {
@@ -282,7 +366,7 @@ export async function POST(request) {
       const list = Array.isArray(tab.work_orders) ? tab.work_orders : [];
       for (const row of list) {
         const name = String(row?.updatedBy ?? row?.createdBy ?? "").trim();
-        const orderDate = toIsoDate(String(row?.date ?? ""));
+        const orderDate = dateForDatabaseStorage(String(row?.date ?? ""));
         if (name && orderDate === datum) users.add(name);
       }
     }
@@ -302,7 +386,8 @@ export async function POST(request) {
   }
 
   if (action === "confirm") {
-    const datum = toIsoDate(body.datum) || new Date().toISOString().slice(0, 10);
+    const datum =
+      dateForDatabaseStorage(body.datum) || dateForDatabaseStorage(germanToday());
     const username = await resolveHoursUsername(body.username);
     if (!username) {
       return NextResponse.json({ error: "Benutzer nicht erlaubt." }, { status: 403 });
@@ -321,14 +406,15 @@ export async function POST(request) {
     };
 
     const { error } = await db.from(ABSCHLUSS).upsert(row, { onConflict: "username,datum" });
-    if (error?.code === "42P01") {
+    if (isMissingHoursTablesError(error)) {
       return NextResponse.json({ error: "Tabelle fehlt.", needsMigration: true }, { status: 503 });
     }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
   }
 
-  const datum = toIsoDate(body.datum) || new Date().toISOString().slice(0, 10);
+  const datum =
+    dateForDatabaseStorage(body.datum) || dateForDatabaseStorage(germanToday());
   const username = await resolveHoursUsername(body.username);
   if (!username) {
     return NextResponse.json({ error: "Benutzer nicht erlaubt." }, { status: 403 });
@@ -352,7 +438,7 @@ export async function POST(request) {
   };
 
   const { data, error } = await db.from(EINTRAEGE).insert(row).select("*").single();
-  if (error?.code === "42P01") {
+  if (isMissingHoursTablesError(error)) {
     return NextResponse.json({ error: "Tabelle fehlt.", needsMigration: true }, { status: 503 });
   }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

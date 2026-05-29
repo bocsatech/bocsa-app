@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import GermanDateField from "./GermanDateField";
 import {
   GERAETTYP_OPTIONS,
   hasValue,
   machineToStammdatenFields,
+  sanitizeNumericFieldInput,
+  stammdatenFieldHasContent,
   stammdatenStatusClassName,
   type StammdatenField,
 } from "../../lib/machines";
@@ -25,6 +28,12 @@ type Props = {
   alwaysEditing?: boolean;
   showActions?: boolean;
   beendenHref?: string;
+  /** Ohne Tab-Leiste / Kartenrahmen (z. B. Arbeitsauftrag-Übersicht) */
+  embedded?: boolean;
+  /** Leere Felder ausblenden (auch im Bearbeitungsmodus) */
+  hideEmptyFields?: boolean;
+  /** Überschrift „Stammdaten“ ausblenden */
+  showTitle?: boolean;
 };
 
 const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
@@ -38,6 +47,9 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
       alwaysEditing = false,
       showActions = true,
       beendenHref = "/maschinen",
+      embedded = false,
+      hideEmptyFields = false,
+      showTitle = true,
     },
     ref
   ) {
@@ -65,21 +77,39 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
       if (ok) setIsEditing(false);
     }
 
+    function fieldVisible(field: StammdatenField) {
+      if (hideEmptyFields && !stammdatenFieldHasContent(field)) return false;
+      if (!editable && !hasValue(field.value)) return false;
+      return true;
+    }
+
     return (
-      <div className="tabSection arbeitsauftragHideOnPrint">
-        <div className="tabList">
-          <button type="button" className="tabButton active">
-            Stammdaten
-          </button>
-        </div>
+      <div
+        className={[
+          embedded ? "tabSectionEmbedded" : "tabSection",
+          "arbeitsauftragHideOnPrint",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {!embedded ? (
+          <div className="tabList">
+            <button type="button" className="tabButton active">
+              Stammdaten
+            </button>
+          </div>
+        ) : null}
 
         <div className={`tabPanel ${editable ? "" : "readOnlyPanel"}`}>
-          <h2>Stammdaten</h2>
-          <div className="fieldGrid">
+          {showTitle ? <h2 className="aaStammdatenHeading">Stammdaten</h2> : null}
+          <div className="fieldGrid aaStammdatenGrid">
             {stammdatenForm.map((field, index) => {
-              if (!editable && !hasValue(field.value)) return null;
+              if (!fieldVisible(field)) return null;
               return (
-                <div key={field.label} className="fieldRow">
+                <div
+                  key={field.label}
+                  className={embedded ? "fieldRow aaFieldRow" : "fieldRow"}
+                >
                   <span>{field.label}</span>
                   {field.dbKey === "meldung_status" ? (
                     <strong
@@ -115,13 +145,27 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
                       <option value="Fertig">Fertig</option>
                       <option value="In Reperatur">In Reperatur</option>
                     </select>
-                  ) : field.dbKey ? (
-                    <input
-                      type={field.type === "date" ? "text" : field.type ?? "text"}
+                  ) : field.type === "date" ? (
+                    <GermanDateField
                       value={field.value}
                       readOnly={!editable || !canWrite}
-                      onChange={(e) => updateField(index, e.target.value)}
-                      placeholder={field.type === "date" ? "TT.MM.JJJJ" : field.label}
+                      onChange={(next) => updateField(index, next)}
+                    />
+                  ) : field.dbKey ? (
+                    <input
+                      type="text"
+                      inputMode={field.type === "number" ? "decimal" : undefined}
+                      value={field.value}
+                      readOnly={!editable || !canWrite}
+                      onChange={(e) =>
+                        updateField(
+                          index,
+                          field.type === "number"
+                            ? sanitizeNumericFieldInput(e.target.value)
+                            : e.target.value
+                        )
+                      }
+                      placeholder={field.label}
                     />
                   ) : (
                     <input type="text" value={field.value} placeholder="—" disabled />

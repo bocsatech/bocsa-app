@@ -1,4 +1,25 @@
 import type { Machine } from "./types/machine";
+import {
+  DE_DATE_PLACEHOLDER,
+  formatGermanDate,
+  germanToday,
+  isGermanDate,
+  normalizeGermanDate,
+  parseGermanDate,
+} from "./dates";
+
+export {
+  DE_DATE_PLACEHOLDER,
+  compareGermanDates,
+  formatGermanDate,
+  germanDateComparable,
+  germanToday,
+  isGermanDate,
+  isGermanDateInRange,
+  listGermanDatesInRange,
+  normalizeGermanDate,
+  parseGermanDate,
+} from "./dates";
 
 export const MACHINE_COLUMNS = "*";
 
@@ -26,7 +47,6 @@ export const MACHINE_FORM_FIELDS: Array<{
   { key: "serial_number", label: "Seriennummer" },
   { key: "depot", label: "Depot" },
   { key: "km_stand", label: "KM-Stand" },
-  { key: "arbeitsstunden", label: "Arbeitsstunden", type: "number" },
   { key: "meldung_status", label: "Meldung" },
   { key: "baujahr", label: "Baujahr" },
   { key: "hour_meter_reading", label: "Stundenzählerstand", type: "number" },
@@ -39,7 +59,6 @@ export const MACHINE_FORM_FIELDS: Array<{
   { key: "last_service_date", label: "Letztes Service am", type: "date" },
   { key: "antifreeze_checked_at", label: "Frostschutz geprüft am", type: "date" },
   { key: "damage_status", label: "Gerätestatus" },
-  { key: "description", label: "Beschreibung" },
   { key: "tpg_hebetechnik", label: "TPG-Hebetechnik §7/8 gültig bis", type: "date" },
   { key: "engine_type", label: "Motortyp" },
   { key: "engine_number", label: "Motornummer" },
@@ -63,7 +82,6 @@ export const STAMMDATEN_FIELDS: typeof MACHINE_FORM_FIELDS = [
   { key: "serial_number", label: "Seriennummer" },
   { key: "depot", label: "Depot" },
   { key: "km_stand", label: "KM-Stand" },
-  { key: "arbeitsstunden", label: "Arbeitsstunden", type: "number" },
   { key: "meldung_status", label: "Meldung" },
   { key: "baujahr", label: "Baujahr" },
   { key: "hour_meter_reading", label: "Stundenzählerstand", type: "number" },
@@ -76,7 +94,6 @@ export const STAMMDATEN_FIELDS: typeof MACHINE_FORM_FIELDS = [
   { key: "last_service_date", label: "Letztes Service am", type: "date" },
   { key: "antifreeze_checked_at", label: "Frostschutz geprüft am", type: "date" },
   { key: "damage_status", label: "Gerätstatus" },
-  { key: "description", label: "Beschreibung" },
 ];
 
 export async function fetchMachines() {
@@ -170,6 +187,28 @@ export function formatValue(value: unknown) {
   return text ? text : "—";
 }
 
+/** Nur Ziffern und Dezimaltrennzeichen (Komma/Punkt) — für Textfelder mit type number. */
+export function sanitizeNumericFieldInput(value: string) {
+  return value.replace(/[^\d,.]/g, "");
+}
+
+/** Leer = null (optional); sonst Zahl oder null bei ungültigem Format. */
+export function parseOptionalNumber(value: string): number | null {
+  const raw = value.replace(",", ".").trim();
+  if (!raw) return null;
+  if (!/^\d+(\.\d+)?$/.test(raw)) return null;
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/** Gerätenummer mit einmaligem „GE“-Präfix (für Anzeige und Druck). */
+export function formatGeraetenummerDisplay(value: unknown) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (/^ge\s+/i.test(text)) return text;
+  return `GE ${text}`;
+}
+
 export function hasValue(value: unknown) {
   if (value === null || value === undefined) return false;
   const text = String(value).trim();
@@ -180,54 +219,22 @@ export function formatDate(value: unknown) {
   if (value === null || value === undefined) return "—";
   const text = String(value).trim();
   if (!text) return "—";
-  const date = parseDateOnly(text);
-  if (!date) return text;
-  return toAustriaDateString(date);
+  return formatGermanDate(text) || text;
 }
 
+/** @deprecated Alias — nur TT.MM.JJJJ */
 export function toAustriaDateString(value: unknown) {
-  const date = value instanceof Date ? value : parseDateOnly(value);
-  if (!date) return "";
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}.${month}.${year}`;
+  return formatGermanDate(value);
 }
 
+/** @deprecated Nur noch für Alt-Code; speichern immer normalizeGermanDate */
 export function toIsoDateString(value: unknown) {
-  const date = value instanceof Date ? value : parseDateOnly(value);
-  if (!date) return "";
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${year}-${month}-${day}`;
+  return formatGermanDate(value);
 }
 
+/** @deprecated Alias parseGermanDate */
 export function parseDateOnly(value: unknown): Date | null {
-  if (value === null || value === undefined) return null;
-  const text = String(value).trim();
-  if (!text) return null;
-
-  const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) {
-    return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
-  }
-
-  const de = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if (de) {
-    return new Date(Number(de[3]), Number(de[2]) - 1, Number(de[1]));
-  }
-
-  const deShort = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2})$/);
-  if (deShort) {
-    const yy = Number(deShort[3]);
-    const year = yy >= 70 ? 1900 + yy : 2000 + yy;
-    return new Date(year, Number(deShort[2]) - 1, Number(deShort[1]));
-  }
-
-  const parsed = new Date(text);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  return parseGermanDate(value);
 }
 
 export function startOfDay(date: Date) {
@@ -297,6 +304,15 @@ export type StammdatenField = {
   value: string;
 };
 
+/** Stammdaten-Feld mit echtem Inhalt (kein Platzhalter / leeres Datum). */
+export function stammdatenFieldHasContent(field: StammdatenField) {
+  if (!hasValue(field.value)) return false;
+  const text = String(field.value).trim();
+  if (text.toUpperCase() === DE_DATE_PLACEHOLDER) return false;
+  if (/^\[[^\]]+\]$/.test(text)) return false;
+  return true;
+}
+
 export function machineToStammdatenFields(
   machine: Machine | null,
   fieldDefs: typeof STAMMDATEN_FIELDS = STAMMDATEN_FIELDS
@@ -349,7 +365,7 @@ function resolveStammdatenValue(
 function formatFormValue(value: unknown, type?: "text" | "number" | "date") {
   if (value === null || value === undefined) return "";
   if (type === "date") {
-    return toAustriaDateString(value) || String(value);
+    return formatGermanDate(value) || "";
   }
   return String(value);
 }
@@ -378,8 +394,8 @@ export async function updateMachine(
 
 export function stammdatenStatusClassName(value: string) {
   const normalized = value.trim().toLowerCase();
-  if (normalized === "fertig") return "statusSelectFertig";
-  if (normalized === "in reperatur" || normalized === "in reparatur") return "statusSelectRepair";
+  if (normalized === "fertig") return "fertig";
+  if (normalized === "in reperatur" || normalized === "in reparatur") return "repair";
   return "";
 }
 
@@ -396,7 +412,10 @@ export function buildStammdatenPatch(
     if (field.dbKey) {
       const value = field.value.trim();
       const normalizedValue =
-        field.type === "date" ? toIsoDateString(value) || value : value;
+        field.type === "date" ? normalizeGermanDate(value) : value;
+      if (field.type === "date" && value && !normalizedValue) {
+        continue;
+      }
       if (field.dbKey === "meldung_status") continue;
       if (
         field.dbKey === "geraettyp" ||
@@ -406,10 +425,12 @@ export function buildStammdatenPatch(
         continue;
       }
       if (field.dbKey === "arbeitsstunden") {
-        const raw = normalizedValue.replace(",", ".").trim();
-        patch.arbeitsstunden =
-          raw && /^[0-9]+(\.[0-9]+)?$/.test(raw) ? Number.parseFloat(raw) : null;
+        patch.arbeitsstunden = parseOptionalNumber(normalizedValue);
         delete tabData.arbeitsstunden;
+        continue;
+      }
+      if (field.type === "number") {
+        patch[field.dbKey] = parseOptionalNumber(normalizedValue);
         continue;
       }
       if (value || field.dbKey in machine) {

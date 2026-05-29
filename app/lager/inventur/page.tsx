@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LagerFiltersBar from "../../components/LagerFiltersBar";
 import AppPageShell from "../../components/AppPageShell";
+import QrScannerModal from "../../components/QrScannerModal";
 import {
   EMPTY_LAGER_FILTERS,
   fetchLagerTeile,
@@ -14,6 +15,28 @@ import {
   type LagerListFilters,
 } from "../../../lib/lager";
 import type { LagerTeil } from "../../../lib/types/lager";
+
+function formatInventurDate(value?: string | null) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("de-AT");
+}
+
+function extractScanValue(raw: string) {
+  const text = String(raw ?? "").trim();
+  if (!text) return "";
+
+  try {
+    const url = new URL(text);
+    const teilId = url.searchParams.get("teil");
+    if (teilId) return teilId.trim();
+  } catch {
+    // Not a URL, continue with plain text.
+  }
+
+  return text;
+}
 
 export default function LagerInventurPage() {
   const [teile, setTeile] = useState<LagerTeil[]>([]);
@@ -26,6 +49,7 @@ export default function LagerInventurPage() {
   const [counts, setCounts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [qrScanOpen, setQrScanOpen] = useState(false);
 
   const loadTeile = useCallback(async () => {
     setLoading(true);
@@ -94,7 +118,10 @@ export default function LagerInventurPage() {
     setSavingId(teil.id);
     setStatusMessage(null);
 
-    const { data, error } = await updateLagerTeil(teil.id, { lagerstand: nextStand });
+    const { data, error } = await updateLagerTeil(teil.id, {
+      lagerstand: nextStand,
+      last_inventur_at: new Date().toISOString(),
+    });
     if (error) {
       setStatusMessage(error.message);
     } else if (data) {
@@ -104,6 +131,41 @@ export default function LagerInventurPage() {
     }
 
     setSavingId(null);
+  }
+
+  function handleQrScan(decoded: string) {
+    const scan = extractScanValue(decoded);
+    if (!scan) return;
+
+    const byId = teile.find((teil) => teil.id === scan);
+    if (byId) {
+      setFilters((current) => ({
+        ...current,
+        artikelnummer: byId.artikelnummer ?? "",
+        herstellernummer: byId.herstellernummer ?? "",
+      }));
+      setStatusMessage(`QR erkannt: ${byId.herstellernummer}`);
+      return;
+    }
+
+    const lower = scan.toLowerCase();
+    const byNumbers = teile.find(
+      (teil) =>
+        String(teil.herstellernummer ?? "").toLowerCase() === lower ||
+        String(teil.artikelnummer ?? "").toLowerCase() === lower
+    );
+    if (byNumbers) {
+      setFilters((current) => ({
+        ...current,
+        artikelnummer: byNumbers.artikelnummer ?? "",
+        herstellernummer: byNumbers.herstellernummer ?? "",
+      }));
+      setStatusMessage(`QR erkannt: ${byNumbers.herstellernummer}`);
+      return;
+    }
+
+    setFilters((current) => ({ ...current, herstellernummer: scan }));
+    setStatusMessage(`QR erkannt: ${scan}`);
   }
 
   return (
@@ -118,6 +180,13 @@ export default function LagerInventurPage() {
             </p>
           </div>
           <div className="detailTopActions">
+            <button
+              type="button"
+              className="pillButton outline"
+              onClick={() => setQrScanOpen(true)}
+            >
+              QR scannen
+            </button>
             <Link href="/lager" className="pillButton outline">
               Zurück zum Lager
             </Link>
@@ -159,11 +228,13 @@ export default function LagerInventurPage() {
                 <table className="machineTable lagerTable lagerInventurTable">
                   <thead>
                     <tr>
+                      <th>Artikelnummer</th>
                       <th>Herstellernummer</th>
                       <th>Ersatzteil</th>
                       <th>Lagerort</th>
                       <th>Lagerplatz</th>
                       <th>Ist</th>
+                      <th>Letzte Inventur</th>
                       <th>Neu</th>
                       <th />
                     </tr>
@@ -171,7 +242,7 @@ export default function LagerInventurPage() {
                   <tbody>
                     {filteredTeile.length === 0 ? (
                       <tr>
-                        <td colSpan={7}>Keine Teile gefunden.</td>
+                        <td colSpan={9}>Keine Teile gefunden.</td>
                       </tr>
                     ) : (
                       filteredTeile.map((teil) => {
@@ -183,6 +254,7 @@ export default function LagerInventurPage() {
 
                         return (
                           <tr key={teil.id}>
+                            <td>{formatLagerValue(teil.artikelnummer)}</td>
                             <td>
                               <strong>{formatLagerValue(teil.herstellernummer)}</strong>
                             </td>
@@ -192,6 +264,7 @@ export default function LagerInventurPage() {
                             <td>{formatLagerValue(teil.lagerort)}</td>
                             <td>{formatLagerValue(teil.lagerplatz)}</td>
                             <td>{formatLagerNumber(teil.lagerstand)}</td>
+                            <td>{formatInventurDate(teil.last_inventur_at)}</td>
                             <td>
                               <input
                                 type="number"
@@ -223,6 +296,11 @@ export default function LagerInventurPage() {
             </article>
           </>
         )}
+      <QrScannerModal
+        open={qrScanOpen}
+        onClose={() => setQrScanOpen(false)}
+        onScan={handleQrScan}
+      />
     </AppPageShell>
   );
 }

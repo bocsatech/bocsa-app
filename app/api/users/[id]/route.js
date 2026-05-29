@@ -10,7 +10,7 @@ export async function PATCH(request, { params }) {
     );
   }
 
-  const id = params?.id;
+  const { id } = await params;
   if (!id) {
     return NextResponse.json({ error: "Benutzer-ID fehlt." }, { status: 400 });
   }

@@ -1,4 +1,8 @@
-import { currentUserHasPermission, getCurrentSession } from "./permissions";
+import {
+  currentUserHasPermission,
+  currentUserIsInGroup,
+  getCurrentSession,
+} from "./permissions";
 
 async function hasHoursOrMachineWrite(permissionKey: string) {
   if (await currentUserHasPermission(permissionKey)) return true;
@@ -23,7 +27,8 @@ export async function currentUserCanAdminHours() {
   const session = await getCurrentSession();
   if (!session) return false;
   if (session.username.trim().toLowerCase() === "admin") return true;
-  return currentUserHasPermission("hours.admin");
+  if (await currentUserHasPermission("hours.admin")) return true;
+  return currentUserIsInGroup("Admin");
 }
 
 export async function resolveHoursUsername(requested?: string | null) {

@@ -6,6 +6,7 @@ export const LAGER_FORM_FIELDS: Array<{
   type?: "text" | "number";
   required?: boolean;
 }> = [
+  { key: "artikelnummer", label: "Artikelnummer" },
   { key: "herstellernummer", label: "Herstellernummer", required: true },
   { key: "bezeichnung", label: "Ersatzteil" },
   { key: "produktgruppe", label: "Produktgruppe" },
@@ -93,6 +94,7 @@ export async function deleteLagerTeil(id: string) {
 }
 
 export type LagerListFilters = {
+  artikelnummer: string;
   herstellernummer: string;
   bezeichnung: string;
   lagerort: string;
@@ -100,6 +102,7 @@ export type LagerListFilters = {
 };
 
 export const EMPTY_LAGER_FILTERS: LagerListFilters = {
+  artikelnummer: "",
   herstellernummer: "",
   bezeichnung: "",
   lagerort: "",
@@ -111,16 +114,21 @@ function compactSearchText(value: string) {
 }
 
 export function filterLagerTeileByFields(teile: LagerTeil[], filters: LagerListFilters) {
+  const artikel = compactSearchText(filters.artikelnummer);
   const herst = compactSearchText(filters.herstellernummer);
   const bez = filters.bezeichnung.trim().toLowerCase();
   const ort = filters.lagerort.trim().toLowerCase();
   const standRaw = filters.lagerstand.trim().toLowerCase();
 
-  if (!herst && !bez && !ort && !standRaw) {
+  if (!artikel && !herst && !bez && !ort && !standRaw) {
     return teile;
   }
 
   return teile.filter((teil) => {
+    if (artikel) {
+      const artikelHaystack = compactSearchText(String(teil.artikelnummer ?? ""));
+      if (!artikelHaystack.includes(artikel)) return false;
+    }
     if (herst) {
       const haystack = compactSearchText(String(teil.herstellernummer ?? ""));
       if (!haystack.includes(herst)) return false;

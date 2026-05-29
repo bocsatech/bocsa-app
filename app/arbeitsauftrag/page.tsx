@@ -46,10 +46,13 @@ function ArbeitsauftragPageContent() {
     );
   }
 
+  const returnMachineId = searchParams.get("machineId")?.trim() ?? "";
+
   return (
     <ArbeitsauftragList
       key={`list-${searchParams.toString()}`}
       initialFilters={readListFilters(searchParams)}
+      returnMachineId={returnMachineId || undefined}
     />
   );
 }

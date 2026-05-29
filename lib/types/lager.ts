@@ -2,6 +2,7 @@ export type LagerTeil = {
   id: string;
   created_at: string;
   updated_at?: string;
+  artikelnummer?: string | null;
   herstellernummer: string;
   bezeichnung?: string | null;
   bild?: string | null;
@@ -14,4 +15,5 @@ export type LagerTeil = {
   listenpreis_brutto?: number | null;
   verkaufspreis?: number | null;
   bestellstatus?: string | null;
+  last_inventur_at?: string | null;
 };

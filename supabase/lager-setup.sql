@@ -8,6 +8,7 @@ create table if not exists public.lager_teile (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  artikelnummer text,
   herstellernummer text not null,
   bezeichnung text,
   bild text,
@@ -19,11 +20,21 @@ create table if not exists public.lager_teile (
   listenpreis_netto numeric,
   listenpreis_brutto numeric,
   verkaufspreis numeric,
-  bestellstatus text
+  bestellstatus text,
+  last_inventur_at timestamptz
 );
+
+alter table public.lager_teile
+  add column if not exists artikelnummer text;
+
+alter table public.lager_teile
+  add column if not exists last_inventur_at timestamptz;
 
 create unique index if not exists lager_teile_herstellernummer_idx
   on public.lager_teile (lower(trim(herstellernummer)));
+
+create index if not exists lager_teile_artikelnummer_idx
+  on public.lager_teile (lower(trim(artikelnummer)));
 
 create index if not exists lager_teile_bezeichnung_idx
   on public.lager_teile (bezeichnung);

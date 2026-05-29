@@ -7,7 +7,7 @@ import "../arbeitsauftrag-form.css";
 import AppPageShell from "./AppPageShell";
 import ArbeitsauftragPrintDocument from "./ArbeitsauftragPrintDocument";
 import ArbeitsauftragPrintPreview from "./ArbeitsauftragPrintPreview";
-import MachineHeroSummary from "./MachineHeroSummary";
+import ArbeitsauftragMachineOverview from "./ArbeitsauftragMachineOverview";
 import MachineStammdatenPanel, {
   type MachineStammdatenPanelHandle,
 } from "./MachineStammdatenPanel";
@@ -25,10 +25,12 @@ import {
   issueProtocolStockDelta,
   linkProtocolToLager,
 } from "../../lib/arbeitsauftrag-protokoll";
+import { reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
 import { fetchLagerTeile } from "../../lib/lager";
 import {
   createEmptyWorkOrder,
   formatOrderType,
+  formatWorkOrderAuftragNr,
   getWorkOrders,
   mergeWorkOrder,
   normalizeWorkOrder,
@@ -117,13 +119,21 @@ export default function ArbeitsauftragForm({
     if (existing) {
       setOrder(normalizeWorkOrder(existing));
     } else if (initialType?.trim()) {
-      setOrder(
-        createEmptyWorkOrder({
-          type: initialType,
-          depot: data.depot ?? "",
-          username: name,
-        })
-      );
+      const empty = createEmptyWorkOrder({
+        type: initialType,
+        depot: data.depot ?? "",
+        username: name,
+      });
+      try {
+        const { auftragNr } = await reserveWorkOrderAuftragNr({
+          type: empty.type,
+          depot: empty.depot || data.depot || "",
+          date: empty.date,
+        });
+        setOrder({ ...empty, auftragNr });
+      } catch {
+        setOrder(empty);
+      }
     } else {
       setError("Ungültiger Link. Bitte Arbeitsauftrag aus der Liste wählen.");
       setOrder(null);
@@ -157,7 +167,9 @@ export default function ArbeitsauftragForm({
   const title = useMemo(() => {
     if (!machine) return "Arbeitsauftrag";
     const typeLabel = order ? formatOrderType(order.type) : "";
-    return `${formatValue(machine.geraetenummer)} — Arbeitsauftrag${typeLabel ? ` (${typeLabel})` : ""}`;
+    const nr = order ? formatWorkOrderAuftragNr(order) : "";
+    const nrPart = nr && nr !== "—" ? ` · ${nr}` : "";
+    return `${formatValue(machine.geraetenummer)} — Arbeitsauftrag${typeLabel ? ` (${typeLabel})` : ""}${nrPart}`;
   }, [machine, order]);
 
   function updateOrder(patch: Partial<WorkOrder>) {
@@ -178,6 +190,26 @@ export default function ArbeitsauftragForm({
     setMessage(null);
 
     let normalized = normalizeWorkOrder(orderToSave);
+
+    if (!normalized.auftragNr?.trim()) {
+      try {
+        const { auftragNr } = await reserveWorkOrderAuftragNr({
+          type: normalized.type,
+          depot: normalized.depot || machine.depot || "",
+          date: normalized.date,
+        });
+        normalized = { ...normalized, auftragNr };
+      } catch (reserveError) {
+        setSaveError(
+          reserveError instanceof Error
+            ? reserveError.message
+            : "Auftrag-Nr. konnte nicht erzeugt werden."
+        );
+        setSaving(false);
+        return false;
+      }
+    }
+
     const { data: lagerTeile } = await fetchLagerTeile();
     if (lagerTeile?.length) {
       normalized = {
@@ -241,7 +273,10 @@ export default function ArbeitsauftragForm({
   async function handleSaveAll() {
     if (!order) return;
     const fields = stammdatenRef.current?.getFields() ?? machineToStammdatenFields(machine);
-    await persistOrder(fields, order);
+    const ok = await persistOrder(fields, order);
+    if (ok) {
+      router.replace(`/maschinen/${encodeURIComponent(machineId)}`);
+    }
   }
 
   function openPrintPreview() {
@@ -255,12 +290,6 @@ export default function ArbeitsauftragForm({
       : stammdatenRef.current?.getFields() ?? printFields;
   }
 
-  function goToList() {
-    setPrintPreviewOpen(false);
-    document.body.classList.remove("arbeitsauftrag-print-preview");
-    router.replace("/arbeitsauftrag");
-  }
-
   return (
     <AppPageShell
       activeHref="/arbeitsauftrag"
@@ -270,9 +299,6 @@ export default function ArbeitsauftragForm({
         <div className="detailTopBar arbeitsauftragHideOnPrint">
           <h1>{title}</h1>
           <div className="detailTopActions">
-            <button type="button" className="pillButton outline" onClick={goToList}>
-              Zur Liste
-            </button>
             <Link className="pillButton outline" href={`/maschinen/${machineId}`}>
               Maschine
             </Link>
@@ -321,21 +347,36 @@ export default function ArbeitsauftragForm({
           <>
             <div className="aaForm arbeitsauftragHideOnPrint">
               {isNew ? (
-                <p className="subtitle" style={{ marginBottom: 12 }}>
+                <p className="subtitle aaNewAuftragHint" style={{ marginBottom: 12 }}>
                   Neuer Auftrag: {formatOrderType(order.type)}
+                  {order.auftragNr?.trim() ? (
+                    <>
+                      {" "}
+                      · Auftrag-Nr.{" "}
+                      <strong className="aaAuftragNr">{order.auftragNr}</strong>
+                    </>
+                  ) : (
+                    " · Auftrag-Nr. wird vergeben…"
+                  )}
                 </p>
               ) : null}
-              <MachineHeroSummary machine={machine} />
-
-              <MachineStammdatenPanel
-                ref={stammdatenRef}
+              <ArbeitsauftragMachineOverview
                 machine={machine}
-                canWrite={canWrite}
-                saving={saving}
-                saveError={saveError}
-                alwaysEditing
-                showActions={false}
-                onSave={handleStammdatenSave}
+                stammdaten={
+                  <MachineStammdatenPanel
+                    ref={stammdatenRef}
+                    machine={machine}
+                    canWrite={canWrite}
+                    saving={saving}
+                    saveError={saveError}
+                    alwaysEditing
+                    embedded
+                    hideEmptyFields
+                    showTitle={false}
+                    showActions={false}
+                    onSave={handleStammdatenSave}
+                  />
+                }
               />
 
               <section className="protocolSection card aaBlock">
@@ -344,7 +385,7 @@ export default function ArbeitsauftragForm({
                   canEdit={canWrite}
                   canIssueLager={canIssueLager}
                   machineId={machineId}
-                  auftragReferenz={`Arbeitsauftrag ${order.id}`}
+                  auftragReferenz={`Arbeitsauftrag ${formatWorkOrderAuftragNr(order)}`}
                   onChange={(protocol) => updateOrder({ protocol })}
                 />
               </section>

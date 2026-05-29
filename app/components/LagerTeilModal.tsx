@@ -20,6 +20,7 @@ type Props = {
 
 function emptyForm() {
   return {
+    artikelnummer: "",
     herstellernummer: "",
     bezeichnung: "",
     produktgruppe: "",
@@ -36,6 +37,7 @@ function emptyForm() {
 
 function teilToForm(teil: LagerTeil) {
   return {
+    artikelnummer: teil.artikelnummer ?? "",
     herstellernummer: teil.herstellernummer ?? "",
     bezeichnung: teil.bezeichnung ?? "",
     produktgruppe: teil.produktgruppe ?? "",

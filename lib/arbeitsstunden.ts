@@ -1,6 +1,13 @@
 import { collectAllWorkOrders, parseWorkHours, workOrderUserLabel } from "./work-orders";
 import type { WorkOrderListEntry } from "./work-orders";
-import { toAustriaDateString, toIsoDateString } from "./machines";
+import {
+  formatGermanDate,
+  germanToday,
+  isGermanDateInRange,
+  listGermanDatesInRange,
+  normalizeGermanDate,
+  parseGermanDate,
+} from "./dates";
 import type { Machine } from "./types/machine";
 
 export const SOLL_STUNDEN_PRO_TAG = 10;
@@ -79,14 +86,21 @@ export function formatStunden(value: number): string {
   });
 }
 
+/** @deprecated Alias — TT.MM.JJJJ */
 export function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  return germanToday();
 }
 
-export function periodRange(kind: PeriodKind, anchorIso: string): { from: string; to: string } {
-  const anchor = anchorIso || isoToday();
-  const [y, m, d] = anchor.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
+export function periodRange(kind: PeriodKind, anchorDe: string): { from: string; to: string } {
+  const anchor =
+    normalizeGermanDate(anchorDe) ||
+    formatGermanDate(anchorDe) ||
+    germanToday();
+  const date = parseGermanDate(anchor);
+  if (!date) return { from: anchor, to: anchor };
+
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
 
   if (kind === "tag") {
     return { from: anchor, to: anchor };
@@ -100,52 +114,45 @@ export function periodRange(kind: PeriodKind, anchorIso: string): { from: string
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     return {
-      from: monday.toISOString().slice(0, 10),
-      to: sunday.toISOString().slice(0, 10),
+      from: formatGermanDate(monday),
+      to: formatGermanDate(sunday),
     };
   }
 
   if (kind === "monat") {
-    const from = `${y}-${String(m).padStart(2, "0")}-01`;
+    const from = formatGermanDate(new Date(y, m - 1, 1));
     const last = new Date(y, m, 0).getDate();
-    const to = `${y}-${String(m).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
+    const to = formatGermanDate(new Date(y, m - 1, last));
     return { from, to };
   }
 
-  return { from: `${y}-01-01`, to: `${y}-12-31` };
+  return {
+    from: formatGermanDate(new Date(y, 0, 1)),
+    to: formatGermanDate(new Date(y, 11, 31)),
+  };
 }
 
-export function listDatesInRange(fromIso: string, toIso: string): string[] {
-  const dates: string[] = [];
-  const from = new Date(fromIso);
-  const to = new Date(toIso);
-  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return dates;
-
-  const cursor = new Date(from);
-  while (cursor <= to) {
-    dates.push(cursor.toISOString().slice(0, 10));
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return dates;
+export function listDatesInRange(fromDe: string, toDe: string): string[] {
+  return listGermanDatesInRange(fromDe, toDe);
 }
 
-export function workDaysInRange(fromIso: string, toIso: string): number {
-  return listDatesInRange(fromIso, toIso).filter((datum) => {
-    const day = new Date(datum).getDay();
-    return day !== 0 && day !== 6;
+export function workDaysInRange(fromDe: string, toDe: string): number {
+  return listDatesInRange(fromDe, toDe).filter((datum) => {
+    const day = parseGermanDate(datum)?.getDay();
+    return day !== undefined && day !== 0 && day !== 6;
   }).length;
 }
 
 export function collectProtokollEintraege(
   machines: Machine[],
   username: string,
-  datumIso: string
+  datumDe: string
 ): Array<Omit<ArbeitsstundenEintrag, "id" | "createdAt" | "updatedAt">> {
   const userNorm = normalizeUser(username);
   const entries: Array<Omit<ArbeitsstundenEintrag, "id" | "createdAt" | "updatedAt">> = [];
 
   for (const order of collectAllWorkOrders(machines)) {
-    if (!orderMatchesUserAndDate(order, userNorm, datumIso)) continue;
+    if (!orderMatchesUserAndDate(order, userNorm, datumDe)) continue;
 
     const stunden = parseWorkHours(order.workHours);
     if (stunden <= 0) continue;
@@ -153,7 +160,7 @@ export function collectProtokollEintraege(
     entries.push({
       username,
       depot: order.filiale || "",
-      datum: datumIso,
+      datum: datumDe,
       quelle: "protokoll",
       stunden,
       beschreibung: `${formatOrderLabel(order)} · ${order.geraetenummer}`,
@@ -173,16 +180,16 @@ function formatOrderLabel(order: WorkOrderListEntry) {
 function orderMatchesUserAndDate(
   order: WorkOrderListEntry,
   userNorm: string,
-  datumIso: string
+  datumDe: string
 ) {
   const orderUser = normalizeUser(workOrderUserLabel(order));
   if (!orderUser || orderUser !== userNorm) return false;
 
   const orderDate =
-    toIsoDateString(order.date?.trim() ?? "") ||
-    toIsoDateString(toAustriaDateString(order.updatedAt?.slice(0, 10) ?? ""));
+    normalizeGermanDate(order.date?.trim() ?? "") ||
+    formatGermanDate(order.updatedAt?.slice(0, 10) ?? "");
 
-  return orderDate === datumIso;
+  return orderDate === datumDe;
 }
 
 function normalizeUser(value: string) {
@@ -212,10 +219,10 @@ export function buildDaySummary(
   entries: ArbeitsstundenEintrag[],
   abschluss: ArbeitsstundenTagesabschluss | null,
   username: string,
-  datumIso: string
+  datumDe: string
 ): DaySummary {
   const dayEntries = entries.filter(
-    (e) => e.username === username && e.datum === datumIso
+    (e) => e.username === username && e.datum === datumDe
   );
   const sums = sumByQuelle(dayEntries);
   const soll = abschluss?.sollStunden ?? SOLL_STUNDEN_PRO_TAG;
@@ -225,7 +232,7 @@ export function buildDaySummary(
     "";
 
   return {
-    datum: datumIso,
+    datum: datumDe,
     username,
     depot,
     protokollStunden: sums.protokoll,
@@ -241,11 +248,11 @@ export function buildDaySummary(
 export function aggregateByKey(
   entries: ArbeitsstundenEintrag[],
   abschluesse: ArbeitsstundenTagesabschluss[],
-  fromIso: string,
-  toIso: string,
+  fromDe: string,
+  toDe: string,
   groupBy: "username" | "depot"
 ): AggregateRow[] {
-  const workDays = workDaysInRange(fromIso, toIso);
+  const workDays = workDaysInRange(fromDe, toDe);
   const sollPerDay = SOLL_STUNDEN_PRO_TAG;
   const map = new Map<string, AggregateRow>();
 
@@ -267,7 +274,7 @@ export function aggregateByKey(
   }
 
   for (const entry of entries) {
-    if (entry.datum < fromIso || entry.datum > toIso) continue;
+    if (!isGermanDateInRange(entry.datum, fromDe, toDe)) continue;
     const key =
       groupBy === "depot"
         ? entry.depot.trim() || "— ohne Werkstatt —"
@@ -279,7 +286,7 @@ export function aggregateByKey(
   }
 
   for (const abschluss of abschluesse) {
-    if (abschluss.datum < fromIso || abschluss.datum > toIso) continue;
+    if (!isGermanDateInRange(abschluss.datum, fromDe, toDe)) continue;
     const key =
       groupBy === "depot"
         ? abschluss.depot.trim() || "— ohne Werkstatt —"
@@ -308,7 +315,7 @@ export function mapDbEintrag(row: Record<string, unknown>): ArbeitsstundenEintra
     id: String(row.id),
     username: String(row.username ?? ""),
     depot: String(row.depot ?? ""),
-    datum: String(row.datum ?? "").slice(0, 10),
+    datum: formatGermanDate(row.datum) || String(row.datum ?? "").trim(),
     quelle: row.quelle === "manuell" ? "manuell" : "protokoll",
     stunden: Number(row.stunden ?? 0),
     beschreibung: String(row.beschreibung ?? ""),
@@ -322,7 +329,7 @@ export function mapDbEintrag(row: Record<string, unknown>): ArbeitsstundenEintra
 export function mapDbAbschluss(row: Record<string, unknown>): ArbeitsstundenTagesabschluss {
   return {
     username: String(row.username ?? ""),
-    datum: String(row.datum ?? "").slice(0, 10),
+    datum: formatGermanDate(row.datum) || String(row.datum ?? "").trim(),
     depot: String(row.depot ?? ""),
     sollStunden: Number(row.soll_stunden ?? SOLL_STUNDEN_PRO_TAG),
     arbeitszeitVon: String(row.arbeitszeit_von ?? ARBEITSZEIT_VON).slice(0, 5),

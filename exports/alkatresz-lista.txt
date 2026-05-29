@@ -1,0 +1,262 @@
+Alkatrész szám	Alkatrész név
+SA 16056	Luftfilter außen
+SA 16056	Luftfilter außen
+SA 16056	Luftfilter außen
+SA 16059	Luftfilter außen
+SA 16069	Luftfilter aussen
+SA 16074	Luftfilter aussen
+SA 16076	Luftfilter aussen
+SA 16080	Luftfilter innen
+SA 16080	Luftfilter Innen
+SA 16080	Luftfilter innen
+SA 16080	Luftfilter innen
+SA 16129	Luftfilter innen
+SA 16129	Luftfilter innen
+SA 16129	Luftfilter innen
+SA 16129	Luftfilter innen
+SA 16190	Luftfilter innen
+SA 16190	Luftfilter innen
+SA 16239	Luftfilter aussen
+SA 16252	Luftfilter innen
+SA 16254	Luftfilter aussen
+SA 16298	Luftfilter innen
+SA 16302	Luftfilter Innen
+SA 16339	Luftfilter innen
+SA 16399	Luftfilter innen
+SA 16533	Luftfilter aussen
+SA 16534	Luftfilter innen
+SA 16534	Luftfilter innen
+SA 16578	Luftfilter außen
+SA 16579	Luftfilter aussen
+SA 16580	Luftfilter aussen
+SA 16631	Luftfilter
+SA 16683	Luftfilter außen
+SA 16804	Luftfilter aussen
+SA 16830	Luftfilter-Box
+SA 17068	Luftfilter außen
+SA 17085	Luftfilter innen
+SA 17086	Luftfilter außen
+SA 17088	Luftfilter außen
+SA 17100	Luftfilter außen
+SA 17104	Luftfilter außen
+SA 17104	Luftfilter außen
+SA 17104	Luftfilter außen
+SA 17105	Luftfilter innen
+SA 17105	Luftfilter innen
+SA 17105	Luftfilter innen
+SA 17105	Luftfilter innen
+SA 17105	Luftfilter innen
+SA 17118	Luftfilter außen
+SA 17119	Luftfilter innen
+SA 17193	Luftfilter außen
+SA 17193	Luftfilter außen 2x
+SA 17194	Luftfilter innen
+SA 17300	Luftfilter außen
+SA 17331	Luftfilter innen
+SA 17337	Luftfilter innen
+SA 17340	Luftfilter aussen
+SA 17362	Luftfilter aussen
+SA 17362	Luftfilter außen
+SA 17362	Luftfilter außen
+SA 17554	Luftfilter außen
+SA 17555	Luftfilter innen
+SC 80022	Kabinenfilter
+SC 80023	Kabinenfilter außen
+SC 80046	Kabinen-Luftfilter
+SC 80051	Klimafilter Aussen
+SC 80060	Kabinenfilter-Luft
+SC 80069	Heizungsgebläse Filter
+SC 80069	Heizungsgebläse Filter
+SC 80069	Heizungsgebläse Filter
+SC 80069	Heizungsgebläse Filter
+SC 80069	Heizungsgebläse Filter
+SH 52103	Hydraulikfilter Rücklauf
+SH 52278	Hydraulikfilter
+SH 52309	Hydraulikfilter Rücklauf
+SH 56052	Verdichterfilter
+SH 56255	Hydraulikfilter Verdichter
+SH 56255	Hydraulikfilter-Verdichter
+SH 56405	Hydraulikfilter Verdichter
+SH 56405	Verdichterfilter
+SH 59024	Getriebeölfilter
+SH 59024	Getriebeölfilter
+SH 60026	Hydraulikfilter - Rücklauf
+SH 60132	Hydraulikfilter-Saug
+SH 60134	Hydraulikfilter-Rücklauf
+SH 60166	Hydraulikfilter Rücklauf
+SH 60213	HD-Filter Rücklauf
+SH 60213	HD-Rücklauffilter
+SH 60213	Hydraulikfilter
+SH 60213	Hydraulikölfilter
+SH 60213	Hydraulikölfilter
+SH 60245	Hydraulikfilter - Rücklauf
+SH 60245	Hydraulikölfilter
+SH 60271	Hydraulikfilter - Saugfilter
+SH 60719	Vorsteuerfilter
+SH 60719	Vorsteuerfilter
+SH 60720	Vorsteuerfilter
+SH 60913	Hydraulik-Rücklauffilter
+SH 62171	Hydraulikölfilter
+SH 62171	Verdichter Hydraulikfilter
+SH 63161	Hydraulikölfilter
+SH 63355	Hydraulik Rücklauf Filter
+SH 63626	Hydraulikfilter Rücklauf
+SH 64176	Hydraulikfilter
+SH 66375	HydraulikFilter
+SH 66375	Hydraulikfilter - Rücklauf
+SH 66375	Hydraulikölfilter-Rücklauf
+SH 66381	Hydraulikfilter
+SH 66381	Hydraulikölfilter
+SH 74015	Hydraulikölfilter
+SH 74016	Hydraulikfilter
+SH 74153	Hydraulik Rücklauffilter
+SH 75160	Hydraulikfilter
+SH 77095	Hydraulik Saugfilter
+SH 77133	Hydraulikfilter - Vorlauf
+SK3454	Dieselvorfilter
+SK3612/2	Dieselfilter
+SL 8344	Luftfilter
+SL 8391	Luftfilter
+SL5671	Luftfilter aussen
+SL5672	Luftfilter innen
+SL8510/1	Luftfilter
+SN 001	Kraftstofffilter
+SN 039	Dieselfilter
+SN 039	Dieselfilter
+SN 1251	Dieselfilter
+SN 1251	Kraftstofffilter
+SN 20004	Dieselfilter Vorfilter
+SN 20007	Dieselvorfilter
+SN 21601	Dieselvorfilter
+SN 24632	Kraftstofffilter
+SN 25008	Dieselfilter mit Wassersensor
+SN 25027	Dieselfilter
+SN 25027	Dieselfilter
+SN 25027	Kraftstofffilterpatrone
+SN 25031	Dieselfilter
+SN 25090	Dieselvorfilter
+SN 25091	Kraftstofffilter
+SN 25106	Dieselfilter
+SN 25153	Dieselfilter-Wasserabscheider
+SN 30017	Dieselfilter Pumpe-Perkins
+SN 30031	Dieselfilter
+SN 30040	Dieselfilter Wasserabscheider
+SN 327	Dieselfilter
+SN 327	Dieselfilter Hauptfilter
+SN 4001	Diesel Vorfilter
+SN 40574	Diesel Hauptfilter
+SN 40602	Diesel Vorfilter
+SN 40678	Dieselfilter 2x
+SN 40705	Dieselfilter
+SN 5074	Dieselfilter
+SN 55009	Diesel Vorfilter
+SN 6110	Dieselfilter
+SN 70145	Dieselfilter
+SN 70232	Diesel Leitungsfilter
+SN 70241	Dieselfilter
+SN 70242	Dieselfilter-Wasserabscheider
+SN 70248	Dieselfilter
+SN 70257	Dieselfilter Wasserabscheider
+SN 70296	Filter Einsatz
+SN 70299	Diesel Hauptfilter
+SN 70299	Dieselfilter
+SN 70320	Dieselfilter
+SN 70321	Dieselfilter
+SN 70321	Dieselfilter
+SN 70321	Dieselfilter
+SN 70321	Dieselfilter-Wasserabscheider
+SN 70440	Dieselfilter
+SN 70440	Dieselfilter 2x
+SN 80021	Dieselfilter
+SN 80021	Dieselfilter
+SN 904510	Dieselfilter
+SN 904510	Kraftstofffilter
+SN 904530	Dieselfilter
+SN 916010	Dieselfilter
+SN25008	Dieselfilter-Wasserabscheider
+SN25008	Kraftstofffilter
+SO 040	Motorölfilter
+SO 040	Motorölfilter
+SO 040	Motorölfilter
+SO 10038	Motorölfilter
+SO 10046	Motorölfilter
+SO 11080	Motorölfilter
+SO 11110	Motorölfilter
+SO 115	Motorölfilter
+SO 131	Motorölfilter
+SO 1385	Motorölfilter
+SO 1385	Motroölfilter
+SO 228	Motorölfilter
+SO 3335	Motorölfilter
+SO 404	Motorölfilter
+SO 404	Motrölfilter
+SO 434	Motorölfilter
+SO 6001	Motorölfilter
+SO 6001	Motorölfilter
+SO 6001	Motorölfilter
+SO 6099	Motorölfilter
+SO 6099	Motorölfilter
+SO 6105	Motorölfilter
+SO 6105	Motorölfilter
+SO 6105	Motorölfilter
+SO 6105	Motorölfilter
+SO 6105	Motorölfilter
+SO 6117	Motorölfilter
+SO 7262	Motorölfilter
+SO6121	Motorölfilter
+SO97029	Motorölfilter
+SP4603	Motorölfilter
+T 1637	Motorölfilter
+T 1637	Motorölfilter
+T 1639	Motorölfilter
+T 600	Motorölfilter
+TCO 503	Belüftungsfilter-HD Tank
+400176	Batterielader
+400215	Batterie 6V-225Ah
+5763463	Batterie für Fernbedienung
+5975	Batterie-Trennschalter
+6021853	Batterie 560 Ah
+975830016	Batterie 12V 148 Ah 1000A EN 540A
+1000254627	Batterie-Trennschalter
+10647-0001	Batterie
+106TA8937	Batterie Füllstation 20ltr
+11936104	Batterie 12V-110Ah-760A
+119725	Batterie-Hauptschalter
+122093	Batterieanzeige
+1266872	Fernbedienung Batterie
+14260825	Startbatterie 12V/35AH/300A
+14261507	Batterie 12V-110Ah-700A
+1670951	Batterie Abdeckung
+2-80310045	Batterie 12V/40Ah/300A
+2-80310055	Batterie 12V/18Ah AGM
+22001	Batteriehauptschalter
+24TMX UT	Batterie 12V 24TMX—85Ah
+254353	Batterie Stecker
+27879196	Batterie 12V-44Ah-440A
+27TMX WNT	Batterie 12V 85Ah
+33914012	Startbatterie
+33914030	Batterie 12V-140Ah-900A
+400093	Batteriewasser-Fülleinheit
+4142422	Batterieabdeckung
+510093	Batterie Satz 8 Stk
+522 451 034	Batterie 12V-22Ah-340A
+530 230 020	Batterie 12V-30Ah-200A
+532 830 035	Starter Batterie
+535 822 030	Batterie 12V 35Ah 300A
+540 859 036	Batterie
+544 859 036	Batterie 12V-44Ah-360A
+545 084 033	Starterbatterie
+545 877 040	Batterie 12V-45Ah-400A
+545824040	Batterie 12V 45Ah 400A
+5500008210	Batterie
+560.077.054SMF	Batterie 12V 60Ah 540A
+562 888 060	Batterie
+562 888 060	Batterie 12V-62Ah-600A
+575 888 072	Batterie 12V-75Ah-720A
+575 888 072	Batterie 12V-75Ah-720A
+595 819 085	Batterie 12V-95Ah-850A
+600 844 090	Batterie 12V-100Ah-900A
+600 884 090	Batterie 12V/100Ah/920A
+600 884 092	Batterie 12V-100Ah-900A
+601246633	Batterie 12V-60Ah-540A
+635 211 085	Batterie 12V-135Ah-850A

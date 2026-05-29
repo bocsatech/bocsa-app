@@ -1,0 +1,3904 @@
+.searchToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.searchField {
+  flex: 1 1 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.searchField span {
+  font-weight: 600;
+  color: #111827;
+}
+
+.searchField input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+}
+
+.scanHint {
+  margin: 0 0 16px;
+  color: #b45309;
+  font-weight: 600;
+}
+
+.machineListRow {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.machineListRow:hover {
+  background: rgba(249, 115, 22, 0.08);
+}
+
+.qrModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.qrModalCard {
+  width: min(480px, 100%);
+}
+
+.qrReader {
+  width: 100%;
+  min-height: 280px;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+@media (max-width: 640px) {
+  .pageContent {
+    padding: 24px;
+  }
+.qrReader {
+  width: 100%;
+  min-height: 280px;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.loginPage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: linear-gradient(160deg, #fff7ed 0%, #ffffff 45%, #f8fafc 100%);
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 440px;
+  padding: 40px;
+  border-radius: 28px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.1);
+}
+
+.loginBrand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.loginBrand h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #111827;
+}
+
+.loginBrand p {
+  margin: 4px 0 0;
+  color: #6b7280;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.loginForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loginForm label span {
+  font-weight: 600;
+  color: #111827;
+}
+
+.loginForm input {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+}
+
+.challengeBox {
+  padding: 18px;
+  border-radius: 18px;
+  background: #fff7ed;
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+.challengeTitle {
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: #9a3412;
+}
+
+.challengeHint {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.challengeLabel {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.challengeRefresh {
+  width: 100%;
+}
+
+.loginError {
+  margin: 0;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.loginSubmit {
+  width: 100%;
+  justify-content: center;
+}
+.loginSubmit {
+  width: 100%;
+  justify-content: center;
+}
+
+.logoutButton {
+  margin-top: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.logoutButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+.machineQrLabeledWrap {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.machineQrImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 8px;
+}
+.machineQrLabeled .machineQrImage {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+  background: #ffffff;
+  object-fit: contain;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.machineQrImage {
+  width: 150px;
+  height: 150px;
+  border-radius: 0;
+  background: #ffffff;
+  object-fit: contain;
+  box-shadow: none;
+}
+.machineResultStatus {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  color: #4b5563;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.machineStatusRow {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+}
+.machineStatusMark.fertig,
+.machineStatusMark.valid {
+  background: #22c55e;
+}
+
+.machineStatusMark.repair,
+.machineStatusMark.expired {
+  background: #ef4444;
+}
+.machineStatusBadge.fertig,
+.machineStatusBadge.valid {
+  color: #15803d;
+}
+
+.machineStatusBadge.repair,
+.machineStatusBadge.expired {
+  color: #dc2626;
+}
+  .machineResultStatus {
+    gap: 8px;
+  }
+.machineResultRow {
+  display: grid;
+  grid-template-columns: 132px 74px minmax(240px, 1.25fr) minmax(220px, 1fr) minmax(220px, 1fr);
+.machineStatusIndicators {
+  display: grid;
+  gap: 8px;
+}
+
+.publicMachineStatus {
+  margin: 22px 0;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #f9fafb;
+}
+
+.publicMachineStatus .machineStatusBadge {
+  font-size: 0.95rem;
+}
+
+.publicStatusBox {
+  display: grid;
+  gap: 6px;
+  margin: 22px 0;
+  padding: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 18px;
+  background: #f9fafb;
+}
+.publicMachineHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.publicMachineThumb {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+
+.publicMachineHeaderText {
+  min-width: 0;
+}
+
+.publicMachineCard h1 {
+  margin: 0 0 4px;
+  color: #111827;
+  font-size: clamp(2rem, 7vw, 3.2rem);
+  line-height: 1;
+}
+
+.publicMachineHeaderText .subtitle {
+  margin: 0;
+}
+.publicMachineThumb {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+.machineThumb {
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 74px;
+  min-height: 74px;
+  overflow: hidden;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.machineThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+.fieldGrid.documentationGrid {
+  grid-template-columns: 1fr;
+  width: 100%;
+  max-width: 720px;
+  gap: 12px;
+}
+
+.documentationGrid .documentationFieldRow {
+  grid-template-columns: minmax(140px, 170px) minmax(0, 1fr);
+  align-items: start;
+  padding: 10px 0;
+}
+
+.documentationGrid .documentationFieldRow > span {
+  padding-top: 8px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.documentUploadControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.documentUploadControls > input {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+.documentUploadActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.documentUploadControls a,
+.documentUploadActions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.documentUploadButton {
+  min-height: 34px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.documentUploadControlsCompact > input {
+  display: none;
+}
+
+.documentEmptyHint {
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+.machineTable tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.machineTableScroll {
+  overflow-x: auto;
+}
+
+.lagerTable th,
+.lagerTable td {
+  white-space: nowrap;
+}
+
+.lagerThumb {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.lagerThumbPlaceholder {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+.lagerRowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lagerModal {
+  width: min(760px, 100%);
+  max-height: min(92vh, 980px);
+  overflow: auto;
+}
+
+.lagerFormGrid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.lagerModalImage {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.lagerModalImage img {
+  max-width: 180px;
+  max-height: 140px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.lagerImageUpload {
+  margin-bottom: 16px;
+  width: fit-content;
+}
+
+.lagerImageUpload input {
+  display: none;
+}
+.lagerImageUpload input {
+  display: none;
+}
+
+.lagerImportButton {
+  cursor: pointer;
+}
+
+.lagerImportButton input {
+  display: none;
+}
+.lagerErsatzteileHeading {
+  margin: 4px 0 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ea580c;
+}
+
+.lagerTableSectionTitle {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.lagerErsatzteileCard {
+  padding-top: 16px;
+}
+
+.lagerBezeichnungCell {
+  white-space: normal;
+  min-width: 140px;
+  max-width: 280px;
+}
+
+.lagerBildCell {
+  position: relative;
+  width: 1.5cm;
+  height: 1.5cm;
+}
+
+.lagerBildInput {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lagerBildButton {
+  display: block;
+  width: 1.5cm;
+  height: 1.5cm;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.lagerBildButton:disabled {
+  cursor: default;
+}
+
+.lagerBildButton:not(:disabled):hover .lagerThumb,
+.lagerBildButton:not(:disabled):hover .lagerThumbPlaceholder {
+  border-color: #ea580c;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.2);
+}
+
+.lagerThumb {
+  display: block;
+  width: 1.5cm;
+  height: 1.5cm;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.lagerThumbPlaceholder {
+  display: inline-flex;
+  width: 1.5cm;
+  height: 1.5cm;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px dashed #d1d5db;
+  background: #f9fafb;
+  color: #9ca3af;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.lagerModalBildRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.lagerModalBildLabel {
+  font-weight: 600;
+  min-width: 3rem;
+}
+
+.lagerBildHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+  flex: 1 1 200px;
+}
+.lagerModalPrimary {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.lagerModalSectionTitle {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #c2410c;
+}
+
+.lagerModalPrimaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 14px 16px;
+  align-items: start;
+}
+
+.lagerFieldFull {
+  grid-column: 1 / -1;
+}
+
+.lagerModalBildField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lagerBildCellPending {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .lagerModalPrimaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lagerModalBildRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.lagerBildHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+  flex: 1 1 200px;
+}
+
+.maintenanceLagerBlock,
+.protocolLagerBlock {
+  display: grid;
+  gap: 12px;
+}
+
+.maintenanceLagerHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.maintenanceLagerHeader h3,
+.protocolLagerBlock h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.protocolLagerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lagerPickerModal {
+  width: min(920px, 100%);
+  max-height: min(88vh, 900px);
+  overflow: auto;
+}
+
+.lagerPickerList {
+  max-height: 50vh;
+}
+
+.protocolLagerTable th,
+.protocolLagerTable td {
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.protocolLagerMenge {
+  width: 4.5rem;
+}
+.conditionGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.protocolCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.protocolCheck input[type="checkbox"] {
+  flex-shrink: 0;
+}
+.protocolGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px 20px;
+  align-items: start;
+}
+.repairColumns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 28px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.repairColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.repairColumn h3 {
+  margin: 0 0 6px;
+  color: #111827;
+  white-space: nowrap;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.repairColumn .protocolCheck {
+  width: fit-content;
+  max-width: 100%;
+}
+  .repairColumns {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .repairColumn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .repairColumn h3 {
+    white-space: normal;
+  }
+
+  .repairColumn .protocolCheck {
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+  }
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), max-content));
+  justify-content: start;
+  gap: 4px 12px;
+  margin: 6px 0 0;
+}
+.fieldRow {
+  display: grid;
+  grid-template-columns: max-content minmax(120px, 1fr);
+  gap: 6px 10px;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid #e5e7eb;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.fieldRow span {
+  white-space: nowrap;
+}
+.lagerSplitRow {
+.fieldRow span {
+  color: #4b5563;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+.fieldRow {
+  display: grid;
+  grid-template-columns: max-content minmax(140px, 1fr);
+  gap: 6px 10px;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid #e5e7eb;
+  width: 100%;
+  min-width: 0;
+}
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  justify-content: start;
+  gap: 4px 12px;
+  margin: 6px 0 0;
+  width: 100%;
+}
+.arbeitsprotokolList {
+  margin-top: 16px;
+}
+
+.arbeitsprotokolListCard {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto auto;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.arbeitsprotokolListMachine {
+  font-weight: 600;
+  color: #374151;
+}
+
+@media (max-width: 900px) {
+  .arbeitsprotokolListCard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .arbeitsprotokolListMachine {
+    grid-column: 1 / -1;
+  }
+}
+
+.machineOrderCard:hover {
+.arbeitsprotokolListSection {
+  width: fit-content;
+  max-width: min(100%, 640px);
+}
+
+.arbeitsprotokolListTable {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.arbeitsprotokolListHead,
+.arbeitsprotokolListRow {
+  display: grid;
+  grid-template-columns: 76px 92px 108px minmax(0, 220px);
+  gap: 10px;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.arbeitsprotokolListHead {
+  padding: 0 10px 6px;
+  color: #6b7280;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.68rem;
+}
+
+.arbeitsprotokolListRow {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  text-decoration: none;
+  font-weight: 700;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.arbeitsprotokolListRow:hover {
+  border-color: #f97316;
+  box-shadow: 0 6px 14px rgba(249, 115, 22, 0.1);
+}
+
+.arbeitsprotokolListType {
+  color: #f97316;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.arbeitsprotokolListDevice,
+.arbeitsprotokolListUser {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arbeitsprotokolListDesc {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .arbeitsprotokolListHead,
+  .arbeitsprotokolListRow {
+    grid-template-columns: 72px 84px 96px minmax(0, 140px);
+    gap: 8px;
+  }
+}
+.arbeitsprotokolListSection {
+  width: fit-content;
+  max-width: min(100%, 720px);
+}
+
+.arbeitsprotokolFilters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 148px));
+  gap: 10px 12px;
+  margin-bottom: 14px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.arbeitsprotokolFilterField {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.arbeitsprotokolFilterField > span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.arbeitsprotokolFilterField input,
+.arbeitsprotokolFilterField select {
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  font-size: 0.78rem;
+  color: #111827;
+}
+
+.arbeitsprotokolFilterReset {
+  align-self: end;
+  min-height: 30px;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+}
+
+.arbeitsprotokolListCount {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+@media (max-width: 720px) {
+  .arbeitsprotokolFilters {
+    grid-template-columns: repeat(2, minmax(0, 140px));
+  }
+
+  .arbeitsprotokolListHead,
+  .arbeitsprotokolListRow {
+    grid-template-columns: 72px 84px 96px minmax(0, 140px);
+    gap: 8px;
+  }
+}
+.arbeitsauftragViewHint {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.arbeitsauftragPrintHeader {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.arbeitsauftragPrintBrand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f97316;
+}
+
+.arbeitsauftragPrintBrand strong {
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+}
+
+.arbeitsauftragPrintBrand span {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #374151;
+}
+
+.arbeitsauftragPrintMeta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 18px;
+  margin: 0;
+}
+
+.arbeitsauftragPrintMeta > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.arbeitsauftragPrintMeta dt {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.arbeitsauftragPrintMeta dd {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+  word-break: break-word;
+}
+
+.arbeitsauftragEditable {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.arbeitsauftragViewMode .protocolCheck input:not(:checked) {
+  opacity: 0.45;
+}
+
+.arbeitsauftragPrintFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #d1d5db;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+
+  .pruefbefundToolbar,
+  .pruefbefundBack {
+    display: none;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .protocolShell {
+    display: block;
+    background: #ffffff;
+  }
+
+  .protocolShell .sidebar,
+  .protocolPage .detailTopBar,
+  .protocolPage .detailTopActions,
+  .arbeitsauftragViewHint {
+    display: none !important;
+  }
+
+  .protocolPage {
+    padding: 0;
+  }
+
+  .pageContent {
+    padding: 0;
+  }
+
+  .protocolScrollArea,
+  .arbeitsauftragDocument {
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .protocolSection {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #cbd5e1;
+    margin-bottom: 12px;
+    page-break-inside: avoid;
+  }
+
+  .arbeitsauftragPrintHeader {
+    border: 2px solid #111827;
+    border-radius: 0;
+    background: #ffffff;
+    margin-bottom: 14px;
+  }
+
+  .arbeitsauftragPrintMeta {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .arbeitsauftragViewMode .protocolCheck:has(input:not(:checked)) {
+    display: none;
+  }
+
+  .arbeitsauftragViewMode .repairColumn h3 {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+  }
+
+  .protocolCheck {
+    border-color: #9ca3af;
+    background: #ffffff;
+  }
+
+  .readOnlyPanel input,
+  .readOnlyPanel select,
+  .readOnlyPanel textarea {
+    border: none;
+    background: transparent;
+    padding-left: 0;
+    color: #111827;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .machineDataMedia {
+    max-width: 180px;
+  }
+
+  .machineImagePreview,
+  .machineQrImage {
+    max-height: 120px;
+  }
+
+  .pruefbefundPage {
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .pruefbefundSheet {
+    box-shadow: none;
+    border: none;
+    max-width: none;
+  }
+}
+.machineDataLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, min(38vw, 400px));
+  gap: clamp(12px, 2vw, 20px);
+  align-items: start;
+  width: 100%;
+}
+
+.machineDataFields {
+  grid-template-columns: 1fr;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.machineDataFields .protocolField {
+  grid-template-columns: minmax(120px, 38%) minmax(0, 1fr);
+  justify-content: stretch;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.machineDataFields .protocolField > span {
+  font-size: 0.9rem;
+}
+
+.machineDataFields .protocolField input {
+  width: 100%;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 8px;
+}
+
+.machineDataFields .protocolField input:placeholder-shown {
+  width: 100%;
+  max-width: 100%;
+}
+.protocolPage {
+  background: #f8fafc;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+}
+
+.protocolShell > .pageContent.protocolPage {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  padding: clamp(12px, 2vw, 24px);
+}
+
+.protocolPage .detailTopBar {
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.protocolScrollArea {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-gutter: stable;
+}
+
+.arbeitsauftragDocument {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.arbeitsauftragDocument .protocolSection {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.arbeitsauftragPrintMeta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 10px clamp(10px, 2vw, 18px);
+  margin: 0;
+}
+
+.arbeitsauftragPrintHeader {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+@media (max-width: 1100px) {
+  .machineDataLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .machineDataMedia {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+    gap: 12px;
+    min-height: auto;
+  }
+
+  .machineDataMedia .machineImageSlot,
+  .machineDataMedia .machineQrSlot {
+    min-height: 140px;
+  }
+}
+
+@media (max-width: 980px) {
+  .overviewGrid,
+  .dataGrid,
+  .machineHero,
+  .permissionsLayout,
+  .protocolHeader,
+  .protocolGrid,
+  .repairColumns {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .repairColumn {
+    width: 100%;
+    max-width: 100%;
+  }
+  .repairColumns {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 760px) {
+  .workorderPage.protocolShell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100dvh;
+    height: 100vh;
+  }
+
+  .protocolShell .sidebar {
+    height: auto;
+    flex-shrink: 0;
+  }
+
+  .protocolShell > .pageContent.protocolPage {
+    padding: 12px 14px;
+  }
+
+  .protocolPage .detailTopBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .protocolPage .detailTopActions {
+    justify-content: flex-start;
+  }
+
+  .protocolGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .protocolGrid.textAreas {
+    grid-template-columns: 1fr;
+  }
+
+  .repairColumns {
+    gap: 14px;
+  }
+
+  .repairColumn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .repairColumn h3 {
+    white-space: normal;
+  }
+
+  .repairColumn .protocolCheck {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .protocolCheck {
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .spacedTitle {
+    letter-spacing: 0.1em;
+    font-size: clamp(0.85rem, 3vw, 1rem);
+  }
+
+  .arbeitsauftragPrintMeta {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.arbeitsauftragPrintHeader {
+  margin-bottom: 18px;
+  padding: clamp(12px, 2vw, 16px) clamp(14px, 2vw, 18px);
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.arbeitsauftragPrintMeta > div {
+  .fieldGrid,
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .workorderPage.protocolShell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100dvh;
+    height: 100vh;
+  }
+
+  .protocolShell .sidebar {
+    height: auto;
+    flex-shrink: 0;
+  }
+
+  .protocolShell > .pageContent.protocolPage {
+    padding: 12px 14px;
+  }
+
+  .protocolPage .detailTopBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .protocolPage .detailTopActions {
+    justify-content: flex-start;
+  }
+
+  .protocolGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .protocolGrid.textAreas {
+    grid-template-columns: 1fr;
+  }
+
+  .repairColumns {
+    gap: 14px;
+  }
+
+  .protocolCheck {
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .spacedTitle {
+    letter-spacing: 0.1em;
+    font-size: clamp(0.85rem, 3vw, 1rem);
+  }
+
+  .arbeitsauftragPrintMeta {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.searchToolbar {
+.protocolShell {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+.machineHeroMedia.machineDataMedia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 0;
+  width: fit-content;
+  max-width: 100%;
+  justify-self: start;
+  grid-template-columns: unset;
+}
+
+.machineDataMedia .machineImageSlot,
+.machineDataMedia .machineQrSlot {
+  min-height: 0;
+  height: auto;
+  width: fit-content;
+  max-width: 100%;
+  align-self: flex-start;
+}
+
+.machineDataMedia .machineImageSlot.hasMachineImage {
+  display: block;
+  padding: 4px;
+  grid-template-rows: unset;
+  overflow: hidden;
+}
+
+.machineDataMedia .machineImagePreview {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(220px, 100%);
+  max-height: 180px;
+  min-height: 0;
+  object-fit: contain;
+  object-position: top left;
+  border-radius: 8px;
+}
+
+.machineDataMedia .machineQrSlot.hasQrImage {
+  width: fit-content;
+  height: fit-content;
+  min-height: 0;
+  padding: 0;
+  justify-self: auto;
+  align-self: flex-start;
+}
+
+.machineDataMedia .machineQrLabeled .machineQrImage,
+.machineDataMedia .machineQrImage {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 150px;
+  max-height: 180px;
+  min-height: 0;
+}
+  .machineHeroMedia.machineDataMedia {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+.arbeitsauftragPrintMeta dd {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+  word-break: break-word;
+}
+
+.arbeitsauftragSectionMeta {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+.machineDataLayout .arbeitsauftragSectionMeta {
+  align-self: flex-start;
+}
+
+.arbeitsauftragViewSection {
+  padding-top: 4px;
+}
+
+.arbeitsauftragViewMode .arbeitsauftragSectionMeta dd {
+  background: transparent;
+  border: none;
+  padding: 0;
+  min-height: 0;
+}
+
+.arbeitsauftragViewMode .machineDataFields {
+  display: none;
+}
+.arbeitsauftragRepairChecked {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.arbeitsauftragViewMode .repairColumn {
+  gap: 6px;
+}
+.arbeitsprotokolListPage .protocolScrollArea {
+  width: 100%;
+  max-width: 100%;
+}
+
+.arbeitsprotokolListPage .detailTopBar {
+  width: 100%;
+}
+
+.arbeitsprotokolListSection {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.arbeitsprotokolFilters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 10px 14px;
+  margin-bottom: 14px;
+  width: 100%;
+  max-width: 100%;
+}
+.arbeitsprotokolListTable {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.arbeitsprotokolListHead,
+.arbeitsprotokolListRow {
+  display: grid;
+  grid-template-columns:
+    minmax(4.5rem, 0.65fr)
+    minmax(5.5rem, 1fr)
+    minmax(4.5rem, 0.75fr)
+    minmax(0, 2.2fr);
+  gap: clamp(8px, 1.2vw, 18px);
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 0.78rem;
+}
+
+.arbeitsprotokolListHead {
+  padding: 0 12px 8px;
+  color: #6b7280;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.68rem;
+}
+
+.arbeitsprotokolListHead > span,
+.arbeitsprotokolListRow > span {
+  min-width: 0;
+}
+
+.arbeitsprotokolListRow {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  text-decoration: none;
+  font-weight: 700;
+}
+@media (max-width: 900px) {
+  .arbeitsprotokolListHead {
+    display: none;
+  }
+
+  .arbeitsprotokolListRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    padding: 12px;
+  }
+
+  .arbeitsprotokolListDevice {
+    grid-column: 1 / -1;
+    font-size: 0.85rem;
+  }
+
+  .arbeitsprotokolListDesc {
+    grid-column: 1 / -1;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 520px) {
+  .arbeitsprotokolFilters {
+    grid-template-columns: 1fr;
+  }
+
+  .arbeitsprotokolListRow {
+    grid-template-columns: 1fr;
+  }
+}
+.arbeitsprotokolListCount {
+  margin: 0 0 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.arbeitsprotokolResultList {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.arbeitsprotokolResultCard {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.arbeitsprotokolResultCard:hover {
+  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.arbeitsprotokolResultTop {
+  display: grid;
+  grid-template-columns: 132px 74px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.arbeitsprotokolProtocolMeta {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 0.75fr) minmax(0, 1.4fr);
+  gap: 12px clamp(12px, 2vw, 24px);
+  padding: 10px 14px 12px;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.arbeitsprotokolProtocolField {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  color: #111827;
+}
+
+.arbeitsprotokolProtocolField strong {
+  display: block;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.arbeitsprotokolProtocolAuftrag {
+  color: #f97316;
+  font-weight: 900;
+  font-size: 0.92rem;
+}
+
+.arbeitsprotokolProtocolDesc {
+  color: #374151;
+  font-weight: 600;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+@media (max-width: 900px) {
+  .arbeitsprotokolResultTop {
+    grid-template-columns: 110px 70px minmax(0, 1fr);
+  }
+
+  .arbeitsprotokolProtocolMeta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .arbeitsprotokolProtocolField:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .arbeitsprotokolResultTop {
+    grid-template-columns: 1fr;
+  }
+
+  .machineThumb {
+    width: 100%;
+    min-height: 120px;
+  }
+
+  .arbeitsprotokolProtocolMeta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .arbeitsprotokolFilters {
+    grid-template-columns: 1fr;
+  }
+}
+.arbeitsprotokolResultCard:hover {
+  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.arbeitsprotokolResultCard:hover .arbeitsprotokolMachineRow {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.arbeitsprotokolMachineRow {
+  display: grid;
+  grid-template-columns: 132px 74px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  width: 100%;
+  padding: 12px;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: inherit;
+  text-align: left;
+  transform: none;
+}
+
+.arbeitsprotokolMachineRow:hover {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+@media (max-width: 900px) {
+  .arbeitsprotokolMachineRow {
+    grid-template-columns: 110px 70px minmax(0, 1fr);
+  }
+
+  .arbeitsprotokolProtocolMeta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .arbeitsprotokolProtocolField:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .arbeitsprotokolMachineRow {
+    grid-template-columns: 1fr;
+  }
+
+  .arbeitsprotokolResultCard .machineThumb {
+    width: 100%;
+    min-height: 120px;
+  }
+
+  .arbeitsprotokolProtocolMeta {
+    grid-template-columns: 1fr;
+  }
+}
+.arbeitsprotokolListPage .protocolScrollArea {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.arbeitsprotokolListPage .protocolSection.card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+.arbeitsprotokolResultCard {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+  overflow: visible;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.arbeitsprotokolMachineRow {
+  display: grid;
+  grid-template-columns: minmax(0, 118px) minmax(88px, 100px) minmax(0, 1fr);
+  gap: 12px 14px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 12px;
+  margin: 0;
+}
+
+.arbeitsprotokolMachineRow .machineResultStatus {
+  min-width: 0;
+  max-width: 118px;
+  overflow-wrap: anywhere;
+}
+
+.arbeitsprotokolMachineRow .machineResultMain {
+  min-width: 0;
+}
+
+.arbeitsprotokolResultCard .machineThumb {
+  width: 100px;
+  height: 100px;
+  min-width: 88px;
+  min-height: 88px;
+  max-width: 100px;
+  flex-shrink: 0;
+  align-self: start;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.arbeitsprotokolResultCard .machineThumb img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+@media (max-width: 960px) {
+  .arbeitsprotokolMachineRow {
+    grid-template-columns: minmax(0, 1fr) minmax(88px, 110px);
+    grid-template-areas:
+      "status thumb"
+      "main main";
+  }
+
+  .arbeitsprotokolMachineRow .machineResultStatus {
+    grid-area: status;
+    max-width: none;
+  }
+
+  .arbeitsprotokolResultCard .machineThumb {
+    grid-area: thumb;
+    justify-self: end;
+  }
+
+  .arbeitsprotokolMachineRow .machineResultMain {
+    grid-area: main;
+  }
+
+  .arbeitsprotokolProtocolMeta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .arbeitsprotokolProtocolField:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .arbeitsprotokolMachineRow {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "status"
+      "thumb"
+      "main";
+  }
+
+  .arbeitsprotokolResultCard .machineThumb {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: 140px;
+    aspect-ratio: 1;
+    justify-self: stretch;
+  }
+
+  .arbeitsprotokolProtocolMeta {
+    grid-template-columns: 1fr;
+  }
+}
+.arbeitsprotokolThumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: start;
+  width: 76px;
+  height: 76px;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-size: 0.68rem;
+  font-weight: 700;
+  overflow: visible;
+}
+
+.arbeitsprotokolThumb img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 64px;
+  max-height: 64px;
+  object-fit: contain;
+  object-position: center;
+}
+.arbeitsprotokolMachineRow {
+  display: grid;
+  grid-template-columns: minmax(0, 118px) 76px minmax(0, 1fr);
+  gap: 12px 14px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 12px 12px 14px;
+  margin: 0;
+}
+  .arbeitsprotokolThumb {
+    grid-area: thumb;
+    justify-self: end;
+  }
+  .arbeitsprotokolThumb {
+    width: min(100%, 160px);
+    height: 88px;
+    justify-self: start;
+  }
+
+  .arbeitsprotokolThumb img {
+    max-width: 72px;
+    max-height: 72px;
+  }
+@media (max-width: 960px) {
+  .arbeitsprotokolMachineRow {
+    grid-template-columns: minmax(0, 1fr) 76px;
+.protocolCheck input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  accent-color: #111827;
+  cursor: pointer;
+}
+
+.arbeitsauftragViewMode .conditionGrid .protocolCheck input[type="checkbox"] {
+  accent-color: #111827;
+  opacity: 1;
+}
+
+.arbeitsauftragViewMode .conditionGrid .protocolCheck:has(input:not(:checked)) {
+  display: none;
+}
+.arbeitsauftragRepairChecked,
+.arbeitsauftragConditionChecked {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.arbeitsauftragConditionMark {
+  display: inline-grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.85rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #111827;
+}
+.arbeitsauftragConditionReadOnly .conditionGridMore,
+.arbeitsauftragConditionReadOnly .conditionMorePicker,
+.arbeitsauftragConditionReadOnly .protocolCheck:has(input:not(:checked)) {
+  display: none !important;
+}
+
+.conditionMorePicker {
+  margin-top: 10px;
+}
+
+.conditionMoreSummary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+  list-style: none;
+}
+
+.conditionMoreSummary::-webkit-details-marker {
+  display: none;
+}
+
+.conditionGridMore {
+  margin-top: 10px;
+}
+
+.conditionOptionActive {
+  border-color: #111827;
+  background: #ffffff;
+}
+  .workorderPage {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "sidebarBrand sidebarLogout"
+      "sidebarNav sidebarNav";
+    align-items: center;
+    gap: 12px 14px;
+    padding: 14px 16px;
+    flex-direction: unset;
+  }
+
+  .sidebarHeader {
+    grid-area: sidebarBrand;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .sidebarNav {
+    grid-area: sidebarNav;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .sidebarNav a {
+    width: auto;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .logoutButton {
+    grid-area: sidebarLogout;
+    justify-self: end;
+    align-self: center;
+    width: auto;
+    margin-top: 0;
+    padding: 8px 14px;
+    white-space: nowrap;
+  }
+
+  .pageContent {
+    padding: 24px;
+    min-width: 0;
+  }
+
+  .welcomePage {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .sidebar {
+    padding: 12px 14px;
+    gap: 10px 12px;
+  }
+
+  .sidebarNav a {
+    padding: 7px 10px;
+    font-size: 0.78rem;
+  }
+
+  .welcomeCard {
+    padding: 32px;
+  }
+}
+@media (max-width: 1100px) {
+@page {
+  size: A4 portrait;
+  margin: 6mm;
+}
+
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+
+  .pruefbefundToolbar,
+  .pruefbefundBack {
+    display: none;
+  }
+
+  body {
+    background: #ffffff;
+    font-size: 8.5pt;
+    line-height: 1.2;
+  }
+
+  .protocolShell {
+    display: block;
+    background: #ffffff;
+    height: auto;
+    overflow: visible;
+  }
+
+  .protocolShell .sidebar,
+  .protocolPage .detailTopBar,
+  .protocolPage .detailTopActions,
+  .arbeitsauftragViewHint {
+    display: none !important;
+  }
+
+  .protocolPage {
+    padding: 0;
+    height: auto;
+    overflow: visible;
+  }
+
+  .pageContent {
+    padding: 0;
+  }
+
+  .protocolScrollArea,
+  .arbeitsauftragDocument {
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    font-size: 8.5pt;
+    line-height: 1.2;
+  }
+
+  .arbeitsauftragDocument .card,
+  .arbeitsauftragDocument .protocolSection {
+    break-inside: auto;
+    page-break-inside: auto;
+    box-shadow: none;
+    border: 1px solid #cbd5e1;
+    margin-bottom: 4px;
+    padding: 5px 7px;
+    border-radius: 4px;
+  }
+
+  .arbeitsauftragDocument .protocolSection h2 {
+    margin: 0 0 3px;
+    font-size: 9pt;
+    line-height: 1.15;
+  }
+
+  .arbeitsauftragDocument .spacedTitle {
+    letter-spacing: 0.06em;
+    font-size: 9pt;
+    margin-bottom: 3px;
+  }
+
+  .arbeitsauftragPrintHeader {
+    border: 1px solid #111827;
+    border-radius: 0;
+    background: #ffffff;
+    margin-bottom: 5px;
+    padding: 5px 7px;
+  }
+
+  .arbeitsauftragPrintBrand {
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+  }
+
+  .arbeitsauftragPrintBrand strong {
+    font-size: 11pt;
+  }
+
+  .arbeitsauftragPrintBrand span {
+    font-size: 9pt;
+  }
+
+  .arbeitsauftragPrintMeta,
+  .arbeitsauftragSectionMeta {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px 6px;
+  }
+
+  .arbeitsauftragPrintMeta dt,
+  .arbeitsauftragSectionMeta dt {
+    font-size: 6.5pt;
+    margin: 0;
+  }
+
+  .arbeitsauftragPrintMeta dd,
+  .arbeitsauftragSectionMeta dd {
+    font-size: 8pt;
+    margin: 0;
+  }
+
+  .arbeitsauftragDocument .machineDataLayout {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .arbeitsauftragDocument .machineHeroMedia.machineDataMedia,
+  .arbeitsauftragDocument .machineDataMedia {
+    display: none !important;
+  }
+
+  .arbeitsauftragViewSection {
+    padding: 4px 7px;
+  }
+
+  .arbeitsauftragDocument .conditionGrid {
+    gap: 4px;
+  }
+
+  .arbeitsauftragConditionChecked {
+    padding: 2px 5px;
+    font-size: 7.5pt;
+    border-radius: 4px;
+  }
+
+  .arbeitsauftragDocument .repairColumns {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px 6px;
+    align-items: start;
+  }
+
+  .arbeitsauftragDocument .repairColumn {
+    display: block;
+    width: auto;
+    max-width: none;
+    gap: 0;
+  }
+
+  .arbeitsauftragDocument .repairColumn h3 {
+    font-size: 7pt;
+    margin: 0 0 2px;
+    white-space: normal;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragRepairChecked {
+    display: inline;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    font-size: 7pt;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragRepairChecked::after {
+    content: ", ";
+  }
+
+  .arbeitsauftragDocument .repairColumn .arbeitsauftragRepairChecked:last-child::after {
+    content: "";
+  }
+
+  .arbeitsauftragDocument .protocolLagerTable {
+    min-width: 0;
+    font-size: 7pt;
+  }
+
+  .arbeitsauftragDocument .protocolLagerTable th,
+  .arbeitsauftragDocument .protocolLagerTable td {
+    padding: 3px 5px;
+    font-size: 7pt;
+  }
+
+  .arbeitsauftragPrintFooter {
+    margin-top: 4px;
+    padding-top: 3px;
+    font-size: 7pt;
+    gap: 6px 12px;
+  }
+
+  .arbeitsauftragViewMode .protocolCheck:has(input:not(:checked)) {
+    display: none;
+  }
+
+  .protocolCheck {
+    border-color: #9ca3af;
+    background: #ffffff;
+    padding: 3px 6px;
+    font-size: 7pt;
+  }
+
+  .readOnlyPanel input,
+  .readOnlyPanel select,
+  .readOnlyPanel textarea {
+    border: none;
+    background: transparent;
+    padding-left: 0;
+    color: #111827;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .pruefbefundPage {
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .pruefbefundSheet {
+    box-shadow: none;
+    border: none;
+    max-width: none;
+  }
+}
+.arbeitsprotokolListSection,
+.lagerListSection {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.lagerInventurInput {
+  width: 5rem;
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.lagerInventurTable th:last-child,
+.lagerInventurTable td:last-child {
+  white-space: nowrap;
+}
+.arbeitsprotokolListSection,
+.lagerListSection {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.lagerFilters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 10px 14px;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.lagerFilterField {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.lagerFilterField > span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lagerFilterField input {
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  font-size: 0.82rem;
+  color: #111827;
+  box-sizing: border-box;
+}
+
+.lagerFilterReset {
+  align-self: end;
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+}
+
+.lagerListCount {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.detailTopActions a.pillButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.lagerExcelHint {
+  margin-bottom: 12px;
+}
+
+.lagerExcelHint summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #374151;
+  list-style: none;
+}
+
+.lagerExcelHint summary::-webkit-details-marker {
+  display: none;
+}
+
+.lagerExcelHint[open] summary {
+  margin-bottom: 8px;
+}
+.lagerInventurInput {
+  .arbeitsauftragDocument .machineDataLayout {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    align-items: start;
+  }
+
+  .arbeitsauftragDocument .machineHeroMedia.machineDataMedia,
+  .arbeitsauftragDocument .machineDataMedia {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
+    align-items: flex-start;
+    justify-content: flex-end;
+    width: auto;
+    max-width: none;
+  }
+
+  .arbeitsauftragDocument .machineDataMedia .machineImageSlot,
+  .arbeitsauftragDocument .machineDataMedia .machineQrSlot {
+    padding: 2px;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    background: #ffffff;
+  }
+
+  .arbeitsauftragDocument .machineDataMedia .machineImagePreview {
+    display: block;
+    max-width: 52px;
+    max-height: 52px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .arbeitsauftragDocument .machineDataMedia .machineQrImage {
+    display: block;
+    max-width: 56px;
+    max-height: 56px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragConditionSection {
+    display: none !important;
+  }
+
+  .arbeitsauftragViewSection {
+    padding: 4px 7px;
+  }
+
+  .arbeitsauftragDocument .conditionGrid {
+    gap: 4px;
+  }
+.arbeitsauftragSummary,
+.arbeitsauftragPrintHeader {
+  margin-bottom: 18px;
+  padding: clamp(12px, 2vw, 16px) clamp(14px, 2vw, 18px);
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.arbeitsauftragSummaryTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.arbeitsauftragSummaryTop .arbeitsauftragPrintBrand {
+  flex: 1 1 auto;
+  margin-bottom: 0;
+  min-width: min(100%, 220px);
+}
+
+.arbeitsauftragSummaryMedia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.arbeitsauftragSummaryCondition {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.arbeitsauftragSummaryConditionLabel {
+  margin: 0 0 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+  .arbeitsauftragSummaryTop {
+    margin-bottom: 4px;
+  }
+
+  .arbeitsauftragSummaryTop .arbeitsauftragPrintBrand {
+    margin-bottom: 0;
+    padding-bottom: 2px;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragSummaryMedia {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragSummaryMedia .machineImageSlot,
+  .arbeitsauftragDocument .arbeitsauftragSummaryMedia .machineQrSlot {
+    padding: 2px;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    background: #ffffff;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragSummaryMedia .machineImagePreview {
+    display: block;
+    max-width: 52px;
+    max-height: 52px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragSummaryMedia .machineQrImage {
+    display: block;
+    max-width: 56px;
+    max-height: 56px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragSummaryCondition {
+    display: none !important;
+  }
+
+  .arbeitsauftragDocument .machineDataLayout {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .arbeitsauftragViewSection {
+    display: none !important;
+  }
+.arbeitsauftragPrintTitle {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #111827;
+}
+  .arbeitsauftragPrintTitle {
+    font-size: 11pt;
+  }
+/* Druckvorschau — gleiches Layout wie @media print, mit A4-Rahmen */
+body.arbeitsauftrag-print-preview {
+  overflow: hidden;
+  background: #64748b;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewToolbar,
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewViewport {
+  pointer-events: auto;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewToolbar {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 12px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewIntro h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewIntro p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewStatus {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewStatusOk {
+  color: #166534;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewStatusWarn {
+  color: #b45309;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewViewport {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewPage {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 210mm;
+  height: 297mm;
+  border: 2px solid #94a3b8;
+  background: #ffffff;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.35);
+  pointer-events: none;
+  z-index: 9998;
+  box-sizing: border-box;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewPageEdge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: 2px dashed #f97316;
+  height: 0;
+}
+
+body.arbeitsauftrag-print-preview .protocolShell {
+  display: block;
+  background: transparent;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.arbeitsauftrag-print-preview .protocolShell .sidebar,
+body.arbeitsauftrag-print-preview .protocolPage .detailTopBar,
+body.arbeitsauftrag-print-preview .protocolPage .detailTopActions,
+body.arbeitsauftrag-print-preview .arbeitsauftragViewHint {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .protocolPage {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 210mm;
+  height: 297mm;
+  margin: 0;
+  padding: 6mm;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #ffffff;
+  z-index: 9999;
+  box-shadow: none;
+}
+
+body.arbeitsauftrag-print-preview .protocolScrollArea,
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument {
+  max-height: 100%;
+  overflow: hidden;
+  padding: 0;
+  font-size: 8.5pt;
+  line-height: 1.2;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .card,
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection {
+  box-shadow: none;
+  border: 1px solid #cbd5e1;
+  margin-bottom: 4px;
+  padding: 5px 7px;
+  border-radius: 4px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection h2 {
+  margin: 0 0 3px;
+  font-size: 9pt;
+  line-height: 1.15;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .spacedTitle {
+  letter-spacing: 0.06em;
+  font-size: 9pt;
+  margin-bottom: 3px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintHeader {
+  border: 1px solid #111827;
+  border-radius: 0;
+  background: #ffffff;
+  margin-bottom: 5px;
+  padding: 5px 7px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintMeta,
+body.arbeitsauftrag-print-preview .arbeitsauftragSectionMeta {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px 6px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintMeta dt,
+body.arbeitsauftrag-print-preview .arbeitsauftragSectionMeta dt {
+  font-size: 6.5pt;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintMeta dd,
+body.arbeitsauftrag-print-preview .arbeitsauftragSectionMeta dd {
+  font-size: 8pt;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .arbeitsauftragSummaryMedia {
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .arbeitsauftragSummaryMedia .machineImagePreview {
+  max-width: 52px;
+  max-height: 52px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .arbeitsauftragSummaryMedia .machineQrImage {
+  max-width: 56px;
+  max-height: 56px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .arbeitsauftragSummaryCondition {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .repairColumns {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px 6px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .repairColumn h3 {
+  font-size: 7pt;
+  margin: 0 0 2px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .arbeitsauftragRepairChecked {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 7pt;
+  font-weight: 600;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .arbeitsauftragRepairChecked::after {
+  content: ", ";
+}
+
+body.arbeitsauftrag-print-preview
+  .arbeitsauftragDocument
+  .repairColumn
+  .arbeitsauftragRepairChecked:last-child::after {
+  content: "";
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintFooter {
+  margin-top: 4px;
+  padding-top: 3px;
+  font-size: 7pt;
+}
+
+@media (max-width: 640px) {
+  .pageContent {
+    padding: 24px;
+  }
+.arbeitsauftragPrintBrand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f97316;
+}
+
+.arbeitsauftragDetailTopView h1 {
+  display: none;
+}
+
+.arbeitsauftragPrintPreviewButton {
+  flex-shrink: 0;
+}
+@media print {
+  .noPrint,
+  .arbeitsauftragPrintPreviewOverlay {
+    display: none !important;
+  }
+  .protocolPage .detailTopBar,
+  .protocolPage .detailTopActions,
+  .arbeitsauftragViewHint,
+  .arbeitsauftragPrintPreviewButton {
+    display: none !important;
+  }
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+.arbeitsauftragSummaryHeadRow {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f97316;
+}
+
+.arbeitsauftragSummaryColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.35fr) auto;
+  gap: 14px clamp(12px, 2vw, 22px);
+  align-items: start;
+}
+
+.arbeitsauftragSummaryColumnsEdit {
+  grid-template-columns: 1fr;
+}
+
+.arbeitsauftragSummaryCol {
+  min-width: 0;
+}
+
+.arbeitsauftragSummaryColTitle {
+  margin: 0 0 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+}
+
+.arbeitsauftragSummaryMachineMain {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.arbeitsauftragSummaryGeraet {
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  font-weight: 900;
+  line-height: 1.15;
+  color: #111827;
+  word-break: break-word;
+}
+
+.arbeitsauftragSummaryBezeichnung {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #374151;
+  word-break: break-word;
+}
+
+.arbeitsauftragSummaryMetaCompact {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.arbeitsauftragSummaryMetaCompact > div {
+  gap: 1px;
+}
+
+.arbeitsauftragSummaryBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.arbeitsauftragSummaryColMedia {
+  justify-self: end;
+}
+
+.arbeitsauftragSummaryMedia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.arbeitsauftragSummaryMedia .machineImageSlot.hasMachineImage {
+  padding: 4px;
+}
+
+.arbeitsauftragSummaryMedia .machineImagePreview {
+  max-width: 88px;
+  max-height: 72px;
+}
+
+.arbeitsauftragSummaryMedia .machineQrImage {
+  max-width: 72px;
+  max-height: 72px;
+}
+.arbeitsauftragPrintBrand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+  .arbeitsauftragSummaryColumns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+    gap: 6px 10px;
+  }
+
+  .arbeitsauftragSummaryColTitle {
+    margin-bottom: 3px;
+    font-size: 6.5pt;
+  }
+
+  .arbeitsauftragSummaryGeraet {
+    font-size: 10pt;
+  }
+
+  .arbeitsauftragSummaryBezeichnung {
+    font-size: 8pt;
+  }
+
+  .arbeitsauftragSummaryMetaCompact.arbeitsauftragPrintMeta {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragSummaryMedia {
+  .arbeitsauftragDocument .arbeitsauftragSummaryMedia {
+    display: flex !important;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 4px;
+    align-items: center;
+    justify-content: flex-start;
+  }
+body.arbeitsauftrag-print-preview .arbeitsauftragSummaryColumns {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+  gap: 6px 10px;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .arbeitsauftragSummaryMedia {
+  display: flex !important;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-start;
+}
+  .arbeitsauftragPrintMeta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .arbeitsauftragSummaryColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .arbeitsauftragSummaryColMedia {
+    justify-self: start;
+  }
+
+  .arbeitsauftragSummaryMedia {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+.arbeitsauftragSummaryMedia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.arbeitsauftragSummaryQr {
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.arbeitsauftragSummaryQrImage {
+  display: block;
+  width: 132px;
+  height: 132px;
+  max-width: 132px;
+  max-height: 132px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+  .arbeitsauftragDocument .arbeitsauftragSummaryQr {
+    padding: 4px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #ffffff;
+  }
+
+  .arbeitsauftragDocument .arbeitsauftragSummaryQrImage {
+    display: block;
+    width: 30mm;
+    height: 30mm;
+    max-width: 30mm;
+    max-height: 30mm;
+    object-fit: contain;
+  }
+body.arbeitsauftrag-print-preview .arbeitsauftragDocument .arbeitsauftragSummaryQrImage {
+  width: 30mm;
+  height: 30mm;
+  max-width: 30mm;
+  max-height: 30mm;
+}
+  .arbeitsauftragSummaryQrImage {
+    width: 112px;
+    height: 112px;
+    max-width: 112px;
+    max-height: 112px;
+  }
+}
+  object-fit: contain;
+}
+/* Druckvorschau — Inhalt (.protocolPage) über Hintergrund, Toolbar oben */
+body.arbeitsauftrag-print-preview {
+  overflow: hidden;
+  background: #64748b;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewToolbar {
+  position: relative;
+  z-index: 10003;
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 12px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  pointer-events: auto;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintPreviewBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(100, 116, 139, 0.88);
+  cursor: pointer;
+  pointer-events: auto;
+}
+body.arbeitsauftrag-print-preview .workorderPage.protocolShell {
+  display: block;
+  background: transparent;
+  min-height: 100vh;
+  overflow: visible;
+}
+body.arbeitsauftrag-print-preview .protocolPage {
+  position: fixed;
+  left: 50%;
+  top: 76px;
+  transform: translateX(-50%);
+  width: 210mm;
+  height: 297mm;
+  max-height: calc(100vh - 96px);
+  margin: 0;
+  padding: 6mm;
+  box-sizing: border-box;
+  overflow: auto;
+  background: #ffffff;
+  z-index: 10002;
+  border: 2px solid #94a3b8;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.35);
+  pointer-events: auto;
+}
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.pageHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.userCreateCard {
+  margin-bottom: 20px;
+}
+
+.userCreateForm {
+  padding: 0 18px 18px;
+}
+
+.userTableEmpty {
+  padding: 16px 18px;
+}
+
+.protocolNotice.success {
+  color: #166534;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+}
+.loginCard {
+  width: 100%;
+  max-width: 440px;
+  padding: 0;
+  border-radius: 0;
+  background: #ffffff;
+  border: none;
+  box-shadow: none;
+}
+
+.loginBrand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.loginBrand h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.loginBrand p {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+.arbeitsauftragConditionSection .arbeitsauftragSummaryBadges {
+  margin-top: 4px;
+}
+  .arbeitsauftragHideOnPrint {
+    display: none !important;
+  }
+body.arbeitsauftrag-print-preview .arbeitsauftragHideOnPrint {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintFooter {
+  margin-top: 4px;
+  padding-top: 3px;
+  font-size: 7pt;
+}
+.arbeitsauftragConditionSection .arbeitsauftragSummaryBadges {
+  margin-top: 4px;
+}
+
+.arbeitsauftragStammdatenSection .fieldGrid {
+  width: 100%;
+}
+
+.arbeitsauftragStammdatenPrintOnly {
+  display: none;
+}
+  .arbeitsauftragHideOnPrint {
+    display: none !important;
+  }
+
+  .arbeitsauftragStammdatenGrid {
+    display: none !important;
+  }
+
+  .arbeitsauftragStammdatenPrintOnly {
+    display: block !important;
+  }
+
+  .arbeitsauftragDocument .conditionGrid {
+body.arbeitsauftrag-print-preview .arbeitsauftragHideOnPrint {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragStammdatenGrid {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragStammdatenPrintOnly {
+  display: block !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintFooter {
+.arbeitsauftragConditionSection .arbeitsauftragSummaryBadges {
+  margin-top: 4px;
+}
+  .arbeitsauftragHideOnPrint {
+    display: none !important;
+  }
+
+  .arbeitsauftragDocument .conditionGrid {
+body.arbeitsauftrag-print-preview .arbeitsauftragHideOnPrint {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintFooter {
+.arbeitsauftragConditionSection .arbeitsauftragSummaryBadges {
+  margin-top: 4px;
+}
+
+.arbeitsauftragStammdatenSection .fieldGrid {
+  width: 100%;
+}
+
+.arbeitsauftragStammdatenPrintOnly {
+  display: none;
+}
+  .arbeitsauftragHideOnPrint {
+    display: none !important;
+  }
+
+  .arbeitsauftragStammdatenGrid {
+    display: none !important;
+  }
+
+  .arbeitsauftragStammdatenPrintOnly {
+    display: block !important;
+  }
+
+  .arbeitsauftragDocument .conditionGrid {
+body.arbeitsauftrag-print-preview .arbeitsauftragHideOnPrint {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragStammdatenGrid {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragStammdatenPrintOnly {
+  display: block !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintFooter {
+.arbeitsauftragStammdatenSection .arbeitsauftragStammdatenGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px 20px;
+  width: 100%;
+  margin: 0;
+}
+
+.arbeitsauftragStammdatenSection .arbeitsauftragStammdatenRow {
+  grid-template-columns: minmax(130px, 46%) minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 0;
+  border-bottom: none;
+}
+
+.arbeitsauftragStammdatenSection .arbeitsauftragStammdatenRow > span {
+  white-space: normal;
+  line-height: 1.3;
+  font-size: 0.74rem;
+  hyphens: auto;
+}
+
+.arbeitsauftragStammdatenSection .arbeitsauftragStammdatenRow input,
+.arbeitsauftragStammdatenSection .arbeitsauftragStammdatenRow select {
+  min-width: 0;
+  min-height: 36px;
+  font-size: 0.85rem;
+}
+
+.arbeitsauftragStammdatenSection .arbeitsauftragStammdatenPrintOnly {
+  display: none !important;
+}
+.arbeitsauftragStammdatenList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px 20px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .arbeitsauftragStammdatenList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .arbeitsauftragStammdatenList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.arbeitsauftragStammdatenItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.arbeitsauftragStammdatenLabel {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
+.arbeitsauftragStammdatenValue {
+  display: block;
+  min-height: 38px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.arbeitsauftragStammdatenStatus {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-width: 120px;
+}
+
+.arbeitsauftragStammdatenSection .arbeitsauftragStammdatenPrintOnly {
+  display: none !important;
+}
+
+.readOnlyPanel .arbeitsauftragStammdatenSection .arbeitsauftragStammdatenItem {
+  display: flex;
+}
+  .arbeitsauftragStammdatenList {
+    display: none !important;
+  }
+
+  .arbeitsauftragStammdatenPrintOnly {
+    display: block !important;
+  }
+body.arbeitsauftrag-print-preview .arbeitsauftragStammdatenList {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .arbeitsauftragStammdatenPrintOnly {
+  display: block !important;
+}
+.arbeitsauftragStammdatenSection {
+  display: block;
+}
+
+.arbeitsauftragStammdatenGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+}
+
+@media (min-width: 960px) {
+  .arbeitsauftragStammdatenGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.arbeitsauftragStammdatenSection .protocolField > span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #4b5563;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.arbeitsauftragStammdatenSection .protocolField input,
+.arbeitsauftragStammdatenSection .protocolField select {
+  min-height: 38px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: #f9fafb;
+}
+
+.readOnlyPanel .arbeitsauftragStammdatenSection .protocolField {
+  display: grid;
+}
+  .arbeitsauftragStammdatenGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px 8px;
+  }
+
+  .arbeitsauftragDocument .conditionGrid {
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintFooter {
+  .protocolCheck {
+.arbeitsauftragViewMode .repairColumn {
+  gap: 6px;
+}
+
+.arbeitsauftragViewMode .repairColumn .protocolCheck {
+  display: inline-flex;
+}
+
+.arbeitsauftragViewMode .repairColumn .protocolCheck input[type="checkbox"] {
+  opacity: 1;
+}
+body.arbeitsauftrag-print-preview .arbeitsauftragPrintFooter {
+  /* Nur beim echten Druck: doppelte Blöcke in der Ansicht ausblenden */
+  .aaFormView .aaBlockAuftrag,
+  .aaFormView .aaBlockZustand {
+    display: none !important;
+  }
+
+  .arbeitsauftragStammdatenGrid {
+.arbeitsauftragViewHint {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* —— Arbeitsauftrag: neue Seitenstruktur (aaForm) —— */
+.aaForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.aaForm .aaBlock {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.aaHeader {
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.aaDocTitle {
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f97316;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.aaColLabel {
+  margin: 0 0 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+}
+
+.aaGeraetNr {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1.2;
+  color: #111827;
+}
+
+.aaGeraetTitle {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.aaHeaderEdit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.aaHeaderQr {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.aaHeaderQr .machineQrImage,
+.aaQrImg {
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+}
+
+.aaHeaderPrintSummary .aaHeaderCols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+  gap: 16px 20px;
+  align-items: start;
+}
+
+.aaMetaLine {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.aaMetaLine span {
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.aaMetaCompact {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+.aaStammdatenGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+}
+
+@media (min-width: 960px) {
+  .aaStammdatenGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.aaFormView .aaBlockStammdaten .protocolField > span,
+.aaFormView .aaBlockAuftrag .protocolField > span,
+.aaFormView .aaBlockRepair .protocolField > span {
+  white-space: normal;
+}
+
+.aaFormView .protocolCheck {
+  display: inline-flex;
+}
+
+.aaFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #d1d5db;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+  .aaFormEdit .aaHeaderPrintSummary {
+    display: none !important;
+  }
+
+  .aaFormView .aaHeaderEdit {
+    display: none !important;
+  }
+body.arbeitsauftrag-print-preview .aaFormEdit .aaHeaderPrintSummary {
+  display: none !important;
+}
+
+body.arbeitsauftrag-print-preview .aaFormView .aaHeaderEdit {
+  display: none !important;
+}
+
+/* Druckvorschau zeigt dieselben Inhalte wie der Bildschirm — keine Ausblendung */
+  /* Nur beim echten Druck: Auftrag-Duplikat (Kopf + Sektion) ausblenden */
+  .aaFormView .aaBlockAuftrag {
+    display: none !important;
+  }
+.aaFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #d1d5db;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+.aaBoelsNummerLine {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.aaBoelsLabel {
+  display: inline-block;
+  min-width: 118px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.aaBoelsNummerLine strong {
+  font-weight: 800;
+  color: #111827;
+}
+
+.aaGeraetDl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.aaGeraetDl > div {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);
+  gap: 10px 16px;
+  align-items: baseline;
+}
+
+.aaGeraetDl dt {
+  margin: 0;
+  font-weight: 700;
+  color: #374151;
+}
+
+.aaGeraetDl dd {
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+  word-break: break-word;
+}
+
+.aaAuftragGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 900px) {
+  .aaAuftragGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.aaForm .protocolField input[readonly] {
+  background: #f9fafb;
+  color: #111827;
+  cursor: default;
+}
+
+.aaFrostschutzRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.aaRuecknahmeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.aaServiceHint {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.aaServiceTableWrap {
+  margin-bottom: 10px;
+}
+
+.aaServiceTable th,
+.aaServiceTable td {
+  font-size: 0.75rem;
+  padding: 4px 10px 4px 0;
+}
+
+.aaServiceMark {
+  color: #15803d;
+  font-weight: 800;
+  text-align: center;
+}
+
+.aaEngineOilFooter {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #374151;
+}

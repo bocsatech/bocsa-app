@@ -18,6 +18,7 @@ import {
 import { toAustriaDateString } from "../../lib/machines";
 
 type Tab = "tag" | "liste" | "vergleich";
+type AdminScope = "all" | "mine";
 
 type DayResponse = {
   datum: string;
@@ -54,6 +55,7 @@ export default function ArbeitsstundenDashboard() {
   const [sessionUsername, setSessionUsername] = useState("");
   const [canAdmin, setCanAdmin] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
+  const [adminScope, setAdminScope] = useState<AdminScope>("all");
   const [depot, setDepot] = useState("");
   const [notiz, setNotiz] = useState("");
   const [bestaetigt, setBestaetigt] = useState(false);
@@ -72,7 +74,7 @@ export default function ArbeitsstundenDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const activeUser = username || sessionUsername;
-  const adminAllUsersMode = canAdmin && !username.trim();
+  const adminAllUsersMode = canAdmin && adminScope === "all";
 
   const range = useMemo(() => periodRange(period, datum), [period, datum]);
 
@@ -83,16 +85,24 @@ export default function ArbeitsstundenDashboard() {
     setSessionUsername(name);
     setUsername(name);
     const perms: string[] = data.permissions ?? [];
+    const groups: string[] = data.groups ?? [];
+    const isAdmin =
+      name.toLowerCase() === "admin" ||
+      perms.includes("hours.admin") ||
+      groups.includes("Admin");
     setCanAdmin(
-      name.toLowerCase() === "admin" || perms.includes("hours.admin")
+      isAdmin
     );
     setCanWrite(
-      name.toLowerCase() === "admin" ||
+      isAdmin ||
         perms.includes("hours.write") ||
         perms.includes("machines.write")
     );
-    if (name.toLowerCase() === "admin" || perms.includes("hours.admin")) {
+    if (isAdmin) {
+      setAdminScope("all");
       setUsername("");
+    } else {
+      setAdminScope("mine");
     }
   }, []);
 
@@ -111,7 +121,7 @@ export default function ArbeitsstundenDashboard() {
 
   const loadDay = useCallback(async () => {
     const params = new URLSearchParams({ mode: "tag", datum });
-    if (username.trim()) {
+    if (!adminAllUsersMode && username.trim()) {
       params.set("username", username);
     }
     const res = await fetch(`/api/arbeitsstunden?${params}`, {
@@ -131,7 +141,7 @@ export default function ArbeitsstundenDashboard() {
       setNotiz(data.abschluss?.notiz ?? "");
       setBestaetigt(Boolean(data.abschluss?.bestaetigt));
     }
-  }, [datum, username, sessionUsername]);
+  }, [datum, username, sessionUsername, adminAllUsersMode]);
 
   const loadListe = useCallback(async () => {
     const params = new URLSearchParams({
@@ -139,7 +149,13 @@ export default function ArbeitsstundenDashboard() {
       from: range.from,
       to: range.to,
     });
-    if (username.trim() && canAdmin) params.set("username", username);
+    if (canAdmin) {
+      if (adminScope === "mine") {
+        params.set("username", sessionUsername);
+      } else if (username.trim()) {
+        params.set("username", username);
+      }
+    }
 
     const res = await fetch(`/api/arbeitsstunden?${params}`, {
       cache: "no-store",
@@ -153,7 +169,7 @@ export default function ArbeitsstundenDashboard() {
     }
     setError(null);
     setListe(data.tage ?? []);
-  }, [range.from, range.to, username, canAdmin]);
+  }, [range.from, range.to, username, canAdmin, adminScope, sessionUsername]);
 
   const loadCompare = useCallback(async () => {
     const params = new URLSearchParams({
@@ -238,7 +254,7 @@ export default function ArbeitsstundenDashboard() {
       body: JSON.stringify({
         action: "sync",
         datum,
-        username: activeUser,
+        username: canAdmin && adminScope === "mine" ? sessionUsername : activeUser,
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -261,7 +277,7 @@ export default function ArbeitsstundenDashboard() {
       body: JSON.stringify({
         action: "manual",
         datum,
-        username: activeUser,
+        username: canAdmin && adminScope === "mine" ? sessionUsername : activeUser,
         depot,
         stunden: manualStunden,
         beschreibung: manualText,
@@ -304,7 +320,7 @@ export default function ArbeitsstundenDashboard() {
       body: JSON.stringify({
         action: "confirm",
         datum,
-        username: activeUser,
+        username: canAdmin && adminScope === "mine" ? sessionUsername : activeUser,
         depot,
         notiz,
         bestaetigt,
@@ -397,15 +413,33 @@ export default function ArbeitsstundenDashboard() {
           )}
 
           {canAdmin ? (
-            <label className="arbeitsauftragFilterField">
-              <span>Bearbeiter</span>
-              <input
-                type="search"
-                value={username}
-                placeholder="leer = alle"
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </label>
+            <>
+              <label className="arbeitsauftragFilterField">
+                <span>Bearbeiter</span>
+                <input
+                  type="search"
+                  value={username}
+                  placeholder={adminScope === "all" ? "Filter optional (z. B. thomas)" : sessionUsername}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={adminScope === "mine"}
+                />
+              </label>
+              <button
+                type="button"
+                className="pillButton outline"
+                onClick={() => {
+                  if (adminScope === "all") {
+                    setAdminScope("mine");
+                    setUsername(sessionUsername);
+                  } else {
+                    setAdminScope("all");
+                    setUsername("");
+                  }
+                }}
+              >
+                {adminScope === "all" ? "Meine" : "Alle"}
+              </button>
+            </>
           ) : null}
 
           {tab === "tag" ? (

@@ -321,11 +321,15 @@ export default function LagerPage() {
                             <LagerTeilBild
                               teil={teil}
                               canWrite={canWrite}
+                              uploadEnabled={false}
                               onUpdated={handleSaved}
                             />
                           </td>
                           <td>
                             <strong>{formatLagerValue(teil.herstellernummer)}</strong>
+                            <div className="scanHint" style={{ marginTop: 4 }}>
+                              Art.-Nr.: {formatLagerValue(teil.artikelnummer)}
+                            </div>
                           </td>
                           <td className="lagerBezeichnungCell">
                             {teil.bezeichnung?.trim() ?? ""}

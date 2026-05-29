@@ -2,6 +2,7 @@
 
 import { formatValue } from "../../lib/machines";
 import type { Machine } from "../../lib/types/machine";
+import MachineHeroMedia from "./MachineHeroMedia";
 
 type Props = {
   machine: Machine;
@@ -22,32 +23,7 @@ export default function MachineHeroSummary({ machine }: Props) {
         </p>
       </div>
 
-      <div className="machineHeroMedia">
-        <div className={`machineImageSlot ${machine.image ? "hasMachineImage" : ""}`}>
-          {machine.image ? (
-            <img className="machineImagePreview" src={machine.image} alt="Maschinenbild" />
-          ) : (
-            <span>Maschinenbild</span>
-          )}
-        </div>
-        <div className={`machineQrSlot ${machine.qr_code ? "hasQrImage machineQrLabeled" : ""}`}>
-          {machine.qr_code ? (
-            <img
-              className="machineQrImage"
-              src={machine.qr_code}
-              alt={`QR Code ${formatValue(machine.geraetenummer)}`}
-            />
-          ) : (
-            <div className="qrPlaceholder">
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-          )}
-          {!machine.qr_code ? <p>QR Code</p> : null}
-        </div>
-      </div>
+      <MachineHeroMedia machine={machine} />
     </header>
   );
 }

@@ -54,9 +54,11 @@ function ProtocolField({
 
 type Props = {
   initialFilters?: Partial<WorkOrderListFilters>;
+  /** Von Maschinendetail („Alle anzeigen“) — Zurück zur Gepseite */
+  returnMachineId?: string;
 };
 
-export default function ArbeitsauftragList({ initialFilters }: Props) {
+export default function ArbeitsauftragList({ initialFilters, returnMachineId }: Props) {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [entries, setEntries] = useState<WorkOrderListEntry[]>([]);
   const [filters, setFilters] = useState<WorkOrderListFilters>({
@@ -114,8 +116,15 @@ export default function ArbeitsauftragList({ initialFilters }: Props) {
         <div className="detailTopBar">
           <h1>Arbeitsauftrag</h1>
           <div className="detailTopActions">
-            <Link className="pillButton outline" href="/maschinen">
-              Zur Maschinenliste
+            <Link
+              className="pillButton outline"
+              href={
+                returnMachineId
+                  ? `/maschinen/${encodeURIComponent(returnMachineId)}`
+                  : "/maschinen"
+              }
+            >
+              {returnMachineId ? "Zur Maschinen" : "Zur Maschinenliste"}
             </Link>
           </div>
         </div>

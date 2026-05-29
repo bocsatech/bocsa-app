@@ -7,7 +7,7 @@ create table if not exists public.arbeitsstunden_eintraege (
   updated_at timestamptz not null default now(),
   username text not null,
   depot text not null default '',
-  datum date not null,
+  datum text not null,
   quelle text not null check (quelle in ('protokoll', 'manuell')),
   stunden numeric(6, 2) not null check (stunden >= 0),
   beschreibung text not null default '',
@@ -24,7 +24,7 @@ create index if not exists arbeitsstunden_eintraege_user_datum_idx
 
 create table if not exists public.arbeitsstunden_tagesabschluss (
   username text not null,
-  datum date not null,
+  datum text not null,
   depot text not null default '',
   soll_stunden numeric(6, 2) not null default 10,
   arbeitszeit_von time not null default '07:00',

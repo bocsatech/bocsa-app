@@ -240,6 +240,7 @@ export default function UsersPage() {
         </header>
       }
     >
+      <section className="usersPageContent">
         {createMessage ? (
           <p className={createMessage.includes("angelegt") ? "protocolNotice success" : "protocolNotice"}>
             {createMessage}
@@ -247,7 +248,7 @@ export default function UsersPage() {
         ) : null}
 
         {showCreateForm && canWrite ? (
-          <article className="card userCreateCard">
+          <article className="card userCreateCard usersPanel">
             <div className="cardHeader">
               <p className="cardTitle">Neuer Benutzer</p>
             </div>
@@ -285,7 +286,7 @@ export default function UsersPage() {
         ) : null}
 
         {selectedUser && canWrite ? (
-          <article className="card userCreateCard" style={{ marginTop: 12 }}>
+          <article className="card userCreateCard usersPanel usersEditPanel">
             <div className="cardHeader">
               <p className="cardTitle">
                 Benutzer bearbeiten: <strong>{selectedUser.username ?? "-"}</strong>
@@ -416,7 +417,7 @@ export default function UsersPage() {
             </p>
           </div>
         ) : (
-          <article className="card">
+          <article className="card usersPanel usersListPanel">
             <div className="cardHeader">
               <p className="cardTitle">Benutzer ({users.length})</p>
             </div>
@@ -432,12 +433,10 @@ export default function UsersPage() {
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className="serviceRow"
-                    style={{
-                      cursor: canWrite ? "pointer" : "default",
-                      background:
-                        selectedUserId === user.id ? "rgba(59,130,246,0.08)" : "transparent",
-                    }}
+                    className={`serviceRow usersTableRow ${
+                      selectedUserId === user.id ? "isSelected" : ""
+                    }`}
+                    style={{ cursor: canWrite ? "pointer" : "default" }}
                     onClick={() => {
                       if (canWrite) {
                         setSelectedUserId(user.id);
@@ -454,6 +453,7 @@ export default function UsersPage() {
             </div>
           </article>
         )}
+      </section>
     </AppPageShell>
   );
 }

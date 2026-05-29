@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "../../../lib/auth/permissions";
+import { isGermanDateInRange, normalizeGermanDate } from "../../../lib/dates";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 
 const MACHINE_TABLE = "maschines";
@@ -52,14 +53,6 @@ function normalizeFilter(value) {
     .trim();
 }
 
-function toIsoDate(value) {
-  const trimmed = String(value ?? "").trim();
-  const match = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-  if (match) return `${match[3]}-${match[2]}-${match[1]}`;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-  return "";
-}
-
 export async function GET(request) {
   const session = await getCurrentSession();
   if (!session) {
@@ -76,8 +69,8 @@ export async function GET(request) {
   const user = normalizeFilter(searchParams.get("user"));
   const filiale = normalizeFilter(searchParams.get("filiale"));
   const geraettyp = normalizeFilter(searchParams.get("geraettyp"));
-  const dateFrom = toIsoDate(searchParams.get("dateFrom"));
-  const dateTo = toIsoDate(searchParams.get("dateTo"));
+  const dateFrom = normalizeGermanDate(searchParams.get("dateFrom") ?? "") ?? "";
+  const dateTo = normalizeGermanDate(searchParams.get("dateTo") ?? "") ?? "";
 
   const { data, error } = await db.from(MACHINE_TABLE).select(
     "id, geraetenummer, bezeichnung, beschreibung, depot, geraettyp, machine_tab_data"
@@ -103,9 +96,11 @@ export async function GET(request) {
     if (geraettyp && !normalizeFilter(entry.geraettyp).includes(geraettyp)) {
       return false;
     }
-    const iso = toIsoDate(entry.pruefdatum);
-    if (dateFrom && (!iso || iso < dateFrom)) return false;
-    if (dateTo && (!iso || iso > dateTo)) return false;
+    if (dateFrom || dateTo) {
+      const from = dateFrom || "01.01.1970";
+      const to = dateTo || "31.12.2099";
+      if (!isGermanDateInRange(entry.pruefdatum, from, to)) return false;
+    }
     return true;
   });
 

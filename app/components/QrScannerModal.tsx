@@ -18,6 +18,7 @@ export default function QrScannerModal({ open, onClose, onScan }: Props) {
 
     let scanner: Html5Qrcode | null = null;
     let active = true;
+    let started = false;
 
     async function startScanner() {
       setError(null);
@@ -35,6 +36,7 @@ export default function QrScannerModal({ open, onClose, onScan }: Props) {
           },
           () => {}
         );
+        started = true;
       } catch (cause) {
         setError(
           cause instanceof Error
@@ -49,7 +51,9 @@ export default function QrScannerModal({ open, onClose, onScan }: Props) {
     return () => {
       active = false;
       if (scanner) {
-        scanner.stop().catch(() => {});
+        if (started) {
+          scanner.stop().catch(() => {});
+        }
         try {
           scanner.clear();
         } catch {

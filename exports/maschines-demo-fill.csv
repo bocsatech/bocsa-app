@@ -1,0 +1,1501 @@
+﻿geraetenummer;bezeichnung;serial_nummer;depot;baujahr;status;subgroup;machine_tab_data
+DEMO-000001;stampfer klein 01;SN-DEMO-000001;Schwehat;2018;klein;stampfer;{}
+DEMO-000002;stampfer klein 02;SN-DEMO-000002;Schwehat;2019;klein;stampfer;{}
+DEMO-000003;stampfer klein 03;SN-DEMO-000003;Schwehat;2020;klein;stampfer;{}
+DEMO-000004;stampfer klein 04;SN-DEMO-000004;Schwehat;2021;klein;stampfer;{}
+DEMO-000005;stampfer klein 05;SN-DEMO-000005;Schwehat;2022;klein;stampfer;{}
+DEMO-000006;stampfer klein 06;SN-DEMO-000006;Schwehat;2023;klein;stampfer;{}
+DEMO-000007;stampfer klein 07;SN-DEMO-000007;Schwehat;2024;klein;stampfer;{}
+DEMO-000008;stampfer klein 08;SN-DEMO-000008;Schwehat;2025;klein;stampfer;{}
+DEMO-000009;stampfer klein 09;SN-DEMO-000009;Schwehat;2026;klein;stampfer;{}
+DEMO-000010;stampfer klein 10;SN-DEMO-000010;Schwehat;2018;klein;stampfer;{}
+DEMO-000011;stampfer klein 11;SN-DEMO-000011;Schwehat;2019;klein;stampfer;{}
+DEMO-000012;stampfer klein 12;SN-DEMO-000012;Schwehat;2020;klein;stampfer;{}
+DEMO-000013;stampfer klein 13;SN-DEMO-000013;Schwehat;2021;klein;stampfer;{}
+DEMO-000014;stampfer klein 14;SN-DEMO-000014;Schwehat;2022;klein;stampfer;{}
+DEMO-000015;stampfer klein 15;SN-DEMO-000015;Schwehat;2023;klein;stampfer;{}
+DEMO-000016;stampfer klein 16;SN-DEMO-000016;Schwehat;2024;klein;stampfer;{}
+DEMO-000017;stampfer klein 17;SN-DEMO-000017;Schwehat;2025;klein;stampfer;{}
+DEMO-000018;stampfer klein 18;SN-DEMO-000018;Schwehat;2026;klein;stampfer;{}
+DEMO-000019;stampfer klein 19;SN-DEMO-000019;Schwehat;2018;klein;stampfer;{}
+DEMO-000020;stampfer klein 20;SN-DEMO-000020;Schwehat;2019;klein;stampfer;{}
+DEMO-000021;stampfer klein 21;SN-DEMO-000021;Schwehat;2020;klein;stampfer;{}
+DEMO-000022;stampfer klein 22;SN-DEMO-000022;Schwehat;2021;klein;stampfer;{}
+DEMO-000023;stampfer klein 23;SN-DEMO-000023;Schwehat;2022;klein;stampfer;{}
+DEMO-000024;stampfer klein 24;SN-DEMO-000024;Schwehat;2023;klein;stampfer;{}
+DEMO-000025;stampfer klein 25;SN-DEMO-000025;Schwehat;2024;klein;stampfer;{}
+DEMO-000026;stampfer klein 26;SN-DEMO-000026;Schwehat;2025;klein;stampfer;{}
+DEMO-000027;stampfer klein 27;SN-DEMO-000027;Schwehat;2026;klein;stampfer;{}
+DEMO-000028;stampfer klein 28;SN-DEMO-000028;Schwehat;2018;klein;stampfer;{}
+DEMO-000029;stampfer klein 29;SN-DEMO-000029;Schwehat;2019;klein;stampfer;{}
+DEMO-000030;stampfer klein 30;SN-DEMO-000030;Schwehat;2020;klein;stampfer;{}
+DEMO-000031;stampfer klein 31;SN-DEMO-000031;Schwehat;2021;klein;stampfer;{}
+DEMO-000032;stampfer klein 32;SN-DEMO-000032;Schwehat;2022;klein;stampfer;{}
+DEMO-000033;stampfer klein 33;SN-DEMO-000033;Schwehat;2023;klein;stampfer;{}
+DEMO-000034;stampfer klein 34;SN-DEMO-000034;Schwehat;2024;klein;stampfer;{}
+DEMO-000035;stampfer klein 35;SN-DEMO-000035;Schwehat;2025;klein;stampfer;{}
+DEMO-000036;stampfer klein 36;SN-DEMO-000036;Schwehat;2026;klein;stampfer;{}
+DEMO-000037;stampfer klein 37;SN-DEMO-000037;Schwehat;2018;klein;stampfer;{}
+DEMO-000038;stampfer klein 38;SN-DEMO-000038;Schwehat;2019;klein;stampfer;{}
+DEMO-000039;stampfer klein 39;SN-DEMO-000039;Schwehat;2020;klein;stampfer;{}
+DEMO-000040;stampfer klein 40;SN-DEMO-000040;Schwehat;2021;klein;stampfer;{}
+DEMO-000041;stampfer klein 41;SN-DEMO-000041;Schwehat;2022;klein;stampfer;{}
+DEMO-000042;stampfer klein 42;SN-DEMO-000042;Schwehat;2023;klein;stampfer;{}
+DEMO-000043;stampfer klein 43;SN-DEMO-000043;Schwehat;2024;klein;stampfer;{}
+DEMO-000044;stampfer klein 44;SN-DEMO-000044;Schwehat;2025;klein;stampfer;{}
+DEMO-000045;stampfer klein 45;SN-DEMO-000045;Schwehat;2026;klein;stampfer;{}
+DEMO-000046;stampfer klein 46;SN-DEMO-000046;Schwehat;2018;klein;stampfer;{}
+DEMO-000047;stampfer klein 47;SN-DEMO-000047;Schwehat;2019;klein;stampfer;{}
+DEMO-000048;stampfer klein 48;SN-DEMO-000048;Schwehat;2020;klein;stampfer;{}
+DEMO-000049;stampfer klein 49;SN-DEMO-000049;Schwehat;2021;klein;stampfer;{}
+DEMO-000050;stampfer klein 50;SN-DEMO-000050;Schwehat;2022;klein;stampfer;{}
+DEMO-000051;stampfer gross 01;SN-DEMO-000051;Schwehat;2023;gross;stampfer;{}
+DEMO-000052;stampfer gross 02;SN-DEMO-000052;Schwehat;2024;gross;stampfer;{}
+DEMO-000053;stampfer gross 03;SN-DEMO-000053;Schwehat;2025;gross;stampfer;{}
+DEMO-000054;stampfer gross 04;SN-DEMO-000054;Schwehat;2026;gross;stampfer;{}
+DEMO-000055;stampfer gross 05;SN-DEMO-000055;Schwehat;2018;gross;stampfer;{}
+DEMO-000056;stampfer gross 06;SN-DEMO-000056;Schwehat;2019;gross;stampfer;{}
+DEMO-000057;stampfer gross 07;SN-DEMO-000057;Schwehat;2020;gross;stampfer;{}
+DEMO-000058;stampfer gross 08;SN-DEMO-000058;Schwehat;2021;gross;stampfer;{}
+DEMO-000059;stampfer gross 09;SN-DEMO-000059;Schwehat;2022;gross;stampfer;{}
+DEMO-000060;stampfer gross 10;SN-DEMO-000060;Schwehat;2023;gross;stampfer;{}
+DEMO-000061;stampfer gross 11;SN-DEMO-000061;Schwehat;2024;gross;stampfer;{}
+DEMO-000062;stampfer gross 12;SN-DEMO-000062;Schwehat;2025;gross;stampfer;{}
+DEMO-000063;stampfer gross 13;SN-DEMO-000063;Schwehat;2026;gross;stampfer;{}
+DEMO-000064;stampfer gross 14;SN-DEMO-000064;Schwehat;2018;gross;stampfer;{}
+DEMO-000065;stampfer gross 15;SN-DEMO-000065;Schwehat;2019;gross;stampfer;{}
+DEMO-000066;stampfer gross 16;SN-DEMO-000066;Schwehat;2020;gross;stampfer;{}
+DEMO-000067;stampfer gross 17;SN-DEMO-000067;Schwehat;2021;gross;stampfer;{}
+DEMO-000068;stampfer gross 18;SN-DEMO-000068;Schwehat;2022;gross;stampfer;{}
+DEMO-000069;stampfer gross 19;SN-DEMO-000069;Schwehat;2023;gross;stampfer;{}
+DEMO-000070;stampfer gross 20;SN-DEMO-000070;Schwehat;2024;gross;stampfer;{}
+DEMO-000071;stampfer gross 21;SN-DEMO-000071;Schwehat;2025;gross;stampfer;{}
+DEMO-000072;stampfer gross 22;SN-DEMO-000072;Schwehat;2026;gross;stampfer;{}
+DEMO-000073;stampfer gross 23;SN-DEMO-000073;Schwehat;2018;gross;stampfer;{}
+DEMO-000074;stampfer gross 24;SN-DEMO-000074;Schwehat;2019;gross;stampfer;{}
+DEMO-000075;stampfer gross 25;SN-DEMO-000075;Schwehat;2020;gross;stampfer;{}
+DEMO-000076;stampfer gross 26;SN-DEMO-000076;Schwehat;2021;gross;stampfer;{}
+DEMO-000077;stampfer gross 27;SN-DEMO-000077;Schwehat;2022;gross;stampfer;{}
+DEMO-000078;stampfer gross 28;SN-DEMO-000078;Schwehat;2023;gross;stampfer;{}
+DEMO-000079;stampfer gross 29;SN-DEMO-000079;Schwehat;2024;gross;stampfer;{}
+DEMO-000080;stampfer gross 30;SN-DEMO-000080;Schwehat;2025;gross;stampfer;{}
+DEMO-000081;stampfer gross 31;SN-DEMO-000081;Schwehat;2026;gross;stampfer;{}
+DEMO-000082;stampfer gross 32;SN-DEMO-000082;Schwehat;2018;gross;stampfer;{}
+DEMO-000083;stampfer gross 33;SN-DEMO-000083;Schwehat;2019;gross;stampfer;{}
+DEMO-000084;stampfer gross 34;SN-DEMO-000084;Schwehat;2020;gross;stampfer;{}
+DEMO-000085;stampfer gross 35;SN-DEMO-000085;Schwehat;2021;gross;stampfer;{}
+DEMO-000086;stampfer gross 36;SN-DEMO-000086;Schwehat;2022;gross;stampfer;{}
+DEMO-000087;stampfer gross 37;SN-DEMO-000087;Schwehat;2023;gross;stampfer;{}
+DEMO-000088;stampfer gross 38;SN-DEMO-000088;Schwehat;2024;gross;stampfer;{}
+DEMO-000089;stampfer gross 39;SN-DEMO-000089;Schwehat;2025;gross;stampfer;{}
+DEMO-000090;stampfer gross 40;SN-DEMO-000090;Schwehat;2026;gross;stampfer;{}
+DEMO-000091;stampfer gross 41;SN-DEMO-000091;Schwehat;2018;gross;stampfer;{}
+DEMO-000092;stampfer gross 42;SN-DEMO-000092;Schwehat;2019;gross;stampfer;{}
+DEMO-000093;stampfer gross 43;SN-DEMO-000093;Schwehat;2020;gross;stampfer;{}
+DEMO-000094;stampfer gross 44;SN-DEMO-000094;Schwehat;2021;gross;stampfer;{}
+DEMO-000095;stampfer gross 45;SN-DEMO-000095;Schwehat;2022;gross;stampfer;{}
+DEMO-000096;stampfer gross 46;SN-DEMO-000096;Schwehat;2023;gross;stampfer;{}
+DEMO-000097;stampfer gross 47;SN-DEMO-000097;Schwehat;2024;gross;stampfer;{}
+DEMO-000098;stampfer gross 48;SN-DEMO-000098;Schwehat;2025;gross;stampfer;{}
+DEMO-000099;stampfer gross 49;SN-DEMO-000099;Schwehat;2026;gross;stampfer;{}
+DEMO-000100;stampfer gross 50;SN-DEMO-000100;Schwehat;2018;gross;stampfer;{}
+DEMO-000101;Kipplader 3.2 m3 Swivel klein 01;SN-DEMO-000101;Schwehat;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000102;Kipplader 3.2 m3 Swivel klein 02;SN-DEMO-000102;Schwehat;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000103;Kipplader 3.2 m3 Swivel klein 03;SN-DEMO-000103;Schwehat;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000104;Kipplader 3.2 m3 Swivel klein 04;SN-DEMO-000104;Schwehat;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000105;Kipplader 3.2 m3 Swivel klein 05;SN-DEMO-000105;Schwehat;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000106;Kipplader 3.2 m3 Swivel klein 06;SN-DEMO-000106;Schwehat;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000107;Kipplader 3.2 m3 Swivel klein 07;SN-DEMO-000107;Schwehat;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000108;Kipplader 3.2 m3 Swivel klein 08;SN-DEMO-000108;Schwehat;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000109;Kipplader 3.2 m3 Swivel klein 09;SN-DEMO-000109;Schwehat;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000110;Kipplader 3.2 m3 Swivel klein 10;SN-DEMO-000110;Schwehat;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000111;Kipplader 3.2 m3 Swivel klein 11;SN-DEMO-000111;Schwehat;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000112;Kipplader 3.2 m3 Swivel klein 12;SN-DEMO-000112;Schwehat;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000113;Kipplader 3.2 m3 Swivel klein 13;SN-DEMO-000113;Schwehat;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000114;Kipplader 3.2 m3 Swivel klein 14;SN-DEMO-000114;Schwehat;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000115;Kipplader 3.2 m3 Swivel klein 15;SN-DEMO-000115;Schwehat;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000116;Kipplader 3.2 m3 Swivel klein 16;SN-DEMO-000116;Schwehat;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000117;Kipplader 3.2 m3 Swivel klein 17;SN-DEMO-000117;Schwehat;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000118;Kipplader 3.2 m3 Swivel klein 18;SN-DEMO-000118;Schwehat;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000119;Kipplader 3.2 m3 Swivel klein 19;SN-DEMO-000119;Schwehat;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000120;Kipplader 3.2 m3 Swivel klein 20;SN-DEMO-000120;Schwehat;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000121;Kipplader 3.2 m3 Swivel klein 21;SN-DEMO-000121;Schwehat;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000122;Kipplader 3.2 m3 Swivel klein 22;SN-DEMO-000122;Schwehat;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000123;Kipplader 3.2 m3 Swivel klein 23;SN-DEMO-000123;Schwehat;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000124;Kipplader 3.2 m3 Swivel klein 24;SN-DEMO-000124;Schwehat;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000125;Kipplader 3.2 m3 Swivel klein 25;SN-DEMO-000125;Schwehat;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000126;Kipplader 3.2 m3 Swivel klein 26;SN-DEMO-000126;Schwehat;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000127;Kipplader 3.2 m3 Swivel klein 27;SN-DEMO-000127;Schwehat;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000128;Kipplader 3.2 m3 Swivel klein 28;SN-DEMO-000128;Schwehat;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000129;Kipplader 3.2 m3 Swivel klein 29;SN-DEMO-000129;Schwehat;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000130;Kipplader 3.2 m3 Swivel klein 30;SN-DEMO-000130;Schwehat;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000131;Kipplader 3.2 m3 Swivel klein 31;SN-DEMO-000131;Schwehat;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000132;Kipplader 3.2 m3 Swivel klein 32;SN-DEMO-000132;Schwehat;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000133;Kipplader 3.2 m3 Swivel klein 33;SN-DEMO-000133;Schwehat;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000134;Kipplader 3.2 m3 Swivel klein 34;SN-DEMO-000134;Schwehat;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000135;Kipplader 3.2 m3 Swivel klein 35;SN-DEMO-000135;Schwehat;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000136;Kipplader 3.2 m3 Swivel klein 36;SN-DEMO-000136;Schwehat;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000137;Kipplader 3.2 m3 Swivel klein 37;SN-DEMO-000137;Schwehat;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000138;Kipplader 3.2 m3 Swivel klein 38;SN-DEMO-000138;Schwehat;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000139;Kipplader 3.2 m3 Swivel klein 39;SN-DEMO-000139;Schwehat;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000140;Kipplader 3.2 m3 Swivel klein 40;SN-DEMO-000140;Schwehat;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000141;Kipplader 3.2 m3 Swivel klein 41;SN-DEMO-000141;Schwehat;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000142;Kipplader 3.2 m3 Swivel klein 42;SN-DEMO-000142;Schwehat;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000143;Kipplader 3.2 m3 Swivel klein 43;SN-DEMO-000143;Schwehat;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000144;Kipplader 3.2 m3 Swivel klein 44;SN-DEMO-000144;Schwehat;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000145;Kipplader 3.2 m3 Swivel klein 45;SN-DEMO-000145;Schwehat;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000146;Kipplader 3.2 m3 Swivel klein 46;SN-DEMO-000146;Schwehat;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000147;Kipplader 3.2 m3 Swivel klein 47;SN-DEMO-000147;Schwehat;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000148;Kipplader 3.2 m3 Swivel klein 48;SN-DEMO-000148;Schwehat;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000149;Kipplader 3.2 m3 Swivel klein 49;SN-DEMO-000149;Schwehat;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000150;Kipplader 3.2 m3 Swivel klein 50;SN-DEMO-000150;Schwehat;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000151;Kipplader 3.2 m3 Swivel gross 01;SN-DEMO-000151;Schwehat;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000152;Kipplader 3.2 m3 Swivel gross 02;SN-DEMO-000152;Schwehat;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000153;Kipplader 3.2 m3 Swivel gross 03;SN-DEMO-000153;Schwehat;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000154;Kipplader 3.2 m3 Swivel gross 04;SN-DEMO-000154;Schwehat;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000155;Kipplader 3.2 m3 Swivel gross 05;SN-DEMO-000155;Schwehat;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000156;Kipplader 3.2 m3 Swivel gross 06;SN-DEMO-000156;Schwehat;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000157;Kipplader 3.2 m3 Swivel gross 07;SN-DEMO-000157;Schwehat;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000158;Kipplader 3.2 m3 Swivel gross 08;SN-DEMO-000158;Schwehat;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000159;Kipplader 3.2 m3 Swivel gross 09;SN-DEMO-000159;Schwehat;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000160;Kipplader 3.2 m3 Swivel gross 10;SN-DEMO-000160;Schwehat;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000161;Kipplader 3.2 m3 Swivel gross 11;SN-DEMO-000161;Schwehat;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000162;Kipplader 3.2 m3 Swivel gross 12;SN-DEMO-000162;Schwehat;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000163;Kipplader 3.2 m3 Swivel gross 13;SN-DEMO-000163;Schwehat;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000164;Kipplader 3.2 m3 Swivel gross 14;SN-DEMO-000164;Schwehat;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000165;Kipplader 3.2 m3 Swivel gross 15;SN-DEMO-000165;Schwehat;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000166;Kipplader 3.2 m3 Swivel gross 16;SN-DEMO-000166;Schwehat;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000167;Kipplader 3.2 m3 Swivel gross 17;SN-DEMO-000167;Schwehat;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000168;Kipplader 3.2 m3 Swivel gross 18;SN-DEMO-000168;Schwehat;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000169;Kipplader 3.2 m3 Swivel gross 19;SN-DEMO-000169;Schwehat;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000170;Kipplader 3.2 m3 Swivel gross 20;SN-DEMO-000170;Schwehat;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000171;Kipplader 3.2 m3 Swivel gross 21;SN-DEMO-000171;Schwehat;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000172;Kipplader 3.2 m3 Swivel gross 22;SN-DEMO-000172;Schwehat;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000173;Kipplader 3.2 m3 Swivel gross 23;SN-DEMO-000173;Schwehat;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000174;Kipplader 3.2 m3 Swivel gross 24;SN-DEMO-000174;Schwehat;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000175;Kipplader 3.2 m3 Swivel gross 25;SN-DEMO-000175;Schwehat;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000176;Kipplader 3.2 m3 Swivel gross 26;SN-DEMO-000176;Schwehat;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000177;Kipplader 3.2 m3 Swivel gross 27;SN-DEMO-000177;Schwehat;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000178;Kipplader 3.2 m3 Swivel gross 28;SN-DEMO-000178;Schwehat;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000179;Kipplader 3.2 m3 Swivel gross 29;SN-DEMO-000179;Schwehat;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000180;Kipplader 3.2 m3 Swivel gross 30;SN-DEMO-000180;Schwehat;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000181;Kipplader 3.2 m3 Swivel gross 31;SN-DEMO-000181;Schwehat;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000182;Kipplader 3.2 m3 Swivel gross 32;SN-DEMO-000182;Schwehat;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000183;Kipplader 3.2 m3 Swivel gross 33;SN-DEMO-000183;Schwehat;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000184;Kipplader 3.2 m3 Swivel gross 34;SN-DEMO-000184;Schwehat;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000185;Kipplader 3.2 m3 Swivel gross 35;SN-DEMO-000185;Schwehat;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000186;Kipplader 3.2 m3 Swivel gross 36;SN-DEMO-000186;Schwehat;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000187;Kipplader 3.2 m3 Swivel gross 37;SN-DEMO-000187;Schwehat;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000188;Kipplader 3.2 m3 Swivel gross 38;SN-DEMO-000188;Schwehat;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000189;Kipplader 3.2 m3 Swivel gross 39;SN-DEMO-000189;Schwehat;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000190;Kipplader 3.2 m3 Swivel gross 40;SN-DEMO-000190;Schwehat;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000191;Kipplader 3.2 m3 Swivel gross 41;SN-DEMO-000191;Schwehat;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000192;Kipplader 3.2 m3 Swivel gross 42;SN-DEMO-000192;Schwehat;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000193;Kipplader 3.2 m3 Swivel gross 43;SN-DEMO-000193;Schwehat;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000194;Kipplader 3.2 m3 Swivel gross 44;SN-DEMO-000194;Schwehat;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000195;Kipplader 3.2 m3 Swivel gross 45;SN-DEMO-000195;Schwehat;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000196;Kipplader 3.2 m3 Swivel gross 46;SN-DEMO-000196;Schwehat;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000197;Kipplader 3.2 m3 Swivel gross 47;SN-DEMO-000197;Schwehat;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000198;Kipplader 3.2 m3 Swivel gross 48;SN-DEMO-000198;Schwehat;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000199;Kipplader 3.2 m3 Swivel gross 49;SN-DEMO-000199;Schwehat;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000200;Kipplader 3.2 m3 Swivel gross 50;SN-DEMO-000200;Schwehat;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000201;Bagger klein 01;SN-DEMO-000201;Schwehat;2020;klein;Bagger;{}
+DEMO-000202;Bagger klein 02;SN-DEMO-000202;Schwehat;2021;klein;Bagger;{}
+DEMO-000203;Bagger klein 03;SN-DEMO-000203;Schwehat;2022;klein;Bagger;{}
+DEMO-000204;Bagger klein 04;SN-DEMO-000204;Schwehat;2023;klein;Bagger;{}
+DEMO-000205;Bagger klein 05;SN-DEMO-000205;Schwehat;2024;klein;Bagger;{}
+DEMO-000206;Bagger klein 06;SN-DEMO-000206;Schwehat;2025;klein;Bagger;{}
+DEMO-000207;Bagger klein 07;SN-DEMO-000207;Schwehat;2026;klein;Bagger;{}
+DEMO-000208;Bagger klein 08;SN-DEMO-000208;Schwehat;2018;klein;Bagger;{}
+DEMO-000209;Bagger klein 09;SN-DEMO-000209;Schwehat;2019;klein;Bagger;{}
+DEMO-000210;Bagger klein 10;SN-DEMO-000210;Schwehat;2020;klein;Bagger;{}
+DEMO-000211;Bagger klein 11;SN-DEMO-000211;Schwehat;2021;klein;Bagger;{}
+DEMO-000212;Bagger klein 12;SN-DEMO-000212;Schwehat;2022;klein;Bagger;{}
+DEMO-000213;Bagger klein 13;SN-DEMO-000213;Schwehat;2023;klein;Bagger;{}
+DEMO-000214;Bagger klein 14;SN-DEMO-000214;Schwehat;2024;klein;Bagger;{}
+DEMO-000215;Bagger klein 15;SN-DEMO-000215;Schwehat;2025;klein;Bagger;{}
+DEMO-000216;Bagger klein 16;SN-DEMO-000216;Schwehat;2026;klein;Bagger;{}
+DEMO-000217;Bagger klein 17;SN-DEMO-000217;Schwehat;2018;klein;Bagger;{}
+DEMO-000218;Bagger klein 18;SN-DEMO-000218;Schwehat;2019;klein;Bagger;{}
+DEMO-000219;Bagger klein 19;SN-DEMO-000219;Schwehat;2020;klein;Bagger;{}
+DEMO-000220;Bagger klein 20;SN-DEMO-000220;Schwehat;2021;klein;Bagger;{}
+DEMO-000221;Bagger klein 21;SN-DEMO-000221;Schwehat;2022;klein;Bagger;{}
+DEMO-000222;Bagger klein 22;SN-DEMO-000222;Schwehat;2023;klein;Bagger;{}
+DEMO-000223;Bagger klein 23;SN-DEMO-000223;Schwehat;2024;klein;Bagger;{}
+DEMO-000224;Bagger klein 24;SN-DEMO-000224;Schwehat;2025;klein;Bagger;{}
+DEMO-000225;Bagger klein 25;SN-DEMO-000225;Schwehat;2026;klein;Bagger;{}
+DEMO-000226;Bagger klein 26;SN-DEMO-000226;Schwehat;2018;klein;Bagger;{}
+DEMO-000227;Bagger klein 27;SN-DEMO-000227;Schwehat;2019;klein;Bagger;{}
+DEMO-000228;Bagger klein 28;SN-DEMO-000228;Schwehat;2020;klein;Bagger;{}
+DEMO-000229;Bagger klein 29;SN-DEMO-000229;Schwehat;2021;klein;Bagger;{}
+DEMO-000230;Bagger klein 30;SN-DEMO-000230;Schwehat;2022;klein;Bagger;{}
+DEMO-000231;Bagger klein 31;SN-DEMO-000231;Schwehat;2023;klein;Bagger;{}
+DEMO-000232;Bagger klein 32;SN-DEMO-000232;Schwehat;2024;klein;Bagger;{}
+DEMO-000233;Bagger klein 33;SN-DEMO-000233;Schwehat;2025;klein;Bagger;{}
+DEMO-000234;Bagger klein 34;SN-DEMO-000234;Schwehat;2026;klein;Bagger;{}
+DEMO-000235;Bagger klein 35;SN-DEMO-000235;Schwehat;2018;klein;Bagger;{}
+DEMO-000236;Bagger klein 36;SN-DEMO-000236;Schwehat;2019;klein;Bagger;{}
+DEMO-000237;Bagger klein 37;SN-DEMO-000237;Schwehat;2020;klein;Bagger;{}
+DEMO-000238;Bagger klein 38;SN-DEMO-000238;Schwehat;2021;klein;Bagger;{}
+DEMO-000239;Bagger klein 39;SN-DEMO-000239;Schwehat;2022;klein;Bagger;{}
+DEMO-000240;Bagger klein 40;SN-DEMO-000240;Schwehat;2023;klein;Bagger;{}
+DEMO-000241;Bagger klein 41;SN-DEMO-000241;Schwehat;2024;klein;Bagger;{}
+DEMO-000242;Bagger klein 42;SN-DEMO-000242;Schwehat;2025;klein;Bagger;{}
+DEMO-000243;Bagger klein 43;SN-DEMO-000243;Schwehat;2026;klein;Bagger;{}
+DEMO-000244;Bagger klein 44;SN-DEMO-000244;Schwehat;2018;klein;Bagger;{}
+DEMO-000245;Bagger klein 45;SN-DEMO-000245;Schwehat;2019;klein;Bagger;{}
+DEMO-000246;Bagger klein 46;SN-DEMO-000246;Schwehat;2020;klein;Bagger;{}
+DEMO-000247;Bagger klein 47;SN-DEMO-000247;Schwehat;2021;klein;Bagger;{}
+DEMO-000248;Bagger klein 48;SN-DEMO-000248;Schwehat;2022;klein;Bagger;{}
+DEMO-000249;Bagger klein 49;SN-DEMO-000249;Schwehat;2023;klein;Bagger;{}
+DEMO-000250;Bagger klein 50;SN-DEMO-000250;Schwehat;2024;klein;Bagger;{}
+DEMO-000251;Bagger gross 01;SN-DEMO-000251;Schwehat;2025;gross;Bagger;{}
+DEMO-000252;Bagger gross 02;SN-DEMO-000252;Schwehat;2026;gross;Bagger;{}
+DEMO-000253;Bagger gross 03;SN-DEMO-000253;Schwehat;2018;gross;Bagger;{}
+DEMO-000254;Bagger gross 04;SN-DEMO-000254;Schwehat;2019;gross;Bagger;{}
+DEMO-000255;Bagger gross 05;SN-DEMO-000255;Schwehat;2020;gross;Bagger;{}
+DEMO-000256;Bagger gross 06;SN-DEMO-000256;Schwehat;2021;gross;Bagger;{}
+DEMO-000257;Bagger gross 07;SN-DEMO-000257;Schwehat;2022;gross;Bagger;{}
+DEMO-000258;Bagger gross 08;SN-DEMO-000258;Schwehat;2023;gross;Bagger;{}
+DEMO-000259;Bagger gross 09;SN-DEMO-000259;Schwehat;2024;gross;Bagger;{}
+DEMO-000260;Bagger gross 10;SN-DEMO-000260;Schwehat;2025;gross;Bagger;{}
+DEMO-000261;Bagger gross 11;SN-DEMO-000261;Schwehat;2026;gross;Bagger;{}
+DEMO-000262;Bagger gross 12;SN-DEMO-000262;Schwehat;2018;gross;Bagger;{}
+DEMO-000263;Bagger gross 13;SN-DEMO-000263;Schwehat;2019;gross;Bagger;{}
+DEMO-000264;Bagger gross 14;SN-DEMO-000264;Schwehat;2020;gross;Bagger;{}
+DEMO-000265;Bagger gross 15;SN-DEMO-000265;Schwehat;2021;gross;Bagger;{}
+DEMO-000266;Bagger gross 16;SN-DEMO-000266;Schwehat;2022;gross;Bagger;{}
+DEMO-000267;Bagger gross 17;SN-DEMO-000267;Schwehat;2023;gross;Bagger;{}
+DEMO-000268;Bagger gross 18;SN-DEMO-000268;Schwehat;2024;gross;Bagger;{}
+DEMO-000269;Bagger gross 19;SN-DEMO-000269;Schwehat;2025;gross;Bagger;{}
+DEMO-000270;Bagger gross 20;SN-DEMO-000270;Schwehat;2026;gross;Bagger;{}
+DEMO-000271;Bagger gross 21;SN-DEMO-000271;Schwehat;2018;gross;Bagger;{}
+DEMO-000272;Bagger gross 22;SN-DEMO-000272;Schwehat;2019;gross;Bagger;{}
+DEMO-000273;Bagger gross 23;SN-DEMO-000273;Schwehat;2020;gross;Bagger;{}
+DEMO-000274;Bagger gross 24;SN-DEMO-000274;Schwehat;2021;gross;Bagger;{}
+DEMO-000275;Bagger gross 25;SN-DEMO-000275;Schwehat;2022;gross;Bagger;{}
+DEMO-000276;Bagger gross 26;SN-DEMO-000276;Schwehat;2023;gross;Bagger;{}
+DEMO-000277;Bagger gross 27;SN-DEMO-000277;Schwehat;2024;gross;Bagger;{}
+DEMO-000278;Bagger gross 28;SN-DEMO-000278;Schwehat;2025;gross;Bagger;{}
+DEMO-000279;Bagger gross 29;SN-DEMO-000279;Schwehat;2026;gross;Bagger;{}
+DEMO-000280;Bagger gross 30;SN-DEMO-000280;Schwehat;2018;gross;Bagger;{}
+DEMO-000281;Bagger gross 31;SN-DEMO-000281;Schwehat;2019;gross;Bagger;{}
+DEMO-000282;Bagger gross 32;SN-DEMO-000282;Schwehat;2020;gross;Bagger;{}
+DEMO-000283;Bagger gross 33;SN-DEMO-000283;Schwehat;2021;gross;Bagger;{}
+DEMO-000284;Bagger gross 34;SN-DEMO-000284;Schwehat;2022;gross;Bagger;{}
+DEMO-000285;Bagger gross 35;SN-DEMO-000285;Schwehat;2023;gross;Bagger;{}
+DEMO-000286;Bagger gross 36;SN-DEMO-000286;Schwehat;2024;gross;Bagger;{}
+DEMO-000287;Bagger gross 37;SN-DEMO-000287;Schwehat;2025;gross;Bagger;{}
+DEMO-000288;Bagger gross 38;SN-DEMO-000288;Schwehat;2026;gross;Bagger;{}
+DEMO-000289;Bagger gross 39;SN-DEMO-000289;Schwehat;2018;gross;Bagger;{}
+DEMO-000290;Bagger gross 40;SN-DEMO-000290;Schwehat;2019;gross;Bagger;{}
+DEMO-000291;Bagger gross 41;SN-DEMO-000291;Schwehat;2020;gross;Bagger;{}
+DEMO-000292;Bagger gross 42;SN-DEMO-000292;Schwehat;2021;gross;Bagger;{}
+DEMO-000293;Bagger gross 43;SN-DEMO-000293;Schwehat;2022;gross;Bagger;{}
+DEMO-000294;Bagger gross 44;SN-DEMO-000294;Schwehat;2023;gross;Bagger;{}
+DEMO-000295;Bagger gross 45;SN-DEMO-000295;Schwehat;2024;gross;Bagger;{}
+DEMO-000296;Bagger gross 46;SN-DEMO-000296;Schwehat;2025;gross;Bagger;{}
+DEMO-000297;Bagger gross 47;SN-DEMO-000297;Schwehat;2026;gross;Bagger;{}
+DEMO-000298;Bagger gross 48;SN-DEMO-000298;Schwehat;2018;gross;Bagger;{}
+DEMO-000299;Bagger gross 49;SN-DEMO-000299;Schwehat;2019;gross;Bagger;{}
+DEMO-000300;Bagger gross 50;SN-DEMO-000300;Schwehat;2020;gross;Bagger;{}
+DEMO-000301;stampfer klein 01;SN-DEMO-000301;578;2021;klein;stampfer;{}
+DEMO-000302;stampfer klein 02;SN-DEMO-000302;578;2022;klein;stampfer;{}
+DEMO-000303;stampfer klein 03;SN-DEMO-000303;578;2023;klein;stampfer;{}
+DEMO-000304;stampfer klein 04;SN-DEMO-000304;578;2024;klein;stampfer;{}
+DEMO-000305;stampfer klein 05;SN-DEMO-000305;578;2025;klein;stampfer;{}
+DEMO-000306;stampfer klein 06;SN-DEMO-000306;578;2026;klein;stampfer;{}
+DEMO-000307;stampfer klein 07;SN-DEMO-000307;578;2018;klein;stampfer;{}
+DEMO-000308;stampfer klein 08;SN-DEMO-000308;578;2019;klein;stampfer;{}
+DEMO-000309;stampfer klein 09;SN-DEMO-000309;578;2020;klein;stampfer;{}
+DEMO-000310;stampfer klein 10;SN-DEMO-000310;578;2021;klein;stampfer;{}
+DEMO-000311;stampfer klein 11;SN-DEMO-000311;578;2022;klein;stampfer;{}
+DEMO-000312;stampfer klein 12;SN-DEMO-000312;578;2023;klein;stampfer;{}
+DEMO-000313;stampfer klein 13;SN-DEMO-000313;578;2024;klein;stampfer;{}
+DEMO-000314;stampfer klein 14;SN-DEMO-000314;578;2025;klein;stampfer;{}
+DEMO-000315;stampfer klein 15;SN-DEMO-000315;578;2026;klein;stampfer;{}
+DEMO-000316;stampfer klein 16;SN-DEMO-000316;578;2018;klein;stampfer;{}
+DEMO-000317;stampfer klein 17;SN-DEMO-000317;578;2019;klein;stampfer;{}
+DEMO-000318;stampfer klein 18;SN-DEMO-000318;578;2020;klein;stampfer;{}
+DEMO-000319;stampfer klein 19;SN-DEMO-000319;578;2021;klein;stampfer;{}
+DEMO-000320;stampfer klein 20;SN-DEMO-000320;578;2022;klein;stampfer;{}
+DEMO-000321;stampfer klein 21;SN-DEMO-000321;578;2023;klein;stampfer;{}
+DEMO-000322;stampfer klein 22;SN-DEMO-000322;578;2024;klein;stampfer;{}
+DEMO-000323;stampfer klein 23;SN-DEMO-000323;578;2025;klein;stampfer;{}
+DEMO-000324;stampfer klein 24;SN-DEMO-000324;578;2026;klein;stampfer;{}
+DEMO-000325;stampfer klein 25;SN-DEMO-000325;578;2018;klein;stampfer;{}
+DEMO-000326;stampfer klein 26;SN-DEMO-000326;578;2019;klein;stampfer;{}
+DEMO-000327;stampfer klein 27;SN-DEMO-000327;578;2020;klein;stampfer;{}
+DEMO-000328;stampfer klein 28;SN-DEMO-000328;578;2021;klein;stampfer;{}
+DEMO-000329;stampfer klein 29;SN-DEMO-000329;578;2022;klein;stampfer;{}
+DEMO-000330;stampfer klein 30;SN-DEMO-000330;578;2023;klein;stampfer;{}
+DEMO-000331;stampfer klein 31;SN-DEMO-000331;578;2024;klein;stampfer;{}
+DEMO-000332;stampfer klein 32;SN-DEMO-000332;578;2025;klein;stampfer;{}
+DEMO-000333;stampfer klein 33;SN-DEMO-000333;578;2026;klein;stampfer;{}
+DEMO-000334;stampfer klein 34;SN-DEMO-000334;578;2018;klein;stampfer;{}
+DEMO-000335;stampfer klein 35;SN-DEMO-000335;578;2019;klein;stampfer;{}
+DEMO-000336;stampfer klein 36;SN-DEMO-000336;578;2020;klein;stampfer;{}
+DEMO-000337;stampfer klein 37;SN-DEMO-000337;578;2021;klein;stampfer;{}
+DEMO-000338;stampfer klein 38;SN-DEMO-000338;578;2022;klein;stampfer;{}
+DEMO-000339;stampfer klein 39;SN-DEMO-000339;578;2023;klein;stampfer;{}
+DEMO-000340;stampfer klein 40;SN-DEMO-000340;578;2024;klein;stampfer;{}
+DEMO-000341;stampfer klein 41;SN-DEMO-000341;578;2025;klein;stampfer;{}
+DEMO-000342;stampfer klein 42;SN-DEMO-000342;578;2026;klein;stampfer;{}
+DEMO-000343;stampfer klein 43;SN-DEMO-000343;578;2018;klein;stampfer;{}
+DEMO-000344;stampfer klein 44;SN-DEMO-000344;578;2019;klein;stampfer;{}
+DEMO-000345;stampfer klein 45;SN-DEMO-000345;578;2020;klein;stampfer;{}
+DEMO-000346;stampfer klein 46;SN-DEMO-000346;578;2021;klein;stampfer;{}
+DEMO-000347;stampfer klein 47;SN-DEMO-000347;578;2022;klein;stampfer;{}
+DEMO-000348;stampfer klein 48;SN-DEMO-000348;578;2023;klein;stampfer;{}
+DEMO-000349;stampfer klein 49;SN-DEMO-000349;578;2024;klein;stampfer;{}
+DEMO-000350;stampfer klein 50;SN-DEMO-000350;578;2025;klein;stampfer;{}
+DEMO-000351;stampfer gross 01;SN-DEMO-000351;578;2026;gross;stampfer;{}
+DEMO-000352;stampfer gross 02;SN-DEMO-000352;578;2018;gross;stampfer;{}
+DEMO-000353;stampfer gross 03;SN-DEMO-000353;578;2019;gross;stampfer;{}
+DEMO-000354;stampfer gross 04;SN-DEMO-000354;578;2020;gross;stampfer;{}
+DEMO-000355;stampfer gross 05;SN-DEMO-000355;578;2021;gross;stampfer;{}
+DEMO-000356;stampfer gross 06;SN-DEMO-000356;578;2022;gross;stampfer;{}
+DEMO-000357;stampfer gross 07;SN-DEMO-000357;578;2023;gross;stampfer;{}
+DEMO-000358;stampfer gross 08;SN-DEMO-000358;578;2024;gross;stampfer;{}
+DEMO-000359;stampfer gross 09;SN-DEMO-000359;578;2025;gross;stampfer;{}
+DEMO-000360;stampfer gross 10;SN-DEMO-000360;578;2026;gross;stampfer;{}
+DEMO-000361;stampfer gross 11;SN-DEMO-000361;578;2018;gross;stampfer;{}
+DEMO-000362;stampfer gross 12;SN-DEMO-000362;578;2019;gross;stampfer;{}
+DEMO-000363;stampfer gross 13;SN-DEMO-000363;578;2020;gross;stampfer;{}
+DEMO-000364;stampfer gross 14;SN-DEMO-000364;578;2021;gross;stampfer;{}
+DEMO-000365;stampfer gross 15;SN-DEMO-000365;578;2022;gross;stampfer;{}
+DEMO-000366;stampfer gross 16;SN-DEMO-000366;578;2023;gross;stampfer;{}
+DEMO-000367;stampfer gross 17;SN-DEMO-000367;578;2024;gross;stampfer;{}
+DEMO-000368;stampfer gross 18;SN-DEMO-000368;578;2025;gross;stampfer;{}
+DEMO-000369;stampfer gross 19;SN-DEMO-000369;578;2026;gross;stampfer;{}
+DEMO-000370;stampfer gross 20;SN-DEMO-000370;578;2018;gross;stampfer;{}
+DEMO-000371;stampfer gross 21;SN-DEMO-000371;578;2019;gross;stampfer;{}
+DEMO-000372;stampfer gross 22;SN-DEMO-000372;578;2020;gross;stampfer;{}
+DEMO-000373;stampfer gross 23;SN-DEMO-000373;578;2021;gross;stampfer;{}
+DEMO-000374;stampfer gross 24;SN-DEMO-000374;578;2022;gross;stampfer;{}
+DEMO-000375;stampfer gross 25;SN-DEMO-000375;578;2023;gross;stampfer;{}
+DEMO-000376;stampfer gross 26;SN-DEMO-000376;578;2024;gross;stampfer;{}
+DEMO-000377;stampfer gross 27;SN-DEMO-000377;578;2025;gross;stampfer;{}
+DEMO-000378;stampfer gross 28;SN-DEMO-000378;578;2026;gross;stampfer;{}
+DEMO-000379;stampfer gross 29;SN-DEMO-000379;578;2018;gross;stampfer;{}
+DEMO-000380;stampfer gross 30;SN-DEMO-000380;578;2019;gross;stampfer;{}
+DEMO-000381;stampfer gross 31;SN-DEMO-000381;578;2020;gross;stampfer;{}
+DEMO-000382;stampfer gross 32;SN-DEMO-000382;578;2021;gross;stampfer;{}
+DEMO-000383;stampfer gross 33;SN-DEMO-000383;578;2022;gross;stampfer;{}
+DEMO-000384;stampfer gross 34;SN-DEMO-000384;578;2023;gross;stampfer;{}
+DEMO-000385;stampfer gross 35;SN-DEMO-000385;578;2024;gross;stampfer;{}
+DEMO-000386;stampfer gross 36;SN-DEMO-000386;578;2025;gross;stampfer;{}
+DEMO-000387;stampfer gross 37;SN-DEMO-000387;578;2026;gross;stampfer;{}
+DEMO-000388;stampfer gross 38;SN-DEMO-000388;578;2018;gross;stampfer;{}
+DEMO-000389;stampfer gross 39;SN-DEMO-000389;578;2019;gross;stampfer;{}
+DEMO-000390;stampfer gross 40;SN-DEMO-000390;578;2020;gross;stampfer;{}
+DEMO-000391;stampfer gross 41;SN-DEMO-000391;578;2021;gross;stampfer;{}
+DEMO-000392;stampfer gross 42;SN-DEMO-000392;578;2022;gross;stampfer;{}
+DEMO-000393;stampfer gross 43;SN-DEMO-000393;578;2023;gross;stampfer;{}
+DEMO-000394;stampfer gross 44;SN-DEMO-000394;578;2024;gross;stampfer;{}
+DEMO-000395;stampfer gross 45;SN-DEMO-000395;578;2025;gross;stampfer;{}
+DEMO-000396;stampfer gross 46;SN-DEMO-000396;578;2026;gross;stampfer;{}
+DEMO-000397;stampfer gross 47;SN-DEMO-000397;578;2018;gross;stampfer;{}
+DEMO-000398;stampfer gross 48;SN-DEMO-000398;578;2019;gross;stampfer;{}
+DEMO-000399;stampfer gross 49;SN-DEMO-000399;578;2020;gross;stampfer;{}
+DEMO-000400;stampfer gross 50;SN-DEMO-000400;578;2021;gross;stampfer;{}
+DEMO-000401;Kipplader 3.2 m3 Swivel klein 01;SN-DEMO-000401;578;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000402;Kipplader 3.2 m3 Swivel klein 02;SN-DEMO-000402;578;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000403;Kipplader 3.2 m3 Swivel klein 03;SN-DEMO-000403;578;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000404;Kipplader 3.2 m3 Swivel klein 04;SN-DEMO-000404;578;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000405;Kipplader 3.2 m3 Swivel klein 05;SN-DEMO-000405;578;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000406;Kipplader 3.2 m3 Swivel klein 06;SN-DEMO-000406;578;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000407;Kipplader 3.2 m3 Swivel klein 07;SN-DEMO-000407;578;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000408;Kipplader 3.2 m3 Swivel klein 08;SN-DEMO-000408;578;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000409;Kipplader 3.2 m3 Swivel klein 09;SN-DEMO-000409;578;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000410;Kipplader 3.2 m3 Swivel klein 10;SN-DEMO-000410;578;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000411;Kipplader 3.2 m3 Swivel klein 11;SN-DEMO-000411;578;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000412;Kipplader 3.2 m3 Swivel klein 12;SN-DEMO-000412;578;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000413;Kipplader 3.2 m3 Swivel klein 13;SN-DEMO-000413;578;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000414;Kipplader 3.2 m3 Swivel klein 14;SN-DEMO-000414;578;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000415;Kipplader 3.2 m3 Swivel klein 15;SN-DEMO-000415;578;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000416;Kipplader 3.2 m3 Swivel klein 16;SN-DEMO-000416;578;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000417;Kipplader 3.2 m3 Swivel klein 17;SN-DEMO-000417;578;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000418;Kipplader 3.2 m3 Swivel klein 18;SN-DEMO-000418;578;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000419;Kipplader 3.2 m3 Swivel klein 19;SN-DEMO-000419;578;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000420;Kipplader 3.2 m3 Swivel klein 20;SN-DEMO-000420;578;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000421;Kipplader 3.2 m3 Swivel klein 21;SN-DEMO-000421;578;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000422;Kipplader 3.2 m3 Swivel klein 22;SN-DEMO-000422;578;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000423;Kipplader 3.2 m3 Swivel klein 23;SN-DEMO-000423;578;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000424;Kipplader 3.2 m3 Swivel klein 24;SN-DEMO-000424;578;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000425;Kipplader 3.2 m3 Swivel klein 25;SN-DEMO-000425;578;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000426;Kipplader 3.2 m3 Swivel klein 26;SN-DEMO-000426;578;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000427;Kipplader 3.2 m3 Swivel klein 27;SN-DEMO-000427;578;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000428;Kipplader 3.2 m3 Swivel klein 28;SN-DEMO-000428;578;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000429;Kipplader 3.2 m3 Swivel klein 29;SN-DEMO-000429;578;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000430;Kipplader 3.2 m3 Swivel klein 30;SN-DEMO-000430;578;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000431;Kipplader 3.2 m3 Swivel klein 31;SN-DEMO-000431;578;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000432;Kipplader 3.2 m3 Swivel klein 32;SN-DEMO-000432;578;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000433;Kipplader 3.2 m3 Swivel klein 33;SN-DEMO-000433;578;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000434;Kipplader 3.2 m3 Swivel klein 34;SN-DEMO-000434;578;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000435;Kipplader 3.2 m3 Swivel klein 35;SN-DEMO-000435;578;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000436;Kipplader 3.2 m3 Swivel klein 36;SN-DEMO-000436;578;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000437;Kipplader 3.2 m3 Swivel klein 37;SN-DEMO-000437;578;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000438;Kipplader 3.2 m3 Swivel klein 38;SN-DEMO-000438;578;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000439;Kipplader 3.2 m3 Swivel klein 39;SN-DEMO-000439;578;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000440;Kipplader 3.2 m3 Swivel klein 40;SN-DEMO-000440;578;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000441;Kipplader 3.2 m3 Swivel klein 41;SN-DEMO-000441;578;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000442;Kipplader 3.2 m3 Swivel klein 42;SN-DEMO-000442;578;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000443;Kipplader 3.2 m3 Swivel klein 43;SN-DEMO-000443;578;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000444;Kipplader 3.2 m3 Swivel klein 44;SN-DEMO-000444;578;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000445;Kipplader 3.2 m3 Swivel klein 45;SN-DEMO-000445;578;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000446;Kipplader 3.2 m3 Swivel klein 46;SN-DEMO-000446;578;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000447;Kipplader 3.2 m3 Swivel klein 47;SN-DEMO-000447;578;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000448;Kipplader 3.2 m3 Swivel klein 48;SN-DEMO-000448;578;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000449;Kipplader 3.2 m3 Swivel klein 49;SN-DEMO-000449;578;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000450;Kipplader 3.2 m3 Swivel klein 50;SN-DEMO-000450;578;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000451;Kipplader 3.2 m3 Swivel gross 01;SN-DEMO-000451;578;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000452;Kipplader 3.2 m3 Swivel gross 02;SN-DEMO-000452;578;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000453;Kipplader 3.2 m3 Swivel gross 03;SN-DEMO-000453;578;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000454;Kipplader 3.2 m3 Swivel gross 04;SN-DEMO-000454;578;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000455;Kipplader 3.2 m3 Swivel gross 05;SN-DEMO-000455;578;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000456;Kipplader 3.2 m3 Swivel gross 06;SN-DEMO-000456;578;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000457;Kipplader 3.2 m3 Swivel gross 07;SN-DEMO-000457;578;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000458;Kipplader 3.2 m3 Swivel gross 08;SN-DEMO-000458;578;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000459;Kipplader 3.2 m3 Swivel gross 09;SN-DEMO-000459;578;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000460;Kipplader 3.2 m3 Swivel gross 10;SN-DEMO-000460;578;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000461;Kipplader 3.2 m3 Swivel gross 11;SN-DEMO-000461;578;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000462;Kipplader 3.2 m3 Swivel gross 12;SN-DEMO-000462;578;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000463;Kipplader 3.2 m3 Swivel gross 13;SN-DEMO-000463;578;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000464;Kipplader 3.2 m3 Swivel gross 14;SN-DEMO-000464;578;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000465;Kipplader 3.2 m3 Swivel gross 15;SN-DEMO-000465;578;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000466;Kipplader 3.2 m3 Swivel gross 16;SN-DEMO-000466;578;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000467;Kipplader 3.2 m3 Swivel gross 17;SN-DEMO-000467;578;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000468;Kipplader 3.2 m3 Swivel gross 18;SN-DEMO-000468;578;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000469;Kipplader 3.2 m3 Swivel gross 19;SN-DEMO-000469;578;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000470;Kipplader 3.2 m3 Swivel gross 20;SN-DEMO-000470;578;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000471;Kipplader 3.2 m3 Swivel gross 21;SN-DEMO-000471;578;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000472;Kipplader 3.2 m3 Swivel gross 22;SN-DEMO-000472;578;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000473;Kipplader 3.2 m3 Swivel gross 23;SN-DEMO-000473;578;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000474;Kipplader 3.2 m3 Swivel gross 24;SN-DEMO-000474;578;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000475;Kipplader 3.2 m3 Swivel gross 25;SN-DEMO-000475;578;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000476;Kipplader 3.2 m3 Swivel gross 26;SN-DEMO-000476;578;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000477;Kipplader 3.2 m3 Swivel gross 27;SN-DEMO-000477;578;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000478;Kipplader 3.2 m3 Swivel gross 28;SN-DEMO-000478;578;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000479;Kipplader 3.2 m3 Swivel gross 29;SN-DEMO-000479;578;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000480;Kipplader 3.2 m3 Swivel gross 30;SN-DEMO-000480;578;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000481;Kipplader 3.2 m3 Swivel gross 31;SN-DEMO-000481;578;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000482;Kipplader 3.2 m3 Swivel gross 32;SN-DEMO-000482;578;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000483;Kipplader 3.2 m3 Swivel gross 33;SN-DEMO-000483;578;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000484;Kipplader 3.2 m3 Swivel gross 34;SN-DEMO-000484;578;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000485;Kipplader 3.2 m3 Swivel gross 35;SN-DEMO-000485;578;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000486;Kipplader 3.2 m3 Swivel gross 36;SN-DEMO-000486;578;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000487;Kipplader 3.2 m3 Swivel gross 37;SN-DEMO-000487;578;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000488;Kipplader 3.2 m3 Swivel gross 38;SN-DEMO-000488;578;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000489;Kipplader 3.2 m3 Swivel gross 39;SN-DEMO-000489;578;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000490;Kipplader 3.2 m3 Swivel gross 40;SN-DEMO-000490;578;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000491;Kipplader 3.2 m3 Swivel gross 41;SN-DEMO-000491;578;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000492;Kipplader 3.2 m3 Swivel gross 42;SN-DEMO-000492;578;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000493;Kipplader 3.2 m3 Swivel gross 43;SN-DEMO-000493;578;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000494;Kipplader 3.2 m3 Swivel gross 44;SN-DEMO-000494;578;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000495;Kipplader 3.2 m3 Swivel gross 45;SN-DEMO-000495;578;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000496;Kipplader 3.2 m3 Swivel gross 46;SN-DEMO-000496;578;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000497;Kipplader 3.2 m3 Swivel gross 47;SN-DEMO-000497;578;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000498;Kipplader 3.2 m3 Swivel gross 48;SN-DEMO-000498;578;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000499;Kipplader 3.2 m3 Swivel gross 49;SN-DEMO-000499;578;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000500;Kipplader 3.2 m3 Swivel gross 50;SN-DEMO-000500;578;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000501;Bagger klein 01;SN-DEMO-000501;578;2023;klein;Bagger;{}
+DEMO-000502;Bagger klein 02;SN-DEMO-000502;578;2024;klein;Bagger;{}
+DEMO-000503;Bagger klein 03;SN-DEMO-000503;578;2025;klein;Bagger;{}
+DEMO-000504;Bagger klein 04;SN-DEMO-000504;578;2026;klein;Bagger;{}
+DEMO-000505;Bagger klein 05;SN-DEMO-000505;578;2018;klein;Bagger;{}
+DEMO-000506;Bagger klein 06;SN-DEMO-000506;578;2019;klein;Bagger;{}
+DEMO-000507;Bagger klein 07;SN-DEMO-000507;578;2020;klein;Bagger;{}
+DEMO-000508;Bagger klein 08;SN-DEMO-000508;578;2021;klein;Bagger;{}
+DEMO-000509;Bagger klein 09;SN-DEMO-000509;578;2022;klein;Bagger;{}
+DEMO-000510;Bagger klein 10;SN-DEMO-000510;578;2023;klein;Bagger;{}
+DEMO-000511;Bagger klein 11;SN-DEMO-000511;578;2024;klein;Bagger;{}
+DEMO-000512;Bagger klein 12;SN-DEMO-000512;578;2025;klein;Bagger;{}
+DEMO-000513;Bagger klein 13;SN-DEMO-000513;578;2026;klein;Bagger;{}
+DEMO-000514;Bagger klein 14;SN-DEMO-000514;578;2018;klein;Bagger;{}
+DEMO-000515;Bagger klein 15;SN-DEMO-000515;578;2019;klein;Bagger;{}
+DEMO-000516;Bagger klein 16;SN-DEMO-000516;578;2020;klein;Bagger;{}
+DEMO-000517;Bagger klein 17;SN-DEMO-000517;578;2021;klein;Bagger;{}
+DEMO-000518;Bagger klein 18;SN-DEMO-000518;578;2022;klein;Bagger;{}
+DEMO-000519;Bagger klein 19;SN-DEMO-000519;578;2023;klein;Bagger;{}
+DEMO-000520;Bagger klein 20;SN-DEMO-000520;578;2024;klein;Bagger;{}
+DEMO-000521;Bagger klein 21;SN-DEMO-000521;578;2025;klein;Bagger;{}
+DEMO-000522;Bagger klein 22;SN-DEMO-000522;578;2026;klein;Bagger;{}
+DEMO-000523;Bagger klein 23;SN-DEMO-000523;578;2018;klein;Bagger;{}
+DEMO-000524;Bagger klein 24;SN-DEMO-000524;578;2019;klein;Bagger;{}
+DEMO-000525;Bagger klein 25;SN-DEMO-000525;578;2020;klein;Bagger;{}
+DEMO-000526;Bagger klein 26;SN-DEMO-000526;578;2021;klein;Bagger;{}
+DEMO-000527;Bagger klein 27;SN-DEMO-000527;578;2022;klein;Bagger;{}
+DEMO-000528;Bagger klein 28;SN-DEMO-000528;578;2023;klein;Bagger;{}
+DEMO-000529;Bagger klein 29;SN-DEMO-000529;578;2024;klein;Bagger;{}
+DEMO-000530;Bagger klein 30;SN-DEMO-000530;578;2025;klein;Bagger;{}
+DEMO-000531;Bagger klein 31;SN-DEMO-000531;578;2026;klein;Bagger;{}
+DEMO-000532;Bagger klein 32;SN-DEMO-000532;578;2018;klein;Bagger;{}
+DEMO-000533;Bagger klein 33;SN-DEMO-000533;578;2019;klein;Bagger;{}
+DEMO-000534;Bagger klein 34;SN-DEMO-000534;578;2020;klein;Bagger;{}
+DEMO-000535;Bagger klein 35;SN-DEMO-000535;578;2021;klein;Bagger;{}
+DEMO-000536;Bagger klein 36;SN-DEMO-000536;578;2022;klein;Bagger;{}
+DEMO-000537;Bagger klein 37;SN-DEMO-000537;578;2023;klein;Bagger;{}
+DEMO-000538;Bagger klein 38;SN-DEMO-000538;578;2024;klein;Bagger;{}
+DEMO-000539;Bagger klein 39;SN-DEMO-000539;578;2025;klein;Bagger;{}
+DEMO-000540;Bagger klein 40;SN-DEMO-000540;578;2026;klein;Bagger;{}
+DEMO-000541;Bagger klein 41;SN-DEMO-000541;578;2018;klein;Bagger;{}
+DEMO-000542;Bagger klein 42;SN-DEMO-000542;578;2019;klein;Bagger;{}
+DEMO-000543;Bagger klein 43;SN-DEMO-000543;578;2020;klein;Bagger;{}
+DEMO-000544;Bagger klein 44;SN-DEMO-000544;578;2021;klein;Bagger;{}
+DEMO-000545;Bagger klein 45;SN-DEMO-000545;578;2022;klein;Bagger;{}
+DEMO-000546;Bagger klein 46;SN-DEMO-000546;578;2023;klein;Bagger;{}
+DEMO-000547;Bagger klein 47;SN-DEMO-000547;578;2024;klein;Bagger;{}
+DEMO-000548;Bagger klein 48;SN-DEMO-000548;578;2025;klein;Bagger;{}
+DEMO-000549;Bagger klein 49;SN-DEMO-000549;578;2026;klein;Bagger;{}
+DEMO-000550;Bagger klein 50;SN-DEMO-000550;578;2018;klein;Bagger;{}
+DEMO-000551;Bagger gross 01;SN-DEMO-000551;578;2019;gross;Bagger;{}
+DEMO-000552;Bagger gross 02;SN-DEMO-000552;578;2020;gross;Bagger;{}
+DEMO-000553;Bagger gross 03;SN-DEMO-000553;578;2021;gross;Bagger;{}
+DEMO-000554;Bagger gross 04;SN-DEMO-000554;578;2022;gross;Bagger;{}
+DEMO-000555;Bagger gross 05;SN-DEMO-000555;578;2023;gross;Bagger;{}
+DEMO-000556;Bagger gross 06;SN-DEMO-000556;578;2024;gross;Bagger;{}
+DEMO-000557;Bagger gross 07;SN-DEMO-000557;578;2025;gross;Bagger;{}
+DEMO-000558;Bagger gross 08;SN-DEMO-000558;578;2026;gross;Bagger;{}
+DEMO-000559;Bagger gross 09;SN-DEMO-000559;578;2018;gross;Bagger;{}
+DEMO-000560;Bagger gross 10;SN-DEMO-000560;578;2019;gross;Bagger;{}
+DEMO-000561;Bagger gross 11;SN-DEMO-000561;578;2020;gross;Bagger;{}
+DEMO-000562;Bagger gross 12;SN-DEMO-000562;578;2021;gross;Bagger;{}
+DEMO-000563;Bagger gross 13;SN-DEMO-000563;578;2022;gross;Bagger;{}
+DEMO-000564;Bagger gross 14;SN-DEMO-000564;578;2023;gross;Bagger;{}
+DEMO-000565;Bagger gross 15;SN-DEMO-000565;578;2024;gross;Bagger;{}
+DEMO-000566;Bagger gross 16;SN-DEMO-000566;578;2025;gross;Bagger;{}
+DEMO-000567;Bagger gross 17;SN-DEMO-000567;578;2026;gross;Bagger;{}
+DEMO-000568;Bagger gross 18;SN-DEMO-000568;578;2018;gross;Bagger;{}
+DEMO-000569;Bagger gross 19;SN-DEMO-000569;578;2019;gross;Bagger;{}
+DEMO-000570;Bagger gross 20;SN-DEMO-000570;578;2020;gross;Bagger;{}
+DEMO-000571;Bagger gross 21;SN-DEMO-000571;578;2021;gross;Bagger;{}
+DEMO-000572;Bagger gross 22;SN-DEMO-000572;578;2022;gross;Bagger;{}
+DEMO-000573;Bagger gross 23;SN-DEMO-000573;578;2023;gross;Bagger;{}
+DEMO-000574;Bagger gross 24;SN-DEMO-000574;578;2024;gross;Bagger;{}
+DEMO-000575;Bagger gross 25;SN-DEMO-000575;578;2025;gross;Bagger;{}
+DEMO-000576;Bagger gross 26;SN-DEMO-000576;578;2026;gross;Bagger;{}
+DEMO-000577;Bagger gross 27;SN-DEMO-000577;578;2018;gross;Bagger;{}
+DEMO-000578;Bagger gross 28;SN-DEMO-000578;578;2019;gross;Bagger;{}
+DEMO-000579;Bagger gross 29;SN-DEMO-000579;578;2020;gross;Bagger;{}
+DEMO-000580;Bagger gross 30;SN-DEMO-000580;578;2021;gross;Bagger;{}
+DEMO-000581;Bagger gross 31;SN-DEMO-000581;578;2022;gross;Bagger;{}
+DEMO-000582;Bagger gross 32;SN-DEMO-000582;578;2023;gross;Bagger;{}
+DEMO-000583;Bagger gross 33;SN-DEMO-000583;578;2024;gross;Bagger;{}
+DEMO-000584;Bagger gross 34;SN-DEMO-000584;578;2025;gross;Bagger;{}
+DEMO-000585;Bagger gross 35;SN-DEMO-000585;578;2026;gross;Bagger;{}
+DEMO-000586;Bagger gross 36;SN-DEMO-000586;578;2018;gross;Bagger;{}
+DEMO-000587;Bagger gross 37;SN-DEMO-000587;578;2019;gross;Bagger;{}
+DEMO-000588;Bagger gross 38;SN-DEMO-000588;578;2020;gross;Bagger;{}
+DEMO-000589;Bagger gross 39;SN-DEMO-000589;578;2021;gross;Bagger;{}
+DEMO-000590;Bagger gross 40;SN-DEMO-000590;578;2022;gross;Bagger;{}
+DEMO-000591;Bagger gross 41;SN-DEMO-000591;578;2023;gross;Bagger;{}
+DEMO-000592;Bagger gross 42;SN-DEMO-000592;578;2024;gross;Bagger;{}
+DEMO-000593;Bagger gross 43;SN-DEMO-000593;578;2025;gross;Bagger;{}
+DEMO-000594;Bagger gross 44;SN-DEMO-000594;578;2026;gross;Bagger;{}
+DEMO-000595;Bagger gross 45;SN-DEMO-000595;578;2018;gross;Bagger;{}
+DEMO-000596;Bagger gross 46;SN-DEMO-000596;578;2019;gross;Bagger;{}
+DEMO-000597;Bagger gross 47;SN-DEMO-000597;578;2020;gross;Bagger;{}
+DEMO-000598;Bagger gross 48;SN-DEMO-000598;578;2021;gross;Bagger;{}
+DEMO-000599;Bagger gross 49;SN-DEMO-000599;578;2022;gross;Bagger;{}
+DEMO-000600;Bagger gross 50;SN-DEMO-000600;578;2023;gross;Bagger;{}
+DEMO-000601;stampfer klein 01;SN-DEMO-000601;101;2024;klein;stampfer;{}
+DEMO-000602;stampfer klein 02;SN-DEMO-000602;101;2025;klein;stampfer;{}
+DEMO-000603;stampfer klein 03;SN-DEMO-000603;101;2026;klein;stampfer;{}
+DEMO-000604;stampfer klein 04;SN-DEMO-000604;101;2018;klein;stampfer;{}
+DEMO-000605;stampfer klein 05;SN-DEMO-000605;101;2019;klein;stampfer;{}
+DEMO-000606;stampfer klein 06;SN-DEMO-000606;101;2020;klein;stampfer;{}
+DEMO-000607;stampfer klein 07;SN-DEMO-000607;101;2021;klein;stampfer;{}
+DEMO-000608;stampfer klein 08;SN-DEMO-000608;101;2022;klein;stampfer;{}
+DEMO-000609;stampfer klein 09;SN-DEMO-000609;101;2023;klein;stampfer;{}
+DEMO-000610;stampfer klein 10;SN-DEMO-000610;101;2024;klein;stampfer;{}
+DEMO-000611;stampfer klein 11;SN-DEMO-000611;101;2025;klein;stampfer;{}
+DEMO-000612;stampfer klein 12;SN-DEMO-000612;101;2026;klein;stampfer;{}
+DEMO-000613;stampfer klein 13;SN-DEMO-000613;101;2018;klein;stampfer;{}
+DEMO-000614;stampfer klein 14;SN-DEMO-000614;101;2019;klein;stampfer;{}
+DEMO-000615;stampfer klein 15;SN-DEMO-000615;101;2020;klein;stampfer;{}
+DEMO-000616;stampfer klein 16;SN-DEMO-000616;101;2021;klein;stampfer;{}
+DEMO-000617;stampfer klein 17;SN-DEMO-000617;101;2022;klein;stampfer;{}
+DEMO-000618;stampfer klein 18;SN-DEMO-000618;101;2023;klein;stampfer;{}
+DEMO-000619;stampfer klein 19;SN-DEMO-000619;101;2024;klein;stampfer;{}
+DEMO-000620;stampfer klein 20;SN-DEMO-000620;101;2025;klein;stampfer;{}
+DEMO-000621;stampfer klein 21;SN-DEMO-000621;101;2026;klein;stampfer;{}
+DEMO-000622;stampfer klein 22;SN-DEMO-000622;101;2018;klein;stampfer;{}
+DEMO-000623;stampfer klein 23;SN-DEMO-000623;101;2019;klein;stampfer;{}
+DEMO-000624;stampfer klein 24;SN-DEMO-000624;101;2020;klein;stampfer;{}
+DEMO-000625;stampfer klein 25;SN-DEMO-000625;101;2021;klein;stampfer;{}
+DEMO-000626;stampfer klein 26;SN-DEMO-000626;101;2022;klein;stampfer;{}
+DEMO-000627;stampfer klein 27;SN-DEMO-000627;101;2023;klein;stampfer;{}
+DEMO-000628;stampfer klein 28;SN-DEMO-000628;101;2024;klein;stampfer;{}
+DEMO-000629;stampfer klein 29;SN-DEMO-000629;101;2025;klein;stampfer;{}
+DEMO-000630;stampfer klein 30;SN-DEMO-000630;101;2026;klein;stampfer;{}
+DEMO-000631;stampfer klein 31;SN-DEMO-000631;101;2018;klein;stampfer;{}
+DEMO-000632;stampfer klein 32;SN-DEMO-000632;101;2019;klein;stampfer;{}
+DEMO-000633;stampfer klein 33;SN-DEMO-000633;101;2020;klein;stampfer;{}
+DEMO-000634;stampfer klein 34;SN-DEMO-000634;101;2021;klein;stampfer;{}
+DEMO-000635;stampfer klein 35;SN-DEMO-000635;101;2022;klein;stampfer;{}
+DEMO-000636;stampfer klein 36;SN-DEMO-000636;101;2023;klein;stampfer;{}
+DEMO-000637;stampfer klein 37;SN-DEMO-000637;101;2024;klein;stampfer;{}
+DEMO-000638;stampfer klein 38;SN-DEMO-000638;101;2025;klein;stampfer;{}
+DEMO-000639;stampfer klein 39;SN-DEMO-000639;101;2026;klein;stampfer;{}
+DEMO-000640;stampfer klein 40;SN-DEMO-000640;101;2018;klein;stampfer;{}
+DEMO-000641;stampfer klein 41;SN-DEMO-000641;101;2019;klein;stampfer;{}
+DEMO-000642;stampfer klein 42;SN-DEMO-000642;101;2020;klein;stampfer;{}
+DEMO-000643;stampfer klein 43;SN-DEMO-000643;101;2021;klein;stampfer;{}
+DEMO-000644;stampfer klein 44;SN-DEMO-000644;101;2022;klein;stampfer;{}
+DEMO-000645;stampfer klein 45;SN-DEMO-000645;101;2023;klein;stampfer;{}
+DEMO-000646;stampfer klein 46;SN-DEMO-000646;101;2024;klein;stampfer;{}
+DEMO-000647;stampfer klein 47;SN-DEMO-000647;101;2025;klein;stampfer;{}
+DEMO-000648;stampfer klein 48;SN-DEMO-000648;101;2026;klein;stampfer;{}
+DEMO-000649;stampfer klein 49;SN-DEMO-000649;101;2018;klein;stampfer;{}
+DEMO-000650;stampfer klein 50;SN-DEMO-000650;101;2019;klein;stampfer;{}
+DEMO-000651;stampfer gross 01;SN-DEMO-000651;101;2020;gross;stampfer;{}
+DEMO-000652;stampfer gross 02;SN-DEMO-000652;101;2021;gross;stampfer;{}
+DEMO-000653;stampfer gross 03;SN-DEMO-000653;101;2022;gross;stampfer;{}
+DEMO-000654;stampfer gross 04;SN-DEMO-000654;101;2023;gross;stampfer;{}
+DEMO-000655;stampfer gross 05;SN-DEMO-000655;101;2024;gross;stampfer;{}
+DEMO-000656;stampfer gross 06;SN-DEMO-000656;101;2025;gross;stampfer;{}
+DEMO-000657;stampfer gross 07;SN-DEMO-000657;101;2026;gross;stampfer;{}
+DEMO-000658;stampfer gross 08;SN-DEMO-000658;101;2018;gross;stampfer;{}
+DEMO-000659;stampfer gross 09;SN-DEMO-000659;101;2019;gross;stampfer;{}
+DEMO-000660;stampfer gross 10;SN-DEMO-000660;101;2020;gross;stampfer;{}
+DEMO-000661;stampfer gross 11;SN-DEMO-000661;101;2021;gross;stampfer;{}
+DEMO-000662;stampfer gross 12;SN-DEMO-000662;101;2022;gross;stampfer;{}
+DEMO-000663;stampfer gross 13;SN-DEMO-000663;101;2023;gross;stampfer;{}
+DEMO-000664;stampfer gross 14;SN-DEMO-000664;101;2024;gross;stampfer;{}
+DEMO-000665;stampfer gross 15;SN-DEMO-000665;101;2025;gross;stampfer;{}
+DEMO-000666;stampfer gross 16;SN-DEMO-000666;101;2026;gross;stampfer;{}
+DEMO-000667;stampfer gross 17;SN-DEMO-000667;101;2018;gross;stampfer;{}
+DEMO-000668;stampfer gross 18;SN-DEMO-000668;101;2019;gross;stampfer;{}
+DEMO-000669;stampfer gross 19;SN-DEMO-000669;101;2020;gross;stampfer;{}
+DEMO-000670;stampfer gross 20;SN-DEMO-000670;101;2021;gross;stampfer;{}
+DEMO-000671;stampfer gross 21;SN-DEMO-000671;101;2022;gross;stampfer;{}
+DEMO-000672;stampfer gross 22;SN-DEMO-000672;101;2023;gross;stampfer;{}
+DEMO-000673;stampfer gross 23;SN-DEMO-000673;101;2024;gross;stampfer;{}
+DEMO-000674;stampfer gross 24;SN-DEMO-000674;101;2025;gross;stampfer;{}
+DEMO-000675;stampfer gross 25;SN-DEMO-000675;101;2026;gross;stampfer;{}
+DEMO-000676;stampfer gross 26;SN-DEMO-000676;101;2018;gross;stampfer;{}
+DEMO-000677;stampfer gross 27;SN-DEMO-000677;101;2019;gross;stampfer;{}
+DEMO-000678;stampfer gross 28;SN-DEMO-000678;101;2020;gross;stampfer;{}
+DEMO-000679;stampfer gross 29;SN-DEMO-000679;101;2021;gross;stampfer;{}
+DEMO-000680;stampfer gross 30;SN-DEMO-000680;101;2022;gross;stampfer;{}
+DEMO-000681;stampfer gross 31;SN-DEMO-000681;101;2023;gross;stampfer;{}
+DEMO-000682;stampfer gross 32;SN-DEMO-000682;101;2024;gross;stampfer;{}
+DEMO-000683;stampfer gross 33;SN-DEMO-000683;101;2025;gross;stampfer;{}
+DEMO-000684;stampfer gross 34;SN-DEMO-000684;101;2026;gross;stampfer;{}
+DEMO-000685;stampfer gross 35;SN-DEMO-000685;101;2018;gross;stampfer;{}
+DEMO-000686;stampfer gross 36;SN-DEMO-000686;101;2019;gross;stampfer;{}
+DEMO-000687;stampfer gross 37;SN-DEMO-000687;101;2020;gross;stampfer;{}
+DEMO-000688;stampfer gross 38;SN-DEMO-000688;101;2021;gross;stampfer;{}
+DEMO-000689;stampfer gross 39;SN-DEMO-000689;101;2022;gross;stampfer;{}
+DEMO-000690;stampfer gross 40;SN-DEMO-000690;101;2023;gross;stampfer;{}
+DEMO-000691;stampfer gross 41;SN-DEMO-000691;101;2024;gross;stampfer;{}
+DEMO-000692;stampfer gross 42;SN-DEMO-000692;101;2025;gross;stampfer;{}
+DEMO-000693;stampfer gross 43;SN-DEMO-000693;101;2026;gross;stampfer;{}
+DEMO-000694;stampfer gross 44;SN-DEMO-000694;101;2018;gross;stampfer;{}
+DEMO-000695;stampfer gross 45;SN-DEMO-000695;101;2019;gross;stampfer;{}
+DEMO-000696;stampfer gross 46;SN-DEMO-000696;101;2020;gross;stampfer;{}
+DEMO-000697;stampfer gross 47;SN-DEMO-000697;101;2021;gross;stampfer;{}
+DEMO-000698;stampfer gross 48;SN-DEMO-000698;101;2022;gross;stampfer;{}
+DEMO-000699;stampfer gross 49;SN-DEMO-000699;101;2023;gross;stampfer;{}
+DEMO-000700;stampfer gross 50;SN-DEMO-000700;101;2024;gross;stampfer;{}
+DEMO-000701;Kipplader 3.2 m3 Swivel klein 01;SN-DEMO-000701;101;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000702;Kipplader 3.2 m3 Swivel klein 02;SN-DEMO-000702;101;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000703;Kipplader 3.2 m3 Swivel klein 03;SN-DEMO-000703;101;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000704;Kipplader 3.2 m3 Swivel klein 04;SN-DEMO-000704;101;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000705;Kipplader 3.2 m3 Swivel klein 05;SN-DEMO-000705;101;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000706;Kipplader 3.2 m3 Swivel klein 06;SN-DEMO-000706;101;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000707;Kipplader 3.2 m3 Swivel klein 07;SN-DEMO-000707;101;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000708;Kipplader 3.2 m3 Swivel klein 08;SN-DEMO-000708;101;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000709;Kipplader 3.2 m3 Swivel klein 09;SN-DEMO-000709;101;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000710;Kipplader 3.2 m3 Swivel klein 10;SN-DEMO-000710;101;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000711;Kipplader 3.2 m3 Swivel klein 11;SN-DEMO-000711;101;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000712;Kipplader 3.2 m3 Swivel klein 12;SN-DEMO-000712;101;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000713;Kipplader 3.2 m3 Swivel klein 13;SN-DEMO-000713;101;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000714;Kipplader 3.2 m3 Swivel klein 14;SN-DEMO-000714;101;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000715;Kipplader 3.2 m3 Swivel klein 15;SN-DEMO-000715;101;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000716;Kipplader 3.2 m3 Swivel klein 16;SN-DEMO-000716;101;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000717;Kipplader 3.2 m3 Swivel klein 17;SN-DEMO-000717;101;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000718;Kipplader 3.2 m3 Swivel klein 18;SN-DEMO-000718;101;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000719;Kipplader 3.2 m3 Swivel klein 19;SN-DEMO-000719;101;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000720;Kipplader 3.2 m3 Swivel klein 20;SN-DEMO-000720;101;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000721;Kipplader 3.2 m3 Swivel klein 21;SN-DEMO-000721;101;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000722;Kipplader 3.2 m3 Swivel klein 22;SN-DEMO-000722;101;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000723;Kipplader 3.2 m3 Swivel klein 23;SN-DEMO-000723;101;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000724;Kipplader 3.2 m3 Swivel klein 24;SN-DEMO-000724;101;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000725;Kipplader 3.2 m3 Swivel klein 25;SN-DEMO-000725;101;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000726;Kipplader 3.2 m3 Swivel klein 26;SN-DEMO-000726;101;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000727;Kipplader 3.2 m3 Swivel klein 27;SN-DEMO-000727;101;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000728;Kipplader 3.2 m3 Swivel klein 28;SN-DEMO-000728;101;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000729;Kipplader 3.2 m3 Swivel klein 29;SN-DEMO-000729;101;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000730;Kipplader 3.2 m3 Swivel klein 30;SN-DEMO-000730;101;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000731;Kipplader 3.2 m3 Swivel klein 31;SN-DEMO-000731;101;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000732;Kipplader 3.2 m3 Swivel klein 32;SN-DEMO-000732;101;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000733;Kipplader 3.2 m3 Swivel klein 33;SN-DEMO-000733;101;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000734;Kipplader 3.2 m3 Swivel klein 34;SN-DEMO-000734;101;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000735;Kipplader 3.2 m3 Swivel klein 35;SN-DEMO-000735;101;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000736;Kipplader 3.2 m3 Swivel klein 36;SN-DEMO-000736;101;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000737;Kipplader 3.2 m3 Swivel klein 37;SN-DEMO-000737;101;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000738;Kipplader 3.2 m3 Swivel klein 38;SN-DEMO-000738;101;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000739;Kipplader 3.2 m3 Swivel klein 39;SN-DEMO-000739;101;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000740;Kipplader 3.2 m3 Swivel klein 40;SN-DEMO-000740;101;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000741;Kipplader 3.2 m3 Swivel klein 41;SN-DEMO-000741;101;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000742;Kipplader 3.2 m3 Swivel klein 42;SN-DEMO-000742;101;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000743;Kipplader 3.2 m3 Swivel klein 43;SN-DEMO-000743;101;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000744;Kipplader 3.2 m3 Swivel klein 44;SN-DEMO-000744;101;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000745;Kipplader 3.2 m3 Swivel klein 45;SN-DEMO-000745;101;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000746;Kipplader 3.2 m3 Swivel klein 46;SN-DEMO-000746;101;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000747;Kipplader 3.2 m3 Swivel klein 47;SN-DEMO-000747;101;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000748;Kipplader 3.2 m3 Swivel klein 48;SN-DEMO-000748;101;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000749;Kipplader 3.2 m3 Swivel klein 49;SN-DEMO-000749;101;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000750;Kipplader 3.2 m3 Swivel klein 50;SN-DEMO-000750;101;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-000751;Kipplader 3.2 m3 Swivel gross 01;SN-DEMO-000751;101;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000752;Kipplader 3.2 m3 Swivel gross 02;SN-DEMO-000752;101;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000753;Kipplader 3.2 m3 Swivel gross 03;SN-DEMO-000753;101;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000754;Kipplader 3.2 m3 Swivel gross 04;SN-DEMO-000754;101;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000755;Kipplader 3.2 m3 Swivel gross 05;SN-DEMO-000755;101;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000756;Kipplader 3.2 m3 Swivel gross 06;SN-DEMO-000756;101;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000757;Kipplader 3.2 m3 Swivel gross 07;SN-DEMO-000757;101;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000758;Kipplader 3.2 m3 Swivel gross 08;SN-DEMO-000758;101;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000759;Kipplader 3.2 m3 Swivel gross 09;SN-DEMO-000759;101;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000760;Kipplader 3.2 m3 Swivel gross 10;SN-DEMO-000760;101;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000761;Kipplader 3.2 m3 Swivel gross 11;SN-DEMO-000761;101;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000762;Kipplader 3.2 m3 Swivel gross 12;SN-DEMO-000762;101;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000763;Kipplader 3.2 m3 Swivel gross 13;SN-DEMO-000763;101;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000764;Kipplader 3.2 m3 Swivel gross 14;SN-DEMO-000764;101;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000765;Kipplader 3.2 m3 Swivel gross 15;SN-DEMO-000765;101;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000766;Kipplader 3.2 m3 Swivel gross 16;SN-DEMO-000766;101;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000767;Kipplader 3.2 m3 Swivel gross 17;SN-DEMO-000767;101;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000768;Kipplader 3.2 m3 Swivel gross 18;SN-DEMO-000768;101;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000769;Kipplader 3.2 m3 Swivel gross 19;SN-DEMO-000769;101;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000770;Kipplader 3.2 m3 Swivel gross 20;SN-DEMO-000770;101;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000771;Kipplader 3.2 m3 Swivel gross 21;SN-DEMO-000771;101;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000772;Kipplader 3.2 m3 Swivel gross 22;SN-DEMO-000772;101;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000773;Kipplader 3.2 m3 Swivel gross 23;SN-DEMO-000773;101;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000774;Kipplader 3.2 m3 Swivel gross 24;SN-DEMO-000774;101;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000775;Kipplader 3.2 m3 Swivel gross 25;SN-DEMO-000775;101;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000776;Kipplader 3.2 m3 Swivel gross 26;SN-DEMO-000776;101;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000777;Kipplader 3.2 m3 Swivel gross 27;SN-DEMO-000777;101;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000778;Kipplader 3.2 m3 Swivel gross 28;SN-DEMO-000778;101;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000779;Kipplader 3.2 m3 Swivel gross 29;SN-DEMO-000779;101;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000780;Kipplader 3.2 m3 Swivel gross 30;SN-DEMO-000780;101;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000781;Kipplader 3.2 m3 Swivel gross 31;SN-DEMO-000781;101;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000782;Kipplader 3.2 m3 Swivel gross 32;SN-DEMO-000782;101;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000783;Kipplader 3.2 m3 Swivel gross 33;SN-DEMO-000783;101;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000784;Kipplader 3.2 m3 Swivel gross 34;SN-DEMO-000784;101;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000785;Kipplader 3.2 m3 Swivel gross 35;SN-DEMO-000785;101;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000786;Kipplader 3.2 m3 Swivel gross 36;SN-DEMO-000786;101;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000787;Kipplader 3.2 m3 Swivel gross 37;SN-DEMO-000787;101;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000788;Kipplader 3.2 m3 Swivel gross 38;SN-DEMO-000788;101;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000789;Kipplader 3.2 m3 Swivel gross 39;SN-DEMO-000789;101;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000790;Kipplader 3.2 m3 Swivel gross 40;SN-DEMO-000790;101;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000791;Kipplader 3.2 m3 Swivel gross 41;SN-DEMO-000791;101;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000792;Kipplader 3.2 m3 Swivel gross 42;SN-DEMO-000792;101;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000793;Kipplader 3.2 m3 Swivel gross 43;SN-DEMO-000793;101;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000794;Kipplader 3.2 m3 Swivel gross 44;SN-DEMO-000794;101;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000795;Kipplader 3.2 m3 Swivel gross 45;SN-DEMO-000795;101;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000796;Kipplader 3.2 m3 Swivel gross 46;SN-DEMO-000796;101;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000797;Kipplader 3.2 m3 Swivel gross 47;SN-DEMO-000797;101;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000798;Kipplader 3.2 m3 Swivel gross 48;SN-DEMO-000798;101;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000799;Kipplader 3.2 m3 Swivel gross 49;SN-DEMO-000799;101;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000800;Kipplader 3.2 m3 Swivel gross 50;SN-DEMO-000800;101;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-000801;Bagger klein 01;SN-DEMO-000801;101;2026;klein;Bagger;{}
+DEMO-000802;Bagger klein 02;SN-DEMO-000802;101;2018;klein;Bagger;{}
+DEMO-000803;Bagger klein 03;SN-DEMO-000803;101;2019;klein;Bagger;{}
+DEMO-000804;Bagger klein 04;SN-DEMO-000804;101;2020;klein;Bagger;{}
+DEMO-000805;Bagger klein 05;SN-DEMO-000805;101;2021;klein;Bagger;{}
+DEMO-000806;Bagger klein 06;SN-DEMO-000806;101;2022;klein;Bagger;{}
+DEMO-000807;Bagger klein 07;SN-DEMO-000807;101;2023;klein;Bagger;{}
+DEMO-000808;Bagger klein 08;SN-DEMO-000808;101;2024;klein;Bagger;{}
+DEMO-000809;Bagger klein 09;SN-DEMO-000809;101;2025;klein;Bagger;{}
+DEMO-000810;Bagger klein 10;SN-DEMO-000810;101;2026;klein;Bagger;{}
+DEMO-000811;Bagger klein 11;SN-DEMO-000811;101;2018;klein;Bagger;{}
+DEMO-000812;Bagger klein 12;SN-DEMO-000812;101;2019;klein;Bagger;{}
+DEMO-000813;Bagger klein 13;SN-DEMO-000813;101;2020;klein;Bagger;{}
+DEMO-000814;Bagger klein 14;SN-DEMO-000814;101;2021;klein;Bagger;{}
+DEMO-000815;Bagger klein 15;SN-DEMO-000815;101;2022;klein;Bagger;{}
+DEMO-000816;Bagger klein 16;SN-DEMO-000816;101;2023;klein;Bagger;{}
+DEMO-000817;Bagger klein 17;SN-DEMO-000817;101;2024;klein;Bagger;{}
+DEMO-000818;Bagger klein 18;SN-DEMO-000818;101;2025;klein;Bagger;{}
+DEMO-000819;Bagger klein 19;SN-DEMO-000819;101;2026;klein;Bagger;{}
+DEMO-000820;Bagger klein 20;SN-DEMO-000820;101;2018;klein;Bagger;{}
+DEMO-000821;Bagger klein 21;SN-DEMO-000821;101;2019;klein;Bagger;{}
+DEMO-000822;Bagger klein 22;SN-DEMO-000822;101;2020;klein;Bagger;{}
+DEMO-000823;Bagger klein 23;SN-DEMO-000823;101;2021;klein;Bagger;{}
+DEMO-000824;Bagger klein 24;SN-DEMO-000824;101;2022;klein;Bagger;{}
+DEMO-000825;Bagger klein 25;SN-DEMO-000825;101;2023;klein;Bagger;{}
+DEMO-000826;Bagger klein 26;SN-DEMO-000826;101;2024;klein;Bagger;{}
+DEMO-000827;Bagger klein 27;SN-DEMO-000827;101;2025;klein;Bagger;{}
+DEMO-000828;Bagger klein 28;SN-DEMO-000828;101;2026;klein;Bagger;{}
+DEMO-000829;Bagger klein 29;SN-DEMO-000829;101;2018;klein;Bagger;{}
+DEMO-000830;Bagger klein 30;SN-DEMO-000830;101;2019;klein;Bagger;{}
+DEMO-000831;Bagger klein 31;SN-DEMO-000831;101;2020;klein;Bagger;{}
+DEMO-000832;Bagger klein 32;SN-DEMO-000832;101;2021;klein;Bagger;{}
+DEMO-000833;Bagger klein 33;SN-DEMO-000833;101;2022;klein;Bagger;{}
+DEMO-000834;Bagger klein 34;SN-DEMO-000834;101;2023;klein;Bagger;{}
+DEMO-000835;Bagger klein 35;SN-DEMO-000835;101;2024;klein;Bagger;{}
+DEMO-000836;Bagger klein 36;SN-DEMO-000836;101;2025;klein;Bagger;{}
+DEMO-000837;Bagger klein 37;SN-DEMO-000837;101;2026;klein;Bagger;{}
+DEMO-000838;Bagger klein 38;SN-DEMO-000838;101;2018;klein;Bagger;{}
+DEMO-000839;Bagger klein 39;SN-DEMO-000839;101;2019;klein;Bagger;{}
+DEMO-000840;Bagger klein 40;SN-DEMO-000840;101;2020;klein;Bagger;{}
+DEMO-000841;Bagger klein 41;SN-DEMO-000841;101;2021;klein;Bagger;{}
+DEMO-000842;Bagger klein 42;SN-DEMO-000842;101;2022;klein;Bagger;{}
+DEMO-000843;Bagger klein 43;SN-DEMO-000843;101;2023;klein;Bagger;{}
+DEMO-000844;Bagger klein 44;SN-DEMO-000844;101;2024;klein;Bagger;{}
+DEMO-000845;Bagger klein 45;SN-DEMO-000845;101;2025;klein;Bagger;{}
+DEMO-000846;Bagger klein 46;SN-DEMO-000846;101;2026;klein;Bagger;{}
+DEMO-000847;Bagger klein 47;SN-DEMO-000847;101;2018;klein;Bagger;{}
+DEMO-000848;Bagger klein 48;SN-DEMO-000848;101;2019;klein;Bagger;{}
+DEMO-000849;Bagger klein 49;SN-DEMO-000849;101;2020;klein;Bagger;{}
+DEMO-000850;Bagger klein 50;SN-DEMO-000850;101;2021;klein;Bagger;{}
+DEMO-000851;Bagger gross 01;SN-DEMO-000851;101;2022;gross;Bagger;{}
+DEMO-000852;Bagger gross 02;SN-DEMO-000852;101;2023;gross;Bagger;{}
+DEMO-000853;Bagger gross 03;SN-DEMO-000853;101;2024;gross;Bagger;{}
+DEMO-000854;Bagger gross 04;SN-DEMO-000854;101;2025;gross;Bagger;{}
+DEMO-000855;Bagger gross 05;SN-DEMO-000855;101;2026;gross;Bagger;{}
+DEMO-000856;Bagger gross 06;SN-DEMO-000856;101;2018;gross;Bagger;{}
+DEMO-000857;Bagger gross 07;SN-DEMO-000857;101;2019;gross;Bagger;{}
+DEMO-000858;Bagger gross 08;SN-DEMO-000858;101;2020;gross;Bagger;{}
+DEMO-000859;Bagger gross 09;SN-DEMO-000859;101;2021;gross;Bagger;{}
+DEMO-000860;Bagger gross 10;SN-DEMO-000860;101;2022;gross;Bagger;{}
+DEMO-000861;Bagger gross 11;SN-DEMO-000861;101;2023;gross;Bagger;{}
+DEMO-000862;Bagger gross 12;SN-DEMO-000862;101;2024;gross;Bagger;{}
+DEMO-000863;Bagger gross 13;SN-DEMO-000863;101;2025;gross;Bagger;{}
+DEMO-000864;Bagger gross 14;SN-DEMO-000864;101;2026;gross;Bagger;{}
+DEMO-000865;Bagger gross 15;SN-DEMO-000865;101;2018;gross;Bagger;{}
+DEMO-000866;Bagger gross 16;SN-DEMO-000866;101;2019;gross;Bagger;{}
+DEMO-000867;Bagger gross 17;SN-DEMO-000867;101;2020;gross;Bagger;{}
+DEMO-000868;Bagger gross 18;SN-DEMO-000868;101;2021;gross;Bagger;{}
+DEMO-000869;Bagger gross 19;SN-DEMO-000869;101;2022;gross;Bagger;{}
+DEMO-000870;Bagger gross 20;SN-DEMO-000870;101;2023;gross;Bagger;{}
+DEMO-000871;Bagger gross 21;SN-DEMO-000871;101;2024;gross;Bagger;{}
+DEMO-000872;Bagger gross 22;SN-DEMO-000872;101;2025;gross;Bagger;{}
+DEMO-000873;Bagger gross 23;SN-DEMO-000873;101;2026;gross;Bagger;{}
+DEMO-000874;Bagger gross 24;SN-DEMO-000874;101;2018;gross;Bagger;{}
+DEMO-000875;Bagger gross 25;SN-DEMO-000875;101;2019;gross;Bagger;{}
+DEMO-000876;Bagger gross 26;SN-DEMO-000876;101;2020;gross;Bagger;{}
+DEMO-000877;Bagger gross 27;SN-DEMO-000877;101;2021;gross;Bagger;{}
+DEMO-000878;Bagger gross 28;SN-DEMO-000878;101;2022;gross;Bagger;{}
+DEMO-000879;Bagger gross 29;SN-DEMO-000879;101;2023;gross;Bagger;{}
+DEMO-000880;Bagger gross 30;SN-DEMO-000880;101;2024;gross;Bagger;{}
+DEMO-000881;Bagger gross 31;SN-DEMO-000881;101;2025;gross;Bagger;{}
+DEMO-000882;Bagger gross 32;SN-DEMO-000882;101;2026;gross;Bagger;{}
+DEMO-000883;Bagger gross 33;SN-DEMO-000883;101;2018;gross;Bagger;{}
+DEMO-000884;Bagger gross 34;SN-DEMO-000884;101;2019;gross;Bagger;{}
+DEMO-000885;Bagger gross 35;SN-DEMO-000885;101;2020;gross;Bagger;{}
+DEMO-000886;Bagger gross 36;SN-DEMO-000886;101;2021;gross;Bagger;{}
+DEMO-000887;Bagger gross 37;SN-DEMO-000887;101;2022;gross;Bagger;{}
+DEMO-000888;Bagger gross 38;SN-DEMO-000888;101;2023;gross;Bagger;{}
+DEMO-000889;Bagger gross 39;SN-DEMO-000889;101;2024;gross;Bagger;{}
+DEMO-000890;Bagger gross 40;SN-DEMO-000890;101;2025;gross;Bagger;{}
+DEMO-000891;Bagger gross 41;SN-DEMO-000891;101;2026;gross;Bagger;{}
+DEMO-000892;Bagger gross 42;SN-DEMO-000892;101;2018;gross;Bagger;{}
+DEMO-000893;Bagger gross 43;SN-DEMO-000893;101;2019;gross;Bagger;{}
+DEMO-000894;Bagger gross 44;SN-DEMO-000894;101;2020;gross;Bagger;{}
+DEMO-000895;Bagger gross 45;SN-DEMO-000895;101;2021;gross;Bagger;{}
+DEMO-000896;Bagger gross 46;SN-DEMO-000896;101;2022;gross;Bagger;{}
+DEMO-000897;Bagger gross 47;SN-DEMO-000897;101;2023;gross;Bagger;{}
+DEMO-000898;Bagger gross 48;SN-DEMO-000898;101;2024;gross;Bagger;{}
+DEMO-000899;Bagger gross 49;SN-DEMO-000899;101;2025;gross;Bagger;{}
+DEMO-000900;Bagger gross 50;SN-DEMO-000900;101;2026;gross;Bagger;{}
+DEMO-000901;stampfer klein 01;SN-DEMO-000901;Graz;2018;klein;stampfer;{}
+DEMO-000902;stampfer klein 02;SN-DEMO-000902;Graz;2019;klein;stampfer;{}
+DEMO-000903;stampfer klein 03;SN-DEMO-000903;Graz;2020;klein;stampfer;{}
+DEMO-000904;stampfer klein 04;SN-DEMO-000904;Graz;2021;klein;stampfer;{}
+DEMO-000905;stampfer klein 05;SN-DEMO-000905;Graz;2022;klein;stampfer;{}
+DEMO-000906;stampfer klein 06;SN-DEMO-000906;Graz;2023;klein;stampfer;{}
+DEMO-000907;stampfer klein 07;SN-DEMO-000907;Graz;2024;klein;stampfer;{}
+DEMO-000908;stampfer klein 08;SN-DEMO-000908;Graz;2025;klein;stampfer;{}
+DEMO-000909;stampfer klein 09;SN-DEMO-000909;Graz;2026;klein;stampfer;{}
+DEMO-000910;stampfer klein 10;SN-DEMO-000910;Graz;2018;klein;stampfer;{}
+DEMO-000911;stampfer klein 11;SN-DEMO-000911;Graz;2019;klein;stampfer;{}
+DEMO-000912;stampfer klein 12;SN-DEMO-000912;Graz;2020;klein;stampfer;{}
+DEMO-000913;stampfer klein 13;SN-DEMO-000913;Graz;2021;klein;stampfer;{}
+DEMO-000914;stampfer klein 14;SN-DEMO-000914;Graz;2022;klein;stampfer;{}
+DEMO-000915;stampfer klein 15;SN-DEMO-000915;Graz;2023;klein;stampfer;{}
+DEMO-000916;stampfer klein 16;SN-DEMO-000916;Graz;2024;klein;stampfer;{}
+DEMO-000917;stampfer klein 17;SN-DEMO-000917;Graz;2025;klein;stampfer;{}
+DEMO-000918;stampfer klein 18;SN-DEMO-000918;Graz;2026;klein;stampfer;{}
+DEMO-000919;stampfer klein 19;SN-DEMO-000919;Graz;2018;klein;stampfer;{}
+DEMO-000920;stampfer klein 20;SN-DEMO-000920;Graz;2019;klein;stampfer;{}
+DEMO-000921;stampfer klein 21;SN-DEMO-000921;Graz;2020;klein;stampfer;{}
+DEMO-000922;stampfer klein 22;SN-DEMO-000922;Graz;2021;klein;stampfer;{}
+DEMO-000923;stampfer klein 23;SN-DEMO-000923;Graz;2022;klein;stampfer;{}
+DEMO-000924;stampfer klein 24;SN-DEMO-000924;Graz;2023;klein;stampfer;{}
+DEMO-000925;stampfer klein 25;SN-DEMO-000925;Graz;2024;klein;stampfer;{}
+DEMO-000926;stampfer klein 26;SN-DEMO-000926;Graz;2025;klein;stampfer;{}
+DEMO-000927;stampfer klein 27;SN-DEMO-000927;Graz;2026;klein;stampfer;{}
+DEMO-000928;stampfer klein 28;SN-DEMO-000928;Graz;2018;klein;stampfer;{}
+DEMO-000929;stampfer klein 29;SN-DEMO-000929;Graz;2019;klein;stampfer;{}
+DEMO-000930;stampfer klein 30;SN-DEMO-000930;Graz;2020;klein;stampfer;{}
+DEMO-000931;stampfer klein 31;SN-DEMO-000931;Graz;2021;klein;stampfer;{}
+DEMO-000932;stampfer klein 32;SN-DEMO-000932;Graz;2022;klein;stampfer;{}
+DEMO-000933;stampfer klein 33;SN-DEMO-000933;Graz;2023;klein;stampfer;{}
+DEMO-000934;stampfer klein 34;SN-DEMO-000934;Graz;2024;klein;stampfer;{}
+DEMO-000935;stampfer klein 35;SN-DEMO-000935;Graz;2025;klein;stampfer;{}
+DEMO-000936;stampfer klein 36;SN-DEMO-000936;Graz;2026;klein;stampfer;{}
+DEMO-000937;stampfer klein 37;SN-DEMO-000937;Graz;2018;klein;stampfer;{}
+DEMO-000938;stampfer klein 38;SN-DEMO-000938;Graz;2019;klein;stampfer;{}
+DEMO-000939;stampfer klein 39;SN-DEMO-000939;Graz;2020;klein;stampfer;{}
+DEMO-000940;stampfer klein 40;SN-DEMO-000940;Graz;2021;klein;stampfer;{}
+DEMO-000941;stampfer klein 41;SN-DEMO-000941;Graz;2022;klein;stampfer;{}
+DEMO-000942;stampfer klein 42;SN-DEMO-000942;Graz;2023;klein;stampfer;{}
+DEMO-000943;stampfer klein 43;SN-DEMO-000943;Graz;2024;klein;stampfer;{}
+DEMO-000944;stampfer klein 44;SN-DEMO-000944;Graz;2025;klein;stampfer;{}
+DEMO-000945;stampfer klein 45;SN-DEMO-000945;Graz;2026;klein;stampfer;{}
+DEMO-000946;stampfer klein 46;SN-DEMO-000946;Graz;2018;klein;stampfer;{}
+DEMO-000947;stampfer klein 47;SN-DEMO-000947;Graz;2019;klein;stampfer;{}
+DEMO-000948;stampfer klein 48;SN-DEMO-000948;Graz;2020;klein;stampfer;{}
+DEMO-000949;stampfer klein 49;SN-DEMO-000949;Graz;2021;klein;stampfer;{}
+DEMO-000950;stampfer klein 50;SN-DEMO-000950;Graz;2022;klein;stampfer;{}
+DEMO-000951;stampfer gross 01;SN-DEMO-000951;Graz;2023;gross;stampfer;{}
+DEMO-000952;stampfer gross 02;SN-DEMO-000952;Graz;2024;gross;stampfer;{}
+DEMO-000953;stampfer gross 03;SN-DEMO-000953;Graz;2025;gross;stampfer;{}
+DEMO-000954;stampfer gross 04;SN-DEMO-000954;Graz;2026;gross;stampfer;{}
+DEMO-000955;stampfer gross 05;SN-DEMO-000955;Graz;2018;gross;stampfer;{}
+DEMO-000956;stampfer gross 06;SN-DEMO-000956;Graz;2019;gross;stampfer;{}
+DEMO-000957;stampfer gross 07;SN-DEMO-000957;Graz;2020;gross;stampfer;{}
+DEMO-000958;stampfer gross 08;SN-DEMO-000958;Graz;2021;gross;stampfer;{}
+DEMO-000959;stampfer gross 09;SN-DEMO-000959;Graz;2022;gross;stampfer;{}
+DEMO-000960;stampfer gross 10;SN-DEMO-000960;Graz;2023;gross;stampfer;{}
+DEMO-000961;stampfer gross 11;SN-DEMO-000961;Graz;2024;gross;stampfer;{}
+DEMO-000962;stampfer gross 12;SN-DEMO-000962;Graz;2025;gross;stampfer;{}
+DEMO-000963;stampfer gross 13;SN-DEMO-000963;Graz;2026;gross;stampfer;{}
+DEMO-000964;stampfer gross 14;SN-DEMO-000964;Graz;2018;gross;stampfer;{}
+DEMO-000965;stampfer gross 15;SN-DEMO-000965;Graz;2019;gross;stampfer;{}
+DEMO-000966;stampfer gross 16;SN-DEMO-000966;Graz;2020;gross;stampfer;{}
+DEMO-000967;stampfer gross 17;SN-DEMO-000967;Graz;2021;gross;stampfer;{}
+DEMO-000968;stampfer gross 18;SN-DEMO-000968;Graz;2022;gross;stampfer;{}
+DEMO-000969;stampfer gross 19;SN-DEMO-000969;Graz;2023;gross;stampfer;{}
+DEMO-000970;stampfer gross 20;SN-DEMO-000970;Graz;2024;gross;stampfer;{}
+DEMO-000971;stampfer gross 21;SN-DEMO-000971;Graz;2025;gross;stampfer;{}
+DEMO-000972;stampfer gross 22;SN-DEMO-000972;Graz;2026;gross;stampfer;{}
+DEMO-000973;stampfer gross 23;SN-DEMO-000973;Graz;2018;gross;stampfer;{}
+DEMO-000974;stampfer gross 24;SN-DEMO-000974;Graz;2019;gross;stampfer;{}
+DEMO-000975;stampfer gross 25;SN-DEMO-000975;Graz;2020;gross;stampfer;{}
+DEMO-000976;stampfer gross 26;SN-DEMO-000976;Graz;2021;gross;stampfer;{}
+DEMO-000977;stampfer gross 27;SN-DEMO-000977;Graz;2022;gross;stampfer;{}
+DEMO-000978;stampfer gross 28;SN-DEMO-000978;Graz;2023;gross;stampfer;{}
+DEMO-000979;stampfer gross 29;SN-DEMO-000979;Graz;2024;gross;stampfer;{}
+DEMO-000980;stampfer gross 30;SN-DEMO-000980;Graz;2025;gross;stampfer;{}
+DEMO-000981;stampfer gross 31;SN-DEMO-000981;Graz;2026;gross;stampfer;{}
+DEMO-000982;stampfer gross 32;SN-DEMO-000982;Graz;2018;gross;stampfer;{}
+DEMO-000983;stampfer gross 33;SN-DEMO-000983;Graz;2019;gross;stampfer;{}
+DEMO-000984;stampfer gross 34;SN-DEMO-000984;Graz;2020;gross;stampfer;{}
+DEMO-000985;stampfer gross 35;SN-DEMO-000985;Graz;2021;gross;stampfer;{}
+DEMO-000986;stampfer gross 36;SN-DEMO-000986;Graz;2022;gross;stampfer;{}
+DEMO-000987;stampfer gross 37;SN-DEMO-000987;Graz;2023;gross;stampfer;{}
+DEMO-000988;stampfer gross 38;SN-DEMO-000988;Graz;2024;gross;stampfer;{}
+DEMO-000989;stampfer gross 39;SN-DEMO-000989;Graz;2025;gross;stampfer;{}
+DEMO-000990;stampfer gross 40;SN-DEMO-000990;Graz;2026;gross;stampfer;{}
+DEMO-000991;stampfer gross 41;SN-DEMO-000991;Graz;2018;gross;stampfer;{}
+DEMO-000992;stampfer gross 42;SN-DEMO-000992;Graz;2019;gross;stampfer;{}
+DEMO-000993;stampfer gross 43;SN-DEMO-000993;Graz;2020;gross;stampfer;{}
+DEMO-000994;stampfer gross 44;SN-DEMO-000994;Graz;2021;gross;stampfer;{}
+DEMO-000995;stampfer gross 45;SN-DEMO-000995;Graz;2022;gross;stampfer;{}
+DEMO-000996;stampfer gross 46;SN-DEMO-000996;Graz;2023;gross;stampfer;{}
+DEMO-000997;stampfer gross 47;SN-DEMO-000997;Graz;2024;gross;stampfer;{}
+DEMO-000998;stampfer gross 48;SN-DEMO-000998;Graz;2025;gross;stampfer;{}
+DEMO-000999;stampfer gross 49;SN-DEMO-000999;Graz;2026;gross;stampfer;{}
+DEMO-001000;stampfer gross 50;SN-DEMO-001000;Graz;2018;gross;stampfer;{}
+DEMO-001001;Kipplader 3.2 m3 Swivel klein 01;SN-DEMO-001001;Graz;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001002;Kipplader 3.2 m3 Swivel klein 02;SN-DEMO-001002;Graz;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001003;Kipplader 3.2 m3 Swivel klein 03;SN-DEMO-001003;Graz;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001004;Kipplader 3.2 m3 Swivel klein 04;SN-DEMO-001004;Graz;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001005;Kipplader 3.2 m3 Swivel klein 05;SN-DEMO-001005;Graz;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001006;Kipplader 3.2 m3 Swivel klein 06;SN-DEMO-001006;Graz;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001007;Kipplader 3.2 m3 Swivel klein 07;SN-DEMO-001007;Graz;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001008;Kipplader 3.2 m3 Swivel klein 08;SN-DEMO-001008;Graz;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001009;Kipplader 3.2 m3 Swivel klein 09;SN-DEMO-001009;Graz;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001010;Kipplader 3.2 m3 Swivel klein 10;SN-DEMO-001010;Graz;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001011;Kipplader 3.2 m3 Swivel klein 11;SN-DEMO-001011;Graz;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001012;Kipplader 3.2 m3 Swivel klein 12;SN-DEMO-001012;Graz;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001013;Kipplader 3.2 m3 Swivel klein 13;SN-DEMO-001013;Graz;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001014;Kipplader 3.2 m3 Swivel klein 14;SN-DEMO-001014;Graz;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001015;Kipplader 3.2 m3 Swivel klein 15;SN-DEMO-001015;Graz;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001016;Kipplader 3.2 m3 Swivel klein 16;SN-DEMO-001016;Graz;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001017;Kipplader 3.2 m3 Swivel klein 17;SN-DEMO-001017;Graz;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001018;Kipplader 3.2 m3 Swivel klein 18;SN-DEMO-001018;Graz;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001019;Kipplader 3.2 m3 Swivel klein 19;SN-DEMO-001019;Graz;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001020;Kipplader 3.2 m3 Swivel klein 20;SN-DEMO-001020;Graz;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001021;Kipplader 3.2 m3 Swivel klein 21;SN-DEMO-001021;Graz;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001022;Kipplader 3.2 m3 Swivel klein 22;SN-DEMO-001022;Graz;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001023;Kipplader 3.2 m3 Swivel klein 23;SN-DEMO-001023;Graz;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001024;Kipplader 3.2 m3 Swivel klein 24;SN-DEMO-001024;Graz;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001025;Kipplader 3.2 m3 Swivel klein 25;SN-DEMO-001025;Graz;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001026;Kipplader 3.2 m3 Swivel klein 26;SN-DEMO-001026;Graz;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001027;Kipplader 3.2 m3 Swivel klein 27;SN-DEMO-001027;Graz;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001028;Kipplader 3.2 m3 Swivel klein 28;SN-DEMO-001028;Graz;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001029;Kipplader 3.2 m3 Swivel klein 29;SN-DEMO-001029;Graz;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001030;Kipplader 3.2 m3 Swivel klein 30;SN-DEMO-001030;Graz;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001031;Kipplader 3.2 m3 Swivel klein 31;SN-DEMO-001031;Graz;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001032;Kipplader 3.2 m3 Swivel klein 32;SN-DEMO-001032;Graz;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001033;Kipplader 3.2 m3 Swivel klein 33;SN-DEMO-001033;Graz;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001034;Kipplader 3.2 m3 Swivel klein 34;SN-DEMO-001034;Graz;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001035;Kipplader 3.2 m3 Swivel klein 35;SN-DEMO-001035;Graz;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001036;Kipplader 3.2 m3 Swivel klein 36;SN-DEMO-001036;Graz;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001037;Kipplader 3.2 m3 Swivel klein 37;SN-DEMO-001037;Graz;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001038;Kipplader 3.2 m3 Swivel klein 38;SN-DEMO-001038;Graz;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001039;Kipplader 3.2 m3 Swivel klein 39;SN-DEMO-001039;Graz;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001040;Kipplader 3.2 m3 Swivel klein 40;SN-DEMO-001040;Graz;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001041;Kipplader 3.2 m3 Swivel klein 41;SN-DEMO-001041;Graz;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001042;Kipplader 3.2 m3 Swivel klein 42;SN-DEMO-001042;Graz;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001043;Kipplader 3.2 m3 Swivel klein 43;SN-DEMO-001043;Graz;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001044;Kipplader 3.2 m3 Swivel klein 44;SN-DEMO-001044;Graz;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001045;Kipplader 3.2 m3 Swivel klein 45;SN-DEMO-001045;Graz;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001046;Kipplader 3.2 m3 Swivel klein 46;SN-DEMO-001046;Graz;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001047;Kipplader 3.2 m3 Swivel klein 47;SN-DEMO-001047;Graz;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001048;Kipplader 3.2 m3 Swivel klein 48;SN-DEMO-001048;Graz;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001049;Kipplader 3.2 m3 Swivel klein 49;SN-DEMO-001049;Graz;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001050;Kipplader 3.2 m3 Swivel klein 50;SN-DEMO-001050;Graz;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001051;Kipplader 3.2 m3 Swivel gross 01;SN-DEMO-001051;Graz;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001052;Kipplader 3.2 m3 Swivel gross 02;SN-DEMO-001052;Graz;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001053;Kipplader 3.2 m3 Swivel gross 03;SN-DEMO-001053;Graz;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001054;Kipplader 3.2 m3 Swivel gross 04;SN-DEMO-001054;Graz;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001055;Kipplader 3.2 m3 Swivel gross 05;SN-DEMO-001055;Graz;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001056;Kipplader 3.2 m3 Swivel gross 06;SN-DEMO-001056;Graz;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001057;Kipplader 3.2 m3 Swivel gross 07;SN-DEMO-001057;Graz;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001058;Kipplader 3.2 m3 Swivel gross 08;SN-DEMO-001058;Graz;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001059;Kipplader 3.2 m3 Swivel gross 09;SN-DEMO-001059;Graz;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001060;Kipplader 3.2 m3 Swivel gross 10;SN-DEMO-001060;Graz;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001061;Kipplader 3.2 m3 Swivel gross 11;SN-DEMO-001061;Graz;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001062;Kipplader 3.2 m3 Swivel gross 12;SN-DEMO-001062;Graz;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001063;Kipplader 3.2 m3 Swivel gross 13;SN-DEMO-001063;Graz;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001064;Kipplader 3.2 m3 Swivel gross 14;SN-DEMO-001064;Graz;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001065;Kipplader 3.2 m3 Swivel gross 15;SN-DEMO-001065;Graz;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001066;Kipplader 3.2 m3 Swivel gross 16;SN-DEMO-001066;Graz;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001067;Kipplader 3.2 m3 Swivel gross 17;SN-DEMO-001067;Graz;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001068;Kipplader 3.2 m3 Swivel gross 18;SN-DEMO-001068;Graz;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001069;Kipplader 3.2 m3 Swivel gross 19;SN-DEMO-001069;Graz;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001070;Kipplader 3.2 m3 Swivel gross 20;SN-DEMO-001070;Graz;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001071;Kipplader 3.2 m3 Swivel gross 21;SN-DEMO-001071;Graz;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001072;Kipplader 3.2 m3 Swivel gross 22;SN-DEMO-001072;Graz;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001073;Kipplader 3.2 m3 Swivel gross 23;SN-DEMO-001073;Graz;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001074;Kipplader 3.2 m3 Swivel gross 24;SN-DEMO-001074;Graz;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001075;Kipplader 3.2 m3 Swivel gross 25;SN-DEMO-001075;Graz;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001076;Kipplader 3.2 m3 Swivel gross 26;SN-DEMO-001076;Graz;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001077;Kipplader 3.2 m3 Swivel gross 27;SN-DEMO-001077;Graz;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001078;Kipplader 3.2 m3 Swivel gross 28;SN-DEMO-001078;Graz;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001079;Kipplader 3.2 m3 Swivel gross 29;SN-DEMO-001079;Graz;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001080;Kipplader 3.2 m3 Swivel gross 30;SN-DEMO-001080;Graz;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001081;Kipplader 3.2 m3 Swivel gross 31;SN-DEMO-001081;Graz;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001082;Kipplader 3.2 m3 Swivel gross 32;SN-DEMO-001082;Graz;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001083;Kipplader 3.2 m3 Swivel gross 33;SN-DEMO-001083;Graz;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001084;Kipplader 3.2 m3 Swivel gross 34;SN-DEMO-001084;Graz;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001085;Kipplader 3.2 m3 Swivel gross 35;SN-DEMO-001085;Graz;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001086;Kipplader 3.2 m3 Swivel gross 36;SN-DEMO-001086;Graz;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001087;Kipplader 3.2 m3 Swivel gross 37;SN-DEMO-001087;Graz;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001088;Kipplader 3.2 m3 Swivel gross 38;SN-DEMO-001088;Graz;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001089;Kipplader 3.2 m3 Swivel gross 39;SN-DEMO-001089;Graz;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001090;Kipplader 3.2 m3 Swivel gross 40;SN-DEMO-001090;Graz;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001091;Kipplader 3.2 m3 Swivel gross 41;SN-DEMO-001091;Graz;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001092;Kipplader 3.2 m3 Swivel gross 42;SN-DEMO-001092;Graz;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001093;Kipplader 3.2 m3 Swivel gross 43;SN-DEMO-001093;Graz;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001094;Kipplader 3.2 m3 Swivel gross 44;SN-DEMO-001094;Graz;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001095;Kipplader 3.2 m3 Swivel gross 45;SN-DEMO-001095;Graz;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001096;Kipplader 3.2 m3 Swivel gross 46;SN-DEMO-001096;Graz;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001097;Kipplader 3.2 m3 Swivel gross 47;SN-DEMO-001097;Graz;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001098;Kipplader 3.2 m3 Swivel gross 48;SN-DEMO-001098;Graz;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001099;Kipplader 3.2 m3 Swivel gross 49;SN-DEMO-001099;Graz;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001100;Kipplader 3.2 m3 Swivel gross 50;SN-DEMO-001100;Graz;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001101;Bagger klein 01;SN-DEMO-001101;Graz;2020;klein;Bagger;{}
+DEMO-001102;Bagger klein 02;SN-DEMO-001102;Graz;2021;klein;Bagger;{}
+DEMO-001103;Bagger klein 03;SN-DEMO-001103;Graz;2022;klein;Bagger;{}
+DEMO-001104;Bagger klein 04;SN-DEMO-001104;Graz;2023;klein;Bagger;{}
+DEMO-001105;Bagger klein 05;SN-DEMO-001105;Graz;2024;klein;Bagger;{}
+DEMO-001106;Bagger klein 06;SN-DEMO-001106;Graz;2025;klein;Bagger;{}
+DEMO-001107;Bagger klein 07;SN-DEMO-001107;Graz;2026;klein;Bagger;{}
+DEMO-001108;Bagger klein 08;SN-DEMO-001108;Graz;2018;klein;Bagger;{}
+DEMO-001109;Bagger klein 09;SN-DEMO-001109;Graz;2019;klein;Bagger;{}
+DEMO-001110;Bagger klein 10;SN-DEMO-001110;Graz;2020;klein;Bagger;{}
+DEMO-001111;Bagger klein 11;SN-DEMO-001111;Graz;2021;klein;Bagger;{}
+DEMO-001112;Bagger klein 12;SN-DEMO-001112;Graz;2022;klein;Bagger;{}
+DEMO-001113;Bagger klein 13;SN-DEMO-001113;Graz;2023;klein;Bagger;{}
+DEMO-001114;Bagger klein 14;SN-DEMO-001114;Graz;2024;klein;Bagger;{}
+DEMO-001115;Bagger klein 15;SN-DEMO-001115;Graz;2025;klein;Bagger;{}
+DEMO-001116;Bagger klein 16;SN-DEMO-001116;Graz;2026;klein;Bagger;{}
+DEMO-001117;Bagger klein 17;SN-DEMO-001117;Graz;2018;klein;Bagger;{}
+DEMO-001118;Bagger klein 18;SN-DEMO-001118;Graz;2019;klein;Bagger;{}
+DEMO-001119;Bagger klein 19;SN-DEMO-001119;Graz;2020;klein;Bagger;{}
+DEMO-001120;Bagger klein 20;SN-DEMO-001120;Graz;2021;klein;Bagger;{}
+DEMO-001121;Bagger klein 21;SN-DEMO-001121;Graz;2022;klein;Bagger;{}
+DEMO-001122;Bagger klein 22;SN-DEMO-001122;Graz;2023;klein;Bagger;{}
+DEMO-001123;Bagger klein 23;SN-DEMO-001123;Graz;2024;klein;Bagger;{}
+DEMO-001124;Bagger klein 24;SN-DEMO-001124;Graz;2025;klein;Bagger;{}
+DEMO-001125;Bagger klein 25;SN-DEMO-001125;Graz;2026;klein;Bagger;{}
+DEMO-001126;Bagger klein 26;SN-DEMO-001126;Graz;2018;klein;Bagger;{}
+DEMO-001127;Bagger klein 27;SN-DEMO-001127;Graz;2019;klein;Bagger;{}
+DEMO-001128;Bagger klein 28;SN-DEMO-001128;Graz;2020;klein;Bagger;{}
+DEMO-001129;Bagger klein 29;SN-DEMO-001129;Graz;2021;klein;Bagger;{}
+DEMO-001130;Bagger klein 30;SN-DEMO-001130;Graz;2022;klein;Bagger;{}
+DEMO-001131;Bagger klein 31;SN-DEMO-001131;Graz;2023;klein;Bagger;{}
+DEMO-001132;Bagger klein 32;SN-DEMO-001132;Graz;2024;klein;Bagger;{}
+DEMO-001133;Bagger klein 33;SN-DEMO-001133;Graz;2025;klein;Bagger;{}
+DEMO-001134;Bagger klein 34;SN-DEMO-001134;Graz;2026;klein;Bagger;{}
+DEMO-001135;Bagger klein 35;SN-DEMO-001135;Graz;2018;klein;Bagger;{}
+DEMO-001136;Bagger klein 36;SN-DEMO-001136;Graz;2019;klein;Bagger;{}
+DEMO-001137;Bagger klein 37;SN-DEMO-001137;Graz;2020;klein;Bagger;{}
+DEMO-001138;Bagger klein 38;SN-DEMO-001138;Graz;2021;klein;Bagger;{}
+DEMO-001139;Bagger klein 39;SN-DEMO-001139;Graz;2022;klein;Bagger;{}
+DEMO-001140;Bagger klein 40;SN-DEMO-001140;Graz;2023;klein;Bagger;{}
+DEMO-001141;Bagger klein 41;SN-DEMO-001141;Graz;2024;klein;Bagger;{}
+DEMO-001142;Bagger klein 42;SN-DEMO-001142;Graz;2025;klein;Bagger;{}
+DEMO-001143;Bagger klein 43;SN-DEMO-001143;Graz;2026;klein;Bagger;{}
+DEMO-001144;Bagger klein 44;SN-DEMO-001144;Graz;2018;klein;Bagger;{}
+DEMO-001145;Bagger klein 45;SN-DEMO-001145;Graz;2019;klein;Bagger;{}
+DEMO-001146;Bagger klein 46;SN-DEMO-001146;Graz;2020;klein;Bagger;{}
+DEMO-001147;Bagger klein 47;SN-DEMO-001147;Graz;2021;klein;Bagger;{}
+DEMO-001148;Bagger klein 48;SN-DEMO-001148;Graz;2022;klein;Bagger;{}
+DEMO-001149;Bagger klein 49;SN-DEMO-001149;Graz;2023;klein;Bagger;{}
+DEMO-001150;Bagger klein 50;SN-DEMO-001150;Graz;2024;klein;Bagger;{}
+DEMO-001151;Bagger gross 01;SN-DEMO-001151;Graz;2025;gross;Bagger;{}
+DEMO-001152;Bagger gross 02;SN-DEMO-001152;Graz;2026;gross;Bagger;{}
+DEMO-001153;Bagger gross 03;SN-DEMO-001153;Graz;2018;gross;Bagger;{}
+DEMO-001154;Bagger gross 04;SN-DEMO-001154;Graz;2019;gross;Bagger;{}
+DEMO-001155;Bagger gross 05;SN-DEMO-001155;Graz;2020;gross;Bagger;{}
+DEMO-001156;Bagger gross 06;SN-DEMO-001156;Graz;2021;gross;Bagger;{}
+DEMO-001157;Bagger gross 07;SN-DEMO-001157;Graz;2022;gross;Bagger;{}
+DEMO-001158;Bagger gross 08;SN-DEMO-001158;Graz;2023;gross;Bagger;{}
+DEMO-001159;Bagger gross 09;SN-DEMO-001159;Graz;2024;gross;Bagger;{}
+DEMO-001160;Bagger gross 10;SN-DEMO-001160;Graz;2025;gross;Bagger;{}
+DEMO-001161;Bagger gross 11;SN-DEMO-001161;Graz;2026;gross;Bagger;{}
+DEMO-001162;Bagger gross 12;SN-DEMO-001162;Graz;2018;gross;Bagger;{}
+DEMO-001163;Bagger gross 13;SN-DEMO-001163;Graz;2019;gross;Bagger;{}
+DEMO-001164;Bagger gross 14;SN-DEMO-001164;Graz;2020;gross;Bagger;{}
+DEMO-001165;Bagger gross 15;SN-DEMO-001165;Graz;2021;gross;Bagger;{}
+DEMO-001166;Bagger gross 16;SN-DEMO-001166;Graz;2022;gross;Bagger;{}
+DEMO-001167;Bagger gross 17;SN-DEMO-001167;Graz;2023;gross;Bagger;{}
+DEMO-001168;Bagger gross 18;SN-DEMO-001168;Graz;2024;gross;Bagger;{}
+DEMO-001169;Bagger gross 19;SN-DEMO-001169;Graz;2025;gross;Bagger;{}
+DEMO-001170;Bagger gross 20;SN-DEMO-001170;Graz;2026;gross;Bagger;{}
+DEMO-001171;Bagger gross 21;SN-DEMO-001171;Graz;2018;gross;Bagger;{}
+DEMO-001172;Bagger gross 22;SN-DEMO-001172;Graz;2019;gross;Bagger;{}
+DEMO-001173;Bagger gross 23;SN-DEMO-001173;Graz;2020;gross;Bagger;{}
+DEMO-001174;Bagger gross 24;SN-DEMO-001174;Graz;2021;gross;Bagger;{}
+DEMO-001175;Bagger gross 25;SN-DEMO-001175;Graz;2022;gross;Bagger;{}
+DEMO-001176;Bagger gross 26;SN-DEMO-001176;Graz;2023;gross;Bagger;{}
+DEMO-001177;Bagger gross 27;SN-DEMO-001177;Graz;2024;gross;Bagger;{}
+DEMO-001178;Bagger gross 28;SN-DEMO-001178;Graz;2025;gross;Bagger;{}
+DEMO-001179;Bagger gross 29;SN-DEMO-001179;Graz;2026;gross;Bagger;{}
+DEMO-001180;Bagger gross 30;SN-DEMO-001180;Graz;2018;gross;Bagger;{}
+DEMO-001181;Bagger gross 31;SN-DEMO-001181;Graz;2019;gross;Bagger;{}
+DEMO-001182;Bagger gross 32;SN-DEMO-001182;Graz;2020;gross;Bagger;{}
+DEMO-001183;Bagger gross 33;SN-DEMO-001183;Graz;2021;gross;Bagger;{}
+DEMO-001184;Bagger gross 34;SN-DEMO-001184;Graz;2022;gross;Bagger;{}
+DEMO-001185;Bagger gross 35;SN-DEMO-001185;Graz;2023;gross;Bagger;{}
+DEMO-001186;Bagger gross 36;SN-DEMO-001186;Graz;2024;gross;Bagger;{}
+DEMO-001187;Bagger gross 37;SN-DEMO-001187;Graz;2025;gross;Bagger;{}
+DEMO-001188;Bagger gross 38;SN-DEMO-001188;Graz;2026;gross;Bagger;{}
+DEMO-001189;Bagger gross 39;SN-DEMO-001189;Graz;2018;gross;Bagger;{}
+DEMO-001190;Bagger gross 40;SN-DEMO-001190;Graz;2019;gross;Bagger;{}
+DEMO-001191;Bagger gross 41;SN-DEMO-001191;Graz;2020;gross;Bagger;{}
+DEMO-001192;Bagger gross 42;SN-DEMO-001192;Graz;2021;gross;Bagger;{}
+DEMO-001193;Bagger gross 43;SN-DEMO-001193;Graz;2022;gross;Bagger;{}
+DEMO-001194;Bagger gross 44;SN-DEMO-001194;Graz;2023;gross;Bagger;{}
+DEMO-001195;Bagger gross 45;SN-DEMO-001195;Graz;2024;gross;Bagger;{}
+DEMO-001196;Bagger gross 46;SN-DEMO-001196;Graz;2025;gross;Bagger;{}
+DEMO-001197;Bagger gross 47;SN-DEMO-001197;Graz;2026;gross;Bagger;{}
+DEMO-001198;Bagger gross 48;SN-DEMO-001198;Graz;2018;gross;Bagger;{}
+DEMO-001199;Bagger gross 49;SN-DEMO-001199;Graz;2019;gross;Bagger;{}
+DEMO-001200;Bagger gross 50;SN-DEMO-001200;Graz;2020;gross;Bagger;{}
+DEMO-001201;stampfer klein 01;SN-DEMO-001201;Wien;2021;klein;stampfer;{}
+DEMO-001202;stampfer klein 02;SN-DEMO-001202;Wien;2022;klein;stampfer;{}
+DEMO-001203;stampfer klein 03;SN-DEMO-001203;Wien;2023;klein;stampfer;{}
+DEMO-001204;stampfer klein 04;SN-DEMO-001204;Wien;2024;klein;stampfer;{}
+DEMO-001205;stampfer klein 05;SN-DEMO-001205;Wien;2025;klein;stampfer;{}
+DEMO-001206;stampfer klein 06;SN-DEMO-001206;Wien;2026;klein;stampfer;{}
+DEMO-001207;stampfer klein 07;SN-DEMO-001207;Wien;2018;klein;stampfer;{}
+DEMO-001208;stampfer klein 08;SN-DEMO-001208;Wien;2019;klein;stampfer;{}
+DEMO-001209;stampfer klein 09;SN-DEMO-001209;Wien;2020;klein;stampfer;{}
+DEMO-001210;stampfer klein 10;SN-DEMO-001210;Wien;2021;klein;stampfer;{}
+DEMO-001211;stampfer klein 11;SN-DEMO-001211;Wien;2022;klein;stampfer;{}
+DEMO-001212;stampfer klein 12;SN-DEMO-001212;Wien;2023;klein;stampfer;{}
+DEMO-001213;stampfer klein 13;SN-DEMO-001213;Wien;2024;klein;stampfer;{}
+DEMO-001214;stampfer klein 14;SN-DEMO-001214;Wien;2025;klein;stampfer;{}
+DEMO-001215;stampfer klein 15;SN-DEMO-001215;Wien;2026;klein;stampfer;{}
+DEMO-001216;stampfer klein 16;SN-DEMO-001216;Wien;2018;klein;stampfer;{}
+DEMO-001217;stampfer klein 17;SN-DEMO-001217;Wien;2019;klein;stampfer;{}
+DEMO-001218;stampfer klein 18;SN-DEMO-001218;Wien;2020;klein;stampfer;{}
+DEMO-001219;stampfer klein 19;SN-DEMO-001219;Wien;2021;klein;stampfer;{}
+DEMO-001220;stampfer klein 20;SN-DEMO-001220;Wien;2022;klein;stampfer;{}
+DEMO-001221;stampfer klein 21;SN-DEMO-001221;Wien;2023;klein;stampfer;{}
+DEMO-001222;stampfer klein 22;SN-DEMO-001222;Wien;2024;klein;stampfer;{}
+DEMO-001223;stampfer klein 23;SN-DEMO-001223;Wien;2025;klein;stampfer;{}
+DEMO-001224;stampfer klein 24;SN-DEMO-001224;Wien;2026;klein;stampfer;{}
+DEMO-001225;stampfer klein 25;SN-DEMO-001225;Wien;2018;klein;stampfer;{}
+DEMO-001226;stampfer klein 26;SN-DEMO-001226;Wien;2019;klein;stampfer;{}
+DEMO-001227;stampfer klein 27;SN-DEMO-001227;Wien;2020;klein;stampfer;{}
+DEMO-001228;stampfer klein 28;SN-DEMO-001228;Wien;2021;klein;stampfer;{}
+DEMO-001229;stampfer klein 29;SN-DEMO-001229;Wien;2022;klein;stampfer;{}
+DEMO-001230;stampfer klein 30;SN-DEMO-001230;Wien;2023;klein;stampfer;{}
+DEMO-001231;stampfer klein 31;SN-DEMO-001231;Wien;2024;klein;stampfer;{}
+DEMO-001232;stampfer klein 32;SN-DEMO-001232;Wien;2025;klein;stampfer;{}
+DEMO-001233;stampfer klein 33;SN-DEMO-001233;Wien;2026;klein;stampfer;{}
+DEMO-001234;stampfer klein 34;SN-DEMO-001234;Wien;2018;klein;stampfer;{}
+DEMO-001235;stampfer klein 35;SN-DEMO-001235;Wien;2019;klein;stampfer;{}
+DEMO-001236;stampfer klein 36;SN-DEMO-001236;Wien;2020;klein;stampfer;{}
+DEMO-001237;stampfer klein 37;SN-DEMO-001237;Wien;2021;klein;stampfer;{}
+DEMO-001238;stampfer klein 38;SN-DEMO-001238;Wien;2022;klein;stampfer;{}
+DEMO-001239;stampfer klein 39;SN-DEMO-001239;Wien;2023;klein;stampfer;{}
+DEMO-001240;stampfer klein 40;SN-DEMO-001240;Wien;2024;klein;stampfer;{}
+DEMO-001241;stampfer klein 41;SN-DEMO-001241;Wien;2025;klein;stampfer;{}
+DEMO-001242;stampfer klein 42;SN-DEMO-001242;Wien;2026;klein;stampfer;{}
+DEMO-001243;stampfer klein 43;SN-DEMO-001243;Wien;2018;klein;stampfer;{}
+DEMO-001244;stampfer klein 44;SN-DEMO-001244;Wien;2019;klein;stampfer;{}
+DEMO-001245;stampfer klein 45;SN-DEMO-001245;Wien;2020;klein;stampfer;{}
+DEMO-001246;stampfer klein 46;SN-DEMO-001246;Wien;2021;klein;stampfer;{}
+DEMO-001247;stampfer klein 47;SN-DEMO-001247;Wien;2022;klein;stampfer;{}
+DEMO-001248;stampfer klein 48;SN-DEMO-001248;Wien;2023;klein;stampfer;{}
+DEMO-001249;stampfer klein 49;SN-DEMO-001249;Wien;2024;klein;stampfer;{}
+DEMO-001250;stampfer klein 50;SN-DEMO-001250;Wien;2025;klein;stampfer;{}
+DEMO-001251;stampfer gross 01;SN-DEMO-001251;Wien;2026;gross;stampfer;{}
+DEMO-001252;stampfer gross 02;SN-DEMO-001252;Wien;2018;gross;stampfer;{}
+DEMO-001253;stampfer gross 03;SN-DEMO-001253;Wien;2019;gross;stampfer;{}
+DEMO-001254;stampfer gross 04;SN-DEMO-001254;Wien;2020;gross;stampfer;{}
+DEMO-001255;stampfer gross 05;SN-DEMO-001255;Wien;2021;gross;stampfer;{}
+DEMO-001256;stampfer gross 06;SN-DEMO-001256;Wien;2022;gross;stampfer;{}
+DEMO-001257;stampfer gross 07;SN-DEMO-001257;Wien;2023;gross;stampfer;{}
+DEMO-001258;stampfer gross 08;SN-DEMO-001258;Wien;2024;gross;stampfer;{}
+DEMO-001259;stampfer gross 09;SN-DEMO-001259;Wien;2025;gross;stampfer;{}
+DEMO-001260;stampfer gross 10;SN-DEMO-001260;Wien;2026;gross;stampfer;{}
+DEMO-001261;stampfer gross 11;SN-DEMO-001261;Wien;2018;gross;stampfer;{}
+DEMO-001262;stampfer gross 12;SN-DEMO-001262;Wien;2019;gross;stampfer;{}
+DEMO-001263;stampfer gross 13;SN-DEMO-001263;Wien;2020;gross;stampfer;{}
+DEMO-001264;stampfer gross 14;SN-DEMO-001264;Wien;2021;gross;stampfer;{}
+DEMO-001265;stampfer gross 15;SN-DEMO-001265;Wien;2022;gross;stampfer;{}
+DEMO-001266;stampfer gross 16;SN-DEMO-001266;Wien;2023;gross;stampfer;{}
+DEMO-001267;stampfer gross 17;SN-DEMO-001267;Wien;2024;gross;stampfer;{}
+DEMO-001268;stampfer gross 18;SN-DEMO-001268;Wien;2025;gross;stampfer;{}
+DEMO-001269;stampfer gross 19;SN-DEMO-001269;Wien;2026;gross;stampfer;{}
+DEMO-001270;stampfer gross 20;SN-DEMO-001270;Wien;2018;gross;stampfer;{}
+DEMO-001271;stampfer gross 21;SN-DEMO-001271;Wien;2019;gross;stampfer;{}
+DEMO-001272;stampfer gross 22;SN-DEMO-001272;Wien;2020;gross;stampfer;{}
+DEMO-001273;stampfer gross 23;SN-DEMO-001273;Wien;2021;gross;stampfer;{}
+DEMO-001274;stampfer gross 24;SN-DEMO-001274;Wien;2022;gross;stampfer;{}
+DEMO-001275;stampfer gross 25;SN-DEMO-001275;Wien;2023;gross;stampfer;{}
+DEMO-001276;stampfer gross 26;SN-DEMO-001276;Wien;2024;gross;stampfer;{}
+DEMO-001277;stampfer gross 27;SN-DEMO-001277;Wien;2025;gross;stampfer;{}
+DEMO-001278;stampfer gross 28;SN-DEMO-001278;Wien;2026;gross;stampfer;{}
+DEMO-001279;stampfer gross 29;SN-DEMO-001279;Wien;2018;gross;stampfer;{}
+DEMO-001280;stampfer gross 30;SN-DEMO-001280;Wien;2019;gross;stampfer;{}
+DEMO-001281;stampfer gross 31;SN-DEMO-001281;Wien;2020;gross;stampfer;{}
+DEMO-001282;stampfer gross 32;SN-DEMO-001282;Wien;2021;gross;stampfer;{}
+DEMO-001283;stampfer gross 33;SN-DEMO-001283;Wien;2022;gross;stampfer;{}
+DEMO-001284;stampfer gross 34;SN-DEMO-001284;Wien;2023;gross;stampfer;{}
+DEMO-001285;stampfer gross 35;SN-DEMO-001285;Wien;2024;gross;stampfer;{}
+DEMO-001286;stampfer gross 36;SN-DEMO-001286;Wien;2025;gross;stampfer;{}
+DEMO-001287;stampfer gross 37;SN-DEMO-001287;Wien;2026;gross;stampfer;{}
+DEMO-001288;stampfer gross 38;SN-DEMO-001288;Wien;2018;gross;stampfer;{}
+DEMO-001289;stampfer gross 39;SN-DEMO-001289;Wien;2019;gross;stampfer;{}
+DEMO-001290;stampfer gross 40;SN-DEMO-001290;Wien;2020;gross;stampfer;{}
+DEMO-001291;stampfer gross 41;SN-DEMO-001291;Wien;2021;gross;stampfer;{}
+DEMO-001292;stampfer gross 42;SN-DEMO-001292;Wien;2022;gross;stampfer;{}
+DEMO-001293;stampfer gross 43;SN-DEMO-001293;Wien;2023;gross;stampfer;{}
+DEMO-001294;stampfer gross 44;SN-DEMO-001294;Wien;2024;gross;stampfer;{}
+DEMO-001295;stampfer gross 45;SN-DEMO-001295;Wien;2025;gross;stampfer;{}
+DEMO-001296;stampfer gross 46;SN-DEMO-001296;Wien;2026;gross;stampfer;{}
+DEMO-001297;stampfer gross 47;SN-DEMO-001297;Wien;2018;gross;stampfer;{}
+DEMO-001298;stampfer gross 48;SN-DEMO-001298;Wien;2019;gross;stampfer;{}
+DEMO-001299;stampfer gross 49;SN-DEMO-001299;Wien;2020;gross;stampfer;{}
+DEMO-001300;stampfer gross 50;SN-DEMO-001300;Wien;2021;gross;stampfer;{}
+DEMO-001301;Kipplader 3.2 m3 Swivel klein 01;SN-DEMO-001301;Wien;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001302;Kipplader 3.2 m3 Swivel klein 02;SN-DEMO-001302;Wien;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001303;Kipplader 3.2 m3 Swivel klein 03;SN-DEMO-001303;Wien;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001304;Kipplader 3.2 m3 Swivel klein 04;SN-DEMO-001304;Wien;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001305;Kipplader 3.2 m3 Swivel klein 05;SN-DEMO-001305;Wien;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001306;Kipplader 3.2 m3 Swivel klein 06;SN-DEMO-001306;Wien;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001307;Kipplader 3.2 m3 Swivel klein 07;SN-DEMO-001307;Wien;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001308;Kipplader 3.2 m3 Swivel klein 08;SN-DEMO-001308;Wien;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001309;Kipplader 3.2 m3 Swivel klein 09;SN-DEMO-001309;Wien;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001310;Kipplader 3.2 m3 Swivel klein 10;SN-DEMO-001310;Wien;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001311;Kipplader 3.2 m3 Swivel klein 11;SN-DEMO-001311;Wien;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001312;Kipplader 3.2 m3 Swivel klein 12;SN-DEMO-001312;Wien;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001313;Kipplader 3.2 m3 Swivel klein 13;SN-DEMO-001313;Wien;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001314;Kipplader 3.2 m3 Swivel klein 14;SN-DEMO-001314;Wien;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001315;Kipplader 3.2 m3 Swivel klein 15;SN-DEMO-001315;Wien;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001316;Kipplader 3.2 m3 Swivel klein 16;SN-DEMO-001316;Wien;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001317;Kipplader 3.2 m3 Swivel klein 17;SN-DEMO-001317;Wien;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001318;Kipplader 3.2 m3 Swivel klein 18;SN-DEMO-001318;Wien;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001319;Kipplader 3.2 m3 Swivel klein 19;SN-DEMO-001319;Wien;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001320;Kipplader 3.2 m3 Swivel klein 20;SN-DEMO-001320;Wien;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001321;Kipplader 3.2 m3 Swivel klein 21;SN-DEMO-001321;Wien;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001322;Kipplader 3.2 m3 Swivel klein 22;SN-DEMO-001322;Wien;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001323;Kipplader 3.2 m3 Swivel klein 23;SN-DEMO-001323;Wien;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001324;Kipplader 3.2 m3 Swivel klein 24;SN-DEMO-001324;Wien;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001325;Kipplader 3.2 m3 Swivel klein 25;SN-DEMO-001325;Wien;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001326;Kipplader 3.2 m3 Swivel klein 26;SN-DEMO-001326;Wien;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001327;Kipplader 3.2 m3 Swivel klein 27;SN-DEMO-001327;Wien;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001328;Kipplader 3.2 m3 Swivel klein 28;SN-DEMO-001328;Wien;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001329;Kipplader 3.2 m3 Swivel klein 29;SN-DEMO-001329;Wien;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001330;Kipplader 3.2 m3 Swivel klein 30;SN-DEMO-001330;Wien;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001331;Kipplader 3.2 m3 Swivel klein 31;SN-DEMO-001331;Wien;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001332;Kipplader 3.2 m3 Swivel klein 32;SN-DEMO-001332;Wien;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001333;Kipplader 3.2 m3 Swivel klein 33;SN-DEMO-001333;Wien;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001334;Kipplader 3.2 m3 Swivel klein 34;SN-DEMO-001334;Wien;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001335;Kipplader 3.2 m3 Swivel klein 35;SN-DEMO-001335;Wien;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001336;Kipplader 3.2 m3 Swivel klein 36;SN-DEMO-001336;Wien;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001337;Kipplader 3.2 m3 Swivel klein 37;SN-DEMO-001337;Wien;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001338;Kipplader 3.2 m3 Swivel klein 38;SN-DEMO-001338;Wien;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001339;Kipplader 3.2 m3 Swivel klein 39;SN-DEMO-001339;Wien;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001340;Kipplader 3.2 m3 Swivel klein 40;SN-DEMO-001340;Wien;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001341;Kipplader 3.2 m3 Swivel klein 41;SN-DEMO-001341;Wien;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001342;Kipplader 3.2 m3 Swivel klein 42;SN-DEMO-001342;Wien;2018;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001343;Kipplader 3.2 m3 Swivel klein 43;SN-DEMO-001343;Wien;2019;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001344;Kipplader 3.2 m3 Swivel klein 44;SN-DEMO-001344;Wien;2020;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001345;Kipplader 3.2 m3 Swivel klein 45;SN-DEMO-001345;Wien;2021;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001346;Kipplader 3.2 m3 Swivel klein 46;SN-DEMO-001346;Wien;2022;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001347;Kipplader 3.2 m3 Swivel klein 47;SN-DEMO-001347;Wien;2023;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001348;Kipplader 3.2 m3 Swivel klein 48;SN-DEMO-001348;Wien;2024;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001349;Kipplader 3.2 m3 Swivel klein 49;SN-DEMO-001349;Wien;2025;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001350;Kipplader 3.2 m3 Swivel klein 50;SN-DEMO-001350;Wien;2026;klein;Kipplader 3.2 m3 Swivel;{}
+DEMO-001351;Kipplader 3.2 m3 Swivel gross 01;SN-DEMO-001351;Wien;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001352;Kipplader 3.2 m3 Swivel gross 02;SN-DEMO-001352;Wien;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001353;Kipplader 3.2 m3 Swivel gross 03;SN-DEMO-001353;Wien;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001354;Kipplader 3.2 m3 Swivel gross 04;SN-DEMO-001354;Wien;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001355;Kipplader 3.2 m3 Swivel gross 05;SN-DEMO-001355;Wien;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001356;Kipplader 3.2 m3 Swivel gross 06;SN-DEMO-001356;Wien;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001357;Kipplader 3.2 m3 Swivel gross 07;SN-DEMO-001357;Wien;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001358;Kipplader 3.2 m3 Swivel gross 08;SN-DEMO-001358;Wien;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001359;Kipplader 3.2 m3 Swivel gross 09;SN-DEMO-001359;Wien;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001360;Kipplader 3.2 m3 Swivel gross 10;SN-DEMO-001360;Wien;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001361;Kipplader 3.2 m3 Swivel gross 11;SN-DEMO-001361;Wien;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001362;Kipplader 3.2 m3 Swivel gross 12;SN-DEMO-001362;Wien;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001363;Kipplader 3.2 m3 Swivel gross 13;SN-DEMO-001363;Wien;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001364;Kipplader 3.2 m3 Swivel gross 14;SN-DEMO-001364;Wien;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001365;Kipplader 3.2 m3 Swivel gross 15;SN-DEMO-001365;Wien;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001366;Kipplader 3.2 m3 Swivel gross 16;SN-DEMO-001366;Wien;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001367;Kipplader 3.2 m3 Swivel gross 17;SN-DEMO-001367;Wien;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001368;Kipplader 3.2 m3 Swivel gross 18;SN-DEMO-001368;Wien;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001369;Kipplader 3.2 m3 Swivel gross 19;SN-DEMO-001369;Wien;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001370;Kipplader 3.2 m3 Swivel gross 20;SN-DEMO-001370;Wien;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001371;Kipplader 3.2 m3 Swivel gross 21;SN-DEMO-001371;Wien;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001372;Kipplader 3.2 m3 Swivel gross 22;SN-DEMO-001372;Wien;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001373;Kipplader 3.2 m3 Swivel gross 23;SN-DEMO-001373;Wien;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001374;Kipplader 3.2 m3 Swivel gross 24;SN-DEMO-001374;Wien;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001375;Kipplader 3.2 m3 Swivel gross 25;SN-DEMO-001375;Wien;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001376;Kipplader 3.2 m3 Swivel gross 26;SN-DEMO-001376;Wien;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001377;Kipplader 3.2 m3 Swivel gross 27;SN-DEMO-001377;Wien;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001378;Kipplader 3.2 m3 Swivel gross 28;SN-DEMO-001378;Wien;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001379;Kipplader 3.2 m3 Swivel gross 29;SN-DEMO-001379;Wien;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001380;Kipplader 3.2 m3 Swivel gross 30;SN-DEMO-001380;Wien;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001381;Kipplader 3.2 m3 Swivel gross 31;SN-DEMO-001381;Wien;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001382;Kipplader 3.2 m3 Swivel gross 32;SN-DEMO-001382;Wien;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001383;Kipplader 3.2 m3 Swivel gross 33;SN-DEMO-001383;Wien;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001384;Kipplader 3.2 m3 Swivel gross 34;SN-DEMO-001384;Wien;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001385;Kipplader 3.2 m3 Swivel gross 35;SN-DEMO-001385;Wien;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001386;Kipplader 3.2 m3 Swivel gross 36;SN-DEMO-001386;Wien;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001387;Kipplader 3.2 m3 Swivel gross 37;SN-DEMO-001387;Wien;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001388;Kipplader 3.2 m3 Swivel gross 38;SN-DEMO-001388;Wien;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001389;Kipplader 3.2 m3 Swivel gross 39;SN-DEMO-001389;Wien;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001390;Kipplader 3.2 m3 Swivel gross 40;SN-DEMO-001390;Wien;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001391;Kipplader 3.2 m3 Swivel gross 41;SN-DEMO-001391;Wien;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001392;Kipplader 3.2 m3 Swivel gross 42;SN-DEMO-001392;Wien;2023;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001393;Kipplader 3.2 m3 Swivel gross 43;SN-DEMO-001393;Wien;2024;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001394;Kipplader 3.2 m3 Swivel gross 44;SN-DEMO-001394;Wien;2025;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001395;Kipplader 3.2 m3 Swivel gross 45;SN-DEMO-001395;Wien;2026;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001396;Kipplader 3.2 m3 Swivel gross 46;SN-DEMO-001396;Wien;2018;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001397;Kipplader 3.2 m3 Swivel gross 47;SN-DEMO-001397;Wien;2019;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001398;Kipplader 3.2 m3 Swivel gross 48;SN-DEMO-001398;Wien;2020;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001399;Kipplader 3.2 m3 Swivel gross 49;SN-DEMO-001399;Wien;2021;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001400;Kipplader 3.2 m3 Swivel gross 50;SN-DEMO-001400;Wien;2022;gross;Kipplader 3.2 m3 Swivel;{}
+DEMO-001401;Bagger klein 01;SN-DEMO-001401;Wien;2023;klein;Bagger;{}
+DEMO-001402;Bagger klein 02;SN-DEMO-001402;Wien;2024;klein;Bagger;{}
+DEMO-001403;Bagger klein 03;SN-DEMO-001403;Wien;2025;klein;Bagger;{}
+DEMO-001404;Bagger klein 04;SN-DEMO-001404;Wien;2026;klein;Bagger;{}
+DEMO-001405;Bagger klein 05;SN-DEMO-001405;Wien;2018;klein;Bagger;{}
+DEMO-001406;Bagger klein 06;SN-DEMO-001406;Wien;2019;klein;Bagger;{}
+DEMO-001407;Bagger klein 07;SN-DEMO-001407;Wien;2020;klein;Bagger;{}
+DEMO-001408;Bagger klein 08;SN-DEMO-001408;Wien;2021;klein;Bagger;{}
+DEMO-001409;Bagger klein 09;SN-DEMO-001409;Wien;2022;klein;Bagger;{}
+DEMO-001410;Bagger klein 10;SN-DEMO-001410;Wien;2023;klein;Bagger;{}
+DEMO-001411;Bagger klein 11;SN-DEMO-001411;Wien;2024;klein;Bagger;{}
+DEMO-001412;Bagger klein 12;SN-DEMO-001412;Wien;2025;klein;Bagger;{}
+DEMO-001413;Bagger klein 13;SN-DEMO-001413;Wien;2026;klein;Bagger;{}
+DEMO-001414;Bagger klein 14;SN-DEMO-001414;Wien;2018;klein;Bagger;{}
+DEMO-001415;Bagger klein 15;SN-DEMO-001415;Wien;2019;klein;Bagger;{}
+DEMO-001416;Bagger klein 16;SN-DEMO-001416;Wien;2020;klein;Bagger;{}
+DEMO-001417;Bagger klein 17;SN-DEMO-001417;Wien;2021;klein;Bagger;{}
+DEMO-001418;Bagger klein 18;SN-DEMO-001418;Wien;2022;klein;Bagger;{}
+DEMO-001419;Bagger klein 19;SN-DEMO-001419;Wien;2023;klein;Bagger;{}
+DEMO-001420;Bagger klein 20;SN-DEMO-001420;Wien;2024;klein;Bagger;{}
+DEMO-001421;Bagger klein 21;SN-DEMO-001421;Wien;2025;klein;Bagger;{}
+DEMO-001422;Bagger klein 22;SN-DEMO-001422;Wien;2026;klein;Bagger;{}
+DEMO-001423;Bagger klein 23;SN-DEMO-001423;Wien;2018;klein;Bagger;{}
+DEMO-001424;Bagger klein 24;SN-DEMO-001424;Wien;2019;klein;Bagger;{}
+DEMO-001425;Bagger klein 25;SN-DEMO-001425;Wien;2020;klein;Bagger;{}
+DEMO-001426;Bagger klein 26;SN-DEMO-001426;Wien;2021;klein;Bagger;{}
+DEMO-001427;Bagger klein 27;SN-DEMO-001427;Wien;2022;klein;Bagger;{}
+DEMO-001428;Bagger klein 28;SN-DEMO-001428;Wien;2023;klein;Bagger;{}
+DEMO-001429;Bagger klein 29;SN-DEMO-001429;Wien;2024;klein;Bagger;{}
+DEMO-001430;Bagger klein 30;SN-DEMO-001430;Wien;2025;klein;Bagger;{}
+DEMO-001431;Bagger klein 31;SN-DEMO-001431;Wien;2026;klein;Bagger;{}
+DEMO-001432;Bagger klein 32;SN-DEMO-001432;Wien;2018;klein;Bagger;{}
+DEMO-001433;Bagger klein 33;SN-DEMO-001433;Wien;2019;klein;Bagger;{}
+DEMO-001434;Bagger klein 34;SN-DEMO-001434;Wien;2020;klein;Bagger;{}
+DEMO-001435;Bagger klein 35;SN-DEMO-001435;Wien;2021;klein;Bagger;{}
+DEMO-001436;Bagger klein 36;SN-DEMO-001436;Wien;2022;klein;Bagger;{}
+DEMO-001437;Bagger klein 37;SN-DEMO-001437;Wien;2023;klein;Bagger;{}
+DEMO-001438;Bagger klein 38;SN-DEMO-001438;Wien;2024;klein;Bagger;{}
+DEMO-001439;Bagger klein 39;SN-DEMO-001439;Wien;2025;klein;Bagger;{}
+DEMO-001440;Bagger klein 40;SN-DEMO-001440;Wien;2026;klein;Bagger;{}
+DEMO-001441;Bagger klein 41;SN-DEMO-001441;Wien;2018;klein;Bagger;{}
+DEMO-001442;Bagger klein 42;SN-DEMO-001442;Wien;2019;klein;Bagger;{}
+DEMO-001443;Bagger klein 43;SN-DEMO-001443;Wien;2020;klein;Bagger;{}
+DEMO-001444;Bagger klein 44;SN-DEMO-001444;Wien;2021;klein;Bagger;{}
+DEMO-001445;Bagger klein 45;SN-DEMO-001445;Wien;2022;klein;Bagger;{}
+DEMO-001446;Bagger klein 46;SN-DEMO-001446;Wien;2023;klein;Bagger;{}
+DEMO-001447;Bagger klein 47;SN-DEMO-001447;Wien;2024;klein;Bagger;{}
+DEMO-001448;Bagger klein 48;SN-DEMO-001448;Wien;2025;klein;Bagger;{}
+DEMO-001449;Bagger klein 49;SN-DEMO-001449;Wien;2026;klein;Bagger;{}
+DEMO-001450;Bagger klein 50;SN-DEMO-001450;Wien;2018;klein;Bagger;{}
+DEMO-001451;Bagger gross 01;SN-DEMO-001451;Wien;2019;gross;Bagger;{}
+DEMO-001452;Bagger gross 02;SN-DEMO-001452;Wien;2020;gross;Bagger;{}
+DEMO-001453;Bagger gross 03;SN-DEMO-001453;Wien;2021;gross;Bagger;{}
+DEMO-001454;Bagger gross 04;SN-DEMO-001454;Wien;2022;gross;Bagger;{}
+DEMO-001455;Bagger gross 05;SN-DEMO-001455;Wien;2023;gross;Bagger;{}
+DEMO-001456;Bagger gross 06;SN-DEMO-001456;Wien;2024;gross;Bagger;{}
+DEMO-001457;Bagger gross 07;SN-DEMO-001457;Wien;2025;gross;Bagger;{}
+DEMO-001458;Bagger gross 08;SN-DEMO-001458;Wien;2026;gross;Bagger;{}
+DEMO-001459;Bagger gross 09;SN-DEMO-001459;Wien;2018;gross;Bagger;{}
+DEMO-001460;Bagger gross 10;SN-DEMO-001460;Wien;2019;gross;Bagger;{}
+DEMO-001461;Bagger gross 11;SN-DEMO-001461;Wien;2020;gross;Bagger;{}
+DEMO-001462;Bagger gross 12;SN-DEMO-001462;Wien;2021;gross;Bagger;{}
+DEMO-001463;Bagger gross 13;SN-DEMO-001463;Wien;2022;gross;Bagger;{}
+DEMO-001464;Bagger gross 14;SN-DEMO-001464;Wien;2023;gross;Bagger;{}
+DEMO-001465;Bagger gross 15;SN-DEMO-001465;Wien;2024;gross;Bagger;{}
+DEMO-001466;Bagger gross 16;SN-DEMO-001466;Wien;2025;gross;Bagger;{}
+DEMO-001467;Bagger gross 17;SN-DEMO-001467;Wien;2026;gross;Bagger;{}
+DEMO-001468;Bagger gross 18;SN-DEMO-001468;Wien;2018;gross;Bagger;{}
+DEMO-001469;Bagger gross 19;SN-DEMO-001469;Wien;2019;gross;Bagger;{}
+DEMO-001470;Bagger gross 20;SN-DEMO-001470;Wien;2020;gross;Bagger;{}
+DEMO-001471;Bagger gross 21;SN-DEMO-001471;Wien;2021;gross;Bagger;{}
+DEMO-001472;Bagger gross 22;SN-DEMO-001472;Wien;2022;gross;Bagger;{}
+DEMO-001473;Bagger gross 23;SN-DEMO-001473;Wien;2023;gross;Bagger;{}
+DEMO-001474;Bagger gross 24;SN-DEMO-001474;Wien;2024;gross;Bagger;{}
+DEMO-001475;Bagger gross 25;SN-DEMO-001475;Wien;2025;gross;Bagger;{}
+DEMO-001476;Bagger gross 26;SN-DEMO-001476;Wien;2026;gross;Bagger;{}
+DEMO-001477;Bagger gross 27;SN-DEMO-001477;Wien;2018;gross;Bagger;{}
+DEMO-001478;Bagger gross 28;SN-DEMO-001478;Wien;2019;gross;Bagger;{}
+DEMO-001479;Bagger gross 29;SN-DEMO-001479;Wien;2020;gross;Bagger;{}
+DEMO-001480;Bagger gross 30;SN-DEMO-001480;Wien;2021;gross;Bagger;{}
+DEMO-001481;Bagger gross 31;SN-DEMO-001481;Wien;2022;gross;Bagger;{}
+DEMO-001482;Bagger gross 32;SN-DEMO-001482;Wien;2023;gross;Bagger;{}
+DEMO-001483;Bagger gross 33;SN-DEMO-001483;Wien;2024;gross;Bagger;{}
+DEMO-001484;Bagger gross 34;SN-DEMO-001484;Wien;2025;gross;Bagger;{}
+DEMO-001485;Bagger gross 35;SN-DEMO-001485;Wien;2026;gross;Bagger;{}
+DEMO-001486;Bagger gross 36;SN-DEMO-001486;Wien;2018;gross;Bagger;{}
+DEMO-001487;Bagger gross 37;SN-DEMO-001487;Wien;2019;gross;Bagger;{}
+DEMO-001488;Bagger gross 38;SN-DEMO-001488;Wien;2020;gross;Bagger;{}
+DEMO-001489;Bagger gross 39;SN-DEMO-001489;Wien;2021;gross;Bagger;{}
+DEMO-001490;Bagger gross 40;SN-DEMO-001490;Wien;2022;gross;Bagger;{}
+DEMO-001491;Bagger gross 41;SN-DEMO-001491;Wien;2023;gross;Bagger;{}
+DEMO-001492;Bagger gross 42;SN-DEMO-001492;Wien;2024;gross;Bagger;{}
+DEMO-001493;Bagger gross 43;SN-DEMO-001493;Wien;2025;gross;Bagger;{}
+DEMO-001494;Bagger gross 44;SN-DEMO-001494;Wien;2026;gross;Bagger;{}
+DEMO-001495;Bagger gross 45;SN-DEMO-001495;Wien;2018;gross;Bagger;{}
+DEMO-001496;Bagger gross 46;SN-DEMO-001496;Wien;2019;gross;Bagger;{}
+DEMO-001497;Bagger gross 47;SN-DEMO-001497;Wien;2020;gross;Bagger;{}
+DEMO-001498;Bagger gross 48;SN-DEMO-001498;Wien;2021;gross;Bagger;{}
+DEMO-001499;Bagger gross 49;SN-DEMO-001499;Wien;2022;gross;Bagger;{}
+DEMO-001500;Bagger gross 50;SN-DEMO-001500;Wien;2023;gross;Bagger;{}

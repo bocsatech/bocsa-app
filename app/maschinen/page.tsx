@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
+import GermanDateField from "../components/GermanDateField";
 import MachineList from "../components/MachineList";
 import QrScannerModal from "../components/QrScannerModal";
 import {
@@ -11,8 +12,10 @@ import {
   fetchMachines,
   GERAETTYP_OPTIONS,
   MACHINE_FORM_FIELDS,
+  parseOptionalNumber,
+  sanitizeNumericFieldInput,
   resolveMachineFromScan,
-  toIsoDateString,
+  normalizeGermanDate,
 } from "../../lib/machines";
 import { supabase } from "../../lib/supabase";
 import type { Machine } from "../../lib/types/machine";
@@ -81,6 +84,29 @@ function MaschinenPageContent() {
       ...(geraetenummer ? { geraetenummer } : {}),
     }));
   }, [searchParams]);
+
+  function clearMaschinenAktion() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("aktion");
+    const query = params.toString();
+    router.replace(query ? `/maschinen?${query}` : "/maschinen");
+  }
+
+  useEffect(() => {
+    const aktion = searchParams.get("aktion");
+    if (aktion === "hinzufuegen") {
+      setAddOpen(canWriteMachines);
+      setQrOpen(false);
+      return;
+    }
+    if (aktion === "qr") {
+      setQrOpen(true);
+      setAddOpen(false);
+      return;
+    }
+    setQrOpen(false);
+    setAddOpen(false);
+  }, [searchParams, canWriteMachines]);
 
   useEffect(() => {
     async function loadPermissions() {
@@ -199,9 +225,12 @@ function MaschinenPageContent() {
       if (!value) {
         continue;
       } else if (field.type === "number") {
-        payload[String(field.key)] = Number(value);
+        const num = parseOptionalNumber(value);
+        if (num === null) continue;
+        payload[String(field.key)] = num;
       } else if (field.type === "date") {
-        payload[String(field.key)] = toIsoDateString(value) || value;
+        payload[String(field.key)] = normalizeGermanDate(value);
+        if (!payload[String(field.key)]) continue;
       } else {
         payload[String(field.key)] = value;
       }
@@ -224,22 +253,7 @@ function MaschinenPageContent() {
   }
 
   return (
-    <AppPageShell
-      activeHref="/maschinen"
-      top={
-        <header className="pageHeader compactPageHeader">
-          <button
-            type="button"
-            className="pillButton primary"
-            onClick={() => setAddOpen(true)}
-            disabled={!canWriteMachines}
-            title={!canWriteMachines ? "Keine Berechtigung: machines.write erforderlich." : undefined}
-          >
-            Maschine hinzufügen
-          </button>
-        </header>
-      }
-    >
+    <AppPageShell activeHref="/maschinen">
         {loading ? (
           <div className="welcomeCard">
             <h1>Laden…</h1>
@@ -320,13 +334,6 @@ function MaschinenPageContent() {
               >
                 Zurücksetzen
               </button>
-              <button
-                type="button"
-                className="pillButton primary"
-                onClick={() => setQrOpen(true)}
-              >
-                QR-Code scannen
-              </button>
             </div>
 
             {scanHint ? (
@@ -341,7 +348,10 @@ function MaschinenPageContent() {
 
       <QrScannerModal
         open={qrOpen}
-        onClose={() => setQrOpen(false)}
+        onClose={() => {
+          setQrOpen(false);
+          if (searchParams.get("aktion") === "qr") clearMaschinenAktion();
+        }}
         onScan={handleScan}
       />
 
@@ -353,7 +363,14 @@ function MaschinenPageContent() {
                 <p className="cardTitle">Maschine hinzufügen</p>
                 <p className="subtitle">Alle Maschinendaten erfassen.</p>
               </div>
-              <button type="button" className="pillButton outline" onClick={() => setAddOpen(false)}>
+              <button
+                type="button"
+                className="pillButton outline"
+                onClick={() => {
+                  setAddOpen(false);
+                  if (searchParams.get("aktion") === "hinzufuegen") clearMaschinenAktion();
+                }}
+              >
                 Schließen
               </button>
             </div>
@@ -364,17 +381,32 @@ function MaschinenPageContent() {
               {MACHINE_FORM_FIELDS.map((field) => (
                 <label key={String(field.key)} className="protocolField">
                   <span>{field.label}</span>
-                  <input
-                    type={field.type === "date" ? "text" : field.type ?? "text"}
-                    value={machineForm[String(field.key)] ?? ""}
-                    onChange={(event) =>
-                      setMachineForm((current) => ({
-                        ...current,
-                        [String(field.key)]: event.target.value,
-                      }))
-                    }
-                    placeholder={field.type === "date" ? "TT.MM.JJJJ" : undefined}
-                  />
+                  {field.type === "date" ? (
+                    <GermanDateField
+                      value={machineForm[String(field.key)] ?? ""}
+                      onChange={(next) =>
+                        setMachineForm((current) => ({
+                          ...current,
+                          [String(field.key)]: next,
+                        }))
+                      }
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      inputMode={field.type === "number" ? "decimal" : undefined}
+                      value={machineForm[String(field.key)] ?? ""}
+                      onChange={(event) =>
+                        setMachineForm((current) => ({
+                          ...current,
+                          [String(field.key)]:
+                            field.type === "number"
+                              ? sanitizeNumericFieldInput(event.target.value)
+                              : event.target.value,
+                        }))
+                      }
+                    />
+                  )}
                 </label>
               ))}
             </div>

@@ -10,6 +10,7 @@
     "export:maschines": "node scripts/export-maschines-csv.mjs",
     "import:maschines": "node scripts/import-maschines-csv.mjs",
     "generate:qr": "node scripts/generate-maschines-qr-codes.mjs",
+    "generate:lager-qr": "node scripts/generate-lager-qr-codes.mjs",
     "import:lager": "node scripts/import-lager-excel.mjs",
     "clear:lager": "node scripts/clear-lager.mjs --all",
     "clear:lager:catalog": "node scripts/clear-lager.mjs --prefix catalog",

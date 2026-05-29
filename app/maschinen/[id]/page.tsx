@@ -2,27 +2,51 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import DocumentationDocumentRow from "../../components/DocumentationDocumentRow";
 import AppPageShell from "../../components/AppPageShell";
+import GermanDateField from "../../components/GermanDateField";
 import MaintenanceLagerParts from "../../components/MaintenanceLagerParts";
+import MachineDetailPrintPreview from "../../components/MachineDetailPrintPreview";
+import MachineHeroMedia from "../../components/MachineHeroMedia";
 import MachineStatusIndicators from "../../components/MachineStatusIndicators";
+import MachineWorkOrdersTable from "../../components/MachineWorkOrdersTable";
 import {
+  buildStammdatenPatch,
   fetchMachineById,
   formatDate,
   formatValue,
   GERAETTYP_OPTIONS,
   hasValue,
   machineToStammdatenFields,
+  sanitizeNumericFieldInput,
   updateMachine,
 } from "../../../lib/machines";
 import type { MachineRecord } from "../../../lib/machines";
 import type { Machine } from "../../../lib/types/machine";
 import type { StammdatenField } from "../../../lib/machines";
 import { stripWorkOrdersFromTabData } from "../../../lib/machine-tab-data";
-import { formatOrderType, getWorkOrders } from "../../../lib/work-orders";
+import { getWorkOrders } from "../../../lib/work-orders";
 
 const ARBEITSAUFTRAG_TYPES = ["Service", "Check", "Reparatur"] as const;
+
+function PrinterIcon() {
+  return (
+    <svg
+      className="pillButtonIcon"
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      aria-hidden
+      focusable="false"
+    >
+      <path
+        fill="currentColor"
+        d="M18 7H6V4h12v3zm3 3v8h-2v3H5v-3H3v-8a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4h1a2 2 0 0 1 2 2zm-2 8v-4H5v4h14zM7 15h2v2H7v-2zm8-10H9v2h6V5z"
+      />
+    </svg>
+  );
+}
 
 const tabs = [
   "Stammdaten",
@@ -33,7 +57,6 @@ const tabs = [
   "Wartungstabelle",
   "Dokumentation",
   "Zubehör",
-  "Dokumente",
 ];
 
 const tabContent = {
@@ -45,7 +68,6 @@ const tabContent = {
   Wartungstabelle: "Karbantartási táblázat és ütemezés.",
   Dokumentation: "Dokumentumok és leírások gyűjteménye.",
   Zubehör: "További kiegészítők és alkatrészek.",
-  Dokumente: "Letöltések és hivatalos dokumentumok.",
 };
 
 const initialMotorData = {
@@ -184,6 +206,7 @@ export default function MaschineDetailPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDocument, setUploadingDocument] = useState<MachineDocumentType | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
   const [stammdatenForm, setStammdatenForm] = useState<StammdatenField[]>([]);
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [note, setNote] = useState("");
@@ -193,9 +216,28 @@ export default function MaschineDetailPage() {
   const [attachmentData, setAttachmentData] = useState(initialAttachmentData);
   const [maintenanceData, setMaintenanceData] = useState(initialMaintenanceData);
   const [documentationData, setDocumentationData] = useState(initialDocumentationData);
+  const auftragNrBackfillDone = useRef(false);
   const visibleStammdatenForm = isEditing
     ? stammdatenForm
     : stammdatenForm.filter((field) => hasValue(field.value));
+
+  const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
+
+  const stammdatenRowsForDisplay = (() => {
+    let rows = visibleStammdatenForm.filter((field) => field.dbKey !== "bezeichnung");
+    if (isEditing && bezeichnungStammdaten) {
+      const geraeteIndex = rows.findIndex((field) => field.dbKey === "geraetenummer");
+      const insertAt = geraeteIndex >= 0 ? geraeteIndex + 1 : 0;
+      rows = [
+        ...rows.slice(0, insertAt),
+        bezeichnungStammdaten,
+        ...rows.slice(insertAt),
+      ];
+    }
+    const meldung = rows.filter((field) => field.dbKey === "meldung_status");
+    const rest = rows.filter((field) => field.dbKey !== "meldung_status");
+    return [...rest, ...meldung];
+  })();
 
   const loadMachine = useCallback(async () => {
     setLoading(true);
@@ -216,6 +258,36 @@ export default function MaschineDetailPage() {
   useEffect(() => {
     loadMachine();
   }, [loadMachine]);
+
+  useEffect(() => {
+    auftragNrBackfillDone.current = false;
+  }, [machineId]);
+
+  useEffect(() => {
+    if (!machine || !canWriteMachines || auftragNrBackfillDone.current) return;
+
+    const orders = getWorkOrders(machine);
+    if (orders.length === 0) return;
+    if (orders.every((order) => order.auftragNr?.trim())) return;
+
+    auftragNrBackfillDone.current = true;
+
+    fetch("/api/arbeitsauftrag/backfill-nr", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ machineId: machine.id }),
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((result) => {
+        if (result && typeof result.assigned === "number" && result.assigned > 0) {
+          loadMachine();
+        }
+      })
+      .catch(() => {
+        auftragNrBackfillDone.current = false;
+      });
+  }, [machine, canWriteMachines, loadMachine]);
 
   useEffect(() => {
     async function loadPermissions() {
@@ -281,17 +353,12 @@ export default function MaschineDetailPage() {
     setSaving(true);
     setSaveError(null);
 
-    const patch: Record<string, unknown> = {};
-    for (const field of stammdatenForm) {
-      if (field.dbKey) {
-        const value = field.value.trim();
-        if (value || field.dbKey in machine) {
-          patch[field.dbKey] = value || null;
-        }
-      }
-    }
+    const stammdatenPatch = buildStammdatenPatch(machine, stammdatenForm);
+    const patch: Record<string, unknown> = { ...stammdatenPatch };
     patch.machine_tab_data = stripWorkOrdersFromTabData({
       ...(machine.machine_tab_data ?? {}),
+      ...((stammdatenPatch.machine_tab_data as Record<string, unknown> | undefined) ??
+        {}),
       ...buildTabData(),
     });
 
@@ -306,10 +373,6 @@ export default function MaschineDetailPage() {
     }
 
     setSaving(false);
-  }
-
-  async function handleStammdatenSave() {
-    await handleMachineSave();
   }
 
   function updateStammdatenField(index: number, value: string) {
@@ -420,19 +483,74 @@ export default function MaschineDetailPage() {
             <h1>Maschinen Daten</h1>
             <div className="detailTopActions">
               <Link className="pillButton outline" href="/maschinen">
-                Abbrechen
+                Zur Maschinenliste
               </Link>
+              <label className="workStatusSelect workStatusSelectCompact">
+                <span>Arbeitsauftrag</span>
+                <select
+                  defaultValue=""
+                  aria-label="Arbeitsauftrag: Service, Check oder Reparatur"
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (
+                      value === "Service" ||
+                      value === "Check" ||
+                      value === "Reparatur"
+                    ) {
+                      openArbeitsauftrag(value);
+                      event.target.value = "";
+                    }
+                  }}
+                >
+                  <option value="" disabled>
+                    — wählen —
+                  </option>
+                  {ARBEITSAUFTRAG_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="pillButton outline"
+                onClick={() => {
+                  if (!canWriteMachines) {
+                    setSaveError("Keine Berechtigung: machines.write erforderlich.");
+                    return;
+                  }
+                  setIsEditing((value) => !value);
+                }}
+                disabled={!canWriteMachines}
+                title={
+                  !canWriteMachines
+                    ? "Keine Berechtigung: machines.write erforderlich."
+                    : undefined
+                }
+              >
+                {isEditing ? "Bearbeitung beenden" : "Bearbeiten"}
+              </button>
               <Link
                 className="pillButton outline"
                 href={`/pruefprotokoll/form?machineId=${encodeURIComponent(machineId)}`}
               >
                 Prüfprotokoll §11
               </Link>
-              <button type="button" className="pillButton outline">
-                Dokumente
+              <button
+                type="button"
+                className="pillButton outline"
+                onClick={() => setPrintPreviewOpen(true)}
+              >
+                Druckvorschau
               </button>
-              <button type="button" className="pillButton outline">
-                Zuordnen
+              <button
+                type="button"
+                className="pillButton outline"
+                onClick={() => window.print()}
+              >
+                <PrinterIcon />
+                Drucken
               </button>
               <button
                 type="button"
@@ -461,110 +579,6 @@ export default function MaschineDetailPage() {
         </div>
       ) : (
         <div className="machineDetailBody">
-            <header className="machineHero">
-              <div className="machineHeroInfo">
-                <span className="badge">Maschine</span>
-                <h1>{formatValue(machine.geraetenummer)}</h1>
-                {hasValue(machine.bezeichnung) ? (
-                  <p className="machineHeroName">{formatValue(machine.bezeichnung)}</p>
-                ) : null}
-                {hasValue(machine.serial_number) ? (
-                  <p className="machineHeroMeta">SN {formatValue(machine.serial_number)}</p>
-                ) : null}
-                {hasValue(machine.depot) ? (
-                  <p className="machineHeroMeta">Depot {formatValue(machine.depot)}</p>
-                ) : null}
-              </div>
-
-              <div className="machineHeroMedia">
-                <div className="machineImagePanel">
-                  <div className={`machineImageSlot ${machine.image ? "hasMachineImage" : ""}`}>
-                    {machine.image ? (
-                      <img className="machineImagePreview" src={machine.image} alt="Maschinenbild" />
-                    ) : (
-                      <span>Maschinenbild</span>
-                    )}
-                  </div>
-                  {canUploadImages && isEditing ? (
-                    <label className="pillButton outline machineImageUploadInline">
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={handleImageUpload}
-                        disabled={uploadingImage}
-                      />
-                      {uploadingImage ? "Wird hochgeladen..." : "Bild ändern"}
-                    </label>
-                  ) : null}
-                </div>
-                <div
-                  className={`machineQrSlot ${machine.qr_code ? "hasQrImage machineQrLabeled" : ""}`}
-                >
-                  {machine.qr_code ? (
-                    <img
-                      className="machineQrImage"
-                      src={machine.qr_code}
-                      alt={`QR Code ${formatValue(machine.geraetenummer)}`}
-                    />
-                  ) : (
-                    <div className="qrPlaceholder">
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                  )}
-                  {!machine.qr_code ? <p>QR Code</p> : null}
-                </div>
-              </div>
-              <div className="machineHeroActions">
-                <Link className="backButton machineActionButton" href="/maschinen">
-                  Zur Maschinenliste
-                </Link>
-                <label className="workStatusSelect machineActionButton">
-                  <span>Arbeitsauftrag</span>
-                  <select
-                    defaultValue=""
-                    aria-label="Arbeitsauftrag: Service, Check oder Reparatur"
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      if (
-                        value === "Service" ||
-                        value === "Check" ||
-                        value === "Reparatur"
-                      ) {
-                        openArbeitsauftrag(value);
-                        event.target.value = "";
-                      }
-                    }}
-                  >
-                    <option value="" disabled>
-                      — wählen —
-                    </option>
-                    {ARBEITSAUFTRAG_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  type="button"
-                  className="pillButton outline machineActionButton"
-                  onClick={() => {
-                    if (!canWriteMachines) {
-                      setSaveError("Keine Berechtigung: machines.write erforderlich.");
-                      return;
-                    }
-                    setIsEditing((value) => !value);
-                  }}
-                  disabled={!canWriteMachines}
-                  title={!canWriteMachines ? "Keine Berechtigung: machines.write erforderlich." : undefined}
-                >
-                  {isEditing ? "Bearbeitung beenden" : "Bearbeiten"}
-                </button>
-              </div>
-            </header>
         <div className="tabSection">
           <div className="tabList">
             {tabs.map((tab) => (
@@ -580,16 +594,39 @@ export default function MaschineDetailPage() {
           </div>
 
           <div className={`tabPanel ${isEditing ? "" : "readOnlyPanel"}`}>
-            <h2>{activeTab}</h2>
+            {activeTab !== "Stammdaten" ? <h2>{activeTab}</h2> : null}
             {activeTab === "Stammdaten" ? (
-              <>
-                <div className="fieldGrid">
-                  {visibleStammdatenForm.map((field) => {
+              <div className="stammdatenPanelLayout">
+                <div className="stammdatenPanelMain">
+                <div className="fieldGrid stammdatenStacked">
+                  {stammdatenRowsForDisplay.map((field) => {
                     const index = stammdatenForm.findIndex((item) => item.label === field.label);
                     return (
                     <div key={field.label} className="fieldRow">
                       <span>{field.label}</span>
-                      {field.dbKey === "meldung_status" ? (
+                      {field.dbKey === "geraetenummer" ? (
+                        isEditing ? (
+                          <input
+                            type="text"
+                            value={field.value}
+                            readOnly={!canWriteMachines}
+                            onChange={(e) =>
+                              updateStammdatenField(index, e.target.value)
+                            }
+                            placeholder="Gerätenummer"
+                          />
+                        ) : (
+                          <span className="fieldRowCombinedValue">
+                            {field.value}
+                            {hasValue(bezeichnungStammdaten?.value) ? (
+                              <>
+                                {" "}
+                                — {bezeichnungStammdaten?.value}
+                              </>
+                            ) : null}
+                          </span>
+                        )
+                      ) : field.dbKey === "meldung_status" ? (
                         <strong
                           className={
                             field.value.toLowerCase().includes("vorhanden")
@@ -615,27 +652,46 @@ export default function MaschineDetailPage() {
                           ))}
                         </select>
                       ) : field.dbKey === "damage_status" ? (
-                        <select
-                          className={`statusSelect ${statusClassName(field.value)}`}
+                        !isEditing ? (
+                          <strong
+                            className={`geraetstatusValue ${statusClassName(field.value)}`}
+                          >
+                            {field.value || "—"}
+                          </strong>
+                        ) : (
+                          <select
+                            className={`statusSelect ${statusClassName(field.value)}`}
+                            value={field.value}
+                            onChange={(e) =>
+                              updateStammdatenField(index, e.target.value)
+                            }
+                          >
+                            <option value="">Gerätstatus</option>
+                            <option value="Fertig">Fertig</option>
+                            <option value="In Reperatur">In Reperatur</option>
+                          </select>
+                        )
+                      ) : field.type === "date" ? (
+                        <GermanDateField
                           value={field.value}
-                          disabled={!isEditing}
-                          onChange={(e) =>
-                            updateStammdatenField(index, e.target.value)
-                          }
-                        >
-                          <option value="">Gerätstatus</option>
-                          <option value="Fertig">Fertig</option>
-                          <option value="In Reperatur">In Reperatur</option>
-                        </select>
+                          readOnly={!isEditing}
+                          onChange={(next) => updateStammdatenField(index, next)}
+                        />
                       ) : field.dbKey ? (
                         <input
-                          type={field.type === "date" ? "text" : field.type ?? "text"}
+                          type="text"
+                          inputMode={field.type === "number" ? "decimal" : undefined}
                           value={field.value}
                           readOnly={!isEditing}
                           onChange={(e) =>
-                            updateStammdatenField(index, e.target.value)
+                            updateStammdatenField(
+                              index,
+                              field.type === "number"
+                                ? sanitizeNumericFieldInput(e.target.value)
+                                : e.target.value
+                            )
                           }
-                          placeholder={field.type === "date" ? "TT.MM.JJJJ" : field.label}
+                          placeholder={field.label}
                         />
                       ) : (
                         <input
@@ -655,23 +711,25 @@ export default function MaschineDetailPage() {
                 {saveError ? (
                   <p style={{ color: "#dc2626" }}>{saveError}</p>
                 ) : null}
-                <div className="actionGroup">
-                  <button
-                    className="pillButton primary"
-                    type="button"
-                    onClick={handleStammdatenSave}
-                    disabled={saving || !isEditing}
-                  >
-                    {saving ? "Speichern…" : "Speichern"}
-                  </button>
-                  <Link className="pillButton outline" href="/maschinen">
-                    Beenden
-                  </Link>
-                  <button className="pillButton outline" type="button">
-                    Drucken
-                  </button>
                 </div>
-              </>
+                <aside className="stammdatenPanelMedia" aria-label="Maschinenbild und QR-Code">
+                  <MachineHeroMedia
+                    machine={machine}
+                    className="stammdatenPanelHeroMedia machineHeroMediaFrameless"
+                  />
+                  {canUploadImages && isEditing ? (
+                    <label className="pillButton outline machineImageUploadInline">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                      />
+                      {uploadingImage ? "Wird hochgeladen..." : "Bild ändern"}
+                    </label>
+                  ) : null}
+                </aside>
+              </div>
             ) : activeTab === "Motor" ? (
               <div className="fieldGrid">
                 <div className="fieldRow">
@@ -1248,60 +1306,26 @@ export default function MaschineDetailPage() {
             <div className="detailTopActions">
               <Link
                 className="pillButton outline"
-                href={`/arbeitsauftrag?geraetenummer=${encodeURIComponent(machine.geraetenummer ?? "")}`}
+                href={`/arbeitsauftrag?geraetenummer=${encodeURIComponent(machine.geraetenummer ?? "")}&machineId=${encodeURIComponent(machine.id)}`}
               >
                 Alle anzeigen
               </Link>
             </div>
           </div>
 
-          {getWorkOrders(machine).length === 0 ? (
-            <p className="scanHint">Noch keine Arbeitsaufträge für diese Maschine.</p>
-          ) : (
-            <div className="machineTableScroll">
-              <table className="machineTable">
-                <thead>
-                  <tr>
-                    <th>Datum</th>
-                    <th>Auftrag</th>
-                    <th>Bearbeiter</th>
-                    <th>Bemerkung</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {getWorkOrders(machine).map((order) => (
-                    <tr key={order.id}>
-                      <td>{order.date || "—"}</td>
-                      <td>{formatOrderType(order.type)}</td>
-                      <td>{order.updatedBy || order.createdBy || "—"}</td>
-                      <td>{order.notes?.trim() || order.repairDescription?.trim() || "—"}</td>
-                      <td>
-                        <div className="detailTopActions">
-                          <Link
-                            className="pillButton outline"
-                            href={`/arbeitsauftrag?machineId=${encodeURIComponent(machine.id)}&auftragId=${encodeURIComponent(order.id)}`}
-                          >
-                            Öffnen
-                          </Link>
-                          <Link
-                            className="pillButton outline"
-                            href={`/arbeitsauftrag?machineId=${encodeURIComponent(machine.id)}&auftragId=${encodeURIComponent(order.id)}&print=1`}
-                            target="_blank"
-                          >
-                            Drucken
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <MachineWorkOrdersTable machine={machine} />
         </section>
         </div>
       )}
+      {machine ? (
+        <MachineDetailPrintPreview
+          open={printPreviewOpen}
+          onClose={() => setPrintPreviewOpen(false)}
+          machine={machine}
+          fields={stammdatenRowsForDisplay}
+          bezeichnung={bezeichnungStammdaten?.value}
+        />
+      ) : null}
     </AppPageShell>
   );
 }
@@ -1491,7 +1515,7 @@ function getPublicDocumentUrl(machine: Machine | null, keys: string[]) {
 
 function statusClassName(value: string) {
   const normalized = value.trim().toLowerCase();
-  if (normalized === "fertig") return "statusSelectFertig";
-  if (normalized === "in reperatur" || normalized === "in reparatur") return "statusSelectRepair";
+  if (normalized === "fertig") return "fertig";
+  if (normalized === "in reperatur" || normalized === "in reparatur") return "repair";
   return "";
 }

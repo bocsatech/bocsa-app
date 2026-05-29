@@ -1,0 +1,194 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="2600" viewBox="0 0 1200 2600">
+  <style>
+    .bg { fill: #0f172a; }
+    .text { font: 13px Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; fill: #e2e8f0; }
+    .line-number { fill: #64748b; }
+  </style>
+  <rect class="bg" x="0" y="0" width="1200" height="2600" />
+  <text x="30" y="40" class="text" xml:space="preserve">
+import Image from "next/image";
+
+const serviceItems = [
+  "Motorölfilter",
+  "Kraftstofffilter",
+  "Luftfilter außen",
+  "Luftfilter innen",
+  "Dieselfilter Wasserabscheider",
+  "Dieselfilter",
+];
+
+const checklistColumns = [
+  {
+    title: "Checkliste",
+    items: [
+      "Motorölstand kontrolliert",
+      "Hydraulikölstand kontrolliert",
+      "Bremsflüssigkeit kontrolliert",
+      "Beleuchtung kontrolliert",
+      "Maschine abgeschmiert",
+    ],
+  },
+  {
+    title: "Fenster & Türen",
+    items: [
+      "Frontscheibe oben",
+      "Frontscheibe unten",
+      "Kabinenfenster rechts",
+      "Dachscheibe",
+    ],
+  },
+  {
+    title: "Diverse Ersatzteile",
+    items: [
+      "Arbeitscheinwerfer Kabine",
+      "Starter erneuert",
+      "Kraftstoffpumpe kontrolliert",
+      "Hydraulikzylinder geprüft",
+      "Batterie getauscht",
+    ],
+  },
+];
+
+export default function HomePage() {
+  return (
+    <main className="workorderPage">
+      <section className="pageHeader">
+        <div>
+          <span className="badge">Arbeitsauftrag</span>
+          <h1>149510021 — Kipplader 3.2 m³ Swivel</h1>
+          <p className="subtitle">
+            Baujahr 2016 · Seriennummer SLCM20641605D5419 · Depot 578 · letzte Inspektion 14.05.2026
+          </p>
+        </div>
+        <div className="brandCard">
+          <Image src="/next.svg" alt="Bocsa" width={64} height={64} />
+          <div>
+            <p className="brandTitle">Bocsa App</p>
+            <p className="brandDetail">Üzemeltetés · Raport</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="overviewGrid">
+        <article className="card summaryCard">
+          <div className="cardHeader">
+            <p className="cardTitle">Általános adatok</p>
+            <span className="statusPill success">Rendben</span>
+          </div>
+          <div className="detailList">
+            <div>
+              <span>TPG-Hebetechnik §7/8</span>
+              <strong>14.05.2026</strong>
+            </div>
+            <div>
+              <span>Elektro ÖVE E8701/E8001</span>
+              <strong>14.05.2026</strong>
+            </div>
+            <div>
+              <span>Intern §8 durchgeführt</span>
+              <strong>14.05.2026</strong>
+            </div>
+            <div>
+              <span>Letztes Service am</span>
+              <strong>14.05.2025</strong>
+            </div>
+          </div>
+          <div className="tagGrid">
+            <span className="tag">Depot 578</span>
+            <span className="tag">BH Stand 2612</span>
+            <span className="tag">Service fällig</span>
+            <span className="tag">Vermietbereit</span>
+          </div>
+        </article>
+
+        <article className="card actionCard">
+          <div className="cardHeader">
+            <p className="cardTitle">Állapot és prioritás</p>
+          </div>
+          <div className="statusGrid">
+            <div>
+              <span>Gerät-Zustand</span>
+              <strong>Vermietbereit</strong>
+            </div>
+            <div>
+              <span>Rück. & Priorität</span>
+              <strong>Rücknahme</strong>
+            </div>
+          </div>
+          <div className="actionButtons">
+            <button className="pillButton primary">Rücknahme zuordnen</button>
+            <button className="pillButton outline">Priorität zuordnen</button>
+          </div>
+        </article>
+      </section>
+
+      <section className="dataGrid">
+        <article className="card tableCard">
+          <div className="cardHeader">
+            <p className="cardTitle">Service Material</p>
+          </div>
+          <div className="serviceTable">
+            <div className="serviceRow headerRow">
+              <span>Material</span>
+              <span>Jura HiFi</span>
+              <span>SF-Filter</span>
+              <span>100 BH</span>
+              <span>250 BH</span>
+            </div>
+            {serviceItems.map((item) => (
+              <div key={item} className="serviceRow">
+                <span>{item}</span>
+                <span className="code">SO 434</span>
+                <span className="code">SA 16804</span>
+                <span className="status ok">W</span>
+                <span className="status ok">W</span>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="card checklistCard">
+          <div className="cardHeader">
+            <p className="cardTitle">Reparaturdaten</p>
+          </div>
+          <div className="checklistGrid">
+            {checklistColumns.map((column) => (
+              <div key={column.title} className="checklistColumn">
+                <h3>{column.title}</h3>
+                <ul>
+                  {column.items.map((item) => (
+                    <li key={item}>
+                      <label>
+                        <input type="checkbox" />
+                        {item}
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <article className="card notesCard">
+        <div className="cardHeader">
+          <p className="cardTitle">Reparaturbeschreibung</p>
+        </div>
+        <textarea
+          className="notesArea"
+          placeholder="Schadensinfo aus Rücknahme, Reparaturbeschreibung..."
+          rows={6}
+        />
+        <div className="notesFooter">
+          <span>Arbeitsstunden:</span>
+          <strong>8 Std.</strong>
+          <span>Reparaturstatus:</span>
+          <strong>In Bearbeitung</strong>
+        </div>
+      </article>
+    </main>
+  );
+}
+  </text>
+</svg>

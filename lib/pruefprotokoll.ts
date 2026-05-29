@@ -1,5 +1,11 @@
 import type { Machine } from "./types/machine";
-import { GERAETTYP_OPTIONS, toAustriaDateString, toIsoDateString } from "./machines";
+import { GERAETTYP_OPTIONS } from "./machines";
+import {
+  formatGermanDate,
+  germanToday,
+  isGermanDateInRange,
+  normalizeGermanDate,
+} from "./dates";
 
 export type PruefprotokollCheckItem = {
   code: string;
@@ -297,12 +303,12 @@ export function machineToGeraetedaten(
     maschinenart:
       partial?.maschinenart ??
       String(machine.bezeichnung ?? machine.subgroup ?? "").trim(),
-    pruefdatum: partial?.pruefdatum ?? toAustriaDateString(new Date()),
+    pruefdatum: partial?.pruefdatum ?? germanToday(),
     betrStdKm: partial?.betrStdKm ?? "",
     herstellerTyp: partial?.herstellerTyp ?? herstellerParts.join(" / "),
     datumLetztePruefung:
       partial?.datumLetztePruefung ??
-      toAustriaDateString(machine.intern_8_11 ?? machine.prufung ?? ""),
+      formatGermanDate(machine.intern_8_11 ?? machine.prufung ?? ""),
     fahrgestellnummer:
       partial?.fahrgestellnummer ?? String(machine.license_plate ?? "").trim(),
     seriennummer: partial?.seriennummer ?? String(machine.serial_number ?? "").trim(),
@@ -318,7 +324,7 @@ export function createEmptyPruefprotokoll(
   const stamp = new Date().toISOString();
   return {
     id: newPruefprotokollId(),
-    pruefdatum: toAustriaDateString(new Date()),
+    pruefdatum: germanToday(),
     geraetedaten: machineToGeraetedaten(machine),
     checklist: createDefaultChecklist(),
     ergebnis: {
@@ -370,15 +376,15 @@ export function normalizePruefprotokoll(raw: unknown, machine: Machine): Pruefpr
   return {
     id: String(record.id ?? defaults.id),
     pruefdatum:
-      toAustriaDateString(String(record.pruefdatum ?? "")) || defaults.pruefdatum,
+      formatGermanDate(String(record.pruefdatum ?? "")) || defaults.pruefdatum,
     geraetedaten: machineToGeraetedaten(machine, {
       betreiber: String(geraetedatenRaw.betreiber ?? ""),
       baujahr: String(geraetedatenRaw.baujahr ?? ""),
       maschinenart: String(geraetedatenRaw.maschinenart ?? ""),
-      pruefdatum: toAustriaDateString(String(geraetedatenRaw.pruefdatum ?? "")),
+      pruefdatum: formatGermanDate(String(geraetedatenRaw.pruefdatum ?? "")),
       betrStdKm: String(geraetedatenRaw.betrStdKm ?? ""),
       herstellerTyp: String(geraetedatenRaw.herstellerTyp ?? ""),
-      datumLetztePruefung: toAustriaDateString(
+      datumLetztePruefung: formatGermanDate(
         String(geraetedatenRaw.datumLetztePruefung ?? "")
       ),
       fahrgestellnummer: String(geraetedatenRaw.fahrgestellnummer ?? ""),
@@ -458,8 +464,8 @@ export function filterPruefprotokollEntries(
   const user = normalizeFilter(filters.user);
   const filiale = normalizeFilter(filters.filiale);
   const geraettyp = normalizeFilter(filters.geraettyp);
-  const dateFrom = toIsoDateString(filters.dateFrom.trim());
-  const dateTo = toIsoDateString(filters.dateTo.trim());
+  const dateFrom = normalizeGermanDate(filters.dateFrom.trim()) ?? "";
+  const dateTo = normalizeGermanDate(filters.dateTo.trim()) ?? "";
 
   return entries.filter((entry) => {
     if (geraet && !normalizeFilter(entry.geraetenummer).includes(geraet)) {
@@ -475,9 +481,12 @@ export function filterPruefprotokollEntries(
     if (geraettyp && !normalizeFilter(entry.geraettyp).includes(geraettyp)) {
       return false;
     }
-    const pruefIso = toIsoDateString(entry.pruefdatum || entry.geraetedaten.pruefdatum);
-    if (dateFrom && (!pruefIso || pruefIso < dateFrom)) return false;
-    if (dateTo && (!pruefIso || pruefIso > dateTo)) return false;
+    const pruefdatum = entry.pruefdatum || entry.geraetedaten.pruefdatum;
+    if (dateFrom || dateTo) {
+      const from = dateFrom || "01.01.1970";
+      const to = dateTo || "31.12.2099";
+      if (!isGermanDateInRange(pruefdatum, from, to)) return false;
+    }
     return true;
   });
 }

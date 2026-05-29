@@ -5,6 +5,10 @@ import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
 import { stripWorkOrdersFromTabData } from "../../../../lib/machine-tab-data";
+import {
+  formatMachineRowDates,
+  normalizeMachinePatchDates,
+} from "../../../../lib/normalize-machine-dates";
 
 const MACHINE_COLUMNS = "*";
 const MACHINE_TABLE = "maschines";
@@ -74,56 +78,48 @@ const TABDATA_VIRTUAL_FIELDS = ["geraettyp", "km_stand"];
 function normalizeMachine(row) {
   if (!row) return row;
 
-  const tabData = stripWorkOrdersFromTabData(row.machine_tab_data);
+  const datedRow = formatMachineRowDates(row);
+  const tabData = stripWorkOrdersFromTabData(datedRow.machine_tab_data);
   const meldungCount = Array.isArray(tabData?.meldungen) ? tabData.meldungen.length : 0;
 
   return {
-    ...row,
+    ...datedRow,
     machine_tab_data: tabData,
     status:
-      row.status ??
-      row.machine_tab_data?.status ??
-      row.schadensmeldung_status ??
+      datedRow.status ??
+      tabData?.status ??
+      datedRow.schadensmeldung_status ??
       null,
     prufung:
-      row.prufung ??
-      row.machine_tab_data?.prufung ??
-      row.tpg_heben_technik_7_8_gultig_bis ??
+      datedRow.prufung ??
+      tabData?.prufung ??
+      datedRow.tpg_heben_technik_7_8_gultig_bis ??
       null,
     geraetenummer:
-      row.geraetenummer ??
-      row.machine_tab_data?.geraetenummer ??
-      null,
+      datedRow.geraetenummer ?? tabData?.geraetenummer ?? null,
     bezeichnung:
-      row.bezeichnung ??
-      row.machine_tab_data?.bezeichnung ??
-      row.beschreibung ??
-      null,
-    serial_number: row.serial_nummer ?? null,
-    image: row.kep ?? row.image ?? null,
-    qr_code: row.qr_code ?? null,
-    hour_meter_reading: row.stundenzahlerstand ?? row.hour_meter_reading ?? null,
-    tpg_hebetechnik:
-      row.tpg_heben_technik_7_8_gultig_bis ?? null,
-    elektro_ove:
-      row.elektro_ove_e8701_e8001_gultig_bis ?? null,
-    intern_8_11: row.intern_8_11_gultig_bis ?? null,
-    section_57a: row.paragraf_57a_gultig_bis ?? null,
-    license_plate: row.kennzeichen ?? null,
-    hour_meter_changed_at:
-      row.std_zahler_getauscht_am ?? null,
-    old_hour_meter_reading:
-      row.stundenzahlerstand_alt ?? null,
-    geraettyp: row.geraettyp ?? tabData?.geraettyp ?? null,
-    km_stand: row.km_stand ?? tabData?.km_stand ?? null,
-    arbeitsstunden: row.arbeitsstunden ?? tabData?.arbeitsstunden ?? null,
+      datedRow.bezeichnung ?? tabData?.bezeichnung ?? datedRow.beschreibung ?? null,
+    serial_number: datedRow.serial_nummer ?? null,
+    image: datedRow.kep ?? datedRow.image ?? null,
+    qr_code: datedRow.qr_code ?? null,
+    hour_meter_reading:
+      datedRow.stundenzahlerstand ?? datedRow.hour_meter_reading ?? null,
+    tpg_hebetechnik: datedRow.tpg_heben_technik_7_8_gultig_bis ?? null,
+    elektro_ove: datedRow.elektro_ove_e8701_e8001_gultig_bis ?? null,
+    intern_8_11: datedRow.intern_8_11_gultig_bis ?? null,
+    section_57a: datedRow.paragraf_57a_gultig_bis ?? null,
+    license_plate: datedRow.kennzeichen ?? null,
+    hour_meter_changed_at: datedRow.std_zahler_getauscht_am ?? null,
+    old_hour_meter_reading: datedRow.stundenzahlerstand_alt ?? null,
+    geraettyp: datedRow.geraettyp ?? tabData?.geraettyp ?? null,
+    km_stand: datedRow.km_stand ?? tabData?.km_stand ?? null,
+    arbeitsstunden: datedRow.arbeitsstunden ?? tabData?.arbeitsstunden ?? null,
     meldung_status: meldungCount > 0 ? "Meldung vorhanden" : "Keine Meldung",
-    last_service_date: row.letztes_service_am ?? null,
-    last_service_by: row.letztes_service_von ?? null,
-    antifreeze_checked_at:
-      row.frostschutz_gepruft_am ?? null,
-    damage_status: row.schadensmeldung_status ?? row.status ?? null,
-    description: row.beschreibung ?? null,
+    last_service_date: datedRow.letztes_service_am ?? null,
+    last_service_by: datedRow.letztes_service_von ?? null,
+    antifreeze_checked_at: datedRow.frostschutz_gepruft_am ?? null,
+    damage_status: datedRow.schadensmeldung_status ?? datedRow.status ?? null,
+    description: datedRow.beschreibung ?? null,
   };
 }
 
@@ -267,7 +263,11 @@ export async function PATCH(request, { params }) {
   const { id } = await params;
   const body = await request.json();
 
-  const patch = buildMachinePatch(body);
+  const rawPatch = buildMachinePatch(body);
+  const { patch, error: dateError } = normalizeMachinePatchDates(rawPatch);
+  if (dateError) {
+    return NextResponse.json({ error: dateError }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from(MACHINE_TABLE)

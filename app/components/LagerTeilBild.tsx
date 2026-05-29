@@ -8,16 +8,31 @@ type Props = {
   canWrite: boolean;
   onUpdated: (teil: LagerTeil) => void;
   title?: string;
+  uploadEnabled?: boolean;
 };
 
-export default function LagerTeilBild({ teil, canWrite, onUpdated, title }: Props) {
+function safeFilePart(value: string) {
+  return String(value || "teil")
+    .trim()
+    .replace(/[^a-z0-9-_]+/gi, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80);
+}
+
+export default function LagerTeilBild({
+  teil,
+  canWrite,
+  onUpdated,
+  title,
+  uploadEnabled = true,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file || !canWrite) return;
+    if (!file || !canWrite || !uploadEnabled) return;
 
     setUploading(true);
     const formData = new FormData();
@@ -40,6 +55,8 @@ export default function LagerTeilBild({ teil, canWrite, onUpdated, title }: Prop
   }
 
   const label = title ?? teil.bezeichnung ?? teil.herstellernummer;
+  const qrFilename = `${safeFilePart(teil.herstellernummer)}_${safeFilePart(teil.id)}.png`;
+  const qrUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/machine-files/lager-qr-codes/${qrFilename}`;
 
   return (
     <div className="lagerBildCell">
@@ -55,9 +72,12 @@ export default function LagerTeilBild({ teil, canWrite, onUpdated, title }: Prop
       <button
         type="button"
         className="lagerBildButton"
-        disabled={!canWrite || uploading}
-        onClick={() => inputRef.current?.click()}
-        title={canWrite ? "Bild hochladen (JPG, PNG, WEBP)" : undefined}
+        disabled={!canWrite || uploading || !uploadEnabled}
+        onClick={() => {
+          if (!uploadEnabled) return;
+          inputRef.current?.click();
+        }}
+        title={canWrite && uploadEnabled ? "Bild hochladen (JPG, PNG, WEBP)" : undefined}
       >
         {teil.bild ? (
           <img className="lagerThumb" src={teil.bild} alt={label} />
@@ -67,6 +87,15 @@ export default function LagerTeilBild({ teil, canWrite, onUpdated, title }: Prop
           </span>
         )}
       </button>
+      <a
+        href={qrUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="lagerQrLink"
+        title={`QR-Code für ${teil.herstellernummer}`}
+      >
+        <img className="lagerQrThumb" src={qrUrl} alt={`QR-Code ${teil.herstellernummer}`} />
+      </a>
     </div>
   );
 }
