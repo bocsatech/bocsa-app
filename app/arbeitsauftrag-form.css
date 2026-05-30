@@ -21,7 +21,7 @@
   box-shadow: none;
 }
 
-/* Festes 2-Spalten-Layout: Felder | Bild — bei allen Breiten gleich */
+/* Festes 2-Spalten-Layout: Felder | Bild+QR — bei allen Breiten gleich */
 .aaMachineOverviewSheet {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -404,10 +404,19 @@
   padding: 0;
 }
 
-.aaMachineOverviewSheet .aaSheetImageCol .machineImageSlot,
-.arbeitsauftragDocument .aaSheetImageCol .machineImageSlot,
-.aaMachineOverviewSheet .aaSheetImageCol .machineImageSlot.hasMachineImage,
-.arbeitsauftragDocument .aaSheetImageCol .machineImageSlot.hasMachineImage {
+.aaSheetMediaStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.aaMachineOverviewSheet .aaSheetImageCol .aaSheetMediaItem,
+.arbeitsauftragDocument .aaSheetImageCol .aaSheetMediaItem,
+.aaMachineOverviewSheet .aaSheetImageCol .aaSheetMediaItem.hasMachineImage,
+.aaMachineOverviewSheet .aaSheetImageCol .aaSheetMediaItem.hasQrImage,
+.arbeitsauftragDocument .aaSheetImageCol .aaSheetMediaItem.hasMachineImage,
+.arbeitsauftragDocument .aaSheetImageCol .aaSheetMediaItem.hasQrImage {
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -425,6 +434,15 @@
   outline: none !important;
   background: transparent !important;
   flex: none;
+  overflow: hidden;
+  line-height: 1.2;
+}
+
+.aaSheetMediaPlaceholder {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-align: right;
 }
 
 .arbeitsauftragDocument .aaWorksheetMachine.aaMachineOverview {
@@ -432,7 +450,9 @@
 }
 
 .aaMachineOverviewSheet .aaSheetImageCol .machineImagePreview,
-.arbeitsauftragDocument .aaSheetImageCol .machineImagePreview {
+.arbeitsauftragDocument .aaSheetImageCol .machineImagePreview,
+.aaMachineOverviewSheet .aaSheetImageCol .aaSheetQrImage,
+.arbeitsauftragDocument .aaSheetImageCol .aaSheetQrImage {
   width: 100%;
   height: 100%;
   max-width: 100px;
