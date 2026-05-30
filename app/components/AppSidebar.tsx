@@ -26,6 +26,16 @@ export const BAUMASCHINEN_NAV = {
   permission: "menu.machines",
   children: [
     {
+      kind: "route",
+      href: "/arbeitsauftrag",
+      label: "Bauarbeitsauftrag",
+    },
+    {
+      kind: "route",
+      href: "/pruefprotokoll",
+      label: "Bauprüfprotokoll",
+    },
+    {
       kind: "aktion",
       href: "/maschinen?aktion=hinzufuegen",
       label: "Maschine hinzufügen",
@@ -42,16 +52,6 @@ export const BAUMASCHINEN_NAV = {
       href: "/maschinen?aktion=qr",
       label: "QR-Code scannen",
       aktion: "qr",
-    },
-    {
-      kind: "route",
-      href: "/arbeitsauftrag",
-      label: "Bauarbeitsauftrag",
-    },
-    {
-      kind: "route",
-      href: "/pruefprotokoll",
-      label: "Bauprüfprotokoll",
     },
   ] as const satisfies readonly MaschinenSubItem[],
 };

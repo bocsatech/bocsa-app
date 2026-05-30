@@ -8,11 +8,11 @@
 
 | Pont | Útvonal | Mit csinál |
 |------|---------|------------|
+| Bauarbeitsauftrag | `/arbeitsauftrag` | Arbeitsauftrag (Baumaschinen) |
+| Bauprüfprotokoll | `/pruefprotokoll` | Prüfprotokoll (Baumaschinen) |
 | Maschine hinzufügen | `/maschinen?aktion=hinzufuegen` | Új gép űrlap |
 | Nummern-Codes | `/maschinen?aktion=geraetenummer-codes` | Gerätenummer-Codes |
 | QR-Code scannen | `/maschinen?aktion=qr` | QR szkenner |
-| Bauarbeitsauftrag | `/arbeitsauftrag` | Arbeitsauftrag (Baumaschinen) |
-| Bauprüfprotokoll | `/pruefprotokoll` | Prüfprotokoll (Baumaschinen) |
 
 ## Állapot
 
