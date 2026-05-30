@@ -151,18 +151,24 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
                       {field.value || "Keine Meldung"}
                     </strong>
                   ) : field.dbKey === "geraettyp" ? (
-                    <select
-                      value={field.value}
-                      disabled={!editable || !canWrite}
-                      onChange={(e) => updateField(index, e.target.value)}
-                    >
-                      <option value="">Gerättyp</option>
-                      {GERAETTYP_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                    !editable ? (
+                      <span className="fieldRowDisplayValue">
+                        {field.value?.trim() ? field.value : "—"}
+                      </span>
+                    ) : (
+                      <select
+                        value={field.value}
+                        disabled={!canWrite}
+                        onChange={(e) => updateField(index, e.target.value)}
+                      >
+                        <option value="">Gerättyp</option>
+                        {GERAETTYP_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    )
                   ) : field.dbKey === "damage_status" ? (
                     <select
                       className={[
@@ -181,27 +187,39 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
                       <option value="In Reperatur">In Reperatur</option>
                     </select>
                   ) : field.type === "date" ? (
-                    <GermanDateField
-                      value={field.value}
-                      readOnly={!editable || !canWrite}
-                      onChange={(next) => updateField(index, next)}
-                    />
+                    !editable ? (
+                      <span className="fieldRowDisplayValue">
+                        {field.value?.trim() ? field.value : "—"}
+                      </span>
+                    ) : (
+                      <GermanDateField
+                        value={field.value}
+                        readOnly={!canWrite}
+                        onChange={(next) => updateField(index, next)}
+                      />
+                    )
                   ) : field.dbKey ? (
-                    <input
-                      type="text"
-                      inputMode={field.type === "number" ? "decimal" : undefined}
-                      value={field.value}
-                      readOnly={!editable || !canWrite}
-                      onChange={(e) =>
-                        updateField(
-                          index,
-                          field.type === "number"
-                            ? sanitizeNumericFieldInput(e.target.value)
-                            : e.target.value
-                        )
-                      }
-                      placeholder={field.label}
-                    />
+                    !editable ? (
+                      <span className="fieldRowDisplayValue">
+                        {field.value?.trim() ? field.value : "—"}
+                      </span>
+                    ) : (
+                      <input
+                        type="text"
+                        inputMode={field.type === "number" ? "decimal" : undefined}
+                        value={field.value}
+                        readOnly={!canWrite}
+                        onChange={(e) =>
+                          updateField(
+                            index,
+                            field.type === "number"
+                              ? sanitizeNumericFieldInput(e.target.value)
+                              : e.target.value
+                          )
+                        }
+                        placeholder={field.label}
+                      />
+                    )
                   ) : (
                     <input type="text" value={field.value} placeholder="—" disabled />
                   )}

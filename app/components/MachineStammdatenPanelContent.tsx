@@ -60,6 +60,20 @@ export function buildStammdatenRowsForDisplay(
   return [...rest, ...meldung];
 }
 
+function StammdatenReadOnlyValue({
+  value,
+  className = "",
+}: {
+  value: string;
+  className?: string;
+}) {
+  return (
+    <span className={["fieldRowDisplayValue", className].filter(Boolean).join(" ")}>
+      {value?.trim() ? value : "—"}
+    </span>
+  );
+}
+
 /** Gleiches Stammdaten-Layout wie Maschinen-Detail / Stammdaten-Tab */
 export default function MachineStammdatenPanelContent({
   machine,
@@ -136,18 +150,22 @@ export default function MachineStammdatenPanelContent({
                     {field.value || "Keine Meldung"}
                   </strong>
                 ) : field.dbKey === "geraettyp" ? (
-                  <select
-                    value={field.value}
-                    disabled={!isEditing || useStructuredGeraetenummer}
-                    onChange={(e) => onUpdateField(index, e.target.value)}
-                  >
-                    <option value="">Gerättyp</option>
-                    {GERAETTYP_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                  !isEditing ? (
+                    <StammdatenReadOnlyValue value={field.value} />
+                  ) : (
+                    <select
+                      value={field.value}
+                      disabled={useStructuredGeraetenummer}
+                      onChange={(e) => onUpdateField(index, e.target.value)}
+                    >
+                      <option value="">Gerättyp</option>
+                      {GERAETTYP_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  )
                 ) : field.dbKey === "damage_status" ? (
                   !isEditing ? (
                     <strong
@@ -167,27 +185,34 @@ export default function MachineStammdatenPanelContent({
                     </select>
                   )
                 ) : field.type === "date" ? (
-                  <GermanDateField
-                    value={field.value}
-                    readOnly={!isEditing}
-                    onChange={(next) => onUpdateField(index, next)}
-                  />
+                  !isEditing ? (
+                    <StammdatenReadOnlyValue value={field.value} />
+                  ) : (
+                    <GermanDateField
+                      value={field.value}
+                      onChange={(next) => onUpdateField(index, next)}
+                    />
+                  )
                 ) : field.dbKey ? (
-                  <input
-                    type="text"
-                    inputMode={field.type === "number" ? "decimal" : undefined}
-                    value={field.value}
-                    readOnly={!isEditing}
-                    onChange={(e) =>
-                      onUpdateField(
-                        index,
-                        field.type === "number"
-                          ? sanitizeNumericFieldInput(e.target.value)
-                          : e.target.value
-                      )
-                    }
-                    placeholder={field.label}
-                  />
+                  !isEditing ? (
+                    <StammdatenReadOnlyValue value={field.value} />
+                  ) : (
+                    <input
+                      type="text"
+                      inputMode={field.type === "number" ? "decimal" : undefined}
+                      value={field.value}
+                      readOnly={!canWrite}
+                      onChange={(e) =>
+                        onUpdateField(
+                          index,
+                          field.type === "number"
+                            ? sanitizeNumericFieldInput(e.target.value)
+                            : e.target.value
+                        )
+                      }
+                      placeholder={field.label}
+                    />
+                  )
                 ) : (
                   <input
                     type="text"
