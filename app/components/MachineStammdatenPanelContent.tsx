@@ -20,6 +20,7 @@ type Props = {
   onUpdateField: (index: number, value: string) => void;
   saveError?: string | null;
   mediaFooter?: ReactNode;
+  showQrCode?: boolean;
 };
 
 export function buildStammdatenRowsForDisplay(
@@ -56,6 +57,7 @@ export default function MachineStammdatenPanelContent({
   onUpdateField,
   saveError = null,
   mediaFooter = null,
+  showQrCode = true,
 }: Props) {
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
   const stammdatenRowsForDisplay = buildStammdatenRowsForDisplay(
@@ -174,6 +176,7 @@ export default function MachineStammdatenPanelContent({
         <MachineHeroMedia
           machine={machine}
           className="stammdatenPanelHeroMedia machineHeroMediaFrameless"
+          showQrCode={showQrCode}
         />
         {mediaFooter}
       </aside>

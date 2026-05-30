@@ -4,18 +4,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
-import GermanDateField from "../components/GermanDateField";
+import MachineAddModal from "../components/MachineAddModal";
 import MachineList from "../components/MachineList";
 import QrScannerModal from "../components/QrScannerModal";
 import {
-  createMachine,
   fetchMachines,
   GERAETTYP_OPTIONS,
-  MACHINE_FORM_FIELDS,
-  parseOptionalNumber,
-  sanitizeNumericFieldInput,
   resolveMachineFromScan,
-  normalizeGermanDate,
 } from "../../lib/machines";
 import { supabase } from "../../lib/supabase";
 import type { Machine } from "../../lib/types/machine";
@@ -47,9 +42,6 @@ function MaschinenPageContent() {
   const [qrOpen, setQrOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [canWriteMachines, setCanWriteMachines] = useState(false);
-  const [machineForm, setMachineForm] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [savingMachine, setSavingMachine] = useState(false);
 
   const loadMachines = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) {
@@ -209,47 +201,11 @@ function MaschinenPageContent() {
     setScanHint(null);
   }
 
-  async function handleCreateMachine(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!canWriteMachines) {
-      setFormError("Keine Berechtigung: machines.write erforderlich.");
-      return;
-    }
-
-    setSavingMachine(true);
-    setFormError(null);
-
-    const payload: Record<string, string | number | null> = {};
-    for (const field of MACHINE_FORM_FIELDS) {
-      const value = machineForm[String(field.key)]?.trim() ?? "";
-      if (!value) {
-        continue;
-      } else if (field.type === "number") {
-        const num = parseOptionalNumber(value);
-        if (num === null) continue;
-        payload[String(field.key)] = num;
-      } else if (field.type === "date") {
-        payload[String(field.key)] = normalizeGermanDate(value);
-        if (!payload[String(field.key)]) continue;
-      } else {
-        payload[String(field.key)] = value;
-      }
-    }
-
-    const { data, error } = await createMachine(payload as Partial<Machine>);
-    if (error) {
-      setFormError(error.message);
-      setSavingMachine(false);
-      return;
-    }
-
-    setMachineForm({});
+  async function handleMachineCreated(machine: Machine) {
     setAddOpen(false);
+    if (searchParams.get("aktion") === "hinzufuegen") clearMaschinenAktion();
     await loadMachines();
-    if (data) {
-      router.push(`/maschinen/${data.id}`);
-    }
-    setSavingMachine(false);
+    router.push(`/maschinen/${machine.id}`);
   }
 
   return (
@@ -355,73 +311,15 @@ function MaschinenPageContent() {
         onScan={handleScan}
       />
 
-      {addOpen ? (
-        <div className="qrModalBackdrop">
-          <form className="card machineFormModal" onSubmit={handleCreateMachine}>
-            <div className="cardHeader">
-              <div>
-                <p className="cardTitle">Maschine hinzufügen</p>
-                <p className="subtitle">Alle Maschinendaten erfassen.</p>
-              </div>
-              <button
-                type="button"
-                className="pillButton outline"
-                onClick={() => {
-                  setAddOpen(false);
-                  if (searchParams.get("aktion") === "hinzufuegen") clearMaschinenAktion();
-                }}
-              >
-                Schließen
-              </button>
-            </div>
-
-            {formError ? <p className="protocolNotice">{formError}</p> : null}
-
-            <div className="protocolGrid machineFormGrid">
-              {MACHINE_FORM_FIELDS.map((field) => (
-                <label key={String(field.key)} className="protocolField">
-                  <span>{field.label}</span>
-                  {field.type === "date" ? (
-                    <GermanDateField
-                      value={machineForm[String(field.key)] ?? ""}
-                      onChange={(next) =>
-                        setMachineForm((current) => ({
-                          ...current,
-                          [String(field.key)]: next,
-                        }))
-                      }
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      inputMode={field.type === "number" ? "decimal" : undefined}
-                      value={machineForm[String(field.key)] ?? ""}
-                      onChange={(event) =>
-                        setMachineForm((current) => ({
-                          ...current,
-                          [String(field.key)]:
-                            field.type === "number"
-                              ? sanitizeNumericFieldInput(event.target.value)
-                              : event.target.value,
-                        }))
-                      }
-                    />
-                  )}
-                </label>
-              ))}
-            </div>
-
-            <div className="actionButtons">
-              <button type="button" className="pillButton outline" onClick={() => setAddOpen(false)}>
-                Abbrechen
-              </button>
-              <button type="submit" className="pillButton primary" disabled={savingMachine}>
-                {savingMachine ? "Speichern..." : "Maschine speichern"}
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : null}
+      <MachineAddModal
+        open={addOpen}
+        canWrite={canWriteMachines}
+        onClose={() => {
+          setAddOpen(false);
+          if (searchParams.get("aktion") === "hinzufuegen") clearMaschinenAktion();
+        }}
+        onSaved={handleMachineCreated}
+      />
     </AppPageShell>
   );
 }

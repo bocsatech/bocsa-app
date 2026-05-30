@@ -1445,6 +1445,62 @@ button, input, select, textarea {
   color: #c2410c;
 }
 
+.tabButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.machineAddModalBackdrop {
+  padding: 20px;
+  align-items: start;
+  overflow-y: auto;
+}
+
+.machineAddModal {
+  width: min(1200px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  margin: 0 auto;
+  padding: 24px;
+  border-radius: 28px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.machineAddModalHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.machineAddModalTitle {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.machineAddModalActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.machineAddModal .tabSection {
+  margin-bottom: 0;
+}
+
+.machineAddModal .machineDetailBody {
+  gap: 0;
+}
+
 .fieldGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));

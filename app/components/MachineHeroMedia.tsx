@@ -6,9 +6,15 @@ import type { Machine } from "../../lib/types/machine";
 type Props = {
   machine: Machine;
   className?: string;
+  /** QR-Code ausblenden (z. B. Maschine hinzufügen) */
+  showQrCode?: boolean;
 };
 
-export default function MachineHeroMedia({ machine, className = "" }: Props) {
+export default function MachineHeroMedia({
+  machine,
+  className = "",
+  showQrCode = true,
+}: Props) {
   const mediaClass = ["machineHeroMedia", className].filter(Boolean).join(" ");
 
   return (
@@ -20,6 +26,7 @@ export default function MachineHeroMedia({ machine, className = "" }: Props) {
           <span>Maschinenbild</span>
         )}
       </div>
+      {showQrCode ? (
       <div className={`machineQrSlot ${machine.qr_code ? "hasQrImage machineQrLabeled" : ""}`}>
         {machine.qr_code ? (
           <img
@@ -37,6 +44,7 @@ export default function MachineHeroMedia({ machine, className = "" }: Props) {
         )}
         {!machine.qr_code ? <p>QR Code</p> : null}
       </div>
+      ) : null}
     </div>
   );
 }
