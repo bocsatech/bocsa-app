@@ -12,7 +12,7 @@
   letter-spacing: 0.02em;
 }
 
-/* Maschinen-Übersicht: Stammdaten links, Bild/QR rechts */
+/* Maschinen-Übersicht: Stammdaten links, Maschinenbild rechts */
 .aaMachineOverview {
   padding: 22px 24px;
   border: 1px solid #e5e7eb;
@@ -21,7 +21,7 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
-/* Festes 3-Spalten-Layout: Felder | Bild | QR — bei allen Breiten gleich */
+/* Festes 2-Spalten-Layout: Felder | Bild — bei allen Breiten gleich */
 .aaMachineOverviewSheet {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -542,12 +542,6 @@
   height: 72px;
   object-fit: cover;
   border-radius: 8px;
-}
-
-.arbeitsauftragSummaryMedia .machineQrImage {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
 }
 
 .aaGeraetDl {
