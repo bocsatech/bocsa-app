@@ -15,10 +15,10 @@
 /* Maschinen-Übersicht: Stammdaten links, Maschinenbild rechts */
 .aaMachineOverview {
   padding: 22px 24px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border: none;
+  border-radius: 0;
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  box-shadow: none;
 }
 
 /* Festes 2-Spalten-Layout: Felder | Bild — bei allen Breiten gleich */
@@ -29,7 +29,7 @@
 
 .aaMachineOverviewSheet .aaMachineOverviewBody.aaSheetLayoutGrid {
   display: grid;
-  grid-template-columns: max-content 200px;
+  grid-template-columns: max-content 100px;
   grid-template-areas: "fields image";
   gap: 8px 16px;
   align-items: start;
@@ -47,6 +47,11 @@
 
 .aaMachineOverviewSheet .aaSheetImageCol {
   grid-area: image;
+  justify-self: end;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .aaMachineOverviewBody {
@@ -202,9 +207,10 @@
 
 .aaSheetDemoCard {
   padding: 22px 24px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border: none;
+  border-radius: 0;
   background: #ffffff;
+  box-shadow: none;
 }
 
 .aaSheetDemoHint {
@@ -301,8 +307,8 @@
   align-items: baseline;
   gap: 8px 14px;
   margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .aaWorksheetAuftragLabel {
@@ -395,19 +401,23 @@
 }
 
 .aaMachineOverviewSheet .aaSheetImageCol .machineImageSlot,
-.arbeitsauftragDocument .aaSheetImageCol .machineImageSlot {
+.arbeitsauftragDocument .aaSheetImageCol .machineImageSlot,
+.aaMachineOverviewSheet .aaSheetImageCol .machineImageSlot.hasMachineImage,
+.arbeitsauftragDocument .aaSheetImageCol .machineImageSlot.hasMachineImage {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 200px;
-  height: 228px;
+  align-items: flex-start;
+  justify-content: flex-end;
+  width: 100px;
+  height: 114px;
   min-height: 0 !important;
-  max-height: 228px;
-  padding: 10px;
+  max-height: 114px;
+  padding: 0;
   box-sizing: border-box;
-  border: 2px solid rgba(249, 115, 22, 0.35);
-  border-radius: 20px;
-  background: #ffffff;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
   flex: none;
 }
 
@@ -422,7 +432,10 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  object-position: center;
+  object-position: top right;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 /* Kein Umbruch auf schmalen Viewports — horizontales Scrollen statt Layout-Wechsel */
@@ -440,11 +453,20 @@
   box-sizing: border-box;
 }
 
-.aaForm .protocolSection.card {
+.aaForm .protocolSection.card,
+.arbeitsauftragDocument .protocolSection.card {
   padding: 18px 20px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border: none;
+  border-radius: 0;
   background: #ffffff;
+  box-shadow: none;
+}
+
+.aaWorksheetMachine.card,
+.aaMachineOverviewSheet.card {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 .aaForm .protocolSection .spacedTitle,
@@ -464,17 +486,18 @@
 
 .arbeitsauftragPrintHeader {
   padding: 16px 18px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border: none;
+  border-radius: 0;
   background: #ffffff;
   margin-bottom: 12px;
+  box-shadow: none;
 }
 
 .aaDocTitle,
 .arbeitsauftragPrintTitle {
   margin: 0 0 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #f97316;
+  padding-bottom: 0;
+  border-bottom: none;
   font-size: 1.1rem;
   font-weight: 800;
   color: #111827;
@@ -583,7 +606,7 @@
   gap: 8px;
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid #d1d5db;
+  border-top: none;
   font-size: 0.78rem;
   color: #4b5563;
 }
@@ -616,10 +639,10 @@
 
 .arbeitsauftragWorksheetView .arbeitsauftragDocument {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border: none;
+  border-radius: 0;
   padding: 16px 18px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  box-shadow: none;
 }
 
 /* Druckvorschau-Overlay */
@@ -718,8 +741,9 @@ body.arbeitsauftrag-print-preview .arbeitsauftragDocument {
 body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection {
   margin-bottom: 6px;
   padding: 6px 8px;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 @page {
@@ -772,11 +796,11 @@ body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection {
     box-shadow: none;
     margin-bottom: 6px;
     padding: 6px 8px;
-    border: 1px solid #cbd5e1;
+    border: none;
   }
 
   .arbeitsauftragPrintHeader {
-    border: 1px solid #111827;
+    border: none;
     border-radius: 0;
     padding: 6px 8px;
   }
