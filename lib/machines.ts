@@ -407,6 +407,18 @@ export const ARBEITSAUFTRAG_SHEET_SKIP_FIELDS = new Set([
   "bezeichnung",
 ]);
 
+/** Felder für Arbeitsblatt / Bearbeiten (optional alle Zeilen, auch leer). */
+export function filterArbeitsauftragSheetFields(
+  fields: StammdatenField[],
+  options?: { showEmpty?: boolean }
+) {
+  return fields.filter((field) => {
+    if (field.dbKey && ARBEITSAUFTRAG_SHEET_SKIP_FIELDS.has(field.dbKey)) return false;
+    if (options?.showEmpty) return true;
+    return stammdatenFieldHasContent(field) || field.dbKey === "meldung_status";
+  });
+}
+
 export function stammdatenStatusClassName(value: string) {
   const normalized = value.trim().toLowerCase();
   if (normalized === "fertig") return "fertig";

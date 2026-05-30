@@ -33,7 +33,7 @@ type Props = {
   beendenHref?: string;
   /** Ohne Tab-Leiste / Kartenrahmen (z. B. Arbeitsauftrag-Übersicht) */
   embedded?: boolean;
-  /** Leere Felder ausblenden (auch im Bearbeitungsmodus) */
+  /** Leere Felder ausblenden (Arbeitsblatt-Bearbeiten: false = alle Zeilen) */
   hideEmptyFields?: boolean;
   /** Überschrift „Stammdaten“ ausblenden */
   showTitle?: boolean;
@@ -84,6 +84,7 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
     }
 
     function fieldVisible(field: StammdatenField) {
+      if (sheetLayout && editable) return true;
       if (hideEmptyFields && !stammdatenFieldHasContent(field)) return false;
       if (!editable && !hasValue(field.value)) return false;
       return true;
@@ -109,12 +110,18 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
         <div className={`tabPanel ${editable ? "" : "readOnlyPanel"}`}>
           {showTitle ? <h2 className="aaStammdatenHeading">Stammdaten</h2> : null}
           <div
-            className={`fieldGrid aaStammdatenGrid${embedded || sheetLayout ? " stammdatenStacked aaSheetFieldTable" : ""}`}
+            className={[
+              "fieldGrid aaStammdatenGrid",
+              embedded || sheetLayout ? "stammdatenStacked aaSheetFieldTable" : "",
+              sheetLayout ? "aaWorksheetStammdaten" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             {sheetLayout ? (
               <div className="fieldRow aaFieldRow aaSheetHeroRow">
                 <span>Gerätenummer</span>
-                <strong className="aaSheetFieldValueHero">
+                <strong className="aaWorksheetValue aaSheetFieldValueHero">
                   {formatMachineGeraetenummerLine(machine) ||
                     formatValue(machine?.geraetenummer)}
                 </strong>
@@ -125,18 +132,20 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
                 return null;
               }
               if (!fieldVisible(field)) return null;
+              const rowClass = sheetLayout || embedded ? "fieldRow aaFieldRow" : "fieldRow";
               return (
-                <div
-                  key={field.label}
-                  className={embedded ? "fieldRow aaFieldRow" : "fieldRow"}
-                >
+                <div key={field.label} className={rowClass}>
                   <span>{field.label}</span>
                   {field.dbKey === "meldung_status" ? (
                     <strong
                       className={
                         field.value.toLowerCase().includes("vorhanden")
-                          ? "meldungStatusValue danger"
-                          : "meldungStatusValue ok"
+                          ? sheetLayout
+                            ? "aaWorksheetValue meldungStatusValue danger"
+                            : "meldungStatusValue danger"
+                          : sheetLayout
+                            ? "aaWorksheetValue meldungStatusValue ok"
+                            : "meldungStatusValue ok"
                       }
                     >
                       {field.value || "Keine Meldung"}
@@ -156,7 +165,13 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
                     </select>
                   ) : field.dbKey === "damage_status" ? (
                     <select
-                      className={`statusSelect ${stammdatenStatusClassName(field.value)}`}
+                      className={[
+                        "statusSelect",
+                        stammdatenStatusClassName(field.value),
+                        sheetLayout ? "aaWorksheetValue" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                       value={field.value}
                       disabled={!editable || !canWrite}
                       onChange={(e) => updateField(index, e.target.value)}

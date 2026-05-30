@@ -395,6 +395,8 @@ export default function ArbeitsauftragForm({
               ) : null}
               <ArbeitsauftragMachineOverview
                 machine={machine}
+                order={order}
+                username={username}
                 stammdaten={
                   <MachineStammdatenPanel
                     ref={stammdatenRef}
@@ -405,7 +407,7 @@ export default function ArbeitsauftragForm({
                     alwaysEditing
                     embedded
                     sheetLayout
-                    hideEmptyFields
+                    hideEmptyFields={false}
                     showTitle={false}
                     showActions={false}
                     onSave={handleStammdatenSave}

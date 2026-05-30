@@ -1,11 +1,10 @@
 "use client";
 
 import {
-  ARBEITSAUFTRAG_SHEET_SKIP_FIELDS,
+  filterArbeitsauftragSheetFields,
   formatMachineGeraetenummerLine,
   formatValue,
   hasValue,
-  stammdatenFieldHasContent,
   stammdatenStatusClassName,
   type StammdatenField,
 } from "../../lib/machines";
@@ -49,10 +48,7 @@ export default function ArbeitsauftragWorksheetMachineBlock({
   const auftragNr = formatWorkOrderAuftragNr(order);
   const geraetenummerLine = formatMachineGeraetenummerLine(machine);
 
-  const visibleFields = stammdatenFields.filter((field) => {
-    if (field.dbKey && ARBEITSAUFTRAG_SHEET_SKIP_FIELDS.has(field.dbKey)) return false;
-    return stammdatenFieldHasContent(field) || field.dbKey === "meldung_status";
-  });
+  const visibleFields = filterArbeitsauftragSheetFields(stammdatenFields);
 
   return (
     <section className="aaWorksheetMachine card aaMachineOverview aaMachineOverviewSheet aaBlock">
