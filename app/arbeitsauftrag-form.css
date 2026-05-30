@@ -411,31 +411,12 @@
   flex: none;
 }
 
-.aaMachineOverviewSheet .aaSheetQrCol .machineQrSlot,
-.arbeitsauftragDocument .aaSheetQrCol .machineQrSlot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 96px;
-  height: 96px;
-  min-height: 0 !important;
-  max-height: 96px;
-  padding: 4px;
-  box-sizing: border-box;
-  border: 2px solid rgba(249, 115, 22, 0.35);
-  border-radius: 16px;
-  background: #ffffff;
-  flex: none;
-}
-
 .arbeitsauftragDocument .aaWorksheetMachine.aaMachineOverview {
   margin-bottom: 16px;
 }
 
 .aaMachineOverviewSheet .aaSheetImageCol .machineImagePreview,
-.aaMachineOverviewSheet .aaSheetQrCol .machineQrImage,
-.arbeitsauftragDocument .aaSheetImageCol .machineImagePreview,
-.arbeitsauftragDocument .aaSheetQrCol .machineQrImage {
+.arbeitsauftragDocument .aaSheetImageCol .machineImagePreview {
   width: 100%;
   height: 100%;
   max-width: 100%;
