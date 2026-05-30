@@ -37,11 +37,12 @@ function ArbeitsauftragPageContent() {
     const auftragId = searchParams.get("auftragId");
     return (
       <ArbeitsauftragForm
-        key={`${machineId}-${auftragId ?? searchParams.get("status") ?? searchParams.get("type") ?? "new"}`}
+        key={`${machineId}-${auftragId ?? searchParams.get("status") ?? searchParams.get("type") ?? "new"}-${searchParams.get("edit") === "1" ? "edit" : "view"}`}
         machineId={machineId}
         auftragId={auftragId}
         initialType={searchParams.get("status") ?? searchParams.get("type")}
         autoPrint={searchParams.get("print") === "1"}
+        editMode={searchParams.get("edit") === "1"}
       />
     );
   }

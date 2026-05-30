@@ -43,6 +43,8 @@ type Props = {
   auftragId?: string | null;
   initialType?: string | null;
   autoPrint?: boolean;
+  /** Bestehender Auftrag: true = volles Bearbeiten-Formular */
+  editMode?: boolean;
 };
 
 export default function ArbeitsauftragForm({
@@ -50,6 +52,7 @@ export default function ArbeitsauftragForm({
   auftragId,
   initialType,
   autoPrint = false,
+  editMode = false,
 }: Props) {
   const router = useRouter();
   const stammdatenRef = useRef<MachineStammdatenPanelHandle>(null);
@@ -68,6 +71,10 @@ export default function ArbeitsauftragForm({
   const [previewFields, setPreviewFields] = useState<StammdatenField[]>([]);
 
   const isNew = !auftragId && Boolean(initialType?.trim());
+  const isViewMode = Boolean(auftragId) && !isNew && !editMode;
+
+  const viewHref = `/arbeitsauftrag?machineId=${encodeURIComponent(machineId)}&auftragId=${encodeURIComponent(auftragId ?? "")}`;
+  const editHref = `${viewHref}&edit=1`;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -275,7 +282,10 @@ export default function ArbeitsauftragForm({
     const fields = stammdatenRef.current?.getFields() ?? machineToStammdatenFields(machine);
     const ok = await persistOrder(fields, order);
     if (ok) {
-      router.replace(`/maschinen/${encodeURIComponent(machineId)}`);
+      if (isNew) {
+        return;
+      }
+      router.replace(viewHref);
     }
   }
 
@@ -320,7 +330,17 @@ export default function ArbeitsauftragForm({
                 </button>
               </>
             ) : null}
-            {canWrite ? (
+            {isViewMode && canWrite ? (
+              <Link className="pillButton primary" href={editHref}>
+                Bearbeiten
+              </Link>
+            ) : null}
+            {!isViewMode && auftragId && !isNew ? (
+              <Link className="pillButton outline" href={viewHref}>
+                Arbeitsblatt
+              </Link>
+            ) : null}
+            {!isViewMode && canWrite ? (
               <button
                 type="button"
                 className="pillButton primary"
@@ -345,7 +365,20 @@ export default function ArbeitsauftragForm({
           </div>
         ) : machine && order ? (
           <>
-            <div className="aaForm arbeitsauftragHideOnPrint">
+            {isViewMode ? (
+              <div className="arbeitsauftragWorksheetView arbeitsauftragPrintSource">
+                <ArbeitsauftragPrintDocument
+                  machine={machine}
+                  order={order}
+                  stammdatenFields={printFields}
+                  username={username}
+                />
+              </div>
+            ) : null}
+
+            <div
+              className={`aaForm arbeitsauftragHideOnPrint${isViewMode ? " arbeitsauftragEditFormHidden" : ""}`}
+            >
               {isNew ? (
                 <p className="subtitle aaNewAuftragHint" style={{ marginBottom: 12 }}>
                   Neuer Auftrag: {formatOrderType(order.type)}
@@ -428,14 +461,16 @@ export default function ArbeitsauftragForm({
               {message ? <p className="protocolNotice success">{message}</p> : null}
             </div>
 
-            <div className="arbeitsauftragPrintOnly" aria-hidden>
-              <ArbeitsauftragPrintDocument
-                machine={machine}
-                order={order}
-                stammdatenFields={fieldsForPrint()}
-                username={username}
-              />
-            </div>
+            {!isViewMode ? (
+              <div className="arbeitsauftragPrintOnly arbeitsauftragPrintSource" aria-hidden>
+                <ArbeitsauftragPrintDocument
+                  machine={machine}
+                  order={order}
+                  stammdatenFields={fieldsForPrint()}
+                  username={username}
+                />
+              </div>
+            ) : null}
 
             <ArbeitsauftragPrintPreview
               open={printPreviewOpen}

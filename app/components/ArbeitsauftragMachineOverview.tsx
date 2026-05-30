@@ -31,7 +31,7 @@ export default function ArbeitsauftragMachineOverview({ machine, stammdaten }: P
             <p className="aaMachineOverviewName">{machine.bezeichnung}</p>
           ) : null}
           {subtitle ? <p className="aaMachineOverviewMeta">{subtitle}</p> : null}
-          {stammdaten}
+          <div className="aaStammdatenWrap">{stammdaten}</div>
         </div>
         <MachineHeroMedia machine={machine} className="aaMachineOverviewMedia" />
       </div>

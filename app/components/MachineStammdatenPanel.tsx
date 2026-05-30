@@ -102,7 +102,9 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
 
         <div className={`tabPanel ${editable ? "" : "readOnlyPanel"}`}>
           {showTitle ? <h2 className="aaStammdatenHeading">Stammdaten</h2> : null}
-          <div className="fieldGrid aaStammdatenGrid">
+          <div
+            className={`fieldGrid aaStammdatenGrid${embedded ? " stammdatenStacked" : ""}`}
+          >
             {stammdatenForm.map((field, index) => {
               if (!fieldVisible(field)) return null;
               return (
