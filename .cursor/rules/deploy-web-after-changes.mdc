@@ -1,0 +1,15 @@
+---
+description: Minden kódmódosítás után commit + push main-re, hogy a Vercel weben is frissüljön
+alwaysApply: true
+---
+
+# BOCSA — változások a weben is
+
+Ha ebben a projektben (`bocsa-app`) kódot vagy UI-t módosítasz:
+
+1. **Mindig** commitolj értelmes üzenettel, ha van mit commitolni.
+2. **Mindig** pusholj a `main` ágra (`git push origin main`), hogy a production (Vercel) deployoljon.
+3. Ne hagyd csak lokálisan a változást — a felhasználó a **weboldalon** ellenőrzi az eredményt.
+4. Deploy után emlékeztesd: kemény frissítés (Cmd+Shift+R / Ctrl+Shift+R), ha a productionön nézi.
+
+Kivétel: commit/push csak akkor marad ki, ha a felhasználó kifejezetten azt kéri (pl. „ne pusholj még”).
