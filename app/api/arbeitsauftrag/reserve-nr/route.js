@@ -14,7 +14,7 @@ async function requireWrite() {
   if (!session) {
     return { error: NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 }) };
   }
-  const allowed = await currentUserHasPermission(session.sub, "machines.write");
+  const allowed = await currentUserHasPermission("machines.write");
   if (!allowed) {
     return {
       error: NextResponse.json(

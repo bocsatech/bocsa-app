@@ -278,16 +278,16 @@ export default function MaschineDetailPage() {
       credentials: "include",
       body: JSON.stringify({ machineId: machine.id }),
     })
-      .then((response) => (response.ok ? response.json() : null))
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return response.json();
+      })
       .then((result) => {
         if (result && typeof result.assigned === "number" && result.assigned > 0) {
           loadMachine();
         }
-      })
-      .catch(() => {
-        auftragNrBackfillDone.current = false;
       });
-  }, [machine, canWriteMachines, loadMachine]);
+  }, [machine?.id, canWriteMachines, loadMachine]);
 
   useEffect(() => {
     async function loadPermissions() {
