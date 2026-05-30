@@ -36,8 +36,6 @@ type Props = {
   onGeraetenummerPickChange?: (pick: GeraetenummerPick) => void;
   geraetenummerPreviewSequence?: number | null;
   geraetenummerPreviewLoading?: boolean;
-  canManageGeraetenummerCodes?: boolean;
-  onGeraetenummerCodesChange?: (codes: GeraetenummerCodesConfig) => void;
   motorData: MotorFormData;
   setMotorData: (data: MotorFormData) => void;
   technicalData: TechnicalFormData;
@@ -73,8 +71,6 @@ export default function MachineDetailTabPanels({
   onGeraetenummerPickChange,
   geraetenummerPreviewSequence,
   geraetenummerPreviewLoading,
-  canManageGeraetenummerCodes,
-  onGeraetenummerCodesChange,
   motorData,
   setMotorData,
   technicalData,
@@ -109,8 +105,6 @@ export default function MachineDetailTabPanels({
           onGeraetenummerPickChange={onGeraetenummerPickChange}
           geraetenummerPreviewSequence={geraetenummerPreviewSequence}
           geraetenummerPreviewLoading={geraetenummerPreviewLoading}
-          canManageGeraetenummerCodes={canManageGeraetenummerCodes}
-          onGeraetenummerCodesChange={onGeraetenummerCodesChange}
         />
       ) : activeTab === "Motor" ? (
         <div className="fieldGrid">

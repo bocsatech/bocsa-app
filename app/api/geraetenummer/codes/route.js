@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { currentUserHasPermission, currentUserIsInGroup } from "../../../../lib/auth/permissions";
+import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import {
   addGeraetenummerCode,
   loadGeraetenummerCodes,
+  updateGeraetenummerCode,
 } from "../../../../lib/geraetenummer-db.mjs";
 
 export async function GET() {
@@ -31,8 +32,11 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  if (!(await currentUserIsInGroup("Admin"))) {
-    return NextResponse.json({ error: "Nur Admin." }, { status: 403 });
+  if (!(await currentUserHasPermission("machines.write"))) {
+    return NextResponse.json(
+      { error: "Keine Berechtigung: machines.write erforderlich." },
+      { status: 403 }
+    );
   }
 
   const db = getSupabaseAdmin();
@@ -49,6 +53,37 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Code konnte nicht gespeichert werden." },
+      { status: 400 }
+    );
+  }
+}
+
+export async function PATCH(request) {
+  if (!(await currentUserHasPermission("machines.write"))) {
+    return NextResponse.json(
+      { error: "Keine Berechtigung: machines.write erforderlich." },
+      { status: 403 }
+    );
+  }
+
+  const db = getSupabaseAdmin();
+  if (!db) {
+    return NextResponse.json({ error: "Supabase ist nicht konfiguriert." }, { status: 500 });
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const category = String(body.category ?? "").trim();
+  const code = String(body.code ?? "").trim();
+
+  try {
+    const codes = await updateGeraetenummerCode(db, category, code, body);
+    return NextResponse.json(codes);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Code konnte nicht aktualisiert werden.",
+      },
       { status: 400 }
     );
   }

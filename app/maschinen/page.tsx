@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
+import GeraetenummerCodesModal from "../components/GeraetenummerCodesModal";
 import MachineAddModal from "../components/MachineAddModal";
 import MachineList from "../components/MachineList";
 import QrScannerModal from "../components/QrScannerModal";
@@ -41,8 +42,8 @@ function MaschinenPageContent() {
   const [scanHint, setScanHint] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [codesOpen, setCodesOpen] = useState(false);
   const [canWriteMachines, setCanWriteMachines] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   const loadMachines = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) {
@@ -89,16 +90,25 @@ function MaschinenPageContent() {
     const aktion = searchParams.get("aktion");
     if (aktion === "hinzufuegen") {
       setAddOpen(true);
+      setCodesOpen(false);
+      setQrOpen(false);
+      return;
+    }
+    if (aktion === "geraetenummer-codes") {
+      setCodesOpen(true);
+      setAddOpen(false);
       setQrOpen(false);
       return;
     }
     if (aktion === "qr") {
       setQrOpen(true);
       setAddOpen(false);
+      setCodesOpen(false);
       return;
     }
     setQrOpen(false);
     setAddOpen(false);
+    setCodesOpen(false);
   }, [searchParams]);
 
   useEffect(() => {
@@ -109,7 +119,6 @@ function MaschinenPageContent() {
       });
       const result = await response.json().catch(() => ({}));
       setCanWriteMachines(Boolean(result.permissions?.includes("machines.write")));
-      setIsAdmin(Array.isArray(result.groups) && result.groups.includes("Admin"));
     }
 
     loadPermissions();
@@ -316,12 +325,20 @@ function MaschinenPageContent() {
       <MachineAddModal
         open={addOpen}
         canWrite={canWriteMachines}
-        canManageGeraetenummerCodes={isAdmin}
         onClose={() => {
           setAddOpen(false);
           if (searchParams.get("aktion") === "hinzufuegen") clearMaschinenAktion();
         }}
         onSaved={handleMachineCreated}
+      />
+
+      <GeraetenummerCodesModal
+        open={codesOpen}
+        canWrite={canWriteMachines}
+        onClose={() => {
+          setCodesOpen(false);
+          if (searchParams.get("aktion") === "geraetenummer-codes") clearMaschinenAktion();
+        }}
       />
     </AppPageShell>
   );

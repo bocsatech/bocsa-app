@@ -1573,6 +1573,66 @@ button, input, select, textarea {
   letter-spacing: 0.02em;
 }
 
+.geraetenummerCodesModal {
+  max-width: min(920px, 96vw);
+}
+
+.geraetenummerCodesModalBody {
+  padding: 0 4px 8px;
+}
+
+.geraetenummerCodesTabs {
+  margin-bottom: 16px;
+}
+
+.geraetenummerCodesTableWrap {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.geraetenummerCodesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.geraetenummerCodesTable th,
+.geraetenummerCodesTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.geraetenummerCodesTable th {
+  background: #f9fafb;
+  color: #4b5563;
+  font-weight: 700;
+}
+
+.geraetenummerCodesTable input,
+.geraetenummerCodesTable select {
+  width: 100%;
+  min-width: 8rem;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.geraetenummerCodesAddForm {
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.geraetenummerCodesAddForm h3 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+}
+
 .geraetenummerCodesManager {
   margin: 0 0 18px;
 }

@@ -95,6 +95,18 @@ async function main() {
         throw new Error(uploadError.message);
       }
 
+      const baseUrl = machine.kep.replace(/\?.*$/, "");
+      const bustUrl = `${baseUrl}?v=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from("maschines")
+        .update({ kep: bustUrl })
+        .eq("id", machine.id);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
       console.log(`✓ ${label}`);
       ok += 1;
     } catch (err) {

@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import GermanDateField from "./GermanDateField";
-import GeraetenummerCodesManager from "./GeraetenummerCodesManager";
 import GeraetenummerPicker from "./GeraetenummerPicker";
 import MachineHeroMedia from "./MachineHeroMedia";
 import type { GeraetenummerCodesConfig, GeraetenummerPick } from "../../lib/geraetenummer";
@@ -30,8 +29,6 @@ type Props = {
   onGeraetenummerPickChange?: (pick: GeraetenummerPick) => void;
   geraetenummerPreviewSequence?: number | null;
   geraetenummerPreviewLoading?: boolean;
-  canManageGeraetenummerCodes?: boolean;
-  onGeraetenummerCodesChange?: (codes: GeraetenummerCodesConfig) => void;
 };
 
 export function buildStammdatenRowsForDisplay(
@@ -79,8 +76,6 @@ export default function MachineStammdatenPanelContent({
   onGeraetenummerPickChange,
   geraetenummerPreviewSequence = null,
   geraetenummerPreviewLoading = false,
-  canManageGeraetenummerCodes = false,
-  onGeraetenummerCodesChange,
 }: Props) {
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
   const stammdatenRowsForDisplay = buildStammdatenRowsForDisplay(
@@ -102,12 +97,6 @@ export default function MachineStammdatenPanelContent({
               previewLoading={geraetenummerPreviewLoading}
               disabled={!canWrite}
             />
-            {canManageGeraetenummerCodes && onGeraetenummerCodesChange ? (
-              <GeraetenummerCodesManager
-                codes={geraetenummerCodes}
-                onCodesChange={onGeraetenummerCodesChange}
-              />
-            ) : null}
           </>
         ) : null}
         <div className="fieldGrid stammdatenStacked">

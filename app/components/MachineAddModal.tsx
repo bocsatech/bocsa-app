@@ -43,7 +43,6 @@ const EMPTY_PICK: GeraetenummerPick = { marke: "", klasse: "", art: "" };
 type Props = {
   open: boolean;
   canWrite: boolean;
-  canManageGeraetenummerCodes?: boolean;
   onClose: () => void;
   onSaved: (machine: Machine) => void;
 };
@@ -51,7 +50,6 @@ type Props = {
 export default function MachineAddModal({
   open,
   canWrite,
-  canManageGeraetenummerCodes = false,
   onClose,
   onSaved,
 }: Props) {
@@ -226,8 +224,6 @@ export default function MachineAddModal({
                 onGeraetenummerPickChange={setGeraetenummerPick}
                 geraetenummerPreviewSequence={previewSequence}
                 geraetenummerPreviewLoading={previewLoading}
-                canManageGeraetenummerCodes={canManageGeraetenummerCodes}
-                onGeraetenummerCodesChange={setGeraetenummerCodes}
                 motorData={tabForms.motor}
                 setMotorData={(motor) => setTabForms((prev) => ({ ...prev, motor }))}
                 technicalData={tabForms.technical}

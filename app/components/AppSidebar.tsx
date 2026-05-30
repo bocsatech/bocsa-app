@@ -10,6 +10,11 @@ export const MASCHINEN_NAV = {
   label: "Maschinen",
   children: [
     { href: "/maschinen?aktion=hinzufuegen", label: "Maschine hinzufügen", aktion: "hinzufuegen" },
+    {
+      href: "/maschinen?aktion=geraetenummer-codes",
+      label: "Gerätenummer-Kódok",
+      aktion: "geraetenummer-codes",
+    },
     { href: "/maschinen?aktion=qr", label: "QR-Code scannen", aktion: "qr" },
   ],
 } as const;

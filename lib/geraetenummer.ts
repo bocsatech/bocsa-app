@@ -213,6 +213,28 @@ export async function addGeraetenummerCodeEntry(payload: {
   return { data: mergeGeraetenummerCodes(result), error: null };
 }
 
+export async function updateGeraetenummerCodeEntry(payload: {
+  category: "marken" | "klassen" | "arten";
+  code: string;
+  label: string;
+  geraettyp?: string;
+}) {
+  const response = await fetch("/api/geraetenummer/codes", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    return {
+      data: null,
+      error: { message: result?.error ?? "Code konnte nicht aktualisiert werden." },
+    };
+  }
+  return { data: mergeGeraetenummerCodes(result), error: null };
+}
+
 export function validateGeraetenummerPick(
   codes: GeraetenummerCodesConfig,
   pick: GeraetenummerPick
