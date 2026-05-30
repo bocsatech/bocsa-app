@@ -1,5 +1,6 @@
 "use client";
 
+import { formatGermanMonthYear } from "../../lib/dates";
 import {
   formatDate,
   formatValue,
@@ -83,8 +84,8 @@ function StatusIndicatorRow({
     <span className="machineStatusRow">
       <span className={`machineStatusMark ${variant}`} aria-hidden="true" />
       <span className={`machineStatusBadge ${variant}`}>
-        <strong>{label}</strong>
-        {text}
+        <strong className="machineStatusLabel">{label}</strong>
+        <span className="machineStatusValue">{text}</span>
       </span>
     </span>
   );

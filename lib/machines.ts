@@ -217,6 +217,9 @@ export function hasValue(value: unknown) {
 
 export function formatDate(value: unknown) {
   if (value === null || value === undefined) return "—";
+  if (value instanceof Date) {
+    return formatGermanDate(value) || "—";
+  }
   const text = String(value).trim();
   if (!text) return "—";
   return formatGermanDate(text) || text;

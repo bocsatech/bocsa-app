@@ -57,6 +57,15 @@ export function formatGermanDate(value: unknown): string {
   return `${day}.${month}.${year}`;
 }
 
+/** MM.JJJJ — z. B. Service „bis 02.2026“ */
+export function formatGermanMonthYear(value: unknown): string {
+  const date = value instanceof Date ? value : parseGermanDate(value);
+  if (!date) return "";
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${month}.${year}`;
+}
+
 /** Gültiges TT.MM.JJJJ oder null */
 export function normalizeGermanDate(value: unknown): string | null {
   const formatted = formatGermanDate(value);
