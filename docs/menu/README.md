@@ -1,0 +1,36 @@
+# Oldalmenü — fejlesztési jegyzetek
+
+Itt dokumentáljuk **menüpontonként**, mit kell fejleszteni. Egy menü = egy fájl.
+
+**Kód:** `app/components/AppSidebar.tsx`
+
+**Szabályok:**
+- Csak az adott menü fájljába írj — ne keverd a deploy / Supabase témát (az külön agent).
+- Ha kész: `[x]` a feladatnál.
+- Localhost = igazság; web = ugyanaz a kód + ugyanaz a Supabase (Bocsa.tech).
+
+## Menüpontok
+
+| # | Menü | Fájl | Útvonal |
+|---|------|------|---------|
+| 1 | Home | [01-home.md](./01-home.md) | `/` |
+| 2 | Maschinen | [02-maschinen.md](./02-maschinen.md) | `/maschinen` |
+| 2a | ↳ Maschine hinzufügen | *(02-maschinen.md)* | `/maschinen?aktion=hinzufuegen` |
+| 2b | ↳ QR-Code scannen | *(02-maschinen.md)* | `/maschinen?aktion=qr` |
+| 3 | Meldungen | [03-meldungen.md](./03-meldungen.md) | `/meldungen` |
+| 4 | Arbeitsauftrag | [04-arbeitsauftrag.md](./04-arbeitsauftrag.md) | `/arbeitsauftrag` |
+| 5 | Prüfprotokoll | [05-pruefprotokoll.md](./05-pruefprotokoll.md) | `/pruefprotokoll` |
+| 6 | Lager | [06-lager.md](./06-lager.md) | `/lager` |
+| 7 | Arbeitsstunden | [07-arbeitsstunden.md](./07-arbeitsstunden.md) | `/arbeitsstunden` |
+| 8 | Filialen | [08-filialen.md](./08-filialen.md) | `/filialen` |
+| 9 | Users | [09-users.md](./09-users.md) | `/users` |
+| 10 | Gruppen | [10-gruppen.md](./10-gruppen.md) | `/groups` |
+| 11 | QR Code | [11-qr-code.md](./11-qr-code.md) | `/qr-code` |
+
+## Más témák (ne ide)
+
+| Téma | Hol |
+|------|-----|
+| Supabase SQL | `supabase/` + külön Cursor agent |
+| Web deploy (Vercel) | külön Cursor agent |
+| `.env.local` | gépen, nem GitHub |
