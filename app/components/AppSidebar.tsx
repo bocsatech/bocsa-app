@@ -5,20 +5,59 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 
-export const MASCHINEN_NAV = {
+type MaschinenSubAktion = {
+  kind: "aktion";
+  href: string;
+  label: string;
+  aktion: string;
+};
+
+type MaschinenSubRoute = {
+  kind: "route";
+  href: string;
+  label: string;
+};
+
+type MaschinenSubItem = MaschinenSubAktion | MaschinenSubRoute;
+
+export const BAUMASCHINEN_NAV = {
   href: "/maschinen",
-  label: "Maschinen",
+  label: "Baumaschinen",
   permission: "menu.machines",
   children: [
-    { href: "/maschinen?aktion=hinzufuegen", label: "Maschine hinzufügen", aktion: "hinzufuegen" },
     {
+      kind: "aktion",
+      href: "/maschinen?aktion=hinzufuegen",
+      label: "Maschine hinzufügen",
+      aktion: "hinzufuegen",
+    },
+    {
+      kind: "aktion",
       href: "/maschinen?aktion=geraetenummer-codes",
       label: "Nummern-Codes",
       aktion: "geraetenummer-codes",
     },
-    { href: "/maschinen?aktion=qr", label: "QR-Code scannen", aktion: "qr" },
-  ],
-} as const;
+    {
+      kind: "aktion",
+      href: "/maschinen?aktion=qr",
+      label: "QR-Code scannen",
+      aktion: "qr",
+    },
+    {
+      kind: "route",
+      href: "/arbeitsauftrag",
+      label: "Bauarbeitsauftrag",
+    },
+    {
+      kind: "route",
+      href: "/pruefprotokoll",
+      label: "Bauprüfprotokoll",
+    },
+  ] as const satisfies readonly MaschinenSubItem[],
+};
+
+/** @deprecated Alias — Baumaschinen */
+export const MASCHINEN_NAV = BAUMASCHINEN_NAV;
 
 export const PKW_NAV = {
   label: "PKW",
@@ -32,8 +71,6 @@ export const HOME_NAV = { href: "/", label: "Home", permission: "menu.dashboard"
 
 export const APP_NAV_ITEMS = [
   { href: "/meldungen", label: "Meldungen", permission: "menu.machines" },
-  { href: "/arbeitsauftrag", label: "Arbeitsauftrag", permission: "menu.machines" },
-  { href: "/pruefprotokoll", label: "Prüfprotokoll", permission: "menu.machines" },
   { href: "/lager", label: "Lager", permission: "menu.warehouse" },
   { href: "/arbeitsstunden", label: "Arbeitsstunden", permission: "menu.hours" },
   { href: "/filialen", label: "Filialen", permission: "menu.branches" },
@@ -47,6 +84,7 @@ export const ADMIN_NAV_ITEMS = [
 
 type NavItem = (typeof APP_NAV_ITEMS)[number];
 type AdminNavItem = (typeof ADMIN_NAV_ITEMS)[number];
+type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number];
 
 function isAdminUser(username: string | undefined, groups: string[]) {
   return groups.includes("Admin") || username?.trim().toLowerCase() === "admin";
@@ -69,17 +107,112 @@ type Props = {
 };
 
 function isNavActive(item: NavItem | AdminNavItem, activeHref: string | undefined, pathname: string) {
-  if (item.href === "/arbeitsauftrag") {
-    return activeHref === "/arbeitsauftrag" && !pathname.includes("machineId=");
-  }
   return activeHref === item.href || pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function isMaschinenSectionActive(activeHref: string | undefined, pathname: string) {
+function isBaumaschinenSectionActive(activeHref: string | undefined, pathname: string) {
   return (
-    activeHref === MASCHINEN_NAV.href ||
-    pathname === MASCHINEN_NAV.href ||
-    pathname.startsWith("/maschinen/")
+    activeHref === BAUMASCHINEN_NAV.href ||
+    pathname === BAUMASCHINEN_NAV.href ||
+    pathname.startsWith("/maschinen/") ||
+    activeHref === "/arbeitsauftrag" ||
+    pathname.startsWith("/arbeitsauftrag") ||
+    activeHref === "/pruefprotokoll" ||
+    pathname.startsWith("/pruefprotokoll")
+  );
+}
+
+function isBaumaschinenSubActive(
+  child: BauSubItem,
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null
+) {
+  if (child.kind === "aktion") {
+    return pathname.startsWith("/maschinen") && aktion === child.aktion;
+  }
+  if (child.href === "/arbeitsauftrag") {
+    return (
+      (activeHref === "/arbeitsauftrag" && !pathname.includes("machineId=")) ||
+      pathname === "/arbeitsauftrag" ||
+      pathname.startsWith("/arbeitsauftrag/")
+    );
+  }
+  return pathname === child.href || pathname.startsWith(`${child.href}/`);
+}
+
+function BaumaschinenNavGroup({
+  activeHref,
+  pathname,
+}: {
+  activeHref: string | undefined;
+  pathname: string;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const aktion = searchParams.get("aktion");
+  const sectionActive = isBaumaschinenSectionActive(activeHref, pathname);
+  const [open, setOpen] = useState(sectionActive);
+
+  useEffect(() => {
+    if (sectionActive) setOpen(true);
+  }, [sectionActive]);
+
+  function handleParentClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (sectionActive && open && pathname === BAUMASCHINEN_NAV.href && !aktion) {
+      event.preventDefault();
+      setOpen(false);
+      return;
+    }
+    setOpen(true);
+    if (!sectionActive || pathname !== BAUMASCHINEN_NAV.href || aktion) {
+      event.preventDefault();
+      router.push(BAUMASCHINEN_NAV.href);
+    }
+  }
+
+  return (
+    <div className="sidebarNavGroup">
+      <Link
+        href={BAUMASCHINEN_NAV.href}
+        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        aria-expanded={open}
+        onClick={handleParentClick}
+      >
+        {BAUMASCHINEN_NAV.label}
+      </Link>
+      {open ? (
+        <div className="sidebarNavSub">
+          {BAUMASCHINEN_NAV.children.map((child) => {
+            const active = isBaumaschinenSubActive(child, activeHref, pathname, aktion);
+            if (child.kind === "route" && child.href === "/arbeitsauftrag") {
+              return (
+                <a
+                  key={child.href}
+                  href={child.href}
+                  className={active ? "active" : undefined}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    router.replace("/arbeitsauftrag");
+                  }}
+                >
+                  {child.label}
+                </a>
+              );
+            }
+            return (
+              <Link
+                key={child.href}
+                href={child.href}
+                className={active ? "active" : undefined}
+              >
+                {child.label}
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -92,65 +225,6 @@ function isPkwSectionActive(activeHref: string | undefined, pathname: string) {
     pathname === "/pkw-service" ||
     pathname.startsWith("/pkw-service/") ||
     pathname.startsWith("/pkw/")
-  );
-}
-
-function MaschinenNavGroup({
-  activeHref,
-  pathname,
-}: {
-  activeHref: string | undefined;
-  pathname: string;
-}) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const aktion = searchParams.get("aktion");
-  const sectionActive = isMaschinenSectionActive(activeHref, pathname);
-  const [open, setOpen] = useState(sectionActive);
-
-  useEffect(() => {
-    if (sectionActive) setOpen(true);
-  }, [sectionActive]);
-
-  function handleMaschinenClick(event: MouseEvent<HTMLAnchorElement>) {
-    if (sectionActive && open && pathname === MASCHINEN_NAV.href && !aktion) {
-      event.preventDefault();
-      setOpen(false);
-      return;
-    }
-    setOpen(true);
-    if (!sectionActive || pathname !== MASCHINEN_NAV.href || aktion) {
-      event.preventDefault();
-      router.push(MASCHINEN_NAV.href);
-    }
-  }
-
-  return (
-    <div className="sidebarNavGroup">
-      <Link
-        href={MASCHINEN_NAV.href}
-        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
-        aria-expanded={open}
-        onClick={handleMaschinenClick}
-      >
-        {MASCHINEN_NAV.label}
-      </Link>
-      {open ? (
-        <div className="sidebarNavSub">
-          {MASCHINEN_NAV.children.map((child) => (
-            <Link
-              key={child.href}
-              href={child.href}
-              className={
-                pathname.startsWith("/maschinen") && aktion === child.aktion ? "active" : undefined
-              }
-            >
-              {child.label}
-            </Link>
-          ))}
-        </div>
-      ) : null}
-    </div>
   );
 }
 
@@ -206,7 +280,6 @@ function PkwNavGroup({
 }
 
 export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) {
-  const router = useRouter();
   const pathname = usePathname();
   const [permissions, setPermissions] = useState<string[]>([]);
   const [groups, setGroups] = useState<string[]>([]);
@@ -227,7 +300,12 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
   }, []);
 
   const showHome = canShowMenuItem(HOME_NAV.permission, permissions, groups, username);
-  const showMaschinen = canShowMenuItem(MASCHINEN_NAV.permission, permissions, groups, username);
+  const showBaumaschinen = canShowMenuItem(
+    BAUMASCHINEN_NAV.permission,
+    permissions,
+    groups,
+    username
+  );
   const pkwChildren: PkwNavChild[] = PKW_NAV.children.filter((child) =>
     canShowMenuItem(child.permission, permissions, groups, username)
   );
@@ -259,47 +337,27 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
           </Link>
         ) : null}
 
-        {showMaschinen ? (
+        {showBaumaschinen ? (
           <Suspense
             fallback={
-              <Link href={MASCHINEN_NAV.href} className="active">
-                {MASCHINEN_NAV.label}
+              <Link href={BAUMASCHINEN_NAV.href} className="active">
+                {BAUMASCHINEN_NAV.label}
               </Link>
             }
           >
-            <MaschinenNavGroup activeHref={activeHref} pathname={pathname} />
+            <BaumaschinenNavGroup activeHref={activeHref} pathname={pathname} />
           </Suspense>
         ) : null}
 
-        {navItems.map((item) => {
-          const active = isNavActive(item, activeHref, pathname);
-
-          if (item.href === "/arbeitsauftrag") {
-            return (
-              <a
-                key={item.href}
-                href="/arbeitsauftrag"
-                className={active ? "active" : undefined}
-                onClick={(event) => {
-                  event.preventDefault();
-                  router.replace("/arbeitsauftrag");
-                }}
-              >
-                {item.label}
-              </a>
-            );
-          }
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={active ? "active" : undefined}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={isNavActive(item, activeHref, pathname) ? "active" : undefined}
+          >
+            {item.label}
+          </Link>
+        ))}
 
         <PkwNavGroup
           activeHref={activeHref}

@@ -1,15 +1,18 @@
-# Maschinen
+# Baumaschinen
 
 **Útvonal:** `/maschinen`  
 **Kód:** `app/maschinen/page.tsx`, `app/maschinen/[id]/page.tsx`  
-**Sidebar:** almenü `AppSidebar.tsx` → `MASCHINEN_NAV`
+**Sidebar:** almenü `AppSidebar.tsx` → `BAUMASCHINEN_NAV` (`MASCHINEN_NAV` alias)
 
 ## Almenü
 
 | Pont | Útvonal | Mit csinál |
 |------|---------|------------|
 | Maschine hinzufügen | `/maschinen?aktion=hinzufuegen` | Új gép űrlap |
+| Nummern-Codes | `/maschinen?aktion=geraetenummer-codes` | Gerätenummer-Codes |
 | QR-Code scannen | `/maschinen?aktion=qr` | QR szkenner |
+| Bauarbeitsauftrag | `/arbeitsauftrag` | Arbeitsauftrag (Baumaschinen) |
+| Bauprüfprotokoll | `/pruefprotokoll` | Prüfprotokoll (Baumaschinen) |
 
 ## Állapot
 

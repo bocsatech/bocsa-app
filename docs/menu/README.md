@@ -14,12 +14,13 @@ Itt dokumentáljuk **menüpontonként**, mit kell fejleszteni. Egy menü = egy f
 | # | Menü | Fájl | Útvonal |
 |---|------|------|---------|
 | 1 | Home | [01-home.md](./01-home.md) | `/` |
-| 2 | Maschinen | [02-maschinen.md](./02-maschinen.md) | `/maschinen` |
+| 2 | Baumaschinen (Untermenü) | [02-maschinen.md](./02-maschinen.md) | `/maschinen` |
 | 2a | ↳ Maschine hinzufügen | *(02-maschinen.md)* | `/maschinen?aktion=hinzufuegen` |
-| 2b | ↳ QR-Code scannen | *(02-maschinen.md)* | `/maschinen?aktion=qr` |
+| 2b | ↳ Nummern-Codes | *(02-maschinen.md)* | `/maschinen?aktion=geraetenummer-codes` |
+| 2c | ↳ QR-Code scannen | *(02-maschinen.md)* | `/maschinen?aktion=qr` |
+| 2d | ↳ Bauarbeitsauftrag | [04-arbeitsauftrag.md](./04-arbeitsauftrag.md) | `/arbeitsauftrag` |
+| 2e | ↳ Bauprüfprotokoll | [05-pruefprotokoll.md](./05-pruefprotokoll.md) | `/pruefprotokoll` |
 | 3 | Meldungen | [03-meldungen.md](./03-meldungen.md) | `/meldungen` |
-| 4 | Arbeitsauftrag | [04-arbeitsauftrag.md](./04-arbeitsauftrag.md) | `/arbeitsauftrag` |
-| 5 | Prüfprotokoll | [05-pruefprotokoll.md](./05-pruefprotokoll.md) | `/pruefprotokoll` |
 | 6 | Lager | [06-lager.md](./06-lager.md) | `/lager` |
 | 7 | PKW (Untermenü) | `docs/pkw-modul.md` | Kunden, PKW-Service |
 | 8 | Arbeitsstunden | [07-arbeitsstunden.md](./07-arbeitsstunden.md) | `/arbeitsstunden` |
