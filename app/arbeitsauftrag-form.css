@@ -330,64 +330,81 @@
   color: #374151;
 }
 
-/* Bearbeiten: gleiches Munkalap-Layout, Eingaben wie Maschinen-Detail */
-.aaMachineOverviewSheet.aaSheetEditing .tabSectionEmbedded {
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-}
-
-.aaMachineOverviewSheet.aaSheetEditing .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow input,
-.aaMachineOverviewSheet.aaSheetEditing .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow select {
+/* Bearbeiten: gleiche Optik wie Arbeitsblatt — Eingaben wie Fließtext */
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow .aaSheetInput,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow select.aaSheetInput {
   display: table-cell;
   width: auto;
-  min-width: 11rem;
-  max-width: 22rem;
-  border: 1px solid #d1d5db !important;
-  border-radius: 8px !important;
-  padding: 6px 10px !important;
-  background: #ffffff !important;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 3px 0 !important;
+  background: transparent !important;
   box-shadow: none !important;
+  outline: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  appearance: none;
+}
+
+.aaMachineOverviewSheet .aaWorksheetStammdaten .aaSheetInput::placeholder {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.aaMachineOverviewSheet .aaWorksheetStammdaten select.aaSheetInput {
+  padding-right: 1.1rem !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M3 4.5 6 7.5 9 4.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  cursor: pointer;
+}
+
+.aaMachineOverviewSheet .aaWorksheetStammdaten select.status-fertig {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.aaMachineOverviewSheet .aaWorksheetStammdaten select.status-repair {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.aaMachineOverviewSheet .aaSheetDateField {
+  display: table-cell;
+  vertical-align: baseline;
+}
+
+.aaMachineOverviewSheet .aaSheetDateField .dateFieldWithPicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+}
+
+.aaMachineOverviewSheet .aaSheetDateField .dateFieldText {
+  width: auto;
+  min-width: 0;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 3px 0 !important;
+  background: transparent !important;
   font-size: 0.9rem;
   font-weight: 600;
   color: #111827;
 }
 
-.aaMachineOverviewSheet.aaSheetEditing .aaWorksheetStammdaten .dateFieldWithPicker {
-  display: inline-flex;
-  width: auto;
-  max-width: 100%;
-}
-
-.aaMachineOverviewSheet.aaSheetEditing .aaWorksheetStammdaten .dateFieldWithPicker .dateFieldText {
-  width: auto;
-  min-width: 7.5rem;
-  border: 1px solid #d1d5db !important;
-  border-radius: 8px !important;
-  padding: 6px 10px !important;
-  background: #ffffff !important;
-}
-
-.aaMachineOverviewSheet.aaSheetEditing .aaWorksheetStammdaten .dateFieldPickerBtn {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+.aaMachineOverviewSheet .aaSheetDateField .dateFieldPickerBtn {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  padding: 0;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #ffffff;
-}
-
-.aaMachineOverviewSheet.aaSheetEditing .aaWorksheetStammdaten select.statusSelect.fertig,
-.aaMachineOverviewSheet.aaSheetEditing .aaWorksheetStammdaten select.aaWorksheetValue.fertig {
-  color: #15803d;
-  font-weight: 700;
-}
-
-.aaMachineOverviewSheet.aaSheetEditing .aaWorksheetStammdaten select.statusSelect.repair {
-  color: #b45309;
-  font-weight: 700;
 }
 
 .aaMachineOverview .fieldRow:not(.aaFieldRow) {
@@ -514,8 +531,9 @@
 .arbeitsauftragDocument .aaSheetImageCol .machineImagePreview,
 .aaMachineOverviewSheet .aaSheetImageCol .aaSheetQrImage,
 .arbeitsauftragDocument .aaSheetImageCol .aaSheetQrImage {
-  width: 100%;
-  height: 100%;
+  display: block;
+  width: 100px;
+  height: 114px;
   max-width: 100px;
   max-height: 114px;
   object-fit: contain;

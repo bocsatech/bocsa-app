@@ -7,10 +7,9 @@ import "../arbeitsauftrag-form.css";
 import AppPageShell from "./AppPageShell";
 import ArbeitsauftragPrintDocument from "./ArbeitsauftragPrintDocument";
 import ArbeitsauftragPrintPreview from "./ArbeitsauftragPrintPreview";
-import ArbeitsauftragMachineOverview from "./ArbeitsauftragMachineOverview";
-import MachineStammdatenPanel, {
-  type MachineStammdatenPanelHandle,
-} from "./MachineStammdatenPanel";
+import ArbeitsauftragWorksheetMachineBlock, {
+  type ArbeitsauftragWorksheetMachineBlockHandle,
+} from "./ArbeitsauftragWorksheetMachineBlock";
 import ArbeitsauftragProtokollSection from "./ArbeitsauftragProtokollSection";
 import {
   buildStammdatenPatch,
@@ -55,7 +54,7 @@ export default function ArbeitsauftragForm({
   editMode = false,
 }: Props) {
   const router = useRouter();
-  const stammdatenRef = useRef<MachineStammdatenPanelHandle>(null);
+  const stammdatenRef = useRef<ArbeitsauftragWorksheetMachineBlockHandle>(null);
   const printedRef = useRef(false);
   const [machine, setMachine] = useState<Machine | null>(null);
   const [order, setOrder] = useState<WorkOrder | null>(null);
@@ -272,11 +271,6 @@ export default function ArbeitsauftragForm({
     return true;
   }
 
-  async function handleStammdatenSave(fields: StammdatenField[]): Promise<boolean> {
-    if (!order) return false;
-    return persistOrder(fields, order);
-  }
-
   async function handleSaveAll() {
     if (!order) return;
     const fields = stammdatenRef.current?.getFields() ?? machineToStammdatenFields(machine);
@@ -393,27 +387,21 @@ export default function ArbeitsauftragForm({
                   )}
                 </p>
               ) : null}
-              <ArbeitsauftragMachineOverview
+              <ArbeitsauftragWorksheetMachineBlock
+                ref={stammdatenRef}
                 machine={machine}
                 order={order}
                 username={username}
-                stammdaten={
-                  <MachineStammdatenPanel
-                    ref={stammdatenRef}
-                    machine={machine}
-                    canWrite={canWrite}
-                    saving={saving}
-                    saveError={saveError}
-                    alwaysEditing
-                    embedded
-                    sheetLayout
-                    hideEmptyFields={false}
-                    showTitle={false}
-                    showActions={false}
-                    onSave={handleStammdatenSave}
-                  />
-                }
+                editable
+                showAllFields
+                canWrite={canWrite}
+                className="arbeitsauftragHideOnPrint"
               />
+              {saveError ? (
+                <p className="arbeitsauftragHideOnPrint" style={{ color: "#dc2626" }}>
+                  {saveError}
+                </p>
+              ) : null}
 
               <section className="protocolSection card aaBlock">
                 <ArbeitsauftragProtokollSection
