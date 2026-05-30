@@ -21,11 +21,12 @@ Itt dokumentáljuk **menüpontonként**, mit kell fejleszteni. Egy menü = egy f
 | 4 | Arbeitsauftrag | [04-arbeitsauftrag.md](./04-arbeitsauftrag.md) | `/arbeitsauftrag` |
 | 5 | Prüfprotokoll | [05-pruefprotokoll.md](./05-pruefprotokoll.md) | `/pruefprotokoll` |
 | 6 | Lager | [06-lager.md](./06-lager.md) | `/lager` |
-| 7 | Arbeitsstunden | [07-arbeitsstunden.md](./07-arbeitsstunden.md) | `/arbeitsstunden` |
-| 8 | Filialen | [08-filialen.md](./08-filialen.md) | `/filialen` |
-| 9 | Users | [09-users.md](./09-users.md) | `/users` |
-| 10 | Gruppen | [10-gruppen.md](./10-gruppen.md) | `/groups` |
-| 11 | QR Code | [11-qr-code.md](./11-qr-code.md) | `/qr-code` |
+| 7 | PKW (Untermenü) | `docs/pkw-modul.md` | Kunden, PKW-Service |
+| 8 | Arbeitsstunden | [07-arbeitsstunden.md](./07-arbeitsstunden.md) | `/arbeitsstunden` |
+| 9 | Filialen | [08-filialen.md](./08-filialen.md) | `/filialen` |
+| 10 | QR-Code | [11-qr-code.md](./11-qr-code.md) | `/qr-code` |
+| 11 | Benutzer | [09-users.md](./09-users.md) | `/users` |
+| 12 | Gruppen | [10-gruppen.md](./10-gruppen.md) | `/groups` |
 
 ## Más témák (ne ide)
 
