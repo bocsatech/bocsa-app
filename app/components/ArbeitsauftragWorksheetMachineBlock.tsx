@@ -5,7 +5,6 @@ import GermanDateField from "./GermanDateField";
 import {
   ARBEITSAUFTRAG_SHEET_SKIP_FIELDS,
   GERAETTYP_OPTIONS,
-  filterArbeitsauftragSheetFields,
   formatMachineGeraetenummerLine,
   formatValue,
   hasValue,
@@ -29,13 +28,10 @@ export type ArbeitsauftragWorksheetMachineBlockHandle = {
 type Props = {
   machine: Machine;
   order: WorkOrder;
-  /** Nur Leseansicht: Felder von außen (z. B. Druck) */
   stammdatenFields?: StammdatenField[];
   username?: string;
   editable?: boolean;
   canWrite?: boolean;
-  /** Bearbeiten: alle Zeilen, auch leer */
-  showAllFields?: boolean;
   className?: string;
 };
 
@@ -54,6 +50,10 @@ function fieldValueClass(field: StammdatenField) {
   return "aaWorksheetValue";
 }
 
+function displayValue(field: StammdatenField) {
+  return hasValue(field.value) ? field.value : "—";
+}
+
 const ArbeitsauftragWorksheetMachineBlock = forwardRef<
   ArbeitsauftragWorksheetMachineBlockHandle,
   Props
@@ -65,7 +65,6 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
     username,
     editable = false,
     canWrite = false,
-    showAllFields = false,
     className = "",
   },
   ref
@@ -82,15 +81,11 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
     getFields: () => formFields,
   }));
 
+  const fields = editable ? formFields : (stammdatenFieldsProp ?? formFields);
+
   const bearbeiter = order.updatedBy || order.createdBy || username || "—";
   const auftragNr = formatWorkOrderAuftragNr(order);
   const geraetenummerLine = formatMachineGeraetenummerLine(machine);
-
-  const displayFields = editable
-    ? filterArbeitsauftragSheetFields(formFields, { showEmpty: showAllFields })
-    : filterArbeitsauftragSheetFields(
-        stammdatenFieldsProp ?? machineToStammdatenFields(machine)
-      );
 
   function updateField(index: number, value: string) {
     setFormFields((prev) =>
@@ -101,9 +96,7 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
   function renderFieldValue(field: StammdatenField, index: number) {
     if (!editable) {
       return (
-        <strong className={fieldValueClass(field)}>
-          {hasValue(field.value) ? field.value : "—"}
-        </strong>
+        <strong className={fieldValueClass(field)}>{displayValue(field)}</strong>
       );
     }
 
@@ -163,6 +156,7 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
           <GermanDateField
             value={field.value}
             readOnly={!canWrite}
+            placeholder="—"
             onChange={(next) => updateField(index, next)}
           />
         </div>
@@ -190,7 +184,7 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
       );
     }
 
-    return <span className="aaWorksheetValue">—</span>;
+    return <strong className="aaWorksheetValue">—</strong>;
   }
 
   const sectionClass = [
@@ -227,18 +221,8 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
                 {geraetenummerLine || formatValue(machine.geraetenummer)}
               </strong>
             </div>
-            {formFields.map((field, index) => {
+            {fields.map((field, index) => {
               if (field.dbKey && ARBEITSAUFTRAG_SHEET_SKIP_FIELDS.has(field.dbKey)) {
-                return null;
-              }
-              if (!editable) {
-                if (!displayFields.some((visible) => visible.label === field.label)) {
-                  return null;
-                }
-              } else if (
-                !showAllFields &&
-                !filterArbeitsauftragSheetFields([field]).length
-              ) {
                 return null;
               }
               return (

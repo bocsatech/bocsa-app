@@ -7,9 +7,7 @@ import "../arbeitsauftrag-form.css";
 import AppPageShell from "./AppPageShell";
 import ArbeitsauftragPrintDocument from "./ArbeitsauftragPrintDocument";
 import ArbeitsauftragPrintPreview from "./ArbeitsauftragPrintPreview";
-import ArbeitsauftragWorksheetMachineBlock, {
-  type ArbeitsauftragWorksheetMachineBlockHandle,
-} from "./ArbeitsauftragWorksheetMachineBlock";
+import type { ArbeitsauftragWorksheetMachineBlockHandle } from "./ArbeitsauftragWorksheetMachineBlock";
 import ArbeitsauftragProtokollSection from "./ArbeitsauftragProtokollSection";
 import {
   buildStammdatenPatch,
@@ -359,20 +357,23 @@ export default function ArbeitsauftragForm({
           </div>
         ) : machine && order ? (
           <>
-            {isViewMode ? (
-              <div className="arbeitsauftragWorksheetView arbeitsauftragPrintSource">
-                <ArbeitsauftragPrintDocument
-                  machine={machine}
-                  order={order}
-                  stammdatenFields={printFields}
-                  username={username}
-                />
-              </div>
-            ) : null}
-
             <div
-              className={`aaForm arbeitsauftragHideOnPrint${isViewMode ? " arbeitsauftragEditFormHidden" : ""}`}
+              className={`arbeitsauftragWorksheetView${isViewMode ? " arbeitsauftragPrintSource" : ""}`}
             >
+              <ArbeitsauftragPrintDocument
+                ref={stammdatenRef}
+                machine={machine}
+                order={order}
+                stammdatenFields={printFields}
+                username={username}
+                editable={!isViewMode}
+                canWrite={canWrite}
+                machineBlockOnly={!isViewMode}
+              />
+            </div>
+
+            {!isViewMode ? (
+            <div className="aaForm arbeitsauftragHideOnPrint">
               {isNew ? (
                 <p className="subtitle aaNewAuftragHint" style={{ marginBottom: 12 }}>
                   Neuer Auftrag: {formatOrderType(order.type)}
@@ -387,20 +388,8 @@ export default function ArbeitsauftragForm({
                   )}
                 </p>
               ) : null}
-              <ArbeitsauftragWorksheetMachineBlock
-                ref={stammdatenRef}
-                machine={machine}
-                order={order}
-                username={username}
-                editable
-                showAllFields
-                canWrite={canWrite}
-                className="arbeitsauftragHideOnPrint"
-              />
               {saveError ? (
-                <p className="arbeitsauftragHideOnPrint" style={{ color: "#dc2626" }}>
-                  {saveError}
-                </p>
+                <p style={{ color: "#dc2626" }}>{saveError}</p>
               ) : null}
 
               <section className="protocolSection card aaBlock">
@@ -451,6 +440,7 @@ export default function ArbeitsauftragForm({
               ) : null}
               {message ? <p className="protocolNotice success">{message}</p> : null}
             </div>
+            ) : null}
 
             {!isViewMode ? (
               <div className="arbeitsauftragPrintOnly arbeitsauftragPrintSource" aria-hidden>
