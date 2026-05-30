@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { buildAuftragNrPrefix } from "../../../../lib/auftrag-nr";
+import { reserveAuftragNrWithFallback } from "../../../../lib/auftrag-nr-server";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
@@ -33,13 +33,15 @@ function getWorkOrdersFromTabData(tabData) {
   return Array.isArray(orders) ? orders : [];
 }
 
-async function reserveNr(supabase, type, depot, date) {
-  const prefix = buildAuftragNrPrefix(type, depot, date || undefined);
-  const { data, error } = await supabase.rpc("next_arbeitsauftrag_nr", {
-    p_prefix: prefix,
-  });
-  if (error) throw error;
-  return typeof data === "string" ? data : String(data ?? "");
+async function reserveNr(supabase, type, depot, date, extraAuftragNrs) {
+  const { auftragNr } = await reserveAuftragNrWithFallback(
+    supabase,
+    type,
+    depot,
+    date,
+    extraAuftragNrs
+  );
+  return auftragNr;
 }
 
 export async function POST(request) {
@@ -59,6 +61,13 @@ export async function POST(request) {
   }
 
   const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Supabase ist nicht konfiguriert." },
+      { status: 503 }
+    );
+  }
+
   const { data: row, error: loadError } = await supabase
     .from(MACHINE_TABLE)
     .select("id, depot, machine_tab_data")
@@ -85,6 +94,7 @@ export async function POST(request) {
   const machineDepot = String(row.depot ?? "").trim();
   let assigned = 0;
   const nextOrders = [];
+  const assignedInBatch = [];
 
   for (const raw of orders) {
     if (!raw || typeof raw !== "object" || typeof raw.id !== "string") continue;
@@ -99,23 +109,18 @@ export async function POST(request) {
     const date = String(raw.date ?? "").trim();
 
     try {
-      const auftragNr = await reserveNr(supabase, type, depot, date);
+      const auftragNr = await reserveNr(
+        supabase,
+        type,
+        depot,
+        date,
+        assignedInBatch
+      );
+      assignedInBatch.push(auftragNr);
       nextOrders.push({ ...raw, auftragNr });
       assigned += 1;
     } catch (error) {
       const message = String(error?.message ?? "");
-      if (
-        message.includes("next_arbeitsauftrag_nr") ||
-        message.includes("arbeitsauftrag_nr_counters")
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "Auftrag-Nr.-Tabelle fehlt. Bitte supabase/arbeitsauftrag-nr.sql in Supabase ausführen.",
-          },
-          { status: 503 }
-        );
-      }
       return NextResponse.json(
         { error: message || "Auftrag-Nr. konnte nicht zugewiesen werden." },
         { status: 500 }

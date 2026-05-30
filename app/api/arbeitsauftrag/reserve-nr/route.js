@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { buildAuftragNrPrefix } from "../../../../lib/auftrag-nr";
+import { reserveAuftragNrWithFallback } from "../../../../lib/auftrag-nr-server";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
@@ -49,27 +49,27 @@ export async function POST(request) {
     return NextResponse.json({ error: "Depot / Filiale fehlt." }, { status: 400 });
   }
 
-  const prefix = buildAuftragNrPrefix(type, depot, dateDe || undefined);
   const supabase = getSupabaseAdmin();
-
-  const { data, error } = await supabase.rpc("next_arbeitsauftrag_nr", {
-    p_prefix: prefix,
-  });
-
-  if (error) {
-    const message = String(error.message ?? "");
-    if (message.includes("next_arbeitsauftrag_nr") || message.includes("arbeitsauftrag_nr_counters")) {
-      return NextResponse.json(
-        {
-          error:
-            "Auftrag-Nr.-Tabelle fehlt. Bitte supabase/arbeitsauftrag-nr.sql in Supabase ausführen.",
-        },
-        { status: 503 }
-      );
-    }
-    return NextResponse.json({ error: message || "Auftrag-Nr. konnte nicht erzeugt werden." }, { status: 500 });
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Supabase ist nicht konfiguriert." },
+      { status: 503 }
+    );
   }
 
-  const auftragNr = typeof data === "string" ? data : String(data ?? "");
-  return NextResponse.json({ auftragNr, prefix });
+  try {
+    const { auftragNr, prefix } = await reserveAuftragNrWithFallback(
+      supabase,
+      type,
+      depot,
+      dateDe || undefined
+    );
+    return NextResponse.json({ auftragNr, prefix });
+  } catch (error) {
+    const message = String(error?.message ?? "");
+    return NextResponse.json(
+      { error: message || "Auftrag-Nr. konnte nicht erzeugt werden." },
+      { status: 500 }
+    );
+  }
 }
