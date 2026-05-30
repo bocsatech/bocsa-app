@@ -2756,23 +2756,48 @@ button, input, select, textarea {
 
 .arbeitsauftragResultTop {
   display: grid;
-  grid-template-columns: 132px 74px minmax(0, 1fr);
+  grid-template-columns: minmax(148px, 200px) 74px minmax(0, 1fr);
   gap: 16px;
-  align-items: center;
-  margin-bottom: 12px;
+  align-items: start;
+}
+
+.arbeitsauftragResultLeading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.machineStatusIndicatorsFixed {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(2.1rem, auto));
+  gap: 8px;
+}
+
+.machineStatusSlot {
+  min-height: 2.1rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.machineStatusSlotEmpty {
+  display: block;
+  min-height: 2.1rem;
 }
 
 .arbeitsauftragProtocolMeta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 25px;
 }
 
 .arbeitsauftragProtocolField {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   font-size: 0.88rem;
+  align-items: flex-start;
 }
 
 .arbeitsauftragProtocolField strong {
@@ -2829,6 +2854,14 @@ button, input, select, textarea {
 @media (max-width: 900px) {
   .arbeitsauftragResultTop {
     grid-template-columns: 1fr;
+  }
+
+  .arbeitsauftragResultLeading {
+    order: 2;
+  }
+
+  .arbeitsauftragProtocolMeta {
+    padding-left: 25px;
   }
 
   .arbeitsauftragProtocolFields {

@@ -222,14 +222,36 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
                         }}
                       >
                         <div className="arbeitsauftragResultTop">
-                          {machine ? (
-                            <MachineStatusIndicators
-                              machine={machine}
-                              className="machineResultStatus"
-                            />
-                          ) : (
-                            <span className="machineResultStatus" aria-hidden="true" />
-                          )}
+                          <div className="arbeitsauftragResultLeading">
+                            {machine ? (
+                              <MachineStatusIndicators
+                                machine={machine}
+                                className="machineResultStatus"
+                                fixedSlots
+                              />
+                            ) : (
+                              <span
+                                className="machineResultStatus arbeitsauftragStatusBlock"
+                                aria-hidden="true"
+                              />
+                            )}
+                            <div className="arbeitsauftragProtocolMeta">
+                              <ProtocolField
+                                label="Auftragsart"
+                                value={formatOrderType(entry.type)}
+                                emphasize
+                              />
+                              <ProtocolField
+                                label="Bearbeiter"
+                                value={workOrderUserLabel(entry) || "—"}
+                              />
+                              <ProtocolField
+                                label="Reparaturbeschreibung"
+                                value={truncateRepairDescription(entry.repairDescription, 120)}
+                                multiline
+                              />
+                            </div>
+                          </div>
 
                           <span className="machineThumb" aria-label="Bild">
                             {image ? <img src={image} alt="" /> : <span>Bild</span>}
@@ -253,23 +275,6 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
                               </span>
                             ) : null}
                           </span>
-                        </div>
-
-                        <div className="arbeitsauftragProtocolMeta">
-                          <ProtocolField
-                            label="Auftragsart"
-                            value={formatOrderType(entry.type)}
-                            emphasize
-                          />
-                          <ProtocolField
-                            label="Bearbeiter"
-                            value={workOrderUserLabel(entry) || "—"}
-                          />
-                          <ProtocolField
-                            label="Reparaturbeschreibung"
-                            value={truncateRepairDescription(entry.repairDescription, 120)}
-                            multiline
-                          />
                         </div>
                       </Link>
                     );

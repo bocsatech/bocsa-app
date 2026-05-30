@@ -18,14 +18,42 @@ import type { MachineRecord } from "../../lib/machines";
 type Props = {
   machine: MachineRecord;
   className?: string;
+  /** Liste: immer 3 Zeilen, damit Karten bündig bleiben */
+  fixedSlots?: boolean;
 };
 
-export default function MachineStatusIndicators({ machine, className = "" }: Props) {
+export default function MachineStatusIndicators({
+  machine,
+  className = "",
+  fixedSlots = false,
+}: Props) {
+  const geratstatus = <GeratstatusIndicator machine={machine} />;
+  const intern = <InternIndicator value={getInternExpiryValue(machine)} />;
+  const service = <ServiceIndicator lastServiceDate={getLastServiceDateValue(machine)} />;
+
+  if (!fixedSlots) {
+    return (
+      <div className={`machineStatusIndicators ${className}`.trim()}>
+        {geratstatus}
+        {intern}
+        {service}
+      </div>
+    );
+  }
+
+  const slots = [
+    { key: "status", node: geratstatus },
+    { key: "intern", node: intern },
+    { key: "service", node: service },
+  ];
+
   return (
-    <div className={`machineStatusIndicators ${className}`.trim()}>
-      <GeratstatusIndicator machine={machine} />
-      <InternIndicator value={getInternExpiryValue(machine)} />
-      <ServiceIndicator lastServiceDate={getLastServiceDateValue(machine)} />
+    <div className={`machineStatusIndicators machineStatusIndicatorsFixed ${className}`.trim()}>
+      {slots.map((slot) => (
+        <div key={slot.key} className="machineStatusSlot">
+          {slot.node ?? <span className="machineStatusSlotEmpty" aria-hidden="true" />}
+        </div>
+      ))}
     </div>
   );
 }
