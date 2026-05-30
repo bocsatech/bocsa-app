@@ -1067,10 +1067,17 @@ button, input, select, textarea {
 
 .machineDetailPage .stammdatenStacked .fieldRow input,
 .machineDetailPage .stammdatenStacked .fieldRow select,
+.machineDetailPage .stammdatenStacked .fieldRow textarea,
 .machineDetailPage .stammdatenStacked .fieldRow strong.meldungStatusValue {
   padding: 2px 0;
   min-height: 0;
   font-size: 0.9rem;
+}
+
+.machineDetailPage .stammdatenStacked .fieldRow textarea.stammdatenBemerkungField {
+  width: 100%;
+  min-height: 4.5rem;
+  resize: vertical;
 }
 
 .machineDetailPage .tabPanel.readOnlyPanel .stammdatenStacked .fieldRow input,

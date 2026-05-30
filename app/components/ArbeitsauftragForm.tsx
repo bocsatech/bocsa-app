@@ -403,6 +403,15 @@ export default function ArbeitsauftragForm({
                 />
               </section>
 
+              {machine.subgroup?.trim() ? (
+                <section className="protocolSection card aaBlock aaGeraetegruppeAboveBemerkung">
+                  <div className="fieldRow aaFieldRow">
+                    <span>Gerätegruppe</span>
+                    <strong className="aaWorksheetValue">{machine.subgroup.trim()}</strong>
+                  </div>
+                </section>
+              ) : null}
+
               <section className="protocolSection card aaBlock">
                 <label className="protocolField textAreas">
                   <span>Bemerkung:</span>

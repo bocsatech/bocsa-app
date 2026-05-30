@@ -7,6 +7,7 @@ import MachineHeroMedia from "./MachineHeroMedia";
 import type { GeraetenummerCodesConfig, GeraetenummerPick } from "../../lib/geraetenummer";
 import {
   GERAETTYP_OPTIONS,
+  STAMMDATEN_TRAILING_FIELD_KEYS,
   hasValue,
   sanitizeNumericFieldInput,
   stammdatenStatusClassName,
@@ -29,6 +30,9 @@ type Props = {
   onGeraetenummerPickChange?: (pick: GeraetenummerPick) => void;
   geraetenummerPreviewSequence?: number | null;
   geraetenummerPreviewLoading?: boolean;
+  /** Freitext unter Gerätegruppe (machine_tab_data.note) */
+  note?: string;
+  onNoteChange?: (value: string) => void;
 };
 
 export function buildStammdatenRowsForDisplay(
@@ -55,9 +59,13 @@ export function buildStammdatenRowsForDisplay(
       ...rows.slice(insertAt),
     ];
   }
-  const meldung = rows.filter((field) => field.dbKey === "meldung_status");
-  const rest = rows.filter((field) => field.dbKey !== "meldung_status");
-  return [...rest, ...meldung];
+  const trailing = STAMMDATEN_TRAILING_FIELD_KEYS.flatMap((key) => {
+    const field = rows.find((row) => row.dbKey === key);
+    return field ? [field] : [];
+  });
+  const trailingKeys = new Set<string>(STAMMDATEN_TRAILING_FIELD_KEYS);
+  const rest = rows.filter((field) => !field.dbKey || !trailingKeys.has(field.dbKey));
+  return [...rest, ...trailing];
 }
 
 function StammdatenReadOnlyValue({
@@ -90,6 +98,8 @@ export default function MachineStammdatenPanelContent({
   onGeraetenummerPickChange,
   geraetenummerPreviewSequence = null,
   geraetenummerPreviewLoading = false,
+  note = "",
+  onNoteChange,
 }: Props) {
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
   const stammdatenRowsForDisplay = buildStammdatenRowsForDisplay(
@@ -225,6 +235,23 @@ export default function MachineStammdatenPanelContent({
               </div>
             );
           })}
+          {onNoteChange ? (
+            <div className="fieldRow">
+              <span>Bemerkung</span>
+              {isEditing ? (
+                <textarea
+                  className="stammdatenBemerkungField"
+                  rows={3}
+                  value={note}
+                  readOnly={!canWrite}
+                  onChange={(e) => onNoteChange(e.target.value)}
+                  placeholder="Bemerkung zur Maschine…"
+                />
+              ) : (
+                <StammdatenReadOnlyValue value={note} />
+              )}
+            </div>
+          ) : null}
         </div>
         {saveError ? <p style={{ color: "#dc2626" }}>{saveError}</p> : null}
       </div>

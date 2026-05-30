@@ -78,11 +78,9 @@ export const STAMMDATEN_FIELDS: typeof MACHINE_FORM_FIELDS = [
   { key: "geraetenummer", label: "Gerätenummer" },
   { key: "geraettyp", label: "Gerättyp" },
   { key: "bezeichnung", label: "Bezeichnung" },
-  { key: "subgroup", label: "Gerätegruppe" },
   { key: "serial_number", label: "Seriennummer" },
   { key: "depot", label: "Depot" },
   { key: "km_stand", label: "KM-Stand" },
-  { key: "meldung_status", label: "Meldung" },
   { key: "baujahr", label: "Baujahr" },
   { key: "hour_meter_reading", label: "Stundenzählerstand", type: "number" },
   { key: "elektro_ove", label: "Elektro ÖVE E8701/E8001 gültig bis", type: "date" },
@@ -94,7 +92,16 @@ export const STAMMDATEN_FIELDS: typeof MACHINE_FORM_FIELDS = [
   { key: "last_service_date", label: "Letztes Service am", type: "date" },
   { key: "antifreeze_checked_at", label: "Frostschutz geprüft am", type: "date" },
   { key: "damage_status", label: "Gerätstatus" },
+  { key: "meldung_status", label: "Meldung" },
+  { key: "subgroup", label: "Gerätegruppe" },
 ];
+
+/** Stammdaten-Zeilen am Ende (Reihenfolge fix). */
+export const STAMMDATEN_TRAILING_FIELD_KEYS = [
+  "damage_status",
+  "meldung_status",
+  "subgroup",
+] as const;
 
 export async function fetchMachines() {
   const response = await fetch(`/api/machines?ts=${Date.now()}`, {
