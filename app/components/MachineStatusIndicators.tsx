@@ -66,7 +66,7 @@ function ServiceIndicator({ lastServiceDate }: { lastServiceDate: unknown }) {
     <StatusIndicatorRow
       label="Service"
       variant={valid ? "valid" : "expired"}
-      text={valid ? `bis ${formatDate(validUntil)}` : "Fällig"}
+      text={valid ? `bis ${formatGermanMonthYear(validUntil)}` : "Fällig"}
     />
   );
 }
