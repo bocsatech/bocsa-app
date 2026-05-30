@@ -113,8 +113,8 @@
   max-width: none;
 }
 
-.aaMachineOverview .aaStammdatenGrid,
-.arbeitsauftragDocument .aaWorksheetStammdaten {
+.aaMachineOverview .aaStammdatenGrid:not(.aaSheetFieldTable),
+.arbeitsauftragDocument .aaWorksheetStammdaten:not(.aaSheetFieldTable) {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -129,9 +129,9 @@
   color: #111827;
 }
 
-/* Stammdaten: Label links, Wert rechts (wie Maschinen-Detail) */
-.aaMachineOverview .stammdatenStacked .fieldRow,
-.arbeitsauftragDocument .aaWorksheetStammdaten .fieldRow {
+/* Stammdaten-Grid nur außerhalb Munkalap-Tabelle */
+.aaMachineOverview .stammdatenStacked:not(.aaSheetFieldTable) .fieldRow,
+.arbeitsauftragDocument .aaWorksheetStammdaten:not(.aaSheetFieldTable) .fieldRow {
   display: grid;
   grid-template-columns: minmax(11rem, 22rem) minmax(0, 1fr);
   gap: 2px 12px;
@@ -226,38 +226,55 @@
   text-transform: uppercase;
 }
 
-/* Live-Felder: gleiches Tabellen-Layout wie Demo */
-.aaMachineOverviewSheet .aaSheetFieldTable.fieldGrid,
-.arbeitsauftragDocument .aaSheetFieldTable.aaWorksheetStammdaten {
-  display: table;
+/* Munkalap: Tabellen-Layout + Zebra (Arbeitsblatt + Bearbeiten) */
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable,
+.arbeitsauftragDocument .aaWorksheetStammdaten.aaSheetFieldTable {
+  display: table !important;
+  width: max-content;
+  max-width: 100%;
+  border-collapse: collapse;
 }
 
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow,
-.arbeitsauftragDocument .aaSheetFieldTable .fieldRow {
-  display: table-row;
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow,
+.arbeitsauftragDocument .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow {
+  display: table-row !important;
 }
 
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow > span,
-.arbeitsauftragDocument .aaSheetFieldTable .fieldRow > span {
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow > span,
+.arbeitsauftragDocument .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow > span {
   display: table-cell;
-  padding: 3px 12px 3px 0;
+  padding: 4px 12px 4px 0;
   font-size: 0.85rem;
   font-weight: 800;
   color: #374151;
   white-space: nowrap;
+  vertical-align: baseline;
+  border-bottom: 1px solid #eceef1;
 }
 
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow > strong,
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow > input,
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow > select,
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow > .dateFieldWithPicker,
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow .germanDateField,
-.arbeitsauftragDocument .aaSheetFieldTable .fieldRow > strong,
-.arbeitsauftragDocument .aaSheetFieldTable .fieldRow .aaWorksheetValue {
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow > strong,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow > input,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow > select,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow > .aaSheetDateField,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow > .dateFieldWithPicker,
+.arbeitsauftragDocument .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow > strong,
+.arbeitsauftragDocument .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow .aaWorksheetValue {
   display: table-cell;
-  padding: 3px 0;
+  padding: 4px 0;
   white-space: nowrap;
   vertical-align: baseline;
+  border-bottom: 1px solid #eceef1;
+}
+
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow:nth-child(even) > span,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow:nth-child(even) > strong,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow:nth-child(even) > input,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow:nth-child(even) > select,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow:nth-child(even) > .aaSheetDateField,
+.arbeitsauftragDocument .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow:nth-child(even) > span,
+.arbeitsauftragDocument .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow:nth-child(even) > strong,
+.arbeitsauftragDocument .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow:nth-child(even) > .aaSheetDateField {
+  background-color: #f9fafb;
 }
 
 .aaMachineOverview .stammdatenStacked .fieldRow span,
@@ -270,9 +287,8 @@
   letter-spacing: normal;
 }
 
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow input,
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow select,
-.aaMachineOverviewSheet .aaSheetFieldTable .fieldRow .germanDateField {
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow input,
+.aaMachineOverviewSheet .aaWorksheetStammdaten.aaSheetFieldTable .fieldRow select {
   width: auto;
   min-width: 0;
   border: none;
@@ -374,8 +390,8 @@
 }
 
 .aaMachineOverviewSheet .aaSheetDateField {
-  display: table-cell;
   vertical-align: baseline;
+  background: transparent;
 }
 
 .aaMachineOverviewSheet .aaSheetDateField .dateFieldWithPicker {
@@ -429,10 +445,10 @@
   color: #9ca3af;
 }
 
-.aaMachineOverview .stammdatenStacked .fieldRow input,
-.aaMachineOverview .stammdatenStacked .fieldRow select,
-.aaMachineOverview .stammdatenStacked .fieldRow textarea,
-.aaMachineOverview .stammdatenStacked .fieldRow .germanDateField {
+.aaMachineOverview .stammdatenStacked:not(.aaSheetFieldTable) .fieldRow input,
+.aaMachineOverview .stammdatenStacked:not(.aaSheetFieldTable) .fieldRow select,
+.aaMachineOverview .stammdatenStacked:not(.aaSheetFieldTable) .fieldRow textarea,
+.aaMachineOverview .stammdatenStacked:not(.aaSheetFieldTable) .fieldRow .germanDateField {
   grid-column: 2;
   border: none;
   border-radius: 0;
