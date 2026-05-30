@@ -154,6 +154,8 @@ function MaschinenNavGroup({
   );
 }
 
+type PkwNavChild = (typeof PKW_NAV.children)[number];
+
 function PkwNavGroup({
   activeHref,
   pathname,
@@ -161,7 +163,7 @@ function PkwNavGroup({
 }: {
   activeHref: string | undefined;
   pathname: string;
-  visibleChildren: typeof PKW_NAV.children;
+  visibleChildren: PkwNavChild[];
 }) {
   const sectionActive = isPkwSectionActive(activeHref, pathname);
   const [open, setOpen] = useState(sectionActive);
@@ -226,7 +228,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
 
   const showHome = canShowMenuItem(HOME_NAV.permission, permissions, groups, username);
   const showMaschinen = canShowMenuItem(MASCHINEN_NAV.permission, permissions, groups, username);
-  const pkwChildren = PKW_NAV.children.filter((child) =>
+  const pkwChildren: PkwNavChild[] = PKW_NAV.children.filter((child) =>
     canShowMenuItem(child.permission, permissions, groups, username)
   );
   const navItems = APP_NAV_ITEMS.filter((item) =>
