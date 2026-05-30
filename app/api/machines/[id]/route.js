@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
-import { currentUserHasPermission } from "../../../../lib/auth/permissions";
+import {
+  currentUserHasPermission,
+  currentUserIsInGroup,
+} from "../../../../lib/auth/permissions";
+import { removeMachineStorageFiles } from "../../../../lib/machine-delete.mjs";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
 import { stripWorkOrdersFromTabData } from "../../../../lib/machine-tab-data";
@@ -285,4 +289,56 @@ export async function PATCH(request, { params }) {
       "Cache-Control": "no-store, max-age=0",
     },
   });
+}
+
+export async function DELETE(_request, { params }) {
+  const supabase = getSupabaseAdmin();
+
+  if (!supabase) {
+    return NextResponse.json(
+      {
+        error:
+          "Hiányzik a Supabase konfiguráció (.env.local: URL és ANON_KEY).",
+      },
+      { status: 500 }
+    );
+  }
+
+  if (!(await currentUserIsInGroup("Admin"))) {
+    return NextResponse.json({ error: "Nur Admin." }, { status: 403 });
+  }
+
+  const { id } = await params;
+
+  const { data: machine, error: loadError } = await supabase
+    .from(MACHINE_TABLE)
+    .select(MACHINE_COLUMNS)
+    .eq("id", id)
+    .single();
+
+  if (loadError || !machine) {
+    return NextResponse.json({ error: "Maschine nicht gefunden." }, { status: 404 });
+  }
+
+  try {
+    await removeMachineStorageFiles(supabase, machine);
+  } catch (storageError) {
+    return NextResponse.json(
+      {
+        error:
+          storageError instanceof Error
+            ? storageError.message
+            : "Storage konnte nicht bereinigt werden.",
+      },
+      { status: 500 }
+    );
+  }
+
+  const { error: deleteError } = await supabase.from(MACHINE_TABLE).delete().eq("id", id);
+
+  if (deleteError) {
+    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, id });
 }

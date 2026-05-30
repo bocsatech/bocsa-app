@@ -370,6 +370,23 @@ function formatFormValue(value: unknown, type?: "text" | "number" | "date") {
   return String(value);
 }
 
+export async function deleteMachine(id: string) {
+  const response = await fetch(`/api/machines/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    return {
+      data: null,
+      error: { message: result?.error ?? "Maschine konnte nicht gelöscht werden." },
+    };
+  }
+
+  return { data: result as { ok: boolean; id: string }, error: null };
+}
+
 export async function updateMachine(
   id: string,
   patch: Partial<Omit<Machine, "id" | "created_at">>

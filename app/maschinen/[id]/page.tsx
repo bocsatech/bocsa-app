@@ -15,6 +15,7 @@ import MachineStatusIndicators from "../../components/MachineStatusIndicators";
 import MachineWorkOrdersTable from "../../components/MachineWorkOrdersTable";
 import {
   buildStammdatenPatch,
+  deleteMachine,
   fetchMachineById,
   formatDate,
   formatValue,
@@ -202,7 +203,9 @@ export default function MaschineDetailPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [canWriteMachines, setCanWriteMachines] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [canUploadImages, setCanUploadImages] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDocument, setUploadingDocument] = useState<MachineDocumentType | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -289,6 +292,7 @@ export default function MaschineDetailPage() {
       const result = await response.json().catch(() => ({}));
       setIsAuthenticated(response.ok && Boolean(result.user));
       setCanWriteMachines(Boolean(result.permissions?.includes("machines.write")));
+      setIsAdmin(Array.isArray(result.groups) && result.groups.includes("Admin"));
       setCanUploadImages(Boolean(result.groups?.includes("Admin")));
       setAuthChecked(true);
     }
@@ -442,6 +446,30 @@ export default function MaschineDetailPage() {
     setUploadingDocument(null);
   }
 
+  async function handleDeleteMachine() {
+    if (!machine || !isAdmin) return;
+
+    const label = formatValue(machine.geraetenummer);
+    const confirmed = window.confirm(
+      `Maschine „${label}" endgültig löschen?\n\nAlle Stammdaten, Dokumente und QR-Daten werden unwiderruflich entfernt. Arbeitsstunden-Verknüpfungen werden gelöst.\n\nDieser Vorgang kann nicht rückgängig gemacht werden.`
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setSaveError(null);
+
+    const { error } = await deleteMachine(machine.id);
+
+    setDeleting(false);
+
+    if (error) {
+      setSaveError(error.message);
+      return;
+    }
+
+    router.replace("/maschinen");
+  }
+
   if (authChecked && !isAuthenticated) {
     return (
       <PublicMachineView
@@ -547,10 +575,20 @@ export default function MaschineDetailPage() {
                 type="button"
                 className="pillButton primary"
                 onClick={handleMachineSave}
-                disabled={saving}
+                disabled={saving || deleting}
               >
                 {saving ? "Speichern..." : "Speichern"}
               </button>
+              {isAdmin ? (
+                <button
+                  type="button"
+                  className="pillButton outline dangerButton"
+                  onClick={handleDeleteMachine}
+                  disabled={saving || deleting}
+                >
+                  {deleting ? "Löschen…" : "Maschine löschen"}
+                </button>
+              ) : null}
             </div>
           </div>
         ) : undefined
