@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 import { currentUserHasPermission } from "../../../lib/auth/permissions";
-import { generateMachineQrCode } from "../../../lib/qr-code.mjs";
+import { isStructuredGeraetenummer } from "../../../lib/geraetenummer.ts";
+import { persistMachineQrCode } from "../../../lib/machine-qr.mjs";
 import {
   allocateGeraetenummer,
   loadGeraetenummerCodes,
@@ -238,6 +239,14 @@ export async function POST(request) {
       { error: "Gerätenummer: Marke, Klasse und Gerätetyp müssen gewählt werden." },
       { status: 400 }
     );
+  } else if (!isStructuredGeraetenummer(patch.geraetenummer)) {
+    return NextResponse.json(
+      {
+        error:
+          "Gerätenummer muss dem Format MARKE-KLASSE-ART-00001 entsprechen (z. B. WN-GG-ST1-00001).",
+      },
+      { status: 400 }
+    );
   }
 
   const { data, error } = await supabase
@@ -254,12 +263,11 @@ export async function POST(request) {
   const origin = request.headers.get("origin") ?? undefined;
 
   try {
-    const { publicPath } = await generateMachineQrCode(data, origin, { supabase });
+    await persistMachineQrCode(supabase, data, origin);
     const { data: updatedData, error: updateError } = await supabase
       .from(MACHINE_TABLE)
-      .update({ qr_code: publicPath })
-      .eq("id", data.id)
       .select(MACHINE_COLUMNS)
+      .eq("id", data.id)
       .single();
 
     if (!updateError && updatedData) {
@@ -267,6 +275,13 @@ export async function POST(request) {
     }
   } catch (qrError) {
     console.error("QR-Code konnte nicht generiert werden:", qrError);
+    return NextResponse.json(
+      {
+        error:
+          qrError instanceof Error ? qrError.message : "QR-Code konnte nicht erstellt werden.",
+      },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(normalizeMachine(createdMachine), {

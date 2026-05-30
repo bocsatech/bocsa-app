@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUserHasPermission } from "../../../../../lib/auth/permissions";
-import { generateMachineQrCode } from "../../../../../lib/qr-code.mjs";
+import { getMachineQrTargetUrl } from "../../../../../lib/qr-code.mjs";
+import { persistMachineQrCode } from "../../../../../lib/machine-qr.mjs";
 import { getSupabaseAdmin } from "../../../../../lib/supabaseAdmin";
 
 export const runtime = "nodejs";
@@ -43,15 +44,13 @@ export async function POST(request, { params }) {
 
   try {
     const origin = request.headers.get("origin") ?? undefined;
-    const { publicPath, targetUrl } = await generateMachineQrCode(machine, origin, {
-      supabase,
-    });
+    const bustUrl = await persistMachineQrCode(supabase, machine, origin);
+    const targetUrl = getMachineQrTargetUrl(id, origin);
 
     const { data, error } = await supabase
       .from(MACHINE_TABLE)
-      .update({ qr_code: publicPath })
-      .eq("id", id)
       .select(MACHINE_COLUMNS)
+      .eq("id", id)
       .single();
 
     if (error) {
@@ -60,6 +59,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({
       ...normalizeMachine(data),
+      qr_code: bustUrl,
       qr_target_url: targetUrl,
     });
   } catch (qrError) {

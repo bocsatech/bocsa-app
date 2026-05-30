@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUserIsInGroup } from "../../../../lib/auth/permissions";
-import { generateMachineQrCode } from "../../../../lib/qr-code.mjs";
+import { isStructuredGeraetenummer } from "../../../../lib/geraetenummer.ts";
+import { persistMachineQrCode } from "../../../../lib/machine-qr.mjs";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 export const runtime = "nodejs";
@@ -9,16 +10,7 @@ export const maxDuration = 300;
 const MACHINE_TABLE = "maschines";
 const MACHINE_COLUMNS = "*";
 
-function normalizeMachine(row) {
-  if (!row) return row;
-  return {
-    ...row,
-    geraetenummer: row.geraetenummer ?? null,
-    qr_code: row.qr_code ?? null,
-  };
-}
-
-/** Admin: alle Maschinen-QR-Codes neu generieren (Label = aktuelle Gerätenummer). */
+/** Admin: QR-Codes für alle Maschinen mit neuem Gerätenummer-Format neu generieren. */
 export async function POST(request) {
   if (!(await currentUserIsInGroup("Admin"))) {
     return NextResponse.json({ error: "Nur Admin." }, { status: 403 });
@@ -43,20 +35,21 @@ export async function POST(request) {
 
   for (const machine of machines ?? []) {
     const label = machine.geraetenummer || machine.id;
+
+    if (!isStructuredGeraetenummer(machine.geraetenummer)) {
+      results.push({
+        id: machine.id,
+        label,
+        ok: false,
+        skipped: true,
+        error: "Kein gültiges Format (MARKE-KLASSE-ART-00001).",
+      });
+      continue;
+    }
+
     try {
-      const { publicPath } = await generateMachineQrCode(machine, origin, { supabase: db });
-      const bustUrl = `${publicPath.replace(/\?.*$/, "")}?v=${Date.now()}`;
-
-      const { error: updateError } = await db
-        .from(MACHINE_TABLE)
-        .update({ qr_code: bustUrl })
-        .eq("id", machine.id);
-
-      if (updateError) {
-        throw new Error(updateError.message);
-      }
-
-      results.push({ id: machine.id, label, ok: true });
+      const bustUrl = await persistMachineQrCode(db, machine, origin);
+      results.push({ id: machine.id, label, ok: true, qr_code: bustUrl });
     } catch (err) {
       results.push({
         id: machine.id,
@@ -68,12 +61,14 @@ export async function POST(request) {
   }
 
   const ok = results.filter((entry) => entry.ok).length;
-  const failed = results.filter((entry) => !entry.ok);
+  const skipped = results.filter((entry) => entry.skipped).length;
+  const failed = results.filter((entry) => !entry.ok && !entry.skipped);
 
   return NextResponse.json({
     total: results.length,
     ok,
+    skipped,
     failed: failed.length,
-    errors: failed.slice(0, 20),
+    errors: [...failed, ...results.filter((e) => e.skipped)].slice(0, 30),
   });
 }

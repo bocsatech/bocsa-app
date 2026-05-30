@@ -76,6 +76,10 @@ export function composeGeraetenummer(pick: GeraetenummerPick, sequence: number) 
   return `${prefix}-${formatGeraetenummerSequence(sequence)}`;
 }
 
+/** QR-Label und neue Maschinen: MARKE-KLASSE-ART-00001 (z. B. WN-GG-ST1-00001) */
+export const GERAETENUMMER_STRUCTURED_FORMAT_HINT =
+  "MARKE-KLASSE-ART-00001 (z. B. WN-GG-ST1-00001)";
+
 export function parseStructuredGeraetenummer(value: unknown): {
   marke: string;
   klasse: string;
@@ -91,6 +95,17 @@ export function parseStructuredGeraetenummer(value: unknown): {
     art: match[3].toUpperCase(),
     sequence: Number.parseInt(match[4], 10),
   };
+}
+
+export function isStructuredGeraetenummer(value: unknown) {
+  return parseStructuredGeraetenummer(value) !== null;
+}
+
+/** Einheitliche Schreibweise für QR-Mitteltext */
+export function formatGeraetenummerForQr(value: unknown) {
+  const parsed = parseStructuredGeraetenummer(value);
+  if (!parsed) return "";
+  return `${parsed.marke}-${parsed.klasse}-${parsed.art}-${String(parsed.sequence).padStart(GERAETENUMMER_SEQ_DIGITS, "0")}`;
 }
 
 export function mergeGeraetenummerCodes(
