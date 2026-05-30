@@ -4,6 +4,10 @@
 **Kód:** `app/maschinen/page.tsx`, `app/maschinen/[id]/page.tsx`  
 **Sidebar:** almenü `AppSidebar.tsx` → `BAUMASCHINEN_NAV` (`MASCHINEN_NAV` alias)
 
+## Gerätegruppe (automatisch)
+
+Aus `MARKE-KLASSE-ART-00001` → `KLASSE-ART` (z. B. `KB-GG-BG2-00001` → `GG-BG2`). Neue Maschinen beim Speichern; Altdaten manuell. Siehe `docs/geraetgruppe-protokoll.md`.
+
 ## Almenü
 
 | Pont | Útvonal | Mit csinál |

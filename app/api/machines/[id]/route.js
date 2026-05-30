@@ -13,6 +13,7 @@ import {
   formatMachineRowDates,
   normalizeMachinePatchDates,
 } from "../../../../lib/normalize-machine-dates";
+import { applySubgroupForMachineUpdate } from "../../../../lib/machine-geraetegruppe.mjs";
 
 const MACHINE_COLUMNS = "*";
 const MACHINE_TABLE = "maschines";
@@ -267,11 +268,23 @@ export async function PATCH(request, { params }) {
   const { id } = await params;
   const body = await request.json();
 
+  const { data: existing, error: loadError } = await supabase
+    .from(MACHINE_TABLE)
+    .select("geraetenummer, subgroup")
+    .eq("id", id)
+    .single();
+
+  if (loadError || !existing) {
+    return NextResponse.json({ error: "Maschine nicht gefunden." }, { status: 404 });
+  }
+
   const rawPatch = buildMachinePatch(body);
   const { patch, error: dateError } = normalizeMachinePatchDates(rawPatch);
   if (dateError) {
     return NextResponse.json({ error: dateError }, { status: 400 });
   }
+
+  applySubgroupForMachineUpdate(patch, body, existing);
 
   const { data, error } = await supabase
     .from(MACHINE_TABLE)

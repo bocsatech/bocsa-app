@@ -21,6 +21,7 @@ import {
   type GeraetenummerPick,
   fetchGeraetenummerCodes,
   fetchNextGeraetenummer,
+  deriveGeraetegruppeFromPick,
   geraettypForKlasse,
   validateGeraetenummerPick,
 } from "../../lib/geraetenummer";
@@ -93,6 +94,18 @@ export default function MachineAddModal({
       )
     );
   }, [open, geraetenummerCodes, geraetenummerPick.klasse]);
+
+  useEffect(() => {
+    if (!open) return;
+    const gruppe = deriveGeraetegruppeFromPick(geraetenummerPick);
+    if (!gruppe) return;
+
+    setStammdatenForm((prev) =>
+      prev.map((field) =>
+        field.dbKey === "subgroup" ? { ...field, value: gruppe } : field
+      )
+    );
+  }, [open, geraetenummerPick.klasse, geraetenummerPick.art]);
 
   useEffect(() => {
     if (!open) return;

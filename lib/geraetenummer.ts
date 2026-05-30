@@ -101,6 +101,30 @@ export function isStructuredGeraetenummer(value: unknown) {
   return parseStructuredGeraetenummer(value) !== null;
 }
 
+/**
+ * Gerätegruppe aus strukturierter Gerätenummer: MARKE-KLASSE-ART-00001 → KLASSE-ART
+ * (z. B. KB-GG-BG2-00001 → GG-BG2 — Marke entfällt).
+ */
+export function deriveGeraetegruppeFromGeraetenummer(value: unknown): string {
+  const parsed = parseStructuredGeraetenummer(value);
+  if (!parsed) return "";
+  return `${parsed.klasse}-${parsed.art}`;
+}
+
+/** Gerätegruppe aus Nummern-Auswahl vor Vergabe der laufenden Nummer. */
+export function deriveGeraetegruppeFromPick(pick: GeraetenummerPick): string {
+  const klasse = normalizeGeraetenummerCode(pick.klasse);
+  const art = normalizeGeraetenummerCode(pick.art);
+  if (!klasse || !art) return "";
+  return `${klasse}-${art}`;
+}
+
+/** true, wenn der Client eine nicht-leere Gerätegruppe mitsendet. */
+export function bodyHasExplicitSubgroup(body: Record<string, unknown> | null | undefined) {
+  if (!body || !("subgroup" in body)) return false;
+  return String(body.subgroup ?? "").trim().length > 0;
+}
+
 /** Einheitliche Schreibweise für QR-Mitteltext */
 export function formatGeraetenummerForQr(value: unknown) {
   const parsed = parseStructuredGeraetenummer(value);
