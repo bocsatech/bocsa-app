@@ -296,7 +296,7 @@ export default function ArbeitsauftragForm({
     <AppPageShell
       activeHref="/arbeitsauftrag"
       mainClassName="protocolShell"
-      contentClassName="protocolPage"
+      contentClassName="protocolPage machineDetailPage"
       top={
         <div className="detailTopBar arbeitsauftragHideOnPrint">
           <h1>{title}</h1>

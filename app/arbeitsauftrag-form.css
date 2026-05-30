@@ -321,15 +321,65 @@
   color: #15803d;
 }
 
-.aaWorksheetMachine.machineDetailPage {
+.machineDetailPage .aaWorksheetMachine {
   padding: 0;
   border: none;
   box-shadow: none;
   background: transparent;
 }
 
-.aaWorksheetMachine.machineDetailPage .aaWorksheetAuftragBand {
+.machineDetailPage .aaWorksheetMachine .aaWorksheetAuftragBand {
   margin-bottom: 14px;
+}
+
+/* Stammdaten wie Maschinen-Detail / Bearbeiten — fieldGrid darf nicht mehrspaltig werden */
+.machineDetailPage .aaWorksheetMachine .tabSection {
+  margin-bottom: 0;
+}
+
+.machineDetailPage .aaWorksheetMachine .tabPanel .fieldGrid.stammdatenStacked {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: min(100%, 44rem);
+}
+
+.machineDetailPage .aaWorksheetMachine .tabPanel .stammdatenStacked .fieldRow {
+  display: grid;
+  grid-template-columns: 22rem minmax(0, 1fr);
+  gap: 2px 12px;
+  padding: 3px 0;
+  align-items: baseline;
+  border-bottom: none;
+}
+
+.machineDetailPage .aaWorksheetMachine .tabPanel .stammdatenStacked .fieldRow input,
+.machineDetailPage .aaWorksheetMachine .tabPanel .stammdatenStacked .fieldRow select,
+.machineDetailPage .aaWorksheetMachine .tabPanel .stammdatenStacked .fieldRow textarea,
+.machineDetailPage .aaWorksheetMachine .tabPanel .stammdatenStacked .fieldRow .dateFieldText {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+}
+
+.machineDetailPage .aaWorksheetMachine .tabPanel.readOnlyPanel .stammdatenStacked .fieldRow input,
+.machineDetailPage .aaWorksheetMachine .tabPanel.readOnlyPanel .stammdatenStacked .fieldRow select,
+.machineDetailPage .aaWorksheetMachine .tabPanel.readOnlyPanel .stammdatenStacked .fieldRow textarea,
+.machineDetailPage
+  .aaWorksheetMachine
+  .tabPanel.readOnlyPanel
+  .stammdatenStacked
+  .fieldRow
+  .dateFieldText {
+  border-color: transparent;
+  background: transparent;
+  pointer-events: none;
 }
 
 .aaWorksheetAuftragBand {
@@ -766,6 +816,13 @@
   display: block;
   max-width: 210mm;
   margin: 0 auto 24px;
+}
+
+/* Bearbeiten: volle Breite wie Maschinen-Detail (sonst 22rem-Label + Bild = 0px Eingaben) */
+.arbeitsauftragWorksheetView:not(.arbeitsauftragPrintSource) {
+  max-width: none;
+  margin: 0 0 24px;
+  width: 100%;
 }
 
 .arbeitsauftragWorksheetView .arbeitsauftragDocument {

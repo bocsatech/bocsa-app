@@ -63,12 +63,7 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
     );
   }
 
-  const sectionClass = [
-    "aaWorksheetMachine",
-    "machineDetailPage",
-    "aaBlock",
-    className,
-  ]
+  const sectionClass = ["aaWorksheetMachine", "aaBlock", className]
     .filter(Boolean)
     .join(" ");
 
@@ -85,13 +80,17 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
         </span>
       </div>
 
-      <MachineStammdatenPanelContent
-        machine={machine}
-        stammdatenForm={fields}
-        isEditing={isEditing}
-        canWrite={canWrite}
-        onUpdateField={updateField}
-      />
+      <div className="tabSection">
+        <div className={`tabPanel ${isEditing ? "" : "readOnlyPanel"}`}>
+          <MachineStammdatenPanelContent
+            machine={machine}
+            stammdatenForm={fields}
+            isEditing={isEditing}
+            canWrite={canWrite}
+            onUpdateField={updateField}
+          />
+        </div>
+      </div>
     </section>
   );
 });
