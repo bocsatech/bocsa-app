@@ -321,8 +321,15 @@
   color: #15803d;
 }
 
-.aaWorksheetMachine {
-  padding: 22px 24px;
+.aaWorksheetMachine.machineDetailPage {
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.aaWorksheetMachine.machineDetailPage .aaWorksheetAuftragBand {
+  margin-bottom: 14px;
 }
 
 .aaWorksheetAuftragBand {

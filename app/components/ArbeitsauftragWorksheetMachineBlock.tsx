@@ -1,25 +1,14 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
-import GermanDateField from "./GermanDateField";
-import {
-  ARBEITSAUFTRAG_SHEET_SKIP_FIELDS,
-  GERAETTYP_OPTIONS,
-  formatMachineGeraetenummerLine,
-  formatValue,
-  hasValue,
-  machineToStammdatenFields,
-  sanitizeNumericFieldInput,
-  stammdatenStatusClassName,
-  type StammdatenField,
-} from "../../lib/machines";
+import { machineToStammdatenFields, type StammdatenField } from "../../lib/machines";
 import {
   formatOrderType,
   formatWorkOrderAuftragNr,
   type WorkOrder,
 } from "../../lib/work-orders";
 import type { Machine } from "../../lib/types/machine";
-import ArbeitsauftragSheetMedia from "./ArbeitsauftragSheetMedia";
+import MachineStammdatenPanelContent from "./MachineStammdatenPanelContent";
 
 export type ArbeitsauftragWorksheetMachineBlockHandle = {
   getFields: () => StammdatenField[];
@@ -34,25 +23,6 @@ type Props = {
   canWrite?: boolean;
   className?: string;
 };
-
-function fieldValueClass(field: StammdatenField) {
-  if (field.dbKey === "meldung_status") {
-    return field.value.toLowerCase().includes("vorhanden")
-      ? "aaWorksheetValue meldungStatusValue danger"
-      : "aaWorksheetValue meldungStatusValue ok";
-  }
-  if (field.dbKey === "damage_status") {
-    const status = stammdatenStatusClassName(field.value);
-    return status
-      ? `aaWorksheetValue statusValue status-${status}`
-      : "aaWorksheetValue";
-  }
-  return "aaWorksheetValue";
-}
-
-function displayValue(field: StammdatenField) {
-  return hasValue(field.value) ? field.value : "—";
-}
 
 const ArbeitsauftragWorksheetMachineBlock = forwardRef<
   ArbeitsauftragWorksheetMachineBlockHandle,
@@ -81,11 +51,11 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
     getFields: () => formFields,
   }));
 
-  const fields = editable ? formFields : (stammdatenFieldsProp ?? formFields);
+  const isEditing = editable;
+  const fields = isEditing ? formFields : (stammdatenFieldsProp ?? formFields);
 
   const bearbeiter = order.updatedBy || order.createdBy || username || "—";
   const auftragNr = formatWorkOrderAuftragNr(order);
-  const geraetenummerLine = formatMachineGeraetenummerLine(machine);
 
   function updateField(index: number, value: string) {
     setFormFields((prev) =>
@@ -93,107 +63,10 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
     );
   }
 
-  function renderFieldValue(field: StammdatenField, index: number) {
-    if (!editable) {
-      return (
-        <strong className={fieldValueClass(field)}>{displayValue(field)}</strong>
-      );
-    }
-
-    if (field.dbKey === "meldung_status") {
-      return (
-        <strong className={fieldValueClass(field)}>
-          {field.value || "Keine Meldung"}
-        </strong>
-      );
-    }
-
-    if (field.dbKey === "geraettyp") {
-      return (
-        <select
-          className={`aaWorksheetValue aaSheetInput ${fieldValueClass(field)}`}
-          value={field.value}
-          disabled={!canWrite}
-          onChange={(e) => updateField(index, e.target.value)}
-        >
-          <option value="">—</option>
-          {GERAETTYP_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      );
-    }
-
-    if (field.dbKey === "damage_status") {
-      const statusClass = stammdatenStatusClassName(field.value);
-      return (
-        <select
-          className={[
-            "aaWorksheetValue",
-            "aaSheetInput",
-            "statusSelect",
-            statusClass,
-            statusClass ? `status-${statusClass}` : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          value={field.value}
-          disabled={!canWrite}
-          onChange={(e) => updateField(index, e.target.value)}
-        >
-          <option value="">—</option>
-          <option value="Fertig">Fertig</option>
-          <option value="In Reperatur">In Reperatur</option>
-        </select>
-      );
-    }
-
-    if (field.type === "date") {
-      return (
-        <div className="aaSheetDateField">
-          <GermanDateField
-            value={field.value}
-            readOnly={!canWrite}
-            placeholder="—"
-            onChange={(next) => updateField(index, next)}
-          />
-        </div>
-      );
-    }
-
-    if (field.dbKey) {
-      return (
-        <input
-          type="text"
-          className={`aaWorksheetValue aaSheetInput ${fieldValueClass(field)}`}
-          inputMode={field.type === "number" ? "decimal" : undefined}
-          value={field.value}
-          readOnly={!canWrite}
-          onChange={(e) =>
-            updateField(
-              index,
-              field.type === "number"
-                ? sanitizeNumericFieldInput(e.target.value)
-                : e.target.value
-            )
-          }
-          placeholder="—"
-        />
-      );
-    }
-
-    return <strong className="aaWorksheetValue">—</strong>;
-  }
-
   const sectionClass = [
     "aaWorksheetMachine",
-    "card",
-    "aaMachineOverview",
-    "aaMachineOverviewSheet",
+    "machineDetailPage",
     "aaBlock",
-    editable ? "aaSheetEditing" : "",
     className,
   ]
     .filter(Boolean)
@@ -212,30 +85,13 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
         </span>
       </div>
 
-      <div className="aaMachineOverviewBody aaSheetLayoutGrid">
-        <div className="aaMachineOverviewLeft">
-          <div className="fieldGrid aaStammdatenGrid aaWorksheetStammdaten aaSheetFieldTable">
-            <div className="fieldRow aaFieldRow aaSheetHeroRow">
-              <span>Gerätenummer</span>
-              <strong className="aaWorksheetValue aaSheetFieldValueHero">
-                {geraetenummerLine || formatValue(machine.geraetenummer)}
-              </strong>
-            </div>
-            {fields.map((field, index) => {
-              if (field.dbKey && ARBEITSAUFTRAG_SHEET_SKIP_FIELDS.has(field.dbKey)) {
-                return null;
-              }
-              return (
-                <div key={field.label} className="fieldRow aaFieldRow">
-                  <span>{field.label}</span>
-                  {renderFieldValue(field, index)}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <ArbeitsauftragSheetMedia machine={machine} />
-      </div>
+      <MachineStammdatenPanelContent
+        machine={machine}
+        stammdatenForm={fields}
+        isEditing={isEditing}
+        canWrite={canWrite}
+        onUpdateField={updateField}
+      />
     </section>
   );
 });
