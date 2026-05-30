@@ -96,12 +96,12 @@ export async function POST(request, { params }) {
   }
   const geraetenummer = machine.geraetenummer ?? id;
   const filename = normalizedImageFilename(geraetenummer, id);
-  const imagePath = await saveImageFile(
+  const imagePath = `${await saveImageFile(
     db,
     normalizedBuffer,
     filename,
     "image/webp"
-  );
+  )}?v=${Date.now()}`;
 
   const { data, error } = await db
     .from(MACHINE_TABLE)
