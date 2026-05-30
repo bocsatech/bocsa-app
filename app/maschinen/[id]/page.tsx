@@ -240,6 +240,13 @@ export default function MaschineDetailPage() {
   }, [machineId]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("edit") === "1") {
+      setIsEditing(true);
+    }
+  }, [machineId]);
+
+  useEffect(() => {
     loadMachine();
   }, [loadMachine]);
 

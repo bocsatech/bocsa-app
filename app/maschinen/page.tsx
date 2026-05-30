@@ -87,7 +87,7 @@ function MaschinenPageContent() {
   useEffect(() => {
     const aktion = searchParams.get("aktion");
     if (aktion === "hinzufuegen") {
-      setAddOpen(canWriteMachines);
+      setAddOpen(true);
       setQrOpen(false);
       return;
     }
@@ -98,7 +98,7 @@ function MaschinenPageContent() {
     }
     setQrOpen(false);
     setAddOpen(false);
-  }, [searchParams, canWriteMachines]);
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadPermissions() {
@@ -205,7 +205,7 @@ function MaschinenPageContent() {
     setAddOpen(false);
     if (searchParams.get("aktion") === "hinzufuegen") clearMaschinenAktion();
     await loadMachines();
-    router.push(`/maschinen/${machine.id}`);
+    router.push(`/maschinen/${machine.id}?edit=1`);
   }
 
   return (
