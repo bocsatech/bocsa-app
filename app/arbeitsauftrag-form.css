@@ -29,8 +29,8 @@
 
 .aaMachineOverviewSheet .aaMachineOverviewBody.aaSheetLayoutGrid {
   display: grid;
-  grid-template-columns: max-content 200px 96px;
-  grid-template-areas: "fields image qr";
+  grid-template-columns: max-content 200px;
+  grid-template-areas: "fields image";
   gap: 8px 16px;
   align-items: start;
   width: max-content;
@@ -47,12 +47,6 @@
 
 .aaMachineOverviewSheet .aaSheetImageCol {
   grid-area: image;
-}
-
-.aaMachineOverviewSheet .aaSheetQrCol {
-  grid-area: qr;
-  justify-self: end;
-  align-self: start;
 }
 
 .aaMachineOverviewBody {
