@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { currentUserIsInGroup } from "../../../../../lib/auth/permissions";
+import { normalizeMachineImage } from "../../../../../lib/machine-image.mjs";
 import { getSupabaseAdmin } from "../../../../../lib/supabaseAdmin";
 
 export const runtime = "nodejs";
@@ -9,10 +10,8 @@ const STORAGE_BUCKET = "machine-files";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-function extensionFromType(type) {
-  if (type === "image/png") return "png";
-  if (type === "image/webp") return "webp";
-  return "jpg";
+function normalizedImageFilename(geraetenummer, id) {
+  return `${safeFilePart(geraetenummer)}_${safeFilePart(id)}.webp`;
 }
 
 function safeFilePart(value) {
@@ -85,10 +84,24 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: "Maschine nicht gefunden." }, { status: 404 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const rawBuffer = Buffer.from(await file.arrayBuffer());
+  let normalizedBuffer;
+  try {
+    normalizedBuffer = await normalizeMachineImage(rawBuffer);
+  } catch {
+    return NextResponse.json(
+      { error: "Das Bild konnte nicht verarbeitet werden." },
+      { status: 400 }
+    );
+  }
   const geraetenummer = machine.geraetenummer ?? id;
-  const filename = `${safeFilePart(geraetenummer)}_${safeFilePart(id)}.${extensionFromType(file.type)}`;
-  const imagePath = await saveImageFile(db, buffer, filename, file.type);
+  const filename = normalizedImageFilename(geraetenummer, id);
+  const imagePath = await saveImageFile(
+    db,
+    normalizedBuffer,
+    filename,
+    "image/webp"
+  );
 
   const { data, error } = await db
     .from(MACHINE_TABLE)
