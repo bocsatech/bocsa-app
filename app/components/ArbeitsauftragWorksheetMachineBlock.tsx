@@ -15,7 +15,7 @@ import {
   type WorkOrder,
 } from "../../lib/work-orders";
 import type { Machine } from "../../lib/types/machine";
-import MachineHeroMedia from "./MachineHeroMedia";
+import ArbeitsauftragSheetMedia from "./ArbeitsauftragSheetMedia";
 
 type Props = {
   machine: Machine;
@@ -67,7 +67,7 @@ export default function ArbeitsauftragWorksheetMachineBlock({
         </span>
       </div>
 
-      <div className="aaMachineOverviewBody">
+      <div className="aaMachineOverviewBody aaSheetLayoutGrid">
         <div className="aaMachineOverviewLeft">
           <div className="fieldGrid aaStammdatenGrid stammdatenStacked aaWorksheetStammdaten">
             <div className="fieldRow aaFieldRow aaSheetHeroRow">
@@ -86,7 +86,7 @@ export default function ArbeitsauftragWorksheetMachineBlock({
             ))}
           </div>
         </div>
-        <MachineHeroMedia machine={machine} className="aaMachineOverviewMedia" />
+        <ArbeitsauftragSheetMedia machine={machine} />
       </div>
     </section>
   );

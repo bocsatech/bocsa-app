@@ -21,11 +21,35 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
-.aaMachineOverviewSheet .aaMachineOverviewBody {
+/* Festes 3-Spalten-Layout: Felder | Bild | QR — bei allen Breiten gleich */
+.aaMachineOverviewSheet {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.aaMachineOverviewSheet .aaMachineOverviewBody.aaSheetLayoutGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px 20px;
+  grid-template-columns: minmax(360px, 1fr) 200px 96px;
+  grid-template-areas: "fields image qr";
+  gap: 8px 20px;
   align-items: start;
+  width: 100%;
+  min-width: 700px;
+}
+
+.aaMachineOverviewSheet .aaMachineOverviewLeft {
+  grid-area: fields;
+  min-width: 360px;
+}
+
+.aaMachineOverviewSheet .aaSheetImageCol {
+  grid-area: image;
+}
+
+.aaMachineOverviewSheet .aaSheetQrCol {
+  grid-area: qr;
+  justify-self: end;
+  align-self: start;
 }
 
 .aaMachineOverviewBody {
@@ -246,61 +270,48 @@
   padding: 0;
 }
 
-.aaMachineOverviewSheet .aaMachineOverviewMedia.machineHeroMedia,
-.arbeitsauftragDocument .aaMachineOverviewMedia.machineHeroMedia {
-  --machine-hero-tile: clamp(150px, 18vw, 210px);
-  --machine-qr-tile: clamp(64px, 7vw, 88px);
-  flex-direction: column-reverse;
-  align-items: flex-end;
-  gap: 10px;
-  flex-shrink: 0;
+.aaMachineOverviewSheet .aaSheetImageCol .machineImageSlot,
+.arbeitsauftragDocument .aaSheetImageCol .machineImageSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 228px;
+  min-height: 0 !important;
+  max-height: 228px;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 2px solid rgba(249, 115, 22, 0.35);
+  border-radius: 20px;
+  background: #ffffff;
+  flex: none;
 }
 
-.aaMachineOverviewMedia.machineHeroMedia {
-  --machine-hero-tile: clamp(140px, 22vw, 200px);
-  --machine-qr-tile: clamp(72px, 10vw, 96px);
-  flex-direction: column-reverse;
-  align-items: flex-end;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-.aaMachineOverviewMedia .machineQrSlot {
-  width: var(--machine-qr-tile);
-  height: var(--machine-qr-tile);
-  min-height: 0;
-  padding: 6px;
-}
-
-.aaMachineOverviewMedia .machineImageSlot {
-  width: calc(var(--machine-hero-tile) * 1.15);
-  height: calc(var(--machine-hero-tile) * 1.35);
-  min-height: 0;
+.aaMachineOverviewSheet .aaSheetQrCol .machineQrSlot,
+.arbeitsauftragDocument .aaSheetQrCol .machineQrSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  min-height: 0 !important;
+  max-height: 96px;
+  padding: 4px;
+  box-sizing: border-box;
+  border: 2px solid rgba(249, 115, 22, 0.35);
+  border-radius: 16px;
+  background: #ffffff;
+  flex: none;
 }
 
 .arbeitsauftragDocument .aaWorksheetMachine.aaMachineOverview {
   margin-bottom: 16px;
 }
 
-.aaMachineOverview .machineImageSlot.hasMachineImage {
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-.aaMachineOverview .machineQrSlot.hasQrImage {
-  padding: 6px;
-  box-sizing: border-box;
-}
-
-/* Globals setzt große QR-Höhe — im Arbeitsauftrag kleiner halten */
-.aaMachineOverviewMedia.machineHeroMedia .machineQrSlot,
-.aaMachineOverviewMedia.machineHeroMedia .machineQrSlot.hasQrImage {
-  height: var(--machine-qr-tile) !important;
-  min-height: 0;
-}
-
-.aaMachineOverview .machineImagePreview,
-.aaMachineOverview .machineQrImage {
+.aaMachineOverviewSheet .aaSheetImageCol .machineImagePreview,
+.aaMachineOverviewSheet .aaSheetQrCol .machineQrImage,
+.arbeitsauftragDocument .aaSheetImageCol .machineImagePreview,
+.arbeitsauftragDocument .aaSheetQrCol .machineQrImage {
   width: 100%;
   height: 100%;
   max-width: 100%;
@@ -309,14 +320,10 @@
   object-position: center;
 }
 
+/* Kein Umbruch auf schmalen Viewports — horizontales Scrollen statt Layout-Wechsel */
 @media (max-width: 900px) {
-  .aaMachineOverviewBody {
+  .aaMachineOverviewBody:not(.aaSheetLayoutGrid) {
     grid-template-columns: 1fr;
-  }
-
-  .aaMachineOverviewMedia.machineHeroMedia {
-    justify-content: flex-start;
-    width: 100%;
   }
 }
 
