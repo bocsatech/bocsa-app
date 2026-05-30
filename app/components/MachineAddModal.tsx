@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import MachineDetailTabPanels from "./MachineDetailTabPanels";
 import {
   buildStammdatenPatch,
-  createMachine,
   machineToStammdatenFields,
   type StammdatenField,
 } from "../../lib/machines";
@@ -16,6 +15,15 @@ import {
   type MachineDetailTab,
   type MachineTabFormState,
 } from "../../lib/machine-tab-forms";
+import {
+  DEFAULT_GERAETENUMMER_CODES,
+  type GeraetenummerCodesConfig,
+  type GeraetenummerPick,
+  fetchGeraetenummerCodes,
+  fetchNextGeraetenummer,
+  geraettypForKlasse,
+  validateGeraetenummerPick,
+} from "../../lib/geraetenummer";
 import type { Machine } from "../../lib/types/machine";
 
 const EMPTY_MACHINE: Machine = {
@@ -30,14 +38,23 @@ const EMPTY_MACHINE: Machine = {
   subgroup: null,
 };
 
+const EMPTY_PICK: GeraetenummerPick = { marke: "", klasse: "", art: "" };
+
 type Props = {
   open: boolean;
   canWrite: boolean;
+  canManageGeraetenummerCodes?: boolean;
   onClose: () => void;
   onSaved: (machine: Machine) => void;
 };
 
-export default function MachineAddModal({ open, canWrite, onClose, onSaved }: Props) {
+export default function MachineAddModal({
+  open,
+  canWrite,
+  canManageGeraetenummerCodes = false,
+  onClose,
+  onSaved,
+}: Props) {
   const [activeTab, setActiveTab] = useState<MachineDetailTab>("Stammdaten");
   const [stammdatenForm, setStammdatenForm] = useState<StammdatenField[]>(() =>
     machineToStammdatenFields(null)
@@ -45,6 +62,11 @@ export default function MachineAddModal({ open, canWrite, onClose, onSaved }: Pr
   const [tabForms, setTabForms] = useState<MachineTabFormState>(createEmptyMachineTabForms);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [geraetenummerCodes, setGeraetenummerCodes] =
+    useState<GeraetenummerCodesConfig>(DEFAULT_GERAETENUMMER_CODES);
+  const [geraetenummerPick, setGeraetenummerPick] = useState<GeraetenummerPick>(EMPTY_PICK);
+  const [previewSequence, setPreviewSequence] = useState<number | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -53,7 +75,52 @@ export default function MachineAddModal({ open, canWrite, onClose, onSaved }: Pr
     setTabForms(createEmptyMachineTabForms());
     setFormError(null);
     setSaving(false);
+    setGeraetenummerPick(EMPTY_PICK);
+    setPreviewSequence(null);
+
+    void fetchGeraetenummerCodes().then(({ data, error }) => {
+      if (data) setGeraetenummerCodes(data);
+      if (error) setFormError(error.message);
+    });
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const geraettyp = geraettypForKlasse(geraetenummerCodes, geraetenummerPick.klasse);
+    if (!geraettyp) return;
+
+    setStammdatenForm((prev) =>
+      prev.map((field) =>
+        field.dbKey === "geraettyp" ? { ...field, value: geraettyp } : field
+      )
+    );
+  }, [open, geraetenummerCodes, geraetenummerPick.klasse]);
+
+  useEffect(() => {
+    if (!open) return;
+    const validationError = validateGeraetenummerPick(geraetenummerCodes, geraetenummerPick);
+    if (validationError) {
+      setPreviewSequence(null);
+      return;
+    }
+
+    let cancelled = false;
+    setPreviewLoading(true);
+
+    void fetchNextGeraetenummer(geraetenummerPick).then(({ data, error }) => {
+      if (cancelled) return;
+      setPreviewLoading(false);
+      if (error) {
+        setPreviewSequence(null);
+        return;
+      }
+      setPreviewSequence(data?.sequence ?? null);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, geraetenummerCodes, geraetenummerPick]);
 
   if (!open) return null;
 
@@ -70,26 +137,42 @@ export default function MachineAddModal({ open, canWrite, onClose, onSaved }: Pr
       return;
     }
 
+    const pickError = validateGeraetenummerPick(geraetenummerCodes, geraetenummerPick);
+    if (pickError) {
+      setFormError(pickError);
+      return;
+    }
+
     setSaving(true);
     setFormError(null);
 
     const payload = buildStammdatenPatch(EMPTY_MACHINE, stammdatenForm);
+    delete payload.geraetenummer;
     payload.machine_tab_data = stripWorkOrdersFromTabData({
       ...((payload.machine_tab_data as Record<string, unknown> | undefined) ?? {}),
       ...buildMachineTabDataPayload(tabForms),
     });
 
-    const { data, error } = await createMachine(payload);
+    const response = await fetch("/api/machines", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        ...payload,
+        geraetenummer_pick: geraetenummerPick,
+      }),
+    });
+    const result = await response.json().catch(() => null);
 
-    if (error) {
-      setFormError(error.message);
+    if (!response.ok) {
+      setFormError(result?.error ?? "Maschine konnte nicht erstellt werden.");
       setSaving(false);
       return;
     }
 
     setSaving(false);
-    if (data) {
-      onSaved(data as Machine);
+    if (result) {
+      onSaved(result as Machine);
     }
   }
 
@@ -105,7 +188,7 @@ export default function MachineAddModal({ open, canWrite, onClose, onSaved }: Pr
             <h2 id="machine-add-title" className="machineAddModalTitle">
               Maschine hinzufügen
             </h2>
-            <p className="subtitle">Neue Maschine — alle Register erfassen.</p>
+            <p className="subtitle">Neue Maschine — Gerätenummer aus Auswahl, alle Register erfassen.</p>
           </div>
           <button type="button" className="pillButton outline" onClick={onClose}>
             Schließen
@@ -137,6 +220,14 @@ export default function MachineAddModal({ open, canWrite, onClose, onSaved }: Pr
                 onUpdateStammdatenField={updateStammdatenField}
                 saveError={formError}
                 showQrCode={false}
+                useStructuredGeraetenummer
+                geraetenummerCodes={geraetenummerCodes}
+                geraetenummerPick={geraetenummerPick}
+                onGeraetenummerPickChange={setGeraetenummerPick}
+                geraetenummerPreviewSequence={previewSequence}
+                geraetenummerPreviewLoading={previewLoading}
+                canManageGeraetenummerCodes={canManageGeraetenummerCodes}
+                onGeraetenummerCodesChange={setGeraetenummerCodes}
                 motorData={tabForms.motor}
                 setMotorData={(motor) => setTabForms((prev) => ({ ...prev, motor }))}
                 technicalData={tabForms.technical}

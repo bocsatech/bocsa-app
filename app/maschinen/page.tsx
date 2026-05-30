@@ -42,6 +42,7 @@ function MaschinenPageContent() {
   const [qrOpen, setQrOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [canWriteMachines, setCanWriteMachines] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const loadMachines = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) {
@@ -108,6 +109,7 @@ function MaschinenPageContent() {
       });
       const result = await response.json().catch(() => ({}));
       setCanWriteMachines(Boolean(result.permissions?.includes("machines.write")));
+      setIsAdmin(Array.isArray(result.groups) && result.groups.includes("Admin"));
     }
 
     loadPermissions();
@@ -314,6 +316,7 @@ function MaschinenPageContent() {
       <MachineAddModal
         open={addOpen}
         canWrite={canWriteMachines}
+        canManageGeraetenummerCodes={isAdmin}
         onClose={() => {
           setAddOpen(false);
           if (searchParams.get("aktion") === "hinzufuegen") clearMaschinenAktion();

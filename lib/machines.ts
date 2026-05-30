@@ -201,12 +201,9 @@ export function parseOptionalNumber(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-/** Gerätenummer mit einmaligem „GE“-Präfix (für Anzeige und Druck). */
+/** Gerätenummer für Anzeige und Druck (ohne zusätzliches Präfix). */
 export function formatGeraetenummerDisplay(value: unknown) {
-  const text = String(value ?? "").trim();
-  if (!text) return "";
-  if (/^ge\s+/i.test(text)) return text;
-  return `GE ${text}`;
+  return String(value ?? "").trim();
 }
 
 export function hasValue(value: unknown) {

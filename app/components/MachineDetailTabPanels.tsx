@@ -4,6 +4,7 @@ import type { ChangeEvent, ReactNode } from "react";
 import DocumentationDocumentRow from "./DocumentationDocumentRow";
 import MaintenanceLagerParts from "./MaintenanceLagerParts";
 import MachineStammdatenPanelContent from "./MachineStammdatenPanelContent";
+import type { GeraetenummerCodesConfig, GeraetenummerPick } from "../../lib/geraetenummer";
 import type { StammdatenField } from "../../lib/machines";
 import type { Machine } from "../../lib/types/machine";
 import {
@@ -29,6 +30,14 @@ type Props = {
   saveError?: string | null;
   showQrCode?: boolean;
   mediaFooter?: ReactNode;
+  useStructuredGeraetenummer?: boolean;
+  geraetenummerCodes?: GeraetenummerCodesConfig | null;
+  geraetenummerPick?: GeraetenummerPick;
+  onGeraetenummerPickChange?: (pick: GeraetenummerPick) => void;
+  geraetenummerPreviewSequence?: number | null;
+  geraetenummerPreviewLoading?: boolean;
+  canManageGeraetenummerCodes?: boolean;
+  onGeraetenummerCodesChange?: (codes: GeraetenummerCodesConfig) => void;
   motorData: MotorFormData;
   setMotorData: (data: MotorFormData) => void;
   technicalData: TechnicalFormData;
@@ -58,6 +67,14 @@ export default function MachineDetailTabPanels({
   saveError,
   showQrCode,
   mediaFooter,
+  useStructuredGeraetenummer,
+  geraetenummerCodes,
+  geraetenummerPick,
+  onGeraetenummerPickChange,
+  geraetenummerPreviewSequence,
+  geraetenummerPreviewLoading,
+  canManageGeraetenummerCodes,
+  onGeraetenummerCodesChange,
   motorData,
   setMotorData,
   technicalData,
@@ -86,6 +103,14 @@ export default function MachineDetailTabPanels({
           saveError={saveError}
           showQrCode={showQrCode}
           mediaFooter={mediaFooter}
+          useStructuredGeraetenummer={useStructuredGeraetenummer}
+          geraetenummerCodes={geraetenummerCodes}
+          geraetenummerPick={geraetenummerPick}
+          onGeraetenummerPickChange={onGeraetenummerPickChange}
+          geraetenummerPreviewSequence={geraetenummerPreviewSequence}
+          geraetenummerPreviewLoading={geraetenummerPreviewLoading}
+          canManageGeraetenummerCodes={canManageGeraetenummerCodes}
+          onGeraetenummerCodesChange={onGeraetenummerCodesChange}
         />
       ) : activeTab === "Motor" ? (
         <div className="fieldGrid">

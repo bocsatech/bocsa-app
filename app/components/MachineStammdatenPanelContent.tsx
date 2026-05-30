@@ -2,7 +2,10 @@
 
 import type { ReactNode } from "react";
 import GermanDateField from "./GermanDateField";
+import GeraetenummerCodesManager from "./GeraetenummerCodesManager";
+import GeraetenummerPicker from "./GeraetenummerPicker";
 import MachineHeroMedia from "./MachineHeroMedia";
+import type { GeraetenummerCodesConfig, GeraetenummerPick } from "../../lib/geraetenummer";
 import {
   GERAETTYP_OPTIONS,
   hasValue,
@@ -21,11 +24,20 @@ type Props = {
   saveError?: string | null;
   mediaFooter?: ReactNode;
   showQrCode?: boolean;
+  useStructuredGeraetenummer?: boolean;
+  geraetenummerCodes?: GeraetenummerCodesConfig | null;
+  geraetenummerPick?: GeraetenummerPick;
+  onGeraetenummerPickChange?: (pick: GeraetenummerPick) => void;
+  geraetenummerPreviewSequence?: number | null;
+  geraetenummerPreviewLoading?: boolean;
+  canManageGeraetenummerCodes?: boolean;
+  onGeraetenummerCodesChange?: (codes: GeraetenummerCodesConfig) => void;
 };
 
 export function buildStammdatenRowsForDisplay(
   stammdatenForm: StammdatenField[],
-  isEditing: boolean
+  isEditing: boolean,
+  options?: { hideGeraetenummer?: boolean }
 ) {
   const visibleStammdatenForm = isEditing
     ? stammdatenForm
@@ -34,6 +46,9 @@ export function buildStammdatenRowsForDisplay(
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
 
   let rows = visibleStammdatenForm.filter((field) => field.dbKey !== "bezeichnung");
+  if (options?.hideGeraetenummer) {
+    rows = rows.filter((field) => field.dbKey !== "geraetenummer");
+  }
   if (isEditing && bezeichnungStammdaten) {
     const geraeteIndex = rows.findIndex((field) => field.dbKey === "geraetenummer");
     const insertAt = geraeteIndex >= 0 ? geraeteIndex + 1 : 0;
@@ -58,16 +73,43 @@ export default function MachineStammdatenPanelContent({
   saveError = null,
   mediaFooter = null,
   showQrCode = true,
+  useStructuredGeraetenummer = false,
+  geraetenummerCodes = null,
+  geraetenummerPick = { marke: "", klasse: "", art: "" },
+  onGeraetenummerPickChange,
+  geraetenummerPreviewSequence = null,
+  geraetenummerPreviewLoading = false,
+  canManageGeraetenummerCodes = false,
+  onGeraetenummerCodesChange,
 }: Props) {
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
   const stammdatenRowsForDisplay = buildStammdatenRowsForDisplay(
     stammdatenForm,
-    isEditing
+    isEditing,
+    { hideGeraetenummer: useStructuredGeraetenummer }
   );
 
   return (
     <div className="stammdatenPanelLayout">
       <div className="stammdatenPanelMain">
+        {useStructuredGeraetenummer && geraetenummerCodes && onGeraetenummerPickChange ? (
+          <>
+            <GeraetenummerPicker
+              codes={geraetenummerCodes}
+              pick={geraetenummerPick}
+              onPickChange={onGeraetenummerPickChange}
+              previewSequence={geraetenummerPreviewSequence}
+              previewLoading={geraetenummerPreviewLoading}
+              disabled={!canWrite}
+            />
+            {canManageGeraetenummerCodes && onGeraetenummerCodesChange ? (
+              <GeraetenummerCodesManager
+                codes={geraetenummerCodes}
+                onCodesChange={onGeraetenummerCodesChange}
+              />
+            ) : null}
+          </>
+        ) : null}
         <div className="fieldGrid stammdatenStacked">
           {stammdatenRowsForDisplay.map((field) => {
             const index = stammdatenForm.findIndex((item) => item.label === field.label);
@@ -107,7 +149,7 @@ export default function MachineStammdatenPanelContent({
                 ) : field.dbKey === "geraettyp" ? (
                   <select
                     value={field.value}
-                    disabled={!isEditing}
+                    disabled={!isEditing || useStructuredGeraetenummer}
                     onChange={(e) => onUpdateField(index, e.target.value)}
                   >
                     <option value="">Gerättyp</option>

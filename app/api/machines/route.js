@@ -3,6 +3,10 @@ import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 import { currentUserHasPermission } from "../../../lib/auth/permissions";
 import { generateMachineQrCode } from "../../../lib/qr-code.mjs";
 import {
+  allocateGeraetenummer,
+  loadGeraetenummerCodes,
+} from "../../../lib/geraetenummer-db.mjs";
+import {
   formatMachineRowDates,
   normalizeMachinePatchDates,
 } from "../../../lib/normalize-machine-dates";
@@ -200,6 +204,40 @@ export async function POST(request) {
   const { patch, error: dateError } = normalizeMachinePatchDates(rawPatch);
   if (dateError) {
     return NextResponse.json({ error: dateError }, { status: 400 });
+  }
+
+  const pick = body.geraetenummer_pick;
+  if (pick && typeof pick === "object") {
+    try {
+      const codes = await loadGeraetenummerCodes(supabase);
+      const allocated = await allocateGeraetenummer(supabase, pick, codes);
+      patch.geraetenummer = allocated.geraetenummer;
+      if (allocated.geraettyp) {
+        const tabData =
+          patch.machine_tab_data && typeof patch.machine_tab_data === "object"
+            ? patch.machine_tab_data
+            : {};
+        patch.machine_tab_data = {
+          ...tabData,
+          geraettyp: allocated.geraettyp,
+        };
+      }
+    } catch (allocationError) {
+      return NextResponse.json(
+        {
+          error:
+            allocationError instanceof Error
+              ? allocationError.message
+              : "Gerätenummer konnte nicht vergeben werden.",
+        },
+        { status: 400 }
+      );
+    }
+  } else if (!patch.geraetenummer) {
+    return NextResponse.json(
+      { error: "Gerätenummer: Marke, Klasse und Gerätetyp müssen gewählt werden." },
+      { status: 400 }
+    );
   }
 
   const { data, error } = await supabase

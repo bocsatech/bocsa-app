@@ -1514,6 +1514,143 @@ button, input, select, textarea {
   gap: 0;
 }
 
+.geraetenummerPickerBlock {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.geraetenummerPickerLabel {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.geraetenummerPicker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.geraetenummerPickerField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.geraetenummerPickerField span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.geraetenummerPickerField select,
+.geraetenummerPickerField input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+  font-weight: 700;
+}
+
+.geraetenummerPickerFieldSeq input {
+  background: #fff7ed;
+  color: #c2410c;
+  text-align: center;
+}
+
+.geraetenummerPreview {
+  margin: 12px 0 0;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+.geraetenummerPreview strong {
+  color: #ea580c;
+  letter-spacing: 0.02em;
+}
+
+.geraetenummerCodesManager {
+  margin: 0 0 18px;
+}
+
+.geraetenummerCodesToggle {
+  width: 100%;
+}
+
+.geraetenummerCodesPanel {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fafafa;
+}
+
+.geraetenummerCodesHint {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.geraetenummerCodesForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.geraetenummerCodesForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.geraetenummerCodesForm label span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.geraetenummerCodesError {
+  margin: 0 0 12px;
+  color: #dc2626;
+  font-size: 0.88rem;
+}
+
+.geraetenummerCodesLists {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.geraetenummerCodesList h4 {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  color: #374151;
+}
+
+.geraetenummerCodesList ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+@media (max-width: 900px) {
+  .geraetenummerPicker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .geraetenummerCodesLists {
+    grid-template-columns: 1fr;
+  }
+}
+
 .fieldGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
