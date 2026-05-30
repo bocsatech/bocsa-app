@@ -230,6 +230,7 @@
 .aaMachineOverviewMedia.machineHeroMedia,
 .arbeitsauftragDocument .aaMachineOverviewMedia.machineHeroMedia {
   --machine-hero-tile: clamp(140px, 22vw, 200px);
+  --machine-qr-tile: clamp(72px, 10vw, 96px);
   flex-direction: column-reverse;
   align-items: flex-end;
   gap: 14px;
@@ -237,9 +238,10 @@
 }
 
 .aaMachineOverviewMedia .machineQrSlot {
-  width: var(--machine-hero-tile);
-  height: var(--machine-hero-tile);
+  width: var(--machine-qr-tile);
+  height: var(--machine-qr-tile);
   min-height: 0;
+  padding: 6px;
 }
 
 .aaMachineOverviewMedia .machineImageSlot {
@@ -252,10 +254,21 @@
   margin-bottom: 16px;
 }
 
-.aaMachineOverview .machineImageSlot.hasMachineImage,
-.aaMachineOverview .machineQrSlot.hasQrImage {
+.aaMachineOverview .machineImageSlot.hasMachineImage {
   padding: 10px;
   box-sizing: border-box;
+}
+
+.aaMachineOverview .machineQrSlot.hasQrImage {
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+/* Globals setzt große QR-Höhe — im Arbeitsauftrag kleiner halten */
+.aaMachineOverviewMedia.machineHeroMedia .machineQrSlot,
+.aaMachineOverviewMedia.machineHeroMedia .machineQrSlot.hasQrImage {
+  height: var(--machine-qr-tile) !important;
+  min-height: 0;
 }
 
 .aaMachineOverview .machineImagePreview,
