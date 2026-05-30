@@ -1,6 +1,6 @@
 # Gerätegruppe & Arbeitsauftrag-Protokoll (Plan)
 
-**Status:** Gerätegruppe-Automatik umgesetzt; Protokoll-Vorlagen pro Gruppe **später**.
+**Status:** Gerätegruppe-Automatik + Protokoll-Vorlagen pro Gruppe + individuelle Abweichung **umgesetzt** (SQL auf Supabase ausführen).
 
 ## Gerätegruppe (subgroup) — Regel
 
@@ -25,14 +25,11 @@ Strukturierte Gerätenummer: `MARKE-KLASSE-ART-00001`
 
 ---
 
-## Später: Reparaturdaten-Vorlage pro Gerätegruppe
+## Reparaturdaten-Vorlage pro Gerätegruppe
 
-Ziel: 10 gleiche Geräte (`GG-BG2`) → Checklisten / Service-Material **einmal** pro Gruppe pflegen, jeder neue Arbeitsauftrag übernimmt die Vorlage.
-
-Geplant:
-
-1. Tabelle `geraetgruppe_protokoll_vorlagen` (`subgroup` PK, JSON-Vorlage).
-2. Admin-UI unter Baumaschinen: „Gerätegruppen – Protokoll“.
-3. Neuer Auftrag: `protocol = clone(vorlage[machine.subgroup])`, Speichern bleibt pro Auftrag (Historie).
+1. **SQL:** `supabase/geraetgruppe-protokoll-vorlagen.sql` im Supabase SQL Editor.
+2. **Admin:** Menü Baumaschinen → **Gerätegruppen – Protokoll** (`/maschinen/geraetgruppen`).
+3. **Neuer Arbeitsauftrag:** lädt Vorlage aus `subgroup` (oder `ALLGEMEIN`).
+4. **Individuell:** am Auftrag „Gruppen-Vorlage laden“ / Struktur ändern → `protocolSource: eigen`; optional **Maschinen-Vorlage** für diese Maschine speichern (`machine_tab_data.protokoll_vorlage_eigen`).
 
 Siehe auch `docs/menu/02-maschinen.md`.

@@ -1414,3 +1414,88 @@ body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection {
     font-size: 8pt;
   }
 }
+
+.aaProtokollVorlageBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.aaProtokollVorlageHint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.aaProtokollVorlageActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.geraetgruppenProtokollPage .geraetgruppenProtokollLayout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.geraetgruppenProtokollSidebar {
+  padding: 12px;
+}
+
+.geraetgruppenList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.geraetgruppenListBtn {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #f9fafb;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.geraetgruppenListBtn.active {
+  background: #fff7ed;
+  border-color: #f97316;
+  color: #c2410c;
+}
+
+.geraetgruppenNewRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.geraetgruppenProtokollEditor {
+  padding: 16px;
+}
+
+.geraetgruppenEditorHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .geraetgruppenProtokollPage .geraetgruppenProtokollLayout {
+    grid-template-columns: 1fr;
+  }
+}

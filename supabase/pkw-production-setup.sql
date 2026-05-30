@@ -1,0 +1,5 @@
+-- PKW-Modul auf Production (einmalig im Supabase SQL Editor)
+-- Reihenfolge:
+--   1) supabase/pkw-tables-only.sql
+--   2) supabase/pkw-permissions-only.sql  (oder pkw-setup.sql = beides)
+-- Warten ~30 s, dann Hard-Refresh der Web-App.

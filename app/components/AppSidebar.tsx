@@ -57,6 +57,11 @@ export const BAUMASCHINEN_NAV = {
       label: "QR-Code scannen",
       aktion: "qr",
     },
+    {
+      kind: "route",
+      href: "/maschinen/geraetgruppen",
+      label: "Gerätegruppen – Protokoll",
+    },
   ] as const satisfies readonly MaschinenSubItem[],
 };
 
@@ -119,6 +124,7 @@ function isBaumaschinenSectionActive(activeHref: string | undefined, pathname: s
     activeHref === BAUMASCHINEN_NAV.href ||
     pathname === BAUMASCHINEN_NAV.href ||
     pathname.startsWith("/maschinen/") ||
+    pathname === "/maschinen/geraetgruppen" ||
     activeHref === "/arbeitsauftrag" ||
     pathname.startsWith("/arbeitsauftrag") ||
     activeHref === "/pruefprotokoll" ||

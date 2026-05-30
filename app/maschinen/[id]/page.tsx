@@ -631,8 +631,6 @@ export default function MaschineDetailPage() {
                 isEditing={isEditing}
                 canWrite={canWriteMachines}
                 onUpdateField={updateStammdatenField}
-                note={note}
-                onNoteChange={setNote}
                 saveError={saveError}
                 mediaFooter={
                   canUploadImages && isEditing ? (

@@ -1,4 +1,5 @@
 import type { WorkOrderProtocol } from "./arbeitsauftrag-protokoll";
+import type { WorkOrderProtocolSource } from "./geraetgruppe-protokoll";
 import {
   collectCheckedRepairLabels,
   createDefaultProtocol,
@@ -40,6 +41,9 @@ export type WorkOrder = {
   serviceParts: WorkOrderServicePart[];
   /** Wartungsplan + Reparaturdaten (Protokoll) */
   protocol: WorkOrderProtocol;
+  /** Woher die Protokoll-Struktur stammt (Vorlage vs. eigen) */
+  protocolSource?: WorkOrderProtocolSource;
+  protocolSubgroup?: string | null;
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
@@ -264,6 +268,9 @@ export function createEmptyWorkOrder(options?: {
   type?: string;
   depot?: string;
   username?: string;
+  protocol?: WorkOrderProtocol;
+  protocolSource?: WorkOrderProtocolSource;
+  protocolSubgroup?: string | null;
 }): WorkOrder {
   const now = new Date();
   const date = germanToday();
@@ -285,7 +292,9 @@ export function createEmptyWorkOrder(options?: {
     notes: "",
     parts: [],
     serviceParts: [],
-    protocol: createDefaultProtocol(),
+    protocol: options?.protocol ?? createDefaultProtocol(),
+    protocolSource: options?.protocolSource ?? "standard",
+    protocolSubgroup: options?.protocolSubgroup ?? null,
     createdAt: stamp,
     updatedAt: stamp,
     createdBy: options?.username,
@@ -406,6 +415,14 @@ export function normalizeWorkOrder(order: WorkOrder): WorkOrder {
     parts: Array.isArray(order.parts) ? order.parts : [],
     serviceParts,
     protocol,
+    protocolSource:
+      order.protocolSource === "gruppe" ||
+      order.protocolSource === "eigen" ||
+      order.protocolSource === "standard"
+        ? order.protocolSource
+        : undefined,
+    protocolSubgroup:
+      typeof order.protocolSubgroup === "string" ? order.protocolSubgroup.trim() || null : null,
     repairDescription: typeof order.repairDescription === "string" ? order.repairDescription : "",
   };
 }

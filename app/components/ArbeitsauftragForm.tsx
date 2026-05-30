@@ -21,7 +21,17 @@ import {
   collectCheckedRepairLabels,
   issueProtocolStockDelta,
   linkProtocolToLager,
+  type WorkOrderProtocol,
 } from "../../lib/arbeitsauftrag-protokoll";
+import {
+  buildMachineEigenVorlagePatch,
+  fetchGruppenProtokollVorlage,
+  fetchProtocolForNewWorkOrder,
+  machineHasEigenProtokollVorlage,
+  normalizeSubgroupKey,
+  protocolToStoredVorlage,
+  resolveProtocolForMachine,
+} from "../../lib/geraetgruppe-protokoll";
 import { reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
 import { fetchLagerTeile } from "../../lib/lager";
 import {
@@ -123,10 +133,14 @@ export default function ArbeitsauftragForm({
     if (existing) {
       setOrder(normalizeWorkOrder(existing));
     } else if (initialType?.trim()) {
+      const resolved = await fetchProtocolForNewWorkOrder(data);
       const empty = createEmptyWorkOrder({
         type: initialType,
         depot: data.depot ?? "",
         username: name,
+        protocol: resolved.protocol,
+        protocolSource: resolved.source,
+        protocolSubgroup: resolved.subgroup,
       });
       try {
         const { auftragNr } = await reserveWorkOrderAuftragNr({
@@ -178,6 +192,68 @@ export default function ArbeitsauftragForm({
 
   function updateOrder(patch: Partial<WorkOrder>) {
     setOrder((current) => (current ? { ...current, ...patch } : current));
+  }
+
+  function updateProtocol(next: WorkOrderProtocol) {
+    setOrder((current) => {
+      if (!current) return current;
+      const protocolSource =
+        current.protocolSource === "gruppe" ? "eigen" : current.protocolSource;
+      return { ...current, protocol: next, protocolSource };
+    });
+  }
+
+  async function reloadGruppenVorlage() {
+    if (!machine || !order) return;
+    const subgroup = normalizeSubgroupKey(machine.subgroup);
+    if (!subgroup) {
+      setMessage("Keine Gerätegruppe an der Maschine — Vorlage ALLGEMEIN oder Stammdaten prüfen.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Protokoll-Struktur aus Gerätegruppe „${subgroup}" laden? Angehakte Zeilen und Mengen gehen verloren.`
+      )
+    ) {
+      return;
+    }
+    const { data, error } = await fetchGruppenProtokollVorlage(subgroup);
+    if (error || !data?.vorlage) {
+      setSaveError(error?.message ?? "Gruppen-Vorlage nicht gefunden.");
+      return;
+    }
+    const resolved = resolveProtocolForMachine(machine, data.vorlage);
+    updateOrder({
+      protocol: resolved.protocol,
+      protocolSource: "gruppe",
+      protocolSubgroup: subgroup,
+    });
+    setMessage(`Protokoll aus Gerätegruppe ${subgroup} geladen.`);
+  }
+
+  async function saveMachineEigenVorlage() {
+    if (!machine || !order || !canWrite) return;
+    const vorlage = protocolToStoredVorlage(order.protocol);
+    const patch = buildMachineEigenVorlagePatch(machine, vorlage, true);
+    const { data, error } = await updateMachine(machine.id, patch as Partial<Machine>);
+    if (error || !data) {
+      setSaveError(error?.message ?? "Maschinen-Vorlage konnte nicht gespeichert werden.");
+      return;
+    }
+    setMachine(data);
+    setMessage("Eigene Protokoll-Vorlage für diese Maschine gespeichert.");
+  }
+
+  async function clearMachineEigenVorlage() {
+    if (!machine || !canWrite) return;
+    const patch = buildMachineEigenVorlagePatch(machine, null, false);
+    const { data, error } = await updateMachine(machine.id, patch as Partial<Machine>);
+    if (error || !data) {
+      setSaveError(error?.message ?? "Maschinen-Vorlage konnte nicht entfernt werden.");
+      return;
+    }
+    setMachine(data);
+    setMessage("Maschinen-Vorlage deaktiviert — künftig wieder Gerätegruppe.");
   }
 
   async function persistOrder(
@@ -393,24 +469,61 @@ export default function ArbeitsauftragForm({
               ) : null}
 
               <section className="protocolSection card aaBlock">
+                <div className="aaProtokollVorlageBar">
+                  <p className="aaProtokollVorlageHint">
+                    Gerätegruppe:{" "}
+                    <strong>{machine.subgroup?.trim() || "—"}</strong>
+                    {order.protocolSource === "gruppe"
+                      ? " · Struktur aus Gruppen-Vorlage"
+                      : order.protocolSource === "eigen"
+                        ? machineHasEigenProtokollVorlage(machine)
+                          ? " · Eigene Maschinen-Vorlage"
+                          : " · Individuell angepasst"
+                        : " · Standard-Vorlage"}
+                  </p>
+                  {canWrite ? (
+                    <div className="aaProtokollVorlageActions">
+                      <button
+                        type="button"
+                        className="pillButton outline"
+                        onClick={() => void reloadGruppenVorlage()}
+                      >
+                        Gruppen-Vorlage laden
+                      </button>
+                      <button
+                        type="button"
+                        className="pillButton outline"
+                        onClick={() => void saveMachineEigenVorlage()}
+                      >
+                        Als Maschinen-Vorlage speichern
+                      </button>
+                      {machineHasEigenProtokollVorlage(machine) ? (
+                        <button
+                          type="button"
+                          className="pillButton outline"
+                          onClick={() => void clearMachineEigenVorlage()}
+                        >
+                          Maschinen-Vorlage aus
+                        </button>
+                      ) : null}
+                      <Link
+                        className="pillButton outline"
+                        href="/maschinen/geraetgruppen"
+                      >
+                        Gruppen bearbeiten
+                      </Link>
+                    </div>
+                  ) : null}
+                </div>
                 <ArbeitsauftragProtokollSection
                   protocol={order.protocol}
                   canEdit={canWrite}
                   canIssueLager={canIssueLager}
                   machineId={machineId}
                   auftragReferenz={`Arbeitsauftrag ${formatWorkOrderAuftragNr(order)}`}
-                  onChange={(protocol) => updateOrder({ protocol })}
+                  onChange={updateProtocol}
                 />
               </section>
-
-              {machine.subgroup?.trim() ? (
-                <section className="protocolSection card aaBlock aaGeraetegruppeAboveBemerkung">
-                  <div className="fieldRow aaFieldRow">
-                    <span>Gerätegruppe</span>
-                    <strong className="aaWorksheetValue">{machine.subgroup.trim()}</strong>
-                  </div>
-                </section>
-              ) : null}
 
               <section className="protocolSection card aaBlock">
                 <label className="protocolField textAreas">

@@ -30,9 +30,6 @@ type Props = {
   onGeraetenummerPickChange?: (pick: GeraetenummerPick) => void;
   geraetenummerPreviewSequence?: number | null;
   geraetenummerPreviewLoading?: boolean;
-  /** Freitext unter Gerätegruppe (machine_tab_data.note) */
-  note?: string;
-  onNoteChange?: (value: string) => void;
 };
 
 export function buildStammdatenRowsForDisplay(
@@ -98,8 +95,6 @@ export default function MachineStammdatenPanelContent({
   onGeraetenummerPickChange,
   geraetenummerPreviewSequence = null,
   geraetenummerPreviewLoading = false,
-  note = "",
-  onNoteChange,
 }: Props) {
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
   const stammdatenRowsForDisplay = buildStammdatenRowsForDisplay(
@@ -235,23 +230,6 @@ export default function MachineStammdatenPanelContent({
               </div>
             );
           })}
-          {onNoteChange ? (
-            <div className="fieldRow">
-              <span>Bemerkung</span>
-              {isEditing ? (
-                <textarea
-                  className="stammdatenBemerkungField"
-                  rows={3}
-                  value={note}
-                  readOnly={!canWrite}
-                  onChange={(e) => onNoteChange(e.target.value)}
-                  placeholder="Bemerkung zur Maschine…"
-                />
-              ) : (
-                <StammdatenReadOnlyValue value={note} />
-              )}
-            </div>
-          ) : null}
         </div>
         {saveError ? <p style={{ color: "#dc2626" }}>{saveError}</p> : null}
       </div>
