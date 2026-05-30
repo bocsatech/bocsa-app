@@ -203,7 +203,7 @@ function MaschinenPageContent() {
       openMachine(match);
       return;
     }
-    setScanHint(`Nem található gép ehhez a kódhoz: „${value}”`);
+    setScanHint(`Keine Maschine zu diesem Code: „${value}”`);
     setFilters((current) => ({ ...current, geraetenummer: value }));
   }
 
@@ -230,7 +230,8 @@ function MaschinenPageContent() {
             <h1>Fehler</h1>
             <p>{loadError}</p>
             <p>
-              Fuehren Sie <code>supabase/maschines-setup.sql</code> im Supabase SQL Editor aus.
+              Fuehren Sie <code>supabase/consolidate-schema.sql</code> im Supabase SQL Editor aus
+              (nur eine Tabelle: <code>maschines</code>, nicht <code>machines</code>).
             </p>
           </div>
         ) : (

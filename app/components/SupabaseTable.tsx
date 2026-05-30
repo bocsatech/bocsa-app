@@ -18,7 +18,7 @@ export default function SupabaseTable({ table, title }: Props) {
     async function loadRows() {
       const { data, error } = await supabase.from(table).select("*").limit(100);
       if (error) {
-        setError(`Hiba a táblák betöltésekor: ${error.message}`);
+        setError(`Tabelle konnte nicht geladen werden: ${error.message}`);
         console.error("Error loading rows:", error);
       } else {
         setRows(data || []);

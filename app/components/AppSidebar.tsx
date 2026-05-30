@@ -12,7 +12,7 @@ export const MASCHINEN_NAV = {
     { href: "/maschinen?aktion=hinzufuegen", label: "Maschine hinzufügen", aktion: "hinzufuegen" },
     {
       href: "/maschinen?aktion=geraetenummer-codes",
-      label: "Gerätenummer-Kódok",
+      label: "Nummern-Codes",
       aktion: "geraetenummer-codes",
     },
     { href: "/maschinen?aktion=qr", label: "QR-Code scannen", aktion: "qr" },
@@ -26,6 +26,8 @@ export const APP_NAV_ITEMS = [
   { href: "/arbeitsauftrag", label: "Arbeitsauftrag" },
   { href: "/pruefprotokoll", label: "Prüfprotokoll" },
   { href: "/lager", label: "Lager" },
+  { href: "/kunden", label: "Kunden" },
+  { href: "/pkw-service", label: "PKW-Service" },
   { href: "/arbeitsstunden", label: "Arbeitsstunden" },
   { href: "/filialen", label: "Filialen" },
   { href: "/users", label: "Users" },

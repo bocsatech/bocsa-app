@@ -41,7 +41,7 @@ export default function QrScannerModal({ open, onClose, onScan }: Props) {
         setError(
           cause instanceof Error
             ? cause.message
-            : "A kamera nem indítható. Engedélyezd a hozzáférést."
+            : "Kamera konnte nicht gestartet werden. Bitte Zugriff erlauben."
         );
       }
     }
@@ -70,13 +70,13 @@ export default function QrScannerModal({ open, onClose, onScan }: Props) {
       className="qrModalBackdrop"
       role="dialog"
       aria-modal="true"
-      aria-label="QR kód beolvasása"
+      aria-label="QR-Code scannen"
     >
       <article className="card qrModalCard">
         <div className="cardHeader">
-          <p className="cardTitle">QR kód beolvasása</p>
+          <p className="cardTitle">QR-Code scannen</p>
           <button type="button" className="pillButton outline" onClick={onClose}>
-            Bezárás
+            Schließen
           </button>
         </div>
         <div id={readerId} className="qrReader" />

@@ -49,19 +49,19 @@ export default function QRCodePage() {
       router.push(`/maschinen/${match.id}`);
       return;
     }
-    setScanHint(`Nem található gép ehhez a kódhoz: "${value}"`);
+    setScanHint(`Keine Maschine zu diesem Code: „${value}”`);
     setSearchQuery(value);
   }
 
   return (
-    <AppPageShell activeHref="/qr-code" subtitle="Üzemeltetés">
+    <AppPageShell activeHref="/qr-code" subtitle="Betrieb">
       <div className="welcomePage">
         <div className="welcomeCard">
           <h1>QR-Code scannen</h1>
-          <p>Beolvasás után a rendszer automatikusan megnyitja a gép adatlapját.</p>
+          <p>Nach dem Scan öffnet das System automatisch die Maschinendaten.</p>
           <div className="detailTopActions" style={{ marginTop: 12 }}>
             <button type="button" className="pillButton primary" onClick={() => setQrOpen(true)}>
-              Szkenner megnyitása
+              Scanner öffnen
             </button>
             <Link className="pillButton outline" href="/maschinen">
               Maschinenliste
@@ -74,7 +74,7 @@ export default function QRCodePage() {
 
           {!loading && !loadError && searchQuery ? (
             <p className="scanHint">
-              Találatok: {matches.length} ({searchQuery})
+              Treffer: {matches.length} ({searchQuery})
             </p>
           ) : null}
         </div>

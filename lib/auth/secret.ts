@@ -6,7 +6,7 @@ export function getSessionSecret() {
 
   if (!secret) {
     throw new Error(
-      "Hiányzik a SESSION_SECRET a .env.local fájlból (vagy SUPABASE_SERVICE_ROLE_KEY)."
+      "SESSION_SECRET fehlt in .env.local (oder SUPABASE_SERVICE_ROLE_KEY)."
     );
   }
 

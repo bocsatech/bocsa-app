@@ -4,6 +4,7 @@ import { verifySessionToken } from "./lib/auth/session";
 
 const PUBLIC_PATHS = [
   "/login",
+  "/pkw/buchen",
   "/images",
   "/qr-codes",
   "/pruefprotokolle",
@@ -24,6 +25,14 @@ function isPublicMachineApi(request: NextRequest) {
   );
 }
 
+function isPublicPkwApi(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  if (pathname === "/api/pkw/slots" && request.method === "GET") return true;
+  if (pathname === "/api/pkw/servicearten" && request.method === "GET") return true;
+  if (pathname.startsWith("/api/pkw/portal/")) return true;
+  return false;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
@@ -33,10 +42,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (pathname === "/szerviz" || pathname.startsWith("/szerviz/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/pkw-service";
+    url.search = search;
+    return NextResponse.redirect(url);
+  }
+
   if (
     PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`)) ||
     isPublicMachinePath(pathname) ||
     isPublicMachineApi(request) ||
+    isPublicPkwApi(request) ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico"

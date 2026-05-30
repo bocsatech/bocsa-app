@@ -216,7 +216,7 @@ export async function GET(_request, { params }) {
     return NextResponse.json(
       {
         error:
-          "Hiányzik a Supabase konfiguráció (.env.local: URL és ANON_KEY).",
+          "Supabase ist nicht konfiguriert (.env.local: URL und ANON_KEY).",
       },
       { status: 500 }
     );
@@ -251,7 +251,7 @@ export async function PATCH(request, { params }) {
     return NextResponse.json(
       {
         error:
-          "Hiányzik a Supabase konfiguráció (.env.local: URL és ANON_KEY).",
+          "Supabase ist nicht konfiguriert (.env.local: URL und ANON_KEY).",
       },
       { status: 500 }
     );
@@ -298,7 +298,7 @@ export async function DELETE(_request, { params }) {
     return NextResponse.json(
       {
         error:
-          "Hiányzik a Supabase konfiguráció (.env.local: URL és ANON_KEY).",
+          "Supabase ist nicht konfiguriert (.env.local: URL und ANON_KEY).",
       },
       { status: 500 }
     );

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "Bocsa App",
-  description: "Modern logisztikai és gyártásmenedzsment megoldás.",
+  description: "Betrieb, Maschinen, Lager und PKW-Service.",
 };
 
 export default function RootLayout({ children }) {

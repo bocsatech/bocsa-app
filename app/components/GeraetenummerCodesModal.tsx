@@ -183,7 +183,7 @@ export default function GeraetenummerCodesModal({ open, canWrite, onClose }: Pro
         <div className="machineAddModalHeader">
           <div>
             <h2 id="geraetenummer-codes-title" className="machineAddModalTitle">
-              Gerätenummer-Kódok
+              Nummern-Codes
             </h2>
             <p className="subtitle">
               Marken, Klassen und Gerätetypen für die Auswahl beim Anlegen (z. B. WN-GG-BRM-00001).

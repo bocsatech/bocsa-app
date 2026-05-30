@@ -153,7 +153,7 @@ export default function MeldungenPage() {
           <div>
             <span className="badge">Meldungen</span>
             <h1>QR Meldungen</h1>
-            <p className="subtitle">Hibabejelentések a publikus QR nézetből.</p>
+            <p className="subtitle">Störungsmeldungen aus der öffentlichen QR-Ansicht.</p>
           </div>
           <button type="button" className="pillButton outline" onClick={loadData}>
             Aktualisieren

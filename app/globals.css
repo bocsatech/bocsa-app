@@ -2822,3 +2822,367 @@ button, input, select, textarea {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
   }
 }
+
+/* ─── PKW: Kunden, Service, Portal ─── */
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: none;
+  background: #ea580c;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: #c2410c;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  background: #f9fafb;
+}
+
+.linkBtn {
+  margin-left: 0.5rem;
+  border: none;
+  background: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 0.88rem;
+  text-decoration: underline;
+}
+
+.errorText {
+  color: #b91c1c;
+  margin: 0.5rem 0;
+}
+
+.pkwPageStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pkwToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.pkwSearchInput {
+  min-width: 220px;
+  flex: 1;
+  max-width: 420px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.pkwMeta {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.pkwKundenGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.pkwKundeCard {
+  padding: 1rem;
+}
+
+.pkwKundeCardHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pkwKundeCardHead h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.pkwCardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pkwPinHint {
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.pkwFahrzeugList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pkwFahrzeugList li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.92rem;
+}
+
+.pkwModal {
+  max-width: 640px;
+  width: calc(100% - 2rem);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.pkwFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.pkwFieldFull {
+  grid-column: 1 / -1;
+}
+
+.pkwField,
+.pkwFieldInline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.88rem;
+}
+
+.pkwField input,
+.pkwField textarea,
+.pkwFieldInline input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.pkwModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.pkwPlatzBoard {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.pkwPlatzColumn {
+  padding: 0.75rem;
+  min-height: 180px;
+  background: #fafafa;
+}
+
+.pkwPlatzTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  color: #ea580c;
+}
+
+.pkwBuchungCard {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.6rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.pkwBuchungCard.status-angefragt {
+  border-left: 3px solid #f59e0b;
+}
+
+.pkwBuchungCard.status-bestaetigt {
+  border-left: 3px solid #3b82f6;
+}
+
+.pkwBuchungCard.status-in_arbeit {
+  border-left: 3px solid #ea580c;
+}
+
+.pkwBuchungCard.status-fertig {
+  border-left: 3px solid #22c55e;
+}
+
+.pkwServiceTags {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.pkwServiceTags li {
+  background: #f3f4f6;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.pkwProblem {
+  color: #4b5563;
+  margin: 0.25rem 0 0;
+}
+
+.pkwBuchungActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: #f3f4f6;
+}
+
+.statusBadge.status-angefragt {
+  background: #fef3c7;
+}
+
+.statusBadge.status-bestaetigt {
+  background: #dbeafe;
+}
+
+.statusBadge.status-in_arbeit {
+  background: #ffedd5;
+}
+
+.statusBadge.status-fertig {
+  background: #dcfce7;
+}
+
+.pkwPortalPage {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #fff7ed 0%, #f9fafb 40%);
+  padding: 1.25rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.pkwPortalHeader {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.pkwPortalHeader h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.pkwPortalCard {
+  padding: 1.25rem;
+}
+
+.pkwPortalCard h2 {
+  margin: 0 0 0.5rem;
+}
+
+.pkwPortalSubmit {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.pkwChecklist {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.pkwCheckRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.35rem 0;
+}
+
+.pkwSlotGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.pkwSlotBtn {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.65rem;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pkwSlotBtn.selected {
+  border-color: #ea580c;
+  background: #fff7ed;
+}
+
+.pkwSlotBtn.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pkwPortalDone {
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .pkwPlatzBoard {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .pkwFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pkwPlatzBoard {
+    grid-template-columns: 1fr;
+  }
+}

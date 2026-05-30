@@ -164,7 +164,7 @@ export async function GET() {
     return NextResponse.json(
       {
         error:
-          "Hiányzik a Supabase konfiguráció. Ellenőrizd a .env.local fájlban: NEXT_PUBLIC_SUPABASE_URL és NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          "Supabase ist nicht konfiguriert. Prüfen Sie .env.local: NEXT_PUBLIC_SUPABASE_URL und NEXT_PUBLIC_SUPABASE_ANON_KEY",
       },
       { status: 500 }
     );
@@ -190,7 +190,7 @@ export async function POST(request) {
   const supabase = getSupabaseAdmin();
 
   if (!supabase) {
-    return NextResponse.json({ error: "Hiányzik a Supabase konfiguráció." }, { status: 500 });
+    return NextResponse.json({ error: "Supabase ist nicht konfiguriert." }, { status: 500 });
   }
 
   if (!(await currentUserHasPermission("machines.write"))) {

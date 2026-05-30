@@ -13,7 +13,7 @@ const homeCards = [
 
 export default function HomePage() {
   return (
-    <AppPageShell activeHref="/" subtitle="Üzemeltetés">
+    <AppPageShell activeHref="/" subtitle="Betrieb">
       <div className="homeIconPage">
         <div className="homeIconGrid">
           {homeCards.map((card) => (

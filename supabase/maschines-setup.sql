@@ -264,9 +264,7 @@ exception
   when duplicate_object then null;
 end $$;
 
-create or replace view public.machines as
-select * from public.maschines;
-
-grant select, insert, update, delete on table public.machines to anon, authenticated;
+-- Kein Alias „machines“ mehr (verwirrt im Supabase-UI). App nutzt nur public.maschines.
+-- API-Routen heißen weiter /api/machines; Berechtigungen machines.read / machines.write.
 
 notify pgrst, 'reload schema';

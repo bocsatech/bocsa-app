@@ -61,14 +61,14 @@ const tabs = [
 ];
 
 const tabContent = {
-  Stammdaten: "A gépadatok itt szerepelnek, a részleteket a jobb oldalon szerkesztheted.",
-  Motor: "Motor adatok és beállítások.",
-  "Technische Daten": "Műszaki paraméterek és specifikációk.",
-  Schmierstoffe: "Kenőanyagok és a cserére vonatkozó útmutatók.",
-  Anbaugeräte: "Csatolható berendezések és kiegészítők listája.",
-  Wartungstabelle: "Karbantartási táblázat és ütemezés.",
-  Dokumentation: "Dokumentumok és leírások gyűjteménye.",
-  Zubehör: "További kiegészítők és alkatrészek.",
+  Stammdaten: "Stammdaten der Maschine; Details rechts bearbeiten.",
+  Motor: "Motordaten und Einstellungen.",
+  "Technische Daten": "Technische Parameter und Spezifikationen.",
+  Schmierstoffe: "Schmierstoffe und Wechselhinweise.",
+  Anbaugeräte: "Anbaugeräte und Zubehör.",
+  Wartungstabelle: "Wartungsplan und Intervalle.",
+  Dokumentation: "Dokumente und Beschreibungen.",
+  Zubehör: "Weiteres Zubehör und Ersatzteile.",
 };
 
 const initialMotorData = {
@@ -494,7 +494,7 @@ export default function MaschineDetailPage() {
   return (
     <AppPageShell
       activeHref="/maschinen"
-      subtitle="Üzemeltetés"
+      subtitle="Betrieb"
       contentClassName="machineDetailPage"
       top={
         !loading && machine && !loadError ? (
@@ -596,14 +596,14 @@ export default function MaschineDetailPage() {
     >
       {loading ? (
         <div className="welcomeCard">
-          <h1>Gép betöltése…</h1>
+          <h1>Maschine wird geladen…</h1>
         </div>
       ) : loadError || !machine ? (
         <div className="welcomeCard">
-          <h1>Gép nem található</h1>
-          <p>{loadError ?? "Ez a gép nem létezik az adatbázisban."}</p>
+          <h1>Maschine nicht gefunden</h1>
+          <p>{loadError ?? "Diese Maschine ist in der Datenbank nicht vorhanden."}</p>
           <Link className="backButton" href="/maschinen">
-            ← Vissza a listához
+            ← Zur Liste
           </Link>
         </div>
       ) : (

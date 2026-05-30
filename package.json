@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:clean": "bash scripts/dev-fresh.sh",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -15,6 +16,11 @@
     "clear:lager": "node scripts/clear-lager.mjs --all",
     "clear:lager:catalog": "node scripts/clear-lager.mjs --prefix catalog",
     "verify:supabase": "node scripts/verify-supabase-sync.mjs",
+    "audit:supabase": "node scripts/audit-supabase-full.mjs",
+    "sync:maschines": "node scripts/sync-machines-to-maschines.mjs",
+    "db:consolidate": "node scripts/run-consolidate-schema.mjs",
+    "seed:pkw": "node scripts/seed-pkw-demo.mjs",
+    "verify:pkw": "node scripts/verify-pkw-schema.mjs",
     "restore:local": "bash scripts/restore-local.sh"
   },
   "dependencies": {
@@ -37,6 +43,7 @@
     "@types/react": "19.2.14",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "pg": "^8.21.0",
     "tailwindcss": "^4"
   }
 }
