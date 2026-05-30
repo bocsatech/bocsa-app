@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ARBEITSAUFTRAG_SHEET_SKIP_FIELDS,
+  formatMachineGeraetenummerLine,
   formatValue,
   hasValue,
   stammdatenFieldHasContent,
@@ -14,8 +16,6 @@ import {
 } from "../../lib/work-orders";
 import type { Machine } from "../../lib/types/machine";
 import MachineHeroMedia from "./MachineHeroMedia";
-
-const TITLE_SKIP_KEYS = new Set(["geraetenummer", "bezeichnung"]);
 
 type Props = {
   machine: Machine;
@@ -47,19 +47,15 @@ export default function ArbeitsauftragWorksheetMachineBlock({
 }: Props) {
   const bearbeiter = order.updatedBy || order.createdBy || username || "—";
   const auftragNr = formatWorkOrderAuftragNr(order);
-  const titleParts = [
-    formatValue(machine.geraetenummer),
-    machine.bezeichnung ? formatValue(machine.bezeichnung) : null,
-  ].filter(Boolean);
-  const title = titleParts.join(" — ");
+  const geraetenummerLine = formatMachineGeraetenummerLine(machine);
 
   const visibleFields = stammdatenFields.filter((field) => {
-    if (field.dbKey && TITLE_SKIP_KEYS.has(field.dbKey)) return false;
+    if (field.dbKey && ARBEITSAUFTRAG_SHEET_SKIP_FIELDS.has(field.dbKey)) return false;
     return stammdatenFieldHasContent(field) || field.dbKey === "meldung_status";
   });
 
   return (
-    <section className="aaWorksheetMachine card aaMachineOverview aaBlock">
+    <section className="aaWorksheetMachine card aaMachineOverview aaMachineOverviewSheet aaBlock">
       <div className="aaWorksheetAuftragBand">
         <span className="aaWorksheetAuftragLabel">Arbeitsauftrag</span>
         <span className="aaWorksheetAuftragMeta">
@@ -73,23 +69,13 @@ export default function ArbeitsauftragWorksheetMachineBlock({
 
       <div className="aaMachineOverviewBody">
         <div className="aaMachineOverviewLeft">
-          <span className="badge">Maschine</span>
-          <h2 className="aaMachineOverviewTitle">{title}</h2>
-          {machine.subgroup && !machine.bezeichnung ? (
-            <p className="aaMachineOverviewName">{formatValue(machine.subgroup)}</p>
-          ) : null}
-          {machine.serial_number || machine.depot ? (
-            <p className="aaMachineOverviewMeta">
-              {[
-                machine.serial_number ? `SN ${machine.serial_number}` : null,
-                machine.depot ? `Depot ${machine.depot}` : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          ) : null}
-
           <div className="fieldGrid aaStammdatenGrid stammdatenStacked aaWorksheetStammdaten">
+            <div className="fieldRow aaFieldRow aaSheetHeroRow">
+              <span>Gerätenummer</span>
+              <strong className="aaWorksheetValue aaSheetHeroValue">
+                {geraetenummerLine || formatValue(machine.geraetenummer)}
+              </strong>
+            </div>
             {visibleFields.map((field) => (
               <div key={field.label} className="fieldRow aaFieldRow">
                 <span>{field.label}</span>

@@ -17,8 +17,15 @@
   padding: 22px 24px;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
-  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.aaMachineOverviewSheet .aaMachineOverviewBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px 20px;
+  align-items: start;
 }
 
 .aaMachineOverviewBody {
@@ -71,6 +78,11 @@
   color: #c2410c;
 }
 
+.aaMachineOverviewSheet .aaStammdatenGrid,
+.aaMachineOverviewSheet .aaWorksheetStammdaten {
+  max-width: none;
+}
+
 .aaMachineOverview .aaStammdatenGrid,
 .arbeitsauftragDocument .aaWorksheetStammdaten {
   display: flex;
@@ -78,6 +90,13 @@
   gap: 0;
   width: 100%;
   max-width: min(100%, 44rem);
+}
+
+.aaSheetHeroRow .aaSheetHeroValue,
+.aaSheetHeroRow strong.aaSheetHeroValue {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #111827;
 }
 
 /* Stammdaten: Label links, Wert rechts (wie Maschinen-Detail) */
@@ -227,8 +246,17 @@
   padding: 0;
 }
 
-.aaMachineOverviewMedia.machineHeroMedia,
+.aaMachineOverviewSheet .aaMachineOverviewMedia.machineHeroMedia,
 .arbeitsauftragDocument .aaMachineOverviewMedia.machineHeroMedia {
+  --machine-hero-tile: clamp(150px, 18vw, 210px);
+  --machine-qr-tile: clamp(64px, 7vw, 88px);
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.aaMachineOverviewMedia.machineHeroMedia {
   --machine-hero-tile: clamp(140px, 22vw, 200px);
   --machine-qr-tile: clamp(72px, 10vw, 96px);
   flex-direction: column-reverse;

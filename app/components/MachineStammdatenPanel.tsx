@@ -4,7 +4,10 @@ import Link from "next/link";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import GermanDateField from "./GermanDateField";
 import {
+  ARBEITSAUFTRAG_SHEET_SKIP_FIELDS,
   GERAETTYP_OPTIONS,
+  formatMachineGeraetenummerLine,
+  formatValue,
   hasValue,
   machineToStammdatenFields,
   sanitizeNumericFieldInput,
@@ -34,6 +37,8 @@ type Props = {
   hideEmptyFields?: boolean;
   /** Überschrift „Stammdaten“ ausblenden */
   showTitle?: boolean;
+  /** Arbeitsauftrag: Gerätenummer-Zeile + Felder wie Munkalap */
+  sheetLayout?: boolean;
 };
 
 const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
@@ -50,6 +55,7 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
       embedded = false,
       hideEmptyFields = false,
       showTitle = true,
+      sheetLayout = false,
     },
     ref
   ) {
@@ -103,9 +109,21 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
         <div className={`tabPanel ${editable ? "" : "readOnlyPanel"}`}>
           {showTitle ? <h2 className="aaStammdatenHeading">Stammdaten</h2> : null}
           <div
-            className={`fieldGrid aaStammdatenGrid${embedded ? " stammdatenStacked" : ""}`}
+            className={`fieldGrid aaStammdatenGrid${embedded || sheetLayout ? " stammdatenStacked" : ""}`}
           >
+            {sheetLayout ? (
+              <div className="fieldRow aaFieldRow aaSheetHeroRow">
+                <span>Gerätenummer</span>
+                <strong className="aaSheetHeroValue">
+                  {formatMachineGeraetenummerLine(machine) ||
+                    formatValue(machine?.geraetenummer)}
+                </strong>
+              </div>
+            ) : null}
             {stammdatenForm.map((field, index) => {
+              if (sheetLayout && field.dbKey && ARBEITSAUFTRAG_SHEET_SKIP_FIELDS.has(field.dbKey)) {
+                return null;
+              }
               if (!fieldVisible(field)) return null;
               return (
                 <div

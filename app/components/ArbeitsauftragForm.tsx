@@ -404,6 +404,7 @@ export default function ArbeitsauftragForm({
                     saveError={saveError}
                     alwaysEditing
                     embedded
+                    sheetLayout
                     hideEmptyFields
                     showTitle={false}
                     showActions={false}

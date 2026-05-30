@@ -392,6 +392,21 @@ export async function updateMachine(
   return { data: result as Machine, error: null };
 }
 
+/** Arbeitsauftrag-Munkalap: „GE 000029 — Bezeichnung“ egy sorban */
+export function formatMachineGeraetenummerLine(machine: Machine | null) {
+  if (!machine) return "";
+  const parts = [
+    formatValue(machine.geraetenummer),
+    hasValue(machine.bezeichnung) ? String(machine.bezeichnung).trim() : null,
+  ].filter(Boolean);
+  return parts.join(" — ");
+}
+
+export const ARBEITSAUFTRAG_SHEET_SKIP_FIELDS = new Set([
+  "geraetenummer",
+  "bezeichnung",
+]);
+
 export function stammdatenStatusClassName(value: string) {
   const normalized = value.trim().toLowerCase();
   if (normalized === "fertig") return "fertig";
