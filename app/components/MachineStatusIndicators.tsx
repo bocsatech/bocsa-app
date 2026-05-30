@@ -51,7 +51,7 @@ export default function MachineStatusIndicators({
     <div className={`machineStatusIndicators machineStatusIndicatorsFixed ${className}`.trim()}>
       {slots.map((slot) => (
         <div key={slot.key} className="machineStatusSlot">
-          {slot.node ?? <span className="machineStatusSlotEmpty" aria-hidden="true" />}
+          {slot.node}
         </div>
       ))}
     </div>
