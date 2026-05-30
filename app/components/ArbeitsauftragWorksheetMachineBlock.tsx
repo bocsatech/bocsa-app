@@ -69,10 +69,10 @@ export default function ArbeitsauftragWorksheetMachineBlock({
 
       <div className="aaMachineOverviewBody aaSheetLayoutGrid">
         <div className="aaMachineOverviewLeft">
-          <div className="fieldGrid aaStammdatenGrid stammdatenStacked aaWorksheetStammdaten">
+          <div className="fieldGrid aaStammdatenGrid stammdatenStacked aaWorksheetStammdaten aaSheetFieldTable">
             <div className="fieldRow aaFieldRow aaSheetHeroRow">
               <span>Gerätenummer</span>
-              <strong className="aaWorksheetValue aaSheetHeroValue">
+              <strong className="aaWorksheetValue aaSheetFieldValueHero">
                 {geraetenummerLine || formatValue(machine.geraetenummer)}
               </strong>
             </div>

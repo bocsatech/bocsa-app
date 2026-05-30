@@ -109,12 +109,12 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
         <div className={`tabPanel ${editable ? "" : "readOnlyPanel"}`}>
           {showTitle ? <h2 className="aaStammdatenHeading">Stammdaten</h2> : null}
           <div
-            className={`fieldGrid aaStammdatenGrid${embedded || sheetLayout ? " stammdatenStacked" : ""}`}
+            className={`fieldGrid aaStammdatenGrid${embedded || sheetLayout ? " stammdatenStacked aaSheetFieldTable" : ""}`}
           >
             {sheetLayout ? (
               <div className="fieldRow aaFieldRow aaSheetHeroRow">
                 <span>Gerätenummer</span>
-                <strong className="aaSheetHeroValue">
+                <strong className="aaSheetFieldValueHero">
                   {formatMachineGeraetenummerLine(machine) ||
                     formatValue(machine?.geraetenummer)}
                 </strong>
