@@ -4,6 +4,10 @@ import { Suspense, useEffect, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import LogoutButton from "./LogoutButton";
+import {
+  ARBEITSAUFTRAG_LIST_PATH,
+  shouldShowArbeitsauftragDetail,
+} from "../../lib/arbeitsauftrag-routes";
 
 type MaschinenSubAktion = {
   kind: "aktion";
@@ -185,19 +189,25 @@ function BaumaschinenNavGroup({
         <div className="sidebarNavSub">
           {BAUMASCHINEN_NAV.children.map((child) => {
             const active = isBaumaschinenSubActive(child, activeHref, pathname, aktion);
-            if (child.kind === "route" && child.href === "/arbeitsauftrag") {
+            if (child.kind === "route" && child.href === ARBEITSAUFTRAG_LIST_PATH) {
+              const onDetail =
+                pathname === ARBEITSAUFTRAG_LIST_PATH &&
+                shouldShowArbeitsauftragDetail(searchParams);
               return (
-                <a
+                <Link
                   key={child.href}
-                  href={child.href}
+                  href={ARBEITSAUFTRAG_LIST_PATH}
+                  replace
                   className={active ? "active" : undefined}
                   onClick={(event) => {
+                    if (!onDetail) return;
                     event.preventDefault();
-                    router.replace("/arbeitsauftrag");
+                    router.replace(ARBEITSAUFTRAG_LIST_PATH);
+                    router.refresh();
                   }}
                 >
                   {child.label}
-                </a>
+                </Link>
               );
             }
             return (

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ArbeitsauftragForm from "../components/ArbeitsauftragForm";
 import ArbeitsauftragList from "../components/ArbeitsauftragList";
+import { shouldShowArbeitsauftragDetail } from "../../lib/arbeitsauftrag-routes";
 import type { WorkOrderListFilters } from "../../lib/work-orders";
 
 function readListFilters(searchParams: URLSearchParams): Partial<WorkOrderListFilters> {
@@ -16,24 +17,11 @@ function readListFilters(searchParams: URLSearchParams): Partial<WorkOrderListFi
   };
 }
 
-function shouldShowWorkOrderForm(searchParams: URLSearchParams) {
-  const machineId = searchParams.get("machineId");
-  if (!machineId) return false;
-
-  const auftragId = searchParams.get("auftragId");
-  const isNew = searchParams.get("new") === "1";
-  const hasType = Boolean(
-    searchParams.get("status")?.trim() || searchParams.get("type")?.trim()
-  );
-
-  return Boolean(auftragId || isNew || hasType);
-}
-
 function ArbeitsauftragPageContent() {
   const searchParams = useSearchParams();
   const machineId = searchParams.get("machineId");
 
-  if (machineId && shouldShowWorkOrderForm(searchParams)) {
+  if (machineId && shouldShowArbeitsauftragDetail(searchParams)) {
     const auftragId = searchParams.get("auftragId");
     return (
       <ArbeitsauftragForm
