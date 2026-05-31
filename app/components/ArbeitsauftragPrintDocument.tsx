@@ -96,6 +96,28 @@ const ArbeitsauftragPrintDocument = forwardRef<
                 })}
               </tbody>
             </table>
+            <div className="aaProtokollRepairGrid aaProtokollRepairGridPrint">
+              {order.protocol.repairGroups.map((group) => (
+                <div key={group.id} className="aaProtokollRepairCol">
+                  <h4>{group.title}</h4>
+                  <ul className="aaProtokollCheckList">
+                    {group.items.map((item) => (
+                      <li
+                        key={item.id}
+                        className={`aaProtokollCheckItem tone-${item.tone ?? "default"}${
+                          item.checked ? " isChecked" : ""
+                        }`}
+                      >
+                        <span className="aaProtokollCheckBox">
+                          {item.checked ? "☑" : "☐"}
+                        </span>
+                        <span>{item.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </section>
 
           {bemerkungScheduleLines.length > 0 || hasValue(order.notes) ? (

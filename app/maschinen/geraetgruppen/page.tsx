@@ -221,7 +221,6 @@ export default function GeraetgruppenProtokollPage() {
               <ArbeitsauftragProtokollSection
                 protocol={protocol}
                 canEdit
-                showRepairSection
                 canIssueLager={false}
                 auftragReferenz={`Gerätegruppe ${selected}`}
                 onChange={setProtocol}
