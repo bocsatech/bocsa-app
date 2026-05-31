@@ -6,6 +6,14 @@ import {
   type WorkOrderRepairGroup,
   type WorkOrderScheduleRow,
 } from "./arbeitsauftrag-protokoll";
+import {
+  INITIAL_LUBRICANT_DATA,
+  INITIAL_MOTOR_DATA,
+  INITIAL_TECHNICAL_DATA,
+  type LubricantFormData,
+  type MotorFormData,
+  type TechnicalFormData,
+} from "./machine-tab-forms";
 import type { Machine } from "./types/machine";
 
 export type ProtocolVorlageStored = {
@@ -22,10 +30,17 @@ export type ProtocolVorlageStored = {
   }>;
 };
 
+/** Vollständige Gerätegruppe-Vorlage inkl. Maschinen-Standardtabs. */
+export type GeraetgruppeVorlageStored = ProtocolVorlageStored & {
+  motor: MotorFormData;
+  technical: TechnicalFormData;
+  lubricants: LubricantFormData;
+};
+
 export type GeraetgruppeProtokollVorlageRow = {
   subgroup: string;
   bezeichnung: string | null;
-  vorlage: ProtocolVorlageStored;
+  vorlage: GeraetgruppeVorlageStored;
   updated_at?: string;
   updated_by?: string | null;
 };
@@ -40,6 +55,73 @@ export function normalizeSubgroupKey(value: unknown): string {
     .trim()
     .toUpperCase()
     .replace(/\s+/g, "");
+}
+
+export function normalizeMotorVorlage(raw: unknown): MotorFormData {
+  if (!raw || typeof raw !== "object") return { ...INITIAL_MOTOR_DATA };
+  return { ...INITIAL_MOTOR_DATA, ...(raw as Partial<MotorFormData>) };
+}
+
+export function normalizeTechnicalVorlage(raw: unknown): TechnicalFormData {
+  if (!raw || typeof raw !== "object") return { ...INITIAL_TECHNICAL_DATA };
+  return { ...INITIAL_TECHNICAL_DATA, ...(raw as Partial<TechnicalFormData>) };
+}
+
+export function normalizeLubricantsVorlage(raw: unknown): LubricantFormData {
+  if (!raw || typeof raw !== "object") return { ...INITIAL_LUBRICANT_DATA };
+  return { ...INITIAL_LUBRICANT_DATA, ...(raw as Partial<LubricantFormData>) };
+}
+
+/** Alte + neue JSON-Vorlagen (ohne motor/technical/lubricants) ergänzen. */
+export function normalizeGeraetgruppeVorlage(raw: unknown): GeraetgruppeVorlageStored {
+  const base =
+    raw && typeof raw === "object" && Array.isArray((raw as ProtocolVorlageStored).repairGroups)
+      ? cloneProtocolFromVorlage(raw as ProtocolVorlageStored)
+      : createDefaultProtocol();
+  const record = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  return {
+    ...protocolToStoredVorlage(base),
+    motor: normalizeMotorVorlage(record.motor),
+    technical: normalizeTechnicalVorlage(record.technical),
+    lubricants: normalizeLubricantsVorlage(record.lubricants),
+  };
+}
+
+export function buildGeraetgruppeVorlageForSave(
+  protocol: WorkOrderProtocol,
+  motor: MotorFormData,
+  technical: TechnicalFormData,
+  lubricants: LubricantFormData
+): GeraetgruppeVorlageStored {
+  return {
+    ...protocolToStoredVorlage(protocol),
+    motor,
+    technical,
+    lubricants,
+  };
+}
+
+/** Standard Motor / Technische Daten / Schmierstoffe aus Gruppen-Vorlage. */
+export function tabDefaultsFromGeraetgruppeVorlage(vorlage: GeraetgruppeVorlageStored) {
+  return {
+    motor: normalizeMotorVorlage(vorlage.motor),
+    technical: normalizeTechnicalVorlage(vorlage.technical),
+    lubricants: normalizeLubricantsVorlage(vorlage.lubricants),
+  };
+}
+
+export function applyGruppenTabDefaultsToTabData(
+  tabData: Record<string, unknown> | null | undefined,
+  vorlage: GeraetgruppeVorlageStored
+): Record<string, unknown> {
+  const base = tabData && typeof tabData === "object" ? { ...tabData } : {};
+  const defaults = tabDefaultsFromGeraetgruppeVorlage(vorlage);
+  return {
+    ...base,
+    motor: defaults.motor,
+    technical: defaults.technical,
+    lubricants: defaults.lubricants,
+  };
 }
 
 export function protocolToStoredVorlage(protocol: WorkOrderProtocol): ProtocolVorlageStored {
@@ -112,12 +194,12 @@ export function readMachineEigenVorlage(
   if (!tab?.[MACHINE_EIGEN_AKTIV_KEY]) return null;
   const raw = tab[MACHINE_EIGEN_VORLAGE_KEY];
   if (!raw || typeof raw !== "object") return null;
-  return raw as ProtocolVorlageStored;
+  return normalizeGeraetgruppeVorlage(raw);
 }
 
 export function buildMachineEigenVorlagePatch(
   machine: Machine,
-  vorlage: ProtocolVorlageStored | null,
+  vorlage: GeraetgruppeVorlageStored | ProtocolVorlageStored | null,
   aktiv: boolean
 ): Record<string, unknown> {
   const tab = {
@@ -125,7 +207,7 @@ export function buildMachineEigenVorlagePatch(
   };
   if (aktiv && vorlage) {
     tab[MACHINE_EIGEN_AKTIV_KEY] = true;
-    tab[MACHINE_EIGEN_VORLAGE_KEY] = vorlage;
+    tab[MACHINE_EIGEN_VORLAGE_KEY] = normalizeGeraetgruppeVorlage(vorlage);
   } else {
     delete tab[MACHINE_EIGEN_AKTIV_KEY];
     delete tab[MACHINE_EIGEN_VORLAGE_KEY];
@@ -135,12 +217,12 @@ export function buildMachineEigenVorlagePatch(
 
 export function resolveProtocolForMachine(
   machine: Machine | null | undefined,
-  gruppenVorlage: ProtocolVorlageStored | null | undefined
+  gruppenVorlage: GeraetgruppeVorlageStored | ProtocolVorlageStored | null | undefined
 ): { protocol: WorkOrderProtocol; source: WorkOrderProtocolSource; subgroup: string | null } {
   const eigen = readMachineEigenVorlage(machine);
   if (eigen) {
     return {
-      protocol: cloneProtocolFromVorlage(eigen),
+      protocol: cloneProtocolFromVorlage(normalizeGeraetgruppeVorlage(eigen)),
       source: "eigen",
       subgroup: normalizeSubgroupKey(machine?.subgroup) || null,
     };
@@ -149,7 +231,7 @@ export function resolveProtocolForMachine(
   const subgroup = normalizeSubgroupKey(machine?.subgroup);
   if (subgroup && gruppenVorlage) {
     return {
-      protocol: cloneProtocolFromVorlage(gruppenVorlage),
+      protocol: cloneProtocolFromVorlage(normalizeGeraetgruppeVorlage(gruppenVorlage)),
       source: "gruppe",
       subgroup,
     };
@@ -164,7 +246,9 @@ export function resolveProtocolForMachine(
   }
 
   return {
-    protocol: cloneProtocolFromVorlage(gruppenVorlage ?? null),
+    protocol: cloneProtocolFromVorlage(
+      gruppenVorlage ? normalizeGeraetgruppeVorlage(gruppenVorlage) : null
+    ),
     source: gruppenVorlage ? "gruppe" : "standard",
     subgroup: subgroup || null,
   };
@@ -191,16 +275,16 @@ export async function fetchGruppenProtokollVorlage(subgroup: string) {
 
 export async function fetchProtocolForNewWorkOrder(machine: Machine) {
   const subgroup = normalizeSubgroupKey(machine.subgroup);
-  let gruppenVorlage: ProtocolVorlageStored | null | undefined = undefined;
+  let gruppenVorlage: GeraetgruppeVorlageStored | null | undefined = undefined;
 
   if (subgroup && !machineHasEigenProtokollVorlage(machine)) {
     const { data, error } = await fetchGruppenProtokollVorlage(subgroup);
     if (!error && data?.vorlage) {
-      gruppenVorlage = data.vorlage;
+      gruppenVorlage = normalizeGeraetgruppeVorlage(data.vorlage);
     } else if (error) {
       const fallback = await fetchGruppenProtokollVorlage("ALLGEMEIN");
       if (!fallback.error && fallback.data?.vorlage) {
-        gruppenVorlage = fallback.data.vorlage;
+        gruppenVorlage = normalizeGeraetgruppeVorlage(fallback.data.vorlage);
       }
     }
   }
@@ -208,9 +292,30 @@ export async function fetchProtocolForNewWorkOrder(machine: Machine) {
   return resolveProtocolForMachine(machine, gruppenVorlage);
 }
 
+export async function fetchGruppenTabDefaults(subgroup: string) {
+  const { data, error } = await fetchGruppenProtokollVorlage(subgroup);
+  if (error || !data?.vorlage) {
+    return { motor: INITIAL_MOTOR_DATA, technical: INITIAL_TECHNICAL_DATA, lubricants: INITIAL_LUBRICANT_DATA, error };
+  }
+  const normalized = normalizeGeraetgruppeVorlage(data.vorlage);
+  return { ...tabDefaultsFromGeraetgruppeVorlage(normalized), error: null };
+}
+
+export function mergeMachineTabFormsWithGruppenDefaults(
+  forms: { motor: MotorFormData; technical: TechnicalFormData; lubricants: LubricantFormData },
+  vorlage: GeraetgruppeVorlageStored
+) {
+  const defaults = tabDefaultsFromGeraetgruppeVorlage(vorlage);
+  return {
+    motor: { ...defaults.motor },
+    technical: { ...defaults.technical },
+    lubricants: { ...defaults.lubricants },
+  };
+}
+
 export async function saveGruppenProtokollVorlage(
   subgroup: string,
-  vorlage: ProtocolVorlageStored,
+  vorlage: GeraetgruppeVorlageStored,
   bezeichnung?: string
 ) {
   const key = encodeURIComponent(normalizeSubgroupKey(subgroup));

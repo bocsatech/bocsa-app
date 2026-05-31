@@ -29,7 +29,8 @@ Strukturierte Gerätenummer: `MARKE-KLASSE-ART-00001`
 
 1. **SQL:** `supabase/geraetgruppe-protokoll-vorlagen.sql` im Supabase SQL Editor.
 2. **Admin:** Menü Baumaschinen → **Gerätegruppen – Protokoll** (`/maschinen/geraetgruppen`).
-3. **Neuer Arbeitsauftrag:** lädt Vorlage aus `subgroup` (oder `ALLGEMEIN`).
-4. **Individuell:** am Auftrag „Gruppen-Vorlage laden“ / Struktur ändern → `protocolSource: eigen`; optional **Maschinen-Vorlage** für diese Maschine speichern (`machine_tab_data.protokoll_vorlage_eigen`).
+3. **Neuer Arbeitsauftrag:** lädt Protokoll-Vorlage aus `subgroup` (oder `ALLGEMEIN`).
+4. **Neue Maschine:** lädt **Motor**, **Technische Daten**, **Schmierstoffe** aus derselben Gruppen-Vorlage (Standardwerte); am Gerät jederzeit änderbar.
+5. **Individuell:** am Auftrag „Gruppen-Vorlage laden“ / Struktur ändern → `protocolSource: eigen`; optional **Maschinen-Vorlage** für diese Maschine speichern (`machine_tab_data.protokoll_vorlage_eigen`).
 
 Siehe auch `docs/menu/02-maschinen.md`.

@@ -11,7 +11,10 @@ import {
   formatMachineRowDates,
   normalizeMachinePatchDates,
 } from "../../../lib/normalize-machine-dates";
-import { applySubgroupForNewMachine } from "../../../lib/machine-geraetegruppe.mjs";
+import {
+  applyGruppenTabDefaultsForNewMachine,
+  applySubgroupForNewMachine,
+} from "../../../lib/machine-geraetegruppe.mjs";
 
 const MACHINE_COLUMNS = "*";
 const MACHINE_TABLE = "maschines";
@@ -251,6 +254,7 @@ export async function POST(request) {
   }
 
   applySubgroupForNewMachine(patch);
+  await applyGruppenTabDefaultsForNewMachine(supabase, patch);
 
   const { data, error } = await supabase
     .from(MACHINE_TABLE)

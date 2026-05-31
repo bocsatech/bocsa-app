@@ -25,6 +25,11 @@ import {
   geraettypForKlasse,
   validateGeraetenummerPick,
 } from "../../lib/geraetenummer";
+import {
+  fetchGruppenProtokollVorlage,
+  normalizeGeraetgruppeVorlage,
+  tabDefaultsFromGeraetgruppeVorlage,
+} from "../../lib/geraetgruppe-protokoll";
 import type { Machine } from "../../lib/types/machine";
 
 const EMPTY_MACHINE: Machine = {
@@ -105,6 +110,30 @@ export default function MachineAddModal({
         field.dbKey === "subgroup" ? { ...field, value: gruppe } : field
       )
     );
+  }, [open, geraetenummerPick.klasse, geraetenummerPick.art]);
+
+  useEffect(() => {
+    if (!open) return;
+    const gruppe = deriveGeraetegruppeFromPick(geraetenummerPick);
+    if (!gruppe) return;
+
+    let cancelled = false;
+    void fetchGruppenProtokollVorlage(gruppe).then(({ data, error }) => {
+      if (cancelled || error || !data?.vorlage) return;
+      const tabs = tabDefaultsFromGeraetgruppeVorlage(
+        normalizeGeraetgruppeVorlage(data.vorlage)
+      );
+      setTabForms((prev) => ({
+        ...prev,
+        motor: tabs.motor,
+        technical: tabs.technical,
+        lubricants: tabs.lubricants,
+      }));
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [open, geraetenummerPick.klasse, geraetenummerPick.art]);
 
   useEffect(() => {
