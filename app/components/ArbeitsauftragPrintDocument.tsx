@@ -1,7 +1,10 @@
 "use client";
 
 import { forwardRef } from "react";
-import { collectCheckedRepairLabels } from "../../lib/arbeitsauftrag-protokoll";
+import {
+  collectBemerkungScheduleLines,
+  scheduleRowLagerDisplay,
+} from "../../lib/arbeitsauftrag-protokoll";
 import { formatValue, hasValue, type StammdatenField } from "../../lib/machines";
 import { formatLagerNumber } from "../../lib/lager";
 import { formatOrderType, type WorkOrder } from "../../lib/work-orders";
@@ -36,7 +39,7 @@ const ArbeitsauftragPrintDocument = forwardRef<
   },
   ref
 ) {
-  const checkedRepairLabels = collectCheckedRepairLabels(order.protocol);
+  const bemerkungScheduleLines = collectBemerkungScheduleLines(order.protocol);
 
   return (
     <div className="arbeitsauftragDocument aaForm aaFormView">
@@ -57,37 +60,40 @@ const ArbeitsauftragPrintDocument = forwardRef<
             <table className="machineTable aaProtokollScheduleTable aaProtokollScheduleTablePrint">
               <thead>
                 <tr>
-                  <th>Service Material</th>
-                  <th className="aaProtokollColJura">Jura HiFi</th>
-                  <th className="aaProtokollColSf">SF-Filter</th>
+                  <th>Ersatzteil</th>
+                  <th>Herstellernummer</th>
+                  <th>Artikelnummer</th>
+                  <th>Lagerort</th>
+                  <th>Lagerplatz</th>
                   <th className="aaProtokollColStock">Lagerstand</th>
                   <th className="aaProtokollColMenge">Menge</th>
                 </tr>
               </thead>
               <tbody>
-                {order.protocol.serviceSchedule.map((row) => (
-                  <tr key={row.id}>
-                    <td>{row.serviceMaterial.trim() || "—"}</td>
-                    <td className="aaProtokollColJura">
-                      <span className="aaProtokollValueJura">
-                        {row.juraHifi.trim() || "—"}
-                      </span>
-                    </td>
-                    <td className="aaProtokollColSf">
-                      <span className="aaProtokollValueSf">
-                        {row.sfFilter.trim() || "—"}
-                      </span>
-                    </td>
-                    <td className="aaProtokollColStock">
-                      {row.lagerTeilId
-                        ? formatLagerNumber(row.lagerstandSnapshot ?? 0)
-                        : "—"}
-                    </td>
-                    <td className="aaProtokollColMenge">
-                      {row.menge > 0 ? formatLagerNumber(row.menge) : "—"}
-                    </td>
-                  </tr>
-                ))}
+                {order.protocol.serviceSchedule.map((row) => {
+                  const display = scheduleRowLagerDisplay(row, null);
+                  return (
+                    <tr key={row.id}>
+                      <td>{display.ersatzteil}</td>
+                      <td className="aaProtokollColJura">
+                        <span className="aaProtokollValueJura">
+                          {display.herstellernummer}
+                        </span>
+                      </td>
+                      <td>{display.artikelnummer}</td>
+                      <td>{display.lagerort}</td>
+                      <td>{display.lagerplatz}</td>
+                      <td className="aaProtokollColStock">
+                        {row.lagerTeilId
+                          ? formatLagerNumber(row.lagerstandSnapshot ?? 0)
+                          : "—"}
+                      </td>
+                      <td className="aaProtokollColMenge">
+                        {row.menge > 0 ? formatLagerNumber(row.menge) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <h3 className="aaProtokollRepairTitle">Reparaturdaten</h3>
@@ -115,13 +121,13 @@ const ArbeitsauftragPrintDocument = forwardRef<
             </div>
           </section>
 
-          {checkedRepairLabels.length > 0 || hasValue(order.notes) ? (
+          {bemerkungScheduleLines.length > 0 || hasValue(order.notes) ? (
             <section className="protocolSection card aaBlock">
               <h2 className="spacedTitle">Bemerkung:</h2>
-              {checkedRepairLabels.length > 0 ? (
+              {bemerkungScheduleLines.length > 0 ? (
                 <ul className="aaBemerkungCheckSummaryList aaBemerkungCheckSummaryListPrint">
-                  {checkedRepairLabels.map((label) => (
-                    <li key={label}>{label}</li>
+                  {bemerkungScheduleLines.map((line) => (
+                    <li key={line}>{line}</li>
                   ))}
                 </ul>
               ) : null}

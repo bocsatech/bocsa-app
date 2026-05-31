@@ -14,6 +14,8 @@ export type WorkOrderScheduleRow = {
   lagerstandSnapshot?: number | null;
   /** Bereits aus dem Lager ausgebuchte Menge (dieser Auftrag) */
   lagerIssuedMenge?: number;
+  /** Mit „Hinzufügen“ ins Arbeitsblatt / Bemerkung übernommen */
+  hinzugefuegt?: boolean;
 };
 
 export function normalizeScheduleMenge(raw: unknown): number {
@@ -34,7 +36,29 @@ export function stepScheduleMenge(current: number, delta: number): number {
   return normalizeScheduleMenge(current + delta);
 }
 
-/** Alle angehakten Reparaturdaten-Zeilen (Anzeige über Bemerkung). */
+/** Zeile für Bemerkung (nur nach „Hinzufügen“). */
+export function formatScheduleRowBemerkungLine(row: WorkOrderScheduleRow): string {
+  const issued = normalizeScheduleMenge(row.lagerIssuedMenge ?? 0);
+  if (!row.hinzugefuegt && issued <= 0) return "";
+  if (issued <= 0) return "";
+
+  const ersatzteil = row.serviceMaterial.trim() || "—";
+  const hersteller = row.juraHifi.trim();
+  const artikel = row.sfFilter.trim();
+  const parts = [ersatzteil];
+  if (hersteller) parts.push(hersteller);
+  if (artikel) parts.push(`Art. ${artikel}`);
+  return `${parts.join(" · ")} — ${issued} Stk.`;
+}
+
+/** Aus Lager hinzugefügte Teile — nur in Bemerkung anzeigen. */
+export function collectBemerkungScheduleLines(protocol: WorkOrderProtocol): string[] {
+  return protocol.serviceSchedule
+    .map(formatScheduleRowBemerkungLine)
+    .filter((line) => line.length > 0);
+}
+
+/** Alle angehakten Reparaturdaten-Zeilen (Reparaturdaten-Checkliste). */
 export function collectCheckedRepairLabels(protocol: WorkOrderProtocol): string[] {
   const labels: string[] = [];
   for (const group of protocol.repairGroups) {
@@ -179,8 +203,10 @@ export function createDefaultProtocol(): WorkOrderProtocol {
       juraHifi: row.juraHifi,
       sfFilter: row.sfFilter,
       lagerTeilId: null,
-      menge: 1,
+      menge: 0,
       lagerstandSnapshot: null,
+      lagerIssuedMenge: 0,
+      hinzugefuegt: false,
     })),
     repairGroups: DEFAULT_REPAIR_GROUPS.map((group) => ({
       id: newProtocolRowId(),
@@ -212,9 +238,12 @@ function normalizeScheduleRow(raw: Record<string, unknown>): WorkOrderScheduleRo
     juraHifi: String(raw.juraHifi ?? ""),
     sfFilter: String(raw.sfFilter ?? ""),
     lagerTeilId,
-    menge: normalizeScheduleMenge(raw.menge ?? (lagerTeilId ? 1 : 0)),
+    menge: normalizeScheduleMenge(raw.menge ?? 0),
     lagerstandSnapshot,
     lagerIssuedMenge: normalizeScheduleMenge(raw.lagerIssuedMenge ?? 0),
+    hinzugefuegt:
+      Boolean(raw.hinzugefuegt) ||
+      normalizeScheduleMenge(raw.lagerIssuedMenge ?? 0) > 0,
   };
 }
 
@@ -314,19 +343,45 @@ export function linkProtocolToLager(
         ...row,
         lagerTeilId: match.id,
         lagerstandSnapshot: Number(match.lagerstand ?? 0),
-        menge: row.menge > 0 ? row.menge : 1,
+        menge: row.menge,
       };
     }),
   };
 }
 
+/** Anzeige-Felder aus Lager-Teil (oder Fallback aus gespeicherter Zeile). */
+export function scheduleRowLagerDisplay(
+  row: WorkOrderScheduleRow,
+  teil: LagerTeil | null | undefined
+) {
+  if (teil) {
+    return {
+      ersatzteil: teil.bezeichnung?.trim() || "—",
+      herstellernummer: teil.herstellernummer?.trim() || "—",
+      artikelnummer: teil.artikelnummer?.trim() || "—",
+      lagerort: teil.lagerort?.trim() || "—",
+      lagerplatz: teil.lagerplatz?.trim() || "—",
+    };
+  }
+  return {
+    ersatzteil: row.serviceMaterial.trim() || "—",
+    herstellernummer: row.juraHifi.trim() || "—",
+    artikelnummer: row.sfFilter.trim() || "—",
+    lagerort: "—",
+    lagerplatz: "—",
+  };
+}
+
 export function protocolIssueLines(protocol: WorkOrderProtocol) {
   return protocol.serviceSchedule
-    .filter(
-      (row) =>
+    .filter((row) => {
+      const issued = normalizeScheduleMenge(row.lagerIssuedMenge ?? 0);
+      return (
         row.lagerTeilId &&
-        row.menge > normalizeScheduleMenge(row.lagerIssuedMenge ?? 0)
-    )
+        issued > 0 &&
+        row.menge > issued
+      );
+    })
     .map((row) => ({
       lagerTeilId: row.lagerTeilId as string,
       menge: row.menge - normalizeScheduleMenge(row.lagerIssuedMenge ?? 0),

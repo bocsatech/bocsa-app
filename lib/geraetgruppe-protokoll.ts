@@ -131,7 +131,7 @@ export function protocolToStoredVorlage(protocol: WorkOrderProtocol): ProtocolVo
       serviceMaterial: row.serviceMaterial.trim(),
       juraHifi: row.juraHifi.trim(),
       sfFilter: row.sfFilter.trim(),
-      menge: row.menge > 0 ? row.menge : 1,
+      menge: row.menge,
     })),
     repairGroups: protocol.repairGroups.map((group) => ({
       title: group.title.trim(),
@@ -159,9 +159,10 @@ export function cloneProtocolFromVorlage(
     juraHifi: String(row.juraHifi ?? ""),
     sfFilter: String(row.sfFilter ?? ""),
     lagerTeilId: null,
-    menge: typeof row.menge === "number" && row.menge > 0 ? row.menge : 1,
+    menge: typeof row.menge === "number" ? row.menge : 0,
     lagerstandSnapshot: null,
     lagerIssuedMenge: 0,
+    hinzugefuegt: false,
   }));
 
   const repairGroups: WorkOrderRepairGroup[] = (stored.repairGroups ?? []).map((group) => ({

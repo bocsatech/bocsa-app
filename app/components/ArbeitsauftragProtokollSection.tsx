@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   linkProtocolToLager,
   newProtocolRowId,
+  normalizeScheduleMenge,
+  scheduleRowLagerDisplay,
   stepScheduleMenge,
   type WorkOrderProtocol,
   type WorkOrderRepairGroup,
@@ -106,9 +108,10 @@ export default function ArbeitsauftragProtokollSection({
       juraHifi: partial?.juraHifi ?? "",
       sfFilter: partial?.sfFilter ?? "",
       lagerTeilId: partial?.lagerTeilId ?? null,
-      menge: partial?.menge ?? 1,
+      menge: partial?.menge ?? 0,
       lagerstandSnapshot: partial?.lagerstandSnapshot ?? null,
       lagerIssuedMenge: partial?.lagerIssuedMenge ?? 0,
+      hinzugefuegt: partial?.hinzugefuegt ?? false,
     };
     patchProtocol({ serviceSchedule: [...protocol.serviceSchedule, row] });
   }
@@ -133,63 +136,31 @@ export default function ArbeitsauftragProtokollSection({
     return Number(teil.lagerstand ?? 0);
   }
 
-  function linkRowToLager(rowId: string) {
-    const row = protocol.serviceSchedule.find((item) => item.id === rowId);
-    if (!row || row.lagerTeilId) return;
-    const teil = findLagerTeilByHersteller(teile, row.juraHifi);
-    if (!teil) return;
-    updateScheduleRow(rowId, {
-      lagerTeilId: teil.id,
-      lagerstandSnapshot: Number(teil.lagerstand ?? 0),
-      menge: row.menge > 0 ? row.menge : 1,
-    });
+  function rowDisplayFields(row: WorkOrderScheduleRow) {
+    return scheduleRowLagerDisplay(row, resolveTeilForRow(row));
   }
 
   async function addFromLager(teil: LagerTeil) {
     if (protocol.serviceSchedule.some((row) => row.lagerTeilId === teil.id)) return;
 
-    setLagerBusy(true);
-    setLagerError(null);
-
-    const menge = 1;
-    let issuedMenge = 0;
-    let snapshot = Number(teil.lagerstand ?? 0);
-
-    if (canIssueLager) {
-      const { data, error } = await issueLagerStock({
-        machineId,
-        referenz: auftragReferenz,
-        lines: [{ lagerTeilId: teil.id, menge, herstellernummer: teil.herstellernummer }],
-      });
-      if (error) {
-        setLagerError(error.message);
-        setLagerBusy(false);
-        return;
-      }
-      const hit = data?.issued?.[0];
-      if (hit) {
-        issuedMenge = menge;
-        snapshot = Number(hit.lagerstand ?? snapshot);
-        setStockById((current) => ({
-          ...current,
-          [teil.id]: snapshot,
-        }));
-      }
-    }
-
     addScheduleRow({
-      serviceMaterial: teil.bezeichnung?.trim() || teil.herstellernummer,
-      juraHifi: teil.herstellernummer,
-      sfFilter: "",
+      serviceMaterial: teil.bezeichnung?.trim() || "",
+      juraHifi: teil.herstellernummer?.trim() || "",
+      sfFilter: teil.artikelnummer?.trim() || "",
       lagerTeilId: teil.id,
-      menge,
-      lagerstandSnapshot: snapshot,
-      lagerIssuedMenge: issuedMenge,
+      menge: 0,
+      lagerstandSnapshot: Number(teil.lagerstand ?? 0),
+      lagerIssuedMenge: 0,
+      hinzugefuegt: false,
     });
-    setLagerBusy(false);
   }
 
   async function hinzufuegenRow(row: WorkOrderScheduleRow) {
+    if (normalizeScheduleMenge(row.menge) <= 0) {
+      setLagerError("Menge muss größer als 0 sein.");
+      return;
+    }
+
     const teil = resolveTeilForRow(row);
     if (!teil) {
       setPickerQuery(row.juraHifi.trim());
@@ -197,35 +168,48 @@ export default function ArbeitsauftragProtokollSection({
       return;
     }
 
-    if (protocol.serviceSchedule.some((item) => item.lagerTeilId === teil.id && item.id !== row.id)) {
+    if (
+      protocol.serviceSchedule.some(
+        (item) => item.lagerTeilId === teil.id && item.id !== row.id
+      )
+    ) {
       setLagerError("Dieses Teil ist bereits in einer anderen Zeile.");
       return;
     }
 
-    const pending = Math.max(0, row.menge - (row.lagerIssuedMenge ?? 0));
-    if (pending <= 0 && row.lagerTeilId) {
-      setLagerError("Menge ist bereits aus dem Lager ausgebucht. Menge erhöhen, dann erneut hinzufügen.");
+    const alreadyIssued = normalizeScheduleMenge(row.lagerIssuedMenge ?? 0);
+    const toIssue = normalizeScheduleMenge(row.menge) - alreadyIssued;
+    if (toIssue <= 0) {
+      setLagerError("Menge ist bereits ausgebucht. Menge erhöhen, dann erneut hinzufügen.");
       return;
     }
 
-    const menge = pending > 0 ? pending : 1;
+    const displayPatch = {
+      lagerTeilId: teil.id,
+      serviceMaterial: teil.bezeichnung?.trim() || "",
+      juraHifi: teil.herstellernummer?.trim() || "",
+      sfFilter: teil.artikelnummer?.trim() || "",
+      lagerstandSnapshot: Number(teil.lagerstand ?? 0),
+      hinzugefuegt: true,
+    };
 
-    if (!row.lagerTeilId) {
-      updateScheduleRow(row.id, {
-        lagerTeilId: teil.id,
-        lagerstandSnapshot: Number(teil.lagerstand ?? 0),
-        menge: row.menge > 0 ? row.menge : 1,
-      });
+    if (!canIssueLager) {
+      updateScheduleRow(row.id, displayPatch);
+      return;
     }
-
-    if (!canIssueLager) return;
 
     setLagerBusy(true);
     setLagerError(null);
     const { data, error } = await issueLagerStock({
       machineId,
       referenz: auftragReferenz,
-      lines: [{ lagerTeilId: teil.id, menge, herstellernummer: teil.herstellernummer }],
+      lines: [
+        {
+          lagerTeilId: teil.id,
+          menge: toIssue,
+          herstellernummer: teil.herstellernummer,
+        },
+      ],
     });
     setLagerBusy(false);
 
@@ -238,10 +222,9 @@ export default function ArbeitsauftragProtokollSection({
     const snapshot = hit ? Number(hit.lagerstand ?? 0) : Number(teil.lagerstand ?? 0);
     setStockById((current) => ({ ...current, [teil.id]: snapshot }));
     updateScheduleRow(row.id, {
-      lagerTeilId: teil.id,
-      lagerIssuedMenge: (row.lagerIssuedMenge ?? 0) + menge,
+      ...displayPatch,
+      lagerIssuedMenge: alreadyIssued + toIssue,
       lagerstandSnapshot: snapshot,
-      menge: Math.max(row.menge, menge),
     });
   }
 
@@ -300,13 +283,6 @@ export default function ArbeitsauftragProtokollSection({
           <div className="aaProtokollHeaderActions">
             <button
               type="button"
-              className="pillButton outline"
-              onClick={() => addScheduleRow()}
-            >
-              + Service-Material
-            </button>
-            <button
-              type="button"
               className="pillButton primary aaProtokollLagerAddBtn"
               disabled={lagerBusy}
               onClick={() => {
@@ -314,7 +290,7 @@ export default function ArbeitsauftragProtokollSection({
                 setPickerOpen(true);
               }}
             >
-              + Teil aus Lager hinzufügen
+              + Teil aus Lager
             </button>
           </div>
         ) : null}
@@ -323,8 +299,9 @@ export default function ArbeitsauftragProtokollSection({
       {lagerError ? <p className="protocolNotice">{lagerError}</p> : null}
       {canEdit ? (
         <p className="lagerBildHint">
-          Lagerstand live aus dem Lager. Beim Hinzufügen aus dem Lager und beim Speichern wird
-          die Menge ausgebucht (Jura-HiFi-Nummer = Herstellernummer).
+          Zeilen aus der Gerätegruppen-Vorlage (Herstellernummer). Menge setzen, dann
+          „Hinzufügen“ — Ausgabe erscheint in der Bemerkung. Beim Speichern wird nur eine
+          erhöhte Menge nachgebucht.
         </p>
       ) : null}
 
@@ -332,9 +309,11 @@ export default function ArbeitsauftragProtokollSection({
         <table className="machineTable aaProtokollScheduleTable">
           <thead>
             <tr>
-              <th className="aaProtokollColMaterial">Service Material</th>
-              <th className="aaProtokollColJura">Jura HiFi</th>
-              <th className="aaProtokollColSf">SF-Filter</th>
+              <th>Ersatzteil</th>
+              <th>Herstellernummer</th>
+              <th>Artikelnummer</th>
+              <th>Lagerort</th>
+              <th>Lagerplatz</th>
               <th className="aaProtokollColStock">Lagerstand</th>
               <th className="aaProtokollColMenge">Menge</th>
               {canEdit ? <th className="aaProtokollColHinzuf">Hinzufügen</th> : null}
@@ -344,59 +323,26 @@ export default function ArbeitsauftragProtokollSection({
           <tbody>
             {protocol.serviceSchedule.map((row) => {
               const teil = resolveTeilForRow(row);
+              const display = rowDisplayFields(row);
               const stock = lagerstandForRow(row);
-              const issued = row.lagerIssuedMenge ?? 0;
-              const pending = row.lagerTeilId
-                ? Math.max(0, row.menge - issued)
-                : 0;
+              const issued = normalizeScheduleMenge(row.lagerIssuedMenge ?? 0);
+              const pending = Math.max(0, row.menge - issued);
               const lowStock =
                 teil != null && stock != null && pending > 0 && stock < pending;
+              const canHinzufuegen = row.menge > 0 && row.menge > issued;
 
               return (
-                <tr key={row.id}>
-                  <td>
-                    {canEdit ? (
-                      <input
-                        type="text"
-                        className="aaProtokollInput"
-                        value={row.serviceMaterial}
-                        onChange={(e) =>
-                          updateScheduleRow(row.id, { serviceMaterial: e.target.value })
-                        }
-                      />
-                    ) : (
-                      row.serviceMaterial || "—"
-                    )}
-                  </td>
+                <tr
+                  key={row.id}
+                  className={row.hinzugefuegt ? "aaProtokollRowIssued" : undefined}
+                >
+                  <td>{display.ersatzteil}</td>
                   <td className="aaProtokollColJura">
-                    {canEdit ? (
-                      <input
-                        type="text"
-                        className="aaProtokollInput aaProtokollInputJura"
-                        value={row.juraHifi}
-                        onChange={(e) =>
-                          updateScheduleRow(row.id, { juraHifi: e.target.value })
-                        }
-                        onBlur={() => linkRowToLager(row.id)}
-                      />
-                    ) : (
-                      <span className="aaProtokollValueJura">{row.juraHifi || "—"}</span>
-                    )}
+                    <span className="aaProtokollValueJura">{display.herstellernummer}</span>
                   </td>
-                  <td className="aaProtokollColSf">
-                    {canEdit ? (
-                      <input
-                        type="text"
-                        className="aaProtokollInput aaProtokollInputSf"
-                        value={row.sfFilter}
-                        onChange={(e) =>
-                          updateScheduleRow(row.id, { sfFilter: e.target.value })
-                        }
-                      />
-                    ) : (
-                      <span className="aaProtokollValueSf">{row.sfFilter || "—"}</span>
-                    )}
-                  </td>
+                  <td>{display.artikelnummer}</td>
+                  <td>{display.lagerort}</td>
+                  <td>{display.lagerplatz}</td>
                   <td className="aaProtokollColStock">
                     {teil && stock != null ? (
                       <span
@@ -404,8 +350,8 @@ export default function ArbeitsauftragProtokollSection({
                           lowStock ? "aaProtokollStockValue aaProtokollStockLow" : "aaProtokollStockValue"
                         }
                         title={
-                          pending > 0
-                            ? `${pending} Stk. werden beim Speichern ausgebucht`
+                          pending > 0 && issued > 0
+                            ? `${pending} Stk. werden beim Speichern nachgebucht`
                             : undefined
                         }
                       >
@@ -466,11 +412,13 @@ export default function ArbeitsauftragProtokollSection({
                       <button
                         type="button"
                         className="pillButton primary aaProtokollHinzufBtn"
-                        disabled={lagerBusy}
+                        disabled={lagerBusy || !canHinzufuegen}
                         title={
-                          teil
-                            ? "Aus Lager ins Protokoll buchen"
-                            : "Teil im Lager suchen"
+                          row.menge <= 0
+                            ? "Zuerst Menge größer 0 setzen"
+                            : teil
+                              ? "Aus Lager buchen und in Bemerkung übernehmen"
+                              : "Teil im Lager suchen"
                         }
                         onClick={() => hinzufuegenRow(row)}
                       >
@@ -562,7 +510,7 @@ export default function ArbeitsauftragProtokollSection({
         }}
         onSelect={addFromLager}
         excludeIds={linkedLagerIds}
-        issueOnSelect={canIssueLager}
+        issueOnSelect={false}
         initialQuery={pickerQuery}
       />
     </div>
