@@ -1,5 +1,5 @@
 import type { LagerTeil } from "./types/lager";
-import { findLagerTeilByHersteller, issueLagerStock } from "./lager";
+import { findLagerTeilForScheduleRow, issueLagerStock } from "./lager";
 
 export type WorkOrderScheduleRow = {
   id: string;
@@ -337,11 +337,14 @@ export function linkProtocolToLager(
     ...protocol,
     serviceSchedule: protocol.serviceSchedule.map((row) => {
       if (row.lagerTeilId) return row;
-      const match = findLagerTeilByHersteller(teile, row.juraHifi);
+      const match = findLagerTeilForScheduleRow(teile, row);
       if (!match) return row;
       return {
         ...row,
         lagerTeilId: match.id,
+        serviceMaterial: match.bezeichnung?.trim() || row.serviceMaterial,
+        juraHifi: match.herstellernummer?.trim() || row.juraHifi,
+        sfFilter: match.artikelnummer?.trim() || row.sfFilter,
         lagerstandSnapshot: Number(match.lagerstand ?? 0),
         menge: row.menge,
       };

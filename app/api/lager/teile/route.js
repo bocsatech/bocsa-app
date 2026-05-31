@@ -64,9 +64,16 @@ function buildPatch(body) {
 }
 
 export async function GET() {
-  if (!(await currentUserHasPermission("warehouse.read"))) {
+  const canRead = await currentUserHasPermission("warehouse.read");
+  const canIssue = await currentUserHasPermission("warehouse.issue");
+  const canMachineWrite = await currentUserHasPermission("machines.write");
+
+  if (!canRead && !canIssue && !canMachineWrite) {
     return NextResponse.json(
-      { error: "Keine Berechtigung: warehouse.read erforderlich." },
+      {
+        error:
+          "Keine Berechtigung: warehouse.read, warehouse.issue oder machines.write erforderlich.",
+      },
       { status: 403 }
     );
   }

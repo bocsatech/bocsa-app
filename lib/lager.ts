@@ -152,19 +152,20 @@ export function filterLagerTeileByFields(teile: LagerTeil[], filters: LagerListF
 
 /** @deprecated Einzel-Suchfeld; nutze filterLagerTeileByFields */
 export function filterLagerTeile(teile: LagerTeil[], query: string) {
-  const q = query.trim().toLowerCase();
+  const q = compactSearchText(query);
   if (!q) return teile;
 
   return teile.filter((teil) =>
     [
       teil.herstellernummer,
       teil.bezeichnung,
+      teil.artikelnummer,
       teil.produktgruppe,
       teil.lieferant,
       teil.lagerort,
       teil.lagerplatz,
       teil.bestellstatus,
-    ].some((value) => String(value ?? "").toLowerCase().includes(q))
+    ].some((value) => compactSearchText(String(value ?? "")).includes(q))
   );
 }
 
@@ -205,6 +206,31 @@ export function findLagerTeilByHersteller(
   const key = normalizeHerstellernummer(herstellernummer);
   if (!key) return null;
   return buildHerstellerIndex(teile).get(key) ?? null;
+}
+
+/** Protokoll-Zeile: Herstellernummer, sonst eindeutiger Ersatzteil-Name. */
+export function findLagerTeilForScheduleRow(
+  teile: LagerTeil[],
+  row: {
+    lagerTeilId?: string | null;
+    juraHifi?: string;
+    serviceMaterial?: string;
+  }
+): LagerTeil | null {
+  if (row.lagerTeilId) {
+    return teile.find((teil) => teil.id === row.lagerTeilId) ?? null;
+  }
+
+  const byHersteller = findLagerTeilByHersteller(teile, row.juraHifi ?? "");
+  if (byHersteller) return byHersteller;
+
+  const name = String(row.serviceMaterial ?? "").trim().toLowerCase();
+  if (!name) return null;
+
+  const byName = teile.filter(
+    (teil) => String(teil.bezeichnung ?? "").trim().toLowerCase() === name
+  );
+  return byName.length === 1 ? byName[0] : null;
 }
 
 export async function issueLagerStock(payload: {

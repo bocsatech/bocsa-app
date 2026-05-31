@@ -13,7 +13,7 @@ import {
 } from "../../lib/arbeitsauftrag-protokoll";
 import {
   fetchLagerTeile,
-  findLagerTeilByHersteller,
+  findLagerTeilForScheduleRow,
   formatLagerNumber,
   issueLagerStock,
 } from "../../lib/lager";
@@ -38,9 +38,6 @@ export default function ArbeitsauftragProtokollSection({
   onChange,
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerQuery, setPickerQuery] = useState("");
-  /** Vorlage-Zeile ohne Lager-Treffer: Picker verknüpft diese Zeile, kein neues Duplikat */
-  const [pickerTargetRowId, setPickerTargetRowId] = useState<string | null>(null);
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [stockById, setStockById] = useState<Record<string, number>>({});
   const [lagerError, setLagerError] = useState<string | null>(null);
@@ -126,9 +123,9 @@ export default function ArbeitsauftragProtokollSection({
 
   function resolveTeilForRow(row: WorkOrderScheduleRow): LagerTeil | null {
     if (row.lagerTeilId) {
-      return teileById.get(row.lagerTeilId) ?? null;
+      return teileById.get(row.lagerTeilId) ?? findLagerTeilForScheduleRow(teile, row);
     }
-    return findLagerTeilByHersteller(teile, row.juraHifi);
+    return findLagerTeilForScheduleRow(teile, row);
   }
 
   function lagerstandForRow(row: WorkOrderScheduleRow) {
@@ -142,49 +139,11 @@ export default function ArbeitsauftragProtokollSection({
     return scheduleRowLagerDisplay(row, resolveTeilForRow(row));
   }
 
-  async function handlePickerSelect(teil: LagerTeil) {
-    setPickerOpen(false);
-    setPickerQuery("");
-    const targetId = pickerTargetRowId;
-    setPickerTargetRowId(null);
-
-    if (targetId) {
-      const row = protocol.serviceSchedule.find((item) => item.id === targetId);
-      if (!row) return;
-
-      if (
-        protocol.serviceSchedule.some(
-          (item) => item.lagerTeilId === teil.id && item.id !== targetId
-        )
-      ) {
-        setLagerError("Dieses Teil ist bereits in einer anderen Zeile.");
-        return;
-      }
-
-      const linked: WorkOrderScheduleRow = {
-        ...row,
-        lagerTeilId: teil.id,
-        serviceMaterial: teil.bezeichnung?.trim() || "",
-        juraHifi: teil.herstellernummer?.trim() || "",
-        sfFilter: teil.artikelnummer?.trim() || "",
-        lagerstandSnapshot: Number(teil.lagerstand ?? 0),
-      };
-      updateScheduleRow(targetId, {
-        lagerTeilId: linked.lagerTeilId,
-        serviceMaterial: linked.serviceMaterial,
-        juraHifi: linked.juraHifi,
-        sfFilter: linked.sfFilter,
-        lagerstandSnapshot: linked.lagerstandSnapshot,
-      });
-      await hinzufuegenRow(linked);
+  function addFromLager(teil: LagerTeil) {
+    if (protocol.serviceSchedule.some((row) => row.lagerTeilId === teil.id)) {
+      setLagerError("Dieses Teil ist bereits in der Tabelle.");
       return;
     }
-
-    await addFromLager(teil);
-  }
-
-  async function addFromLager(teil: LagerTeil) {
-    if (protocol.serviceSchedule.some((row) => row.lagerTeilId === teil.id)) return;
 
     addScheduleRow({
       serviceMaterial: teil.bezeichnung?.trim() || "",
@@ -196,9 +155,13 @@ export default function ArbeitsauftragProtokollSection({
       lagerIssuedMenge: 0,
       hinzugefuegt: false,
     });
+    setLagerError(null);
   }
 
+  /** Zeile ins Arbeitsblatt (Bemerkung) — kein Lager-Picker, nur diese Vorlagenzeile. */
   async function hinzufuegenRow(row: WorkOrderScheduleRow) {
+    setLagerError(null);
+
     if (normalizeScheduleMenge(row.menge) <= 0) {
       setLagerError("Menge muss größer als 0 sein.");
       return;
@@ -206,9 +169,13 @@ export default function ArbeitsauftragProtokollSection({
 
     const teil = resolveTeilForRow(row);
     if (!teil) {
-      setPickerTargetRowId(row.id);
-      setPickerQuery(row.juraHifi.trim());
-      setPickerOpen(true);
+      const nr = row.juraHifi.trim() || "—";
+      const name = row.serviceMaterial.trim();
+      setLagerError(
+        name
+          ? `Kein Lager-Eintrag für «${nr}» / «${name}». Herstellernummer im Lager prüfen oder zusätzliches Teil nur über «+ Teil aus Lager».`
+          : `Kein Lager-Eintrag für Herstellernummer «${nr}». Nur «+ Teil aus Lager» legt neue Zeilen an.`
+      );
       return;
     }
 
@@ -235,15 +202,14 @@ export default function ArbeitsauftragProtokollSection({
 
     const displayPatch = {
       lagerTeilId: teil.id,
-      serviceMaterial: teil.bezeichnung?.trim() || "",
-      juraHifi: teil.herstellernummer?.trim() || "",
-      sfFilter: teil.artikelnummer?.trim() || "",
+      serviceMaterial: teil.bezeichnung?.trim() || row.serviceMaterial,
+      juraHifi: teil.herstellernummer?.trim() || row.juraHifi,
+      sfFilter: teil.artikelnummer?.trim() || row.sfFilter,
       lagerstandSnapshot: Number(teil.lagerstand ?? 0),
       hinzugefuegt: true,
     };
 
     setLagerBusy(true);
-    setLagerError(null);
     const { data, error } = await issueLagerStock({
       machineId,
       referenz: auftragReferenz,
@@ -329,11 +295,7 @@ export default function ArbeitsauftragProtokollSection({
               type="button"
               className="pillButton primary aaProtokollLagerAddBtn"
               disabled={lagerBusy}
-              onClick={() => {
-                setPickerTargetRowId(null);
-                setPickerQuery("");
-                setPickerOpen(true);
-              }}
+              onClick={() => setPickerOpen(true)}
             >
               + Teil aus Lager
             </button>
@@ -344,9 +306,9 @@ export default function ArbeitsauftragProtokollSection({
       {lagerError ? <p className="protocolNotice">{lagerError}</p> : null}
       {canEdit ? (
         <p className="lagerBildHint">
-          Zeilen aus der Gerätegruppen-Vorlage (Herstellernummer). Menge setzen, dann
-          „Hinzufügen“ — Ausgabe erscheint in der Bemerkung. Beim Speichern wird nur eine
-          erhöhte Menge nachgebucht.
+          <strong>Hinzufügen</strong> (pro Zeile): Vorlagen-Teil mit Menge ins Arbeitsblatt /
+          Bemerkung, Lagerstand wird abgebucht. <strong>+ Teil aus Lager</strong>: nur für
+          zusätzliche, neue Zeilen.
         </p>
       ) : null}
 
@@ -375,7 +337,7 @@ export default function ArbeitsauftragProtokollSection({
               const lowStock =
                 teil != null && stock != null && pending > 0 && stock < pending;
               const canHinzufuegen =
-                row.menge > 0 && (row.menge > issued || !teil);
+                row.menge > 0 && row.menge > issued && teil != null;
 
               return (
                 <tr
@@ -409,9 +371,9 @@ export default function ArbeitsauftragProtokollSection({
                           </small>
                         ) : null}
                       </span>
-                    ) : row.juraHifi.trim() ? (
+                    ) : row.juraHifi.trim() || row.serviceMaterial.trim() ? (
                       <span className="aaProtokollStockMuted" title="Kein Lager-Eintrag">
-                        0
+                        —
                       </span>
                     ) : (
                       <span className="aaProtokollStockMuted">—</span>
@@ -462,9 +424,9 @@ export default function ArbeitsauftragProtokollSection({
                         title={
                           row.menge <= 0
                             ? "Zuerst Menge größer 0 setzen"
-                            : teil
-                              ? "Aus Lager buchen und in Bemerkung übernehmen"
-                              : "Teil im Lager suchen"
+                            : !teil
+                              ? "Kein passender Lager-Eintrag — nur + Teil aus Lager für neue Zeilen"
+                              : "Diese Zeile ins Arbeitsblatt (Bemerkung) und Lager ausbuchen"
                         }
                         onClick={() => hinzufuegenRow(row)}
                       >
@@ -550,15 +512,10 @@ export default function ArbeitsauftragProtokollSection({
 
       <LagerTeilPickerModal
         open={pickerOpen}
-        onClose={() => {
-          setPickerOpen(false);
-          setPickerQuery("");
-          setPickerTargetRowId(null);
-        }}
-        onSelect={(teil) => void handlePickerSelect(teil)}
+        onClose={() => setPickerOpen(false)}
+        onSelect={addFromLager}
         excludeIds={linkedLagerIds}
         issueOnSelect={false}
-        initialQuery={pickerQuery}
       />
     </div>
   );
