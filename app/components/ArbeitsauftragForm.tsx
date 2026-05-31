@@ -519,6 +519,7 @@ export default function ArbeitsauftragForm({
                   protocol={order.protocol}
                   canEdit={canWrite}
                   canIssueLager={canIssueLager}
+                  showRepairSection={false}
                   machineId={machineId}
                   auftragReferenz={`Arbeitsauftrag ${formatWorkOrderAuftragNr(order)}`}
                   onChange={updateProtocol}
