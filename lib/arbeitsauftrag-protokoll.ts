@@ -38,8 +38,8 @@ export function stepScheduleMenge(current: number, delta: number): number {
 
 /** Zeile für Bemerkung (nur nach „Hinzufügen“). */
 export function formatScheduleRowBemerkungLine(row: WorkOrderScheduleRow): string {
+  if (!row.hinzugefuegt) return "";
   const issued = normalizeScheduleMenge(row.lagerIssuedMenge ?? 0);
-  if (!row.hinzugefuegt && issued <= 0) return "";
   if (issued <= 0) return "";
 
   const ersatzteil = row.serviceMaterial.trim() || "—";

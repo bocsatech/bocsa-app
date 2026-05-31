@@ -303,7 +303,7 @@ export default function ArbeitsauftragForm({
         await issueProtocolStockDelta(
           machine.id,
           normalized.protocol,
-          `Arbeitsauftrag ${normalized.id}`
+          `Arbeitsauftrag ${formatWorkOrderAuftragNr(normalized)}`
         );
       if (issueErr) {
         setSaveError(issueErr.message);

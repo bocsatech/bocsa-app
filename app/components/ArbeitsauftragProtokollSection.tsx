@@ -39,6 +39,8 @@ export default function ArbeitsauftragProtokollSection({
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
+  /** Vorlage-Zeile ohne Lager-Treffer: Picker verknüpft diese Zeile, kein neues Duplikat */
+  const [pickerTargetRowId, setPickerTargetRowId] = useState<string | null>(null);
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [stockById, setStockById] = useState<Record<string, number>>({});
   const [lagerError, setLagerError] = useState<string | null>(null);
@@ -140,6 +142,47 @@ export default function ArbeitsauftragProtokollSection({
     return scheduleRowLagerDisplay(row, resolveTeilForRow(row));
   }
 
+  async function handlePickerSelect(teil: LagerTeil) {
+    setPickerOpen(false);
+    setPickerQuery("");
+    const targetId = pickerTargetRowId;
+    setPickerTargetRowId(null);
+
+    if (targetId) {
+      const row = protocol.serviceSchedule.find((item) => item.id === targetId);
+      if (!row) return;
+
+      if (
+        protocol.serviceSchedule.some(
+          (item) => item.lagerTeilId === teil.id && item.id !== targetId
+        )
+      ) {
+        setLagerError("Dieses Teil ist bereits in einer anderen Zeile.");
+        return;
+      }
+
+      const linked: WorkOrderScheduleRow = {
+        ...row,
+        lagerTeilId: teil.id,
+        serviceMaterial: teil.bezeichnung?.trim() || "",
+        juraHifi: teil.herstellernummer?.trim() || "",
+        sfFilter: teil.artikelnummer?.trim() || "",
+        lagerstandSnapshot: Number(teil.lagerstand ?? 0),
+      };
+      updateScheduleRow(targetId, {
+        lagerTeilId: linked.lagerTeilId,
+        serviceMaterial: linked.serviceMaterial,
+        juraHifi: linked.juraHifi,
+        sfFilter: linked.sfFilter,
+        lagerstandSnapshot: linked.lagerstandSnapshot,
+      });
+      await hinzufuegenRow(linked);
+      return;
+    }
+
+    await addFromLager(teil);
+  }
+
   async function addFromLager(teil: LagerTeil) {
     if (protocol.serviceSchedule.some((row) => row.lagerTeilId === teil.id)) return;
 
@@ -163,8 +206,14 @@ export default function ArbeitsauftragProtokollSection({
 
     const teil = resolveTeilForRow(row);
     if (!teil) {
+      setPickerTargetRowId(row.id);
       setPickerQuery(row.juraHifi.trim());
       setPickerOpen(true);
+      return;
+    }
+
+    if (!canIssueLager) {
+      setLagerError("Keine Berechtigung für Lager-Ausbuchung.");
       return;
     }
 
@@ -192,11 +241,6 @@ export default function ArbeitsauftragProtokollSection({
       lagerstandSnapshot: Number(teil.lagerstand ?? 0),
       hinzugefuegt: true,
     };
-
-    if (!canIssueLager) {
-      updateScheduleRow(row.id, displayPatch);
-      return;
-    }
 
     setLagerBusy(true);
     setLagerError(null);
@@ -286,6 +330,7 @@ export default function ArbeitsauftragProtokollSection({
               className="pillButton primary aaProtokollLagerAddBtn"
               disabled={lagerBusy}
               onClick={() => {
+                setPickerTargetRowId(null);
                 setPickerQuery("");
                 setPickerOpen(true);
               }}
@@ -329,7 +374,8 @@ export default function ArbeitsauftragProtokollSection({
               const pending = Math.max(0, row.menge - issued);
               const lowStock =
                 teil != null && stock != null && pending > 0 && stock < pending;
-              const canHinzufuegen = row.menge > 0 && row.menge > issued;
+              const canHinzufuegen =
+                row.menge > 0 && (row.menge > issued || !teil);
 
               return (
                 <tr
@@ -507,8 +553,9 @@ export default function ArbeitsauftragProtokollSection({
         onClose={() => {
           setPickerOpen(false);
           setPickerQuery("");
+          setPickerTargetRowId(null);
         }}
-        onSelect={addFromLager}
+        onSelect={(teil) => void handlePickerSelect(teil)}
         excludeIds={linkedLagerIds}
         issueOnSelect={false}
         initialQuery={pickerQuery}
