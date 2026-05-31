@@ -71,6 +71,14 @@ export function collectCheckedRepairLabels(protocol: WorkOrderProtocol): string[
   return labels;
 }
 
+/** Bemerkung: Lager-Teile (Hinzufügen) + angehakte Checkliste. */
+export function collectBemerkungLines(protocol: WorkOrderProtocol): string[] {
+  return [
+    ...collectBemerkungScheduleLines(protocol),
+    ...collectCheckedRepairLabels(protocol),
+  ];
+}
+
 export type WorkOrderRepairItem = {
   id: string;
   label: string;

@@ -18,7 +18,7 @@ import {
   type StammdatenField,
 } from "../../lib/machines";
 import {
-  collectBemerkungScheduleLines,
+  collectBemerkungLines,
   issueProtocolStockDelta,
   linkProtocolToLager,
   type WorkOrderProtocol,
@@ -177,8 +177,8 @@ export default function ArbeitsauftragForm({
     [machine]
   );
 
-  const bemerkungScheduleLines = useMemo(
-    () => (order ? collectBemerkungScheduleLines(order.protocol) : []),
+  const bemerkungLines = useMemo(
+    () => (order ? collectBemerkungLines(order.protocol) : []),
     [order]
   );
 
@@ -528,10 +528,10 @@ export default function ArbeitsauftragForm({
               <section className="protocolSection card aaBlock">
                 <label className="protocolField textAreas">
                   <span>Bemerkung:</span>
-                  {bemerkungScheduleLines.length > 0 ? (
+                  {bemerkungLines.length > 0 ? (
                     <div className="aaBemerkungCheckSummary" aria-live="polite">
                       <ul className="aaBemerkungCheckSummaryList">
-                        {bemerkungScheduleLines.map((line) => (
+                        {bemerkungLines.map((line) => (
                           <li key={line}>{line}</li>
                         ))}
                       </ul>

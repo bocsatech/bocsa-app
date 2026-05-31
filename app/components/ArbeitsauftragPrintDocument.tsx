@@ -2,7 +2,7 @@
 
 import { forwardRef } from "react";
 import {
-  collectBemerkungScheduleLines,
+  collectBemerkungLines,
   scheduleRowLagerDisplay,
 } from "../../lib/arbeitsauftrag-protokoll";
 import { formatValue, hasValue, type StammdatenField } from "../../lib/machines";
@@ -39,7 +39,7 @@ const ArbeitsauftragPrintDocument = forwardRef<
   },
   ref
 ) {
-  const bemerkungScheduleLines = collectBemerkungScheduleLines(order.protocol);
+  const bemerkungLines = collectBemerkungLines(order.protocol);
 
   return (
     <div className="arbeitsauftragDocument aaForm aaFormView">
@@ -96,36 +96,14 @@ const ArbeitsauftragPrintDocument = forwardRef<
                 })}
               </tbody>
             </table>
-            <div className="aaProtokollRepairGrid aaProtokollRepairGridPrint">
-              {order.protocol.repairGroups.map((group) => (
-                <div key={group.id} className="aaProtokollRepairCol">
-                  <h4>{group.title}</h4>
-                  <ul className="aaProtokollCheckList">
-                    {group.items.map((item) => (
-                      <li
-                        key={item.id}
-                        className={`aaProtokollCheckItem tone-${item.tone ?? "default"}${
-                          item.checked ? " isChecked" : ""
-                        }`}
-                      >
-                        <span className="aaProtokollCheckBox">
-                          {item.checked ? "☑" : "☐"}
-                        </span>
-                        <span>{item.label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
           </section>
 
-          {bemerkungScheduleLines.length > 0 || hasValue(order.notes) ? (
+          {bemerkungLines.length > 0 || hasValue(order.notes) ? (
             <section className="protocolSection card aaBlock">
               <h2 className="spacedTitle">Bemerkung:</h2>
-              {bemerkungScheduleLines.length > 0 ? (
+              {bemerkungLines.length > 0 ? (
                 <ul className="aaBemerkungCheckSummaryList aaBemerkungCheckSummaryListPrint">
-                  {bemerkungScheduleLines.map((line) => (
+                  {bemerkungLines.map((line) => (
                     <li key={line}>{line}</li>
                   ))}
                 </ul>
