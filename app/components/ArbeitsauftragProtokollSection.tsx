@@ -26,6 +26,8 @@ type Props = {
   canIssueLager?: boolean;
   machineId?: string;
   auftragReferenz?: string;
+  /** Reparaturdaten-Checkliste (z. B. Gerätegruppen-Vorlage) */
+  showRepairSection?: boolean;
   onChange: (protocol: WorkOrderProtocol) => void;
 };
 
@@ -35,6 +37,7 @@ export default function ArbeitsauftragProtokollSection({
   canIssueLager = false,
   machineId,
   auftragReferenz = "Arbeitsauftrag",
+  showRepairSection = false,
   onChange,
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -304,13 +307,6 @@ export default function ArbeitsauftragProtokollSection({
       </div>
 
       {lagerError ? <p className="protocolNotice">{lagerError}</p> : null}
-      {canEdit ? (
-        <p className="lagerBildHint">
-          <strong>Hinzufügen</strong> (pro Zeile): Vorlagen-Teil mit Menge ins Arbeitsblatt /
-          Bemerkung, Lagerstand wird abgebucht. <strong>+ Teil aus Lager</strong>: nur für
-          zusätzliche, neue Zeilen.
-        </p>
-      ) : null}
 
       <div className="machineTableScroll aaProtokollScheduleScroll">
         <table className="machineTable aaProtokollScheduleTable">
@@ -453,62 +449,66 @@ export default function ArbeitsauftragProtokollSection({
         </table>
       </div>
 
-      <h3 className="aaProtokollRepairTitle">Reparaturdaten</h3>
-      <div className="aaProtokollRepairGrid">
-        {protocol.repairGroups.map((group) => (
-          <div key={group.id} className="aaProtokollRepairCol">
-            <h4>{group.title}</h4>
-            <ul className="aaProtokollCheckList">
-              {group.items.map((item) => (
-                <li
-                  key={item.id}
-                  className={`aaProtokollCheckItem tone-${item.tone ?? "default"}`}
-                >
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={item.checked}
-                      disabled={!canEdit}
-                      onChange={() => toggleRepairItem(group.id, item.id)}
-                    />
-                    {canEdit && item.tone === "default" ? (
-                      <input
-                        type="text"
-                        className="aaProtokollCheckLabelInput"
-                        value={item.label}
-                        onChange={(e) =>
-                          updateRepairItemLabel(group.id, item.id, e.target.value)
-                        }
-                      />
-                    ) : (
-                      <span>{item.label}</span>
-                    )}
-                  </label>
-                  {canEdit && item.tone === "default" ? (
-                    <button
-                      type="button"
-                      className="aaProtokollRemoveItem"
-                      onClick={() => removeRepairItem(group.id, item.id)}
-                      aria-label="Entfernen"
+      {showRepairSection ? (
+        <>
+          <h3 className="aaProtokollRepairTitle">Reparaturdaten</h3>
+          <div className="aaProtokollRepairGrid">
+            {protocol.repairGroups.map((group) => (
+              <div key={group.id} className="aaProtokollRepairCol">
+                <h4>{group.title}</h4>
+                <ul className="aaProtokollCheckList">
+                  {group.items.map((item) => (
+                    <li
+                      key={item.id}
+                      className={`aaProtokollCheckItem tone-${item.tone ?? "default"}`}
                     >
-                      ×
-                    </button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-            {canEdit ? (
-              <button
-                type="button"
-                className="pillButton outline aaProtokollAddCheck"
-                onClick={() => addRepairItem(group.id)}
-              >
-                + Eintrag
-              </button>
-            ) : null}
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          disabled={!canEdit}
+                          onChange={() => toggleRepairItem(group.id, item.id)}
+                        />
+                        {canEdit && item.tone === "default" ? (
+                          <input
+                            type="text"
+                            className="aaProtokollCheckLabelInput"
+                            value={item.label}
+                            onChange={(e) =>
+                              updateRepairItemLabel(group.id, item.id, e.target.value)
+                            }
+                          />
+                        ) : (
+                          <span>{item.label}</span>
+                        )}
+                      </label>
+                      {canEdit && item.tone === "default" ? (
+                        <button
+                          type="button"
+                          className="aaProtokollRemoveItem"
+                          onClick={() => removeRepairItem(group.id, item.id)}
+                          aria-label="Entfernen"
+                        >
+                          ×
+                        </button>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+                {canEdit ? (
+                  <button
+                    type="button"
+                    className="pillButton outline aaProtokollAddCheck"
+                    onClick={() => addRepairItem(group.id)}
+                  >
+                    + Eintrag
+                  </button>
+                ) : null}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      ) : null}
 
       <LagerTeilPickerModal
         open={pickerOpen}
