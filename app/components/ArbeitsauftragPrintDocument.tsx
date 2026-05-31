@@ -1,12 +1,8 @@
 "use client";
 
 import { forwardRef } from "react";
-import {
-  collectBemerkungLines,
-  scheduleRowLagerDisplay,
-} from "../../lib/arbeitsauftrag-protokoll";
+import { collectBemerkungLines } from "../../lib/arbeitsauftrag-protokoll";
 import { formatValue, hasValue, type StammdatenField } from "../../lib/machines";
-import { formatLagerNumber } from "../../lib/lager";
 import { formatOrderType, type WorkOrder } from "../../lib/work-orders";
 import type { Machine } from "../../lib/types/machine";
 import ArbeitsauftragWorksheetMachineBlock, {
@@ -55,49 +51,6 @@ const ArbeitsauftragPrintDocument = forwardRef<
 
       {machineBlockOnly ? null : (
         <>
-          <section className="protocolSection card aaBlock aaBlockProtokoll">
-            <h2 className="spacedTitle">Arbeitsauftrag Protokoll</h2>
-            <table className="machineTable aaProtokollScheduleTable aaProtokollScheduleTablePrint">
-              <thead>
-                <tr>
-                  <th>Ersatzteil</th>
-                  <th>Herstellernummer</th>
-                  <th>Artikelnummer</th>
-                  <th>Lagerort</th>
-                  <th>Lagerplatz</th>
-                  <th className="aaProtokollColStock">Lagerstand</th>
-                  <th className="aaProtokollColMenge">Menge</th>
-                </tr>
-              </thead>
-              <tbody>
-                {order.protocol.serviceSchedule.map((row) => {
-                  const display = scheduleRowLagerDisplay(row, null);
-                  return (
-                    <tr key={row.id}>
-                      <td>{display.ersatzteil}</td>
-                      <td className="aaProtokollColJura">
-                        <span className="aaProtokollValueJura">
-                          {display.herstellernummer}
-                        </span>
-                      </td>
-                      <td>{display.artikelnummer}</td>
-                      <td>{display.lagerort}</td>
-                      <td>{display.lagerplatz}</td>
-                      <td className="aaProtokollColStock">
-                        {row.lagerTeilId
-                          ? formatLagerNumber(row.lagerstandSnapshot ?? 0)
-                          : "—"}
-                      </td>
-                      <td className="aaProtokollColMenge">
-                        {row.menge > 0 ? formatLagerNumber(row.menge) : "—"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </section>
-
           {bemerkungLines.length > 0 || hasValue(order.notes) ? (
             <section className="protocolSection card aaBlock">
               <h2 className="spacedTitle">Bemerkung:</h2>
