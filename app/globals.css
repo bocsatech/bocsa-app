@@ -20,17 +20,8 @@ html, body {
 }
 
 body:has(.appShell),
-body.app-shell-body,
 body:has(.pruefbefundPage) {
   overflow: hidden;
-}
-
-body.public-scroll-body {
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  height: auto;
-  min-height: 100%;
 }
 
 a {
@@ -732,34 +723,20 @@ button, input, select, textarea {
 }
 
 @media (max-width: 760px) {
-  /* Ein Scroll-Container (.appPageScroll) — zuverlässig auf iOS */
-  html.app-shell-root,
-  body.app-shell-body {
-    height: 100%;
-    max-height: 100dvh;
-    max-height: 100svh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  body.app-shell-body > main.workorderPage.appShell {
-    flex: 1 1 auto;
-    min-height: 0;
-    width: 100%;
+  /* Egész oldal görgethető — ne szorítsuk 100vh-ba a kitömött menüt */
+  body:has(.appShell) {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .workorderPage,
   .appShell {
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    max-height: 100dvh;
-    max-height: 100svh;
-    overflow: hidden;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
   }
 
   .sidebar {
@@ -852,48 +829,15 @@ button, input, select, textarea {
 
   .pageContent {
     flex: 1 1 auto;
-    min-height: 0;
     height: auto;
-    max-height: none;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .appPageTopBar {
-    flex-shrink: 0;
+    min-height: 0;
+    overflow: visible;
   }
 
   .appPageScroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    touch-action: pan-y;
-  }
-
-  /* PKW Kunden / Service: kein verschachtelter Scroll, nur .appPageScroll */
-  .pkwKundenPage .pkwPageStack,
-  .pkwKundenPage .pkwPageStack > .card {
+    flex: none;
     overflow: visible;
-    min-height: 0;
-  }
-
-  .pkwKundenPage .pkwSearchInput {
-    font-size: 16px;
-  }
-
-  .machineTableWrap {
-    overflow: visible;
-  }
-
-  .machineTableScroll {
-    overflow-x: auto;
-    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
   }
 
   .homeIconGrid {
@@ -3437,13 +3381,8 @@ body.lagerPickerOpen {
 
 .publicMachinePage {
   min-height: 100vh;
-  min-height: 100dvh;
-  min-height: 100svh;
   padding: 24px;
-  padding-bottom: max(24px, env(safe-area-inset-bottom));
   background: #f5f6fa;
-  overflow-x: hidden;
-  overflow-y: visible;
 }
 
 .publicMachineCard {
@@ -3534,38 +3473,14 @@ body.lagerPickerOpen {
 .publicMeldungForm input,
 .publicMeldungForm textarea {
   width: 100%;
-  max-width: 100%;
   border: 1px solid #d1d5db;
   border-radius: 10px;
   padding: 10px 12px;
-  font-size: 16px;
-  line-height: 1.4;
+  font: inherit;
 }
 
 .publicMeldungForm small {
   color: #6b7280;
-}
-
-.publicMeldungImageHint {
-  display: block;
-  margin-top: 4px;
-  color: #059669;
-}
-
-@media (max-width: 640px) {
-  .publicMachinePage {
-    padding: 12px;
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
-  }
-
-  .publicMachineCard {
-    padding: 20px 16px;
-    border-radius: 20px;
-  }
-
-  .publicMachineHeader {
-    flex-wrap: wrap;
-  }
 }
 
 .pruefbefundPage {
@@ -3686,12 +3601,6 @@ body.lagerPickerOpen {
 .machineDetailPage .documentUploadButton {
   margin: 0;
   cursor: pointer;
-}
-
-/* PDF-Upload nur im Bearbeiten-Modus (Fallback neben React-Bedingung) */
-.machineDetailPage .tabPanel.readOnlyPanel .documentUploadButton,
-.machineDetailPage .documentationFieldRow--viewOnly .documentUploadButton {
-  display: none !important;
 }
 
 .documentUploadButton input[type="file"] {
