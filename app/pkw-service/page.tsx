@@ -206,7 +206,7 @@ export default function PkwServicePage() {
 
   if (!canRead && !loading) {
     return (
-      <AppPageShell activeHref="/pkw-service" subtitle="PKW">
+      <AppPageShell activeHref="/pkw-service" subtitle="PKW" contentClassName="pkwKundenPage">
         <p className="errorText">
           Keine Berechtigung: pkw.service.read — im Supabase SQL Editor{" "}
           <code>supabase/pkw-permissions-only.sql</code> ausführen, dann neu anmelden.
@@ -217,7 +217,12 @@ export default function PkwServicePage() {
 
   return (
     <>
-    <AppPageShell activeHref="/pkw-service" subtitle="PKW · Service" title="PKW-Service">
+    <AppPageShell
+      activeHref="/pkw-service"
+      subtitle="PKW · Service"
+      title="PKW-Service"
+      contentClassName="pkwKundenPage"
+    >
       <div className="pkwPageStack">
         <article className="card">
           <div className="pkwToolbar pkwToolbarWrap">

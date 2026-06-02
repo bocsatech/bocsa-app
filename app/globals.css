@@ -739,6 +739,15 @@ button, input, select, textarea {
     max-height: 100dvh;
     max-height: 100svh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  body.app-shell-body > main.workorderPage.appShell {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
   }
 
   .workorderPage,
@@ -844,9 +853,15 @@ button, input, select, textarea {
   .pageContent {
     flex: 1 1 auto;
     min-height: 0;
+    height: auto;
+    max-height: none;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+
+  .appPageTopBar {
+    flex-shrink: 0;
   }
 
   .appPageScroll {
@@ -857,6 +872,17 @@ button, input, select, textarea {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
     touch-action: pan-y;
+  }
+
+  /* PKW Kunden / Service: kein verschachtelter Scroll, nur .appPageScroll */
+  .pkwKundenPage .pkwPageStack,
+  .pkwKundenPage .pkwPageStack > .card {
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .pkwKundenPage .pkwSearchInput {
+    font-size: 16px;
   }
 
   .machineTableWrap {
