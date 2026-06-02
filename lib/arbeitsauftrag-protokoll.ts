@@ -102,40 +102,13 @@ export function newProtocolRowId() {
   return `pr_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const DEFAULT_SCHEDULE_ROWS: Array<
-  Pick<WorkOrderScheduleRow, "serviceMaterial" | "juraHifi" | "sfFilter">
-> = [
-  {
-    serviceMaterial: "Motorölfilter",
-    juraHifi: "SO 242",
-    sfFilter: "SP 4384",
-  },
-  {
-    serviceMaterial: "Luftfilter außen",
-    juraHifi: "SA 17088",
-    sfFilter: "SL 8390",
-  },
-  {
-    serviceMaterial: "Luftfilter innen",
-    juraHifi: "SA 17089",
-    sfFilter: "SL 8391",
-  },
-  {
-    serviceMaterial: "Dieselfilter",
-    juraHifi: "SN 904530",
-    sfFilter: "SK 3470",
-  },
-  {
-    serviceMaterial: "Dieselfilter_Pumpe",
-    juraHifi: "SN 30017",
-    sfFilter: "SK 3380/1",
-  },
-  {
-    serviceMaterial: "Entlüftungsfilter",
-    juraHifi: "SAO 5313",
-    sfFilter: "SOE 530",
-  },
-];
+export function createEmptyProtocol(): WorkOrderProtocol {
+  return {
+    motorOilFillLiters: "",
+    serviceSchedule: [],
+    repairGroups: [],
+  };
+}
 
 const DEFAULT_REPAIR_GROUPS: Array<{
   title: string;
@@ -202,30 +175,25 @@ const DEFAULT_REPAIR_GROUPS: Array<{
   },
 ];
 
+export function buildDefaultRepairGroups(): WorkOrderRepairGroup[] {
+  return DEFAULT_REPAIR_GROUPS.map((group) => ({
+    id: newProtocolRowId(),
+    title: group.title,
+    items: group.items.map((item) => ({
+      id: newProtocolRowId(),
+      label: item.label,
+      checked: false,
+      tone: item.tone ?? "default",
+    })),
+  }));
+}
+
+/** Standard-Protokoll: vier Spalten Checkliste (ohne vorgefüllte Filter-Tabelle). */
 export function createDefaultProtocol(): WorkOrderProtocol {
   return {
-    motorOilFillLiters: "8 Liter",
-    serviceSchedule: DEFAULT_SCHEDULE_ROWS.map((row) => ({
-      id: newProtocolRowId(),
-      serviceMaterial: row.serviceMaterial,
-      juraHifi: row.juraHifi,
-      sfFilter: row.sfFilter,
-      lagerTeilId: null,
-      menge: 0,
-      lagerstandSnapshot: null,
-      lagerIssuedMenge: 0,
-      hinzugefuegt: false,
-    })),
-    repairGroups: DEFAULT_REPAIR_GROUPS.map((group) => ({
-      id: newProtocolRowId(),
-      title: group.title,
-      items: group.items.map((item) => ({
-        id: newProtocolRowId(),
-        label: item.label,
-        checked: false,
-        tone: item.tone ?? "default",
-      })),
-    })),
+    motorOilFillLiters: "",
+    serviceSchedule: [],
+    repairGroups: buildDefaultRepairGroups(),
   };
 }
 
@@ -276,6 +244,52 @@ function normalizeRepairGroup(raw: Record<string, unknown>): WorkOrderRepairGrou
   };
 }
 
+/** Frühere App-Version: diese 6 Zeilen wurden automatisch eingefügt. */
+const LEGACY_AUTO_SCHEDULE: Array<[string, string, string]> = [
+  ["Motorölfilter", "SO 242", "SP 4384"],
+  ["Luftfilter außen", "SA 17088", "SL 8390"],
+  ["Luftfilter innen", "SA 17089", "SL 8391"],
+  ["Dieselfilter", "SN 904530", "SK 3470"],
+  ["Dieselfilter_Pumpe", "SN 30017", "SK 3380/1"],
+  ["Entlüftungsfilter", "SAO 5313", "SOE 530"],
+];
+
+function isLegacyAutofillSchedule(rows: WorkOrderScheduleRow[]) {
+  if (rows.length !== LEGACY_AUTO_SCHEDULE.length) return false;
+  return LEGACY_AUTO_SCHEDULE.every(([material, jura, sf], index) => {
+    const row = rows[index];
+    if (!row) return false;
+    return (
+      row.serviceMaterial.trim() === material &&
+      row.juraHifi.trim() === jura &&
+      row.sfFilter.trim() === sf &&
+      normalizeScheduleMenge(row.menge) === 0 &&
+      !row.hinzugefuegt &&
+      normalizeScheduleMenge(row.lagerIssuedMenge) === 0
+    );
+  });
+}
+
+/** Entfernt alte Demo-Zeilen, wenn der Auftrag nie bearbeitet wurde. */
+export function stripLegacyAutofillProtocol(protocol: WorkOrderProtocol): WorkOrderProtocol {
+  if (!isLegacyAutofillSchedule(protocol.serviceSchedule)) {
+    return protocol;
+  }
+  const anyChecked = protocol.repairGroups.some((group) =>
+    group.items.some((item) => item.checked)
+  );
+  const anyNotes = protocol.serviceSchedule.some(
+    (row) => row.hinzugefuegt || normalizeScheduleMenge(row.lagerIssuedMenge) > 0
+  );
+  if (anyChecked || anyNotes) {
+    return protocol;
+  }
+  return {
+    ...protocol,
+    serviceSchedule: [],
+  };
+}
+
 export function normalizeProtocol(
   raw: unknown,
   legacyServiceParts?: Array<{
@@ -286,12 +300,12 @@ export function normalizeProtocol(
     menge?: number;
   }>
 ): WorkOrderProtocol {
-  const defaults = createDefaultProtocol();
+  const empty = createEmptyProtocol();
 
   if (!raw || typeof raw !== "object") {
     if (legacyServiceParts?.length) {
       return {
-        ...defaults,
+        ...empty,
         serviceSchedule: legacyServiceParts.map((part) =>
           normalizeScheduleRow({
             serviceMaterial: part.serviceMaterial,
@@ -303,7 +317,7 @@ export function normalizeProtocol(
         ),
       };
     }
-    return defaults;
+    return empty;
   }
 
   const record = raw as Record<string, unknown>;
@@ -321,20 +335,19 @@ export function normalizeProtocol(
             menge: part.menge,
           })
         )
-      : defaults.serviceSchedule;
+      : [];
 
   const repairGroups = Array.isArray(record.repairGroups)
     ? record.repairGroups
         .filter((group) => group && typeof group === "object")
         .map((group) => normalizeRepairGroup(group as Record<string, unknown>))
-    : defaults.repairGroups;
+    : buildDefaultRepairGroups();
 
-  return {
-    motorOilFillLiters:
-      String(record.motorOilFillLiters ?? "").trim() || defaults.motorOilFillLiters,
-    serviceSchedule: schedule.length ? schedule : defaults.serviceSchedule,
-    repairGroups: repairGroups.length ? repairGroups : defaults.repairGroups,
-  };
+  return stripLegacyAutofillProtocol({
+    motorOilFillLiters: String(record.motorOilFillLiters ?? "").trim(),
+    serviceSchedule: schedule,
+    repairGroups,
+  });
 }
 
 export function linkProtocolToLager(
@@ -408,9 +421,9 @@ type IssueResult = {
 };
 
 export async function issueProtocolStockDelta(
-  machineId: string,
   protocol: WorkOrderProtocol,
-  referenz: string
+  referenz: string,
+  context: { machineId?: string; fahrzeugId?: string } = {}
 ): Promise<IssueResult> {
   const lines = protocolIssueLines(protocol);
   if (!lines.length) {
@@ -418,7 +431,8 @@ export async function issueProtocolStockDelta(
   }
 
   const { data, error } = await issueLagerStock({
-    machineId,
+    machineId: context.machineId,
+    fahrzeugId: context.fahrzeugId,
     referenz,
     lines,
   });
