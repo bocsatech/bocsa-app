@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { enrichLagerBewegungenForLinks } from "../../../../lib/lager-bewegung-resolve-server.mjs";
+import { resolveLagerBewegungHref } from "../../../../lib/lager-bewegungen";
 import { queryLagerBewegungen } from "../../../../lib/lager-bewegung-db";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
@@ -64,26 +65,32 @@ export async function GET(request) {
     }
   }
 
-  const rows = enriched.map((row) => ({
-    id: row.id,
-    created_at: row.created_at,
-    lager_teil_id: row.lager_teil_id,
-    menge: Number(row.menge ?? 0),
-    typ: row.typ ?? "entnahme",
-    richtung: row.richtung ?? "aus",
-    machine_id: row.machine_id ?? null,
-    fahrzeug_id: row.fahrzeug_id ?? null,
-    arbeitsauftrag_id: row.arbeitsauftrag_id ?? null,
-    referenz: row.referenz ?? null,
-    bemerkung: row.bemerkung ?? null,
-    teil: row.teil ?? null,
-    fahrzeug_kennzeichen: row.fahrzeug_id
-      ? fahrzeugMap.get(row.fahrzeug_id) ?? null
-      : null,
-    machine_geraetenummer: row.machine_id
-      ? machineMap.get(row.machine_id) ?? null
-      : null,
-  }));
+  const rows = enriched.map((row) => {
+    const dto = {
+      id: row.id,
+      created_at: row.created_at,
+      lager_teil_id: row.lager_teil_id,
+      menge: Number(row.menge ?? 0),
+      typ: row.typ ?? "entnahme",
+      richtung: row.richtung ?? "aus",
+      machine_id: row.machine_id ?? null,
+      fahrzeug_id: row.fahrzeug_id ?? null,
+      arbeitsauftrag_id: row.arbeitsauftrag_id ?? null,
+      referenz: row.referenz ?? null,
+      bemerkung: row.bemerkung ?? null,
+      teil: row.teil ?? null,
+      fahrzeug_kennzeichen: row.fahrzeug_id
+        ? fahrzeugMap.get(row.fahrzeug_id) ?? null
+        : null,
+      machine_geraetenummer: row.machine_id
+        ? machineMap.get(row.machine_id) ?? null
+        : null,
+    };
+    return {
+      ...dto,
+      detail_href: resolveLagerBewegungHref(dto),
+    };
+  });
 
   return NextResponse.json(rows, {
     headers: { "Cache-Control": "no-store, max-age=0" },

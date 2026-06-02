@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { resolveLagerBewegungHref, type LagerBewegung } from "../../lib/lager-bewegungen";
 import { formatLagerValue } from "../../lib/lager";
 
@@ -9,16 +9,21 @@ type Props = {
 };
 
 export default function LagerBewegungReferenzLink({ row }: Props) {
+  const router = useRouter();
   const href = resolveLagerBewegungHref(row);
   const label = formatLagerValue(row.referenz);
 
   if (!href || !row.referenz?.trim()) {
-    return <>{label}</>;
+    return <span className="lagerBewegungReferenzPlain">{label}</span>;
   }
 
   return (
-    <Link href={href} className="lagerBewegungReferenzLink">
+    <button
+      type="button"
+      className="lagerBewegungReferenzBtn pillButton outline"
+      onClick={() => router.push(href)}
+    >
       {label}
-    </Link>
+    </button>
   );
 }

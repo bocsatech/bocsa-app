@@ -2,7 +2,8 @@ import { buildArbeitsauftragDetailHref } from "./arbeitsauftrag-routes";
 import { buildPkwArbeitsauftragDetailHref } from "./pkw-arbeitsauftrag-routes";
 import type { LagerTeil } from "./types/lager";
 
-const ARBEITSAUFTRAG_REFERENZ = /^Arbeitsauftrag\s+(.+)$/i;
+const ARBEITSAUFTRAG_REFERENZ = /^Arbeitsauftrag\s*:?\s*(.+)$/i;
+const GERAETGRUPPE_REFERENZ = /^Gerätegruppe\s*:?\s*(.+)$/i;
 
 export type LagerBewegungTyp = "entnahme" | "zugang" | "inventur";
 export type LagerBewegungRichtung = "aus" | "ein";
@@ -25,6 +26,8 @@ export type LagerBewegung = {
   > | null;
   fahrzeug_kennzeichen?: string | null;
   machine_geraetenummer?: string | null;
+  /** Vom Server vorberechnet — zuverlässiger als Client-Auflösung */
+  detail_href?: string | null;
 };
 
 export type LagerBewegungZeitraum = "tag" | "woche" | "monat" | "frei";
@@ -102,6 +105,10 @@ export function parseArbeitsauftragReferenz(referenz: string | null | undefined)
 
 /** Link zum Arbeitsauftrag, Fahrzeug oder Maschine — für Lagerbewegungen-Tabelle */
 export function resolveLagerBewegungHref(row: LagerBewegung): string | null {
+  if (row.detail_href?.trim()) {
+    return row.detail_href.trim();
+  }
+
   if (row.arbeitsauftrag_id) {
     if (row.machine_id) {
       return buildArbeitsauftragDetailHref({
@@ -120,11 +127,30 @@ export function resolveLagerBewegungHref(row: LagerBewegung): string | null {
   const auftragNr = parseArbeitsauftragReferenz(row.referenz);
   if (auftragNr) {
     if (row.machine_id) {
-      return buildArbeitsauftragDetailHref({ machineId: row.machine_id, auftragNr });
+      return buildArbeitsauftragDetailHref({
+        machineId: row.machine_id,
+        auftragNr,
+        auftragId: row.arbeitsauftrag_id ?? undefined,
+      });
     }
     if (row.fahrzeug_id) {
-      return buildPkwArbeitsauftragDetailHref({ fahrzeugId: row.fahrzeug_id, auftragNr });
+      return buildPkwArbeitsauftragDetailHref({
+        fahrzeugId: row.fahrzeug_id,
+        auftragNr,
+        auftragId: row.arbeitsauftrag_id ?? undefined,
+      });
     }
+    const q = encodeURIComponent(auftragNr);
+    return `/arbeitsauftrag?auftrag=${q}`;
+  }
+
+  const gruppe = row.referenz?.trim().match(GERAETGRUPPE_REFERENZ)?.[1]?.trim();
+  if (gruppe) {
+    return "/maschinen/geraetgruppen";
+  }
+
+  if (/^inventur$/i.test(row.referenz?.trim() ?? "")) {
+    return "/lager/inventur";
   }
 
   if (row.fahrzeug_id) {

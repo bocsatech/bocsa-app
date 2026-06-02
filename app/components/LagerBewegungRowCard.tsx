@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   bewegungTypLabel,
@@ -66,15 +65,18 @@ export default function LagerBewegungRowCard({ row }: Props) {
       {referenz ? (
         <p className="lagerBewegungCardReferenz">
           {href ? (
-            <Link
-              href={href}
-              className="lagerBewegungReferenzLink"
-              onClick={(event) => event.stopPropagation()}
+            <button
+              type="button"
+              className="lagerBewegungReferenzBtn pillButton outline"
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push(href);
+              }}
             >
               {referenz}
-            </Link>
+            </button>
           ) : (
-            referenz
+            <span className="lagerBewegungReferenzPlain">{referenz}</span>
           )}
         </p>
       ) : null}

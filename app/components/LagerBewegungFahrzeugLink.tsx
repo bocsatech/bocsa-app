@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { resolveLagerBewegungHref, type LagerBewegung } from "../../lib/lager-bewegungen";
 
 type Props = {
@@ -8,21 +8,31 @@ type Props = {
 };
 
 export default function LagerBewegungFahrzeugLink({ row }: Props) {
+  const router = useRouter();
+
   if (row.fahrzeug_kennzeichen && row.fahrzeug_id) {
     const href = `/pkw/fahrzeuge/${row.fahrzeug_id}`;
     return (
-      <Link href={href} className="lagerBewegungReferenzLink">
+      <button
+        type="button"
+        className="lagerBewegungReferenzBtn pillButton outline"
+        onClick={() => router.push(href)}
+      >
         PKW {row.fahrzeug_kennzeichen}
-      </Link>
+      </button>
     );
   }
 
   if (row.machine_geraetenummer && row.machine_id) {
     const href = `/maschinen/${row.machine_id}`;
     return (
-      <Link href={href} className="lagerBewegungReferenzLink">
+      <button
+        type="button"
+        className="lagerBewegungReferenzBtn pillButton outline"
+        onClick={() => router.push(href)}
+      >
         {row.machine_geraetenummer}
-      </Link>
+      </button>
     );
   }
 
@@ -37,9 +47,13 @@ export default function LagerBewegungFahrzeugLink({ row }: Props) {
   const fallbackHref = resolveLagerBewegungHref(row);
   if (fallbackHref) {
     return (
-      <Link href={fallbackHref} className="lagerBewegungReferenzLink">
+      <button
+        type="button"
+        className="lagerBewegungReferenzBtn pillButton outline"
+        onClick={() => router.push(fallbackHref)}
+      >
         Öffnen
-      </Link>
+      </button>
     );
   }
 

@@ -2,37 +2,37 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import ArbeitsauftragList from "../components/ArbeitsauftragList";
+import PkwArbeitsauftragList from "../../components/PkwArbeitsauftragList";
 import {
-  buildArbeitsauftragDetailHref,
-  shouldShowArbeitsauftragDetail,
-} from "../../lib/arbeitsauftrag-routes";
-import type { WorkOrderListFilters } from "../../lib/work-orders";
+  buildPkwArbeitsauftragDetailHref,
+  shouldShowPkwArbeitsauftragDetail,
+} from "../../../lib/pkw-arbeitsauftrag-routes";
+import type { PkwWorkOrderListFilters } from "../../../lib/pkw-work-orders";
 
-function readListFilters(searchParams: URLSearchParams): Partial<WorkOrderListFilters> {
+function readListFilters(searchParams: URLSearchParams): Partial<PkwWorkOrderListFilters> {
   return {
-    geraetenummer: searchParams.get("geraetenummer") ?? "",
+    kennzeichen: searchParams.get("kennzeichen") ?? "",
     auftrag: searchParams.get("auftrag") ?? searchParams.get("auftragNr") ?? "",
     bearbeiter: searchParams.get("bearbeiter") ?? "",
-    filiale: searchParams.get("filiale") ?? "",
     dateFrom: searchParams.get("dateFrom") ?? "",
     dateTo: searchParams.get("dateTo") ?? "",
+    kunde: searchParams.get("kunde") ?? "",
   };
 }
 
-function ArbeitsauftragListPageContent() {
+function PkwArbeitsauftragListPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!shouldShowArbeitsauftragDetail(searchParams)) return;
+    if (!shouldShowPkwArbeitsauftragDetail(searchParams)) return;
 
-    const machineId = searchParams.get("machineId");
-    if (!machineId) return;
+    const fahrzeugId = searchParams.get("fahrzeugId");
+    if (!fahrzeugId) return;
 
     router.replace(
-      buildArbeitsauftragDetailHref({
-        machineId,
+      buildPkwArbeitsauftragDetailHref({
+        fahrzeugId,
         auftragId: searchParams.get("auftragId"),
         status: searchParams.get("status"),
         type: searchParams.get("type"),
@@ -44,7 +44,7 @@ function ArbeitsauftragListPageContent() {
     );
   }, [router, searchParams]);
 
-  if (shouldShowArbeitsauftragDetail(searchParams)) {
+  if (shouldShowPkwArbeitsauftragDetail(searchParams)) {
     return (
       <main className="workorderPage appShell">
         <aside className="sidebar" aria-hidden />
@@ -59,17 +59,17 @@ function ArbeitsauftragListPageContent() {
     );
   }
 
-  const returnMachineId = searchParams.get("machineId")?.trim() ?? "";
+  const returnFahrzeugId = searchParams.get("fahrzeugId")?.trim() ?? "";
 
   return (
-    <ArbeitsauftragList
+    <PkwArbeitsauftragList
       initialFilters={readListFilters(searchParams)}
-      returnMachineId={returnMachineId || undefined}
+      returnFahrzeugId={returnFahrzeugId || undefined}
     />
   );
 }
 
-export default function ArbeitsauftragPage() {
+export default function PkwArbeitsauftragPage() {
   return (
     <Suspense
       fallback={
@@ -85,7 +85,7 @@ export default function ArbeitsauftragPage() {
         </main>
       }
     >
-      <ArbeitsauftragListPageContent />
+      <PkwArbeitsauftragListPageContent />
     </Suspense>
   );
 }

@@ -221,10 +221,13 @@ export function filterWorkOrderEntries(
     }
 
     if (auftrag) {
+      const query = filters.auftrag.trim();
       const nr = normalizeFilterValue(entry.auftragNr ?? "");
       const typeLabel = normalizeFilterValue(formatOrderType(entry.type));
       const rawType = normalizeFilterValue(entry.type);
+      const matchesAuftragNr = query ? workOrderMatchesAuftragNr(entry, query) : false;
       if (
+        !matchesAuftragNr &&
         !nr.includes(auftrag) &&
         typeLabel !== auftrag &&
         rawType !== auftrag &&
