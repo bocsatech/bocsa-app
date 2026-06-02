@@ -3236,8 +3236,12 @@ body.lagerPickerOpen {
 
 .publicMachinePage {
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 24px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
   background: #f5f6fa;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .publicMachineCard {
@@ -3328,14 +3332,39 @@ body.lagerPickerOpen {
 .publicMeldungForm input,
 .publicMeldungForm textarea {
   width: 100%;
+  max-width: 100%;
   border: 1px solid #d1d5db;
   border-radius: 10px;
   padding: 10px 12px;
-  font: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  touch-action: manipulation;
 }
 
 .publicMeldungForm small {
   color: #6b7280;
+}
+
+.publicMeldungImageHint {
+  display: block;
+  margin-top: 4px;
+  color: #059669;
+}
+
+@media (max-width: 640px) {
+  .publicMachinePage {
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .publicMachineCard {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  .publicMachineHeader {
+    flex-wrap: wrap;
+  }
 }
 
 .pruefbefundPage {

@@ -19,7 +19,7 @@ export async function GET() {
 
   const { data, error } = await db
     .from(MACHINE_TABLE)
-    .select("id, geraetenummer, bezeichnung, machine_tab_data")
+    .select("id, geraetenummer, bezeichnung, meldungen:machine_tab_data->meldungen")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -27,11 +27,7 @@ export async function GET() {
   }
 
   const meldungen = (data ?? []).flatMap((machine) => {
-    const tabData =
-      machine.machine_tab_data && typeof machine.machine_tab_data === "object"
-        ? machine.machine_tab_data
-        : {};
-    const reports = Array.isArray(tabData.meldungen) ? tabData.meldungen : [];
+    const reports = Array.isArray(machine.meldungen) ? machine.meldungen : [];
 
     return reports.map((report) => ({
       ...report,

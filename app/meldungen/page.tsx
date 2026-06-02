@@ -244,6 +244,8 @@ export default function MeldungenPage() {
                           <img
                             src={image}
                             alt="Meldung Bild"
+                            loading="lazy"
+                            decoding="async"
                             onError={(event) => {
                               event.currentTarget.style.display = "none";
                             }}
