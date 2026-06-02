@@ -23,6 +23,7 @@ import { fetchPkwFahrzeugById, fetchPkwGruppeVorlage, savePkwFahrzeug } from "..
 import { fetchLagerTeile } from "../../lib/lager";
 import {
   createEmptyWorkOrder,
+  findWorkOrderByAuftragNr,
   formatOrderType,
   formatWorkOrderAuftragNr,
   getPkwWorkOrders,
@@ -119,7 +120,7 @@ export default function PkwArbeitsauftragForm({
     const existing = auftragId
       ? orders.find((item) => item.id === auftragId)
       : nrQuery
-        ? orders.find((item) => (item.auftragNr?.trim() ?? "") === nrQuery)
+        ? findWorkOrderByAuftragNr(orders, nrQuery)
         : null;
 
     if ((auftragId || nrQuery) && !existing) {
@@ -371,7 +372,8 @@ export default function PkwArbeitsauftragForm({
                   protocol={order.protocol}
                   canEdit={canWrite}
                   canIssueLager={canIssueLager}
-                  machineId={fahrzeugId}
+                  fahrzeugId={fahrzeugId}
+                  arbeitsauftragId={order.id}
                   auftragReferenz={`Arbeitsauftrag ${formatWorkOrderAuftragNr(order)}`}
                   onChange={updateProtocol}
                 />

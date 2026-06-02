@@ -1,5 +1,50 @@
 import type { LagerTeil } from "./types/lager";
 
+export {
+  countLagerBestandMeldungen,
+  getLagerBestandAlert,
+  getLagerBestandMeldungen,
+  lagerBestandAlertLabel,
+  validateLagerMengenGrenzen,
+} from "./lager-bestand";
+export type { LagerBestandAlertKind, LagerBestandMeldung } from "./lager-bestand";
+export {
+  buildLagerFahrzeugBedarf,
+  countLagerFahrzeugBedarf,
+  filterAktivePkwBuchungen,
+} from "./lager-pkw-bedarf";
+export type { LagerFahrzeugBedarfZeile } from "./lager-pkw-bedarf";
+export {
+  bewegungTypLabel,
+  fetchLagerBewegungen,
+  formatBewegungDatum,
+  lagerBewegungZeitraumRange,
+} from "./lager-bewegungen";
+export type {
+  LagerBewegung,
+  LagerBewegungRichtung,
+  LagerBewegungTyp,
+  LagerBewegungZeitraum,
+} from "./lager-bewegungen";
+
+export async function fetchLagerMeldungenSummary() {
+  const response = await fetch(`/api/lager/meldungen/summary?ts=${Date.now()}`, {
+    cache: "no-store",
+    credentials: "include",
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    return {
+      data: null,
+      error: { message: result?.error ?? "Meldungen konnten nicht geladen werden." },
+    };
+  }
+  return {
+    data: result as { bestand: number; fahrzeugBedarf: number; total: number },
+    error: null,
+  };
+}
+
 export const LAGER_FORM_FIELDS: Array<{
   key: keyof Omit<LagerTeil, "id" | "created_at" | "updated_at">;
   label: string;
@@ -14,6 +59,8 @@ export const LAGER_FORM_FIELDS: Array<{
   { key: "lagerort", label: "Lagerort" },
   { key: "lagerplatz", label: "Lagerplatz" },
   { key: "lagerstand", label: "Lagerstand", type: "number" },
+  { key: "menge_min", label: "Mindestmenge", type: "number" },
+  { key: "menge_max", label: "Maximalmenge", type: "number" },
   { key: "listenpreis_netto", label: "Listenpreis netto", type: "number" },
   { key: "listenpreis_brutto", label: "Listenpreis Brutto", type: "number" },
   { key: "verkaufspreis", label: "Verkaufspreis", type: "number" },
@@ -21,6 +68,12 @@ export const LAGER_FORM_FIELDS: Array<{
 ];
 
 export const BESTELLSTATUS_OPTIONS = ["", "Offen", "Bestellt", "Geliefert", "Gesperrt"];
+
+/** Inventur-QR (Inhalt = Herstellernummer), on-demand generiert. */
+export function getLagerTeilQrUrl(teil: { id: string; updated_at?: string | null }) {
+  const ts = teil.updated_at ? encodeURIComponent(teil.updated_at) : String(Date.now());
+  return `/api/lager/teile/${teil.id}/qr?ts=${ts}`;
+}
 
 export async function fetchLagerTeile() {
   const response = await fetch(`/api/lager/teile?ts=${Date.now()}`, {
@@ -208,6 +261,36 @@ export function findLagerTeilByHersteller(
   return buildHerstellerIndex(teile).get(key) ?? null;
 }
 
+/** Alle Lager-Treffer zu einer Protokoll-Zeile (Herstellernummer, sonst Name). */
+export function listLagerTeileCandidatesForScheduleRow(
+  teile: LagerTeil[],
+  row: {
+    lagerTeilId?: string | null;
+    juraHifi?: string;
+    serviceMaterial?: string;
+  }
+): LagerTeil[] {
+  if (row.lagerTeilId) {
+    const direct = teile.find((teil) => teil.id === row.lagerTeilId);
+    return direct ? [direct] : [];
+  }
+
+  const key = normalizeHerstellernummer(row.juraHifi ?? "");
+  if (key) {
+    const byHersteller = teile.filter(
+      (teil) => normalizeHerstellernummer(teil.herstellernummer) === key
+    );
+    if (byHersteller.length > 0) return byHersteller;
+  }
+
+  const name = String(row.serviceMaterial ?? "").trim().toLowerCase();
+  if (!name) return [];
+
+  return teile.filter(
+    (teil) => String(teil.bezeichnung ?? "").trim().toLowerCase() === name
+  );
+}
+
 /** Protokoll-Zeile: Herstellernummer, sonst eindeutiger Ersatzteil-Name. */
 export function findLagerTeilForScheduleRow(
   teile: LagerTeil[],
@@ -217,26 +300,16 @@ export function findLagerTeilForScheduleRow(
     serviceMaterial?: string;
   }
 ): LagerTeil | null {
-  if (row.lagerTeilId) {
-    return teile.find((teil) => teil.id === row.lagerTeilId) ?? null;
-  }
-
-  const byHersteller = findLagerTeilByHersteller(teile, row.juraHifi ?? "");
-  if (byHersteller) return byHersteller;
-
-  const name = String(row.serviceMaterial ?? "").trim().toLowerCase();
-  if (!name) return null;
-
-  const byName = teile.filter(
-    (teil) => String(teil.bezeichnung ?? "").trim().toLowerCase() === name
-  );
-  return byName.length === 1 ? byName[0] : null;
+  const candidates = listLagerTeileCandidatesForScheduleRow(teile, row);
+  return candidates.length === 1 ? candidates[0] : null;
 }
 
 export async function issueLagerStock(payload: {
   machineId?: string;
+  fahrzeugId?: string;
+  arbeitsauftragId?: string;
   referenz?: string;
-  lines: Array<{ lagerTeilId: string; herstellernummer?: string; menge: number }>;
+  lines: Array<{ lagerTeilId: string; herstellernummer?: string; menge: number; bemerkung?: string }>;
 }) {
   const response = await fetch("/api/lager/issue", {
     method: "POST",

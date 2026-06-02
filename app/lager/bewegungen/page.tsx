@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../../components/AppPageShell";
 import LagerBewegungFahrzeugLink from "../../components/LagerBewegungFahrzeugLink";
 import LagerBewegungReferenzLink from "../../components/LagerBewegungReferenzLink";
+import LagerBewegungRowCard from "../../components/LagerBewegungRowCard";
 import {
   bewegungTypLabel,
   fetchLagerBewegungen,
@@ -71,6 +72,7 @@ export default function LagerBewegungenPage() {
   return (
     <AppPageShell
       activeHref="/lager/bewegungen"
+      contentClassName="lagerBewegungenPage"
       top={
         <header className="pageHeader compactPageHeader">
           <div>
@@ -151,7 +153,15 @@ export default function LagerBewegungenPage() {
             </span>
           </div>
 
-          <article className="card machineTableWrap">
+          <div className="lagerBewegungenMobileList" aria-label="Lagerbewegungen">
+            {rows.length === 0 ? (
+              <p className="lagerBewegungenMobileEmpty">Keine Bewegungen im gewählten Zeitraum.</p>
+            ) : (
+              rows.map((row) => <LagerBewegungRowCard key={row.id} row={row} />)
+            )}
+          </div>
+
+          <article className="card machineTableWrap lagerBewegungenDesktopTable">
             <div className="machineTableScroll">
               <table className="machineTable lagerTable">
                 <thead>

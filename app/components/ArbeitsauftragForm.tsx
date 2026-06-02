@@ -44,6 +44,7 @@ import { reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
 import { fetchLagerTeile } from "../../lib/lager";
 import {
   createEmptyWorkOrder,
+  findWorkOrderByAuftragNr,
   formatOrderType,
   formatWorkOrderAuftragNr,
   getWorkOrders,
@@ -150,7 +151,7 @@ export default function ArbeitsauftragForm({
     const existing = auftragId
       ? orders.find((item) => item.id === auftragId)
       : nrQuery
-        ? orders.find((item) => (item.auftragNr?.trim() ?? "") === nrQuery)
+        ? findWorkOrderByAuftragNr(orders, nrQuery)
         : null;
 
     if ((auftragId || nrQuery) && !existing) {
@@ -663,6 +664,7 @@ export default function ArbeitsauftragForm({
                   canEdit={canWrite}
                   canIssueLager={canIssueLager}
                   machineId={machineId}
+                  arbeitsauftragId={order.id}
                   auftragReferenz={`Arbeitsauftrag ${formatWorkOrderAuftragNr(order)}`}
                   onChange={updateProtocol}
                 />

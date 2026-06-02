@@ -2850,6 +2850,100 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   margin-bottom: 16px;
 }
 
+.lagerBewegungenMobileList {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.lagerBewegungenMobileEmpty {
+  margin: 0;
+  padding: 16px;
+  color: #6b7280;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.lagerBewegungCard {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.lagerBewegungCardTappable {
+  cursor: pointer;
+}
+
+.lagerBewegungCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.lagerBewegungCardTyp {
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.lagerBewegungCardTeil {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.lagerBewegungCardBezeichnung {
+  color: #4b5563;
+  font-weight: 400;
+}
+
+.lagerBewegungCardMenge {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+}
+
+.lagerBewegungCardReferenz,
+.lagerBewegungCardFahrzeug,
+.lagerBewegungCardBemerkung {
+  margin: 0 0 4px;
+  font-size: 0.88rem;
+}
+
+.lagerBewegungCardHint {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+@media (max-width: 760px) {
+  .lagerBewegungenPage .lagerBewegungenMobileList {
+    display: flex;
+  }
+
+  .lagerBewegungenPage .lagerBewegungenDesktopTable {
+    display: none;
+  }
+
+  .lagerBewegungenPage .machineTableScroll {
+    overflow: visible;
+  }
+
+  .lagerBewegungCard .lagerBewegungReferenzLink {
+    display: inline;
+    padding: 6px 0;
+    min-height: 44px;
+    line-height: 1.4;
+  }
+}
+
 .lagerZeitraumTabs {
   display: flex;
   flex-wrap: wrap;
