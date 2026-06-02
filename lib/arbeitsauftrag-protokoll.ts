@@ -337,11 +337,13 @@ export function normalizeProtocol(
         )
       : [];
 
-  const repairGroups = Array.isArray(record.repairGroups)
+  const parsedRepairGroups = Array.isArray(record.repairGroups)
     ? record.repairGroups
         .filter((group) => group && typeof group === "object")
         .map((group) => normalizeRepairGroup(group as Record<string, unknown>))
-    : buildDefaultRepairGroups();
+    : [];
+  const repairGroups =
+    parsedRepairGroups.length > 0 ? parsedRepairGroups : buildDefaultRepairGroups();
 
   return stripLegacyAutofillProtocol({
     motorOilFillLiters: String(record.motorOilFillLiters ?? "").trim(),
