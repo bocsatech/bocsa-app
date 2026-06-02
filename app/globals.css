@@ -3458,6 +3458,12 @@ body.lagerPickerOpen {
   cursor: pointer;
 }
 
+/* PDF-Upload nur im Bearbeiten-Modus (Fallback neben React-Bedingung) */
+.machineDetailPage .tabPanel.readOnlyPanel .documentUploadButton,
+.machineDetailPage .documentationFieldRow--viewOnly .documentUploadButton {
+  display: none !important;
+}
+
 .documentUploadButton input[type="file"] {
   display: none;
 }

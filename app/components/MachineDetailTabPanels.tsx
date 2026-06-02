@@ -733,7 +733,8 @@ export default function MachineDetailTabPanels({
                 key={row.type}
                 label={row.label}
                 fileUrl={documentationData[row.urlKey]}
-                canUpload={(canUploadDocuments ?? false) && isEditing}
+                isEditing={isEditing}
+                canWrite={canUploadDocuments ?? false}
                 uploading={uploadingDocument === row.type}
                 onUpload={(event) => onDocumentUpload?.(event, row.type)}
               />

@@ -425,6 +425,10 @@ export default function MaschineDetailPage() {
       setSaveError("Keine Berechtigung: machines.write erforderlich.");
       return;
     }
+    if (!isEditing) {
+      setSaveError("Zum Hochladen zuerst „Bearbeiten“ aktivieren.");
+      return;
+    }
 
     setUploadingDocument(type);
     setSaveError(null);
@@ -1182,7 +1186,7 @@ export default function MaschineDetailPage() {
             ) : activeTab === "Wartungstabelle" ? (
               <MaintenanceLagerParts
                 parts={maintenanceData.parts}
-                canEdit={canWriteMachines}
+                canEdit={canWriteMachines && isEditing}
                 onChange={(parts) => setMaintenanceData({ parts })}
                 subgroup={machine.subgroup}
               />
@@ -1193,7 +1197,8 @@ export default function MaschineDetailPage() {
                     key={row.type}
                     label={row.label}
                     fileUrl={documentationData[row.urlKey]}
-                    canUpload={canWriteMachines && isEditing}
+                    isEditing={isEditing}
+                    canWrite={canWriteMachines}
                     uploading={uploadingDocument === row.type}
                     onUpload={(event) => handleDocumentUpload(event, row.type)}
                   />
@@ -1202,7 +1207,7 @@ export default function MaschineDetailPage() {
             ) : (
               <p>{tabContent[activeTab]}</p>
             )}
-            {activeTab !== "Stammdaten" ? (
+            {activeTab !== "Stammdaten" && isEditing ? (
               <>
                 {saveError ? (
                   <p style={{ color: "#dc2626" }}>{saveError}</p>
