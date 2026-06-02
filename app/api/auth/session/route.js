@@ -56,6 +56,20 @@ export async function GET() {
 
       groups = [...new Set((groupRows ?? []).map((group) => group.name))];
     }
+
+    const { data: userPermissionRows } = await db
+      .from("user_permissions")
+      .select("permission_key")
+      .eq("user_id", session.userId);
+
+    if (userPermissionRows?.length) {
+      permissions = [
+        ...new Set([
+          ...permissions,
+          ...userPermissionRows.map((row) => row.permission_key),
+        ]),
+      ];
+    }
   }
 
   let profile = null;

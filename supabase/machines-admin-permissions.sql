@@ -1,5 +1,6 @@
 -- Maschinen: erweiterte Rechte (standardmäßig nur Admin-Gruppe)
 -- Im Supabase SQL Editor ausführen, danach Schema-Cache kurz warten.
+-- Einzelrechte pro Benutzer: zusätzlich supabase/user-permissions.sql
 
 insert into public.permissions (key, label, description, category)
 values

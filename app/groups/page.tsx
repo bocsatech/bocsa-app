@@ -34,6 +34,15 @@ type UserGroup = {
   group_id: string;
 };
 
+type UserPermission = {
+  user_id: string;
+  permission_key: string;
+};
+
+function isMachineAdminPermission(permissionKey: string) {
+  return MACHINE_ADMIN_PERMISSION_DEFS.some((def) => def.key === permissionKey);
+}
+
 const EXPECTED_MENU_PERMISSIONS: Permission[] = [
   {
     key: "menu.dashboard",
@@ -107,8 +116,10 @@ export default function GroupsPage() {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [groupPermissions, setGroupPermissions] = useState<GroupPermission[]>([]);
   const [userGroups, setUserGroups] = useState<UserGroup[]>([]);
+  const [userPermissions, setUserPermissions] = useState<UserPermission[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedUserForRights, setSelectedUserForRights] = useState("");
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [loading, setLoading] = useState(true);
@@ -139,12 +150,14 @@ export default function GroupsPage() {
       permissionsResult,
       groupPermissionsResult,
       userGroupsResult,
+      userPermissionsResult,
     ] = await Promise.all([
       supabase.from("users").select("id, username").order("username", { ascending: true }),
       supabase.from("permission_groups").select("id, name, description").order("name", { ascending: true }),
       supabase.from("permissions").select("key, label, description, category").order("category", { ascending: true }),
       supabase.from("group_permissions").select("group_id, permission_key"),
       supabase.from("user_groups").select("user_id, group_id"),
+      supabase.from("user_permissions").select("user_id, permission_key"),
     ]);
 
     const firstError =
@@ -152,7 +165,8 @@ export default function GroupsPage() {
       groupsResult.error ??
       permissionsResult.error ??
       groupPermissionsResult.error ??
-      userGroupsResult.error;
+      userGroupsResult.error ??
+      userPermissionsResult.error;
 
     if (firstError) {
       setError(firstError.message);
@@ -161,18 +175,22 @@ export default function GroupsPage() {
       setPermissions([]);
       setGroupPermissions([]);
       setUserGroups([]);
+      setUserPermissions([]);
       setLoading(false);
       return;
     }
 
     const loadedGroups = (groupsResult.data ?? []) as PermissionGroup[];
+    const loadedUsers = (usersResult.data ?? []) as AppUser[];
 
-    setUsers((usersResult.data ?? []) as AppUser[]);
+    setUsers(loadedUsers);
     setGroups(loadedGroups);
     setPermissions((permissionsResult.data ?? []) as Permission[]);
     setGroupPermissions((groupPermissionsResult.data ?? []) as GroupPermission[]);
     setUserGroups((userGroupsResult.data ?? []) as UserGroup[]);
+    setUserPermissions((userPermissionsResult.data ?? []) as UserPermission[]);
     setSelectedGroupId((current) => current || loadedGroups[0]?.id || "");
+    setSelectedUserForRights((current) => current || loadedUsers[0]?.id || "");
     setLoading(false);
   }, []);
 
@@ -218,8 +236,8 @@ export default function GroupsPage() {
 
   async function togglePermission(permissionKey: string, enabled: boolean) {
     if (!selectedGroupId) return;
-    if (isMenuPermission(permissionKey) && !isAdmin) {
-      setError("Menü-Rechte können nur Admin-Benutzer ändern.");
+    if ((isMenuPermission(permissionKey) || isMachineAdminPermission(permissionKey)) && !isAdmin) {
+      setError("Menü- und Maschinen-Admin-Rechte können nur Admin-Benutzer ändern.");
       return;
     }
 
@@ -283,6 +301,40 @@ export default function GroupsPage() {
     );
   }
 
+  function userHasDirectPermission(permissionKey: string) {
+    return userPermissions.some(
+      (permission) =>
+        permission.user_id === selectedUserForRights &&
+        permission.permission_key === permissionKey
+    );
+  }
+
+  async function toggleUserPermission(permissionKey: string, enabled: boolean) {
+    if (!selectedUserForRights) return;
+    if ((isMenuPermission(permissionKey) || isMachineAdminPermission(permissionKey)) && !isAdmin) {
+      setError("Menü- und Maschinen-Admin-Rechte können nur Admin-Benutzer ändern.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    const request = enabled
+      ? supabase.from("user_permissions").insert({
+          user_id: selectedUserForRights,
+          permission_key: permissionKey,
+        })
+      : supabase
+          .from("user_permissions")
+          .delete()
+          .match({ user_id: selectedUserForRights, permission_key: permissionKey });
+
+    const { error: toggleError } = await request;
+    if (toggleError) setError(toggleError.message);
+    await loadData();
+    setSaving(false);
+  }
+
   const permissionsWithMenus = useMemo(() => {
     const map = new Map(permissions.map((permission) => [permission.key, permission]));
     for (const menuPermission of EXPECTED_MENU_PERMISSIONS) {
@@ -306,10 +358,15 @@ export default function GroupsPage() {
   const permissionsByCategory = useMemo(() => {
     return permissionsWithMenus.reduce<Record<string, Permission[]>>((acc, permission) => {
       const category = permission.category || "general";
-      acc[category] = acc[category] ?? [];
+      acc[category] ??= [];
       acc[category].push(permission);
       return acc;
     }, {});
+  }, [permissionsWithMenus]);
+
+  const machinePermissionsForUi = useMemo(() => {
+    const keys = new Set<string>(MACHINE_ADMIN_PERMISSION_DEFS.map((def) => def.key));
+    return permissionsWithMenus.filter((permission) => keys.has(permission.key));
   }, [permissionsWithMenus]);
 
   return (
@@ -321,7 +378,8 @@ export default function GroupsPage() {
             <span className="badge">Rechteverwaltung</span>
             <h1>Gruppen & Rechte</h1>
             <p className="subtitle">
-              Rechte werden an Gruppen vergeben. Benutzer bekommen Rechte ueber ihre Gruppen.
+              Rechte an Gruppen vergeben oder einzelnen Benutzern zuweisen. Gruppenrechte und
+              Benutzerrechte werden zusammengeführt.
             </p>
           </div>
           <button type="button" className="pillButton outline" onClick={loadData} disabled={saving}>
@@ -439,7 +497,8 @@ export default function GroupsPage() {
                           disabled={
                             !selectedGroupId ||
                             saving ||
-                            (isMenuPermission(permission.key) && !isAdmin)
+                            (isMenuPermission(permission.key) && !isAdmin) ||
+                            (isMachineAdminPermission(permission.key) && !isAdmin)
                           }
                         />
                         <span>
@@ -450,6 +509,52 @@ export default function GroupsPage() {
                     ))}
                   </div>
                 ))}
+              </div>
+
+              <div className="permissionBox userDirectPermissionsBox">
+                <h2>Benutzerrechte (direkt)</h2>
+                <p className="subtitle">
+                  Zusätzlich zu den Gruppen — z. B. nur „Maschine hinzufügen“ für einen Techniker.
+                </p>
+                <div className="memberAssign">
+                  <select
+                    value={selectedUserForRights}
+                    onChange={(event) => setSelectedUserForRights(event.target.value)}
+                  >
+                    <option value="">Benutzer auswählen…</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.username ?? user.id}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {!adminLoading && !isAdmin ? (
+                  <p className="subtitle">Maschinen-Admin-Rechte nur für Admin bearbeitbar.</p>
+                ) : null}
+                <div className="permissionCategory">
+                  <h3>Maschinen (Admin)</h3>
+                  {machinePermissionsForUi.map((permission) => (
+                    <label key={`user-${permission.key}`} className="permissionToggle">
+                      <input
+                        type="checkbox"
+                        checked={userHasDirectPermission(permission.key)}
+                        onChange={(event) =>
+                          toggleUserPermission(permission.key, event.target.checked)
+                        }
+                        disabled={
+                          !selectedUserForRights ||
+                          saving ||
+                          !isAdmin
+                        }
+                      />
+                      <span>
+                        <strong>{permission.label}</strong>
+                        <small>{permission.description ?? permission.key}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </section>
           </div>
