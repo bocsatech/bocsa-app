@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePublicScrollBody } from "../../../lib/use-mobile-scroll-body";
 import MachineStatusIndicators from "../../components/MachineStatusIndicators";
 import { formatValue, hasValue } from "../../../lib/machines";
 import type { MachineRecord } from "../../../lib/machines";
@@ -34,6 +35,7 @@ function getPublicDocumentUrl(machine: Machine | null, keys: string[]) {
 }
 
 export default function PublicMachineMeldung({ machineId }: Props) {
+  usePublicScrollBody();
   const [machine, setMachine] = useState<Machine | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
