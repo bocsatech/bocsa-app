@@ -20,10 +20,15 @@ export default function DocumentationDocumentRow({
   return (
     <div className="fieldRow documentationFieldRow">
       <span>{label}</span>
-      <div className="documentUploadControls documentUploadControlsCompact">
-        <div className="documentUploadActions">
+      <div className="documentationDocBody">
+        <div className="documentationDocActions">
           {fileUrl ? (
-            <a href={fileUrl} target="_blank" rel="noreferrer">
+            <a
+              className="pillButton outline documentationDocLink"
+              href={fileUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
               Öffnen
             </a>
           ) : (
@@ -37,7 +42,7 @@ export default function DocumentationDocumentRow({
                 onChange={onUpload}
                 disabled={uploading}
               />
-              {uploading ? "Wird hochgeladen..." : "PDF hochladen"}
+              {uploading ? "Wird hochgeladen…" : "PDF hochladen"}
             </label>
           ) : null}
         </div>

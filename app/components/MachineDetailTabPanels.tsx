@@ -718,6 +718,7 @@ export default function MachineDetailTabPanels({
           parts={maintenanceData.parts}
           canEdit={canWrite && isEditing}
           onChange={(parts) => setMaintenanceData({ parts })}
+          subgroup={machine.subgroup}
         />
       ) : activeTab === "Dokumentation" ? (
         <>
@@ -732,7 +733,7 @@ export default function MachineDetailTabPanels({
                 key={row.type}
                 label={row.label}
                 fileUrl={documentationData[row.urlKey]}
-                canUpload={canUploadDocuments ?? false}
+                canUpload={(canUploadDocuments ?? false) && isEditing}
                 uploading={uploadingDocument === row.type}
                 onUpload={(event) => onDocumentUpload?.(event, row.type)}
               />

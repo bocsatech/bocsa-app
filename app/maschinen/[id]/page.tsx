@@ -27,6 +27,7 @@ import type { MachineRecord } from "../../../lib/machines";
 import type { Machine } from "../../../lib/types/machine";
 import type { StammdatenField } from "../../../lib/machines";
 import { stripWorkOrdersFromTabData } from "../../../lib/machine-tab-data";
+import { buildArbeitsauftragDetailHref } from "../../../lib/arbeitsauftrag-routes";
 import { getWorkOrders } from "../../../lib/work-orders";
 
 const ARBEITSAUFTRAG_TYPES = ["Service", "Check", "Reparatur"] as const;
@@ -192,7 +193,10 @@ export default function MaschineDetailPage() {
 
   function openArbeitsauftrag(type: (typeof ARBEITSAUFTRAG_TYPES)[number]) {
     router.push(
-      `/arbeitsauftrag?machineId=${encodeURIComponent(machineId)}&status=${encodeURIComponent(type)}`
+      buildArbeitsauftragDetailHref({
+        machineId,
+        status: type,
+      })
     );
   }
   const [machine, setMachine] = useState<Machine | null>(null);
@@ -1180,6 +1184,7 @@ export default function MaschineDetailPage() {
                 parts={maintenanceData.parts}
                 canEdit={canWriteMachines}
                 onChange={(parts) => setMaintenanceData({ parts })}
+                subgroup={machine.subgroup}
               />
             ) : activeTab === "Dokumentation" ? (
               <div className="fieldGrid documentationGrid">
@@ -1188,7 +1193,7 @@ export default function MaschineDetailPage() {
                     key={row.type}
                     label={row.label}
                     fileUrl={documentationData[row.urlKey]}
-                    canUpload={canWriteMachines}
+                    canUpload={canWriteMachines && isEditing}
                     uploading={uploadingDocument === row.type}
                     onUpload={(event) => handleDocumentUpload(event, row.type)}
                   />
