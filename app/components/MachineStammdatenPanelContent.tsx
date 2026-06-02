@@ -6,6 +6,10 @@ import GeraetenummerPicker from "./GeraetenummerPicker";
 import MachineHeroMedia from "./MachineHeroMedia";
 import type { GeraetenummerCodesConfig, GeraetenummerPick } from "../../lib/geraetenummer";
 import {
+  canEditStammdatenField,
+  type SessionAuthSlice,
+} from "../../lib/machine-permissions";
+import {
   GERAETTYP_OPTIONS,
   STAMMDATEN_TRAILING_FIELD_KEYS,
   hasValue,
@@ -20,6 +24,7 @@ type Props = {
   stammdatenForm: StammdatenField[];
   isEditing: boolean;
   canWrite: boolean;
+  sessionAuth: SessionAuthSlice;
   onUpdateField: (index: number, value: string) => void;
   saveError?: string | null;
   mediaFooter?: ReactNode;
@@ -30,7 +35,16 @@ type Props = {
   onGeraetenummerPickChange?: (pick: GeraetenummerPick) => void;
   geraetenummerPreviewSequence?: number | null;
   geraetenummerPreviewLoading?: boolean;
+  /** Neuanlage: Identitätsfelder mit machines.create bearbeitbar */
+  creating?: boolean;
 };
+
+/** Feste Kopfreihenfolge im Stammdaten-Tab (Gerätegruppe direkt über Gerättyp). */
+export const STAMMDATEN_HEAD_FIELD_KEYS = [
+  "geraetenummer",
+  "subgroup",
+  "geraettyp",
+] as const;
 
 export function buildStammdatenRowsForDisplay(
   stammdatenForm: StammdatenField[],
@@ -47,22 +61,37 @@ export function buildStammdatenRowsForDisplay(
   if (options?.hideGeraetenummer) {
     rows = rows.filter((field) => field.dbKey !== "geraetenummer");
   }
-  if (isEditing && bezeichnungStammdaten) {
-    const geraeteIndex = rows.findIndex((field) => field.dbKey === "geraetenummer");
-    const insertAt = geraeteIndex >= 0 ? geraeteIndex + 1 : 0;
-    rows = [
-      ...rows.slice(0, insertAt),
-      bezeichnungStammdaten,
-      ...rows.slice(insertAt),
-    ];
-  }
-  const trailing = STAMMDATEN_TRAILING_FIELD_KEYS.flatMap((key) => {
-    const field = rows.find((row) => row.dbKey === key);
-    return field ? [field] : [];
-  });
+
   const trailingKeys = new Set<string>(STAMMDATEN_TRAILING_FIELD_KEYS);
-  const rest = rows.filter((field) => !field.dbKey || !trailingKeys.has(field.dbKey));
-  return [...rest, ...trailing];
+  const used = new Set<string>();
+  const ordered: StammdatenField[] = [];
+
+  function take(key: string) {
+    const field = rows.find((row) => row.dbKey === key);
+    if (!field?.dbKey || used.has(field.dbKey)) return;
+    ordered.push(field);
+    used.add(field.dbKey);
+  }
+
+  take("geraetenummer");
+  if (isEditing && bezeichnungStammdaten) {
+    ordered.push(bezeichnungStammdaten);
+    used.add("bezeichnung");
+  }
+  take("subgroup");
+  take("geraettyp");
+
+  for (const field of rows) {
+    if (!field.dbKey || used.has(field.dbKey) || trailingKeys.has(field.dbKey)) continue;
+    ordered.push(field);
+    used.add(field.dbKey);
+  }
+
+  for (const key of STAMMDATEN_TRAILING_FIELD_KEYS) {
+    take(key);
+  }
+
+  return ordered;
 }
 
 function StammdatenReadOnlyValue({
@@ -85,6 +114,7 @@ export default function MachineStammdatenPanelContent({
   stammdatenForm,
   isEditing,
   canWrite,
+  sessionAuth,
   onUpdateField,
   saveError = null,
   mediaFooter = null,
@@ -95,7 +125,9 @@ export default function MachineStammdatenPanelContent({
   onGeraetenummerPickChange,
   geraetenummerPreviewSequence = null,
   geraetenummerPreviewLoading = false,
+  creating = false,
 }: Props) {
+  const fieldEditOpts = creating ? { creating: true as const } : undefined;
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
   const stammdatenRowsForDisplay = buildStammdatenRowsForDisplay(
     stammdatenForm,
@@ -114,7 +146,9 @@ export default function MachineStammdatenPanelContent({
               onPickChange={onGeraetenummerPickChange}
               previewSequence={geraetenummerPreviewSequence}
               previewLoading={geraetenummerPreviewLoading}
-              disabled={!canWrite}
+              disabled={
+                !canEditStammdatenField(sessionAuth, "geraetenummer", isEditing, fieldEditOpts)
+              }
             />
           </>
         ) : null}
@@ -129,7 +163,9 @@ export default function MachineStammdatenPanelContent({
                     <input
                       type="text"
                       value={field.value}
-                      readOnly={!canWrite}
+                      readOnly={
+                        !canEditStammdatenField(sessionAuth, field.dbKey, isEditing, fieldEditOpts)
+                      }
                       onChange={(e) => onUpdateField(index, e.target.value)}
                       placeholder="Gerätenummer"
                     />
@@ -160,7 +196,15 @@ export default function MachineStammdatenPanelContent({
                   ) : (
                     <select
                       value={field.value}
-                      disabled={useStructuredGeraetenummer}
+                      disabled={
+                        useStructuredGeraetenummer ||
+                        !canEditStammdatenField(
+                          sessionAuth,
+                          field.dbKey,
+                          isEditing,
+                          fieldEditOpts
+                        )
+                      }
                       onChange={(e) => onUpdateField(index, e.target.value)}
                     >
                       <option value="">Gerättyp</option>
@@ -206,7 +250,9 @@ export default function MachineStammdatenPanelContent({
                       type="text"
                       inputMode={field.type === "number" ? "decimal" : undefined}
                       value={field.value}
-                      readOnly={!canWrite}
+                      readOnly={
+                        !canEditStammdatenField(sessionAuth, field.dbKey, isEditing, fieldEditOpts)
+                      }
                       onChange={(e) =>
                         onUpdateField(
                           index,

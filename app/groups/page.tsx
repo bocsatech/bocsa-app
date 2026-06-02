@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
+import { MACHINE_ADMIN_PERMISSION_DEFS } from "../../lib/machine-permissions";
 import { supabase } from "../../lib/supabase";
 
 type AppUser = {
@@ -33,6 +34,73 @@ type UserGroup = {
   group_id: string;
 };
 
+const EXPECTED_MENU_PERMISSIONS: Permission[] = [
+  {
+    key: "menu.dashboard",
+    label: "Menü: Home",
+    description: "Home im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.machines",
+    label: "Menü: Baumaschinen",
+    description: "Baumaschinen-Bereich im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.kunden",
+    label: "Menü: PKW",
+    description: "PKW/Kunden-Bereich im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.pkw_service",
+    label: "Menü: PKW-Service",
+    description: "PKW-Service im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.warehouse",
+    label: "Menü: Lager",
+    description: "Lager-Bereich im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.hours",
+    label: "Menü: Arbeitsstunden",
+    description: "Arbeitsstunden im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.branches",
+    label: "Menü: Filialen",
+    description: "Filialen im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.qr",
+    label: "Menü: QR-Code",
+    description: "QR-Code im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.users",
+    label: "Menü: Benutzer",
+    description: "Benutzer im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+  {
+    key: "menu.groups",
+    label: "Menü: Gruppen",
+    description: "Gruppen im Seitenmenü anzeigen.",
+    category: "Seitenmenü",
+  },
+];
+
+function isMenuPermission(permissionKey: string) {
+  return permissionKey.startsWith("menu.");
+}
+
 export default function GroupsPage() {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [groups, setGroups] = useState<PermissionGroup[]>([]);
@@ -46,17 +114,10 @@ export default function GroupsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(true);
 
   const selectedGroup = groups.find((group) => group.id === selectedGroupId) ?? null;
-
-  const permissionsByCategory = useMemo(() => {
-    return permissions.reduce<Record<string, Permission[]>>((acc, permission) => {
-      const category = permission.category || "general";
-      acc[category] = acc[category] ?? [];
-      acc[category].push(permission);
-      return acc;
-    }, {});
-  }, [permissions]);
 
   const usersInSelectedGroup = useMemo(() => {
     if (!selectedGroupId) return [];
@@ -119,6 +180,17 @@ export default function GroupsPage() {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    fetch("/api/auth/session", { credentials: "include", cache: "no-store" })
+      .then((response) => response.json().catch(() => ({})))
+      .then((data) => {
+        const username = String(data?.username ?? "").trim().toLowerCase();
+        const groups = Array.isArray(data?.groups) ? data.groups : [];
+        setIsAdmin(username === "admin" || groups.includes("Admin"));
+      })
+      .finally(() => setAdminLoading(false));
+  }, []);
+
   async function createGroup() {
     const name = newGroupName.trim();
     if (!name) return;
@@ -146,6 +218,10 @@ export default function GroupsPage() {
 
   async function togglePermission(permissionKey: string, enabled: boolean) {
     if (!selectedGroupId) return;
+    if (isMenuPermission(permissionKey) && !isAdmin) {
+      setError("Menü-Rechte können nur Admin-Benutzer ändern.");
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -206,6 +282,35 @@ export default function GroupsPage() {
         permission.permission_key === permissionKey
     );
   }
+
+  const permissionsWithMenus = useMemo(() => {
+    const map = new Map(permissions.map((permission) => [permission.key, permission]));
+    for (const menuPermission of EXPECTED_MENU_PERMISSIONS) {
+      if (!map.has(menuPermission.key)) {
+        map.set(menuPermission.key, menuPermission);
+      }
+    }
+    for (const machinePermission of MACHINE_ADMIN_PERMISSION_DEFS) {
+      if (!map.has(machinePermission.key)) {
+        map.set(machinePermission.key, {
+          key: machinePermission.key,
+          label: machinePermission.label,
+          description: machinePermission.description,
+          category: "Maschinen",
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [permissions]);
+
+  const permissionsByCategory = useMemo(() => {
+    return permissionsWithMenus.reduce<Record<string, Permission[]>>((acc, permission) => {
+      const category = permission.category || "general";
+      acc[category] = acc[category] ?? [];
+      acc[category].push(permission);
+      return acc;
+    }, {});
+  }, [permissionsWithMenus]);
 
   return (
     <AppPageShell
@@ -319,6 +424,9 @@ export default function GroupsPage() {
 
               <div className="permissionBox">
                 <h2>Gruppenrechte</h2>
+                {!adminLoading && !isAdmin ? (
+                  <p className="subtitle">Hinweis: Menü-Rechte sind nur für Admin bearbeitbar.</p>
+                ) : null}
                 {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
                   <div key={category} className="permissionCategory">
                     <h3>{category}</h3>
@@ -328,7 +436,11 @@ export default function GroupsPage() {
                           type="checkbox"
                           checked={groupHasPermission(permission.key)}
                           onChange={(event) => togglePermission(permission.key, event.target.checked)}
-                          disabled={!selectedGroupId || saving}
+                          disabled={
+                            !selectedGroupId ||
+                            saving ||
+                            (isMenuPermission(permission.key) && !isAdmin)
+                          }
                         />
                         <span>
                           <strong>{permission.label}</strong>

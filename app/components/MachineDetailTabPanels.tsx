@@ -4,6 +4,7 @@ import type { ChangeEvent, ReactNode } from "react";
 import DocumentationDocumentRow from "./DocumentationDocumentRow";
 import MaintenanceLagerParts from "./MaintenanceLagerParts";
 import MachineStammdatenPanelContent from "./MachineStammdatenPanelContent";
+import type { SessionAuthSlice } from "../../lib/machine-permissions";
 import type { GeraetenummerCodesConfig, GeraetenummerPick } from "../../lib/geraetenummer";
 import type { StammdatenField } from "../../lib/machines";
 import type { Machine } from "../../lib/types/machine";
@@ -24,6 +25,8 @@ type Props = {
   activeTab: MachineDetailTab;
   isEditing: boolean;
   canWrite: boolean;
+  sessionAuth: SessionAuthSlice;
+  creating?: boolean;
   machine: Machine;
   stammdatenForm: StammdatenField[];
   onUpdateStammdatenField: (index: number, value: string) => void;
@@ -59,6 +62,8 @@ export default function MachineDetailTabPanels({
   activeTab,
   isEditing,
   canWrite,
+  sessionAuth,
+  creating = false,
   machine,
   stammdatenForm,
   onUpdateStammdatenField,
@@ -95,6 +100,8 @@ export default function MachineDetailTabPanels({
           stammdatenForm={stammdatenForm}
           isEditing={isEditing}
           canWrite={canWrite}
+          sessionAuth={sessionAuth}
+          creating={creating}
           onUpdateField={onUpdateStammdatenField}
           saveError={saveError}
           showQrCode={showQrCode}

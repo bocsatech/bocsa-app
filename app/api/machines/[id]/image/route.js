@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentUserIsInGroup } from "../../../../../lib/auth/permissions";
+import { canManageMachineMedia } from "../../../../../lib/machine-permissions-server.mjs";
 import { normalizeMachineImage } from "../../../../../lib/machine-image.mjs";
 import { getSupabaseAdmin } from "../../../../../lib/supabaseAdmin";
 
@@ -46,9 +46,9 @@ async function saveImageFile(db, buffer, filename, contentType) {
 }
 
 export async function POST(request, { params }) {
-  if (!(await currentUserIsInGroup("Admin"))) {
+  if (!(await canManageMachineMedia())) {
     return NextResponse.json(
-      { error: "Nur Admin-Benutzer dürfen Maschinenbilder hochladen." },
+      { error: "Keine Berechtigung: machines.media erforderlich." },
       { status: 403 }
     );
   }

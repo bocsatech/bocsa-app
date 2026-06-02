@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
+import { canManageGeraetenummerCodes } from "../../../../lib/machine-permissions-server.mjs";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import {
   addGeraetenummerCode,
@@ -32,9 +33,9 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  if (!(await currentUserHasPermission("machines.write"))) {
+  if (!(await canManageGeraetenummerCodes())) {
     return NextResponse.json(
-      { error: "Keine Berechtigung: machines.write erforderlich." },
+      { error: "Keine Berechtigung: machines.geraetenummer_codes erforderlich." },
       { status: 403 }
     );
   }
@@ -59,9 +60,9 @@ export async function POST(request) {
 }
 
 export async function PATCH(request) {
-  if (!(await currentUserHasPermission("machines.write"))) {
+  if (!(await canManageGeraetenummerCodes())) {
     return NextResponse.json(
-      { error: "Keine Berechtigung: machines.write erforderlich." },
+      { error: "Keine Berechtigung: machines.geraetenummer_codes erforderlich." },
       { status: 403 }
     );
   }

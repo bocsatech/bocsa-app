@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentUserIsInGroup } from "../../../../lib/auth/permissions";
+import { canManageMachineMedia } from "../../../../lib/machine-permissions-server.mjs";
 import { isStructuredGeraetenummer } from "../../../../lib/geraetenummer.ts";
 import { persistMachineQrCode } from "../../../../lib/machine-qr.mjs";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
@@ -12,8 +12,11 @@ const MACHINE_COLUMNS = "*";
 
 /** Admin: QR-Codes für alle Maschinen mit neuem Gerätenummer-Format neu generieren. */
 export async function POST(request) {
-  if (!(await currentUserIsInGroup("Admin"))) {
-    return NextResponse.json({ error: "Nur Admin." }, { status: 403 });
+  if (!(await canManageMachineMedia())) {
+    return NextResponse.json(
+      { error: "Keine Berechtigung: machines.media erforderlich." },
+      { status: 403 }
+    );
   }
 
   const db = getSupabaseAdmin();

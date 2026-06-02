@@ -14,6 +14,11 @@ import {
   resolveMachineFromScan,
 } from "../../lib/machines";
 import { supabase } from "../../lib/supabase";
+import {
+  canMachineCreate,
+  canMachineGeraetenummerCodes,
+  type SessionAuthSlice,
+} from "../../lib/machine-permissions";
 import type { Machine } from "../../lib/types/machine";
 
 type MachineFilters = {
@@ -43,7 +48,13 @@ function MaschinenPageContent() {
   const [qrOpen, setQrOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [codesOpen, setCodesOpen] = useState(false);
-  const [canWriteMachines, setCanWriteMachines] = useState(false);
+  const [sessionAuth, setSessionAuth] = useState<SessionAuthSlice>({
+    permissions: [],
+    groups: [],
+  });
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const canCreateMachine = canMachineCreate(sessionAuth);
+  const canGeraetenummerCodes = canMachineGeraetenummerCodes(sessionAuth);
 
   const loadMachines = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) {
@@ -68,14 +79,16 @@ function MaschinenPageContent() {
   }, [loadMachines]);
 
   useEffect(() => {
-    const geraettyp = searchParams.get("geraettyp");
-    const geraetenummer = searchParams.get("geraetenummer");
-    if (!geraettyp && !geraetenummer) return;
+    const hasTyp = searchParams.has("geraettyp");
+    const hasNummer = searchParams.has("geraetenummer");
+    if (!hasTyp && !hasNummer) return;
 
     setFilters((current) => ({
       ...current,
-      ...(geraettyp ? { geraettyp } : {}),
-      ...(geraetenummer ? { geraetenummer } : {}),
+      ...(hasTyp ? { geraettyp: searchParams.get("geraettyp")?.trim() ?? "" } : {}),
+      ...(hasNummer
+        ? { geraetenummer: searchParams.get("geraetenummer")?.trim() ?? "" }
+        : {}),
     }));
   }, [searchParams]);
 
@@ -87,14 +100,24 @@ function MaschinenPageContent() {
   }
 
   useEffect(() => {
+    if (!authLoaded) return;
+
     const aktion = searchParams.get("aktion");
     if (aktion === "hinzufuegen") {
+      if (!canCreateMachine) {
+        clearMaschinenAktion();
+        return;
+      }
       setAddOpen(true);
       setCodesOpen(false);
       setQrOpen(false);
       return;
     }
     if (aktion === "geraetenummer-codes") {
+      if (!canGeraetenummerCodes) {
+        clearMaschinenAktion();
+        return;
+      }
       setCodesOpen(true);
       setAddOpen(false);
       setQrOpen(false);
@@ -109,7 +132,7 @@ function MaschinenPageContent() {
     setQrOpen(false);
     setAddOpen(false);
     setCodesOpen(false);
-  }, [searchParams]);
+  }, [searchParams, authLoaded, canCreateMachine, canGeraetenummerCodes]);
 
   useEffect(() => {
     async function loadPermissions() {
@@ -118,7 +141,12 @@ function MaschinenPageContent() {
         credentials: "include",
       });
       const result = await response.json().catch(() => ({}));
-      setCanWriteMachines(Boolean(result.permissions?.includes("machines.write")));
+      setSessionAuth({
+        permissions: result.permissions ?? [],
+        groups: result.groups ?? [],
+        username: result.username ?? result.user?.username,
+      });
+      setAuthLoaded(true);
     }
 
     loadPermissions();
@@ -325,7 +353,8 @@ function MaschinenPageContent() {
 
       <MachineAddModal
         open={addOpen}
-        canWrite={canWriteMachines}
+        canCreate={canCreateMachine}
+        sessionAuth={sessionAuth}
         onClose={() => {
           setAddOpen(false);
           if (searchParams.get("aktion") === "hinzufuegen") clearMaschinenAktion();
@@ -335,7 +364,7 @@ function MaschinenPageContent() {
 
       <GeraetenummerCodesModal
         open={codesOpen}
-        canWrite={canWriteMachines}
+        canWrite={canGeraetenummerCodes}
         onClose={() => {
           setCodesOpen(false);
           if (searchParams.get("aktion") === "geraetenummer-codes") clearMaschinenAktion();

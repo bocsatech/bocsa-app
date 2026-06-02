@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
-import { currentUserHasPermission } from "../../../lib/auth/permissions";
+import { canCreateMachine } from "../../../lib/machine-permissions-server.mjs";
 import { isStructuredGeraetenummer } from "../../../lib/geraetenummer.ts";
 import { persistMachineQrCode } from "../../../lib/machine-qr.mjs";
 import {
@@ -197,9 +197,9 @@ export async function POST(request) {
     return NextResponse.json({ error: "Supabase ist nicht konfiguriert." }, { status: 500 });
   }
 
-  if (!(await currentUserHasPermission("machines.write"))) {
+  if (!(await canCreateMachine())) {
     return NextResponse.json(
-      { error: "Keine Berechtigung: machines.write erforderlich." },
+      { error: "Keine Berechtigung: machines.create erforderlich." },
       { status: 403 }
     );
   }

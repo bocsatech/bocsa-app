@@ -28,6 +28,12 @@ import type { Machine } from "../../../lib/types/machine";
 import type { StammdatenField } from "../../../lib/machines";
 import { stripWorkOrdersFromTabData } from "../../../lib/machine-tab-data";
 import { buildArbeitsauftragDetailHref } from "../../../lib/arbeitsauftrag-routes";
+import {
+  canMachineDelete,
+  canMachineMedia,
+  canMachineWrite,
+  type SessionAuthSlice,
+} from "../../../lib/machine-permissions";
 import { getWorkOrders } from "../../../lib/work-orders";
 
 const ARBEITSAUFTRAG_TYPES = ["Service", "Check", "Reparatur"] as const;
@@ -206,9 +212,13 @@ export default function MaschineDetailPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [canWriteMachines, setCanWriteMachines] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [canUploadImages, setCanUploadImages] = useState(false);
+  const [sessionAuth, setSessionAuth] = useState<SessionAuthSlice>({
+    permissions: [],
+    groups: [],
+  });
+  const canWriteMachines = canMachineWrite(sessionAuth);
+  const canDeleteMachine = canMachineDelete(sessionAuth);
+  const canManageMedia = canMachineMedia(sessionAuth);
   const [deleting, setDeleting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDocument, setUploadingDocument] = useState<MachineDocumentType | null>(null);
@@ -295,9 +305,11 @@ export default function MaschineDetailPage() {
       });
       const result = await response.json().catch(() => ({}));
       setIsAuthenticated(response.ok && Boolean(result.user));
-      setCanWriteMachines(Boolean(result.permissions?.includes("machines.write")));
-      setIsAdmin(Array.isArray(result.groups) && result.groups.includes("Admin"));
-      setCanUploadImages(Boolean(result.groups?.includes("Admin")));
+      setSessionAuth({
+        permissions: result.permissions ?? [],
+        groups: result.groups ?? [],
+        username: result.username ?? result.user?.username,
+      });
       setAuthChecked(true);
     }
 
@@ -385,8 +397,8 @@ export default function MaschineDetailPage() {
     event.target.value = "";
     if (!file || !machine) return;
 
-    if (!canUploadImages) {
-      setSaveError("Nur Admin-Benutzer dürfen Maschinenbilder hochladen.");
+    if (!canManageMedia) {
+      setSaveError("Keine Berechtigung: machines.media erforderlich.");
       return;
     }
 
@@ -455,7 +467,7 @@ export default function MaschineDetailPage() {
   }
 
   async function handleDeleteMachine() {
-    if (!machine || !isAdmin) return;
+    if (!machine || !canDeleteMachine) return;
 
     const label = formatValue(machine.geraetenummer);
     const confirmed = window.confirm(
@@ -587,7 +599,7 @@ export default function MaschineDetailPage() {
               >
                 {saving ? "Speichern..." : "Speichern"}
               </button>
-              {isAdmin ? (
+              {canDeleteMachine ? (
                 <button
                   type="button"
                   className="pillButton outline dangerButton"
@@ -638,10 +650,11 @@ export default function MaschineDetailPage() {
                 stammdatenForm={stammdatenForm}
                 isEditing={isEditing}
                 canWrite={canWriteMachines}
+                sessionAuth={sessionAuth}
                 onUpdateField={updateStammdatenField}
                 saveError={saveError}
                 mediaFooter={
-                  canUploadImages && isEditing ? (
+                  canManageMedia && isEditing ? (
                     <label className="pillButton outline machineImageUploadInline">
                       <input
                         type="file"
