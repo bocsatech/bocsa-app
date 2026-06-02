@@ -1,12 +1,11 @@
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-export const ARBEITSAUFTRAG_LIST_PATH = "/arbeitsauftrag";
-export const ARBEITSAUFTRAG_DETAIL_PATH = "/arbeitsauftrag/detail";
+export const PKW_ARBEITSAUFTRAG_LIST_PATH = "/pkw/arbeitsauftrag";
+export const PKW_ARBEITSAUFTRAG_DETAIL_PATH = "/pkw/arbeitsauftrag/detail";
 
 type DetailHrefParams = {
-  machineId: string;
+  fahrzeugId: string;
   auftragId?: string | null;
-  /** Fallback, wenn nur Auftrag-Nr. in Lagerbewegungen gespeichert ist */
   auftragNr?: string | null;
   status?: string | null;
   type?: string | null;
@@ -16,9 +15,9 @@ type DetailHrefParams = {
   new?: boolean;
 };
 
-export function buildArbeitsauftragDetailHref(params: DetailHrefParams): string {
+export function buildPkwArbeitsauftragDetailHref(params: DetailHrefParams): string {
   const search = new URLSearchParams();
-  search.set("machineId", params.machineId);
+  search.set("fahrzeugId", params.fahrzeugId);
   if (params.auftragId) search.set("auftragId", params.auftragId);
   else if (params.auftragNr?.trim()) search.set("auftragNr", params.auftragNr.trim());
   if (params.status?.trim()) search.set("status", params.status.trim());
@@ -27,13 +26,12 @@ export function buildArbeitsauftragDetailHref(params: DetailHrefParams): string 
   if (params.edit) search.set("edit", "1");
   if (params.print) search.set("print", "1");
   if (params.from?.trim()) search.set("from", params.from.trim());
-  return `${ARBEITSAUFTRAG_DETAIL_PATH}?${search.toString()}`;
+  return `${PKW_ARBEITSAUFTRAG_DETAIL_PATH}?${search.toString()}`;
 }
 
-/** Detail-Ansicht (Formular), nicht die Listenübersicht. */
-export function shouldShowArbeitsauftragDetail(searchParams: URLSearchParams): boolean {
-  const machineId = searchParams.get("machineId");
-  if (!machineId) return false;
+export function shouldShowPkwArbeitsauftragDetail(searchParams: URLSearchParams): boolean {
+  const fahrzeugId = searchParams.get("fahrzeugId");
+  if (!fahrzeugId) return false;
 
   const auftragId = searchParams.get("auftragId");
   const auftragNr = searchParams.get("auftragNr");
@@ -45,10 +43,10 @@ export function shouldShowArbeitsauftragDetail(searchParams: URLSearchParams): b
   return Boolean(auftragId || auftragNr?.trim() || isNew || hasType);
 }
 
-export function isArbeitsauftragDetailPath(pathname: string): boolean {
-  return pathname === ARBEITSAUFTRAG_DETAIL_PATH;
+export function isPkwArbeitsauftragDetailPath(pathname: string): boolean {
+  return pathname === PKW_ARBEITSAUFTRAG_DETAIL_PATH;
 }
 
-export function navigateToArbeitsauftragList(router: AppRouterInstance): void {
-  router.push(ARBEITSAUFTRAG_LIST_PATH, { scroll: true });
+export function navigateToPkwArbeitsauftragList(router: AppRouterInstance): void {
+  router.push(PKW_ARBEITSAUFTRAG_LIST_PATH, { scroll: true });
 }

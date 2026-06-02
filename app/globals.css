@@ -2847,6 +2847,24 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   background: #f0fdf4;
 }
 
+.lagerBewegungReferenzLink {
+  color: #c2410c;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.lagerBewegungReferenzLink:hover {
+  color: #9a3412;
+}
+
+.machineTable td .lagerBewegungReferenzLink {
+  display: inline-block;
+  padding: 2px 0;
+  min-height: 2.75rem;
+  line-height: 1.35;
+}
+
 .lagerThumb,
 .lagerThumbPlaceholder {
   width: 44px;

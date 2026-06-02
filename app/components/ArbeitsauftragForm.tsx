@@ -56,6 +56,8 @@ import type { Machine } from "../../lib/types/machine";
 type Props = {
   machineId: string;
   auftragId?: string | null;
+  /** Aus Lagerbewegungen: Auftrag-Nr. statt UUID */
+  initialAuftragNr?: string | null;
   initialType?: string | null;
   autoPrint?: boolean;
   /** Bestehender Auftrag: true = volles Bearbeiten-Formular */
@@ -65,6 +67,7 @@ type Props = {
 export default function ArbeitsauftragForm({
   machineId,
   auftragId,
+  initialAuftragNr,
   initialType,
   autoPrint = false,
   editMode = false,
@@ -91,7 +94,8 @@ export default function ArbeitsauftragForm({
   const [vorlageSaving, setVorlageSaving] = useState(false);
 
   const isNew = !auftragId && Boolean(initialType?.trim());
-  const isViewMode = Boolean(auftragId) && !isNew && !editMode;
+  const isViewMode =
+    Boolean(auftragId || initialAuftragNr?.trim()) && !isNew && !editMode;
 
   const viewHref = buildArbeitsauftragDetailHref({
     machineId,
@@ -142,9 +146,14 @@ export default function ArbeitsauftragForm({
 
     setMachine(data);
     const orders = getWorkOrders(data);
-    const existing = auftragId ? orders.find((item) => item.id === auftragId) : null;
+    const nrQuery = initialAuftragNr?.trim();
+    const existing = auftragId
+      ? orders.find((item) => item.id === auftragId)
+      : nrQuery
+        ? orders.find((item) => (item.auftragNr?.trim() ?? "") === nrQuery)
+        : null;
 
-    if (auftragId && !existing) {
+    if ((auftragId || nrQuery) && !existing) {
       setError("Arbeitsauftrag nicht gefunden. Bitte aus der Liste erneut öffnen.");
       setOrder(null);
       setLoading(false);
@@ -197,7 +206,7 @@ export default function ArbeitsauftragForm({
     }
 
     setLoading(false);
-  }, [auftragId, initialType, machineId]);
+  }, [auftragId, initialAuftragNr, initialType, machineId]);
 
   useEffect(() => {
     load();

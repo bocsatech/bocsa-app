@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../../components/AppPageShell";
 import LagerBestandBadge from "../../components/LagerBestandBadge";
+import LagerBewegungReferenzLink from "../../components/LagerBewegungReferenzLink";
 import {
   bewegungTypLabel,
   buildLagerFahrzeugBedarf,
@@ -203,7 +204,9 @@ export default function LagerMeldungenPage() {
                       <strong>{formatLagerValue(row.teil?.herstellernummer)}</strong>
                     </td>
                     <td>{formatLagerNumber(row.menge)}</td>
-                    <td>{formatLagerValue(row.referenz)}</td>
+                    <td>
+                      <LagerBewegungReferenzLink row={row} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
