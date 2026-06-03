@@ -733,21 +733,35 @@ button, input, select, textarea {
 
 @media (max-width: 760px) {
   /* Ein Scroll-Container (.appPageScroll) — zuverlässig auf iOS */
-  html.app-shell-root,
+  html:has(.appShell),
+  html.app-shell-root {
+    height: 100%;
+    max-height: 100dvh;
+    max-height: 100svh;
+    max-height: -webkit-fill-available;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  body:has(.appShell),
   body.app-shell-body {
     height: 100%;
     max-height: 100dvh;
     max-height: 100svh;
+    max-height: -webkit-fill-available;
+    max-width: 100%;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     min-height: 0;
   }
 
+  body:has(.appShell) > main.workorderPage.appShell,
   body.app-shell-body > main.workorderPage.appShell {
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
+    max-width: 100%;
   }
 
   .workorderPage,
@@ -756,10 +770,14 @@ button, input, select, textarea {
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
+    width: 100%;
+    max-width: 100%;
     height: 100%;
     max-height: 100dvh;
     max-height: 100svh;
+    max-height: -webkit-fill-available;
     overflow: hidden;
+    grid-template-columns: 1fr;
   }
 
   .sidebar {
@@ -874,15 +892,101 @@ button, input, select, textarea {
     touch-action: pan-y;
   }
 
-  /* PKW Kunden / Service: kein verschachtelter Scroll, nur .appPageScroll */
+  /* PKW Kunden: ein Scroll-Container, kein horizontales Überlaufen */
+  .pkwKundenPage.pageContent {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .pkwKundenPage .appPageTopBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .pkwKundenPage .appPageTopBar .detailTopActions {
+    width: 100%;
+  }
+
   .pkwKundenPage .pkwPageStack,
   .pkwKundenPage .pkwPageStack > .card {
     overflow: visible;
     min-height: 0;
+    max-width: 100%;
+  }
+
+  .pkwKundenPage .pkwPageStack > .card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .pkwKundenPage .pkwToolbar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .pkwKundenPage .pkwSearchInput {
     font-size: 16px;
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .pkwKundenPage .pkwKundenGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .pkwKundenPage .pkwKundeCard {
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+  }
+
+  .pkwKundenPage .pkwKundeCardHead {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pkwKundenPage .pkwKundeCardHead .subtitle,
+  .pkwKundenPage .pkwPinHint {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .pkwKundenPage .pkwCardActions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .pkwKundenPage .pkwCardActions .secondaryBtn {
+    flex: 1 1 calc(50% - 0.2rem);
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .pkwKundenPage .pkwFahrzeugList li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.5rem;
+  }
+
+  .pkwKundenPage .linkBtn {
+    margin-left: 0;
+    min-height: 44px;
+    padding: 6px 0;
+  }
+
+  .pkwKundenPage .appPageTopBar .primaryBtn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .pkwKundenPage .pkwModal {
+    width: calc(100% - 1rem);
+    max-height: min(90dvh, -webkit-fill-available);
   }
 
   .machineTableWrap {
@@ -4173,7 +4277,7 @@ body.lagerPickerOpen {
 
 .pkwKundenGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 1rem;
 }
 
