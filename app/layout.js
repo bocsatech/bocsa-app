@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import PwaRegistrar from "./components/PwaRegistrar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,6 +15,26 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Bocsa App",
   description: "Betrieb, Maschinen, Lager und PKW-Service.",
+  applicationName: "Bocsa",
+  appleWebApp: {
+    capable: true,
+    title: "Bocsa",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: "/icons/bocsa-icon.svg",
+    apple: "/icons/bocsa-icon.svg",
+  },
+};
+
+export const viewport = {
+  themeColor: "#ea580c",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }) {
@@ -22,7 +43,10 @@ export default function RootLayout({ children }) {
       lang="de"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <PwaRegistrar />
+        {children}
+      </body>
     </html>
   );
 }

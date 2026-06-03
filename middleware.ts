@@ -4,6 +4,8 @@ import { verifySessionToken } from "./lib/auth/session";
 
 const PUBLIC_PATHS = [
   "/login",
+  "/start",
+  "/home-icons",
   "/pkw/buchen",
   "/images",
   "/qr-codes",
@@ -56,7 +58,9 @@ export async function middleware(request: NextRequest) {
     isPublicPkwApi(request) ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
-    pathname === "/favicon.ico"
+    pathname === "/favicon.ico" ||
+    pathname === "/sw.js" ||
+    pathname.startsWith("/icons/")
   ) {
     return NextResponse.next();
   }

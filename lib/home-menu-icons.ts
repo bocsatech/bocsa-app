@@ -1,0 +1,55 @@
+export const HOME_PHOTO_ICON_NAMES = [
+  "kleingeraet",
+  "grossgeraet",
+  "elektrogeraet",
+  "pkw",
+  "pkw-service",
+  "pruefprotokoll",
+  "ersatzteile",
+] as const;
+
+export const HOME_MENU_ICON_NAMES = [
+  "kleingeraet",
+  "grossgeraet",
+  "elektrogeraet",
+  "baumaschinen",
+  "arbeitsauftrag",
+  "pruefprotokoll",
+  "pkw",
+  "pkw-service",
+  "lager",
+  "ersatzteile",
+  "meldungen",
+  "lager-meldungen",
+  "bewegungen",
+  "inventur",
+  "arbeitsstunden",
+  "filialen",
+  "qr",
+  "kunden",
+  "kunden-portal",
+] as const;
+
+export type HomeMenuIconName = (typeof HOME_MENU_ICON_NAMES)[number];
+
+export const HOME_MENU_ICON_LABELS: Record<HomeMenuIconName, string> = {
+  kleingeraet: "Kleingerät",
+  grossgeraet: "Großgerät",
+  elektrogeraet: "Elektrogerät",
+  baumaschinen: "Baumaschinen",
+  arbeitsauftrag: "Bauarbeitsauftrag",
+  pruefprotokoll: "Bauprüfprotokoll",
+  pkw: "PKW",
+  "pkw-service": "PKW-Service",
+  lager: "Lager",
+  ersatzteile: "Ersatzteile",
+  meldungen: "Meldungen",
+  "lager-meldungen": "Lager-Meldungen",
+  bewegungen: "Bewegungen",
+  inventur: "Inventur",
+  arbeitsstunden: "Arbeitsstunden",
+  filialen: "Filialen",
+  qr: "QR-Code",
+  kunden: "Kunden",
+  "kunden-portal": "Kundenportal",
+};
