@@ -947,40 +947,7 @@ button, input, select, textarea {
     padding: 6px 0;
   }
 
-  /* /kunden — nur Mobil: kein Scroll-Hack, normales Seiten-Scrollen */
-  html.kunden-route-mobile,
-  body.kunden-route-mobile:has(.appShell) {
-    height: auto;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  body.kunden-route-mobile .workorderPage:has(.kundenListPage) {
-    height: auto;
-    min-height: 100dvh;
-    max-height: none;
-    overflow: visible;
-    grid-template-rows: auto minmax(0, auto);
-  }
-
-  body.kunden-route-mobile .kundenListPage.pageContent {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-
-  body.kunden-route-mobile .kundenListMain {
-    padding: 16px;
-    overflow: visible;
-    flex: none;
-    height: auto;
-    max-height: none;
-  }
-
+  /* /kunden — nur Mobil: Layout + keine Zurück/Abmelden (kein Scroll-Sonder-CSS) */
   .kundenListPage .appPageTopBar {
     flex-direction: column;
     align-items: stretch;
@@ -993,7 +960,6 @@ button, input, select, textarea {
 
   .kundenListPage .pkwPageStack,
   .kundenListPage .pkwPageStack > .card {
-    overflow: visible;
     max-width: 100%;
   }
 
@@ -1060,12 +1026,14 @@ button, input, select, textarea {
     padding: 6px 0;
   }
 
-  /* /kunden Mobil: kein Zurück, kein Beenden/Abmelden */
-  body.kunden-route-mobile .workorderPage:has(.kundenListPage) .mobileBackBar,
-  body.kunden-route-mobile .workorderPage:has(.kundenListPage) .mobileBackBarAlways,
-  body.kunden-route-mobile .workorderPage:has(.kundenListPage) .logoutButton,
-  body.kunden-route-mobile .pkwPortalNavDock,
-  body.kunden-route-mobile .pkwPortalNavBar {
+  .workorderPage:has(.kundenListPage) .mobileBackBar,
+  .workorderPage:has(.kundenListPage) .mobileBackBarAlways,
+  .workorderPage:has(.kundenListPage) .logoutButton {
+    display: none !important;
+  }
+
+  body:has(.kundenListPage) .pkwPortalNavDock,
+  body:has(.kundenListPage) .pkwPortalNavBar {
     display: none !important;
   }
 

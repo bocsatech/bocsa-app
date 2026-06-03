@@ -6,7 +6,7 @@ import AppSidebar from "./AppSidebar";
 type Props = {
   activeHref?: string;
   subtitle?: string;
-  /** @deprecated Mobil-Zurück-Leiste entfernt (Scroll-Stand 02.06.) */
+  /** @deprecated */
   backFallbackHref?: string;
   /** @deprecated */
   hideMobileBackBar?: boolean;
@@ -18,8 +18,6 @@ type Props = {
   mainClassName?: string;
   contentClassName?: string;
   scrollClassName?: string;
-  /** Kein .appPageScroll-Wrapper (z. B. /kunden Mobil) */
-  noInnerScroll?: boolean;
 };
 
 export default function AppPageShell({
@@ -32,7 +30,6 @@ export default function AppPageShell({
   mainClassName,
   contentClassName,
   scrollClassName,
-  noInnerScroll = false,
 }: Props) {
   const hasTop = Boolean(top || title || actions);
 
@@ -50,15 +47,9 @@ export default function AppPageShell({
           </header>
         ) : null}
 
-        {noInnerScroll ? (
-          <div className={["kundenListMain", scrollClassName].filter(Boolean).join(" ")}>
-            {children}
-          </div>
-        ) : (
-          <div className={["appPageScroll", scrollClassName].filter(Boolean).join(" ")}>
-            {children}
-          </div>
-        )}
+        <div className={["appPageScroll", scrollClassName].filter(Boolean).join(" ")}>
+          {children}
+        </div>
       </section>
     </main>
   );
