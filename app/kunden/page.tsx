@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
+import { useKundenMobileBody } from "../../lib/use-kunden-mobile-body";
 import KundeModal from "../components/KundeModal";
 import PkwFahrzeugModal from "../components/PkwFahrzeugModal";
 import {
@@ -18,6 +19,7 @@ import { hasPkwKundenRead, hasPkwKundenWrite } from "../../lib/pkw-permissions";
 import type { Kunde, PkwFahrzeug } from "../../lib/types/pkw";
 
 export default function KundenPage() {
+  useKundenMobileBody();
   const router = useRouter();
   const [kunden, setKunden] = useState<Kunde[]>([]);
   const [fahrzeuge, setFahrzeuge] = useState<PkwFahrzeug[]>([]);
@@ -145,7 +147,12 @@ export default function KundenPage() {
 
   if (!authChecked) {
     return (
-      <AppPageShell activeHref="/kunden" subtitle="PKW" contentClassName="pkwKundenPage">
+      <AppPageShell
+        activeHref="/kunden"
+        subtitle="PKW"
+        contentClassName="kundenListPage"
+        noInnerScroll
+      >
         <p className="subtitle">Laden…</p>
       </AppPageShell>
     );
@@ -153,7 +160,12 @@ export default function KundenPage() {
 
   if (!canRead && !kundeModalOpen && !fahrzeugModalOpen) {
     return (
-      <AppPageShell activeHref="/kunden" subtitle="PKW" contentClassName="pkwKundenPage">
+      <AppPageShell
+        activeHref="/kunden"
+        subtitle="PKW"
+        contentClassName="kundenListPage"
+        noInnerScroll
+      >
         <p className="errorText">Keine Berechtigung: pkw.kunden.read</p>
       </AppPageShell>
     );
@@ -163,7 +175,8 @@ export default function KundenPage() {
     <AppPageShell
       activeHref="/kunden"
       subtitle="PKW · Kunden"
-      contentClassName="pkwKundenPage"
+      contentClassName="kundenListPage"
+      noInnerScroll
       title="Kunden"
       actions={
         canWrite ? (

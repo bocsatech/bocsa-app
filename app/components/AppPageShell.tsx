@@ -18,6 +18,8 @@ type Props = {
   mainClassName?: string;
   contentClassName?: string;
   scrollClassName?: string;
+  /** Kein .appPageScroll-Wrapper (z. B. /kunden Mobil) */
+  noInnerScroll?: boolean;
 };
 
 export default function AppPageShell({
@@ -30,6 +32,7 @@ export default function AppPageShell({
   mainClassName,
   contentClassName,
   scrollClassName,
+  noInnerScroll = false,
 }: Props) {
   const hasTop = Boolean(top || title || actions);
 
@@ -47,9 +50,15 @@ export default function AppPageShell({
           </header>
         ) : null}
 
-        <div className={["appPageScroll", scrollClassName].filter(Boolean).join(" ")}>
-          {children}
-        </div>
+        {noInnerScroll ? (
+          <div className={["kundenListMain", scrollClassName].filter(Boolean).join(" ")}>
+            {children}
+          </div>
+        ) : (
+          <div className={["appPageScroll", scrollClassName].filter(Boolean).join(" ")}>
+            {children}
+          </div>
+        )}
       </section>
     </main>
   );
