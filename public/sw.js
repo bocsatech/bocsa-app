@@ -1,5 +1,5 @@
-/* PWA v3 — kein HTML-Cache; Portal immer frisch */
-const CACHE = "bocsa-pwa-v3";
+/* PWA v4 — kein HTML-Cache; Portal immer frisch */
+const CACHE = "bocsa-pwa-v4";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
