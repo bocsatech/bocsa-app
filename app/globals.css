@@ -20,7 +20,6 @@ html, body {
 }
 
 body:has(.appShell),
-body.app-shell-body,
 body:has(.pruefbefundPage) {
   overflow: hidden;
 }
@@ -732,101 +731,41 @@ button, input, select, textarea {
 }
 
 @media (max-width: 760px) {
-  /* Bewährtes Layout (02.06. ~15:00): Grid + Scroll in .appPageScroll */
-  .workorderPage,
-  .appShell {
+  /* Stand 02.06. Nachmittag (27b02d0): Grid + .appPageScroll, waagerechte Sidebar */
+  .workorderPage {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
-    width: 100%;
-    max-width: 100%;
+  }
+
+  .sidebarMenuToggle {
+    display: none !important;
   }
 
   .sidebar {
-    flex: 0 0 auto;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
     height: auto;
     max-height: none;
     overflow: visible;
     padding: 12px 14px;
-    gap: 0;
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    gap: 12px;
+    position: static;
   }
 
-  .sidebarHeader {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 0 0 8px;
-  }
-
-  .sidebarHeaderText {
+  .sidebarNav {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: wrap;
     flex: 1;
-    min-width: 0;
+    max-height: none;
+    overflow: visible;
   }
 
-  .sidebarMenuToggle {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-    min-height: 44px;
-    min-width: 44px;
-    padding: 8px 14px;
-    border: 1.5px solid rgba(255, 255, 255, 0.5);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
-    font-weight: 700;
-    font-size: 0.85rem;
-    cursor: pointer;
-    flex-shrink: 0;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-    z-index: 60;
-  }
-
-  .sidebar:not(.sidebarMenuOpen) .sidebarNav,
-  .sidebar:not(.sidebarMenuOpen) .logoutButton {
-    display: none;
-  }
-
-  .sidebar.sidebarMenuOpen {
-    padding-bottom: 14px;
-  }
-
-  .sidebar.sidebarMenuOpen .sidebarNav {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    max-height: min(65vh, 520px);
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-top: 4px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .sidebar.sidebarMenuOpen .logoutButton {
+  .sidebar .logoutButton {
     display: block;
-    margin-top: 10px;
-  }
-
-  .sidebarNavParent::after {
-    display: block;
-  }
-
-  .sidebarNavSub {
-    border-left: 2px solid rgba(255, 255, 255, 0.22);
-    margin-left: 11px;
-    padding-left: 12px;
     width: auto;
+    margin-top: 0;
   }
 
   .appPageTopBar {
@@ -835,7 +774,6 @@ button, input, select, textarea {
 
   .appPageScroll {
     padding: 16px;
-    -webkit-overflow-scrolling: touch;
   }
 
   /* PKW Kunden: ein Scroll-Container, kein horizontales Überlaufen */

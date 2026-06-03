@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAppShellScrollBody, usePublicScrollBody } from "../../../lib/use-mobile-scroll-body";
+import { usePublicScrollBody } from "../../../lib/use-mobile-scroll-body";
 
 const PublicMachineMeldung = dynamic(() => import("./PublicMachineMeldung"), {
   loading: () => (
@@ -32,7 +32,6 @@ export default function MaschineDetailPage() {
   const machineId = params.id as string;
   const [mode, setMode] = useState<ViewMode>("pending");
   usePublicScrollBody(mode !== "staff");
-  useAppShellScrollBody(mode === "staff");
 
   useEffect(() => {
     let cancelled = false;
