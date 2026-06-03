@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { canAccessPkwKunden } from "../../../../lib/pkw-permissions-server.mjs";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { buildPkwFahrzeugRow } from "../../../../lib/pkw-fahrzeug-payload.mjs";
 import { normalizeKennzeichen, pkwSupabaseErrorResponse } from "../../../../lib/pkw-server.mjs";
 
 const TABLE = "pkw_fahrzeuge";
@@ -41,22 +42,16 @@ export async function POST(request) {
     return NextResponse.json({ error: "Kennzeichen erforderlich." }, { status: 400 });
   }
 
-  const row = {
-    kunde_id: body.kunde_id || null,
-    kennzeichen,
-    marke: body.marke?.trim() || null,
-    modell: body.modell?.trim() || null,
-    fin: body.fin?.trim() || null,
-    baujahr: body.baujahr?.trim() || null,
-    farbe: body.farbe?.trim() || null,
-    kraftstoff: body.kraftstoff?.trim() || null,
-    leistung_kw: body.leistung_kw != null && body.leistung_kw !== "" ? Number(body.leistung_kw) : null,
-    km_stand: body.km_stand != null && body.km_stand !== "" ? Number(body.km_stand) : null,
-    km_stand_at: body.km_stand != null ? new Date().toISOString() : null,
-    notizen: body.notizen?.trim() || null,
-    aktiv: body.aktiv !== false,
-    updated_at: new Date().toISOString(),
-  };
+  let row;
+  try {
+    row = {
+      kennzeichen,
+      ...buildPkwFahrzeugRow(body, { forInsert: true }),
+      kunde_id: body.kunde_id || null,
+    };
+  } catch (err) {
+    return NextResponse.json({ error: err.message ?? "Ungültige Eingabe." }, { status: 400 });
+  }
 
   const { data, error } = await db.from(TABLE).insert(row).select("*").single();
   if (error) return pkwSupabaseErrorResponse(error) ?? NextResponse.json({ error: error.message }, { status: 500 });

@@ -1,0 +1,6 @@
+/* Arbeitsauftrag-Liste — Zeilenlayout wie .machineResultRow (globals.css) */
+
+.arbeitsauftragResultList .arbeitsauftragProtocolAuftrag {
+  color: #c2410c;
+  font-size: 1rem;
+}
