@@ -106,7 +106,7 @@ export function normalizeGeraetgruppeVorlage(raw: unknown): GeraetgruppeVorlageS
   const base =
     raw && typeof raw === "object"
       ? cloneProtocolFromVorlage(raw as ProtocolVorlageStored)
-      : createDefaultProtocol();
+      : createEmptyProtocol();
   const record = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   return {
     ...protocolToStoredVorlage(base),
@@ -184,7 +184,7 @@ export function cloneProtocolFromVorlage(
   stored: ProtocolVorlageStored | null | undefined
 ): WorkOrderProtocol {
   if (!stored || typeof stored !== "object") {
-    return createEmptyProtocol();
+    return createDefaultProtocol();
   }
 
   const scheduleRows: WorkOrderScheduleRow[] = (stored.serviceSchedule ?? []).map((row) => ({
@@ -382,7 +382,7 @@ export async function fetchProtocolForNewWorkOrder(machine: Machine) {
   const { data, error } = await fetchGruppenProtokollVorlage(subgroup);
   if (error || !data?.vorlage) {
     return {
-      protocol: createDefaultProtocol(),
+      protocol: createEmptyProtocol(),
       source: "standard" as WorkOrderProtocolSource,
       subgroup,
     };

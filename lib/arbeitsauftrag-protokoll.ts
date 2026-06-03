@@ -175,7 +175,7 @@ const DEFAULT_REPAIR_GROUPS: Array<{
   },
 ];
 
-export function buildDefaultRepairGroups(): WorkOrderRepairGroup[] {
+function buildDefaultRepairGroups(): WorkOrderRepairGroup[] {
   return DEFAULT_REPAIR_GROUPS.map((group) => ({
     id: newProtocolRowId(),
     title: group.title,
@@ -188,7 +188,7 @@ export function buildDefaultRepairGroups(): WorkOrderRepairGroup[] {
   }));
 }
 
-/** Standard-Protokoll: vier Spalten Checkliste (ohne vorgefüllte Filter-Tabelle). */
+/** Standard-Protokoll mit Checklisten — Service-Tabelle kommt aus Wartungstabelle/Lager. */
 export function createDefaultProtocol(): WorkOrderProtocol {
   return {
     motorOilFillLiters: "",
@@ -287,6 +287,7 @@ export function stripLegacyAutofillProtocol(protocol: WorkOrderProtocol): WorkOr
   return {
     ...protocol,
     serviceSchedule: [],
+    motorOilFillLiters: "",
   };
 }
 
@@ -300,12 +301,12 @@ export function normalizeProtocol(
     menge?: number;
   }>
 ): WorkOrderProtocol {
-  const empty = createEmptyProtocol();
+  const defaults = createDefaultProtocol();
 
   if (!raw || typeof raw !== "object") {
     if (legacyServiceParts?.length) {
       return {
-        ...empty,
+        ...defaults,
         serviceSchedule: legacyServiceParts.map((part) =>
           normalizeScheduleRow({
             serviceMaterial: part.serviceMaterial,
@@ -317,7 +318,7 @@ export function normalizeProtocol(
         ),
       };
     }
-    return empty;
+    return defaults;
   }
 
   const record = raw as Record<string, unknown>;
@@ -337,18 +338,16 @@ export function normalizeProtocol(
         )
       : [];
 
-  const parsedRepairGroups = Array.isArray(record.repairGroups)
+  const repairGroups = Array.isArray(record.repairGroups)
     ? record.repairGroups
         .filter((group) => group && typeof group === "object")
         .map((group) => normalizeRepairGroup(group as Record<string, unknown>))
     : [];
-  const repairGroups =
-    parsedRepairGroups.length > 0 ? parsedRepairGroups : buildDefaultRepairGroups();
 
   return stripLegacyAutofillProtocol({
     motorOilFillLiters: String(record.motorOilFillLiters ?? "").trim(),
     serviceSchedule: schedule,
-    repairGroups,
+    repairGroups: repairGroups.length ? repairGroups : defaults.repairGroups,
   });
 }
 
