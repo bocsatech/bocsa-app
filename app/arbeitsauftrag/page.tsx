@@ -1,15 +1,18 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import ArbeitsauftragForm from "../components/ArbeitsauftragForm";
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import ArbeitsauftragList from "../components/ArbeitsauftragList";
-import { shouldShowArbeitsauftragDetail } from "../../lib/arbeitsauftrag-routes";
+import {
+  buildArbeitsauftragDetailHref,
+  shouldShowArbeitsauftragDetail,
+} from "../../lib/arbeitsauftrag-routes";
 import type { WorkOrderListFilters } from "../../lib/work-orders";
 
 function readListFilters(searchParams: URLSearchParams): Partial<WorkOrderListFilters> {
   return {
     geraetenummer: searchParams.get("geraetenummer") ?? "",
+    auftrag: searchParams.get("auftrag") ?? searchParams.get("auftragNr") ?? "",
     bearbeiter: searchParams.get("bearbeiter") ?? "",
     filiale: searchParams.get("filiale") ?? "",
     dateFrom: searchParams.get("dateFrom") ?? "",
@@ -17,21 +20,42 @@ function readListFilters(searchParams: URLSearchParams): Partial<WorkOrderListFi
   };
 }
 
-function ArbeitsauftragPageContent() {
+function ArbeitsauftragListPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const machineId = searchParams.get("machineId");
 
-  if (machineId && shouldShowArbeitsauftragDetail(searchParams)) {
-    const auftragId = searchParams.get("auftragId");
+  useEffect(() => {
+    if (!shouldShowArbeitsauftragDetail(searchParams)) return;
+
+    const machineId = searchParams.get("machineId");
+    if (!machineId) return;
+
+    router.replace(
+      buildArbeitsauftragDetailHref({
+        machineId,
+        auftragId: searchParams.get("auftragId"),
+        status: searchParams.get("status"),
+        type: searchParams.get("type"),
+        edit: searchParams.get("edit") === "1",
+        print: searchParams.get("print") === "1",
+        from: searchParams.get("from"),
+        new: searchParams.get("new") === "1",
+      })
+    );
+  }, [router, searchParams]);
+
+  if (shouldShowArbeitsauftragDetail(searchParams)) {
     return (
-      <ArbeitsauftragForm
-        key={`${machineId}-${auftragId ?? searchParams.get("status") ?? searchParams.get("type") ?? "new"}-${searchParams.get("edit") === "1" ? "edit" : "view"}`}
-        machineId={machineId}
-        auftragId={auftragId}
-        initialType={searchParams.get("status") ?? searchParams.get("type")}
-        autoPrint={searchParams.get("print") === "1"}
-        editMode={searchParams.get("edit") === "1"}
-      />
+      <main className="workorderPage appShell">
+        <aside className="sidebar" aria-hidden />
+        <section className="pageContent">
+          <div className="appPageScroll">
+            <div className="welcomeCard">
+              <h2>Laden…</h2>
+            </div>
+          </div>
+        </section>
+      </main>
     );
   }
 
@@ -39,7 +63,6 @@ function ArbeitsauftragPageContent() {
 
   return (
     <ArbeitsauftragList
-      key={`list-${searchParams.toString()}`}
       initialFilters={readListFilters(searchParams)}
       returnMachineId={returnMachineId || undefined}
     />
@@ -62,7 +85,7 @@ export default function ArbeitsauftragPage() {
         </main>
       }
     >
-      <ArbeitsauftragPageContent />
+      <ArbeitsauftragListPageContent />
     </Suspense>
   );
 }

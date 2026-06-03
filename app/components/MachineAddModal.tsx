@@ -30,6 +30,7 @@ import {
   normalizeGeraetgruppeVorlage,
   tabDefaultsFromGeraetgruppeVorlage,
 } from "../../lib/geraetgruppe-protokoll";
+import type { SessionAuthSlice } from "../../lib/machine-permissions";
 import type { Machine } from "../../lib/types/machine";
 
 const EMPTY_MACHINE: Machine = {
@@ -48,14 +49,16 @@ const EMPTY_PICK: GeraetenummerPick = { marke: "", klasse: "", art: "" };
 
 type Props = {
   open: boolean;
-  canWrite: boolean;
+  canCreate: boolean;
+  sessionAuth: SessionAuthSlice;
   onClose: () => void;
   onSaved: (machine: Machine) => void;
 };
 
 export default function MachineAddModal({
   open,
-  canWrite,
+  canCreate,
+  sessionAuth,
   onClose,
   onSaved,
 }: Props) {
@@ -128,6 +131,7 @@ export default function MachineAddModal({
         motor: tabs.motor,
         technical: tabs.technical,
         lubricants: tabs.lubricants,
+        maintenance: tabs.maintenance,
       }));
     });
 
@@ -172,8 +176,8 @@ export default function MachineAddModal({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!canWrite) {
-      setFormError("Keine Berechtigung: machines.write erforderlich.");
+    if (!canCreate) {
+      setFormError("Keine Berechtigung: machines.create erforderlich.");
       return;
     }
 
@@ -254,7 +258,9 @@ export default function MachineAddModal({
               <MachineDetailTabPanels
                 activeTab={activeTab}
                 isEditing
-                canWrite={canWrite}
+                canWrite={canCreate}
+                sessionAuth={sessionAuth}
+                creating
                 machine={EMPTY_MACHINE}
                 stammdatenForm={stammdatenForm}
                 onUpdateStammdatenField={updateStammdatenField}
@@ -295,7 +301,7 @@ export default function MachineAddModal({
           <button type="button" className="pillButton outline" onClick={onClose}>
             Abbrechen
           </button>
-          <button type="submit" className="pillButton primary" disabled={saving || !canWrite}>
+          <button type="submit" className="pillButton primary" disabled={saving || !canCreate}>
             {saving ? "Speichern…" : "Maschine speichern"}
           </button>
         </div>

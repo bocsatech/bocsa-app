@@ -7,6 +7,7 @@ import "../arbeitsauftrag-form.css";
 import AppPageShell from "./AppPageShell";
 import ArbeitsauftragPrintDocument from "./ArbeitsauftragPrintDocument";
 import ArbeitsauftragPrintPreview from "./ArbeitsauftragPrintPreview";
+import type { SessionAuthSlice } from "../../lib/machine-permissions";
 import type { ArbeitsauftragWorksheetMachineBlockHandle } from "./ArbeitsauftragWorksheetMachineBlock";
 import ArbeitsauftragProtokollSection from "./ArbeitsauftragProtokollSection";
 import {
@@ -18,24 +19,32 @@ import {
   type StammdatenField,
 } from "../../lib/machines";
 import {
+  buildArbeitsauftragDetailHref,
+  navigateToArbeitsauftragList,
+} from "../../lib/arbeitsauftrag-routes";
+import {
   collectBemerkungLines,
   issueProtocolStockDelta,
   linkProtocolToLager,
+  stripLegacyAutofillProtocol,
   type WorkOrderProtocol,
 } from "../../lib/arbeitsauftrag-protokoll";
 import {
-  buildMachineEigenVorlagePatch,
+  cloneProtocolFromVorlage,
   fetchGruppenProtokollVorlage,
   fetchProtocolForNewWorkOrder,
   machineHasEigenProtokollVorlage,
   normalizeSubgroupKey,
-  protocolToStoredVorlage,
+  readMachineEigenVorlage,
   resolveProtocolForMachine,
+  saveMachineProtokollVorlage,
+  clearMachineProtokollVorlageApi,
 } from "../../lib/geraetgruppe-protokoll";
 import { reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
 import { fetchLagerTeile } from "../../lib/lager";
 import {
   createEmptyWorkOrder,
+  findWorkOrderByAuftragNr,
   formatOrderType,
   formatWorkOrderAuftragNr,
   getWorkOrders,
@@ -48,6 +57,8 @@ import type { Machine } from "../../lib/types/machine";
 type Props = {
   machineId: string;
   auftragId?: string | null;
+  /** Aus Lagerbewegungen: Auftrag-Nr. statt UUID */
+  initialAuftragNr?: string | null;
   initialType?: string | null;
   autoPrint?: boolean;
   /** Bestehender Auftrag: true = volles Bearbeiten-Formular */
@@ -57,6 +68,7 @@ type Props = {
 export default function ArbeitsauftragForm({
   machineId,
   auftragId,
+  initialAuftragNr,
   initialType,
   autoPrint = false,
   editMode = false,
@@ -73,15 +85,28 @@ export default function ArbeitsauftragForm({
   const [message, setMessage] = useState<string | null>(null);
   const [username, setUsername] = useState("");
   const [canWrite, setCanWrite] = useState(false);
+  const [sessionAuth, setSessionAuth] = useState<SessionAuthSlice>({
+    permissions: [],
+    groups: [],
+  });
   const [canIssueLager, setCanIssueLager] = useState(false);
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
   const [previewFields, setPreviewFields] = useState<StammdatenField[]>([]);
+  const [vorlageSaving, setVorlageSaving] = useState(false);
 
   const isNew = !auftragId && Boolean(initialType?.trim());
-  const isViewMode = Boolean(auftragId) && !isNew && !editMode;
+  const isViewMode =
+    Boolean(auftragId || initialAuftragNr?.trim()) && !isNew && !editMode;
 
-  const viewHref = `/arbeitsauftrag?machineId=${encodeURIComponent(machineId)}&auftragId=${encodeURIComponent(auftragId ?? "")}`;
-  const editHref = `${viewHref}&edit=1`;
+  const viewHref = buildArbeitsauftragDetailHref({
+    machineId,
+    auftragId,
+  });
+  const editHref = buildArbeitsauftragDetailHref({
+    machineId,
+    auftragId,
+    edit: true,
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -101,6 +126,7 @@ export default function ArbeitsauftragForm({
     const isTechniker = groups.includes("Techniker");
 
     setUsername(name);
+    setSessionAuth({ permissions: perms, groups, username: name });
     setCanWrite(canMachineWrite || isTechniker);
     setCanIssueLager(
       isAdmin ||
@@ -121,9 +147,14 @@ export default function ArbeitsauftragForm({
 
     setMachine(data);
     const orders = getWorkOrders(data);
-    const existing = auftragId ? orders.find((item) => item.id === auftragId) : null;
+    const nrQuery = initialAuftragNr?.trim();
+    const existing = auftragId
+      ? orders.find((item) => item.id === auftragId)
+      : nrQuery
+        ? findWorkOrderByAuftragNr(orders, nrQuery)
+        : null;
 
-    if (auftragId && !existing) {
+    if ((auftragId || nrQuery) && !existing) {
       setError("Arbeitsauftrag nicht gefunden. Bitte aus der Liste erneut öffnen.");
       setOrder(null);
       setLoading(false);
@@ -131,7 +162,25 @@ export default function ArbeitsauftragForm({
     }
 
     if (existing) {
-      setOrder(normalizeWorkOrder(existing));
+      let normalized = normalizeWorkOrder(existing);
+      const eigen = readMachineEigenVorlage(data);
+      const stripped = stripLegacyAutofillProtocol(normalized.protocol);
+      const protocolEmpty =
+        stripped.serviceSchedule.length === 0 && stripped.repairGroups.length === 0;
+      if (eigen && protocolEmpty) {
+        normalized = {
+          ...normalized,
+          protocol: cloneProtocolFromVorlage(eigen),
+          protocolSource: "eigen",
+          protocolSubgroup:
+            normalizeSubgroupKey(data.subgroup) || normalized.protocolSubgroup,
+        };
+      } else if (
+        stripped.serviceSchedule.length !== normalized.protocol.serviceSchedule.length
+      ) {
+        normalized = { ...normalized, protocol: stripped };
+      }
+      setOrder(normalized);
     } else if (initialType?.trim()) {
       const resolved = await fetchProtocolForNewWorkOrder(data);
       const empty = createEmptyWorkOrder({
@@ -158,7 +207,7 @@ export default function ArbeitsauftragForm({
     }
 
     setLoading(false);
-  }, [auftragId, initialType, machineId]);
+  }, [auftragId, initialAuftragNr, initialType, machineId]);
 
   useEffect(() => {
     load();
@@ -232,42 +281,115 @@ export default function ArbeitsauftragForm({
   }
 
   async function saveMachineEigenVorlage() {
-    if (!machine || !order || !canWrite) return;
-    const vorlage = protocolToStoredVorlage(order.protocol);
-    const patch = buildMachineEigenVorlagePatch(machine, vorlage, true);
-    const { data, error } = await updateMachine(machine.id, patch as Partial<Machine>);
-    if (error || !data) {
-      setSaveError(error?.message ?? "Maschinen-Vorlage konnte nicht gespeichert werden.");
+    if (!machine || !order) {
+      setSaveError("Maschine oder Auftrag nicht geladen.");
       return;
     }
-    setMachine(data);
-    setMessage("Eigene Protokoll-Vorlage für diese Maschine gespeichert.");
+    if (!canWrite) {
+      setSaveError("Keine Berechtigung: machines.write erforderlich.");
+      return;
+    }
+
+    setVorlageSaving(true);
+    setSaveError(null);
+    setMessage(null);
+
+    const { ok, error } = await saveMachineProtokollVorlage(machine.id, order.protocol);
+    if (!ok) {
+      setVorlageSaving(false);
+      setSaveError(error ?? "Maschinen-Vorlage konnte nicht gespeichert werden.");
+      return;
+    }
+
+    const { data: reloaded } = await fetchMachineById(machine.id);
+    if (!reloaded) {
+      setVorlageSaving(false);
+      setSaveError("Maschine nach Speichern nicht geladen.");
+      return;
+    }
+
+    const orderToPersist: WorkOrder = {
+      ...order,
+      protocolSource: "eigen",
+      protocolSubgroup: normalizeSubgroupKey(reloaded.subgroup) || order.protocolSubgroup,
+    };
+    setMachine(reloaded);
+    updateOrder(orderToPersist);
+
+    const fields =
+      stammdatenRef.current?.getFields() ?? machineToStammdatenFields(reloaded);
+    const persisted = await persistOrder(fields, orderToPersist, {
+      skipNavigate: true,
+      silentMessage: true,
+      machineOverride: reloaded,
+      skipLagerProcessing: true,
+    });
+    setVorlageSaving(false);
+
+    if (!persisted) {
+      setSaveError(
+        (prev) =>
+          prev ??
+          "Vorlage gespeichert, aber Auftrag konnte nicht mitgespeichert werden — bitte Speichern klicken."
+      );
+      return;
+    }
+
+    setMessage("Maschinen-Vorlage und Auftrag gespeichert.");
   }
 
   async function clearMachineEigenVorlage() {
-    if (!machine || !canWrite) return;
-    const patch = buildMachineEigenVorlagePatch(machine, null, false);
-    const { data, error } = await updateMachine(machine.id, patch as Partial<Machine>);
-    if (error || !data) {
-      setSaveError(error?.message ?? "Maschinen-Vorlage konnte nicht entfernt werden.");
+    if (!machine) {
+      setSaveError("Maschine nicht geladen.");
       return;
     }
-    setMachine(data);
+    if (!canWrite) {
+      setSaveError("Keine Berechtigung: machines.write erforderlich.");
+      return;
+    }
+
+    setVorlageSaving(true);
+    setSaveError(null);
+    setMessage(null);
+
+    const { ok, error } = await clearMachineProtokollVorlageApi(machine.id);
+    setVorlageSaving(false);
+
+    if (!ok) {
+      setSaveError(error ?? "Maschinen-Vorlage konnte nicht entfernt werden.");
+      return;
+    }
+
+    const { data: reloaded } = await fetchMachineById(machine.id);
+    if (reloaded) setMachine(reloaded);
+    if (order) {
+      updateOrder({ protocolSource: "gruppe" });
+    }
     setMessage("Maschinen-Vorlage deaktiviert — künftig wieder Gerätegruppe.");
   }
 
   async function persistOrder(
     fields: StammdatenField[],
-    orderToSave: WorkOrder
+    orderToSave: WorkOrder,
+    options?: {
+      skipNavigate?: boolean;
+      silentMessage?: boolean;
+      /** Nach Maschinen-Vorlage-Speichern: frische machine_tab_data inkl. Vorlage */
+      machineOverride?: Machine;
+      skipLagerProcessing?: boolean;
+    }
   ): Promise<boolean> {
-    if (!machine || !canWrite) {
+    const baseMachine = options?.machineOverride ?? machine;
+    if (!baseMachine || !canWrite) {
       setSaveError("Keine Berechtigung: machines.write erforderlich.");
       return false;
     }
 
     setSaving(true);
     setSaveError(null);
-    setMessage(null);
+    if (!options?.silentMessage) {
+      setMessage(null);
+    }
 
     let normalized = normalizeWorkOrder(orderToSave);
 
@@ -275,7 +397,7 @@ export default function ArbeitsauftragForm({
       try {
         const { auftragNr } = await reserveWorkOrderAuftragNr({
           type: normalized.type,
-          depot: normalized.depot || machine.depot || "",
+          depot: normalized.depot || baseMachine.depot || "",
           date: normalized.date,
         });
         normalized = { ...normalized, auftragNr };
@@ -290,36 +412,36 @@ export default function ArbeitsauftragForm({
       }
     }
 
-    const { data: lagerTeile } = await fetchLagerTeile();
-    if (lagerTeile?.length) {
-      normalized = {
-        ...normalized,
-        protocol: linkProtocolToLager(normalized.protocol, lagerTeile),
-      };
+    if (!options?.skipLagerProcessing) {
+      const { data: lagerTeile } = await fetchLagerTeile();
+      if (lagerTeile?.length) {
+        normalized = {
+          ...normalized,
+          protocol: linkProtocolToLager(normalized.protocol, lagerTeile),
+        };
+      }
+
+      if (canIssueLager) {
+        const { protocol: issuedProtocol, error: issueErr, issuedCount } =
+          await issueProtocolStockDelta(normalized.protocol, `Arbeitsauftrag ${formatWorkOrderAuftragNr(normalized)}`, {
+            machineId: baseMachine.id,
+          });
+        if (issueErr) {
+          setSaveError(issueErr.message);
+          setSaving(false);
+          return false;
+        }
+        normalized = { ...normalized, protocol: issuedProtocol };
+        if (issuedCount > 0 && !options?.silentMessage) {
+          setMessage(`${issuedCount} Lagerposition(en) ausgebucht.`);
+        }
+      }
     }
 
-    if (canIssueLager) {
-      const { protocol: issuedProtocol, error: issueErr, issuedCount } =
-        await issueProtocolStockDelta(
-          machine.id,
-          normalized.protocol,
-          `Arbeitsauftrag ${formatWorkOrderAuftragNr(normalized)}`
-        );
-      if (issueErr) {
-        setSaveError(issueErr.message);
-        setSaving(false);
-        return false;
-      }
-      normalized = { ...normalized, protocol: issuedProtocol };
-      if (issuedCount > 0) {
-        setMessage(`${issuedCount} Lagerposition(en) ausgebucht.`);
-      }
-    }
+    const patch = buildStammdatenPatch(baseMachine, fields);
+    patch.machine_tab_data = mergeWorkOrder(baseMachine, normalized, username);
 
-    const patch = buildStammdatenPatch(machine, fields);
-    patch.machine_tab_data = mergeWorkOrder(machine, normalized, username);
-
-    const { data, error: saveErr } = await updateMachine(machine.id, patch);
+    const { data, error: saveErr } = await updateMachine(baseMachine.id, patch);
     if (saveErr) {
       setSaveError(saveErr.message);
       setSaving(false);
@@ -332,11 +454,16 @@ export default function ArbeitsauftragForm({
       const savedOrder =
         savedOrders.find((item) => item.id === orderToSave.id) ?? orderToSave;
       setOrder(savedOrder);
-      setMessage("Arbeitsauftrag gespeichert.");
+      if (!options?.silentMessage) {
+        setMessage("Arbeitsauftrag gespeichert.");
+      }
 
-      if (isNew) {
+      if (isNew && !options?.skipNavigate) {
         router.replace(
-          `/arbeitsauftrag?machineId=${data.id}&auftragId=${encodeURIComponent(orderToSave.id)}`
+          buildArbeitsauftragDetailHref({
+            machineId: data.id,
+            auftragId: orderToSave.id,
+          })
         );
       }
     }
@@ -377,6 +504,13 @@ export default function ArbeitsauftragForm({
         <div className="detailTopBar arbeitsauftragHideOnPrint">
           <h1>{title}</h1>
           <div className="detailTopActions">
+            <button
+              type="button"
+              className="pillButton outline"
+              onClick={() => navigateToArbeitsauftragList(router)}
+            >
+              Zur Liste
+            </button>
             <Link className="pillButton outline" href={`/maschinen/${machineId}`}>
               Maschine
             </Link>
@@ -444,6 +578,7 @@ export default function ArbeitsauftragForm({
                 username={username}
                 editable={!isViewMode}
                 canWrite={canWrite}
+                sessionAuth={sessionAuth}
                 machineBlockOnly={!isViewMode}
               />
             </div>
@@ -479,13 +614,16 @@ export default function ArbeitsauftragForm({
                         ? machineHasEigenProtokollVorlage(machine)
                           ? " · Eigene Maschinen-Vorlage"
                           : " · Individuell angepasst"
-                        : " · Standard-Vorlage"}
+                        : machineHasEigenProtokollVorlage(machine)
+                          ? " · Eigene Maschinen-Vorlage"
+                          : " · Standard-Vorlage"}
                   </p>
                   {canWrite ? (
                     <div className="aaProtokollVorlageActions">
                       <button
                         type="button"
                         className="pillButton outline"
+                        disabled={vorlageSaving}
                         onClick={() => void reloadGruppenVorlage()}
                       >
                         Gruppen-Vorlage laden
@@ -493,14 +631,16 @@ export default function ArbeitsauftragForm({
                       <button
                         type="button"
                         className="pillButton outline"
+                        disabled={vorlageSaving}
                         onClick={() => void saveMachineEigenVorlage()}
                       >
-                        Als Maschinen-Vorlage speichern
+                        {vorlageSaving ? "Speichern…" : "Als Maschinen-Vorlage speichern"}
                       </button>
                       {machineHasEigenProtokollVorlage(machine) ? (
                         <button
                           type="button"
                           className="pillButton outline"
+                          disabled={vorlageSaving}
                           onClick={() => void clearMachineEigenVorlage()}
                         >
                           Maschinen-Vorlage aus
@@ -514,12 +654,17 @@ export default function ArbeitsauftragForm({
                       </Link>
                     </div>
                   ) : null}
+                  {saveError ? <p className="errorText aaProtokollVorlageFeedback">{saveError}</p> : null}
+                  {message ? (
+                    <p className="protocolNotice success aaProtokollVorlageFeedback">{message}</p>
+                  ) : null}
                 </div>
                 <ArbeitsauftragProtokollSection
                   protocol={order.protocol}
                   canEdit={canWrite}
                   canIssueLager={canIssueLager}
                   machineId={machineId}
+                  arbeitsauftragId={order.id}
                   auftragReferenz={`Arbeitsauftrag ${formatWorkOrderAuftragNr(order)}`}
                   onChange={updateProtocol}
                 />
@@ -565,7 +710,7 @@ export default function ArbeitsauftragForm({
             ) : null}
 
             {!isViewMode ? (
-              <div className="arbeitsauftragPrintOnly arbeitsauftragPrintSource" aria-hidden>
+              <div className="arbeitsauftragPrintOnly arbeitsauftragPrintSource">
                 <ArbeitsauftragPrintDocument
                   machine={machine}
                   order={order}

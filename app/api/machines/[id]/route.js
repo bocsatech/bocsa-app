@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import {
-  currentUserHasPermission,
-  currentUserIsInGroup,
-} from "../../../../lib/auth/permissions";
+  canDeleteMachine,
+  filterMachinePatchByPermissions,
+} from "../../../../lib/machine-permissions-server.mjs";
 import { removeMachineStorageFiles } from "../../../../lib/machine-delete.mjs";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
@@ -79,6 +80,10 @@ const FIELD_TO_DB_COLUMN = {
 };
 
 const TABDATA_VIRTUAL_FIELDS = ["geraettyp", "km_stand"];
+
+async function canPatchMachine() {
+  return currentUserHasPermission("machines.write");
+}
 
 function normalizeMachine(row) {
   if (!row) return row;
@@ -258,7 +263,7 @@ export async function PATCH(request, { params }) {
     );
   }
 
-  if (!(await currentUserHasPermission("machines.write"))) {
+  if (!(await canPatchMachine())) {
     return NextResponse.json(
       { error: "Keine Berechtigung: machines.write erforderlich." },
       { status: 403 }
@@ -270,7 +275,7 @@ export async function PATCH(request, { params }) {
 
   const { data: existing, error: loadError } = await supabase
     .from(MACHINE_TABLE)
-    .select("geraetenummer, subgroup")
+    .select("geraetenummer, subgroup, machine_tab_data")
     .eq("id", id)
     .single();
 
@@ -278,10 +283,32 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: "Maschine nicht gefunden." }, { status: 404 });
   }
 
-  const rawPatch = buildMachinePatch(body);
-  const { patch, error: dateError } = normalizeMachinePatchDates(rawPatch);
+  let rawPatch = buildMachinePatch(body);
+  const { patch: datedPatch, error: dateError } = normalizeMachinePatchDates(rawPatch);
   if (dateError) {
     return NextResponse.json({ error: dateError }, { status: 400 });
+  }
+  rawPatch = datedPatch;
+
+  let patch;
+  try {
+    patch = await filterMachinePatchByPermissions({ ...rawPatch }, body);
+  } catch (permError) {
+    return NextResponse.json(
+      { error: permError instanceof Error ? permError.message : "Keine Berechtigung." },
+      { status: 403 }
+    );
+  }
+
+  if (patch.machine_tab_data && typeof patch.machine_tab_data === "object") {
+    const existingTab =
+      existing.machine_tab_data && typeof existing.machine_tab_data === "object"
+        ? existing.machine_tab_data
+        : {};
+    patch.machine_tab_data = stripWorkOrdersFromTabData({
+      ...existingTab,
+      ...patch.machine_tab_data,
+    });
   }
 
   applySubgroupForMachineUpdate(patch, body, existing);
@@ -317,8 +344,11 @@ export async function DELETE(_request, { params }) {
     );
   }
 
-  if (!(await currentUserIsInGroup("Admin"))) {
-    return NextResponse.json({ error: "Nur Admin." }, { status: 403 });
+  if (!(await canDeleteMachine())) {
+    return NextResponse.json(
+      { error: "Keine Berechtigung: machines.delete erforderlich." },
+      { status: 403 }
+    );
   }
 
   const { id } = await params;

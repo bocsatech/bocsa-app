@@ -9,6 +9,9 @@ import type { Machine } from "./types/machine";
 import type { MaintenanceLagerLink } from "./types/maintenance";
 import type { WorkOrderServicePart } from "./types/work-order-parts";
 import {
+  preserveProtokollVorlageKeys,
+} from "./machine-protokoll-vorlage.mjs";
+import {
   formatGermanDate,
   germanDateComparable,
   germanToday,
@@ -122,6 +125,27 @@ export function formatWorkOrderAuftragNr(order: Pick<WorkOrder, "id" | "auftragN
   return compact || "—";
 }
 
+/** Referenz in Lagerbewegungen kann formatWorkOrderAuftragNr-Wert sein, nicht nur order.auftragNr. */
+export function workOrderMatchesAuftragNr(
+  order: Pick<WorkOrder, "id" | "auftragNr">,
+  query: string
+): boolean {
+  const q = query.trim();
+  if (!q) return false;
+  const nr = order.auftragNr?.trim();
+  if (nr && nr === q) return true;
+  return formatWorkOrderAuftragNr(order) === q;
+}
+
+export function findWorkOrderByAuftragNr<T extends Pick<WorkOrder, "id" | "auftragNr">>(
+  orders: T[],
+  query: string
+): T | undefined {
+  const q = query.trim();
+  if (!q) return undefined;
+  return orders.find((order) => workOrderMatchesAuftragNr(order, q));
+}
+
 export type WorkOrderInfoPart = {
   text: string;
   tone?: "blue" | "green" | "default";
@@ -170,6 +194,16 @@ export function parseWorkHours(value: string): number {
   return Math.round(num * 100) / 100;
 }
 
+/** Anzeige für Druck / Vorschau (z. B. „2,5 h“ oder „—“) */
+export function formatWorkHoursDisplay(value: string | undefined | null): string {
+  const hours = parseWorkHours(String(value ?? ""));
+  if (hours <= 0) return "—";
+  return `${hours.toLocaleString("de-AT", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })} h`;
+}
+
 export function filterWorkOrderEntries(
   entries: WorkOrderListEntry[],
   filters: WorkOrderListFilters
@@ -187,10 +221,13 @@ export function filterWorkOrderEntries(
     }
 
     if (auftrag) {
+      const query = filters.auftrag.trim();
       const nr = normalizeFilterValue(entry.auftragNr ?? "");
       const typeLabel = normalizeFilterValue(formatOrderType(entry.type));
       const rawType = normalizeFilterValue(entry.type);
+      const matchesAuftragNr = query ? workOrderMatchesAuftragNr(entry, query) : false;
       if (
+        !matchesAuftragNr &&
         !nr.includes(auftrag) &&
         typeLabel !== auftrag &&
         rawType !== auftrag &&
@@ -307,10 +344,12 @@ export function mergeWorkOrder(
   order: WorkOrder,
   username?: string
 ): Record<string, unknown> {
-  const tabData =
+  const sourceTab =
     machine.machine_tab_data && typeof machine.machine_tab_data === "object"
-      ? { ...(machine.machine_tab_data as Record<string, unknown>) }
+      ? (machine.machine_tab_data as Record<string, unknown>)
       : {};
+
+  const tabData: Record<string, unknown> = { ...sourceTab };
 
   const existing = getWorkOrders(machine);
   const stamp = new Date().toISOString();
@@ -326,7 +365,10 @@ export function mergeWorkOrder(
       ? existing.map((item, i) => (i === index ? nextOrder : item))
       : [nextOrder, ...existing];
 
-  return { ...tabData, work_orders };
+  tabData.work_orders = work_orders;
+  preserveProtokollVorlageKeys(tabData, sourceTab);
+
+  return tabData;
 }
 
 export function newServicePartId() {
@@ -427,14 +469,14 @@ export function normalizeWorkOrder(order: WorkOrder): WorkOrder {
   };
 }
 
-function getWorkOrderSortKey(order: Pick<WorkOrder, "date" | "time">) {
+export function getWorkOrderSortKey(order: Pick<WorkOrder, "date" | "time">) {
   const isoDate = germanDateComparable(order.date) || "0000-00-00";
   const time = String(order.time ?? "").trim();
   const normalizedTime = /^\d{2}:\d{2}$/.test(time) ? time : "00:00";
   return `${isoDate}${normalizedTime}`;
 }
 
-function isWorkOrder(value: unknown): value is WorkOrder {
+export function isWorkOrder(value: unknown): value is WorkOrder {
   if (!value || typeof value !== "object") return false;
   return typeof (value as WorkOrder).id === "string";
 }

@@ -9,6 +9,7 @@ import {
 } from "../../lib/work-orders";
 import type { Machine } from "../../lib/types/machine";
 import MachineStammdatenPanelContent from "./MachineStammdatenPanelContent";
+import type { SessionAuthSlice } from "../../lib/machine-permissions";
 
 export type ArbeitsauftragWorksheetMachineBlockHandle = {
   getFields: () => StammdatenField[];
@@ -21,6 +22,7 @@ type Props = {
   username?: string;
   editable?: boolean;
   canWrite?: boolean;
+  sessionAuth?: SessionAuthSlice;
   className?: string;
 };
 
@@ -35,6 +37,7 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
     username,
     editable = false,
     canWrite = false,
+    sessionAuth = { permissions: [], groups: [] },
     className = "",
   },
   ref
@@ -87,6 +90,7 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
             stammdatenForm={fields}
             isEditing={isEditing}
             canWrite={canWrite}
+            sessionAuth={sessionAuth}
             onUpdateField={updateField}
           />
         </div>
