@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canManageMachineMedia } from "../../../../../lib/machine-permissions-server.mjs";
+import { currentUserHasPermission } from "../../../../../lib/auth/permissions";
 import { getMachineQrTargetUrl } from "../../../../../lib/qr-code.mjs";
 import { persistMachineQrCode } from "../../../../../lib/machine-qr.mjs";
 import { getSupabaseAdmin } from "../../../../../lib/supabaseAdmin";
@@ -19,9 +19,9 @@ function normalizeMachine(row) {
 }
 
 export async function POST(request, { params }) {
-  if (!(await canManageMachineMedia())) {
+  if (!(await currentUserHasPermission("machines.write"))) {
     return NextResponse.json(
-      { error: "Keine Berechtigung: machines.media erforderlich." },
+      { error: "Keine Berechtigung: machines.write erforderlich." },
       { status: 403 }
     );
   }

@@ -15,22 +15,11 @@ html, body {
   height: 100%;
   min-height: 100%;
   background: #f5f6fa;
-  max-width: 100%;
-  overflow-x: hidden;
 }
 
 body:has(.appShell),
-body.app-shell-body,
 body:has(.pruefbefundPage) {
   overflow: hidden;
-}
-
-body.public-scroll-body {
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  height: auto;
-  min-height: 100%;
 }
 
 a {
@@ -44,7 +33,7 @@ button, input, select, textarea {
 
 .workorderPage {
   display: grid;
-  grid-template-columns: 196px minmax(0, 1fr);
+  grid-template-columns: 170px minmax(0, 1fr);
   height: 100vh;
   height: 100dvh;
   min-height: 0;
@@ -55,185 +44,121 @@ button, input, select, textarea {
 .appShell {
   height: 100vh;
   height: 100dvh;
-  max-width: 100vw;
-  overflow-x: hidden;
 }
 
 .sidebar {
-  background: linear-gradient(180deg, #ff7a1a 0%, #e85d04 52%, #dc4f03 100%);
+  background: linear-gradient(180deg, #ff6a00 0%, #f04b00 100%);
   color: white;
-  padding: 20px 12px 16px;
+  padding: 22px 14px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 28px;
   min-width: 0;
   min-height: 0;
   height: 100%;
   overflow: hidden;
-  box-shadow: 4px 0 24px rgba(234, 88, 12, 0.22);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 12px 0 28px rgba(249, 115, 22, 0.16);
 }
 
 .sidebarHeader {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 4px 6px 8px;
-  flex-shrink: 0;
+  gap: 10px;
 }
 
 .sidebarMark {
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  background: #ffffff;
-  color: #ea580c;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.22);
   display: grid;
   place-items: center;
   font-weight: 800;
-  font-size: 1.05rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-  flex-shrink: 0;
+  font-size: 1rem;
 }
 
 .sidebarTitle {
   margin: 0;
-  font-size: 1.02rem;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  text-transform: uppercase;
   line-height: 1.15;
 }
 
 .sidebarSubtitle {
-  margin: 3px 0 0;
-  font-size: 0.76rem;
-  opacity: 0.88;
-  font-weight: 500;
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  opacity: 0.92;
 }
 
 .sidebarNav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   flex: 1;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding: 2px 4px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
-}
-
-.sidebarNav::-webkit-scrollbar {
-  width: 5px;
-}
-
-.sidebarNav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
 }
 
 .sidebarNav a {
   display: block;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 11px 12px;
+  border-radius: 12px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.96);
+  color: white;
   font-weight: 600;
-  font-size: 0.86rem;
-  line-height: 1.25;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 0.9rem;
 }
 
-.sidebarNav a:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.12);
-}
-
+.sidebarNav a:hover,
 .sidebarNav a.active {
-  background: #ffffff;
-  color: #ea580c;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .sidebarNavGroup {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .sidebarNavParent {
-  position: relative;
   display: block;
   width: 100%;
-  padding: 10px 32px 10px 12px;
+  padding: 11px 12px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.96);
+  color: white;
   font-weight: 600;
-  font-size: 0.86rem;
-  line-height: 1.25;
+  font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
   text-decoration: none;
   box-sizing: border-box;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.sidebarNavParent::after {
-  content: "";
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  border-right: 2px solid rgba(255, 255, 255, 0.85);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.85);
-  transform: translateY(-65%) rotate(45deg);
-  transition: transform 0.15s ease, border-color 0.15s ease;
-  pointer-events: none;
-}
-
-.sidebarNavParent[aria-expanded="true"]::after {
-  transform: translateY(-35%) rotate(225deg);
-}
-
-.sidebarNavParent:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.12);
-}
-
+.sidebarNavParent:hover,
 .sidebarNavParent.active {
-  background: #ffffff;
-  color: #ea580c;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.sidebarNavParent.active::after {
-  border-right-color: #ea580c;
-  border-bottom-color: #ea580c;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .sidebarNavSub {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin: 2px 0 4px 11px;
-  padding: 4px 0 4px 12px;
-  border-left: 2px solid rgba(255, 255, 255, 0.22);
+  gap: 4px;
+  margin: 0 0 4px;
+  padding: 0 0 0 8px;
 }
 
 .sidebarNavSub a {
-  padding: 8px 10px;
-  font-size: 0.8rem;
+  padding: 8px 12px;
+  font-size: 0.84rem;
   font-weight: 600;
 }
 
 .sidebarNavDivider {
   height: 1px;
-  margin: 10px 6px;
-  background: rgba(255, 255, 255, 0.24);
-  flex-shrink: 0;
+  margin: 8px 4px;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .pageContent {
@@ -242,7 +167,6 @@ button, input, select, textarea {
   min-width: 0;
   min-height: 0;
   height: 100%;
-  max-width: 100%;
   overflow: hidden;
   padding: 0;
 }
@@ -276,7 +200,6 @@ button, input, select, textarea {
 .appPageScroll {
   flex: 1 1 auto;
   min-height: 0;
-  max-width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   padding: 24px;
@@ -382,17 +305,10 @@ button, input, select, textarea {
   margin: 0 auto;
 }
 
-.homeIconLead {
-  margin: 0 0 1.25rem;
-  font-size: 0.95rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
 .homeIconGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 24px;
 }
 
 .homeIconCard {
@@ -400,22 +316,16 @@ button, input, select, textarea {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  min-height: 188px;
-  padding: 18px 14px 14px;
-  border-radius: 24px;
+  gap: 16px;
+  min-height: 200px;
+  padding: 24px 16px 18px;
+  border-radius: 28px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.08);
+  font-weight: 700;
   color: #111827;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.homeIconCardLabel {
-  font-weight: 700;
-  font-size: 0.88rem;
-  text-align: center;
-  line-height: 1.25;
 }
 
 .homeIconCard:hover {
@@ -423,83 +333,14 @@ button, input, select, textarea {
   box-shadow: 0 22px 56px rgba(249, 115, 22, 0.14);
 }
 
-.homeIconCard svg,
-.homeMenuIconImg {
+.homeIconCard svg {
   width: 140px;
-  height: auto;
-  max-height: 110px;
-  object-fit: contain;
-}
-
-.homeIconCard--photo .homeMenuIconImg {
-  width: 100%;
-  max-width: 160px;
-  max-height: 120px;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.homeIconsGalleryPage {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 1.5rem 1.25rem 3rem;
-}
-
-.homeIconsGalleryHeader h1 {
-  margin: 0 0 0.5rem;
-}
-
-.homeIconsGalleryHeader code {
-  font-size: 0.85em;
-  background: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.homeIconsGalleryGrid {
-  list-style: none;
-  margin: 1.5rem 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.25rem;
-}
-
-.homeIconsGalleryCard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-}
-
-.homeIconsGalleryCard img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
-.homeIconsGalleryLinks {
-  display: flex;
-  gap: 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.homeIconsGalleryLinks a {
-  color: #ea580c;
+  height: 110px;
 }
 
 .iconOrange { fill: #f97316; }
 .iconBlack { fill: #111827; }
-.iconWhite { fill: #ffffff; }
-.iconStroke { fill: none; stroke: #111827; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
-.iconStrokeWide { fill: none; stroke: #111827; stroke-width: 5; stroke-linecap: round; }
-.iconOrangeStroke { fill: none; stroke: #f97316; stroke-width: 6; stroke-linecap: round; }
+.iconStroke { fill: none; stroke: #111827; stroke-width: 4; stroke-linecap: round; }
 
 .pillButton {
   display: inline-flex;
@@ -732,258 +573,39 @@ button, input, select, textarea {
 }
 
 @media (max-width: 760px) {
-  /* Ein Scroll-Container (.appPageScroll) — zuverlässig auf iOS */
-  html:has(.appShell),
-  html.app-shell-root {
-    height: 100%;
-    max-height: 100dvh;
-    max-height: 100svh;
-    max-height: -webkit-fill-available;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  body:has(.appShell),
-  body.app-shell-body {
-    height: 100%;
-    max-height: 100dvh;
-    max-height: 100svh;
-    max-height: -webkit-fill-available;
-    max-width: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  body:has(.appShell) > main.workorderPage.appShell,
-  body.app-shell-body > main.workorderPage.appShell {
-    flex: 1 1 auto;
-    min-height: 0;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .workorderPage,
-  .appShell {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    width: 100%;
-    max-width: 100%;
-    height: 100%;
-    max-height: 100dvh;
-    max-height: 100svh;
-    max-height: -webkit-fill-available;
-    overflow: hidden;
+  .workorderPage {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .sidebar {
-    flex: 0 0 auto;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
     height: auto;
     max-height: none;
     overflow: visible;
     padding: 12px 14px;
-    gap: 0;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-  }
-
-  .sidebarHeader {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 0 0 8px;
-  }
-
-  .sidebarHeaderText {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .sidebarMenuToggle {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-    min-height: 44px;
-    min-width: 44px;
-    padding: 8px 14px;
-    border: 1.5px solid rgba(255, 255, 255, 0.5);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
-    font-weight: 700;
-    font-size: 0.85rem;
-    cursor: pointer;
-    flex-shrink: 0;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-    z-index: 60;
-  }
-
-  .sidebar:not(.sidebarMenuOpen) .sidebarNav,
-  .sidebar:not(.sidebarMenuOpen) .logoutButton {
-    display: none;
-  }
-
-  .sidebar.sidebarMenuOpen {
-    padding-bottom: 14px;
-  }
-
-  .sidebar.sidebarMenuOpen .sidebarNav {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    max-height: min(65vh, 520px);
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-top: 4px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .sidebar.sidebarMenuOpen .logoutButton {
-    display: block;
-    margin-top: 10px;
-  }
-
-  .sidebarNavParent::after {
-    display: block;
-  }
-
-  .sidebarNavSub {
-    border-left: 2px solid rgba(255, 255, 255, 0.22);
-    margin-left: 11px;
-    padding-left: 12px;
-    width: auto;
-  }
-
-  .pageContent {
-    flex: 1 1 auto;
-    min-height: 0;
-    height: auto;
-    max-height: none;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .appPageTopBar {
-    flex-shrink: 0;
-    padding: 16px;
-  }
-
-  .appPageScroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    touch-action: pan-y;
-    padding: 16px;
-  }
-
-  /* PKW Kunden: ein Scroll-Container, kein horizontales Überlaufen */
-  .pkwKundenPage.pageContent {
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  .pkwKundenPage .appPageTopBar {
-    flex-direction: column;
-    align-items: stretch;
     gap: 12px;
   }
 
-  .pkwKundenPage .appPageTopBar .detailTopActions {
-    width: 100%;
-  }
-
-  .pkwKundenPage .pkwPageStack,
-  .pkwKundenPage .pkwPageStack > .card {
-    overflow: visible;
-    min-height: 0;
-    max-width: 100%;
-  }
-
-  .pkwKundenPage .pkwPageStack > .card {
-    padding: 16px;
-    border-radius: 16px;
-  }
-
-  .pkwKundenPage .pkwToolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .pkwKundenPage .pkwSearchInput {
-    font-size: 16px;
-    min-width: 0;
-    max-width: none;
-    width: 100%;
-  }
-
-  .pkwKundenPage .pkwKundenGrid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .pkwKundenPage .pkwKundeCard {
-    padding: 0.85rem 1rem;
-    border-radius: 14px;
-  }
-
-  .pkwKundenPage .pkwKundeCardHead {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .pkwKundenPage .pkwKundeCardHead .subtitle,
-  .pkwKundenPage .pkwPinHint {
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .pkwKundenPage .pkwCardActions {
+  .sidebarNav {
     flex-direction: row;
     flex-wrap: wrap;
-    width: 100%;
-  }
-
-  .pkwKundenPage .pkwCardActions .secondaryBtn {
-    flex: 1 1 calc(50% - 0.2rem);
-    min-height: 44px;
-    justify-content: center;
-  }
-
-  .pkwKundenPage .pkwFahrzeugList li {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.35rem 0.5rem;
-  }
-
-  .pkwKundenPage .linkBtn {
-    margin-left: 0;
-    min-height: 44px;
-    padding: 6px 0;
+    flex: 1;
   }
 
   .homeIconGrid {
     grid-template-columns: repeat(2, minmax(140px, 1fr));
     gap: 16px;
+  }
+
+  .appPageTopBar {
+    padding: 16px;
+  }
+
+  .appPageScroll {
+    padding: 16px;
   }
 
   .tabList {
@@ -1034,123 +656,20 @@ button, input, select, textarea {
   }
 }
 
-/* Mobil: fix alsó „Zurück” sáv */
-.mobileBackBar {
-  display: none;
-}
-
-@media (max-width: 760px) {
-  .mobileBackBar {
-    display: flex;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 55;
-    justify-content: center;
-    padding: 10px 16px;
-    padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
-    background: rgba(255, 255, 255, 0.96);
-    border-top: 1px solid #e5e7eb;
-    box-shadow: 0 -6px 24px rgba(15, 23, 42, 0.1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  .mobileBackBarBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    max-width: 22rem;
-    min-height: 48px;
-    padding: 12px 20px;
-    border: 1px solid #d1d5db;
-    border-radius: 12px;
-    background: #fff;
-    color: #111827;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .mobileBackBarBtn:active {
-    background: #f3f4f6;
-  }
-
-  .mobileBackBarIcon {
-    font-size: 1.2rem;
-    line-height: 1;
-  }
-
-  .pageContentWithMobileBack .appPageScroll {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
-.mobileBackBarAlways {
-  display: flex;
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 55;
-  justify-content: center;
-  padding: 10px 16px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1px solid #e5e7eb;
-  box-shadow: 0 -6px 24px rgba(15, 23, 42, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.mobileBackBarAlways .mobileBackBarBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  max-width: 22rem;
-  min-height: 48px;
-  padding: 12px 20px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: #fff;
-  color: #111827;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-@media (min-width: 761px) {
-  .sidebarMenuToggle {
-    display: none !important;
-  }
-}
-
 .logoutButton {
   margin-top: auto;
   width: 100%;
-  padding: 11px 14px;
-  border: 1.5px solid rgba(255, 255, 255, 0.42);
-  border-radius: 10px;
-  background: transparent;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.2);
   color: white;
   font-weight: 600;
-  font-size: 0.86rem;
   cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .logoutButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .searchToolbar {
@@ -1283,12 +802,10 @@ button, input, select, textarea {
 
 .loginPage {
   min-height: 100vh;
-  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 24px;
-  padding-bottom: max(24px, env(safe-area-inset-bottom));
-  background: #ffffff;
+  background: linear-gradient(160deg, #fff7ed 0%, #ffffff 45%, #f8fafc 100%);
 }
 
 .loginCard {
@@ -1301,228 +818,21 @@ button, input, select, textarea {
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.1);
 }
 
-/* Demo / BOCSA TECH Login */
-.loginCardDemo {
-  max-width: 400px;
-  padding: 28px 24px 22px;
-  border-radius: 10px;
-  border: 2px solid #f97316;
-  box-shadow: 0 8px 32px rgba(249, 115, 22, 0.12);
-}
-
-.loginBrandTech {
-  text-align: center;
-  margin-bottom: 22px;
-}
-
-.loginBrandTech h1 {
-  margin: 0;
-  font-size: clamp(1.65rem, 6vw, 2rem);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #f97316;
-  line-height: 1.15;
-}
-
-.loginFormDemo {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.loginField {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.loginField > span:not(.sr-only) {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.loginFormDemo input {
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 6px;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-
-.loginInputAccent {
-  border: 2px solid #f97316;
-  background: #fff;
-  outline: none;
-}
-
-.loginInputAccent:focus {
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
-}
-
-.loginInputMuted {
-  border: 1px solid #d1d5db;
-  background: #fff;
-  outline: none;
-}
-
-.loginInputMuted:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
-}
-
-.loginPasswordWrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.loginPasswordWrap input {
-  padding-right: 48px;
-}
-
-.loginPasswordToggle {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #9ca3af;
-  cursor: pointer;
-}
-
-.loginPasswordToggle:hover {
-  color: #6b7280;
-}
-
-.loginSecurityBlock {
-  margin-top: 4px;
-}
-
-.loginSecurityDivider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-  color: #f97316;
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.loginSecurityDivider::before,
-.loginSecurityDivider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: #f97316;
-}
-
-.loginDemoMath {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 4vw, 18px);
-  min-height: 56px;
-  margin: 4px 0 12px;
-  font-weight: 700;
-  color: #f97316;
-}
-
-.loginDemoMath.isSubtract .loginDemoMathExpr {
-  color: #ea580c;
-}
-
-.loginDemoMathExpr {
-  font-size: clamp(2rem, 10vw, 2.75rem);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-}
-
-.loginDemoMathEq,
-.loginDemoMathQ {
-  font-size: clamp(2rem, 10vw, 2.75rem);
-}
-
-.loginDemoMathLoading,
-.loginDemoMathPlaceholder {
-  font-size: 2.25rem;
-  color: #fdba74;
-}
-
-.loginFieldResult {
-  margin-bottom: 0;
-}
-
-.loginSecurityHint {
-  margin: 6px 0 0;
-  font-size: 0.75rem;
-  color: #9ca3af;
-  line-height: 1.4;
-  text-align: center;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.loginPinInput {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.15em;
-  text-align: center;
-}
-
-.loginError {
-  margin: 0;
-  color: #dc2626;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-.loginSubmitDemo {
-  width: 100%;
-  margin-top: 6px;
-  padding: 14px 20px;
-  border: none;
-  border-radius: 8px;
-  background: #f97316;
-  color: #fff;
-  font-size: 1.05rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
-}
-
-.loginSubmitDemo:hover:not(:disabled) {
-  background: #ea580c;
-}
-
-.loginSubmitDemo:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* Legacy login (ha máshol használják) */
 .loginBrand {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 32px;
+}
+
+.loginBrand h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.loginBrand p {
+  margin: 4px 0 0;
+  color: #6b7280;
 }
 
 .loginForm {
@@ -1535,6 +845,94 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.loginForm label span {
+  font-weight: 600;
+}
+
+.loginForm input {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+}
+
+.challengeBox {
+  padding: 18px;
+  border-radius: 18px;
+  background: #fff7ed;
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+.challengeTitle {
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: #9a3412;
+}
+
+.challengeHint {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.challengeLabel {
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+
+.loginChallengeMath {
+  display: grid;
+  place-items: center;
+  min-height: 72px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid rgba(249, 115, 22, 0.35);
+}
+
+.loginChallengeMath.isAdd {
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.loginChallengeMath.isSubtract {
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.loginChallengeCompact {
+  font-size: clamp(2.2rem, 8vw, 3rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  color: #111827;
+}
+
+.loginChallengeMath.isAdd .loginChallengeCompact {
+  color: #1d4ed8;
+}
+
+.loginChallengeMath.isSubtract .loginChallengeCompact {
+  color: #b91c1c;
+}
+
+.loginChallengeLoading,
+.loginChallengePlaceholder {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
+.loginPinInput {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2em;
+}
+
+.loginError {
+  margin: 0;
+  color: #dc2626;
+  font-weight: 600;
 }
 
 .loginSubmit {
@@ -1550,15 +948,6 @@ button, input, select, textarea {
   place-items: center;
   padding: 24px;
   background: rgba(15, 23, 42, 0.55);
-}
-
-body.appModalOpen {
-  overflow: hidden;
-}
-
-/* Portal auf body — über Sidebar/Scroll-Container */
-body > .qrModalBackdrop.machineAddModalBackdrop {
-  z-index: 200;
 }
 
 .qrModalCard {
@@ -2151,121 +1540,6 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   gap: 0;
 }
 
-.pkwFahrzeugModal {
-  width: min(960px, 100%);
-}
-
-.pkwKundePickerBlock {
-  margin-bottom: 18px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.pkwKundePickerRow select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  background: #fff;
-}
-
-.pkwFahrzeugModal .pkwNotizenRow {
-  grid-column: 1 / -1;
-}
-
-.pkwFahrzeugModal .pkwNotizenRow textarea {
-  width: 100%;
-  min-height: 120px;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  resize: vertical;
-}
-
-.pkwReifenEditorPanel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pkwFahrzeugModal .pkwReifenSatzCard {
-  margin-bottom: 0;
-  padding: 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #fafafa;
-}
-
-.pkwFahrzeugModal .pkwQrSection {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-}
-
-.pkwReifenAddBtn {
-  align-self: flex-start;
-}
-
-.pkwBildQrPanel {
-  display: grid;
-  gap: 16px;
-}
-
-.pkwPanelTitle {
-  margin: 0 0 10px;
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.pkwBildBlock {
-  padding: 16px;
-}
-
-.pkwBildRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-}
-
-.pkwBildPreview {
-  width: 160px;
-  height: 120px;
-  border-radius: 14px;
-  border: 1px dashed #d1d5db;
-  background: #f9fafb;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  color: #9ca3af;
-  font-size: 0.85rem;
-}
-
-.pkwBildPreview.hasImage {
-  border-style: solid;
-}
-
-.pkwBildPreview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.pkwBildUploadBtn input {
-  display: none;
-}
-
-.pkwFahrzeugIcon.hasImage {
-  padding: 0;
-  overflow: hidden;
-}
-
-.pkwFahrzeugIcon.hasImage img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .geraetenummerPickerBlock {
   margin-bottom: 18px;
   padding-bottom: 16px;
@@ -2840,146 +2114,6 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   gap: 8px;
 }
 
-.lagerBestandBadge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1.3;
-  white-space: nowrap;
-  text-decoration: none;
-}
-
-.lagerBestandBadge.belowMin {
-  background: #fef2f2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
-}
-
-.lagerBestandBadge.aboveMax {
-  background: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
-}
-
-.lagerMeldungRowBelow {
-  background: #fef2f2;
-}
-
-.lagerMeldungRowAbove {
-  background: #fff7ed;
-}
-
-.lagerMeldungenBanner {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #92400e;
-}
-
-.lagerMeldungenBtnActive {
-  border-color: #f97316;
-  color: #c2410c;
-}
-
-.lagerMeldungenSummary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.lagerMeldungenStat {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-}
-
-.lagerMeldungenStat.belowMin strong {
-  color: #b91c1c;
-}
-
-.lagerMeldungenStat.aboveMax strong {
-  color: #c2410c;
-}
-
-.lagerMeldungenStatPkw strong {
-  color: #1d4ed8;
-}
-
-.lagerMeldungenSection {
-  margin-bottom: 20px;
-}
-
-.lagerMeldungenEmpty {
-  margin: 0;
-  padding: 0 24px 16px;
-  color: #6b7280;
-}
-
-.lagerMeldungenInlineSummary {
-  margin: 0 24px 12px;
-}
-
-.lagerFehlmenge {
-  color: #b91c1c;
-}
-
-.lagerFahrzeugListeCell {
-  min-width: 160px;
-  font-size: 0.82rem;
-}
-
-.lagerGrenzeValueWarn {
-  color: #b91c1c;
-  font-weight: 700;
-}
-
-.lagerGrenzeWarnMark {
-  color: #b91c1c;
-}
-
-.lagerGrenzeEmpty {
-  color: #9ca3af;
-}
-
-.lagerBewegungenFilter {
-  padding: 16px 20px;
-  margin-bottom: 16px;
-}
-
-.lagerZeitraumTabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.lagerZeitraumTabs .pillButton.active {
-  border-color: #f97316;
-  color: #c2410c;
-  background: #fff7ed;
-}
-
-.lagerZeitraumFrei {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.lagerBewegungAus {
-  background: #fffbeb;
-}
-
-.lagerBewegungEin {
-  background: #f0fdf4;
-}
-
 .lagerThumb,
 .lagerThumbPlaceholder {
   width: 44px;
@@ -3035,20 +2169,6 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   border: 1px solid #e5e7eb;
   object-fit: contain;
   background: #fff;
-}
-
-.lagerQrThumbPlaceholder {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  border: 1px dashed #d1d5db;
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #9ca3af;
-  background: #f9fafb;
 }
 
 .lagerModal {
@@ -3117,97 +2237,6 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   justify-content: space-between;
   gap: 10px;
   align-items: center;
-}
-
-.maintenanceGruppenBar {
-  display: grid;
-  gap: 10px;
-  padding: 14px 16px;
-  margin-bottom: 4px;
-}
-
-.maintenanceGruppenHint {
-  margin: 0;
-  font-size: 0.92rem;
-  color: #374151;
-}
-
-.maintenanceGruppenActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.lagerPickerBackdrop {
-  z-index: 10050;
-  display: grid;
-  place-items: start center;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-body.lagerPickerOpen {
-  overflow: hidden;
-}
-
-.lagerPickerModal {
-  width: min(960px, calc(100vw - 40px));
-  max-height: none;
-  margin: 20px auto 32px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.lagerPickerModalHeader {
-  flex-shrink: 0;
-}
-
-.lagerPickerSearch {
-  flex-shrink: 0;
-  margin-bottom: 12px;
-}
-
-.lagerPickerList {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: min(62vh, 680px);
-  overflow: auto;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  background: #fff;
-}
-
-.lagerPickerTable th,
-.lagerPickerTable td {
-  white-space: nowrap;
-}
-
-.lagerPickerTable td:nth-child(2) {
-  white-space: normal;
-  min-width: 12rem;
-  max-width: 24rem;
-}
-
-.lagerPickerActionHead,
-.lagerPickerActionCell {
-  position: sticky;
-  right: 0;
-  z-index: 2;
-  background: #fff;
-  box-shadow: -6px 0 8px rgba(15, 23, 42, 0.06);
-  min-width: 7rem;
-  text-align: center;
-}
-
-.lagerPickerActionHead {
-  background: #f3f4f6;
-}
-
-.lagerPickerHinzufBtn {
-  min-width: 6.5rem;
-  font-weight: 700;
-  white-space: nowrap;
 }
 
 .servicePartsBlock {
@@ -3552,42 +2581,12 @@ body.lagerPickerOpen {
   align-items: start;
 }
 
-.machineDetailPage .fieldGrid.documentationGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  width: 100%;
-  max-width: 100%;
+.documentUploadControlsCompact > input[type="file"] {
+  display: none;
 }
 
-@container machine-tab (max-width: 40rem) {
-  .machineDetailPage .fieldGrid.documentationGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.machineDetailPage .documentationGrid .documentationFieldRow > span {
-  font-weight: 800;
-  color: #374151;
-}
-
-.machineDetailPage .documentationDocBody {
-  width: 100%;
-  min-width: 0;
-}
-
-.machineDetailPage .documentationDocActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.machineDetailPage .documentationDocLink {
-  text-decoration: none;
-}
-
-.machineDetailPage .documentUploadButton {
-  margin: 0;
+.documentUploadButton {
+  position: relative;
   cursor: pointer;
 }
 
@@ -3598,7 +2597,6 @@ body.lagerPickerOpen {
 .documentEmptyHint {
   color: #6b7280;
   font-size: 0.82rem;
-  line-height: 1.4;
 }
 
 .userTableEmpty {
@@ -3762,7 +2760,6 @@ body.lagerPickerOpen {
   padding: 18px 22px;
   border-bottom: 1px solid #e5e7eb;
   color: inherit;
-  cursor: pointer;
   transition: background 0.15s ease;
 }
 
@@ -3771,52 +2768,17 @@ body.lagerPickerOpen {
 }
 
 .arbeitsauftragResultTop {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: stretch;
-  min-width: 0;
-}
-
-.arbeitsauftragResultMachineRow {
   display: grid;
-  grid-template-columns: 74px minmax(0, 1fr);
-  gap: 12px 16px;
+  grid-template-columns: minmax(148px, 200px) 74px minmax(0, 1fr);
+  gap: 16px;
   align-items: start;
 }
 
-.arbeitsauftragResultMetaGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 6px 20px;
-  align-items: start;
-  width: 100%;
-}
-
-.arbeitsauftragResultMetaCol {
-  min-width: 0;
+.arbeitsauftragResultLeading {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.arbeitsauftragResultMetaColStatus .machineStatusIndicatorsFixed {
-  display: grid;
-  grid-template-rows: repeat(3, auto);
-  gap: 4px;
-}
-
-.arbeitsauftragResultMetaColStatus .machineStatusSlot {
-  min-height: 0;
-}
-
-.arbeitsauftragResultMetaColAuftrag {
-  justify-content: start;
-  padding-top: 2px;
-}
-
-.arbeitsauftragResultMetaColAuftrag .arbeitsauftragProtocolFieldCompact:first-child {
-  min-height: 2.1rem;
+  gap: 12px;
+  min-width: 0;
 }
 
 .machineStatusIndicatorsFixed {
@@ -3839,8 +2801,8 @@ body.lagerPickerOpen {
 .arbeitsauftragProtocolMeta {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 0;
+  gap: 10px;
+  padding-left: 25px;
 }
 
 .arbeitsauftragProtocolField {
@@ -3849,24 +2811,6 @@ body.lagerPickerOpen {
   gap: 2px;
   font-size: 0.88rem;
   align-items: flex-start;
-}
-
-.arbeitsauftragProtocolFieldCompact {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  font-size: 0.78rem;
-  line-height: 1.25;
-}
-
-.arbeitsauftragProtocolFieldCompact strong {
-  font-size: inherit;
-  font-weight: 800;
-  color: #374151;
-}
-
-.arbeitsauftragProtocolFieldCompact .arbeitsauftragProtocolAuftrag {
-  font-size: 0.85rem;
 }
 
 .arbeitsauftragProtocolField strong {
@@ -3921,25 +2865,16 @@ body.lagerPickerOpen {
 }
 
 @media (max-width: 900px) {
-  .arbeitsauftragResultMetaGrid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 6px 14px;
+  .arbeitsauftragResultTop {
+    grid-template-columns: 1fr;
   }
 
-  .arbeitsauftragResultMetaColStatus .machineStatusRow {
-    grid-template-columns: 12px minmax(0, 1fr);
-    gap: 6px;
+  .arbeitsauftragResultLeading {
+    order: 2;
   }
 
-  .arbeitsauftragResultMetaColStatus .machineStatusMark {
-    width: 10px;
-    height: 10px;
-    margin-top: 2px;
-  }
-
-  .arbeitsauftragResultMachineRow {
-    grid-template-columns: 64px minmax(0, 1fr);
-    gap: 10px 12px;
+  .arbeitsauftragProtocolMeta {
+    padding-left: 25px;
   }
 
   .arbeitsauftragProtocolFields {
@@ -3998,14 +2933,6 @@ body.lagerPickerOpen {
   text-decoration: underline;
 }
 
-.linkBtnDanger {
-  color: #b91c1c;
-}
-
-.linkBtnDanger:hover {
-  color: #991b1b;
-}
-
 .errorText {
   color: #b91c1c;
   margin: 0.5rem 0;
@@ -4017,41 +2944,12 @@ body.lagerPickerOpen {
   gap: 1rem;
 }
 
-.pkwSetupAlert {
-  display: grid;
-  gap: 0.65rem;
-  margin-bottom: 0.75rem;
-}
-
-.pkwSetupActions {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.pkwSetupActions .subtitle {
-  margin: 0;
-}
-
 .pkwToolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
   margin-bottom: 1rem;
-}
-
-.pkwToolbarWrap {
-  align-items: flex-end;
-}
-
-.pkwToolbarPresets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.pkwBoardDayPicker {
-  margin-bottom: 0.75rem;
 }
 
 .pkwSearchInput {
@@ -4115,66 +3013,10 @@ body.lagerPickerOpen {
 }
 
 .pkwModal {
-  max-width: 720px;
+  max-width: 640px;
   width: calc(100% - 2rem);
   max-height: 90vh;
   overflow: auto;
-}
-
-.pkwFormSection {
-  margin: 0;
-  padding: 0;
-  border: none;
-  min-width: 0;
-}
-
-.pkwFormSection .pkwFormSectionTitle {
-  border-top: none;
-  margin-top: 0.5rem;
-}
-
-.pkwFormSection:first-of-type .pkwFormSectionTitle {
-  margin-top: 0;
-}
-
-.pkwQrSection {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.pkwQrBlock {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.pkwQrImage {
-  display: block;
-  width: 200px;
-  height: 200px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.pkwQrMeta {
-  flex: 1;
-  min-width: 200px;
-}
-
-.pkwQrLink {
-  display: block;
-  word-break: break-all;
-  font-size: 0.82rem;
-  margin: 0.35rem 0 0.5rem;
-}
-
-.pkwQrActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .pkwFormGrid {
@@ -4183,97 +3025,8 @@ body.lagerPickerOpen {
   gap: 0.75rem;
 }
 
-.pkwFahrzeugRow {
-  display: grid;
-  grid-template-columns: 56px minmax(200px, 1.25fr) minmax(160px, 1fr) minmax(160px, 1fr) auto;
-  gap: 16px;
-  align-items: center;
-  width: 100%;
-  padding: 18px 22px;
-  border-bottom: 1px solid #e5e7eb;
-  box-sizing: border-box;
-}
-
-.pkwFahrzeugIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  background: #fff7ed;
-  color: #c2410c;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-
-.pkwFahrzeugRowActions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  align-items: flex-end;
-}
-
-@media (max-width: 1100px) {
-  .pkwFahrzeugRow {
-    grid-template-columns: 56px 1fr;
-  }
-
-  .pkwFahrzeugRow .machineResultMeta,
-  .pkwFahrzeugRowActions {
-    grid-column: 1 / -1;
-  }
-
-  .pkwFahrzeugRowActions {
-    flex-direction: row;
-    justify-content: flex-start;
-  }
-}
-
 .pkwFieldFull {
   grid-column: 1 / -1;
-}
-
-.pkwReifenSatzCard {
-  margin-bottom: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #fafafa;
-}
-
-.pkwReifenSatzHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.pkwReifenEmpty {
-  margin: 0 0 0.75rem;
-}
-
-.pkwReifenAddBtn {
-  margin-top: 0.25rem;
-}
-
-.pkwFormSection .pkwFieldFull {
-  margin-bottom: 0.75rem;
-}
-
-.pkwFormSectionTitle {
-  margin: 0.75rem 0 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #111827;
-}
-
-.pkwPortalHintInline {
-  margin: 0;
-  font-size: 0.82rem;
 }
 
 .pkwField,
@@ -4306,257 +3059,16 @@ body.lagerPickerOpen {
   margin-top: 0.5rem;
 }
 
-.pkwDayBoard {
-  margin-top: 0.75rem;
-}
-
-.pkwDayBoardTimeline {
-  min-width: 0;
-  --pkw-platz-label-width: 5.25rem;
-}
-
-.pkwScheduleHeader,
-.pkwPlatzRow {
-  display: grid;
-  grid-template-columns: var(--pkw-platz-label-width) minmax(0, 1fr);
-  gap: 0.75rem;
-  align-items: stretch;
-}
-
-.pkwScheduleHeader {
-  margin-bottom: 0.35rem;
-}
-
-.pkwPlatzList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.pkwPlatzRow {
-  padding: 0.65rem 0.75rem;
+.pkwPlatzColumn {
+  padding: 0.75rem;
+  min-height: 180px;
   background: #fafafa;
-}
-
-.pkwPlatzRow .pkwPlatzTitle {
-  margin: 0;
-  padding-top: 0.35rem;
-  align-self: start;
-}
-
-.pkwScheduleTimeRow {
-  display: grid;
-  grid-template-columns: repeat(var(--pkw-hour-count, 11), minmax(0, 1fr));
-  gap: 0;
-  padding: 0.2rem 0;
-  font-size: 0.72rem;
-  color: #6b7280;
-  border-bottom: 1px solid #e5e7eb;
-  min-width: 0;
-}
-
-.pkwDayHourMark {
-  line-height: 1.2;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.pkwPlatzTimeline {
-  position: relative;
-  min-height: 108px;
-}
-
-.pkwPlatzTimelineGrid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: 10px;
-  border: 1px solid #f1f5f9;
-  background: repeating-linear-gradient(
-    to right,
-    #e5e7eb 0,
-    #e5e7eb 1px,
-    transparent 1px,
-    transparent calc(100% / var(--pkw-hour-count, 11))
-  );
-}
-
-.pkwBuchungSlot {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  height: auto;
-  padding: 0 2px;
-  min-width: 3.25rem;
-  overflow: hidden;
-  z-index: 1;
-  box-sizing: border-box;
-}
-
-.pkwBuchungSlot .pkwBuchungCard {
-  margin: 0;
-  height: 100%;
-  overflow: auto;
-  font-size: 0.78rem;
-}
-
-.pkwPlatzFrei {
-  margin: 0;
-}
-
-.pkwPlatzFreiOverlay {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
 }
 
 .pkwPlatzTitle {
   margin: 0 0 0.75rem;
   font-size: 0.95rem;
   color: #ea580c;
-}
-
-@media (max-width: 760px) {
-  .pkwDayBoardTimeline {
-    --pkw-platz-label-width: 4.25rem;
-  }
-
-  .pkwScheduleTimeRow,
-  .pkwPlatzTimeline {
-    min-width: 36rem;
-  }
-
-  .pkwScheduleHeader,
-  .pkwPlatzRow {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-.pkwBuchungCardHead {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.35rem;
-}
-
-.pkwBuchungEditBtn {
-  margin-top: 0.35rem;
-  align-self: flex-start;
-}
-
-/* PKW-Termin — gleiche Karte wie Maschine hinzufügen */
-.pkwBuchungModal.machineAddModal {
-  width: min(920px, calc(100vw - 48px));
-  max-width: 920px;
-  max-height: calc(100dvh - 48px);
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.pkwBuchungModal .machineAddModalHeader {
-  flex-shrink: 0;
-}
-
-.pkwBuchungModalBody.machineDetailBody {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
-  overflow-y: auto;
-  gap: 1.25rem;
-  margin-bottom: 0;
-  padding-right: 4px;
-}
-
-.pkwBuchungFormGrid {
-  gap: 12px 16px;
-}
-
-.pkwBuchungModal .pkwField span,
-.pkwBuchungModal .pkwFieldset legend {
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: #374151;
-}
-
-.pkwBuchungModal .pkwField input,
-.pkwBuchungModal .pkwField select,
-.pkwBuchungModal .pkwField textarea,
-.pkwBuchungModal .pkwInlineAddRow input,
-.pkwBuchungModal .pkwSchrittRow input[type="text"] {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.pkwBuchungModal .pkwFieldset {
-  margin: 0;
-  padding: 14px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #fafafa;
-}
-
-.pkwBuchungModal .machineAddModalActions {
-  flex-shrink: 0;
-}
-
-.pkwServiceCheckGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  gap: 0.35rem 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.pkwInlineAddRow {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.pkwInlineAddRow input {
-  flex: 1;
-  min-width: 10rem;
-}
-
-.pkwSchrittRow {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin-bottom: 0.35rem;
-}
-
-.pkwSchrittRow input[type="text"] {
-  flex: 1;
-}
-
-.pkwSchrittList {
-  margin: 0.35rem 0 0;
-  padding-left: 1.1rem;
-  font-size: 0.85rem;
-}
-
-.pkwSchrittList li.done {
-  text-decoration: line-through;
-  color: #6b7280;
-}
-
-.pkwFieldset {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.65rem 0.85rem;
-  margin: 0.75rem 0;
-}
-
-.pkwFieldset legend {
-  padding: 0 0.35rem;
-  font-weight: 600;
 }
 
 .pkwBuchungCard {
@@ -4639,341 +3151,19 @@ body.lagerPickerOpen {
   background: #dcfce7;
 }
 
-/* ─── PWA / Start ─── */
-.pwaStartPage {
-  max-width: 28rem;
-  margin: 0 auto;
-  padding: 1.25rem 1rem 2rem;
-  min-height: 100dvh;
-  box-sizing: border-box;
-}
-
-.pwaStartPageWithNav {
-  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-}
-
-.loginPageWithNav {
-  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-}
-
-.pwaStartHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.pwaStartHeader h1 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.pwaStartLead {
-  margin: 0 0 1rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.pwaStartGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.pwaStartCard {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1.1rem 1.25rem;
-  border-radius: 12px;
-  border: 2px solid #e5e7eb;
-  background: #fff;
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.pwaStartCard:hover {
-  border-color: #f97316;
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.12);
-}
-
-.pwaStartCard strong {
-  font-size: 1.1rem;
-  color: #111827;
-}
-
-.pwaStartCardDesc {
-  font-size: 0.88rem;
-  color: #6b7280;
-}
-
-.pwaStartCardIcon {
-  font-size: 1.75rem;
-  line-height: 1;
-}
-
-.pwaStartCardIconSvg {
-  display: block;
-  width: 100%;
-  max-width: 140px;
-  margin: 0 auto;
-}
-
-.pwaStartCardIconSvg svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.pwaStartCardKunde {
-  border-left: 4px solid #2563eb;
-}
-
-.pwaStartCardTeam {
-  border-left: 4px solid #ea580c;
-}
-
-.pwaStartFootnote {
-  margin-top: 1.25rem;
-  font-size: 0.85rem;
-  color: #6b7280;
-  text-align: center;
-}
-
-.pwaStartFootnote a {
-  color: #c2410c;
-}
-
-.pwaInstallHint {
-  margin: 1rem 0 0;
-  padding: 1rem;
-}
-
-.pwaInstallHintCompact {
-  position: relative;
-  margin: 0.75rem 0 0;
-  padding: 0.65rem 2rem 0.65rem 0.75rem;
-  font-size: 0.85rem;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 8px;
-  color: #9a3412;
-}
-
-.pwaInstallTitle {
-  margin: 0 0 0.35rem;
-  font-size: 1rem;
-}
-
-.pwaInstallSteps {
-  margin: 0.5rem 0 0.75rem;
-  padding-left: 1.25rem;
-  font-size: 0.9rem;
-}
-
-.pwaInstallDismiss {
-  position: absolute;
-  top: 0.35rem;
-  right: 0.5rem;
-  border: none;
-  background: transparent;
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  color: #9a3412;
-}
-
-.loginKundeHint {
-  margin: 1rem 0 0;
-  text-align: center;
-  font-size: 0.8rem;
-  color: #9ca3af;
-}
-
-.loginKundeHint a {
-  color: #f97316;
-  font-weight: 600;
-}
-
-/* Kundenportal — body-Klasse per JS (ohne :has(), ältere iPhones) */
-html.pkw-portal-body,
-body.pkw-portal-body {
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
-.pkwPortalShell {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100dvh;
-  min-height: 100svh;
-  min-height: -webkit-fill-available;
-  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, #fff7ed 0%, #f9fafb 40%);
-}
-
-.pkwPortalScroll {
-  flex: 1;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
 .pkwPortalPage {
-  padding: 0 1.25rem 1rem;
-}
-
-/* Oben: immer sichtbar direkt unter dem Rand */
-.pkwPortalStepNav {
-  flex-shrink: 0;
-  padding: 10px 12px 0;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: linear-gradient(180deg, #fff7ed 0%, #fff7ed 70%, rgba(255, 247, 237, 0));
-}
-
-.pkwPortalStepNavInner {
-  display: flex;
-  gap: 10px;
-  align-items: stretch;
-}
-
-/* Unten: fix am Viewport (Portal → body) */
-.pkwPortalNavDock {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2147483646;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  pointer-events: none;
-}
-
-.pkwPortalNavDockInner {
-  pointer-events: auto;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #fff7ed 0%, #f9fafb 40%);
+  padding: 1.25rem;
   max-width: 480px;
   margin: 0 auto;
-  padding: 8px 12px 10px;
-  background: #fff;
-  border-top: 2px solid #ea580c;
-  box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.15);
-}
-
-.pkwPortalNavBar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.pkwPortalHeaderTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.pkwPortalHeaderActions {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: flex-end;
-}
-
-.pkwPortalHeaderBtn {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  background: #fff;
-  color: #111827;
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.pkwPortalHeaderBtnDanger {
-  border-color: #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
-.pkwPortalSessionHint {
-  margin: 0 0 0.75rem;
-  font-size: 0.82rem;
-  color: #6b7280;
-}
-
-.pkwPortalNavSpacer {
-  flex: 1;
-}
-
-.pkwPortalNavBtn {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 1rem;
-  text-decoration: none;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  color: #111827;
-}
-
-.pkwPortalNavBtn:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.pkwPortalNavBtnOutline:active {
-  background: #f3f4f6;
-}
-
-.pkwPortalNavBtnDanger {
-  border-color: #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
-.pkwPortalNavBtnDanger:active {
-  background: #fee2e2;
-}
-
-.pkwPortalNavBtnPrimary {
-  border-color: #ea580c;
-  background: #ea580c;
-  color: #fff;
-}
-
-.pkwPortalNavBtnFull {
-  flex: 1;
-  width: 100%;
 }
 
 .pkwPortalHeader {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  margin-bottom: 1rem;
 }
 
 .pkwPortalHeader h1 {
@@ -5009,8 +3199,8 @@ body.pkw-portal-body {
 }
 
 .pkwSlotGrid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   margin: 0.75rem 0;
 }
@@ -5040,10 +3230,10 @@ body.pkw-portal-body {
   text-align: center;
 }
 
-.pkwPortalAutoLogout {
-  margin-top: 1rem;
-  font-size: 0.85rem;
-  color: #6b7280;
+@media (max-width: 1100px) {
+  .pkwPlatzBoard {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
@@ -5051,23 +3241,7 @@ body.pkw-portal-body {
     grid-template-columns: 1fr;
   }
 
-
-  .pkwPortalHeaderTop {
-    flex-wrap: wrap;
-  }
-
-  .pkwPortalHeaderActions {
-    width: 100%;
-    justify-content: stretch;
-  }
-
-  .pkwPortalHeaderBtn {
-    flex: 1;
-    font-size: 0.95rem;
-  }
-
-  .pkwPortalNavBar {
-    padding-left: max(12px, env(safe-area-inset-left, 0px));
-    padding-right: max(12px, env(safe-area-inset-right, 0px));
+  .pkwPlatzBoard {
+    grid-template-columns: 1fr;
   }
 }

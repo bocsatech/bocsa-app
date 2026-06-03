@@ -5,9 +5,7 @@ import type { ChangeEvent } from "react";
 type Props = {
   label: string;
   fileUrl: string;
-  /** PDF hochladen nur im Bearbeiten-Modus */
-  isEditing: boolean;
-  canWrite: boolean;
+  canUpload: boolean;
   uploading: boolean;
   onUpload: (event: ChangeEvent<HTMLInputElement>) => void;
 };
@@ -15,33 +13,23 @@ type Props = {
 export default function DocumentationDocumentRow({
   label,
   fileUrl,
-  isEditing,
-  canWrite,
+  canUpload,
   uploading,
   onUpload,
 }: Props) {
-  const showUpload = canWrite && isEditing;
-
   return (
-    <div
-      className={`fieldRow documentationFieldRow${showUpload ? "" : " documentationFieldRow--viewOnly"}`}
-    >
+    <div className="fieldRow documentationFieldRow">
       <span>{label}</span>
-      <div className="documentationDocBody">
-        <div className="documentationDocActions">
+      <div className="documentUploadControls documentUploadControlsCompact">
+        <div className="documentUploadActions">
           {fileUrl ? (
-            <a
-              className="pillButton outline documentationDocLink"
-              href={fileUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={fileUrl} target="_blank" rel="noreferrer">
               Öffnen
             </a>
           ) : (
             <span className="documentEmptyHint">Kein Dokument hinterlegt.</span>
           )}
-          {showUpload ? (
+          {canUpload ? (
             <label className="pillButton outline documentUploadButton">
               <input
                 type="file"
@@ -49,7 +37,7 @@ export default function DocumentationDocumentRow({
                 onChange={onUpload}
                 disabled={uploading}
               />
-              {uploading ? "Wird hochgeladen…" : "PDF hochladen"}
+              {uploading ? "Wird hochgeladen..." : "PDF hochladen"}
             </label>
           ) : null}
         </div>

@@ -16,7 +16,6 @@ import {
   findLagerTeilForScheduleRow,
   formatLagerNumber,
   issueLagerStock,
-  listLagerTeileCandidatesForScheduleRow,
 } from "../../lib/lager";
 import type { LagerTeil } from "../../lib/types/lager";
 import LagerTeilPickerModal from "./LagerTeilPickerModal";
@@ -26,8 +25,6 @@ type Props = {
   canEdit: boolean;
   canIssueLager?: boolean;
   machineId?: string;
-  fahrzeugId?: string;
-  arbeitsauftragId?: string;
   auftragReferenz?: string;
   onChange: (protocol: WorkOrderProtocol) => void;
 };
@@ -37,15 +34,10 @@ export default function ArbeitsauftragProtokollSection({
   canEdit,
   canIssueLager = false,
   machineId,
-  fahrzeugId,
-  arbeitsauftragId,
   auftragReferenz = "Arbeitsauftrag",
   onChange,
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerQuery, setPickerQuery] = useState("");
-  /** Vorlagenzeile: Picker verknüpft diese Zeile (kein Duplikat). */
-  const [pickerTargetRowId, setPickerTargetRowId] = useState<string | null>(null);
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [stockById, setStockById] = useState<Record<string, number>>({});
   const [lagerError, setLagerError] = useState<string | null>(null);
@@ -147,51 +139,6 @@ export default function ArbeitsauftragProtokollSection({
     return scheduleRowLagerDisplay(row, resolveTeilForRow(row));
   }
 
-  function linkScheduleRowToTeil(rowId: string, teil: LagerTeil) {
-    if (
-      protocol.serviceSchedule.some(
-        (item) => item.lagerTeilId === teil.id && item.id !== rowId
-      )
-    ) {
-      setLagerError("Dieses Teil ist bereits in einer anderen Zeile.");
-      return false;
-    }
-
-    updateScheduleRow(rowId, {
-      lagerTeilId: teil.id,
-      serviceMaterial: teil.bezeichnung?.trim() || "",
-      juraHifi: teil.herstellernummer?.trim() || "",
-      sfFilter: teil.artikelnummer?.trim() || "",
-      lagerstandSnapshot: Number(teil.lagerstand ?? 0),
-    });
-    setStockById((current) => ({
-      ...current,
-      [teil.id]: Number(teil.lagerstand ?? 0),
-    }));
-    setLagerError(null);
-    return true;
-  }
-
-  function openPickerForRow(row: WorkOrderScheduleRow) {
-    setPickerTargetRowId(row.id);
-    setPickerQuery(row.juraHifi.trim() || row.serviceMaterial.trim());
-    setPickerOpen(true);
-  }
-
-  function handlePickerSelect(teil: LagerTeil) {
-    setPickerOpen(false);
-    setPickerQuery("");
-    const targetId = pickerTargetRowId;
-    setPickerTargetRowId(null);
-
-    if (targetId) {
-      linkScheduleRowToTeil(targetId, teil);
-      return;
-    }
-
-    addFromLager(teil);
-  }
-
   function addFromLager(teil: LagerTeil) {
     if (protocol.serviceSchedule.some((row) => row.lagerTeilId === teil.id)) {
       setLagerError("Dieses Teil ist bereits in der Tabelle.");
@@ -222,7 +169,13 @@ export default function ArbeitsauftragProtokollSection({
 
     const teil = resolveTeilForRow(row);
     if (!teil) {
-      openPickerForRow(row);
+      const nr = row.juraHifi.trim() || "—";
+      const name = row.serviceMaterial.trim();
+      setLagerError(
+        name
+          ? `Kein Lager-Eintrag für «${nr}» / «${name}». Herstellernummer im Lager prüfen oder zusätzliches Teil nur über «+ Teil aus Lager».`
+          : `Kein Lager-Eintrag für Herstellernummer «${nr}». Nur «+ Teil aus Lager» legt neue Zeilen an.`
+      );
       return;
     }
 
@@ -258,9 +211,7 @@ export default function ArbeitsauftragProtokollSection({
 
     setLagerBusy(true);
     const { data, error } = await issueLagerStock({
-      machineId: fahrzeugId ? undefined : machineId,
-      fahrzeugId,
-      arbeitsauftragId,
+      machineId,
       referenz: auftragReferenz,
       lines: [
         {
@@ -344,11 +295,7 @@ export default function ArbeitsauftragProtokollSection({
               type="button"
               className="pillButton primary aaProtokollLagerAddBtn"
               disabled={lagerBusy}
-              onClick={() => {
-                setPickerTargetRowId(null);
-                setPickerQuery("");
-                setPickerOpen(true);
-              }}
+              onClick={() => setPickerOpen(true)}
             >
               + Teil aus Lager
             </button>
@@ -357,12 +304,6 @@ export default function ArbeitsauftragProtokollSection({
       </div>
 
       {lagerError ? <p className="protocolNotice">{lagerError}</p> : null}
-      {canEdit ? (
-        <p className="lagerBildHint">
-          Mehrere Lager-Treffer: in der Zeile auswählen. Ohne Treffer: „Hinzufügen“ oder „aus
-          Lager“ öffnet die Teileliste.
-        </p>
-      ) : null}
 
       <div className="machineTableScroll aaProtokollScheduleScroll">
         <table className="machineTable aaProtokollScheduleTable">
@@ -381,7 +322,6 @@ export default function ArbeitsauftragProtokollSection({
           </thead>
           <tbody>
             {protocol.serviceSchedule.map((row) => {
-              const candidates = listLagerTeileCandidatesForScheduleRow(teile, row);
               const teil = resolveTeilForRow(row);
               const display = rowDisplayFields(row);
               const stock = lagerstandForRow(row);
@@ -391,39 +331,13 @@ export default function ArbeitsauftragProtokollSection({
                 teil != null && stock != null && pending > 0 && stock < pending;
               const canHinzufuegen =
                 row.menge > 0 && row.menge > issued && teil != null;
-              const showCandidateSelect = canEdit && candidates.length > 1;
 
               return (
                 <tr
                   key={row.id}
                   className={row.hinzugefuegt ? "aaProtokollRowIssued" : undefined}
                 >
-                  <td>
-                    {showCandidateSelect ? (
-                      <select
-                        className="aaProtokollInput"
-                        value={row.lagerTeilId ?? ""}
-                        onChange={(event) => {
-                          const picked = candidates.find(
-                            (item) => item.id === event.target.value
-                          );
-                          if (picked) linkScheduleRowToTeil(row.id, picked);
-                        }}
-                      >
-                        <option value="">— Teil wählen —</option>
-                        {candidates.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.bezeichnung?.trim() || item.herstellernummer}
-                            {item.lagerplatz?.trim()
-                              ? ` · ${item.lagerplatz.trim()}`
-                              : ""}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      display.ersatzteil
-                    )}
-                  </td>
+                  <td>{display.ersatzteil}</td>
                   <td className="aaProtokollColJura">
                     <span className="aaProtokollValueJura">{display.herstellernummer}</span>
                   </td>
@@ -515,16 +429,6 @@ export default function ArbeitsauftragProtokollSection({
                   ) : null}
                   {canEdit ? (
                     <td className="aaProtokollColActions">
-                      {!teil ? (
-                        <button
-                          type="button"
-                          className="pillButton outline aaProtokollLinkBtn"
-                          disabled={lagerBusy}
-                          onClick={() => openPickerForRow(row)}
-                        >
-                          aus Lager
-                        </button>
-                      ) : null}
                       <button
                         type="button"
                         className="pillButton outline"
@@ -600,15 +504,10 @@ export default function ArbeitsauftragProtokollSection({
 
       <LagerTeilPickerModal
         open={pickerOpen}
-        onClose={() => {
-          setPickerOpen(false);
-          setPickerQuery("");
-          setPickerTargetRowId(null);
-        }}
-        onSelect={handlePickerSelect}
+        onClose={() => setPickerOpen(false)}
+        onSelect={addFromLager}
         excludeIds={linkedLagerIds}
         issueOnSelect={false}
-        initialQuery={pickerQuery}
       />
     </div>
   );

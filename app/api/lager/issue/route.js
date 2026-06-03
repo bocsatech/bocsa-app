@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
-import { insertLagerBewegung } from "../../../../lib/lager-bewegung-db";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 const TEILE_TABLE = "lager_teile";
+const BEWEGUNGEN_TABLE = "lager_bewegungen";
 
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
@@ -13,9 +13,8 @@ export async function POST(request) {
   const canIssue = await currentUserHasPermission("warehouse.issue");
   const canWrite = await currentUserHasPermission("warehouse.write");
   const canMachineWrite = await currentUserHasPermission("machines.write");
-  const canPkwWrite = await currentUserHasPermission("pkw.kunden.write");
 
-  if (!canIssue && !canWrite && !(fromArbeitsauftrag && (canMachineWrite || canPkwWrite))) {
+  if (!canIssue && !canWrite && !(fromArbeitsauftrag && canMachineWrite)) {
     return NextResponse.json(
       {
         error:
@@ -30,10 +29,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Supabase ist nicht konfiguriert." }, { status: 500 });
   }
   const lines = Array.isArray(body.lines) ? body.lines : [];
-  const machineId = typeof body.machineId === "string" ? body.machineId.trim() : null;
-  const fahrzeugId = typeof body.fahrzeugId === "string" ? body.fahrzeugId.trim() : null;
-  const arbeitsauftragId =
-    typeof body.arbeitsauftragId === "string" ? body.arbeitsauftragId.trim() : null;
+  const machineId = typeof body.machineId === "string" ? body.machineId : null;
   const referenzValue = referenz || null;
 
   if (!lines.length) {
@@ -82,14 +78,10 @@ export async function POST(request) {
       continue;
     }
 
-    const { error: moveError } = await insertLagerBewegung(db, {
+    const { error: moveError } = await db.from(BEWEGUNGEN_TABLE).insert({
       lager_teil_id: lagerTeilId,
       menge,
-      machine_id: machineId || null,
-      fahrzeug_id: fahrzeugId || null,
-      arbeitsauftrag_id: arbeitsauftragId || null,
-      typ: "entnahme",
-      richtung: "aus",
+      machine_id: machineId,
       referenz: referenzValue,
       bemerkung: typeof line.bemerkung === "string" ? line.bemerkung : null,
     });

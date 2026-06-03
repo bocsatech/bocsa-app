@@ -31,25 +31,14 @@ export async function currentUserHasPermission(permissionKey: string) {
     return false;
   }
 
-  const { data: groupPerm, error: groupError } = await db
+  const { data, error } = await db
     .from("group_permissions")
     .select("permission_key")
     .in("group_id", groupIds)
     .eq("permission_key", permissionKey)
     .limit(1);
 
-  if (!groupError && Boolean(groupPerm?.length)) {
-    return true;
-  }
-
-  const { data: userPerm, error: userError } = await db
-    .from("user_permissions")
-    .select("permission_key")
-    .eq("user_id", session.userId)
-    .eq("permission_key", permissionKey)
-    .limit(1);
-
-  return !userError && Boolean(userPerm?.length);
+  return !error && Boolean(data?.length);
 }
 
 export async function currentUserCanManageUsers() {
