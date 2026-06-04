@@ -8,22 +8,29 @@ import LagerPkwTerminFilterBar from "../../components/LagerPkwTerminFilterBar";
 import PkwBuchungEditModal from "../../components/PkwBuchungEditModal";
 import {
   buildLagerPkwTerminPartRows,
+  fetchLagerPkwFahrzeuge,
+  fetchLagerPkwTermin,
+  fetchLagerPkwTermine,
   pkwTerminZeitraumRange,
   type LagerPkwTerminPartRow,
   type PkwTerminZeitraumPreset,
 } from "../../../lib/lager-pkw-termine";
 import { fetchLagerTeile } from "../../../lib/lager";
-import {
-  dateYmdLocal,
-  fetchPkwBuchungen,
-  fetchPkwFahrzeuge,
-  fetchPkwServicearten,
-} from "../../../lib/pkw";
+import { dateYmdLocal, fetchPkwServicearten } from "../../../lib/pkw";
 import type { PkwBuchung, PkwFahrzeug, PkwServiceArt } from "../../../lib/types/pkw";
 import type { LagerTeil } from "../../../lib/types/lager";
 
+function defaultZeitraum() {
+  const from = new Date();
+  from.setDate(from.getDate() - 14);
+  const to = new Date();
+  to.setDate(to.getDate() + 45);
+  return { von: dateYmdLocal(from), bis: dateYmdLocal(to) };
+}
+
 export default function LagerReservierungenPage() {
   const today = dateYmdLocal();
+  const initialRange = defaultZeitraum();
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [pkwFahrzeuge, setPkwFahrzeuge] = useState<PkwFahrzeug[]>([]);
   const [pkwBuchungen, setPkwBuchungen] = useState<PkwBuchung[]>([]);
@@ -33,13 +40,14 @@ export default function LagerReservierungenPage() {
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
   const [selectedBuchungId, setSelectedBuchungId] = useState<string | null>(null);
+  const [modalBuchung, setModalBuchung] = useState<PkwBuchung | null>(null);
 
-  const [preset, setPreset] = useState<PkwTerminZeitraumPreset>("monat");
+  const [preset, setPreset] = useState<PkwTerminZeitraumPreset>("zeitraum");
   const [filterTag, setFilterTag] = useState(today);
   const [filterMonat, setFilterMonat] = useState(today.slice(0, 7));
   const [filterJahr, setFilterJahr] = useState(String(new Date().getFullYear()));
-  const [filterVon, setFilterVon] = useState(today);
-  const [filterBis, setFilterBis] = useState(today);
+  const [filterVon, setFilterVon] = useState(initialRange.von);
+  const [filterBis, setFilterBis] = useState(initialRange.bis);
 
   const range = useMemo(
     () =>
@@ -59,8 +67,8 @@ export default function LagerReservierungenPage() {
 
     const [tRes, fRes, bRes, sRes] = await Promise.all([
       fetchLagerTeile(),
-      fetchPkwFahrzeuge(),
-      fetchPkwBuchungen({ from: range.from, to: range.to }),
+      fetchLagerPkwFahrzeuge(),
+      fetchLagerPkwTermine({ from: range.from, to: range.to }),
       fetchPkwServicearten(),
     ]);
 
@@ -98,6 +106,24 @@ export default function LagerReservierungenPage() {
     else setLoading(false);
   }, [canRead, load]);
 
+  useEffect(() => {
+    if (!selectedBuchungId) {
+      setModalBuchung(null);
+      return;
+    }
+
+    const cached = pkwBuchungen.find((b) => b.id === selectedBuchungId);
+    if (cached) {
+      setModalBuchung(cached);
+      return;
+    }
+
+    void fetchLagerPkwTermin(selectedBuchungId).then(({ data, error }) => {
+      if (data) setModalBuchung(data);
+      else if (error) setLoadError(error);
+    });
+  }, [selectedBuchungId, pkwBuchungen]);
+
   const rows = useMemo(
     () => buildLagerPkwTerminPartRows(teile, pkwFahrzeuge, pkwBuchungen),
     [teile, pkwFahrzeuge, pkwBuchungen]
@@ -106,11 +132,6 @@ export default function LagerReservierungenPage() {
   const shortageCount = useMemo(
     () => rows.filter((row) => row.fehlmenge > 0).length,
     [rows]
-  );
-
-  const selectedBuchung = useMemo(
-    () => pkwBuchungen.find((b) => b.id === selectedBuchungId) ?? null,
-    [pkwBuchungen, selectedBuchungId]
   );
 
   function handleBuchungSaved(buchung: PkwBuchung) {
@@ -123,6 +144,7 @@ export default function LagerReservierungenPage() {
       }
       return [...current, buchung].sort((a, b) => a.slot_start.localeCompare(b.slot_start));
     });
+    setModalBuchung(buchung);
     void load();
   }
 
@@ -211,8 +233,8 @@ export default function LagerReservierungenPage() {
       )}
 
       <PkwBuchungEditModal
-        open={Boolean(selectedBuchungId && selectedBuchung)}
-        buchung={selectedBuchung}
+        open={Boolean(modalBuchung)}
+        buchung={modalBuchung}
         servicearten={servicearten}
         fahrzeuge={pkwFahrzeuge}
         canWrite={canWrite}

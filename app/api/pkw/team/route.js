@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { canAccessPkwService } from "../../../../lib/pkw-permissions-server.mjs";
 
-/** Benutzerliste für Szerelő-Zuweisung (PKW-Service). */
+/** Benutzerliste für Szerelő-Zuweisung (PKW-Service / Lager). */
 export async function GET() {
-  if (!(await canAccessPkwService("read"))) {
+  const canService = await canAccessPkwService("read");
+  const canWarehouse = await currentUserHasPermission("warehouse.read");
+  if (!canService && !canWarehouse) {
     return NextResponse.json({ error: "Keine Berechtigung: pkw.service.read" }, { status: 403 });
   }
 

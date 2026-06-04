@@ -145,3 +145,46 @@ export function pkwTerminZeitraumRange(
     label: `${sortedVon} – ${sortedBis}`,
   };
 }
+
+async function parseLagerTerminJson<T>(
+  response: Response
+): Promise<{ data: T | null; error: string | null }> {
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      (result && typeof result === "object" && "error" in result && String(result.error)) ||
+      `HTTP ${response.status}`;
+    return { data: null, error: message };
+  }
+  return { data: result as T, error: null };
+}
+
+export async function fetchLagerPkwTermine(params: { from: string; to: string; status?: string }) {
+  const search = new URLSearchParams({
+    from: params.from,
+    to: params.to,
+    ts: String(Date.now()),
+  });
+  if (params.status) search.set("status", params.status);
+  const response = await fetch(`/api/lager/termine?${search}`, {
+    cache: "no-store",
+    credentials: "include",
+  });
+  return parseLagerTerminJson<PkwBuchung[]>(response);
+}
+
+export async function fetchLagerPkwTermin(id: string) {
+  const response = await fetch(`/api/lager/termine/${encodeURIComponent(id)}?ts=${Date.now()}`, {
+    cache: "no-store",
+    credentials: "include",
+  });
+  return parseLagerTerminJson<PkwBuchung>(response);
+}
+
+export async function fetchLagerPkwFahrzeuge() {
+  const response = await fetch(`/api/lager/pkw-fahrzeuge?ts=${Date.now()}`, {
+    cache: "no-store",
+    credentials: "include",
+  });
+  return parseLagerTerminJson<PkwFahrzeug[]>(response);
+}

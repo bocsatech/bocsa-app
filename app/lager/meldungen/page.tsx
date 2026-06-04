@@ -18,7 +18,12 @@ import {
   lagerBewegungZeitraumRange,
   type LagerBewegung,
 } from "../../../lib/lager";
-import { buchungRangeParams, dateYmdLocal, fetchPkwBuchungen, fetchPkwFahrzeuge, fetchPkwServicearten } from "../../../lib/pkw";
+import {
+  fetchLagerPkwFahrzeuge,
+  fetchLagerPkwTermin,
+  fetchLagerPkwTermine,
+} from "../../../lib/lager-pkw-termine";
+import { buchungRangeParams, dateYmdLocal, fetchPkwServicearten } from "../../../lib/pkw";
 import type { LagerFahrzeugBedarfZeile } from "../../../lib/lager-pkw-bedarf";
 import type { LagerBestandMeldung } from "../../../lib/lager-bestand";
 import type { PkwBuchung, PkwFahrzeug, PkwServiceArt } from "../../../lib/types/pkw";
@@ -36,6 +41,7 @@ export default function LagerMeldungenPage() {
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
   const [selectedBuchungId, setSelectedBuchungId] = useState<string | null>(null);
+  const [modalBuchung, setModalBuchung] = useState<PkwBuchung | null>(null);
 
   const heuteRange = useMemo(() => lagerBewegungZeitraumRange("tag"), []);
 
@@ -51,8 +57,8 @@ export default function LagerMeldungenPage() {
 
     const [tRes, fRes, bRes, mRes, sRes] = await Promise.all([
       fetchLagerTeile(),
-      fetchPkwFahrzeuge(),
-      fetchPkwBuchungen({ from: range.from, to: range.to }),
+      fetchLagerPkwFahrzeuge(),
+      fetchLagerPkwTermine({ from: range.from, to: range.to }),
       fetchLagerBewegungen({ from: heuteRange.from, to: heuteRange.to }),
       fetchPkwServicearten(),
     ]);
@@ -113,10 +119,23 @@ export default function LagerMeldungenPage() {
     return { aus, ein, count: heuteBewegungen.length };
   }, [heuteBewegungen]);
 
-  const selectedBuchung = useMemo(
-    () => pkwBuchungen.find((b) => b.id === selectedBuchungId) ?? null,
-    [pkwBuchungen, selectedBuchungId]
-  );
+  useEffect(() => {
+    if (!selectedBuchungId) {
+      setModalBuchung(null);
+      return;
+    }
+
+    const cached = pkwBuchungen.find((b) => b.id === selectedBuchungId);
+    if (cached) {
+      setModalBuchung(cached);
+      return;
+    }
+
+    void fetchLagerPkwTermin(selectedBuchungId).then(({ data, error }) => {
+      if (data) setModalBuchung(data);
+      else if (error) setLoadError(error);
+    });
+  }, [selectedBuchungId, pkwBuchungen]);
 
   function handleTerminSaved(buchung: PkwBuchung) {
     setPkwBuchungen((current) => {
@@ -128,6 +147,7 @@ export default function LagerMeldungenPage() {
       }
       return [...current, buchung];
     });
+    setModalBuchung(buchung);
     void load();
   }
 
@@ -318,8 +338,8 @@ export default function LagerMeldungenPage() {
       )}
 
       <PkwBuchungEditModal
-        open={Boolean(selectedBuchungId && selectedBuchung)}
-        buchung={selectedBuchung}
+        open={Boolean(modalBuchung)}
+        buchung={modalBuchung}
         servicearten={servicearten}
         fahrzeuge={pkwFahrzeuge}
         canWrite={canWrite}
