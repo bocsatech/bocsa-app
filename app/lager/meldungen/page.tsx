@@ -257,6 +257,16 @@ export default function LagerMeldungenPage() {
               <Link href="/lager/reservierungen">Alle Reservierungen (Karten)</Link> — Termin
               öffnen und Ersatzteile ergänzen.
             </p>
+            <div className="lagerPkwBedarfMobileList" aria-label="PKW-Bedarf">
+              {fahrzeugBedarf.map((row) => (
+                <FahrzeugBedarfCard
+                  key={row.teil.id}
+                  row={row}
+                  onOpenTermin={setSelectedBuchungId}
+                />
+              ))}
+            </div>
+            <div className="lagerPkwBedarfDesktopTable machineTableScroll">
             <table className="machineTable lagerTable">
               <thead>
                 <tr>
@@ -279,6 +289,7 @@ export default function LagerMeldungenPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </MeldungenSection>
 
           <MeldungenSection
@@ -336,6 +347,58 @@ function MeldungenSection({
     <article className="card machineTableWrap lagerMeldungenSection">
       <h2 className="lagerTableSectionTitle">{title}</h2>
       {isEmpty ? <p className="lagerMeldungenEmpty">{empty}</p> : <div className="machineTableScroll">{children}</div>}
+    </article>
+  );
+}
+
+function FahrzeugBedarfCard({
+  row,
+  onOpenTermin,
+}: {
+  row: LagerFahrzeugBedarfZeile;
+  onOpenTermin: (buchungId: string) => void;
+}) {
+  const { teil, bedarfMenge, lagerstand, fehlmenge, fahrzeuge } = row;
+  const primaryBuchungId = fahrzeuge[0]?.buchungId ?? null;
+
+  return (
+    <article className="lagerPkwBedarfCard">
+      <p className="lagerPkwBedarfCardTeil">
+        <strong>{formatLagerValue(teil.herstellernummer)}</strong>
+        {teil.bezeichnung?.trim() ? ` · ${teil.bezeichnung.trim()}` : ""}
+      </p>
+      <p className="lagerPkwBedarfCardStats scanHint">
+        Bedarf {formatLagerNumber(bedarfMenge)} · Lagerstand {formatLagerNumber(lagerstand)} ·
+        Fehlmenge <strong className="lagerFehlmenge">{formatLagerNumber(fehlmenge)}</strong>
+      </p>
+      {fahrzeuge.map((fz) => (
+        <button
+          key={fz.buchungId}
+          type="button"
+          className="lagerTerminLink"
+          onClick={() => onOpenTermin(fz.buchungId)}
+        >
+          {fz.kennzeichen}
+          {fz.slotStart
+            ? ` · ${new Date(fz.slotStart).toLocaleString("de-AT", { dateStyle: "short", timeStyle: "short" })}`
+            : ""}
+          {fz.source === "portal" ? " · Portal" : ""}
+        </button>
+      ))}
+      <div className="lagerMeldungRowActions">
+        {primaryBuchungId ? (
+          <button
+            type="button"
+            className="pillButton primary"
+            onClick={() => onOpenTermin(primaryBuchungId)}
+          >
+            Termin öffnen
+          </button>
+        ) : null}
+        <Link className="pillButton outline" href={`/lager?teil=${encodeURIComponent(teil.id)}`}>
+          Teil öffnen
+        </Link>
+      </div>
     </article>
   );
 }

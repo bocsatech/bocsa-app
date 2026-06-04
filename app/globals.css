@@ -3198,6 +3198,44 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   text-align: center;
 }
 
+.lagerPkwBedarfMobileList {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.lagerPkwBedarfCard {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+}
+
+.lagerPkwBedarfCardTeil {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.lagerPkwBedarfCardStats {
+  margin: 0 0 10px;
+}
+
+.lagerPkwBedarfDesktopTable {
+  display: block;
+}
+
+@media (max-width: 760px) {
+  .lagerPkwBedarfMobileList {
+    display: flex;
+  }
+
+  .lagerPkwBedarfDesktopTable {
+    display: none;
+  }
+}
+
 .lagerGrenzeValueWarn {
   color: #b91c1c;
   font-weight: 700;
