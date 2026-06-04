@@ -4804,6 +4804,15 @@ body.lagerPickerOpen {
   box-sizing: border-box;
 }
 
+html.pwa-start-route-root,
+body.pwa-start-route {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 100dvh;
+  touch-action: pan-y;
+}
+
 .pwaStartPageWithNav {
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
@@ -4952,85 +4961,49 @@ body.lagerPickerOpen {
   font-weight: 600;
 }
 
-/* Kundenportal — body-Klasse per JS (ohne :has(), ältere iPhones) */
+/* Kundenportal — natürliches Body-Scroll (iOS/PWA zuverlässig) */
 html.pkw-portal-route-root,
-html.pkw-portal-body,
-body.pkw-portal-route,
-body.pkw-portal-body {
-  height: 100%;
-  height: 100dvh;
-  height: -webkit-fill-available;
-  max-height: 100dvh;
-  overflow: hidden;
-  overscroll-behavior: none;
+html.pkw-portal-body {
+  height: auto;
+  min-height: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 body.pkw-portal-route,
 body.pkw-portal-body {
   width: 100%;
   max-width: 100%;
-}
-
-.pkwPortalShell {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  height: 100%;
-  height: 100dvh;
-  height: -webkit-fill-available;
-  max-height: 100dvh;
-  min-height: 0;
-  overflow: hidden;
-  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, #fff7ed 0%, #f9fafb 40%);
-}
-
-body.pkw-portal-route .pkwPortalShell,
-body.pkw-portal-body .pkwPortalShell {
-  position: fixed;
-  inset: 0;
-  left: 50%;
-  transform: translateX(-50%);
   margin: 0;
-}
-
-.pkwPortalShell > main.pkwPortalScroll {
-  flex: 1 1 0;
-  height: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.pkwPortalScroll {
-  flex: 1 1 0;
-  height: 0;
-  min-height: 0;
+  min-height: 100%;
+  min-height: 100dvh;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   touch-action: pan-y;
+}
+
+.pkwPortalShell {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: calc(100dvh - 1px);
+  padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, #fff7ed 0%, #f9fafb 40%);
+  box-sizing: border-box;
 }
 
 .pkwPortalPage {
   padding: 0 1.25rem 1rem;
 }
 
-/* Oben (legacy) — ausblenden wenn Dock aktiv ist (keine doppelten Zurück/Beenden) */
+/* Legacy: obere Nav-Leiste nie anzeigen (nur Dock unten) */
 .pkwPortalStepNav {
-  flex-shrink: 0;
-  padding: 10px 12px 0;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: linear-gradient(180deg, #fff7ed 0%, #fff7ed 70%, rgba(255, 247, 237, 0));
-}
-
-body:has(.pkwPortalNavDock) .pkwPortalStepNav,
-body.pkw-portal-body .pkwPortalStepNav {
   display: none !important;
 }
 
@@ -5263,12 +5236,5 @@ body.pkw-portal-body .pkwPortalStepNav {
   .pkwPortalNavBar {
     padding-left: max(12px, env(safe-area-inset-left, 0px));
     padding-right: max(12px, env(safe-area-inset-right, 0px));
-  }
-
-  body.pkw-portal-route .pkwPortalScroll,
-  body.pkw-portal-body .pkwPortalScroll {
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
   }
 }

@@ -226,7 +226,7 @@ function PkwBuchenForm() {
 
   return (
     <div className="pkwPortalShell">
-      <main className="pkwPortalPage pkwPortalScroll">
+      <div className="pkwPortalPage">
         <div className="pkwPortalHeaderTop">
           <header className="pkwPortalHeader">
             <div className="sidebarMark">B</div>
@@ -235,7 +235,6 @@ function PkwBuchenForm() {
               <p className="subtitle">Bocsa PKW-Service</p>
             </div>
           </header>
-
         </div>
 
         <PwaInstallHint />
@@ -361,7 +360,7 @@ function PkwBuchenForm() {
             <p className="subtitle">Wir bestätigen den Termin in Kürze.</p>
           </div>
         ) : null}
-      </main>
+      </div>
 
       <PkwPortalNavBar
         placement="dock"
@@ -386,9 +385,9 @@ export default function PkwBuchenPage() {
     <Suspense
       fallback={
         <div className="pkwPortalShell">
-          <main className="pkwPortalPage pkwPortalScroll">
+          <div className="pkwPortalPage">
             <p>Laden…</p>
-          </main>
+          </div>
         </div>
       }
     >
