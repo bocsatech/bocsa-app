@@ -19,6 +19,16 @@ import type { Kunde, PkwFahrzeug } from "../../lib/types/pkw";
 
 export default function KundenPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    document.documentElement.classList.add("kunden-route-root");
+    document.body.classList.add("kunden-route");
+    return () => {
+      document.documentElement.classList.remove("kunden-route-root");
+      document.body.classList.remove("kunden-route");
+    };
+  }, []);
+
   const [kunden, setKunden] = useState<Kunde[]>([]);
   const [fahrzeuge, setFahrzeuge] = useState<PkwFahrzeug[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,6 +158,7 @@ export default function KundenPage() {
       <AppPageShell
         activeHref="/kunden"
         subtitle="PKW"
+        mainClassName="kundenShell"
         contentClassName="kundenListPage"
       >
         <p className="subtitle">Laden…</p>
@@ -160,6 +171,7 @@ export default function KundenPage() {
       <AppPageShell
         activeHref="/kunden"
         subtitle="PKW"
+        mainClassName="kundenShell"
         contentClassName="kundenListPage"
       >
         <p className="errorText">Keine Berechtigung: pkw.kunden.read</p>
@@ -171,6 +183,7 @@ export default function KundenPage() {
     <AppPageShell
       activeHref="/kunden"
       subtitle="PKW · Kunden"
+      mainClassName="kundenShell"
       contentClassName="kundenListPage"
       title="Kunden"
       actions={

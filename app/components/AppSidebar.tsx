@@ -12,6 +12,12 @@ import {
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
 
+const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
+
+function isMobileSidebarViewport() {
+  return typeof window !== "undefined" && window.matchMedia(MOBILE_SIDEBAR_MQ).matches;
+}
+
 type MaschinenSubAktion = {
   kind: "aktion";
   href: string;
@@ -343,15 +349,17 @@ function BaumaschinenNavGroup({
   }, [sectionActive]);
 
   function handleParentClick(event: MouseEvent<HTMLAnchorElement>) {
+    const mobile = isMobileSidebarViewport();
     if (sectionActive && open && onListRoot) {
       event.preventDefault();
       setOpen(false);
-      onMobileNavClose?.();
+      if (mobile) onMobileNavClose?.();
       return;
     }
+    event.preventDefault();
     setOpen(true);
+    if (mobile) return;
     if (!onListRoot) {
-      event.preventDefault();
       router.push(BAUMASCHINEN_NAV.href);
     }
     onMobileNavClose?.();
@@ -419,15 +427,17 @@ function LagerNavGroup({
   }, [sectionActive]);
 
   function handleParentClick(event: MouseEvent<HTMLAnchorElement>) {
+    const mobile = isMobileSidebarViewport();
     if (sectionActive && open && pathname === LAGER_NAV.href) {
       event.preventDefault();
       setOpen(false);
-      onMobileNavClose?.();
+      if (mobile) onMobileNavClose?.();
       return;
     }
+    event.preventDefault();
     setOpen(true);
+    if (mobile) return;
     if (!sectionActive || pathname !== LAGER_NAV.href) {
-      event.preventDefault();
       router.push(LAGER_NAV.href);
     }
     onMobileNavClose?.();
@@ -497,15 +507,17 @@ function PkwNavGroup({
   }, [sectionActive]);
 
   function handleParentClick(event: MouseEvent<HTMLAnchorElement>) {
+    const mobile = isMobileSidebarViewport();
     if (sectionActive && open && pathname === PKW_NAV.href && !aktion) {
       event.preventDefault();
       setOpen(false);
-      onMobileNavClose?.();
+      if (mobile) onMobileNavClose?.();
       return;
     }
+    event.preventDefault();
     setOpen(true);
+    if (mobile) return;
     if (!sectionActive || pathname !== PKW_NAV.href || aktion) {
-      event.preventDefault();
       router.push(PKW_NAV.href);
     }
     onMobileNavClose?.();

@@ -968,7 +968,7 @@ button, input, select, textarea {
     flex: 1 1 auto;
     min-height: 0;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
     touch-action: pan-y;
@@ -1061,13 +1061,62 @@ button, input, select, textarea {
 
   .workorderPage:has(.kundenListPage) .mobileBackBar,
   .workorderPage:has(.kundenListPage) .mobileBackBarAlways,
-  .workorderPage:has(.kundenListPage) .logoutButton {
+  .workorderPage:has(.kundenListPage) .logoutButton,
+  body.kunden-route .sidebar .logoutButton,
+  body.kunden-route .mobileBackBar,
+  body.kunden-route .mobileBackBarAlways {
     display: none !important;
   }
 
   body:has(.kundenListPage) .pkwPortalNavDock,
-  body:has(.kundenListPage) .pkwPortalNavBar {
+  body:has(.kundenListPage) .pkwPortalNavBar,
+  body.kunden-route .pkwPortalNavDock,
+  body.kunden-route .pkwPortalNavBar {
     display: none !important;
+  }
+
+  /* /kunden — iOS/PWA: fix magasság + touch-scroll (:has nélkül is) */
+  html.kunden-route-root,
+  body.kunden-route {
+    height: 100%;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    max-height: 100dvh;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  body.kunden-route {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  body.kunden-route > main.kundenShell.workorderPage {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  body.kunden-route .kundenShell > .pageContent.kundenListPage {
+    grid-row: 2;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.kunden-route .kundenListPage .appPageScroll {
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
   }
 
   .homeIconPage {
