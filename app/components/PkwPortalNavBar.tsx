@@ -1,7 +1,6 @@
 "use client";
 
-import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export type PkwPortalStep = "login" | "details" | "slot" | "done";
 
@@ -93,13 +92,10 @@ export default function PkwPortalNavBar({
   onBackToStart,
   exiting = false,
 }: Props) {
-  const [dockReady, setDockReady] = useState(false);
-
   useEffect(() => {
     if (placement !== "dock") return;
     document.documentElement.classList.add("pkw-portal-body");
     document.body.classList.add("pkw-portal-body");
-    setDockReady(true);
     return () => {
       document.documentElement.classList.remove("pkw-portal-body");
       document.body.classList.remove("pkw-portal-body");
@@ -116,17 +112,11 @@ export default function PkwPortalNavBar({
     );
   }
 
-  const dock = (
+  return (
     <nav className="pkwPortalNavDock" aria-label="Portal-Navigation unten">
       <div className="pkwPortalNavDockInner">
         <NavButtons {...shared} className="pkwPortalNavBar" />
       </div>
     </nav>
   );
-
-  if (!dockReady || typeof document === "undefined") {
-    return null;
-  }
-
-  return createPortal(dock, document.body);
 }

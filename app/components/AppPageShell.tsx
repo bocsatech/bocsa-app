@@ -2,13 +2,14 @@
 
 import { useEffect, type ReactNode } from "react";
 import AppSidebar from "./AppSidebar";
+import MobileBackBar from "./MobileBackBar";
 
 type Props = {
   activeHref?: string;
   subtitle?: string;
-  /** @deprecated */
+  /** Mobil „Zurück” ha nincs böngésző-előzmény (Standard: Home) */
   backFallbackHref?: string;
-  /** @deprecated */
+  /** Mobil alsó sáv elrejtése (pl. főlista) */
   hideMobileBackBar?: boolean;
   /** Egyedi fix fejléc (pl. detailTopBar) */
   top?: ReactNode;
@@ -30,6 +31,8 @@ export default function AppPageShell({
   mainClassName,
   contentClassName,
   scrollClassName,
+  backFallbackHref = "/",
+  hideMobileBackBar = false,
 }: Props) {
   const hasTop = Boolean(top || title || actions);
 
@@ -46,7 +49,15 @@ export default function AppPageShell({
     <main className={["workorderPage appShell", mainClassName].filter(Boolean).join(" ")}>
       <AppSidebar activeHref={activeHref} subtitle={subtitle} />
 
-      <section className={["pageContent", contentClassName].filter(Boolean).join(" ")}>
+      <section
+        className={[
+          "pageContent",
+          hideMobileBackBar ? "" : "pageContentWithMobileBack",
+          contentClassName,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
         {top ? (
           <div className="appPageTopBar">{top}</div>
         ) : hasTop ? (
@@ -59,6 +70,8 @@ export default function AppPageShell({
         <div className={["appPageScroll", scrollClassName].filter(Boolean).join(" ")}>
           {children}
         </div>
+
+        {hideMobileBackBar ? null : <MobileBackBar fallbackHref={backFallbackHref} />}
       </section>
     </main>
   );
