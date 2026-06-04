@@ -3204,6 +3204,220 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   background: #f0fdf4;
 }
 
+.lagerFahrzeugTerminLine {
+  margin: 0 0 4px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #ea580c;
+  line-height: 1.35;
+}
+
+.lagerFahrzeugTerminLine:last-child {
+  margin-bottom: 0;
+}
+
+.lagerMeldungenMobileList {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.lagerMeldungenDesktopOnly {
+  display: block;
+}
+
+.lagerBewegungenMobileList {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lagerBewegungenMobileEmpty {
+  margin: 0;
+  padding: 16px 20px;
+  color: #6b7280;
+}
+
+.lagerBewegungCard {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #fffbeb;
+}
+
+.lagerBewegungCard.lagerBewegungEin {
+  background: #f0fdf4;
+}
+
+.lagerBewegungCardTappable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lagerBewegungCardAsset {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.lagerBewegungCardHint {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.lagerBewegungCardMeta {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  color: #374151;
+  line-height: 1.35;
+}
+
+.lagerBewegungCardMeta time,
+.lagerBewegungCardMeta .lagerBewegungCardTyp {
+  display: inline;
+}
+
+.lagerBewegungCardTyp {
+  font-weight: 600;
+}
+
+.lagerBewegungCardTeil {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  color: #111827;
+  line-height: 1.35;
+}
+
+.lagerBewegungCardBezeichnung {
+  font-weight: 400;
+}
+
+.lagerBewegungCardMenge {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  color: #374151;
+}
+
+.lagerBewegungCardReferenz {
+  margin: 0;
+}
+
+.lagerBewegungReferenzBtn {
+  width: 100%;
+  max-width: 100%;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.88rem;
+  white-space: normal;
+  text-align: center;
+}
+
+.lagerBewegungReferenzPlain {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.lagerBewegungCardBemerkung {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.lagerPkwBedarfCard {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+}
+
+.lagerPkwBedarfCardHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.lagerPkwBedarfCardHead strong {
+  font-size: 1rem;
+  color: #111827;
+}
+
+.lagerPkwBedarfCardName {
+  font-size: 0.92rem;
+  color: #374151;
+}
+
+.lagerPkwBedarfCardStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.lagerPkwBedarfCardStats div {
+  min-width: 0;
+}
+
+.lagerPkwBedarfCardStats dt {
+  margin: 0 0 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.lagerPkwBedarfCardStats dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.lagerPkwBedarfCardTermine {
+  margin-bottom: 12px;
+}
+
+.lagerPkwBedarfCardBtn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  .lagerMeldungenMobileList,
+  .lagerBewegungenMobileList {
+    display: flex;
+  }
+
+  .lagerMeldungenDesktopOnly,
+  .lagerBewegungenDesktopTable {
+    display: none !important;
+  }
+
+  .lagerMeldungenInlineSummary.lagerMeldungenDesktopOnly {
+    display: none !important;
+  }
+
+  .lagerMeldungenEmpty {
+    padding: 0 16px 16px;
+  }
+
+  .lagerTableSectionTitle {
+    padding: 0 16px;
+  }
+}
+
+@media (min-width: 761px) {
+  .lagerMeldungenMobileList,
+  .lagerBewegungenMobileList {
+    display: none !important;
+  }
+}
+
 .lagerThumb,
 .lagerThumbPlaceholder {
   width: 44px;

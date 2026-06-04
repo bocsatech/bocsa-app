@@ -18,9 +18,10 @@ export default function LagerBewegungRowCard({ row }: Props) {
   const href = resolveLagerBewegungHref(row);
   const typ = bewegungTypLabel(row.typ, row.richtung);
   const referenz = row.referenz?.trim() ?? "";
-  const fahrzeugLabel = row.fahrzeug_kennzeichen
-    ? `PKW ${row.fahrzeug_kennzeichen}`
-    : row.machine_geraetenummer ?? "";
+  const assetLabel =
+    row.machine_geraetenummer?.trim() ||
+    row.fahrzeug_kennzeichen?.trim() ||
+    null;
 
   function openDetail() {
     if (href) router.push(href);
@@ -49,10 +50,12 @@ export default function LagerBewegungRowCard({ row }: Props) {
       role={href ? "link" : undefined}
       tabIndex={href ? 0 : undefined}
     >
-      <div className="lagerBewegungCardHead">
+      {assetLabel ? <p className="lagerBewegungCardAsset">{assetLabel}</p> : null}
+      {href ? <span className="lagerBewegungCardHint">Tippen zum Öffnen</span> : null}
+      <p className="lagerBewegungCardMeta">
         <time dateTime={row.created_at}>{formatBewegungDatum(row.created_at)}</time>
         <span className="lagerBewegungCardTyp">{typ}</span>
-      </div>
+      </p>
       <p className="lagerBewegungCardTeil">
         <strong>{formatLagerValue(row.teil?.herstellernummer)}</strong>
         {row.teil?.bezeichnung?.trim() ? (
@@ -80,11 +83,9 @@ export default function LagerBewegungRowCard({ row }: Props) {
           )}
         </p>
       ) : null}
-      {fahrzeugLabel ? <p className="lagerBewegungCardFahrzeug">{fahrzeugLabel}</p> : null}
       {row.bemerkung?.trim() ? (
         <p className="lagerBewegungCardBemerkung">{formatLagerValue(row.bemerkung)}</p>
       ) : null}
-      {href ? <span className="lagerBewegungCardHint">Tippen zum Öffnen</span> : null}
     </article>
   );
 }

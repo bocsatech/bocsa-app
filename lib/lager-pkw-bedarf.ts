@@ -1,11 +1,11 @@
 import { getPkwErsatzteile } from "./pkw-ersatzteile";
 import { parseLagerMenge } from "./lager-bestand";
+import type { PkwBuchung, PkwFahrzeug } from "./types/pkw";
+import type { LagerTeil } from "./types/lager";
 
 function normalizeKennzeichen(value: string) {
   return value.trim().toUpperCase().replace(/\s+/g, " ");
 }
-import type { PkwBuchung, PkwFahrzeug } from "./types/pkw";
-import type { LagerTeil } from "./types/lager";
 
 const AKTIVE_BUCHUNG_STATUS = new Set(["angefragt", "bestaetigt", "in_arbeit"]);
 
@@ -76,7 +76,13 @@ export function buildLagerFahrzeugBedarf(
   >();
 
   for (const buchung of filterAktivePkwBuchungen(buchungen)) {
-    const fahrzeug = resolveFahrzeugForBuchung(buchung, lookup);
+    // Try to resolve fahrzeug from DB lookup, or fallback to API's embedded fahrzeug data
+    let fahrzeug = resolveFahrzeugForBuchung(buchung, lookup);
+    if (!fahrzeug && buchung.fahrzeug) {
+      // If we can't find in lookup but API provided fahrzeug data, use that
+      fahrzeug = buchung.fahrzeug;
+    }
+    
     if (!fahrzeug) continue;
     const fahrzeugId = fahrzeug.id;
 
@@ -122,6 +128,22 @@ export function buildLagerFahrzeugBedarf(
   }
 
   return rows.sort((a, b) => b.fehlmenge - a.fehlmenge);
+}
+
+export function formatLagerFahrzeugTermin(
+  fz: LagerFahrzeugBedarfZeile["fahrzeuge"][number]
+) {
+  const parts: string[] = [fz.kennzeichen];
+  if (fz.slotStart) {
+    parts.push(
+      new Date(fz.slotStart).toLocaleString("de-AT", {
+        dateStyle: "short",
+        timeStyle: "short",
+      })
+    );
+  }
+  if (fz.source === "portal") parts.push("Portal");
+  return parts.join(" - ");
 }
 
 export function countLagerFahrzeugBedarf(

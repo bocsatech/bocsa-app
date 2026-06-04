@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../../components/AppPageShell";
 import LagerBestandBadge from "../../components/LagerBestandBadge";
 import LagerBewegungReferenzLink from "../../components/LagerBewegungReferenzLink";
+import LagerBewegungRowCard from "../../components/LagerBewegungRowCard";
+import LagerPkwBedarfCard from "../../components/LagerPkwBedarfCard";
 import {
   bewegungTypLabel,
   buildLagerFahrzeugBedarf,
@@ -19,6 +21,7 @@ import {
 } from "../../../lib/lager";
 import { buchungRangeParams, dateYmdLocal, fetchPkwBuchungen, fetchPkwFahrzeuge } from "../../../lib/pkw";
 import type { LagerFahrzeugBedarfZeile } from "../../../lib/lager-pkw-bedarf";
+import { formatLagerFahrzeugTermin } from "../../../lib/lager-pkw-bedarf";
 import type { LagerBestandMeldung } from "../../../lib/lager-bestand";
 import type { PkwBuchung, PkwFahrzeug } from "../../../lib/types/pkw";
 import type { LagerTeil } from "../../../lib/types/lager";
@@ -177,12 +180,17 @@ export default function LagerMeldungenPage() {
             empty="Heute noch keine Entnahmen oder Inventur-Buchungen."
             isEmpty={heuteBewegungen.length === 0}
           >
-            <p className="lagerMeldungenInlineSummary scanHint">
+            <p className="lagerMeldungenInlineSummary scanHint lagerMeldungenDesktopOnly">
               Ausgang: <strong>{formatLagerNumber(heuteSummary.aus)}</strong> · Eingang:{" "}
               <strong>{formatLagerNumber(heuteSummary.ein)}</strong> —{" "}
               <Link href="/lager/bewegungen">Woche / Monat / Zeitraum</Link>
             </p>
-            <table className="machineTable lagerTable">
+            <div className="lagerMeldungenMobileList">
+              {heuteBewegungen.slice(0, 25).map((row) => (
+                <LagerBewegungRowCard key={row.id} row={row} />
+              ))}
+            </div>
+            <table className="machineTable lagerTable lagerMeldungenDesktopOnly">
               <thead>
                 <tr>
                   <th>Zeit</th>
@@ -212,7 +220,7 @@ export default function LagerMeldungenPage() {
               </tbody>
             </table>
             {heuteBewegungen.length > 25 ? (
-              <p className="lagerMeldungenEmpty">
+              <p className="lagerMeldungenEmpty lagerMeldungenDesktopOnly">
                 +{heuteBewegungen.length - 25} weitere —{" "}
                 <Link href="/lager/bewegungen">alle anzeigen</Link>
               </p>
@@ -224,7 +232,12 @@ export default function LagerMeldungenPage() {
             empty="Keine unterdeckten Teile für aktive PKW-Termine."
             isEmpty={fahrzeugBedarf.length === 0}
           >
-            <table className="machineTable lagerTable">
+            <div className="lagerMeldungenMobileList">
+              {fahrzeugBedarf.map((row) => (
+                <LagerPkwBedarfCard key={row.teil.id} row={row} />
+              ))}
+            </div>
+            <table className="machineTable lagerTable lagerMeldungenDesktopOnly">
               <thead>
                 <tr>
                   <th>Herstellernummer</th>
@@ -309,12 +322,8 @@ function FahrzeugBedarfRow({ row }: { row: LagerFahrzeugBedarfZeile }) {
       </td>
       <td className="lagerFahrzeugListeCell">
         {fahrzeuge.map((fz) => (
-          <div key={fz.fahrzeugId} className="scanHint">
-            {fz.kennzeichen}
-            {fz.slotStart
-              ? ` · ${new Date(fz.slotStart).toLocaleString("de-AT", { dateStyle: "short", timeStyle: "short" })}`
-              : ""}
-            {fz.source === "portal" ? " · Portal" : ""}
+          <div key={fz.fahrzeugId} className="lagerFahrzeugTerminLine">
+            {formatLagerFahrzeugTermin(fz)}
           </div>
         ))}
       </td>
