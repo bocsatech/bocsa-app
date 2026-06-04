@@ -76,7 +76,7 @@ export async function GET() {
   if (db) {
     const { data: userRow } = await db
       .from("users")
-      .select("full_name, position, site, photo_url, signature_url")
+      .select("full_name, position, site, filiale_code, photo_url, signature_url")
       .eq("id", session.userId)
       .maybeSingle();
     if (userRow) {
@@ -86,6 +86,8 @@ export async function GET() {
         position:
           typeof userRow.position === "string" ? userRow.position : null,
         site: typeof userRow.site === "string" ? userRow.site : null,
+        filialeCode:
+          typeof userRow.filiale_code === "string" ? userRow.filiale_code : null,
         photoUrl:
           typeof userRow.photo_url === "string" ? userRow.photo_url : null,
         signatureUrl:

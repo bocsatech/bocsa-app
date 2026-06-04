@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
+import {
+  DEFAULT_USER_FILIALEN,
+  userFilialeLabel,
+  type UserFilialeCode,
+} from "../../lib/user-filiale";
 
 type UserRow = {
   id: string;
@@ -11,6 +16,7 @@ type UserRow = {
   full_name?: string | null;
   position?: string | null;
   site?: string | null;
+  filiale_code?: UserFilialeCode | null;
   photo_url?: string | null;
   signature_url?: string | null;
 };
@@ -31,6 +37,7 @@ export default function UsersPage() {
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newSecretPin, setNewSecretPin] = useState("");
+  const [newFilialeCode, setNewFilialeCode] = useState<UserFilialeCode | "">("");
   const [createMessage, setCreateMessage] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -39,6 +46,7 @@ export default function UsersPage() {
   const [editFullName, setEditFullName] = useState("");
   const [editPosition, setEditPosition] = useState("");
   const [editSite, setEditSite] = useState("");
+  const [editFilialeCode, setEditFilialeCode] = useState<UserFilialeCode | "">("");
   const [editSecretPin, setEditSecretPin] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [editPhotoUrl, setEditPhotoUrl] = useState("");
@@ -77,6 +85,7 @@ export default function UsersPage() {
     setEditFullName(selectedUser.full_name ?? "");
     setEditPosition(selectedUser.position ?? "");
     setEditSite(selectedUser.site ?? "");
+    setEditFilialeCode(selectedUser.filiale_code ?? "");
     setEditSecretPin(
       selectedUser.secret_pin === null || selectedUser.secret_pin === undefined
         ? ""
@@ -141,7 +150,12 @@ export default function UsersPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ username, password, secretPin }),
+      body: JSON.stringify({
+        username,
+        password,
+        secretPin,
+        filialeCode: newFilialeCode || null,
+      }),
     });
 
     const data = await response.json().catch(() => ({}));
@@ -155,6 +169,7 @@ export default function UsersPage() {
     setNewUsername("");
     setNewPassword("");
     setNewSecretPin("");
+    setNewFilialeCode("");
     setShowCreateForm(false);
     setCreateMessage(`Benutzer „${data.user?.username ?? username}" wurde angelegt.`);
     await loadUsers();
@@ -193,6 +208,7 @@ export default function UsersPage() {
         fullName: editFullName,
         position: editPosition,
         site: editSite,
+        filialeCode: editFilialeCode || null,
         secretPin: pin === "" ? undefined : Number(pin),
         password: editPassword || undefined,
         photoUrl: editPhotoUrl,
@@ -278,6 +294,22 @@ export default function UsersPage() {
                 placeholder="Geheimzahl (0–99)"
                 required
               />
+              <label className="userFilialeField">
+                <span>Filiale</span>
+                <select
+                  value={newFilialeCode}
+                  onChange={(event) =>
+                    setNewFilialeCode(event.target.value as UserFilialeCode | "")
+                  }
+                >
+                  <option value="">— keine Filiale —</option>
+                  {DEFAULT_USER_FILIALEN.map((filiale) => (
+                    <option key={filiale.code} value={filiale.code}>
+                      {filiale.label} ({filiale.code})
+                    </option>
+                  ))}
+                </select>
+              </label>
               <button type="submit" className="pillButton primary" disabled={creating}>
                 {creating ? "Wird angelegt..." : "Benutzer speichern"}
               </button>
@@ -308,10 +340,26 @@ export default function UsersPage() {
                 onChange={(event) => setEditPosition(event.target.value)}
                 placeholder="Position / Funktion"
               />
+              <label className="userFilialeField">
+                <span>Filiale</span>
+                <select
+                  value={editFilialeCode}
+                  onChange={(event) =>
+                    setEditFilialeCode(event.target.value as UserFilialeCode | "")
+                  }
+                >
+                  <option value="">— keine Filiale —</option>
+                  {DEFAULT_USER_FILIALEN.map((filiale) => (
+                    <option key={filiale.code} value={filiale.code}>
+                      {filiale.label} ({filiale.code})
+                    </option>
+                  ))}
+                </select>
+              </label>
               <input
                 value={editSite}
                 onChange={(event) => setEditSite(event.target.value)}
-                placeholder="Standort / Werkstatt"
+                placeholder="Standort / Werkstatt (optional)"
               />
               <input
                 inputMode="numeric"
@@ -424,6 +472,7 @@ export default function UsersPage() {
             <div className="serviceTable usersTable">
               <div className="serviceRow headerRow">
                 <span>Benutzername</span>
+                <span>Filiale</span>
                 <span>Erstellt am</span>
                 <span>ID</span>
               </div>
@@ -445,6 +494,7 @@ export default function UsersPage() {
                     }}
                   >
                     <span>{user.username ?? "-"}</span>
+                    <span>{userFilialeLabel(user.filiale_code)}</span>
                     <span>{formatDate(user.created_at)}</span>
                     <span className="code">{user.id}</span>
                   </div>

@@ -2,6 +2,10 @@ import bcrypt from "bcryptjs";
 import { supabase } from "../supabase";
 import { getSupabaseAdmin } from "../supabaseAdmin";
 import { normalizeSecretPin } from "./pin";
+import {
+  normalizeUserFilialeCode,
+  type UserFilialeCode,
+} from "../user-filiale";
 
 export const USERS_TABLE = "users";
 
@@ -13,6 +17,7 @@ export type AppUser = {
   full_name?: string | null;
   position?: string | null;
   site?: string | null;
+  filiale_code?: UserFilialeCode | null;
   photo_url?: string | null;
   signature_url?: string | null;
   created_at?: string;
@@ -49,6 +54,7 @@ function mapUser(row: Record<string, unknown> | null): AppUser | null {
       typeof row.position === "string" ? row.position : null,
     site:
       typeof row.site === "string" ? row.site : null,
+    filiale_code: normalizeUserFilialeCode(row.filiale_code),
     photo_url:
       typeof row.photo_url === "string" ? row.photo_url : null,
     signature_url:
@@ -65,7 +71,7 @@ export async function findUserByUsername(username: string) {
   const { data, error } = await db
     .from(USERS_TABLE)
     .select(
-      "id, username, password_hash, secret_pin, full_name, position, site, photo_url, signature_url, created_at"
+      "id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at"
     )
     .eq("username", normalized)
     .maybeSingle();
@@ -100,7 +106,8 @@ export async function hashPassword(password: string) {
 export async function createUser(
   username: string,
   password: string,
-  secretPin: number
+  secretPin: number,
+  filialeCode?: UserFilialeCode | null
 ) {
   const pin = normalizeSecretPin(secretPin);
   if (pin === null) {
@@ -116,8 +123,9 @@ export async function createUser(
       username: username.trim().toLowerCase(),
       password_hash,
       secret_pin: pin,
+      filiale_code: filialeCode ?? null,
     })
-    .select("id, username, secret_pin")
+    .select("id, username, secret_pin, filiale_code")
     .single();
 
   if (error) {
@@ -132,7 +140,7 @@ export async function listUsers() {
   const { data, error } = await db
     .from(USERS_TABLE)
     .select(
-      "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at"
+      "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -148,6 +156,7 @@ export async function updateUserById(
     fullName?: string;
     position?: string;
     site?: string;
+    filialeCode?: UserFilialeCode | null;
     photoUrl?: string;
     signatureUrl?: string;
   }
@@ -168,6 +177,10 @@ export async function updateUserById(
   if (patch.fullName !== undefined) payload.full_name = patch.fullName.trim() || null;
   if (patch.position !== undefined) payload.position = patch.position.trim() || null;
   if (patch.site !== undefined) payload.site = patch.site.trim() || null;
+  if (patch.filialeCode !== undefined) {
+    payload.filiale_code =
+      patch.filialeCode === null ? null : normalizeUserFilialeCode(patch.filialeCode);
+  }
   if (patch.photoUrl !== undefined) payload.photo_url = patch.photoUrl.trim() || null;
   if (patch.signatureUrl !== undefined)
     payload.signature_url = patch.signatureUrl.trim() || null;
@@ -181,7 +194,7 @@ export async function updateUserById(
     .update(payload)
     .eq("id", id)
     .select(
-      "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at"
+      "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at"
     )
     .single();
 

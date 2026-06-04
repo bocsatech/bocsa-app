@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentUserCanManageUsers } from "../../../lib/auth/permissions";
 import { normalizeSecretPin } from "../../../lib/auth/pin";
 import { createUser, findUserByUsername, listUsers } from "../../../lib/auth/users";
+import { normalizeUserFilialeCode } from "../../../lib/user-filiale";
 
 export async function GET() {
   if (!(await currentUserCanManageUsers())) {
@@ -34,6 +35,11 @@ export async function POST(request) {
   const username = String(body.username ?? "").trim();
   const password = String(body.password ?? "");
   const secretPin = normalizeSecretPin(body.secretPin ?? body.secret_pin);
+  const filialeRaw = body.filialeCode ?? body.filiale_code;
+  const filialeCode =
+    filialeRaw === null || filialeRaw === ""
+      ? null
+      : normalizeUserFilialeCode(filialeRaw);
 
   if (!username || !password) {
     return NextResponse.json(
@@ -45,6 +51,13 @@ export async function POST(request) {
   if (secretPin === null) {
     return NextResponse.json(
       { error: "Geheimzahl (0–99) ist erforderlich." },
+      { status: 400 }
+    );
+  }
+
+  if (filialeRaw !== undefined && filialeRaw !== null && filialeRaw !== "" && !filialeCode) {
+    return NextResponse.json(
+      { error: "Ungültige Filiale. Erlaubt: S (Schwechat), H (Horn), W (Wien)." },
       { status: 400 }
     );
   }
@@ -67,7 +80,7 @@ export async function POST(request) {
     );
   }
 
-  const { user, error } = await createUser(username, password, secretPin);
+  const { user, error } = await createUser(username, password, secretPin, filialeCode);
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
   }

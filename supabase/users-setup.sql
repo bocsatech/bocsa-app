@@ -18,6 +18,11 @@ alter table public.users add column if not exists position text;
 alter table public.users add column if not exists site text;
 alter table public.users add column if not exists photo_url text;
 alter table public.users add column if not exists signature_url text;
+alter table public.users add column if not exists filiale_code text;
+
+alter table public.users drop constraint if exists users_filiale_code_check;
+alter table public.users add constraint users_filiale_code_check
+  check (filiale_code is null or filiale_code in ('S', 'H', 'W'));
 
 -- Eindeutige Benutzernamen
 create unique index if not exists users_username_unique on public.users (username);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUserCanManageUsers } from "../../../../lib/auth/permissions";
 import { updateUserById } from "../../../../lib/auth/users";
+import { normalizeUserFilialeCode } from "../../../../lib/user-filiale";
 
 export async function PATCH(request, { params }) {
   if (!(await currentUserCanManageUsers())) {
@@ -30,6 +31,22 @@ export async function PATCH(request, { params }) {
     );
   }
 
+  const filialeRaw = body.filialeCode ?? body.filiale_code;
+  let filialeCode;
+  if (filialeRaw !== undefined) {
+    if (filialeRaw === null || filialeRaw === "") {
+      filialeCode = null;
+    } else {
+      filialeCode = normalizeUserFilialeCode(filialeRaw);
+      if (!filialeCode) {
+        return NextResponse.json(
+          { error: "Ungültige Filiale. Erlaubt: S (Schwechat), H (Horn), W (Wien)." },
+          { status: 400 }
+        );
+      }
+    }
+  }
+
   const { user, error } = await updateUserById(id, {
     password: password || undefined,
     secretPin: body.secretPin ?? body.secret_pin,
@@ -45,6 +62,7 @@ export async function PATCH(request, { params }) {
       body.site !== undefined
         ? String(body.site ?? "")
         : undefined,
+    filialeCode,
     photoUrl:
       body.photoUrl !== undefined
         ? String(body.photoUrl ?? "")
