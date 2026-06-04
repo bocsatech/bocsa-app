@@ -1328,6 +1328,74 @@ button, input, select, textarea {
   align-self: end;
 }
 
+.maschinenFilterGeraetenummer {
+  grid-column: 1 / -1;
+}
+
+.geraetenummerFilterRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.geraetenummerFilterCell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.geraetenummerFilterCell > span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.geraetenummerFilterCell select,
+.geraetenummerFilterCell input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  touch-action: manipulation;
+}
+
+.geraetenummerFilterCell select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-color: #f9fafb;
+}
+
+.geraetenummerFilterCellSeq input {
+  background: #fff7ed;
+  color: #c2410c;
+  font-weight: 700;
+  text-align: center;
+  touch-action: auto;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (max-width: 560px) {
+  .geraetenummerFilterRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .searchField {
   flex: 1 1 280px;
   display: flex;

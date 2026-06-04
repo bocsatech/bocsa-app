@@ -119,6 +119,81 @@ export function deriveGeraetegruppeFromPick(pick: GeraetenummerPick): string {
   return `${klasse}-${art}`;
 }
 
+export type GeraetenummerFilterPick = GeraetenummerPick & {
+  lfdNr: string;
+};
+
+export const EMPTY_GERAETENUMMER_FILTER: GeraetenummerFilterPick = {
+  marke: "",
+  klasse: "",
+  art: "",
+  lfdNr: "",
+};
+
+export function geraetenummerFilterIsEmpty(filter: GeraetenummerFilterPick) {
+  return (
+    !filter.marke &&
+    !filter.klasse &&
+    !filter.art &&
+    !filter.lfdNr.trim().replace(/\D/g, "")
+  );
+}
+
+export function machineMatchesGeraetenummerFilter(
+  geraetenummer: unknown,
+  filter: GeraetenummerFilterPick
+) {
+  if (geraetenummerFilterIsEmpty(filter)) return true;
+
+  const raw = String(geraetenummer ?? "").trim().toUpperCase();
+  if (!raw) return false;
+
+  const lfd = filter.lfdNr.trim().replace(/\D/g, "");
+  const parsed = parseStructuredGeraetenummer(raw);
+
+  if (parsed) {
+    if (filter.marke && parsed.marke !== normalizeGeraetenummerCode(filter.marke)) {
+      return false;
+    }
+    if (filter.klasse && parsed.klasse !== normalizeGeraetenummerCode(filter.klasse)) {
+      return false;
+    }
+    if (filter.art && parsed.art !== normalizeGeraetenummerCode(filter.art)) {
+      return false;
+    }
+    if (lfd) {
+      const seqStr = formatGeraetenummerSequence(parsed.sequence);
+      const padded = lfd.padStart(GERAETENUMMER_SEQ_DIGITS, "0");
+      if (!seqStr.includes(lfd) && !seqStr.startsWith(lfd) && !raw.endsWith(padded)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  const prefix = buildGeraetenummerPrefix(filter);
+  if (prefix && lfd) {
+    return raw.includes(`${prefix}-${lfd}`) || raw.includes(`${prefix}-${lfd.padStart(GERAETENUMMER_SEQ_DIGITS, "0")}`);
+  }
+  if (prefix) return raw.includes(prefix);
+  if (lfd) {
+    return raw.endsWith(lfd) || raw.endsWith(lfd.padStart(GERAETENUMMER_SEQ_DIGITS, "0")) || raw.includes(`-${lfd}`);
+  }
+
+  return true;
+}
+
+export function geraetenummerFilterFromValue(value: unknown): GeraetenummerFilterPick {
+  const parsed = parseStructuredGeraetenummer(value);
+  if (!parsed) return EMPTY_GERAETENUMMER_FILTER;
+  return {
+    marke: parsed.marke,
+    klasse: parsed.klasse,
+    art: parsed.art,
+    lfdNr: formatGeraetenummerSequence(parsed.sequence),
+  };
+}
+
 /** true, wenn der Client eine nicht-leere Gerätegruppe mitsendet. */
 export function bodyHasExplicitSubgroup(body: Record<string, unknown> | null | undefined) {
   if (!body || !("subgroup" in body)) return false;

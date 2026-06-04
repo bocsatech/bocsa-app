@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
+import GeraetenummerFilterPicker from "../components/GeraetenummerFilterPicker";
 import GeraetenummerCodesModal from "../components/GeraetenummerCodesModal";
 import MachineAddModal from "../components/MachineAddModal";
 import MachineList from "../components/MachineList";
@@ -20,6 +21,15 @@ import {
   type SessionAuthSlice,
 } from "../../lib/machine-permissions";
 import type { Machine } from "../../lib/types/machine";
+import {
+  DEFAULT_GERAETENUMMER_CODES,
+  EMPTY_GERAETENUMMER_FILTER,
+  fetchGeraetenummerCodes,
+  geraetenummerFilterFromValue,
+  machineMatchesGeraetenummerFilter,
+  type GeraetenummerCodesConfig,
+  type GeraetenummerFilterPick,
+} from "../../lib/geraetenummer";
 
 type MachineFilters = {
   geraettyp: string;
@@ -40,6 +50,10 @@ function MaschinenPageContent() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MachineFilters>(EMPTY_MACHINE_FILTERS);
+  const [geraetenummerFilter, setGeraetenummerFilter] =
+    useState<GeraetenummerFilterPick>(EMPTY_GERAETENUMMER_FILTER);
+  const [geraetenummerCodes, setGeraetenummerCodes] =
+    useState<GeraetenummerCodesConfig>(DEFAULT_GERAETENUMMER_CODES);
   const [scanHint, setScanHint] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -73,6 +87,12 @@ function MaschinenPageContent() {
   useEffect(() => {
     loadMachines();
   }, [loadMachines]);
+
+  useEffect(() => {
+    void fetchGeraetenummerCodes().then(({ data }) => {
+      if (data) setGeraetenummerCodes(data);
+    });
+  }, []);
 
   useEffect(() => {
     if (!searchParams.has("geraettyp")) return;
@@ -171,6 +191,12 @@ function MaschinenPageContent() {
     const qMeldung = filters.meldung.trim().toLowerCase();
 
     return machines.filter((machine) => {
+      if (
+        !machineMatchesGeraetenummerFilter(machine.geraetenummer, geraetenummerFilter)
+      ) {
+        return false;
+      }
+
       if (qTyp && String(machine.geraettyp ?? "").toLowerCase() !== qTyp) {
         return false;
       }
@@ -185,7 +211,7 @@ function MaschinenPageContent() {
 
       return true;
     });
-  }, [filters, machines]);
+  }, [filters, geraetenummerFilter, machines]);
 
   const filialeOptions = useMemo(() => {
     return Array.from(
@@ -209,6 +235,13 @@ function MaschinenPageContent() {
       return;
     }
     setScanHint(`Keine Maschine zu diesem Code: „${value}”`);
+    setGeraetenummerFilter(geraetenummerFilterFromValue(value));
+  }
+
+  function resetFilters() {
+    setFilters(EMPTY_MACHINE_FILTERS);
+    setGeraetenummerFilter(EMPTY_GERAETENUMMER_FILTER);
+    setScanHint(null);
   }
 
   function updateFilter<K extends keyof MachineFilters>(key: K, value: MachineFilters[K]) {
@@ -241,6 +274,17 @@ function MaschinenPageContent() {
         ) : (
           <>
             <div className="searchToolbar card maschinenFiltersBar">
+              <div className="arbeitsauftragFilterField maschinenFilterGeraetenummer">
+                <span>Gerätenummer</span>
+                <GeraetenummerFilterPicker
+                  codes={geraetenummerCodes}
+                  value={geraetenummerFilter}
+                  onChange={(next) => {
+                    setGeraetenummerFilter(next);
+                    setScanHint(null);
+                  }}
+                />
+              </div>
               <label className="arbeitsauftragFilterField">
                 <span>Gerättyp</span>
                 <select
@@ -283,7 +327,7 @@ function MaschinenPageContent() {
               <button
                 type="button"
                 className="pillButton outline arbeitsauftragFilterReset"
-                onClick={() => setFilters(EMPTY_MACHINE_FILTERS)}
+                onClick={resetFilters}
               >
                 Zurücksetzen
               </button>
