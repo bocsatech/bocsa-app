@@ -4981,7 +4981,7 @@ body.pkw-portal-body {
   padding: 0 1.25rem 1rem;
 }
 
-/* Oben: immer sichtbar direkt unter dem Rand */
+/* Oben (legacy) — ausblenden wenn Dock aktiv ist (keine doppelten Zurück/Beenden) */
 .pkwPortalStepNav {
   flex-shrink: 0;
   padding: 10px 12px 0;
@@ -4989,6 +4989,11 @@ body.pkw-portal-body {
   top: 0;
   z-index: 20;
   background: linear-gradient(180deg, #fff7ed 0%, #fff7ed 70%, rgba(255, 247, 237, 0));
+}
+
+body:has(.pkwPortalNavDock) .pkwPortalStepNav,
+body.pkw-portal-body .pkwPortalStepNav {
+  display: none !important;
 }
 
 .pkwPortalStepNavInner {
@@ -5222,37 +5227,9 @@ body.pkw-portal-body {
     padding-right: max(12px, env(safe-area-inset-right, 0px));
   }
 
-  /* PKW Portal — enable scrolling on mobile */
-  body:has(.pkwPortalShell) {
-    overflow: visible !important;
-  }
-
-  html:has(.pkwPortalShell) {
-    overflow: visible !important;
-  }
-
-  .pkwPortalPage {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
+  body.pkw-portal-body .pkwPortalScroll {
+    overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
-}
-
-/* Always enable scrolling for PKW Portal */
-.pkwPortalShell {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
-
-html:has(.pkwPortalShell) {
-  overflow: auto !important;
-  height: auto !important;
-}
-
-body:has(.pkwPortalShell) {
-  overflow: visible !important;
 }

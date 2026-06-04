@@ -6,9 +6,16 @@ import {
   fetchPkwServicearten,
   fetchPkwSlots,
   formatSlotLabel,
+  clearPkwPortalVisit,
+  hasPkwPortalVisit,
+  markPkwPortalVisit,
   portalCreateBuchung,
   portalPkwLogin,
+  portalPkwLogout,
 } from "../../../lib/pkw";
+import { usePkwPortalLifecycle } from "../../hooks/usePkwPortalLifecycle";
+import PkwPortalNavBar from "../../components/PkwPortalNavBar";
+import PwaInstallHint from "../../components/PwaInstallHint";
 import type { PkwServiceArt, PkwSlotOption } from "../../../lib/types/pkw";
 
 type Step = "login" | "details" | "slot" | "done";
@@ -18,6 +25,7 @@ function PkwBuchenForm() {
   const token = searchParams.get("token");
 
   const [step, setStep] = useState<Step>("login");
+  const [exiting, setExiting] = useState(false);
   const [kennzeichen, setKennzeichen] = useState("");
   const [pin, setPin] = useState("");
   const [km, setKm] = useState("");
@@ -32,10 +40,44 @@ function PkwBuchenForm() {
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState<{ slot: string; kennzeichen: string } | null>(null);
 
+  const sessionActive = step !== "login";
+
+  function resetBookingDraft() {
+    clearPkwPortalVisit();
+    setKennzeichen("");
+    setPin("");
+    setKm("");
+    setProblem("");
+    setServicearten([]);
+    setSelectedSlot(null);
+    setConfirmed(null);
+    setError(null);
+    setFahrzeugLabel("");
+  }
+
+  const { idleSecondsLeft } = usePkwPortalLifecycle({
+    step,
+    sessionActive,
+    onSessionEnd: resetBookingDraft,
+  });
+
   useEffect(() => {
     fetchPkwServicearten().then(({ data }) => {
       if (data) setOptions(data);
     });
+  }, []);
+
+  /* Alte PWA-Caches können ohne Navigationsleiste ausliefern */
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    void navigator.serviceWorker.getRegistrations().then((regs) => {
+      regs.forEach((reg) => void reg.unregister());
+    });
+    if ("caches" in window) {
+      void caches.keys().then((keys) => {
+        keys.forEach((key) => void caches.delete(key));
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -57,6 +99,7 @@ function PkwBuchenForm() {
           data.fahrzeug.kennzeichen
       );
       if (data.fahrzeug.km_stand != null) setKm(String(data.fahrzeug.km_stand));
+      markPkwPortalVisit();
       setStep("details");
       return true;
     }
@@ -64,7 +107,29 @@ function PkwBuchenForm() {
   }, []);
 
   useEffect(() => {
-    trySession();
+    let cancelled = false;
+
+    async function restoreOrClear() {
+      if (!hasPkwPortalVisit()) {
+        await portalPkwLogout().catch(() => {});
+        if (!cancelled && !hasPkwPortalVisit()) {
+          setStep("login");
+        }
+        return;
+      }
+
+      const ok = await trySession();
+      if (!cancelled && !ok) {
+        clearPkwPortalVisit();
+        await portalPkwLogout().catch(() => {});
+        setStep("login");
+      }
+    }
+
+    void restoreOrClear();
+    return () => {
+      cancelled = true;
+    };
   }, [trySession]);
 
   useEffect(() => {
@@ -76,6 +141,21 @@ function PkwBuchenForm() {
       })
       .catch(() => {});
   }, [token]);
+
+  async function endPortalSession(redirectStart: boolean) {
+    setExiting(true);
+    try {
+      clearPkwPortalVisit();
+      await portalPkwLogout().catch(() => {});
+      resetBookingDraft();
+      setStep("login");
+      if (redirectStart) {
+        window.location.assign("/start");
+      }
+    } finally {
+      setExiting(false);
+    }
+  }
 
   async function handleLogin(event: React.FormEvent) {
     event.preventDefault();
@@ -92,6 +172,7 @@ function PkwBuchenForm() {
         data.fahrzeug.kennzeichen
     );
     if (data.fahrzeug.km_stand != null) setKm(String(data.fahrzeug.km_stand));
+    markPkwPortalVisit();
     setStep("details");
   }
 
@@ -122,138 +203,186 @@ function PkwBuchenForm() {
     setStep("done");
   }
 
+  function handleBack() {
+    if (step === "slot") {
+      setSelectedSlot(null);
+      setError(null);
+      setStep("details");
+      return;
+    }
+    if (step === "details") {
+      void endPortalSession(false);
+    }
+  }
+
   return (
-    <main className="pkwPortalPage">
-      <header className="pkwPortalHeader">
-        <div className="sidebarMark">B</div>
-        <div>
-          <h1>PKW Termin buchen</h1>
-          <p className="subtitle">Bocsa PKW-Service</p>
+    <div className="pkwPortalShell">
+      <main className="pkwPortalPage pkwPortalScroll">
+        <div className="pkwPortalHeaderTop">
+          <header className="pkwPortalHeader">
+            <div className="sidebarMark">B</div>
+            <div>
+              <h1>PKW Termin buchen</h1>
+              <p className="subtitle">Bocsa PKW-Service</p>
+            </div>
+          </header>
+
         </div>
-      </header>
 
-      {token ? (
-        <p className="subtitle pkwPortalHint">
-          QR erkannt — Kennzeichen vorausgefüllt. Bitte Portal-PIN eingeben.
-        </p>
-      ) : null}
+        <PwaInstallHint />
 
-      {step === "login" ? (
-        <form className="card pkwPortalCard" onSubmit={handleLogin}>
-          <h2>Anmeldung</h2>
-          <p className="subtitle">Kennzeichen und PIN (vom Werkstatt-Team erhalten)</p>
-          <label className="pkwField">
-            <span>Kennzeichen</span>
-            <input
-              value={kennzeichen}
-              onChange={(e) => setKennzeichen(e.target.value.toUpperCase())}
-              placeholder="W 1234 AB"
-              required
-            />
-          </label>
-          <label className="pkwField">
-            <span>PIN</span>
-            <input
-              type="password"
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              required
-            />
-          </label>
-          {error ? <p className="errorText">{error}</p> : null}
-          <button type="submit" className="primaryBtn pkwPortalSubmit" disabled={loading}>
-            {loading ? "…" : "Weiter"}
-          </button>
-        </form>
-      ) : null}
-
-      {step === "details" ? (
-        <div className="card pkwPortalCard">
-          <h2>Fahrzeug & Wunsch</h2>
-          <p className="subtitle">{fahrzeugLabel}</p>
-          <label className="pkwField">
-            <span>Km-Stand</span>
-            <input type="number" value={km} onChange={(e) => setKm(e.target.value)} />
-          </label>
-          <fieldset className="pkwChecklist">
-            <legend>Leistungen</legend>
-            {options.map((opt) => (
-              <label key={opt.key} className="pkwCheckRow">
-                <input
-                  type="checkbox"
-                  checked={servicearten.includes(opt.key)}
-                  onChange={() => toggleService(opt.key)}
-                />
-                {opt.label}
-              </label>
-            ))}
-          </fieldset>
-          <label className="pkwField">
-            <span>Weitere Probleme / Hinweise</span>
-            <textarea
-              rows={3}
-              value={problem}
-              onChange={(e) => setProblem(e.target.value)}
-            />
-          </label>
-          <button type="button" className="primaryBtn pkwPortalSubmit" onClick={() => setStep("slot")}>
-            Termin wählen
-          </button>
-        </div>
-      ) : null}
-
-      {step === "slot" ? (
-        <div className="card pkwPortalCard">
-          <h2>Termin</h2>
-          <label className="pkwField">
-            <span>Datum</span>
-            <input type="date" value={day} onChange={(e) => setDay(e.target.value)} />
-          </label>
-          <div className="pkwSlotGrid">
-            {slots.map((slot) => (
-              <button
-                key={slot.start}
-                type="button"
-                className={`pkwSlotBtn${selectedSlot?.start === slot.start ? " selected" : ""}${
-                  !slot.available ? " disabled" : ""
-                }`}
-                disabled={!slot.available}
-                onClick={() => setSelectedSlot(slot)}
-              >
-                <strong>{slot.label}</strong>
-                <span>{slot.available ? `${slot.freePlaetze} frei` : "Voll"}</span>
-              </button>
-            ))}
-          </div>
-          {error ? <p className="errorText">{error}</p> : null}
-          <button
-            type="button"
-            className="primaryBtn pkwPortalSubmit"
-            disabled={!selectedSlot || loading}
-            onClick={handleBook}
-          >
-            {loading ? "Buchen…" : "Termin verbindlich anfragen"}
-          </button>
-        </div>
-      ) : null}
-
-      {step === "done" && confirmed ? (
-        <div className="card pkwPortalCard pkwPortalDone">
-          <h2>Danke!</h2>
-          <p>
-            Terminanfrage für <strong>{confirmed.kennzeichen}</strong>
+        {sessionActive ? (
+          <p className="pkwPortalSessionHint">
+            Automatische Abmeldung in {idleSecondsLeft} Sek. (bei Inaktivität)
           </p>
-          <p>{confirmed.slot}</p>
-          <p className="subtitle">Wir bestätigen den Termin in Kürze.</p>
-        </div>
-      ) : null}
-    </main>
+        ) : null}
+
+        {token ? (
+          <p className="subtitle pkwPortalHint">
+            QR erkannt — Kennzeichen vorausgefüllt. Bitte Portal-PIN eingeben.
+          </p>
+        ) : null}
+
+        {step === "login" ? (
+          <form className="card pkwPortalCard" onSubmit={handleLogin}>
+            <h2>Anmeldung</h2>
+            <p className="subtitle">Kennzeichen und PIN (vom Werkstatt-Team erhalten)</p>
+            <label className="pkwField">
+              <span>Kennzeichen</span>
+              <input
+                value={kennzeichen}
+                onChange={(e) => setKennzeichen(e.target.value.toUpperCase())}
+                placeholder="W 1234 AB"
+                required
+              />
+            </label>
+            <label className="pkwField">
+              <span>PIN</span>
+              <input
+                type="password"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                required
+              />
+            </label>
+            {error ? <p className="errorText">{error}</p> : null}
+            <button type="submit" className="primaryBtn pkwPortalSubmit" disabled={loading}>
+              {loading ? "…" : "Weiter"}
+            </button>
+          </form>
+        ) : null}
+
+        {step === "details" ? (
+          <div className="card pkwPortalCard">
+            <h2>Fahrzeug & Wunsch</h2>
+            <p className="subtitle">{fahrzeugLabel}</p>
+            <label className="pkwField">
+              <span>Km-Stand</span>
+              <input type="number" value={km} onChange={(e) => setKm(e.target.value)} />
+            </label>
+            <fieldset className="pkwChecklist">
+              <legend>Leistungen</legend>
+              {options.map((opt) => (
+                <label key={opt.key} className="pkwCheckRow">
+                  <input
+                    type="checkbox"
+                    checked={servicearten.includes(opt.key)}
+                    onChange={() => toggleService(opt.key)}
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </fieldset>
+            <label className="pkwField">
+              <span>Weitere Probleme / Hinweise</span>
+              <textarea
+                rows={3}
+                value={problem}
+                onChange={(e) => setProblem(e.target.value)}
+              />
+            </label>
+            <button type="button" className="primaryBtn pkwPortalSubmit" onClick={() => setStep("slot")}>
+              Termin wählen
+            </button>
+          </div>
+        ) : null}
+
+        {step === "slot" ? (
+          <div className="card pkwPortalCard">
+            <h2>Termin</h2>
+            <label className="pkwField">
+              <span>Datum</span>
+              <input type="date" value={day} onChange={(e) => setDay(e.target.value)} />
+            </label>
+            <div className="pkwSlotGrid">
+              {slots.map((slot) => (
+                <button
+                  key={slot.start}
+                  type="button"
+                  className={`pkwSlotBtn${selectedSlot?.start === slot.start ? " selected" : ""}${
+                    !slot.available ? " disabled" : ""
+                  }`}
+                  disabled={!slot.available}
+                  onClick={() => setSelectedSlot(slot)}
+                >
+                  <strong>{slot.label}</strong>
+                  <span>{slot.available ? `${slot.freePlaetze} frei` : "Voll"}</span>
+                </button>
+              ))}
+            </div>
+            {error ? <p className="errorText">{error}</p> : null}
+            <button
+              type="button"
+              className="primaryBtn pkwPortalSubmit"
+              disabled={!selectedSlot || loading}
+              onClick={handleBook}
+            >
+              {loading ? "Buchen…" : "Termin verbindlich anfragen"}
+            </button>
+          </div>
+        ) : null}
+
+        {step === "done" && confirmed ? (
+          <div className="card pkwPortalCard pkwPortalDone">
+            <h2>Danke!</h2>
+            <p>
+              Terminanfrage für <strong>{confirmed.kennzeichen}</strong>
+            </p>
+            <p>{confirmed.slot}</p>
+            <p className="subtitle">Wir bestätigen den Termin in Kürze.</p>
+          </div>
+        ) : null}
+      </main>
+
+      <PkwPortalNavBar
+        placement="dock"
+        step={step}
+        onBack={
+          step === "details" || step === "slot"
+            ? handleBack
+            : step === "done"
+              ? () => void endPortalSession(false)
+              : undefined
+        }
+        onBackToStart={() => void endPortalSession(true)}
+        onExit={() => void endPortalSession(true)}
+        exiting={exiting}
+      />
+    </div>
   );
 }
 
 export default function PkwBuchenPage() {
   return (
-    <Suspense fallback={<main className="pkwPortalPage"><p>Laden…</p></main>}>
+    <Suspense
+      fallback={
+        <div className="pkwPortalShell">
+          <main className="pkwPortalPage pkwPortalScroll">
+            <p>Laden…</p>
+          </main>
+        </div>
+      }
+    >
       <PkwBuchenForm />
     </Suspense>
   );
