@@ -1874,39 +1874,57 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   }
 }
 
-/* Stammdaten: eine Spalte, feste Label-Spalte — Werte bündig, ohne Zeilenumbruch */
+/* Stammdaten: Label + Wert — Wertspalte darf nicht auf ~0 schrumpfen */
 .machineDetailPage .stammdatenStacked {
   display: flex;
   flex-direction: column;
   gap: 0;
   width: 100%;
-  max-width: min(100%, 44rem);
+  max-width: none;
 }
 
 .machineDetailPage .stammdatenStacked .fieldRow {
   display: grid;
-  grid-template-columns: 22rem minmax(0, 1fr);
-  gap: 2px 12px;
-  padding: 3px 0;
+  grid-template-columns: minmax(8.5rem, 12rem) minmax(0, 1fr);
+  gap: 4px 12px;
+  padding: 6px 0;
   border-bottom: none;
-  align-items: baseline;
+  align-items: center;
   line-height: 1.25;
+  min-width: 0;
 }
 
 .machineDetailPage .stammdatenStacked .fieldRow span {
   font-size: 0.85rem;
   font-weight: 800;
   color: #374151;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.25;
+  min-width: 0;
 }
 
 .machineDetailPage .stammdatenStacked .fieldRow input,
 .machineDetailPage .stammdatenStacked .fieldRow select,
 .machineDetailPage .stammdatenStacked .fieldRow textarea,
-.machineDetailPage .stammdatenStacked .fieldRow strong.meldungStatusValue {
-  padding: 2px 0;
-  min-height: 0;
+.machineDetailPage .stammdatenStacked .fieldRow strong.meldungStatusValue,
+.machineDetailPage .stammdatenStacked .fieldRow .fieldRowDisplayValue,
+.machineDetailPage .stammdatenStacked .fieldRow .fieldRowCombinedValue,
+.machineDetailPage .stammdatenStacked .fieldRow .germanDateField {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   font-size: 0.9rem;
+}
+
+.machineDetailPage .tabPanel:not(.readOnlyPanel) .stammdatenStacked .fieldRow input,
+.machineDetailPage .tabPanel:not(.readOnlyPanel) .stammdatenStacked .fieldRow select,
+.machineDetailPage .tabPanel:not(.readOnlyPanel) .stammdatenStacked .fieldRow textarea {
+  padding: 8px 10px;
+  min-height: 2.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #f9fafb;
 }
 
 .machineDetailPage .stammdatenStacked .fieldRow textarea.stammdatenBemerkungField {
@@ -1918,6 +1936,16 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
 .machineDetailPage .tabPanel.readOnlyPanel .stammdatenStacked .fieldRow input,
 .machineDetailPage .tabPanel.readOnlyPanel .stammdatenStacked .fieldRow select {
   padding: 2px 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+@container machine-tab (max-width: 40rem) {
+  .machineDetailPage .stammdatenStacked .fieldRow {
+    grid-template-columns: 1fr;
+    gap: 2px 0;
+    align-items: start;
+  }
 }
 
 .machineHeroTitleLine {
@@ -1942,6 +1970,8 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   min-height: 1.35em;
   display: block;
   width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .readOnlyPanel .fieldRow select {
@@ -1977,6 +2007,7 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
 
 .stammdatenPanelMain {
   min-width: 0;
+  width: 100%;
 }
 
 .stammdatenPanelMedia {
@@ -2071,7 +2102,7 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   background: #ffffff;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .stammdatenPanelLayout {
     grid-template-columns: 1fr;
   }
