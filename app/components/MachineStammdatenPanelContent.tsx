@@ -37,6 +37,9 @@ type Props = {
   geraetenummerPreviewLoading?: boolean;
   /** Neuanlage: Identitätsfelder mit machines.create bearbeitbar */
   creating?: boolean;
+  /** Freitext unter Gerätstatus (machine_tab_data.note) */
+  note?: string;
+  onNoteChange?: (value: string) => void;
 };
 
 /** Feste Kopfreihenfolge im Stammdaten-Tab (Gerätegruppe direkt über Gerättyp). */
@@ -126,6 +129,8 @@ export default function MachineStammdatenPanelContent({
   geraetenummerPreviewSequence = null,
   geraetenummerPreviewLoading = false,
   creating = false,
+  note = "",
+  onNoteChange,
 }: Props) {
   const fieldEditOpts = creating ? { creating: true as const } : undefined;
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
@@ -276,6 +281,23 @@ export default function MachineStammdatenPanelContent({
               </div>
             );
           })}
+          {onNoteChange && (isEditing || note.trim()) ? (
+            <div className="fieldRow">
+              <span>Bemerkung</span>
+              {isEditing ? (
+                <textarea
+                  className="stammdatenBemerkungField"
+                  rows={3}
+                  value={note}
+                  readOnly={!canWrite}
+                  onChange={(e) => onNoteChange(e.target.value)}
+                  placeholder="Bemerkung zur Maschine…"
+                />
+              ) : (
+                <StammdatenReadOnlyValue value={note} />
+              )}
+            </div>
+          ) : null}
         </div>
         {saveError ? <p style={{ color: "#dc2626" }}>{saveError}</p> : null}
       </div>

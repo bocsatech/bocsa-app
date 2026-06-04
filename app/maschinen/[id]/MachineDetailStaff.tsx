@@ -613,6 +613,8 @@ export default function MachineDetailStaff({ machineId }: { machineId: string })
                 canWrite={canWriteMachines}
                 sessionAuth={sessionAuth}
                 onUpdateField={updateStammdatenField}
+                note={note}
+                onNoteChange={setNote}
                 saveError={saveError}
                 mediaFooter={
                   canManageMedia && isEditing ? (

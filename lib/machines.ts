@@ -1,4 +1,5 @@
 import type { Machine } from "./types/machine";
+import { preserveProtokollVorlageKeys } from "./machine-protokoll-vorlage.mjs";
 import {
   DE_DATE_PLACEHOLDER,
   formatGermanDate,
@@ -41,10 +42,10 @@ export const MACHINE_FORM_FIELDS: Array<{
   { key: "status", label: "Status" },
   { key: "prufung", label: "Prüfung", type: "date" },
   { key: "geraetenummer", label: "Gerätenummer" },
+  { key: "subgroup", label: "Gerätegruppe" },
   { key: "geraettyp", label: "Gerättyp" },
   { key: "bezeichnung", label: "Bezeichnung" },
-  { key: "subgroup", label: "Gerätegruppe" },
-  { key: "serial_number", label: "Seriennummer" },
+  { key: "serial_number", label: "Fahrgestellnummer" },
   { key: "depot", label: "Depot" },
   { key: "km_stand", label: "KM-Stand" },
   { key: "meldung_status", label: "Meldung" },
@@ -76,9 +77,10 @@ export const MACHINE_FORM_FIELDS: Array<{
 
 export const STAMMDATEN_FIELDS: typeof MACHINE_FORM_FIELDS = [
   { key: "geraetenummer", label: "Gerätenummer" },
+  { key: "subgroup", label: "Gerätegruppe" },
   { key: "geraettyp", label: "Gerättyp" },
   { key: "bezeichnung", label: "Bezeichnung" },
-  { key: "serial_number", label: "Seriennummer" },
+  { key: "serial_number", label: "Fahrgestellnummer" },
   { key: "depot", label: "Depot" },
   { key: "km_stand", label: "KM-Stand" },
   { key: "baujahr", label: "Baujahr" },
@@ -93,14 +95,12 @@ export const STAMMDATEN_FIELDS: typeof MACHINE_FORM_FIELDS = [
   { key: "antifreeze_checked_at", label: "Frostschutz geprüft am", type: "date" },
   { key: "damage_status", label: "Gerätstatus" },
   { key: "meldung_status", label: "Meldung" },
-  { key: "subgroup", label: "Gerätegruppe" },
 ];
 
-/** Stammdaten-Zeilen am Ende (Reihenfolge fix). */
+/** Stammdaten-Zeilen am Ende (Reihenfolge fix) — Gerätstatus direkt über Bemerkung. */
 export const STAMMDATEN_TRAILING_FIELD_KEYS = [
-  "damage_status",
   "meldung_status",
-  "subgroup",
+  "damage_status",
 ] as const;
 
 export async function fetchMachines() {
@@ -296,7 +296,7 @@ export function getGeratstatusVariant(value: string) {
 export function buildSubtitle(machine: Machine) {
   return [
     machine.baujahr ? `Baujahr ${machine.baujahr}` : null,
-    machine.serial_number ? `Seriennummer ${machine.serial_number}` : null,
+    machine.serial_number ? `Fahrgestellnummer ${machine.serial_number}` : null,
     machine.depot ? `Depot ${machine.depot}` : null,
     machine.created_at ? `Erfasst ${formatDate(machine.created_at)}` : null,
   ]
@@ -491,6 +491,10 @@ export function buildStammdatenPatch(
   }
 
   patch.machine_tab_data = tabData;
+  preserveProtokollVorlageKeys(
+    patch.machine_tab_data as Record<string, unknown>,
+    (machine.machine_tab_data as Record<string, unknown> | null) ?? {}
+  );
   return patch as Partial<Omit<Machine, "id" | "created_at">>;
 }
 
