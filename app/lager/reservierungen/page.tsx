@@ -4,40 +4,64 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../../components/AppPageShell";
 import LagerPkwTerminCard from "../../components/LagerPkwTerminCard";
-import LagerPkwTerminDetailModal from "../../components/LagerPkwTerminDetailModal";
+import LagerPkwTerminFilterBar from "../../components/LagerPkwTerminFilterBar";
+import PkwBuchungEditModal from "../../components/PkwBuchungEditModal";
 import {
   buildLagerPkwTerminPartRows,
+  pkwTerminZeitraumRange,
   type LagerPkwTerminPartRow,
+  type PkwTerminZeitraumPreset,
 } from "../../../lib/lager-pkw-termine";
 import { fetchLagerTeile } from "../../../lib/lager";
-import { buchungRangeParams, dateYmdLocal, fetchPkwBuchungen, fetchPkwFahrzeuge } from "../../../lib/pkw";
-import type { PkwBuchung, PkwFahrzeug } from "../../../lib/types/pkw";
+import {
+  dateYmdLocal,
+  fetchPkwBuchungen,
+  fetchPkwFahrzeuge,
+  fetchPkwServicearten,
+} from "../../../lib/pkw";
+import type { PkwBuchung, PkwFahrzeug, PkwServiceArt } from "../../../lib/types/pkw";
 import type { LagerTeil } from "../../../lib/types/lager";
 
 export default function LagerReservierungenPage() {
+  const today = dateYmdLocal();
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [pkwFahrzeuge, setPkwFahrzeuge] = useState<PkwFahrzeug[]>([]);
   const [pkwBuchungen, setPkwBuchungen] = useState<PkwBuchung[]>([]);
+  const [servicearten, setServicearten] = useState<PkwServiceArt[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
   const [selectedBuchungId, setSelectedBuchungId] = useState<string | null>(null);
 
+  const [preset, setPreset] = useState<PkwTerminZeitraumPreset>("monat");
+  const [filterTag, setFilterTag] = useState(today);
+  const [filterMonat, setFilterMonat] = useState(today.slice(0, 7));
+  const [filterJahr, setFilterJahr] = useState(String(new Date().getFullYear()));
+  const [filterVon, setFilterVon] = useState(today);
+  const [filterBis, setFilterBis] = useState(today);
+
+  const range = useMemo(
+    () =>
+      pkwTerminZeitraumRange(preset, {
+        tag: filterTag,
+        monat: filterMonat,
+        jahr: filterJahr,
+        von: filterVon,
+        bis: filterBis,
+      }),
+    [preset, filterTag, filterMonat, filterJahr, filterVon, filterBis]
+  );
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
 
-    const from = new Date();
-    from.setDate(from.getDate() - 14);
-    const to = new Date();
-    to.setDate(to.getDate() + 45);
-    const range = buchungRangeParams(dateYmdLocal(from), dateYmdLocal(to));
-
-    const [tRes, fRes, bRes] = await Promise.all([
+    const [tRes, fRes, bRes, sRes] = await Promise.all([
       fetchLagerTeile(),
       fetchPkwFahrzeuge(),
       fetchPkwBuchungen({ from: range.from, to: range.to }),
+      fetchPkwServicearten(),
     ]);
 
     if (tRes.error) {
@@ -45,17 +69,19 @@ export default function LagerReservierungenPage() {
       setTeile([]);
       setPkwFahrzeuge([]);
       setPkwBuchungen([]);
+      setServicearten([]);
     } else {
       setTeile(tRes.data ?? []);
       setPkwFahrzeuge(fRes.data ?? []);
       setPkwBuchungen(bRes.data ?? []);
+      if (sRes.data) setServicearten(sRes.data);
       if (fRes.error || bRes.error) {
         setLoadError(fRes.error ?? bRes.error ?? "PKW-Termine konnten nicht geladen werden.");
       }
     }
 
     setLoading(false);
-  }, []);
+  }, [range.from, range.to]);
 
   useEffect(() => {
     fetch("/api/auth/session", { cache: "no-store", credentials: "include" })
@@ -82,18 +108,21 @@ export default function LagerReservierungenPage() {
     [rows]
   );
 
-  const selectedRow = useMemo((): LagerPkwTerminPartRow | null => {
-    if (!selectedBuchungId) return null;
-    return rows.find((row) => row.buchung.id === selectedBuchungId) ?? null;
-  }, [rows, selectedBuchungId]);
+  const selectedBuchung = useMemo(
+    () => pkwBuchungen.find((b) => b.id === selectedBuchungId) ?? null,
+    [pkwBuchungen, selectedBuchungId]
+  );
 
-  const selectedBuchung = selectedRow?.buchung ?? null;
-  const selectedFahrzeug = selectedRow?.fahrzeug ?? null;
-
-  function handleSaved(fahrzeug: PkwFahrzeug) {
-    setPkwFahrzeuge((current) =>
-      current.map((fz) => (fz.id === fahrzeug.id ? { ...fz, ...fahrzeug } : fz))
-    );
+  function handleBuchungSaved(buchung: PkwBuchung) {
+    setPkwBuchungen((current) => {
+      const idx = current.findIndex((b) => b.id === buchung.id);
+      if (idx >= 0) {
+        const next = [...current];
+        next[idx] = buchung;
+        return next;
+      }
+      return [...current, buchung].sort((a, b) => a.slot_start.localeCompare(b.slot_start));
+    });
     void load();
   }
 
@@ -106,7 +135,7 @@ export default function LagerReservierungenPage() {
           <div>
             <h1 style={{ margin: 0 }}>Reservierungen</h1>
             <p className="subtitle" style={{ margin: "6px 0 0" }}>
-              PKW-Termine (Portal / Büro) — Ersatzteilbedarf vorbereiten
+              PKW-Termine — Ersatzteilbedarf vorbereiten ({range.label})
             </p>
           </div>
           <div className="detailTopActions">
@@ -123,6 +152,21 @@ export default function LagerReservierungenPage() {
         </header>
       }
     >
+      <LagerPkwTerminFilterBar
+        preset={preset}
+        onPresetChange={setPreset}
+        tag={filterTag}
+        onTagChange={setFilterTag}
+        monat={filterMonat}
+        onMonatChange={setFilterMonat}
+        jahr={filterJahr}
+        onJahrChange={setFilterJahr}
+        von={filterVon}
+        onVonChange={setFilterVon}
+        bis={filterBis}
+        onBisChange={setFilterBis}
+      />
+
       {loading ? (
         <div className="welcomeCard">
           <h2>Laden…</h2>
@@ -151,10 +195,10 @@ export default function LagerReservierungenPage() {
           <div className="lagerBewegungenMobileList lagerReservierungenList" aria-label="Reservierungen">
             {rows.length === 0 ? (
               <p className="lagerBewegungenMobileEmpty">
-                Keine aktiven PKW-Termine in den nächsten Wochen.
+                Keine aktiven PKW-Termine im gewählten Zeitraum.
               </p>
             ) : (
-              rows.map((row) => (
+              rows.map((row: LagerPkwTerminPartRow) => (
                 <LagerPkwTerminCard
                   key={`${row.buchung.id}-${row.part?.lagerTeilId ?? "empty"}`}
                   row={row}
@@ -166,13 +210,15 @@ export default function LagerReservierungenPage() {
         </>
       )}
 
-      <LagerPkwTerminDetailModal
+      <PkwBuchungEditModal
         open={Boolean(selectedBuchungId && selectedBuchung)}
         buchung={selectedBuchung}
-        fahrzeug={selectedFahrzeug}
-        canEdit={canWrite}
+        servicearten={servicearten}
+        fahrzeuge={pkwFahrzeuge}
+        canWrite={canWrite}
         onClose={() => setSelectedBuchungId(null)}
-        onSaved={handleSaved}
+        onSaved={handleBuchungSaved}
+        onServiceartenChange={setServicearten}
       />
     </AppPageShell>
   );

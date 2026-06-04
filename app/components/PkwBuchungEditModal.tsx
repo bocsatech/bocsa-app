@@ -53,6 +53,7 @@ type Props = {
   servicearten: PkwServiceArt[];
   fahrzeuge?: PkwFahrzeug[];
   defaultDay?: string;
+  canWrite?: boolean;
   onClose: () => void;
   onSaved: (buchung: PkwBuchung) => void;
   onServiceartenChange: (list: PkwServiceArt[]) => void;
@@ -64,6 +65,7 @@ export default function PkwBuchungEditModal({
   servicearten,
   fahrzeuge = [],
   defaultDay,
+  canWrite = true,
   onClose,
   onSaved,
   onServiceartenChange,
@@ -427,7 +429,7 @@ export default function PkwBuchungEditModal({
               </p>
               <MaintenanceLagerParts
                 parts={ersatzteile}
-                canEdit
+                canEdit={canWrite}
                 onChange={setErsatzteile}
                 showGruppenActions={false}
               />
@@ -487,9 +489,11 @@ export default function PkwBuchungEditModal({
           <button type="button" className="pillButton outline" onClick={onClose}>
             Abbrechen
           </button>
-          <button type="submit" className="pillButton primary" disabled={saving}>
-            {saving ? "Speichern…" : "Speichern"}
-          </button>
+          {canWrite ? (
+            <button type="submit" className="pillButton primary" disabled={saving}>
+              {saving ? "Speichern…" : "Speichern"}
+            </button>
+          ) : null}
         </div>
       </form>
     </div>,

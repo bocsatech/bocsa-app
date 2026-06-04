@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { currentUserHasPermission } from "../../../../../lib/auth/permissions";
 import { getSupabaseAdmin } from "../../../../../lib/supabaseAdmin";
 import { canAccessPkwService } from "../../../../../lib/pkw-permissions-server.mjs";
 import {
@@ -12,8 +13,13 @@ import {
 } from "../../../../../lib/pkw-server.mjs";
 
 export async function PATCH(request, { params }) {
-  if (!(await canAccessPkwService("write"))) {
-    return NextResponse.json({ error: "Keine Berechtigung: pkw.service.write" }, { status: 403 });
+  const canService = await canAccessPkwService("write");
+  const canWarehouse = await currentUserHasPermission("warehouse.write");
+  if (!canService && !canWarehouse) {
+    return NextResponse.json(
+      { error: "Keine Berechtigung: pkw.service.write oder warehouse.write" },
+      { status: 403 }
+    );
   }
 
   const db = getSupabaseAdmin();

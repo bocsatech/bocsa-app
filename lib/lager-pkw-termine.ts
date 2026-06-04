@@ -1,7 +1,8 @@
 import { parseLagerMenge } from "./lager-bestand";
+import { dateYmdLocal, localDayEndIso, localDayStartIso } from "./pkw";
 import {
   buildFahrzeugLookupMaps,
-  filterAktivePkwBuchungen,
+  filterAktiveStatusPkwBuchungen,
   resolveFahrzeugForBuchung,
 } from "./lager-pkw-bedarf";
 import { getPkwErsatzteile } from "./pkw-ersatzteile";
@@ -29,7 +30,7 @@ export function buildLagerPkwTerminPartRows(
   const lookup = buildFahrzeugLookupMaps(fahrzeuge);
   const rows: LagerPkwTerminPartRow[] = [];
 
-  const aktiv = [...filterAktivePkwBuchungen(buchungen)].sort((a, b) =>
+  const aktiv = [...filterAktiveStatusPkwBuchungen(buchungen)].sort((a, b) =>
     a.slot_start.localeCompare(b.slot_start)
   );
 
@@ -86,4 +87,61 @@ export function buildLagerPkwTerminPartRows(
 
 export function buchungIdForTerminRow(row: LagerPkwTerminPartRow) {
   return row.buchung.id;
+}
+
+export type PkwTerminZeitraumPreset = "tag" | "monat" | "jahr" | "zeitraum";
+
+export function pkwTerminZeitraumRange(
+  preset: PkwTerminZeitraumPreset,
+  opts: {
+    tag?: string;
+    monat?: string;
+    jahr?: string;
+    von?: string;
+    bis?: string;
+  } = {}
+): { from: string; to: string; label: string } {
+  const today = dateYmdLocal();
+
+  if (preset === "tag") {
+    const d = opts.tag || today;
+    return {
+      from: localDayStartIso(d),
+      to: localDayEndIso(d),
+      label: d === today ? "Heute" : d,
+    };
+  }
+
+  if (preset === "monat") {
+    const ym = opts.monat || today.slice(0, 7);
+    const [y, m] = ym.split("-").map(Number);
+    const lastDay = new Date(y, m, 0).getDate();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const start = `${y}-${pad(m)}-01`;
+    const end = `${y}-${pad(m)}-${pad(lastDay)}`;
+    return {
+      from: localDayStartIso(start),
+      to: localDayEndIso(end),
+      label: ym,
+    };
+  }
+
+  if (preset === "jahr") {
+    const y = opts.jahr || String(new Date().getFullYear());
+    return {
+      from: localDayStartIso(`${y}-01-01`),
+      to: localDayEndIso(`${y}-12-31`),
+      label: y,
+    };
+  }
+
+  const von = opts.von || today;
+  const bis = opts.bis || von;
+  const sortedVon = von <= bis ? von : bis;
+  const sortedBis = von <= bis ? bis : von;
+  return {
+    from: localDayStartIso(sortedVon),
+    to: localDayEndIso(sortedBis),
+    label: `${sortedVon} – ${sortedBis}`,
+  };
 }

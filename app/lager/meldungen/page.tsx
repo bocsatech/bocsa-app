@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../../components/AppPageShell";
 import LagerBestandBadge from "../../components/LagerBestandBadge";
 import LagerBewegungReferenzLink from "../../components/LagerBewegungReferenzLink";
-import LagerPkwTerminDetailModal from "../../components/LagerPkwTerminDetailModal";
+import PkwBuchungEditModal from "../../components/PkwBuchungEditModal";
 import {
   bewegungTypLabel,
   buildLagerFahrzeugBedarf,
@@ -18,20 +18,17 @@ import {
   lagerBewegungZeitraumRange,
   type LagerBewegung,
 } from "../../../lib/lager";
-import {
-  buildFahrzeugLookupMaps,
-  resolveFahrzeugForBuchung,
-} from "../../../lib/lager-pkw-bedarf";
-import { buchungRangeParams, dateYmdLocal, fetchPkwBuchungen, fetchPkwFahrzeuge } from "../../../lib/pkw";
+import { buchungRangeParams, dateYmdLocal, fetchPkwBuchungen, fetchPkwFahrzeuge, fetchPkwServicearten } from "../../../lib/pkw";
 import type { LagerFahrzeugBedarfZeile } from "../../../lib/lager-pkw-bedarf";
 import type { LagerBestandMeldung } from "../../../lib/lager-bestand";
-import type { PkwBuchung, PkwFahrzeug } from "../../../lib/types/pkw";
+import type { PkwBuchung, PkwFahrzeug, PkwServiceArt } from "../../../lib/types/pkw";
 import type { LagerTeil } from "../../../lib/types/lager";
 
 export default function LagerMeldungenPage() {
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [pkwFahrzeuge, setPkwFahrzeuge] = useState<PkwFahrzeug[]>([]);
   const [pkwBuchungen, setPkwBuchungen] = useState<PkwBuchung[]>([]);
+  const [servicearten, setServicearten] = useState<PkwServiceArt[]>([]);
   const [heuteBewegungen, setHeuteBewegungen] = useState<LagerBewegung[]>([]);
   const [bewegungenError, setBewegungenError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,11 +49,12 @@ export default function LagerMeldungenPage() {
     to.setDate(to.getDate() + 45);
     const range = buchungRangeParams(dateYmdLocal(from), dateYmdLocal(to));
 
-    const [tRes, fRes, bRes, mRes] = await Promise.all([
+    const [tRes, fRes, bRes, mRes, sRes] = await Promise.all([
       fetchLagerTeile(),
       fetchPkwFahrzeuge(),
       fetchPkwBuchungen({ from: range.from, to: range.to }),
       fetchLagerBewegungen({ from: heuteRange.from, to: heuteRange.to }),
+      fetchPkwServicearten(),
     ]);
 
     if (tRes.error) {
@@ -71,6 +69,7 @@ export default function LagerMeldungenPage() {
       setPkwFahrzeuge(fRes.data ?? []);
       setPkwBuchungen(bRes.data ?? []);
       setHeuteBewegungen(mRes.data ?? []);
+      if (sRes.data) setServicearten(sRes.data);
       setBewegungenError(mRes.error?.message ?? null);
       if (fRes.error || bRes.error) {
         setLoadError(fRes.error ?? bRes.error ?? "PKW-Termine konnten nicht geladen werden.");
@@ -119,18 +118,16 @@ export default function LagerMeldungenPage() {
     [pkwBuchungen, selectedBuchungId]
   );
 
-  const selectedFahrzeug = useMemo(() => {
-    if (!selectedBuchung) return null;
-    const lookup = buildFahrzeugLookupMaps(pkwFahrzeuge);
-    return (
-      resolveFahrzeugForBuchung(selectedBuchung, lookup) ?? selectedBuchung.fahrzeug ?? null
-    );
-  }, [selectedBuchung, pkwFahrzeuge]);
-
-  function handleTerminSaved(fahrzeug: PkwFahrzeug) {
-    setPkwFahrzeuge((current) =>
-      current.map((fz) => (fz.id === fahrzeug.id ? { ...fz, ...fahrzeug } : fz))
-    );
+  function handleTerminSaved(buchung: PkwBuchung) {
+    setPkwBuchungen((current) => {
+      const idx = current.findIndex((b) => b.id === buchung.id);
+      if (idx >= 0) {
+        const next = [...current];
+        next[idx] = buchung;
+        return next;
+      }
+      return [...current, buchung];
+    });
     void load();
   }
 
@@ -320,13 +317,15 @@ export default function LagerMeldungenPage() {
         </>
       )}
 
-      <LagerPkwTerminDetailModal
+      <PkwBuchungEditModal
         open={Boolean(selectedBuchungId && selectedBuchung)}
         buchung={selectedBuchung}
-        fahrzeug={selectedFahrzeug}
-        canEdit={canWrite}
+        servicearten={servicearten}
+        fahrzeuge={pkwFahrzeuge}
+        canWrite={canWrite}
         onClose={() => setSelectedBuchungId(null)}
         onSaved={handleTerminSaved}
+        onServiceartenChange={setServicearten}
       />
     </AppPageShell>
   );

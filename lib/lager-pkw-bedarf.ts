@@ -33,6 +33,10 @@ function buchungIstAktiv(buchung: PkwBuchung, now = Date.now()) {
   return start >= now - pastMs && start <= now + horizonMs;
 }
 
+export function filterAktiveStatusPkwBuchungen(buchungen: PkwBuchung[]) {
+  return buchungen.filter((b) => AKTIVE_BUCHUNG_STATUS.has(b.status));
+}
+
 export function filterAktivePkwBuchungen(buchungen: PkwBuchung[]) {
   return buchungen.filter((b) => buchungIstAktiv(b));
 }
