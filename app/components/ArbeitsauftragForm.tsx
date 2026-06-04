@@ -41,6 +41,8 @@ import {
   clearMachineProtokollVorlageApi,
 } from "../../lib/geraetgruppe-protokoll";
 import { reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
+import type { UserFilialeCode } from "../../lib/user-filiale";
+import { normalizeUserFilialeCode } from "../../lib/user-filiale";
 import { fetchLagerTeile } from "../../lib/lager";
 import {
   createEmptyWorkOrder,
@@ -84,6 +86,8 @@ export default function ArbeitsauftragForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [username, setUsername] = useState("");
+  const [filialeCode, setFilialeCode] = useState<UserFilialeCode | "">("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
   const [sessionAuth, setSessionAuth] = useState<SessionAuthSlice>({
     permissions: [],
@@ -126,6 +130,8 @@ export default function ArbeitsauftragForm({
     const isTechniker = groups.includes("Techniker");
 
     setUsername(name);
+    setFilialeCode(normalizeUserFilialeCode(session.profile?.filialeCode) ?? "");
+    setIsAdmin(isAdmin);
     setSessionAuth({ permissions: perms, groups, username: name });
     setCanWrite(canMachineWrite || isTechniker);
     setCanIssueLager(
@@ -194,7 +200,8 @@ export default function ArbeitsauftragForm({
       try {
         const { auftragNr } = await reserveWorkOrderAuftragNr({
           type: empty.type,
-          depot: empty.depot || data.depot || "",
+          geraetenummer: data.geraetenummer ?? "",
+          filialeCode: normalizeUserFilialeCode(session.profile?.filialeCode) ?? "",
           date: empty.date,
         });
         setOrder({ ...empty, auftragNr });
@@ -397,7 +404,8 @@ export default function ArbeitsauftragForm({
       try {
         const { auftragNr } = await reserveWorkOrderAuftragNr({
           type: normalized.type,
-          depot: normalized.depot || baseMachine.depot || "",
+          geraetenummer: baseMachine.geraetenummer ?? "",
+          filialeCode: filialeCode || "",
           date: normalized.date,
         });
         normalized = { ...normalized, auftragNr };
@@ -489,6 +497,31 @@ export default function ArbeitsauftragForm({
     setPrintPreviewOpen(true);
   }
 
+  async function handleDeleteAuftrag() {
+    if (!machine || !order || isNew) return;
+    const nr = formatWorkOrderAuftragNr(order);
+    const confirmed = window.confirm(
+      `Auftrag „${nr}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`
+    );
+    if (!confirmed) return;
+
+    setSaving(true);
+    setSaveError(null);
+    const response = await fetch(
+      `/api/machines/${machine.id}/work-orders/${order.id}`,
+      { method: "DELETE", credentials: "include" }
+    );
+    const result = await response.json().catch(() => ({}));
+    setSaving(false);
+
+    if (!response.ok) {
+      setSaveError(result.error ?? "Auftrag konnte nicht gelöscht werden.");
+      return;
+    }
+
+    navigateToArbeitsauftragList(router);
+  }
+
   function fieldsForPrint() {
     return previewFields.length > 0
       ? previewFields
@@ -536,6 +569,16 @@ export default function ArbeitsauftragForm({
               <Link className="pillButton primary" href={editHref}>
                 Bearbeiten
               </Link>
+            ) : null}
+            {isAdmin && order && !isNew ? (
+              <button
+                type="button"
+                className="pillButton outline"
+                onClick={handleDeleteAuftrag}
+                disabled={saving}
+              >
+                Löschen
+              </button>
             ) : null}
             {!isViewMode && auftragId && !isNew ? (
               <Link className="pillButton outline" href={viewHref}>

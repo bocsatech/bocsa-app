@@ -1,5 +1,6 @@
 -- Arbeitsauftrag-Nr.: fortlaufende 5-stellige Nummer pro Präfix (Typ+Monat+Jahr+Depot-Buchstabe)
--- Beispiel: S05.26.S00001 = Service, Mai 2026, Depot Schwechat, laufende Nr. 1
+-- Beispiel neu: S06.26-S-KB-GG-BG15-00001
+-- Beispiel legacy: S05.26.S00001
 
 create table if not exists public.arbeitsauftrag_nr_counters (
   prefix text primary key,

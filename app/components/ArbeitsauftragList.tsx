@@ -1,6 +1,8 @@
 "use client";
 
+import "../arbeitsauftrag-list.css";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import AppPageShell from "./AppPageShell";
 import MachineStatusIndicators from "./MachineStatusIndicators";
@@ -11,42 +13,41 @@ import {
   EMPTY_WORK_ORDER_FILTERS,
   filterWorkOrderEntries,
   formatOrderType,
+  formatWorkOrderAuftragNr,
   truncateRepairDescription,
   workOrderUserLabel,
   type WorkOrderListEntry,
   type WorkOrderListFilters,
 } from "../../lib/work-orders";
 import type { Machine } from "../../lib/types/machine";
+import { buildArbeitsauftragDetailHref } from "../../lib/arbeitsauftrag-routes";
 
 const FROM_LIST_STORAGE_KEY = "arbeitsauftragFromList";
 
-function ProtocolField({
+function RowField({
   label,
   value,
+  className = "machineResultTitle",
   emphasize = false,
-  multiline = false,
+  strongValue = false,
 }: {
   label: string;
   value: string;
+  className?: string;
   emphasize?: boolean;
-  multiline?: boolean;
+  strongValue?: boolean;
 }) {
-  if (!hasValue(value) || value === "—") {
-    return (
-      <span className="arbeitsauftragProtocolField">
-        <strong>{label}</strong>
-        <span>—</span>
-      </span>
-    );
-  }
+  if (!hasValue(value) || value === "—") return null;
 
   return (
-    <span className="arbeitsauftragProtocolField">
+    <span className={className}>
       <strong>{label}</strong>
       {emphasize ? (
         <b className="arbeitsauftragProtocolAuftrag">{value}</b>
+      ) : strongValue ? (
+        <b>{value}</b>
       ) : (
-        <span className={multiline ? "arbeitsauftragProtocolDesc" : undefined}>{value}</span>
+        <span>{value}</span>
       )}
     </span>
   );
@@ -59,6 +60,7 @@ type Props = {
 };
 
 export default function ArbeitsauftragList({ initialFilters, returnMachineId }: Props) {
+  const router = useRouter();
   const [machines, setMachines] = useState<Machine[]>([]);
   const [entries, setEntries] = useState<WorkOrderListEntry[]>([]);
   const [filters, setFilters] = useState<WorkOrderListFilters>({
@@ -67,6 +69,9 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [cleanupMessage, setCleanupMessage] = useState<string | null>(null);
+  const [cleaningUp, setCleaningUp] = useState(false);
 
   const machinesById = useMemo(() => {
     const map = new Map<string, Machine>();
@@ -83,6 +88,22 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
     if (!initialFilters) return;
     setFilters((current) => ({ ...current, ...initialFilters }));
   }, [initialFilters]);
+
+  useEffect(() => {
+    async function loadSession() {
+      const response = await fetch("/api/auth/session", {
+        cache: "no-store",
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => ({}));
+      const groups: string[] = Array.isArray(data.groups) ? data.groups : [];
+      const username =
+        typeof data.user?.username === "string" ? data.user.username.trim().toLowerCase() : "";
+      setIsAdmin(groups.includes("Admin") || username === "admin");
+    }
+
+    loadSession();
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -108,6 +129,37 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
     setFilters((current) => ({ ...current, [key]: value }));
   }
 
+  async function handleCleanupLegacy() {
+    const confirmed = window.confirm(
+      "Alle Arbeitsaufträge von Maschinen mit alter Gerätenummer (nicht MARKE-KLASSE-ART-00001) löschen?"
+    );
+    if (!confirmed) return;
+
+    setCleaningUp(true);
+    setCleanupMessage(null);
+    const response = await fetch("/api/arbeitsauftrag/cleanup-legacy", {
+      method: "POST",
+      credentials: "include",
+    });
+    const result = await response.json().catch(() => ({}));
+    setCleaningUp(false);
+
+    if (!response.ok) {
+      setCleanupMessage(result.error ?? "Bereinigung fehlgeschlagen.");
+      return;
+    }
+
+    setCleanupMessage(
+      `${result.ordersRemoved ?? 0} Auftrag/Aufträge von ${result.machinesCleared ?? 0} Maschine(n) entfernt.`
+    );
+
+    const { data, error: fetchError } = await fetchMachines();
+    if (!fetchError && data) {
+      setMachines(data as Machine[]);
+      setEntries(collectAllWorkOrders(data as Machine[]));
+    }
+  }
+
   return (
     <AppPageShell
       activeHref="/arbeitsauftrag"
@@ -126,10 +178,23 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
             >
               {returnMachineId ? "Zur Maschinen" : "Zur Maschinenliste"}
             </Link>
+            {isAdmin ? (
+              <button
+                type="button"
+                className="pillButton outline"
+                onClick={handleCleanupLegacy}
+                disabled={cleaningUp}
+              >
+                {cleaningUp ? "Bereinigen…" : "Legacy-Aufträge löschen"}
+              </button>
+            ) : null}
           </div>
         </div>
       }
     >
+          {cleanupMessage ? (
+            <p className="protocolNotice success">{cleanupMessage}</p>
+          ) : null}
           <section className="protocolSection card machineResultCard arbeitsauftragListSection">
             <form
               className="arbeitsauftragFilters"
@@ -212,71 +277,89 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
                     const serial = machine?.serial_number;
                     const image = machine?.image;
 
+                    const detailHref = buildArbeitsauftragDetailHref({
+                      machineId: entry.machineId,
+                      auftragId: entry.id,
+                      from: "list",
+                    });
+
+                    function openDetail() {
+                      sessionStorage.setItem(FROM_LIST_STORAGE_KEY, "1");
+                      router.push(detailHref);
+                    }
+
                     return (
-                      <Link
+                      <div
                         key={`${entry.machineId}-${entry.id}`}
-                        className="arbeitsauftragResultCard"
-                        href={`/arbeitsauftrag?machineId=${entry.machineId}&auftragId=${encodeURIComponent(entry.id)}&from=list`}
-                        onClick={() => {
-                          sessionStorage.setItem(FROM_LIST_STORAGE_KEY, "1");
+                        className="machineResultRow"
+                        role="link"
+                        tabIndex={0}
+                        onClick={openDetail}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            openDetail();
+                          }
                         }}
                       >
-                        <div className="arbeitsauftragResultTop">
-                          <div className="arbeitsauftragResultLeading">
-                            {machine ? (
-                              <MachineStatusIndicators
-                                machine={machine}
-                                className="machineResultStatus"
-                                fixedSlots
-                              />
-                            ) : (
-                              <span
-                                className="machineResultStatus arbeitsauftragStatusBlock"
-                                aria-hidden="true"
-                              />
-                            )}
-                            <div className="arbeitsauftragProtocolMeta">
-                              <ProtocolField
-                                label="Auftragsart"
-                                value={formatOrderType(entry.type)}
-                                emphasize
-                              />
-                              <ProtocolField
-                                label="Bearbeiter"
-                                value={workOrderUserLabel(entry) || "—"}
-                              />
-                              <ProtocolField
-                                label="Reparaturbeschreibung"
-                                value={truncateRepairDescription(entry.repairDescription, 120)}
-                                multiline
-                              />
-                            </div>
-                          </div>
+                        {machine ? (
+                          <MachineStatusIndicators
+                            machine={machine}
+                            className="machineResultStatus"
+                          />
+                        ) : (
+                          <span className="machineResultStatus" aria-hidden="true" />
+                        )}
 
-                          <span className="machineThumb" aria-label="Bild">
-                            {image ? <img src={image} alt="" /> : <span>Bild</span>}
-                          </span>
+                        <span className="machineThumb" aria-label="Bild">
+                          {image ? <img src={image} alt="" /> : <span>Bild</span>}
+                        </span>
 
-                          <span className="machineResultMain">
-                            <span className="machineResultTitle">
-                              <strong>Gerätenummer</strong>
-                              <b>{formatValue(entry.geraetenummer)}</b>
-                            </span>
-                            {hasValue(bezeichnung) ? (
-                              <span className="machineResultTitle">
-                                <strong>Bezeichnung</strong>
-                                <b>{formatValue(bezeichnung)}</b>
-                              </span>
-                            ) : null}
-                            {hasValue(serial) ? (
-                              <span className="machineResultDetail">
-                                <strong>Seriennummer</strong>
-                                {formatValue(serial)}
-                              </span>
-                            ) : null}
-                          </span>
-                        </div>
-                      </Link>
+                        <span className="machineResultMain">
+                          <RowField
+                            label="Gerätenummer"
+                            value={formatValue(entry.geraetenummer)}
+                            strongValue
+                          />
+                          <RowField
+                            label="Bezeichnung"
+                            value={formatValue(bezeichnung)}
+                            strongValue
+                          />
+                          <RowField
+                            label="Seriennummer"
+                            value={formatValue(serial)}
+                            className="machineResultDetail"
+                          />
+                        </span>
+
+                        <span className="machineResultMeta">
+                          <RowField
+                            label="Auftragsart"
+                            value={formatOrderType(entry.type)}
+                            emphasize
+                          />
+                          <RowField
+                            label="Bearbeiter"
+                            value={workOrderUserLabel(entry) || "—"}
+                          />
+                          <RowField
+                            label="Reparaturbeschreibung"
+                            value={truncateRepairDescription(entry.repairDescription, 80)}
+                            className="machineResultDetail"
+                          />
+                        </span>
+
+                        <span className="machineResultMeta">
+                          <RowField
+                            label="Auftrag-Nr."
+                            value={formatWorkOrderAuftragNr(entry)}
+                            strongValue
+                          />
+                          <RowField label="Datum" value={entry.date || "—"} />
+                          <RowField label="Depot" value={entry.filiale || "—"} strongValue />
+                        </span>
+                      </div>
                     );
                   })}
                 </div>

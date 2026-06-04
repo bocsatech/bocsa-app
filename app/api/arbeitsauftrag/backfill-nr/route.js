@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { reserveAuftragNrWithFallback } from "../../../../lib/auftrag-nr-server";
+import { reserveLegacyAuftragNrWithFallback } from "../../../../lib/auftrag-nr-server";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
@@ -34,7 +34,7 @@ function getWorkOrdersFromTabData(tabData) {
 }
 
 async function reserveNr(supabase, type, depot, date, extraAuftragNrs) {
-  const { auftragNr } = await reserveAuftragNrWithFallback(
+  const { auftragNr } = await reserveLegacyAuftragNrWithFallback(
     supabase,
     type,
     depot,

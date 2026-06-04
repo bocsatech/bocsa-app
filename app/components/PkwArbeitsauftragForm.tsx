@@ -148,6 +148,7 @@ export default function PkwArbeitsauftragForm({
         const { auftragNr } = await reserveWorkOrderAuftragNr({
           type: empty.type,
           depot: empty.depot || "PKW",
+          legacy: true,
           date: empty.date,
         });
         empty.auftragNr = auftragNr;

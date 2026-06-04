@@ -101,6 +101,13 @@ export function isStructuredGeraetenummer(value: unknown) {
   return parseStructuredGeraetenummer(value) !== null;
 }
 
+/** Marke-Klasse-Art ohne Lfd.-Nr. (z. B. KB-GG-BG15) für Auftrag-Nr. */
+export function geraetenummerMachineSegment(value: unknown): string {
+  const parsed = parseStructuredGeraetenummer(value);
+  if (!parsed) return "";
+  return `${parsed.marke}-${parsed.klasse}-${parsed.art}`;
+}
+
 /**
  * Gerätegruppe aus strukturierter Gerätenummer: MARKE-KLASSE-ART-00001 → KLASSE-ART
  * (z. B. KB-GG-BG2-00001 → GG-BG2 — Marke entfällt).

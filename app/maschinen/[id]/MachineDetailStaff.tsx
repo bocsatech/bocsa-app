@@ -268,31 +268,7 @@ export default function MachineDetailStaff({ machineId }: { machineId: string })
     auftragNrBackfillDone.current = false;
   }, [machineId]);
 
-  useEffect(() => {
-    if (!machine || !canWriteMachines || auftragNrBackfillDone.current) return;
-
-    const orders = getWorkOrders(machine);
-    if (orders.length === 0) return;
-    if (orders.every((order) => order.auftragNr?.trim())) return;
-
-    auftragNrBackfillDone.current = true;
-
-    fetch("/api/arbeitsauftrag/backfill-nr", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ machineId: machine.id }),
-    })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return response.json();
-      })
-      .then((result) => {
-        if (result && typeof result.assigned === "number" && result.assigned > 0) {
-          loadMachine();
-        }
-      });
-  }, [machine?.id, canWriteMachines, loadMachine]);
+  // Legacy-Backfill deaktiviert — neue Aufträge erhalten das neue Nummernformat.
 
   useEffect(() => {
     async function loadPermissions() {
@@ -1237,7 +1213,11 @@ export default function MachineDetailStaff({ machineId }: { machineId: string })
             </div>
           </div>
 
-          <MachineWorkOrdersTable machine={machine} />
+          <MachineWorkOrdersTable
+            machine={machine}
+            canDeleteAdmin={sessionAuth.groups.includes("Admin")}
+            onOrderDeleted={loadMachine}
+          />
         </section>
         </div>
       )}

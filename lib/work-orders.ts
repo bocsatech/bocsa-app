@@ -25,7 +25,7 @@ export type { WorkOrderServicePart } from "./types/work-order-parts";
 
 export type WorkOrder = {
   id: string;
-  /** Automatische Auftrag-Nr., z. B. S05.26.S00001 */
+  /** Automatische Auftrag-Nr. (Legacy S05.26.S00001 oder neu S06.26-S-KB-GG-BG15-00001) */
   auftragNr?: string;
   type: string;
   depot: string;
@@ -368,6 +368,21 @@ export function mergeWorkOrder(
   tabData.work_orders = work_orders;
   preserveProtokollVorlageKeys(tabData, sourceTab);
 
+  return tabData;
+}
+
+export function removeWorkOrder(
+  machine: Machine,
+  orderId: string
+): Record<string, unknown> {
+  const sourceTab =
+    machine.machine_tab_data && typeof machine.machine_tab_data === "object"
+      ? (machine.machine_tab_data as Record<string, unknown>)
+      : {};
+
+  const tabData: Record<string, unknown> = { ...sourceTab };
+  tabData.work_orders = getWorkOrders(machine).filter((item) => item.id !== orderId);
+  preserveProtokollVorlageKeys(tabData, sourceTab);
   return tabData;
 }
 
