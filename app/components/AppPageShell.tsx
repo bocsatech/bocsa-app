@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import AppSidebar from "./AppSidebar";
 
 type Props = {
@@ -32,6 +32,15 @@ export default function AppPageShell({
   scrollClassName,
 }: Props) {
   const hasTop = Boolean(top || title || actions);
+
+  useEffect(() => {
+    document.documentElement.classList.add("app-shell-route-root");
+    document.body.classList.add("app-shell-route");
+    return () => {
+      document.documentElement.classList.remove("app-shell-route-root");
+      document.body.classList.remove("app-shell-route");
+    };
+  }, []);
 
   return (
     <main className={["workorderPage appShell", mainClassName].filter(Boolean).join(" ")}>

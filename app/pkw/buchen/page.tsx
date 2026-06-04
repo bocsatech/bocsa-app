@@ -42,6 +42,15 @@ function PkwBuchenForm() {
 
   const sessionActive = step !== "login";
 
+  useEffect(() => {
+    document.documentElement.classList.add("pkw-portal-route-root");
+    document.body.classList.add("pkw-portal-route");
+    return () => {
+      document.documentElement.classList.remove("pkw-portal-route-root");
+      document.body.classList.remove("pkw-portal-route");
+    };
+  }, []);
+
   function resetBookingDraft() {
     clearPkwPortalVisit();
     setKennzeichen("");

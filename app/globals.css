@@ -32,15 +32,6 @@ body.public-scroll-body {
   min-height: 100%;
 }
 
-/* PKW Portál — görgetés engedélyezése (buchen, kutatás, stb.) */
-body:has(.pkwPortalShell) {
-  overflow: visible;
-}
-
-html:has(.pkwPortalShell) {
-  overflow: visible;
-}
-
 a {
   color: inherit;
   text-decoration: none;
@@ -740,6 +731,60 @@ button, input, select, textarea {
 }
 
 @media (max-width: 760px) {
+  /* Mobil App-Shell: iOS touch-scroll (flex height:0) */
+  html.app-shell-route-root,
+  html:has(.appShell) {
+    height: 100%;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  body.app-shell-route,
+  body:has(.appShell) {
+    height: 100%;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+  }
+
+  body.app-shell-route > main.workorderPage.appShell,
+  body:has(.appShell) > main.workorderPage.appShell {
+    flex: 1 1 0;
+    min-height: 0;
+    height: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  body.app-shell-route .pageContent,
+  body:has(.appShell) .pageContent {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.app-shell-route .appPageScroll,
+  body:has(.appShell) .appPageScroll {
+    flex: 1 1 0;
+    height: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+  }
+
   /* Grid-Scroll (funktioniert) + ausklappbares Menü */
   .workorderPage {
     grid-template-columns: 1fr;
@@ -848,13 +893,6 @@ button, input, select, textarea {
   }
 
   .appPageScroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    touch-action: pan-y;
     padding: 16px;
   }
 
@@ -1075,48 +1113,15 @@ button, input, select, textarea {
     display: none !important;
   }
 
-  /* /kunden — iOS/PWA: fix magasság + touch-scroll (:has nélkül is) */
-  html.kunden-route-root,
-  body.kunden-route {
-    height: 100%;
-    height: 100dvh;
-    height: -webkit-fill-available;
-    max-height: 100dvh;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  body.kunden-route {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
   body.kunden-route > main.kundenShell.workorderPage {
-    flex: 1 1 auto;
-    min-height: 0;
-    width: 100%;
-    max-width: 100%;
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
-    overflow: hidden;
   }
 
   body.kunden-route .kundenShell > .pageContent.kundenListPage {
     grid-row: 2;
     min-height: 0;
-    overflow: hidden;
-  }
-
-  body.kunden-route .kundenListPage .appPageScroll {
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    touch-action: pan-y;
   }
 
   .homeIconPage {
@@ -4948,11 +4953,22 @@ body.lagerPickerOpen {
 }
 
 /* Kundenportal — body-Klasse per JS (ohne :has(), ältere iPhones) */
+html.pkw-portal-route-root,
 html.pkw-portal-body,
+body.pkw-portal-route,
 body.pkw-portal-body {
   height: 100%;
+  height: 100dvh;
+  height: -webkit-fill-available;
+  max-height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
+}
+
+body.pkw-portal-route,
+body.pkw-portal-body {
+  width: 100%;
+  max-width: 100%;
 }
 
 .pkwPortalShell {
@@ -4961,20 +4977,42 @@ body.pkw-portal-body {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100dvh;
-  min-height: 100svh;
-  min-height: -webkit-fill-available;
+  height: 100%;
+  height: 100dvh;
+  height: -webkit-fill-available;
+  max-height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, #fff7ed 0%, #f9fafb 40%);
 }
 
+body.pkw-portal-route .pkwPortalShell,
+body.pkw-portal-body .pkwPortalShell {
+  position: fixed;
+  inset: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+}
+
+.pkwPortalShell > main.pkwPortalScroll {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .pkwPortalScroll {
-  flex: 1;
+  flex: 1 1 0;
+  height: 0;
   min-height: 0;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 .pkwPortalPage {
@@ -5227,6 +5265,7 @@ body.pkw-portal-body .pkwPortalStepNav {
     padding-right: max(12px, env(safe-area-inset-right, 0px));
   }
 
+  body.pkw-portal-route .pkwPortalScroll,
   body.pkw-portal-body .pkwPortalScroll {
     overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
