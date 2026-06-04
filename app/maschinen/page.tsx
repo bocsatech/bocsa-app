@@ -22,19 +22,15 @@ import {
 import type { Machine } from "../../lib/types/machine";
 
 type MachineFilters = {
-  geraetenummer: string;
   geraettyp: string;
   filiale: string;
   meldung: string;
-  bezeichnung: string;
 };
 
 const EMPTY_MACHINE_FILTERS: MachineFilters = {
-  geraetenummer: "",
   geraettyp: "",
   filiale: "",
   meldung: "",
-  bezeichnung: "",
 };
 
 function MaschinenPageContent() {
@@ -79,16 +75,11 @@ function MaschinenPageContent() {
   }, [loadMachines]);
 
   useEffect(() => {
-    const hasTyp = searchParams.has("geraettyp");
-    const hasNummer = searchParams.has("geraetenummer");
-    if (!hasTyp && !hasNummer) return;
+    if (!searchParams.has("geraettyp")) return;
 
     setFilters((current) => ({
       ...current,
-      ...(hasTyp ? { geraettyp: searchParams.get("geraettyp")?.trim() ?? "" } : {}),
-      ...(hasNummer
-        ? { geraetenummer: searchParams.get("geraetenummer")?.trim() ?? "" }
-        : {}),
+      geraettyp: searchParams.get("geraettyp")?.trim() ?? "",
     }));
   }, [searchParams]);
 
@@ -175,30 +166,16 @@ function MaschinenPageContent() {
   }, [loadMachines]);
 
   const filteredMachines = useMemo(() => {
-    const qGeraet = filters.geraetenummer.trim().toLowerCase();
     const qTyp = filters.geraettyp.trim().toLowerCase();
     const qFiliale = filters.filiale.trim().toLowerCase();
-    const qBezeichnung = filters.bezeichnung.trim().toLowerCase();
     const qMeldung = filters.meldung.trim().toLowerCase();
 
     return machines.filter((machine) => {
-      if (
-        qGeraet &&
-        !String(machine.geraetenummer ?? "").toLowerCase().includes(qGeraet) &&
-        !String(machine.serial_number ?? "").toLowerCase().includes(qGeraet)
-      ) {
-        return false;
-      }
-
       if (qTyp && String(machine.geraettyp ?? "").toLowerCase() !== qTyp) {
         return false;
       }
 
       if (qFiliale && !String(machine.depot ?? "").toLowerCase().includes(qFiliale)) {
-        return false;
-      }
-
-      if (qBezeichnung && !String(machine.bezeichnung ?? "").toLowerCase().includes(qBezeichnung)) {
         return false;
       }
 
@@ -232,7 +209,6 @@ function MaschinenPageContent() {
       return;
     }
     setScanHint(`Keine Maschine zu diesem Code: „${value}”`);
-    setFilters((current) => ({ ...current, geraetenummer: value }));
   }
 
   function updateFilter<K extends keyof MachineFilters>(key: K, value: MachineFilters[K]) {
@@ -265,16 +241,6 @@ function MaschinenPageContent() {
         ) : (
           <>
             <div className="searchToolbar card maschinenFiltersBar">
-              <label className="arbeitsauftragFilterField">
-                <span>Gerätenummer</span>
-                <input
-                  type="search"
-                  value={filters.geraetenummer}
-                  onChange={(event) => updateFilter("geraetenummer", event.target.value)}
-                  placeholder="z. B. GE 356267"
-                  autoComplete="off"
-                />
-              </label>
               <label className="arbeitsauftragFilterField">
                 <span>Gerättyp</span>
                 <select
@@ -313,15 +279,6 @@ function MaschinenPageContent() {
                   <option value="mit">Mit Meldung</option>
                   <option value="ohne">Ohne Meldung</option>
                 </select>
-              </label>
-              <label className="arbeitsauftragFilterField">
-                <span>Bezeichnung</span>
-                <input
-                  type="search"
-                  value={filters.bezeichnung}
-                  onChange={(event) => updateFilter("bezeichnung", event.target.value)}
-                  placeholder="Bezeichnung"
-                />
               </label>
               <button
                 type="button"
