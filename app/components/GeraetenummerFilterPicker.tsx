@@ -37,9 +37,8 @@ export default function GeraetenummerFilterPicker({
         >
           <option value="">—</option>
           {codes.marken.map((entry) => (
-            <option key={entry.code} value={entry.code}>
+            <option key={entry.code} value={entry.code} title={entry.label}>
               {entry.code}
-              {entry.label ? ` — ${entry.label}` : ""}
             </option>
           ))}
         </select>
@@ -53,9 +52,8 @@ export default function GeraetenummerFilterPicker({
         >
           <option value="">—</option>
           {codes.klassen.map((entry) => (
-            <option key={entry.code} value={entry.code}>
+            <option key={entry.code} value={entry.code} title={entry.label}>
               {entry.code}
-              {entry.label ? ` — ${entry.label}` : ""}
             </option>
           ))}
         </select>
@@ -69,9 +67,8 @@ export default function GeraetenummerFilterPicker({
         >
           <option value="">—</option>
           {codes.arten.map((entry) => (
-            <option key={entry.code} value={entry.code}>
+            <option key={entry.code} value={entry.code} title={entry.label}>
               {entry.code}
-              {entry.label ? ` — ${entry.label}` : ""}
             </option>
           ))}
         </select>
