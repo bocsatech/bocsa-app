@@ -3159,6 +3159,45 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   font-size: 0.82rem;
 }
 
+.lagerTerminLink {
+  display: block;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #ea580c;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lagerTerminLink:last-child {
+  margin-bottom: 0;
+}
+
+.lagerTerminLink:hover,
+.lagerTerminLink:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+.lagerMeldungRowActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 9rem;
+}
+
+.lagerMeldungRowActions .pillButton {
+  justify-content: center;
+  text-align: center;
+}
+
 .lagerGrenzeValueWarn {
   color: #b91c1c;
   font-weight: 700;

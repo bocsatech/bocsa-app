@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../../components/AppPageShell";
 import LagerBestandBadge from "../../components/LagerBestandBadge";
 import LagerBewegungReferenzLink from "../../components/LagerBewegungReferenzLink";
+import LagerPkwTerminDetailModal from "../../components/LagerPkwTerminDetailModal";
 import {
   bewegungTypLabel,
   buildLagerFahrzeugBedarf,
@@ -17,6 +18,10 @@ import {
   lagerBewegungZeitraumRange,
   type LagerBewegung,
 } from "../../../lib/lager";
+import {
+  buildFahrzeugLookupMaps,
+  resolveFahrzeugForBuchung,
+} from "../../../lib/lager-pkw-bedarf";
 import { buchungRangeParams, dateYmdLocal, fetchPkwBuchungen, fetchPkwFahrzeuge } from "../../../lib/pkw";
 import type { LagerFahrzeugBedarfZeile } from "../../../lib/lager-pkw-bedarf";
 import type { LagerBestandMeldung } from "../../../lib/lager-bestand";
@@ -32,6 +37,8 @@ export default function LagerMeldungenPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [canRead, setCanRead] = useState(false);
+  const [canWrite, setCanWrite] = useState(false);
+  const [selectedBuchungId, setSelectedBuchungId] = useState<string | null>(null);
 
   const heuteRange = useMemo(() => lagerBewegungZeitraumRange("tag"), []);
 
@@ -77,7 +84,9 @@ export default function LagerMeldungenPage() {
     fetch("/api/auth/session", { cache: "no-store", credentials: "include" })
       .then((r) => r.json())
       .then((result) => {
-        setCanRead((result.permissions ?? []).includes("warehouse.read"));
+        const perms: string[] = result.permissions ?? [];
+        setCanRead(perms.includes("warehouse.read"));
+        setCanWrite(perms.includes("warehouse.write") || perms.includes("pkw.service.write"));
       });
   }, []);
 
@@ -104,6 +113,26 @@ export default function LagerMeldungenPage() {
     }
     return { aus, ein, count: heuteBewegungen.length };
   }, [heuteBewegungen]);
+
+  const selectedBuchung = useMemo(
+    () => pkwBuchungen.find((b) => b.id === selectedBuchungId) ?? null,
+    [pkwBuchungen, selectedBuchungId]
+  );
+
+  const selectedFahrzeug = useMemo(() => {
+    if (!selectedBuchung) return null;
+    const lookup = buildFahrzeugLookupMaps(pkwFahrzeuge);
+    return (
+      resolveFahrzeugForBuchung(selectedBuchung, lookup) ?? selectedBuchung.fahrzeug ?? null
+    );
+  }, [selectedBuchung, pkwFahrzeuge]);
+
+  function handleTerminSaved(fahrzeug: PkwFahrzeug) {
+    setPkwFahrzeuge((current) =>
+      current.map((fz) => (fz.id === fahrzeug.id ? { ...fz, ...fahrzeug } : fz))
+    );
+    void load();
+  }
 
   return (
     <AppPageShell
@@ -242,7 +271,11 @@ export default function LagerMeldungenPage() {
               </thead>
               <tbody>
                 {fahrzeugBedarf.map((row) => (
-                  <FahrzeugBedarfRow key={row.teil.id} row={row} />
+                  <FahrzeugBedarfRow
+                    key={row.teil.id}
+                    row={row}
+                    onOpenTermin={setSelectedBuchungId}
+                  />
                 ))}
               </tbody>
             </table>
@@ -275,6 +308,15 @@ export default function LagerMeldungenPage() {
           </MeldungenSection>
         </>
       )}
+
+      <LagerPkwTerminDetailModal
+        open={Boolean(selectedBuchungId && selectedBuchung)}
+        buchung={selectedBuchung}
+        fahrzeug={selectedFahrzeug}
+        canEdit={canWrite}
+        onClose={() => setSelectedBuchungId(null)}
+        onSaved={handleTerminSaved}
+      />
     </AppPageShell>
   );
 }
@@ -298,8 +340,16 @@ function MeldungenSection({
   );
 }
 
-function FahrzeugBedarfRow({ row }: { row: LagerFahrzeugBedarfZeile }) {
+function FahrzeugBedarfRow({
+  row,
+  onOpenTermin,
+}: {
+  row: LagerFahrzeugBedarfZeile;
+  onOpenTermin: (buchungId: string) => void;
+}) {
   const { teil, bedarfMenge, lagerstand, fehlmenge, fahrzeuge } = row;
+  const primaryBuchungId = fahrzeuge.length === 1 ? fahrzeuge[0]?.buchungId : null;
+
   return (
     <tr className="lagerMeldungRowBelow">
       <td>
@@ -313,19 +363,35 @@ function FahrzeugBedarfRow({ row }: { row: LagerFahrzeugBedarfZeile }) {
       </td>
       <td className="lagerFahrzeugListeCell">
         {fahrzeuge.map((fz) => (
-          <div key={fz.fahrzeugId} className="scanHint">
+          <button
+            key={fz.buchungId}
+            type="button"
+            className="lagerTerminLink"
+            onClick={() => onOpenTermin(fz.buchungId)}
+          >
             {fz.kennzeichen}
             {fz.slotStart
               ? ` · ${new Date(fz.slotStart).toLocaleString("de-AT", { dateStyle: "short", timeStyle: "short" })}`
               : ""}
             {fz.source === "portal" ? " · Portal" : ""}
-          </div>
+          </button>
         ))}
       </td>
       <td>
-        <Link className="pillButton outline" href={`/lager?teil=${encodeURIComponent(teil.id)}`}>
-          Teil öffnen
-        </Link>
+        <div className="lagerMeldungRowActions">
+          {primaryBuchungId ? (
+            <button
+              type="button"
+              className="pillButton primary"
+              onClick={() => onOpenTermin(primaryBuchungId)}
+            >
+              Termin öffnen
+            </button>
+          ) : null}
+          <Link className="pillButton outline" href={`/lager?teil=${encodeURIComponent(teil.id)}`}>
+            Teil öffnen
+          </Link>
+        </div>
       </td>
     </tr>
   );

@@ -1,11 +1,11 @@
 import { getPkwErsatzteile } from "./pkw-ersatzteile";
 import { parseLagerMenge } from "./lager-bestand";
-import type { PkwBuchung, PkwFahrzeug } from "./types/pkw";
-import type { LagerTeil } from "./types/lager";
 
 function normalizeKennzeichen(value: string) {
   return value.trim().toUpperCase().replace(/\s+/g, " ");
 }
+import type { PkwBuchung, PkwFahrzeug } from "./types/pkw";
+import type { LagerTeil } from "./types/lager";
 
 const AKTIVE_BUCHUNG_STATUS = new Set(["angefragt", "bestaetigt", "in_arbeit"]);
 
@@ -15,6 +15,7 @@ export type LagerFahrzeugBedarfZeile = {
   lagerstand: number;
   fehlmenge: number;
   fahrzeuge: Array<{
+    buchungId: string;
     fahrzeugId: string;
     kennzeichen: string;
     kunde: string | null;
@@ -99,8 +100,9 @@ export function buildLagerFahrzeugBedarf(
       if (!teilById.has(teilId)) continue;
       const row = bedarf.get(teilId) ?? { menge: 0, fahrzeuge: [] };
       row.menge += 1;
-      if (!row.fahrzeuge.some((v) => v.fahrzeugId === fahrzeugId)) {
+      if (!row.fahrzeuge.some((v) => v.buchungId === buchung.id)) {
         row.fahrzeuge.push({
+          buchungId: buchung.id,
           fahrzeugId,
           kennzeichen: fahrzeug.kennzeichen,
           kunde,
@@ -128,22 +130,6 @@ export function buildLagerFahrzeugBedarf(
   }
 
   return rows.sort((a, b) => b.fehlmenge - a.fehlmenge);
-}
-
-export function formatLagerFahrzeugTermin(
-  fz: LagerFahrzeugBedarfZeile["fahrzeuge"][number]
-) {
-  const parts: string[] = [fz.kennzeichen];
-  if (fz.slotStart) {
-    parts.push(
-      new Date(fz.slotStart).toLocaleString("de-AT", {
-        dateStyle: "short",
-        timeStyle: "short",
-      })
-    );
-  }
-  if (fz.source === "portal") parts.push("Portal");
-  return parts.join(" - ");
 }
 
 export function countLagerFahrzeugBedarf(
