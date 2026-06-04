@@ -113,6 +113,7 @@ export const LAGER_NAV = {
   permission: "menu.warehouse",
   children: [
     { kind: "route", href: "/lager", label: "Ersatzteile" },
+    { kind: "route", href: "/lager/reservierungen", label: "Reservierungen" },
     { kind: "route", href: "/lager/meldungen", label: "Meldungen" },
     { kind: "route", href: "/lager/bewegungen", label: "Bewegungen" },
     { kind: "route", href: "/lager/inventur", label: "Inventur" },
@@ -253,6 +254,7 @@ function isLagerSectionActive(activeHref: string | undefined, pathname: string) 
     pathname === "/lager" ||
     pathname.startsWith("/lager/") ||
     activeHref === "/lager/meldungen" ||
+    activeHref === "/lager/reservierungen" ||
     activeHref === "/lager/bewegungen" ||
     activeHref === "/lager/inventur"
   );

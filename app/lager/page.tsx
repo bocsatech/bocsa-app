@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import LagerBestandBadge from "../components/LagerBestandBadge";
+import LagerMengeMinCell from "../components/LagerMengeMinCell";
 import LagerFiltersBar from "../components/LagerFiltersBar";
 import LagerTeilBild from "../components/LagerTeilBild";
 import LagerTeilModal from "../components/LagerTeilModal";
 import AppPageShell from "../components/AppPageShell";
 import {
+  fetchLagerMeldungenSummary,
   deleteLagerTeil,
   EMPTY_LAGER_FILTERS,
   fetchLagerTeile,
@@ -14,11 +18,13 @@ import {
   formatLagerCurrency,
   formatLagerNumber,
   formatLagerValue,
+  getLagerBestandAlert,
   type LagerListFilters,
 } from "../../lib/lager";
 import type { LagerTeil } from "../../lib/types/lager";
 
-export default function LagerPage() {
+function LagerPageContent() {
+  const searchParams = useSearchParams();
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -75,6 +81,25 @@ export default function LagerPage() {
     () => filterLagerTeileByFields(teile, filters),
     [teile, filters]
   );
+
+  const [meldungenCount, setMeldungenCount] = useState(0);
+
+  useEffect(() => {
+    if (!canRead) return;
+    fetchLagerMeldungenSummary().then(({ data }) => {
+      if (data) setMeldungenCount(data.total);
+    });
+  }, [canRead, teile]);
+
+  useEffect(() => {
+    const teilId = searchParams.get("teil")?.trim();
+    if (!teilId || loading || !teile.length) return;
+    const hit = teile.find((t) => t.id === teilId);
+    if (hit) {
+      setSelectedTeil(hit);
+      setModalOpen(true);
+    }
+  }, [searchParams, teile, loading]);
 
   function openCreate() {
     setSelectedTeil(null);
@@ -227,11 +252,20 @@ export default function LagerPage() {
               </>
             ) : null}
             <Link
+              href="/lager/meldungen"
+              className={`pillButton outline${meldungenCount > 0 ? " lagerMeldungenBtnActive" : ""}`}
+            >
+              Meldungen{meldungenCount > 0 ? ` (${meldungenCount})` : ""}
+            </Link>
+            <Link href="/lager/reservierungen" className="pillButton outline">
+              Reservierungen
+            </Link>
+            <Link
               href="/lager/inventur"
               className="pillButton outline"
               title="Lagerstand inventarisieren"
             >
-              + Inventur
+              Inventur
             </Link>
             <button
               type="button"
@@ -268,7 +302,8 @@ export default function LagerPage() {
               </li>
               <li>SQL → New query</li>
               <li>
-                Inhalt von <code>supabase/lager-setup.sql</code> einfügen → Run
+                Inhalt von <code>supabase/lager-setup.sql</code> und{" "}
+                <code>supabase/lager-menge-grenzen.sql</code> einfügen → Run
               </li>
               <li>Diese Seite neu laden</li>
             </ol>
@@ -278,6 +313,14 @@ export default function LagerPage() {
             {importStatus ? (
               <p className="protocolNotice" role="status">
                 {importStatus}
+              </p>
+            ) : null}
+
+            {meldungenCount > 0 ? (
+              <p className="protocolNotice lagerMeldungenBanner" role="status">
+                <strong>{meldungenCount}</strong> Meldung
+                {meldungenCount === 1 ? "" : "en"} (PKW-Bedarf / Min-Max) —{" "}
+                <Link href="/lager/meldungen">Meldungen anzeigen</Link>
               </p>
             ) : null}
 
@@ -302,6 +345,9 @@ export default function LagerPage() {
                       <th>Lagerort</th>
                       <th>Lagerplatz</th>
                       <th>Lagerstand</th>
+                      <th>Min.</th>
+                      <th>Max.</th>
+                      <th>Status</th>
                       <th>Listen netto</th>
                       <th>Listen brutto</th>
                       <th>Verkauf</th>
@@ -312,11 +358,22 @@ export default function LagerPage() {
                   <tbody>
                     {filteredTeile.length === 0 ? (
                       <tr>
-                        <td colSpan={13}>Keine Teile gefunden.</td>
+                        <td colSpan={16}>Keine Teile gefunden.</td>
                       </tr>
                     ) : (
-                      filteredTeile.map((teil) => (
-                        <tr key={teil.id}>
+                      filteredTeile.map((teil) => {
+                        const alert = getLagerBestandAlert(teil);
+                        return (
+                        <tr
+                          key={teil.id}
+                          className={
+                            alert === "below_min"
+                              ? "lagerMeldungRowBelow"
+                              : alert === "above_max"
+                                ? "lagerMeldungRowAbove"
+                                : undefined
+                          }
+                        >
                           <td>
                             <LagerTeilBild
                               teil={teil}
@@ -339,6 +396,13 @@ export default function LagerPage() {
                           <td>{formatLagerValue(teil.lagerort)}</td>
                           <td>{formatLagerValue(teil.lagerplatz)}</td>
                           <td>{formatLagerNumber(teil.lagerstand)}</td>
+                          <td>
+                            <LagerMengeMinCell teil={teil} />
+                          </td>
+                          <td>{formatLagerNumber(teil.menge_max)}</td>
+                          <td>
+                            <LagerBestandBadge teil={teil} linkToMeldungen />
+                          </td>
                           <td>{formatLagerCurrency(teil.listenpreis_netto)}</td>
                           <td>{formatLagerCurrency(teil.listenpreis_brutto)}</td>
                           <td>{formatLagerCurrency(teil.verkaufspreis)}</td>
@@ -364,7 +428,8 @@ export default function LagerPage() {
                             </div>
                           </td>
                         </tr>
-                      ))
+                      );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -389,5 +454,21 @@ export default function LagerPage() {
         }}
       />
     </AppPageShell>
+  );
+}
+
+export default function LagerPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppPageShell activeHref="/lager" subtitle="Lager">
+          <div className="welcomeCard">
+            <h2>Laden…</h2>
+          </div>
+        </AppPageShell>
+      }
+    >
+      <LagerPageContent />
+    </Suspense>
   );
 }

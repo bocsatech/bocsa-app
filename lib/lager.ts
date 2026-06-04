@@ -14,6 +14,8 @@ export {
   filterAktivePkwBuchungen,
 } from "./lager-pkw-bedarf";
 export type { LagerFahrzeugBedarfZeile } from "./lager-pkw-bedarf";
+export { buildLagerPkwTerminPartRows } from "./lager-pkw-termine";
+export type { LagerPkwTerminPartRow } from "./lager-pkw-termine";
 export {
   bewegungTypLabel,
   fetchLagerBewegungen,

@@ -1329,24 +1329,21 @@ button, input, select, textarea {
 }
 
 .maschinenFilterGeraetenummer {
-  width: fit-content;
-  max-width: 100%;
+  grid-column: 1 / -1;
 }
 
 .geraetenummerFilterRow {
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  align-items: flex-end;
-  max-width: 100%;
+  align-items: end;
 }
 
 .geraetenummerFilterCell {
-  display: inline-grid;
-  grid-template-rows: auto auto;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  width: max-content;
-  max-width: 100%;
+  min-width: 0;
 }
 
 .geraetenummerFilterCell > span {
@@ -1355,17 +1352,15 @@ button, input, select, textarea {
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  white-space: nowrap;
 }
 
 .geraetenummerFilterCell select,
 .geraetenummerFilterCell input {
   box-sizing: border-box;
   width: 100%;
-  min-width: 100%;
   min-height: 44px;
   height: 44px;
-  padding: 0 28px 0 10px;
+  padding: 0 12px;
   border: 1px solid #d1d5db;
   border-radius: 12px;
   background: #f9fafb;
@@ -1378,16 +1373,14 @@ button, input, select, textarea {
 .geraetenummerFilterCell select {
   appearance: none;
   -webkit-appearance: none;
+  padding-right: 2rem;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 12px center;
   background-color: #f9fafb;
 }
 
 .geraetenummerFilterCellSeq input {
-  width: 5.5ch;
-  min-width: 100%;
-  padding: 0 8px;
   background: #fff7ed;
   color: #c2410c;
   font-weight: 700;
@@ -1399,9 +1392,7 @@ button, input, select, textarea {
 
 @media (max-width: 560px) {
   .geraetenummerFilterRow {
-    display: inline-grid;
-    grid-template-columns: auto auto;
-    justify-content: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -3213,39 +3204,21 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   background: #f0fdf4;
 }
 
-.lagerFahrzeugTerminLine {
-  margin: 0 0 4px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #ea580c;
-  line-height: 1.35;
-}
-
-.lagerFahrzeugTerminLine:last-child {
-  margin-bottom: 0;
-}
-
-.lagerMeldungenMobileList {
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 16px 16px;
-}
-
-.lagerMeldungenDesktopOnly {
-  display: block;
-}
-
 .lagerBewegungenMobileList {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-bottom: 20px;
 }
 
 .lagerBewegungenMobileEmpty {
   margin: 0;
-  padding: 16px 20px;
+  padding: 20px 16px;
+  text-align: center;
   color: #6b7280;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
 }
 
 .lagerBewegungCard {
@@ -3253,61 +3226,62 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   border-radius: 14px;
   border: 1px solid #e5e7eb;
   background: #fffbeb;
-}
-
-.lagerBewegungCard.lagerBewegungEin {
-  background: #f0fdf4;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .lagerBewegungCardTappable {
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.lagerBewegungCardTappable:active {
+  transform: scale(0.995);
 }
 
 .lagerBewegungCardAsset {
   margin: 0 0 4px;
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1.05rem;
   color: #111827;
 }
 
 .lagerBewegungCardHint {
   display: block;
   margin: 0 0 8px;
-  font-size: 0.82rem;
-  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #9ca3af;
 }
 
 .lagerBewegungCardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 8px;
   font-size: 0.88rem;
-  color: #374151;
-  line-height: 1.35;
-}
-
-.lagerBewegungCardMeta time,
-.lagerBewegungCardMeta .lagerBewegungCardTyp {
-  display: inline;
+  color: #4b5563;
 }
 
 .lagerBewegungCardTyp {
-  font-weight: 600;
+  font-weight: 700;
+  color: #374151;
 }
 
 .lagerBewegungCardTeil {
   margin: 0 0 6px;
   font-size: 0.95rem;
-  color: #111827;
   line-height: 1.35;
 }
 
 .lagerBewegungCardBezeichnung {
-  font-weight: 400;
+  color: #4b5563;
+  font-weight: 500;
 }
 
 .lagerBewegungCardMenge {
   margin: 0 0 10px;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: #374151;
 }
 
@@ -3316,114 +3290,104 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
 }
 
 .lagerBewegungReferenzBtn {
-  width: 100%;
-  max-width: 100%;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.88rem;
-  white-space: normal;
-  text-align: center;
+  font-size: 0.85rem;
+  padding: 8px 12px;
 }
 
 .lagerBewegungReferenzPlain {
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  color: #6b7280;
 }
 
 .lagerBewegungCardBemerkung {
   margin: 8px 0 0;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: #6b7280;
 }
 
-.lagerPkwBedarfCard {
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
+.lagerPkwTerminCardShortage {
+  border-color: #fecaca;
+  background: #fff1f2;
 }
 
-.lagerPkwBedarfCardHead {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 10px;
-}
-
-.lagerPkwBedarfCardHead strong {
-  font-size: 1rem;
-  color: #111827;
-}
-
-.lagerPkwBedarfCardName {
-  font-size: 0.92rem;
-  color: #374151;
-}
-
-.lagerPkwBedarfCardStats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+.lagerPkwTerminEmptyParts {
   margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: #c2410c;
+  font-weight: 600;
 }
 
-.lagerPkwBedarfCardStats div {
+.lagerPkwTerminFehlmenge {
+  color: #b91c1c;
+}
+
+.lagerPkwTerminStatus {
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  pointer-events: none;
+}
+
+.lagerPkwTerminModal {
+  max-width: 640px;
+}
+
+.lagerPkwTerminModalBody {
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lagerPkwTerminMeta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 16px;
+  margin: 0 0 18px;
+}
+
+.lagerPkwTerminMeta div {
   min-width: 0;
 }
 
-.lagerPkwBedarfCardStats dt {
-  margin: 0 0 2px;
-  font-size: 0.72rem;
+.lagerPkwTerminMeta dt {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #6b7280;
 }
 
-.lagerPkwBedarfCardStats dd {
+.lagerPkwTerminMeta dd {
   margin: 0;
   font-size: 0.95rem;
-  font-weight: 700;
   color: #111827;
 }
 
-.lagerPkwBedarfCardTermine {
-  margin-bottom: 12px;
+.lagerPkwTerminMetaFull {
+  grid-column: 1 / -1;
 }
 
-.lagerPkwBedarfCardBtn {
-  width: 100%;
-  justify-content: center;
+.lagerReservierungenList {
+  margin-top: 4px;
 }
 
-@media (max-width: 760px) {
-  .lagerMeldungenMobileList,
-  .lagerBewegungenMobileList {
-    display: flex;
-  }
-
-  .lagerMeldungenDesktopOnly,
-  .lagerBewegungenDesktopTable {
-    display: none !important;
-  }
-
-  .lagerMeldungenInlineSummary.lagerMeldungenDesktopOnly {
-    display: none !important;
-  }
-
-  .lagerMeldungenEmpty {
-    padding: 0 16px 16px;
-  }
-
-  .lagerTableSectionTitle {
-    padding: 0 16px;
-  }
+.lagerBewegungenDesktopTable {
+  display: none;
 }
 
-@media (min-width: 761px) {
-  .lagerMeldungenMobileList,
-  .lagerBewegungenMobileList {
-    display: none !important;
+@media (min-width: 900px) {
+  .lagerBewegungenMobileList.lagerReservierungenList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+
+  .lagerBewegungenPage .lagerBewegungenMobileList {
+    display: none;
+  }
+
+  .lagerBewegungenPage .lagerBewegungenDesktopTable {
+    display: block;
   }
 }
 
