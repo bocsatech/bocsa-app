@@ -5205,125 +5205,143 @@ body.lagerPickerOpen {
 }
 
 /* ─── PWA / Start ─── */
-.pwaStartViewport {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-  background: #f5f6fa;
-}
-
 .pwaStartPage {
-  max-width: 28rem;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 26rem;
   margin: 0 auto;
   padding: 1rem 1rem 1.5rem;
   box-sizing: border-box;
+  background: #f5f6fa;
 }
 
-html:has(.pwaStartViewport),
-body:has(.pwaStartViewport) {
-  height: 100%;
-  overflow: hidden;
+html.start-route,
+body.start-route {
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .pwaStartPageWithNav {
   padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
 }
 
-.pwaStartPageWithNav .pwaStartGrid {
-  margin-bottom: 0.75rem;
-}
-
-.pwaStartPageWithNav .pwaInstallHint {
-  margin-bottom: 0.5rem;
-}
-
-.loginPageWithNav {
-  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-}
-
 .pwaStartHeader {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .pwaStartHeader h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
 }
 
 .pwaStartLead {
-  margin: 0 0 1rem;
+  margin: 0 0 0.85rem;
   font-weight: 600;
   color: #374151;
 }
 
-.pwaStartGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-}
-
-.pwaStartCard {
+.pwaStartChoices {
   display: flex;
   flex-direction: column;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.pwaStartChoice {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr auto;
   align-items: center;
-  text-align: center;
-  gap: 0.35rem;
-  padding: 0.85rem 0.65rem;
+  gap: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  min-height: 4.25rem;
   border-radius: 12px;
   border: 2px solid #e5e7eb;
   background: #fff;
   text-decoration: none;
   color: inherit;
   transition: border-color 0.15s, box-shadow 0.15s;
-  min-width: 0;
 }
 
-.pwaStartCard:hover {
+.pwaStartChoice:hover,
+.pwaStartChoice:focus-visible {
   border-color: #f97316;
   box-shadow: 0 4px 14px rgba(234, 88, 12, 0.12);
 }
 
-.pwaStartCard strong {
-  font-size: 1.1rem;
-  color: #111827;
-}
-
-.pwaStartCardDesc {
-  font-size: 0.88rem;
-  color: #6b7280;
-}
-
-.pwaStartCardIcon {
-  font-size: 1.75rem;
+.pwaStartChoiceBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 1.05rem;
   line-height: 1;
 }
 
-.pwaStartCardIconSvg {
-  display: block;
-  width: 100%;
-  max-width: 4.5rem;
-  margin: 0 auto;
+.pwaStartChoiceKunde .pwaStartChoiceBadge {
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
-/* HomeMenuIconImg ist global 140px — auf /start klein halten */
-.pwaStartCardIconSvg .homeMenuIconImg {
-  width: 100% !important;
-  max-width: 4.5rem;
-  max-height: 3.25rem;
-  height: auto !important;
-  object-fit: contain;
+.pwaStartChoiceTeam .pwaStartChoiceBadge {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.pwaStartChoiceBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.pwaStartChoiceBody strong {
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.pwaStartChoiceDesc {
+  font-size: 0.82rem;
+  color: #6b7280;
+  line-height: 1.25;
+}
+
+.pwaStartChoiceArrow {
+  font-size: 1.15rem;
+  color: #9ca3af;
+  line-height: 1;
+}
+
+.pwaStartChoiceKunde {
+  border-left: 4px solid #2563eb;
+}
+
+.pwaStartChoiceTeam {
+  border-left: 4px solid #ea580c;
+}
+
+.pwaStartFootnote {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.pwaStartFootnote a {
+  color: #c2410c;
 }
 
 @media (max-width: 480px) {
-  .pwaStartHeader {
-    margin-bottom: 0.75rem;
+  .pwaStartPage {
+    padding: 0.85rem 0.85rem 1.25rem;
   }
 
   .pwaStartHeader h1 {
@@ -5335,90 +5353,37 @@ body:has(.pwaStartViewport) {
     font-size: 0.92rem;
   }
 
-  .pwaStartGrid {
-    gap: 0.5rem;
+  .pwaStartChoice {
+    min-height: 3.85rem;
+    padding: 0.7rem 0.75rem;
+    gap: 0.6rem;
   }
 
-  .pwaStartCard {
-    padding: 0.7rem 0.45rem;
-    gap: 0.2rem;
+  .pwaStartChoiceBody strong {
+    font-size: 1rem;
   }
 
-  .pwaStartCardIconSvg,
-  .pwaStartCardIconSvg .homeMenuIconImg {
-    max-width: 3.5rem;
-    max-height: 2.6rem;
-  }
-
-  .pwaStartCard strong {
-    font-size: 0.92rem;
-    line-height: 1.2;
-  }
-
-  .pwaStartCardDesc {
-    font-size: 0.68rem;
-    line-height: 1.25;
-  }
-
-  .pwaStartFootnote {
-    margin-top: 0.65rem;
-    font-size: 0.78rem;
+  .pwaStartChoiceDesc {
+    font-size: 0.75rem;
   }
 }
 
-@media (min-width: 520px) {
-  .pwaStartGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .pwaStartCard {
-    flex-direction: row;
-    align-items: center;
-    text-align: left;
-    gap: 1rem;
-    padding: 1rem 1.15rem;
-  }
-
-  .pwaStartCardIconSvg {
-    flex: 0 0 5rem;
-    max-width: 5rem;
-    margin: 0;
-  }
-
-  .pwaStartCardIconSvg .homeMenuIconImg {
-    max-width: 5rem;
-    max-height: 3.75rem;
-  }
-}
-
-.pwaStartCardIconSvg svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.pwaStartCardKunde {
-  border-left: 4px solid #2563eb;
-}
-
-.pwaStartCardTeam {
-  border-left: 4px solid #ea580c;
-}
-
-.pwaStartFootnote {
-  margin-top: 1.25rem;
-  font-size: 0.85rem;
-  color: #6b7280;
+.pkwPortalAltLinks {
+  margin: 0.85rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.88rem;
   text-align: center;
+  line-height: 1.45;
 }
 
-.pwaStartFootnote a {
+.pkwPortalAltLinks a {
   color: #c2410c;
+  font-weight: 600;
 }
 
-.pwaInstallHint {
-  margin: 1rem 0 0;
-  padding: 1rem;
+.loginPageWithNav {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 .pwaInstallHintCompact {

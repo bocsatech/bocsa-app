@@ -1,5 +1,5 @@
-/* PWA v14 — Start 2-col + icon size */
-const CACHE = "bocsa-pwa-v14";
+/* PWA v15 — Start kompakt ohne Bilder */
+const CACHE = "bocsa-pwa-v15";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());

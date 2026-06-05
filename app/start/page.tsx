@@ -1,9 +1,7 @@
 import Link from "next/link";
-import HomeMenuIcon from "../components/HomeMenuIcons";
 import StartPageEffects from "./StartPageEffects";
 import MobileBackBar from "../components/MobileBackBar";
 import PkwPortalSessionJanitor from "../components/PkwPortalSessionJanitor";
-import PwaInstallHint from "../components/PwaInstallHint";
 
 export const metadata = {
   title: "Bocsa App starten",
@@ -25,25 +23,33 @@ export default function StartPage() {
 
       <p className="pwaStartLead">Was möchten Sie tun?</p>
 
-      <div className="pwaStartGrid">
-        <Link href="/pkw/buchen" className="pwaStartCard pwaStartCardKunde">
-          <span className="pwaStartCardIconSvg" aria-hidden>
-            <HomeMenuIcon name="pkw" />
+      <nav className="pwaStartChoices" aria-label="Anmeldung wählen">
+        <Link href="/pkw/buchen" className="pwaStartChoice pwaStartChoiceKunde">
+          <span className="pwaStartChoiceBadge" aria-hidden>
+            K
           </span>
-          <strong>Kunde</strong>
-          <span className="pwaStartCardDesc">Termin buchen (Kennzeichen + PIN)</span>
+          <span className="pwaStartChoiceBody">
+            <strong>Kunde</strong>
+            <span className="pwaStartChoiceDesc">Termin buchen (Kennzeichen + PIN)</span>
+          </span>
+          <span className="pwaStartChoiceArrow" aria-hidden>
+            →
+          </span>
         </Link>
 
-        <Link href="/login" className="pwaStartCard pwaStartCardTeam">
-          <span className="pwaStartCardIconSvg" aria-hidden>
-            <HomeMenuIcon name="pkw-service" />
+        <Link href="/login" className="pwaStartChoice pwaStartChoiceTeam">
+          <span className="pwaStartChoiceBadge" aria-hidden>
+            M
           </span>
-          <strong>Mitarbeiter</strong>
-          <span className="pwaStartCardDesc">Login für Werkstatt, Lager, PKW-Service</span>
+          <span className="pwaStartChoiceBody">
+            <strong>Mitarbeiter</strong>
+            <span className="pwaStartChoiceDesc">Login für Werkstatt, Lager, PKW-Service</span>
+          </span>
+          <span className="pwaStartChoiceArrow" aria-hidden>
+            →
+          </span>
         </Link>
-      </div>
-
-      <PwaInstallHint compact />
+      </nav>
 
       <p className="pwaStartFootnote">
         QR am Fahrzeug öffnet direkt die <Link href="/pkw/buchen">Terminbuchung</Link>.
