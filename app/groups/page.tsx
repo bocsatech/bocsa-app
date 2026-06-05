@@ -110,6 +110,14 @@ function isMenuPermission(permissionKey: string) {
   return permissionKey.startsWith("menu.");
 }
 
+function isMissingUserPermissionsTable(error: { message?: string } | null) {
+  const msg = String(error?.message ?? "");
+  return (
+    msg.includes("user_permissions") &&
+    (msg.includes("Could not find") || msg.includes("does not exist"))
+  );
+}
+
 function formatGroupsError(message: string) {
   if (
     message.includes("permission_groups_name_key") ||
@@ -117,8 +125,11 @@ function formatGroupsError(message: string) {
   ) {
     return "Diese Gruppe existiert bereits — bitte einen anderen Namen wählen.";
   }
+  if (isMissingUserPermissionsTable({ message })) {
+    return "Tabelle user_permissions fehlt — Benutzerrechte (direkt) sind deaktiviert. Gruppen werden trotzdem geladen. SQL: supabase/user-permissions.sql";
+  }
   if (message.includes("does not exist") || message.includes("Could not find")) {
-    return `${message}. Bitte den kompletten Inhalt von supabase/groups-permissions.sql im Supabase SQL Editor ausführen.`;
+    return `${message}. Bitte supabase/groups-permissions.sql im Supabase SQL Editor ausführen.`;
   }
   return message;
 }
@@ -143,6 +154,7 @@ export default function GroupsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userPermissionsHint, setUserPermissionsHint] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminLoading, setAdminLoading] = useState(true);
 
@@ -178,16 +190,19 @@ export default function GroupsPage() {
       supabase.from("user_permissions").select("user_id, permission_key"),
     ]);
 
+    const userPermsMissing = isMissingUserPermissionsTable(userPermissionsResult.error);
+
     const firstError =
       usersResult.error ??
       groupsResult.error ??
       permissionsResult.error ??
       groupPermissionsResult.error ??
       userGroupsResult.error ??
-      userPermissionsResult.error;
+      (userPermsMissing ? null : userPermissionsResult.error);
 
     if (firstError) {
       setError(formatGroupsError(firstError.message));
+      setUserPermissionsHint(null);
       setUsers([]);
       setGroups([]);
       setPermissions([]);
@@ -206,7 +221,14 @@ export default function GroupsPage() {
     setPermissions((permissionsResult.data ?? []) as Permission[]);
     setGroupPermissions((groupPermissionsResult.data ?? []) as GroupPermission[]);
     setUserGroups((userGroupsResult.data ?? []) as UserGroup[]);
-    setUserPermissions((userPermissionsResult.data ?? []) as UserPermission[]);
+    setUserPermissions(
+      userPermsMissing ? [] : ((userPermissionsResult.data ?? []) as UserPermission[])
+    );
+    setUserPermissionsHint(
+      userPermsMissing
+        ? "Benutzerrechte (direkt) sind noch nicht eingerichtet. Gruppen & Gruppenrechte funktionieren. Optional: supabase/user-permissions.sql ausführen."
+        : null
+    );
     setSelectedGroupId((current) => current || loadedGroups[0]?.id || "");
     setSelectedUserForRights((current) => current || loadedUsers[0]?.id || "");
     setLoading(false);
@@ -334,6 +356,12 @@ export default function GroupsPage() {
 
   async function toggleUserPermission(permissionKey: string, enabled: boolean) {
     if (!selectedUserForRights) return;
+    if (userPermissionsHint) {
+      setError(
+        "Benutzerrechte (direkt) erfordern die Tabelle user_permissions — supabase/user-permissions.sql ausführen."
+      );
+      return;
+    }
     if ((isMenuPermission(permissionKey) || isMachineAdminPermission(permissionKey)) && !isAdmin) {
       setError("Menü- und Maschinen-Admin-Rechte können nur Admin-Benutzer ändern.");
       return;
@@ -412,6 +440,11 @@ export default function GroupsPage() {
       }
     >
         {error ? <div className="protocolNotice">{error}</div> : null}
+        {userPermissionsHint ? (
+          <div className="protocolNotice" style={{ background: "#fff7ed", borderColor: "#fed7aa" }}>
+            {userPermissionsHint}
+          </div>
+        ) : null}
 
         {loading ? (
           <div className="welcomeCard">
