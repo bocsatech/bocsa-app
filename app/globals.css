@@ -362,6 +362,11 @@ button, input, select, textarea {
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
 }
 
+/* App-Seiten: volle Inhaltsbreite (nicht auf 760px begrenzt) — gleiches Layout für alle Benutzer */
+body.app-shell-route .appPageScroll > .welcomeCard {
+  max-width: none;
+}
+
 .emptyHomeCard {
   min-height: 360px;
   background: transparent;

@@ -1304,10 +1304,17 @@ body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection {
   text-transform: uppercase;
 }
 
+.aaProtokollRepairScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
 .aaProtokollRepairGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(11rem, 1fr));
   gap: 12px;
+  min-width: min(100%, 44rem);
 }
 
 .aaProtokollRepairCol h4 {
@@ -1443,6 +1450,7 @@ body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection {
   grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
   gap: 16px;
   margin-top: 16px;
+  align-items: start;
 }
 
 .geraetgruppenProtokollSidebar {
@@ -1483,6 +1491,15 @@ body.arbeitsauftrag-print-preview .arbeitsauftragDocument .protocolSection {
 
 .geraetgruppenProtokollEditor {
   padding: 16px;
+  min-width: 0;
+}
+
+.geraetgruppenProtokollEditor .aaProtokollBlock {
+  min-width: 0;
+}
+
+.geraetgruppenProtokollEditor .aaProtokollRepairGrid {
+  min-width: 44rem;
 }
 
 .geraetgruppenEditorHead {

@@ -542,7 +542,8 @@ export default function ArbeitsauftragProtokollSection({
         </table>
       </div>
 
-      <div className="aaProtokollRepairGrid">
+      <div className="aaProtokollRepairScroll">
+        <div className="aaProtokollRepairGrid">
         {protocol.repairGroups.map((group) => (
           <div key={group.id} className="aaProtokollRepairCol">
             <h4>{group.title}</h4>
@@ -596,6 +597,7 @@ export default function ArbeitsauftragProtokollSection({
             ) : null}
           </div>
         ))}
+        </div>
       </div>
 
       <LagerTeilPickerModal
