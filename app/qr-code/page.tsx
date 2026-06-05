@@ -22,6 +22,7 @@ export default function QRCodePage() {
   const [scanHint, setScanHint] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [qrOpen, setQrOpen] = useState(true);
+  const [mobileScanOpen, setMobileScanOpen] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -65,7 +66,53 @@ export default function QRCodePage() {
   }
 
   if (isMobile !== false) {
-    return <main style={{ minHeight: "100dvh", background: "#ffffff" }} />;
+    return (
+      <>
+        <main
+          style={{
+            minHeight: "100dvh",
+            background: "#ffffff",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "stretch",
+            gap: 12,
+            padding: 24,
+            boxSizing: "border-box",
+          }}
+        >
+          <button
+            type="button"
+            className="pillButton primary"
+            style={{ width: "100%", justifyContent: "center" }}
+            onClick={() => setMobileScanOpen(true)}
+          >
+            QR code scan
+          </button>
+          <button
+            type="button"
+            className="pillButton outline"
+            style={{ width: "100%", justifyContent: "center" }}
+            onClick={() => router.push("/lager/inventur")}
+          >
+            invertur
+          </button>
+          <button
+            type="button"
+            className="pillButton outline"
+            style={{ width: "100%", justifyContent: "center" }}
+            onClick={() => router.back()}
+          >
+            Beenden
+          </button>
+        </main>
+        <QrScannerModal
+          open={mobileScanOpen}
+          onClose={() => setMobileScanOpen(false)}
+          onScan={handleScan}
+        />
+      </>
+    );
   }
 
   return (
