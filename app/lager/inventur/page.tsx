@@ -50,6 +50,7 @@ export default function LagerInventurPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [qrScanOpen, setQrScanOpen] = useState(false);
+  const [scannedTeilOrder, setScannedTeilOrder] = useState<string[]>([]);
 
   const loadTeile = useCallback(async () => {
     setLoading(true);
@@ -71,14 +72,18 @@ export default function LagerInventurPage() {
         if (prefillRaw) {
           sessionStorage.removeItem("bocsaInventurNeuPrefill");
           const prefill = JSON.parse(prefillRaw) as Record<string, string>;
+          setScannedTeilOrder(Object.keys(prefill));
           for (const teil of rows) {
             if (prefill[teil.id] !== undefined) {
               initial[teil.id] = prefill[teil.id];
             }
           }
+        } else {
+          setScannedTeilOrder([]);
         }
       } catch {
         /* ignore invalid prefill */
+        setScannedTeilOrder([]);
       }
       setCounts(initial);
     }
@@ -114,6 +119,25 @@ export default function LagerInventurPage() {
     () => filterLagerTeileByFields(teile, filters),
     [teile, filters]
   );
+
+  const displayTeile = useMemo(() => {
+    if (scannedTeilOrder.length === 0) return filteredTeile;
+
+    const orderIndex = new Map(scannedTeilOrder.map((id, index) => [id, index]));
+    const originalIndex = new Map(filteredTeile.map((teil, index) => [teil.id, index]));
+
+    return [...filteredTeile].sort((a, b) => {
+      const aOrder = orderIndex.get(a.id);
+      const bOrder = orderIndex.get(b.id);
+      const aScanned = aOrder !== undefined;
+      const bScanned = bOrder !== undefined;
+
+      if (aScanned && bScanned) return aOrder - bOrder;
+      if (aScanned) return -1;
+      if (bScanned) return 1;
+      return (originalIndex.get(a.id) ?? 0) - (originalIndex.get(b.id) ?? 0);
+    });
+  }, [filteredTeile, scannedTeilOrder]);
 
   function updateCount(teilId: string, value: string) {
     setCounts((current) => ({ ...current, [teilId]: value }));
@@ -254,12 +278,12 @@ export default function LagerInventurPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTeile.length === 0 ? (
+                    {displayTeile.length === 0 ? (
                       <tr>
                         <td colSpan={9}>Keine Teile gefunden.</td>
                       </tr>
                     ) : (
-                      filteredTeile.map((teil) => {
+                      displayTeile.map((teil) => {
                         const countValue = counts[teil.id] ?? String(teil.lagerstand ?? 0);
                         const parsed = Number(String(countValue).replace(",", "."));
                         const changed =

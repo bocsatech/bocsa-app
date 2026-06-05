@@ -22,12 +22,27 @@ export default function QrScannerModal({ open, onClose, onScan }: Props) {
 
     async function startScanner() {
       setError(null);
-      scanner = new Html5Qrcode(readerId);
+      scanner = new Html5Qrcode(readerId, {
+        useBarCodeDetectorIfSupported: true,
+      });
 
       try {
         await scanner.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 260, height: 260 } },
+          {
+            fps: 15,
+            qrbox: (viewfinderWidth, viewfinderHeight) => {
+              const edge = Math.min(viewfinderWidth, viewfinderHeight);
+              const size = Math.floor(edge * 0.9);
+              return { width: size, height: size };
+            },
+            videoConstraints: {
+              facingMode: "environment",
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+            disableFlip: false,
+          },
           (decoded) => {
             if (!active) return;
             active = false;
