@@ -1,5 +1,5 @@
-/* PWA v15 — Start kompakt ohne Bilder */
-const CACHE = "bocsa-pwa-v15";
+/* PWA v12 — Portal body-scroll */
+const CACHE = "bocsa-pwa-v12";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());

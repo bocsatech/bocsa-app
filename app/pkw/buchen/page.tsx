@@ -277,11 +277,6 @@ function PkwBuchenForm() {
             <button type="submit" className="primaryBtn pkwPortalSubmit" disabled={loading}>
               {loading ? "…" : "Weiter"}
             </button>
-            <p className="pkwPortalAltLinks">
-              <a href="/login">Mitarbeiter-Login</a>
-              <span aria-hidden> · </span>
-              <a href="/start">Auswahl Kunde / Mitarbeiter</a>
-            </p>
           </form>
         ) : null}
 

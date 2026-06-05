@@ -5206,60 +5206,59 @@ body.lagerPickerOpen {
 
 /* ─── PWA / Start ─── */
 .pwaStartPage {
-  min-height: 100vh;
-  min-height: 100dvh;
-  max-width: 26rem;
+  max-width: 28rem;
   margin: 0 auto;
-  padding: 1rem 1rem 1.5rem;
+  padding: 1.25rem 1rem 2rem;
+  min-height: 100dvh;
   box-sizing: border-box;
-  background: #f5f6fa;
 }
 
-html.start-route,
-body.start-route {
-  height: auto;
-  min-height: 100%;
+html.pwa-start-route-root,
+body.pwa-start-route {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  min-height: 100dvh;
+  touch-action: pan-y;
 }
 
 .pwaStartPageWithNav {
-  padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.loginPageWithNav {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 .pwaStartHeader {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .pwaStartHeader h1 {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.5rem;
 }
 
 .pwaStartLead {
-  margin: 0 0 0.85rem;
+  margin: 0 0 1rem;
   font-weight: 600;
   color: #374151;
 }
 
-.pwaStartChoices {
+.pwaStartGrid {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  width: 100%;
+  gap: 0.75rem;
 }
 
-.pwaStartChoice {
-  display: grid;
-  grid-template-columns: 2.75rem 1fr auto;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 0.9rem;
-  min-height: 4.25rem;
+.pwaStartCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.1rem 1.25rem;
   border-radius: 12px;
   border: 2px solid #e5e7eb;
   background: #fff;
@@ -5268,68 +5267,49 @@ body.start-route {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.pwaStartChoice:hover,
-.pwaStartChoice:focus-visible {
+.pwaStartCard:hover {
   border-color: #f97316;
   box-shadow: 0 4px 14px rgba(234, 88, 12, 0.12);
 }
 
-.pwaStartChoiceBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 10px;
-  font-weight: 800;
-  font-size: 1.05rem;
-  line-height: 1;
-}
-
-.pwaStartChoiceKunde .pwaStartChoiceBadge {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.pwaStartChoiceTeam .pwaStartChoiceBadge {
-  background: #ffedd5;
-  color: #c2410c;
-}
-
-.pwaStartChoiceBody {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.pwaStartChoiceBody strong {
-  font-size: 1.05rem;
+.pwaStartCard strong {
+  font-size: 1.1rem;
   color: #111827;
 }
 
-.pwaStartChoiceDesc {
-  font-size: 0.82rem;
+.pwaStartCardDesc {
+  font-size: 0.88rem;
   color: #6b7280;
-  line-height: 1.25;
 }
 
-.pwaStartChoiceArrow {
-  font-size: 1.15rem;
-  color: #9ca3af;
+.pwaStartCardIcon {
+  font-size: 1.75rem;
   line-height: 1;
 }
 
-.pwaStartChoiceKunde {
+.pwaStartCardIconSvg {
+  display: block;
+  width: 100%;
+  max-width: 140px;
+  margin: 0 auto;
+}
+
+.pwaStartCardIconSvg svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.pwaStartCardKunde {
   border-left: 4px solid #2563eb;
 }
 
-.pwaStartChoiceTeam {
+.pwaStartCardTeam {
   border-left: 4px solid #ea580c;
 }
 
 .pwaStartFootnote {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
   font-size: 0.85rem;
   color: #6b7280;
   text-align: center;
@@ -5339,51 +5319,9 @@ body.start-route {
   color: #c2410c;
 }
 
-@media (max-width: 480px) {
-  .pwaStartPage {
-    padding: 0.85rem 0.85rem 1.25rem;
-  }
-
-  .pwaStartHeader h1 {
-    font-size: 1.2rem;
-  }
-
-  .pwaStartLead {
-    margin-bottom: 0.65rem;
-    font-size: 0.92rem;
-  }
-
-  .pwaStartChoice {
-    min-height: 3.85rem;
-    padding: 0.7rem 0.75rem;
-    gap: 0.6rem;
-  }
-
-  .pwaStartChoiceBody strong {
-    font-size: 1rem;
-  }
-
-  .pwaStartChoiceDesc {
-    font-size: 0.75rem;
-  }
-}
-
-.pkwPortalAltLinks {
-  margin: 0.85rem 0 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-  font-size: 0.88rem;
-  text-align: center;
-  line-height: 1.45;
-}
-
-.pkwPortalAltLinks a {
-  color: #c2410c;
-  font-weight: 600;
-}
-
-.loginPageWithNav {
-  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+.pwaInstallHint {
+  margin: 1rem 0 0;
+  padding: 1rem;
 }
 
 .pwaInstallHintCompact {
@@ -5456,6 +5394,68 @@ body.pkw-portal-body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   touch-action: pan-y;
+}
+
+.pkwPortalShell {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: calc(100dvh - 1px);
+  padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, #fff7ed 0%, #f9fafb 40%);
+  box-sizing: border-box;
+}
+
+.pkwPortalPage {
+  padding: 0 1.25rem 1rem;
+}
+
+/* Legacy: obere Nav-Leiste nie anzeigen (nur Dock unten) */
+.pkwPortalStepNav {
+  display: none !important;
+}
+
+.pkwPortalStepNavInner {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+/* Unten: fix am Viewport (Portal → body) */
+.pkwPortalNavDock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147483646;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  pointer-events: none;
+}
+
+.pkwPortalNavDockInner {
+  pointer-events: auto;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 8px 12px 10px;
+  background: #fff;
+  border-top: 2px solid #ea580c;
+  box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.15);
+}
+
+.pkwPortalNavBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.pkwPortalHeaderTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .pkwPortalShell {
