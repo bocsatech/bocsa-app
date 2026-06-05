@@ -66,6 +66,20 @@ export default function LagerInventurPage() {
       for (const teil of rows) {
         initial[teil.id] = String(teil.lagerstand ?? 0);
       }
+      try {
+        const prefillRaw = sessionStorage.getItem("bocsaInventurNeuPrefill");
+        if (prefillRaw) {
+          sessionStorage.removeItem("bocsaInventurNeuPrefill");
+          const prefill = JSON.parse(prefillRaw) as Record<string, string>;
+          for (const teil of rows) {
+            if (prefill[teil.id] !== undefined) {
+              initial[teil.id] = prefill[teil.id];
+            }
+          }
+        }
+      } catch {
+        /* ignore invalid prefill */
+      }
       setCounts(initial);
     }
     setLoading(false);

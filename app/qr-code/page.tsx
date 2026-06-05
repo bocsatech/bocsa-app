@@ -110,7 +110,7 @@ export default function QRCodePage() {
             type="button"
             className="pillButton outline"
             style={{ width: "100%", justifyContent: "center" }}
-            onClick={() => router.push("/lager/inventur")}
+            onClick={() => router.push("/qr-code/inventur")}
           >
             invertur
           </button>
