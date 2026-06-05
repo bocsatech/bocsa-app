@@ -219,9 +219,16 @@ export default function LagerInventurPage() {
 
   const syncPendingInventurSessions = useCallback(
     async (autoApply: boolean) => {
-      const { data, error } = await fetchPendingInventurSessions();
-      if (error) {
+      const { data, error, setupRequired, setupHint } = await fetchPendingInventurSessions();
+      if (error && !setupRequired) {
         setStatusMessage(error.message);
+        return;
+      }
+      if (setupRequired) {
+        setPendingSessions([]);
+        if (setupHint) {
+          setStatusMessage(setupHint);
+        }
         return;
       }
       setPendingSessions(data);

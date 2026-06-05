@@ -28,6 +28,13 @@ export async function createInventurSession(payload: InventurSessionPayload) {
   return { data: result as { id: string }, error: null };
 }
 
+export type InventurSessionsFetchResult = {
+  sessions: InventurSessionSummary[];
+  setupRequired?: boolean;
+  setupHint?: string;
+  sqlEditorUrl?: string | null;
+};
+
 export async function fetchPendingInventurSessions() {
   const response = await fetch("/api/lager/inventur/sessions", {
     credentials: "include",
@@ -35,9 +42,19 @@ export async function fetchPendingInventurSessions() {
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) {
-    return { data: [] as InventurSessionSummary[], error: new Error(result.error ?? "Sessions laden fehlgeschlagen.") };
+    return {
+      data: [] as InventurSessionSummary[],
+      error: new Error(result.error ?? "Sessions laden fehlgeschlagen."),
+      setupRequired: Boolean(result.setupRequired),
+    };
   }
-  return { data: (result.sessions ?? []) as InventurSessionSummary[], error: null };
+  return {
+    data: (result.sessions ?? []) as InventurSessionSummary[],
+    error: null,
+    setupRequired: Boolean(result.setupRequired),
+    setupHint: typeof result.setupHint === "string" ? result.setupHint : undefined,
+    sqlEditorUrl: typeof result.sqlEditorUrl === "string" ? result.sqlEditorUrl : null,
+  };
 }
 
 export async function applyInventurSession(sessionId: string) {
