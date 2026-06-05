@@ -1,8 +1,8 @@
 "use client";
 
-import { Html5Qrcode } from "html5-qrcode";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import QrScannerModal from "../../components/QrScannerModal";
 import {
   fetchLagerTeile,
   formatLagerValue,
@@ -52,17 +52,6 @@ function resolveTeilFromScan(teile: LagerTeil[], decoded: string) {
   );
 }
 
-const SCANNER_CONFIG = {
-  fps: 10,
-  qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-    const edge = Math.min(viewfinderWidth, viewfinderHeight);
-    const size = Math.min(260, Math.floor(edge * 0.85));
-    return { width: size, height: size };
-  },
-  aspectRatio: 1.777778,
-  disableFlip: false,
-} as const;
-
 function parseQuantity(raw: string) {
   const trimmed = String(raw ?? "").trim();
   if (!trimmed) return null;
@@ -73,7 +62,6 @@ function parseQuantity(raw: string) {
 
 export default function QrInventurScanPage() {
   const router = useRouter();
-  const readerId = useId().replace(/:/g, "");
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -81,13 +69,8 @@ export default function QrInventurScanPage() {
   const [quantity, setQuantity] = useState("");
   const [sessionList, setSessionList] = useState<Record<string, string>>({});
   const [scanError, setScanError] = useState<string | null>(null);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const scannedTeilRef = useRef<LagerTeil | null>(null);
+  const [scanOpen, setScanOpen] = useState(false);
   const teileRef = useRef<LagerTeil[]>([]);
-
-  useEffect(() => {
-    scannedTeilRef.current = scannedTeil;
-  }, [scannedTeil]);
 
   useEffect(() => {
     teileRef.current = teile;
@@ -111,74 +94,30 @@ export default function QrInventurScanPage() {
   }, []);
 
   useEffect(() => {
-    if (loading || loadError || teile.length === 0) return;
+    if (loading || loadError || teile.length === 0 || scannedTeil) return;
+    setScanOpen(true);
+  }, [loadError, loading, scannedTeil, teile.length]);
 
-    let scanner: Html5Qrcode | null = null;
-    let active = true;
-    let started = false;
-
-    function onDecoded(decoded: string) {
-      if (!active || scannedTeilRef.current) return;
-
-      const rows = teileRef.current;
-      if (rows.length === 0) {
-        setScanError("Lager nicht geladen.");
-        return;
-      }
-
-      const match = resolveTeilFromScan(rows, decoded);
-      if (!match) {
-        setScanError(`Unbekannter QR: ${extractScanValue(decoded) || decoded}`);
-        return;
-      }
-
-      setScanError(null);
-      setScannedTeil(match);
-      setQuantity(String(match.lagerstand ?? 0));
+  function handleQrScan(decoded: string) {
+    const rows = teileRef.current;
+    if (rows.length === 0) {
+      setScanError("Lager nicht geladen.");
+      setScanOpen(true);
+      return;
     }
 
-    async function startScanner() {
-      setCameraError(null);
-      scanner = new Html5Qrcode(readerId);
-
-      try {
-        await scanner.start(
-          {
-            facingMode: "environment",
-          },
-          SCANNER_CONFIG,
-          (decoded) => {
-            if (!active) return;
-            onDecoded(decoded);
-          },
-          () => {}
-        );
-        started = true;
-      } catch (cause) {
-        setCameraError(
-          cause instanceof Error
-            ? cause.message
-            : "Kamera konnte nicht gestartet werden. Bitte Zugriff erlauben."
-        );
-      }
+    const match = resolveTeilFromScan(rows, decoded);
+    if (!match) {
+      setScanError(`Unbekannter QR: ${extractScanValue(decoded) || decoded}`);
+      setScanOpen(true);
+      return;
     }
 
-    void startScanner();
-
-    return () => {
-      active = false;
-      if (scanner) {
-        if (started) {
-          scanner.stop().catch(() => {});
-        }
-        try {
-          scanner.clear();
-        } catch {
-          /* already cleared */
-        }
-      }
-    };
-  }, [loadError, loading, readerId, teile.length]);
+    setScanError(null);
+    setScannedTeil(match);
+    setQuantity(String(match.lagerstand ?? 0));
+    setScanOpen(false);
+  }
 
   function mergeCurrentIntoList(base: Record<string, string>) {
     if (!scannedTeil) return base;
@@ -194,6 +133,7 @@ export default function QrInventurScanPage() {
     setScannedTeil(null);
     setQuantity("");
     setScanError(null);
+    setScanOpen(true);
   }
 
   function handleBeenden() {
@@ -206,6 +146,8 @@ export default function QrInventurScanPage() {
     router.push("/lager/inventur");
   }
 
+  const canScan = !loading && !loadError && teile.length > 0 && !scannedTeil;
+
   return (
     <div
       style={{
@@ -215,16 +157,39 @@ export default function QrInventurScanPage() {
         background: "#ffffff",
       }}
     >
-      <div
-        id={readerId}
+      <button
+        type="button"
         className="qrReader"
         style={{
           flex: "1 1 50%",
           minHeight: 280,
           width: "100%",
           background: "#111827",
+          border: "none",
+          padding: 0,
+          cursor: canScan ? "pointer" : "default",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
+        disabled={!canScan}
+        onClick={() => {
+          if (canScan) setScanOpen(true);
+        }}
+      >
+        {canScan && !scanOpen ? (
+          <span className="scanHint" style={{ color: "#f9fafb" }}>
+            QR scannen…
+          </span>
+        ) : null}
+      </button>
+
+      <QrScannerModal
+        open={scanOpen}
+        onClose={() => setScanOpen(false)}
+        onScan={handleQrScan}
       />
+
       <section
         style={{
           flex: "1 1 50%",
@@ -239,7 +204,6 @@ export default function QrInventurScanPage() {
       >
         {loading ? <p className="scanHint">Lager wird geladen…</p> : null}
         {loadError ? <p style={{ color: "#dc2626" }}>{loadError}</p> : null}
-        {cameraError ? <p style={{ color: "#dc2626" }}>{cameraError}</p> : null}
         {scanError ? <p style={{ color: "#dc2626" }}>{scanError}</p> : null}
 
         {scannedTeil ? (
