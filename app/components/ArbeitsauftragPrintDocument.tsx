@@ -10,6 +10,7 @@ import {
 } from "../../lib/work-orders";
 import type { SessionAuthSlice } from "../../lib/machine-permissions";
 import type { Machine } from "../../lib/types/machine";
+import ArbeitsauftragPrintMachineBlock from "./ArbeitsauftragPrintMachineBlock";
 import ArbeitsauftragWorksheetMachineBlock, {
   type ArbeitsauftragWorksheetMachineBlockHandle,
 } from "./ArbeitsauftragWorksheetMachineBlock";
@@ -47,18 +48,29 @@ const ArbeitsauftragPrintDocument = forwardRef<
     bemerkungLines.length > 0 || hasValue(order.notes);
   const arbeitsstundenDisplay = formatWorkHoursDisplay(order.workHours);
 
+  const machineBlock = editable ? (
+    <ArbeitsauftragWorksheetMachineBlock
+      ref={ref}
+      machine={machine}
+      order={order}
+      stammdatenFields={stammdatenFields}
+      username={username}
+      editable={editable}
+      canWrite={canWrite}
+      sessionAuth={sessionAuth}
+    />
+  ) : (
+    <ArbeitsauftragPrintMachineBlock
+      machine={machine}
+      order={order}
+      stammdatenFields={stammdatenFields}
+      username={username}
+    />
+  );
+
   return (
     <div className="arbeitsauftragDocument aaForm aaFormView aaPrintLayout">
-      <ArbeitsauftragWorksheetMachineBlock
-        ref={ref}
-        machine={machine}
-        order={order}
-        stammdatenFields={stammdatenFields}
-        username={username}
-        editable={editable}
-        canWrite={canWrite}
-        sessionAuth={sessionAuth}
-      />
+      {machineBlock}
 
       {machineBlockOnly ? null : showBemerkungBlock ? (
         <section className="protocolSection aaBlock aaPrintBemerkungBlock">
