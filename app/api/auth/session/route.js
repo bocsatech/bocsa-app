@@ -74,11 +74,22 @@ export async function GET() {
 
   let profile = null;
   if (db) {
-    const { data: userRow } = await db
+    let { data: userRow, error: profileError } = await db
       .from("users")
       .select("full_name, position, site, filiale_code, photo_url, signature_url")
       .eq("id", session.userId)
       .maybeSingle();
+    if (
+      profileError &&
+      String(profileError.message ?? "").includes("filiale_code") &&
+      String(profileError.message ?? "").includes("does not exist")
+    ) {
+      ({ data: userRow } = await db
+        .from("users")
+        .select("full_name, position, site, photo_url, signature_url")
+        .eq("id", session.userId)
+        .maybeSingle());
+    }
     if (userRow) {
       profile = {
         fullName:

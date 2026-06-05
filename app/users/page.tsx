@@ -460,9 +460,16 @@ export default function UsersPage() {
           <div className="welcomeCard">
             <h1>Fehler</h1>
             <p>{error}</p>
-            <p>
-              Führen Sie zuerst <code>supabase/users-setup.sql</code> im Supabase SQL Editor aus.
-            </p>
+            {error.includes("users") && error.includes("fehlt") ? (
+              <p>
+                Führen Sie zuerst <code>supabase/users-setup.sql</code> im Supabase SQL Editor aus.
+              </p>
+            ) : error.includes("filiale_code") ? (
+              <p>
+                Für Filiale (S/H/W): <code>supabase/users-filiale-patch.sql</code> im Supabase SQL
+                Editor ausführen.
+              </p>
+            ) : null}
           </div>
         ) : (
           <article className="card usersPanel usersListPanel">

@@ -27,6 +27,21 @@ function getDb() {
   return getSupabaseAdmin() ?? supabase;
 }
 
+const USER_LIST_SELECT =
+  "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
+const USER_LIST_SELECT_LEGACY =
+  "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
+
+const USER_AUTH_SELECT =
+  "id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
+const USER_AUTH_SELECT_LEGACY =
+  "id, username, password_hash, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
+
+function isMissingFilialeColumn(error: { message?: string } | null) {
+  const msg = String(error?.message ?? "").toLowerCase();
+  return msg.includes("filiale_code") && msg.includes("does not exist");
+}
+
 function mapUser(row: Record<string, unknown> | null): AppUser | null {
   if (!row) return null;
 
@@ -68,13 +83,19 @@ export async function findUserByUsername(username: string) {
   const db = getDb();
   const normalized = username.trim().toLowerCase();
 
-  const { data, error } = await db
+  let { data, error } = await db
     .from(USERS_TABLE)
-    .select(
-      "id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at"
-    )
+    .select(USER_AUTH_SELECT)
     .eq("username", normalized)
     .maybeSingle();
+
+  if (error && isMissingFilialeColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .select(USER_AUTH_SELECT_LEGACY)
+      .eq("username", normalized)
+      .maybeSingle());
+  }
 
   if (error) {
     if (error.code === "PGRST205") {
@@ -117,16 +138,25 @@ export async function createUser(
   const db = getDb();
   const password_hash = await hashPassword(password);
 
-  const { data, error } = await db
+  const insertBase = {
+    username: username.trim().toLowerCase(),
+    password_hash,
+    secret_pin: pin,
+  };
+
+  let { data, error } = await db
     .from(USERS_TABLE)
-    .insert({
-      username: username.trim().toLowerCase(),
-      password_hash,
-      secret_pin: pin,
-      filiale_code: filialeCode ?? null,
-    })
+    .insert({ ...insertBase, filiale_code: filialeCode ?? null })
     .select("id, username, secret_pin, filiale_code")
     .single();
+
+  if (error && isMissingFilialeColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .insert(insertBase)
+      .select("id, username, secret_pin")
+      .single());
+  }
 
   if (error) {
     return { user: null, error: error.message };
@@ -137,12 +167,17 @@ export async function createUser(
 
 export async function listUsers() {
   const db = getDb();
-  const { data, error } = await db
+  let { data, error } = await db
     .from(USERS_TABLE)
-    .select(
-      "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at"
-    )
+    .select(USER_LIST_SELECT)
     .order("created_at", { ascending: false });
+
+  if (error && isMissingFilialeColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .select(USER_LIST_SELECT_LEGACY)
+      .order("created_at", { ascending: false }));
+  }
 
   if (error) return { users: null, error: error.message };
   return { users: (data ?? []) as Array<Record<string, unknown>>, error: null };
@@ -189,14 +224,22 @@ export async function updateUserById(
     return { user: null, error: "Keine Änderungen übergeben." };
   }
 
-  const { data, error } = await db
+  let { data, error } = await db
     .from(USERS_TABLE)
     .update(payload)
     .eq("id", id)
-    .select(
-      "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at"
-    )
+    .select(USER_LIST_SELECT)
     .single();
+
+  if (error && isMissingFilialeColumn(error) && "filiale_code" in payload) {
+    const { filiale_code: _omit, ...payloadWithoutFiliale } = payload;
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .update(payloadWithoutFiliale)
+      .eq("id", id)
+      .select(USER_LIST_SELECT_LEGACY)
+      .single());
+  }
 
   if (error) return { user: null, error: error.message };
   return { user: data, error: null };
