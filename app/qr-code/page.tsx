@@ -55,14 +55,20 @@ export default function QRCodePage() {
     [machines, searchQuery]
   );
 
+  function handleMobileScan(value: string) {
+    const match = resolveMachineFromScan(machines, value);
+    if (match) {
+      router.push(`/maschinen/${match.id}?fromQr=1`);
+      return;
+    }
+    setScanHint(`Keine Maschine zu diesem Code: „${value}"`);
+    setSearchQuery(value);
+  }
+
   function handleScan(value: string) {
     const match = resolveMachineFromScan(machines, value);
     if (match) {
-      if (isMobile !== false) {
-        router.push(`/maschinen/${match.id}?fromQr=1`);
-      } else {
-        router.push(`/maschinen/${match.id}`);
-      }
+      router.push(`/maschinen/${match.id}`);
       return;
     }
     setScanHint(`Keine Maschine zu diesem Code: „${value}"`);
@@ -120,7 +126,7 @@ export default function QRCodePage() {
         <QrScannerModal
           open={mobileScanOpen}
           onClose={() => setMobileScanOpen(false)}
-          onScan={handleScan}
+          onScan={handleMobileScan}
         />
       </>
     );

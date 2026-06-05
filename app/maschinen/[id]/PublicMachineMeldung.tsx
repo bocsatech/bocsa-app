@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePublicScrollBody } from "../../../lib/use-mobile-scroll-body";
 import MachineStatusIndicators from "../../components/MachineStatusIndicators";
 import { formatValue, hasValue } from "../../../lib/machines";
@@ -21,11 +22,12 @@ type Props = {
 };
 
 function AppQrNavBar({ onBearbeiten, onZuruck }: AppQrNav) {
-  return (
+  const node = (
     <footer
       className="mobileBackBar mobileBackBarAlways"
       role="navigation"
       aria-label="QR-Scan Navigation"
+      style={{ zIndex: 200 }}
     >
       <div
         style={{
@@ -57,6 +59,7 @@ function AppQrNavBar({ onBearbeiten, onZuruck }: AppQrNav) {
       </div>
     </footer>
   );
+  return typeof document !== "undefined" ? createPortal(node, document.body) : node;
 }
 
 function publicPageStyle(appQrNav?: AppQrNav) {

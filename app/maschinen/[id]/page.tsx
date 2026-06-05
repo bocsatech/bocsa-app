@@ -5,8 +5,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { usePublicScrollBody } from "../../../lib/use-mobile-scroll-body";
 
-const MOBILE_MQ = "(max-width: 760px)";
-
 const PublicMachineMeldung = dynamic(() => import("./PublicMachineMeldung"), {
   loading: () => (
     <main className="publicMachinePage">
@@ -36,21 +34,11 @@ function MaschineDetailPageContent() {
   const fromQr = searchParams.get("fromQr") === "1";
   const machineId = params.id as string;
   const [mode, setMode] = useState<ViewMode>("pending");
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  usePublicScrollBody(!fromQr && mode !== "staff");
 
   useEffect(() => {
-    const mq = window.matchMedia(MOBILE_MQ);
-    const sync = () => setIsMobile(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-
-  const appQrScan = fromQr && isMobile === true;
-  usePublicScrollBody(!appQrScan && mode !== "staff");
-
-  useEffect(() => {
-    if (fromQr && isMobile) return;
+    if (fromQr) return;
 
     let cancelled = false;
 
@@ -67,9 +55,9 @@ function MaschineDetailPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [fromQr, isMobile]);
+  }, [fromQr]);
 
-  if (appQrScan) {
+  if (fromQr) {
     return (
       <PublicMachineMeldung
         machineId={machineId}
@@ -78,16 +66,6 @@ function MaschineDetailPageContent() {
           onZuruck: () => router.push("/qr-code?scan=1"),
         }}
       />
-    );
-  }
-
-  if (fromQr && isMobile === null) {
-    return (
-      <main className="publicMachinePage">
-        <section className="publicMachineCard">
-          <p className="scanHint">Laden…</p>
-        </section>
-      </main>
     );
   }
 
