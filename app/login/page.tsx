@@ -184,17 +184,16 @@ function LoginForm() {
           <label>
             <span>Ergebnis (0–99)</span>
             <input
-              type="text"
+              type="password"
               inputMode="numeric"
-              enterKeyHint="done"
               pattern="[0-9]{1,2}"
               maxLength={2}
               value={pinAnswer}
               onChange={(event) =>
                 setPinAnswer(event.target.value.replace(/\D/g, "").slice(0, 2))
               }
-              placeholder="0–99"
-              autoComplete="one-time-code"
+              placeholder="••"
+              autoComplete="off"
               required
               disabled={!challenge.ready}
               className="loginPinInput"
