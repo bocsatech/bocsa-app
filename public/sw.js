@@ -1,5 +1,5 @@
-/* PWA v13 — Start scroll fix */
-const CACHE = "bocsa-pwa-v13";
+/* PWA v14 — Start 2-col + icon size */
+const CACHE = "bocsa-pwa-v14";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
