@@ -5208,30 +5208,34 @@ body.lagerPickerOpen {
 .pwaStartPage {
   max-width: 28rem;
   margin: 0 auto;
-  padding: 1.25rem 1rem 2rem;
-  min-height: 100dvh;
+  padding: 1rem 1rem 1.5rem;
   box-sizing: border-box;
 }
 
-html.pwa-start-route-root,
-body.pwa-start-route {
+html:has(.pwaStartPage),
+body:has(.pwaStartPage) {
+  height: auto;
+  min-height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  min-height: 100dvh;
-  touch-action: pan-y;
+}
+
+body.public-scroll-body:has(.pwaStartPage) {
+  height: auto;
+  min-height: 100%;
 }
 
 .pwaStartPageWithNav {
-  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
 }
 
 .pwaStartPageWithNav .pwaStartGrid {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .pwaStartPageWithNav .pwaInstallHint {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .loginPageWithNav {
@@ -5298,8 +5302,45 @@ body.pwa-start-route {
 .pwaStartCardIconSvg {
   display: block;
   width: 100%;
-  max-width: 100px;
+  max-width: 88px;
   margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+  .pwaStartHeader {
+    margin-bottom: 1rem;
+  }
+
+  .pwaStartHeader h1 {
+    font-size: 1.25rem;
+  }
+
+  .pwaStartLead {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .pwaStartCard {
+    padding: 0.85rem 1rem;
+    gap: 0.25rem;
+  }
+
+  .pwaStartCardIconSvg {
+    max-width: 72px;
+  }
+
+  .pwaStartCard strong {
+    font-size: 1rem;
+  }
+
+  .pwaStartCardDesc {
+    font-size: 0.82rem;
+  }
+
+  .pwaStartFootnote {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+  }
 }
 
 .pwaStartCardIconSvg svg {

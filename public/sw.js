@@ -1,5 +1,5 @@
-/* PWA v12 — Portal body-scroll */
-const CACHE = "bocsa-pwa-v12";
+/* PWA v13 — Start scroll fix */
+const CACHE = "bocsa-pwa-v13";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
