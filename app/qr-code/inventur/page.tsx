@@ -8,9 +8,11 @@ import {
   formatLagerValue,
   normalizeHerstellernummer,
 } from "../../../lib/lager";
+import {
+  downloadInventurScanFile,
+  INVENTUR_NEU_PREFILL_KEY,
+} from "../../../lib/lager-inventur-scan";
 import type { LagerTeil } from "../../../lib/types/lager";
-
-const INVENTUR_NEU_PREFILL_KEY = "bocsaInventurNeuPrefill";
 
 function extractScanValue(raw: string) {
   const text = String(raw ?? "").trim();
@@ -70,6 +72,7 @@ export default function QrInventurScanPage() {
   const [sessionList, setSessionList] = useState<Record<string, string>>({});
   const [scanError, setScanError] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
+  const [finishMessage, setFinishMessage] = useState<string | null>(null);
   const teileRef = useRef<LagerTeil[]>([]);
 
   useEffect(() => {
@@ -142,8 +145,17 @@ export default function QrInventurScanPage() {
     if (merged !== null) {
       final = merged;
     }
+
+    const order = Object.keys(final);
+    if (order.length === 0) {
+      setFinishMessage("Keine gescannten Teile.");
+      return;
+    }
+
+    downloadInventurScanFile(order, final);
     sessionStorage.setItem(INVENTUR_NEU_PREFILL_KEY, JSON.stringify(final));
-    router.push("/lager/inventur");
+    setFinishMessage(`Scan-Datei gespeichert (${order.length} Teile).`);
+    window.setTimeout(() => router.push("/lager/inventur"), 400);
   }
 
   const canScan = !loading && !loadError && teile.length > 0 && !scannedTeil;
@@ -205,6 +217,7 @@ export default function QrInventurScanPage() {
         {loading ? <p className="scanHint">Lager wird geladen…</p> : null}
         {loadError ? <p style={{ color: "#dc2626" }}>{loadError}</p> : null}
         {scanError ? <p style={{ color: "#dc2626" }}>{scanError}</p> : null}
+        {finishMessage ? <p style={{ color: "#059669", margin: 0 }}>{finishMessage}</p> : null}
 
         {scannedTeil ? (
           <>

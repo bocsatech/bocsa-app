@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import LagerFiltersBar from "../../components/LagerFiltersBar";
 import AppPageShell from "../../components/AppPageShell";
 import QrScannerModal from "../../components/QrScannerModal";
@@ -14,6 +14,10 @@ import {
   updateLagerTeil,
   type LagerListFilters,
 } from "../../../lib/lager";
+import {
+  INVENTUR_NEU_PREFILL_KEY,
+  parseInventurScanFile,
+} from "../../../lib/lager-inventur-scan";
 import type { LagerTeil } from "../../../lib/types/lager";
 
 function formatInventurDate(value?: string | null) {
@@ -51,6 +55,7 @@ export default function LagerInventurPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [qrScanOpen, setQrScanOpen] = useState(false);
   const [scannedTeilOrder, setScannedTeilOrder] = useState<string[]>([]);
+  const scanFileInputRef = useRef<HTMLInputElement>(null);
 
   const loadTeile = useCallback(async () => {
     setLoading(true);
@@ -68,9 +73,9 @@ export default function LagerInventurPage() {
         initial[teil.id] = String(teil.lagerstand ?? 0);
       }
       try {
-        const prefillRaw = sessionStorage.getItem("bocsaInventurNeuPrefill");
+        const prefillRaw = sessionStorage.getItem(INVENTUR_NEU_PREFILL_KEY);
         if (prefillRaw) {
-          sessionStorage.removeItem("bocsaInventurNeuPrefill");
+          sessionStorage.removeItem(INVENTUR_NEU_PREFILL_KEY);
           const prefill = JSON.parse(prefillRaw) as Record<string, string>;
           setScannedTeilOrder(Object.keys(prefill));
           for (const teil of rows) {
@@ -171,6 +176,38 @@ export default function LagerInventurPage() {
     setSavingId(null);
   }
 
+  function applyScanPrefill(order: string[], prefill: Record<string, string>) {
+    setScannedTeilOrder(order);
+    setCounts((current) => {
+      const next = { ...current };
+      for (const teil of teile) {
+        if (prefill[teil.id] !== undefined) {
+          next[teil.id] = prefill[teil.id];
+        }
+      }
+      return next;
+    });
+    setStatusMessage(`Scan geladen: ${order.length} Teile`);
+  }
+
+  function handleScanFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const parsed = parseInventurScanFile(String(reader.result ?? ""));
+      if (!parsed) {
+        setStatusMessage("Ungültige Scan-Datei.");
+        return;
+      }
+      applyScanPrefill(parsed.order, parsed.counts);
+    };
+    reader.onerror = () => setStatusMessage("Scan-Datei konnte nicht gelesen werden.");
+    reader.readAsText(file);
+  }
+
   function handleQrScan(decoded: string) {
     const scan = extractScanValue(decoded);
     if (!scan) return;
@@ -218,6 +255,20 @@ export default function LagerInventurPage() {
             </p>
           </div>
           <div className="detailTopActions">
+            <button
+              type="button"
+              className="pillButton outline"
+              onClick={() => scanFileInputRef.current?.click()}
+            >
+              Scan-Datei laden
+            </button>
+            <input
+              ref={scanFileInputRef}
+              type="file"
+              accept="application/json,.json"
+              hidden
+              onChange={handleScanFileChange}
+            />
             <button
               type="button"
               className="pillButton outline"
