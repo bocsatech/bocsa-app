@@ -1,17 +1,13 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import QRCode from "qrcode";
-import sharp from "sharp";
+import { buildLagerTeilQrPng, getLagerQrPayload } from "../lib/lager-qr.mjs";
 
 const TABLE = "lager_teile";
 const STORAGE_BUCKET = "machine-files";
 const STORAGE_PREFIX = "lager-qr-codes";
 const LOCAL_OUTPUT_DIR = path.join(process.cwd(), "public", "lager", "qr-codes");
 const EXPORT_MAPPING_FILE = path.join(process.cwd(), "exports", "lager-qr-codes.csv");
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ||
-  "https://bocsa-app-bocsarobert-3405s-projects.vercel.app";
 
 function readEnv(contents) {
   return Object.fromEntries(
@@ -29,14 +25,6 @@ function safeFilePart(value) {
     .replace(/[^a-z0-9-_]+/gi, "_")
     .replace(/^_+|_+$/g, "")
     .slice(0, 80);
-}
-
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
 
 function csvEscape(value) {
@@ -66,50 +54,6 @@ async function supabaseRequest(url, key, endpoint, options = {}) {
     );
   }
   return body ? JSON.parse(body) : null;
-}
-
-async function buildQrWithLabel(targetUrl, label) {
-  const size = 360;
-  const qrBuffer = await QRCode.toBuffer(targetUrl, {
-    errorCorrectionLevel: "H",
-    type: "png",
-    width: size,
-    margin: 2,
-    color: { dark: "#111827", light: "#ffffff" },
-  });
-
-  const text = String(label || "—").trim() || "—";
-  const fontSize = text.length <= 8 ? 28 : text.length <= 14 ? 22 : 18;
-  const paddingX = Math.round(fontSize * 0.55);
-  const paddingY = Math.round(fontSize * 0.35);
-  const boxWidth = Math.min(
-    size - 24,
-    Math.max(Math.round(text.length * fontSize * 0.62) + paddingX * 2, 72)
-  );
-  const boxHeight = fontSize + paddingY * 2;
-  const left = Math.round((size - boxWidth) / 2);
-  const top = Math.round((size - boxHeight) / 2);
-
-  const labelSvg = Buffer.from(`
-    <svg width="${boxWidth}" height="${boxHeight}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" rx="6" ry="6" fill="#ffffff"/>
-      <text
-        x="50%"
-        y="54%"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        fill="#f97316"
-        font-family="Arial, Helvetica, sans-serif"
-        font-weight="800"
-        font-size="${fontSize}px"
-      >${escapeXml(text)}</text>
-    </svg>
-  `);
-
-  return sharp(qrBuffer)
-    .composite([{ input: labelSvg, top, left }])
-    .png()
-    .toBuffer();
 }
 
 async function uploadBuffer(supabase, buffer, filename) {
@@ -145,23 +89,22 @@ const teile =
   )) ?? [];
 
 await mkdir(LOCAL_OUTPUT_DIR, { recursive: true });
-const mappingRows = [["id", "herstellernummer", "bezeichnung", "qr_url", "target_url"]];
+const mappingRows = [["id", "herstellernummer", "bezeichnung", "qr_url", "qr_payload"]];
 
 let generated = 0;
 for (const teil of teile) {
   const id = String(teil.id);
   const herstellernummer = String(teil.herstellernummer ?? "").trim() || id;
   const bezeichnung = String(teil.bezeichnung ?? "").trim();
-  const label = herstellernummer;
-  const targetUrl = `${APP_URL.replace(/\/$/, "")}/lager?teil=${encodeURIComponent(id)}`;
+  const qrPayload = getLagerQrPayload(herstellernummer);
   const filename = `${safeFilePart(herstellernummer)}_${safeFilePart(id)}.png`;
 
-  const qrBuffer = await buildQrWithLabel(targetUrl, label);
+  const qrBuffer = await buildLagerTeilQrPng(herstellernummer);
   const localPath = path.join(LOCAL_OUTPUT_DIR, filename);
   await writeFile(localPath, qrBuffer);
 
   const qrUrl = await uploadBuffer(supabase, qrBuffer, filename);
-  mappingRows.push([id, herstellernummer, bezeichnung, qrUrl, targetUrl]);
+  mappingRows.push([id, herstellernummer, bezeichnung, qrUrl, qrPayload]);
   generated += 1;
 
   console.log(`${herstellernummer}: ${qrUrl}`);
@@ -172,6 +115,3 @@ await writeFile(EXPORT_MAPPING_FILE, `\uFEFF${csv}\n`, "utf8");
 
 console.log(`QR-Codes generiert: ${generated}`);
 console.log(`Mapping exportiert: ${EXPORT_MAPPING_FILE}`);
-console.log(
-  "Hinweis: Falls Sie die URL pro Teil speichern wollen, fügen Sie eine Spalte qr_code in lager_teile hinzu."
-);
