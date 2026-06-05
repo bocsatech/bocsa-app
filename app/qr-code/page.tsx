@@ -118,7 +118,7 @@ export default function QRCodePage() {
             type="button"
             className="pillButton outline"
             style={{ width: "100%", justifyContent: "center" }}
-            onClick={() => router.back()}
+            onClick={() => router.push("/")}
           >
             Beenden
           </button>
