@@ -231,14 +231,6 @@ export default function MachineStammdatenPanelContent({
                     <select
                       className={`statusSelect ${stammdatenStatusClassName(field.value)}`}
                       value={field.value}
-                      disabled={
-                        !canEditStammdatenField(
-                          sessionAuth,
-                          field.dbKey,
-                          isEditing,
-                          fieldEditOpts
-                        )
-                      }
                       onChange={(e) => onUpdateField(index, e.target.value)}
                     >
                       <option value="">Gerätstatus</option>
