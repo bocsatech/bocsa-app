@@ -479,9 +479,9 @@ export default function MachineDetailStaff({ machineId }: { machineId: string })
       contentClassName="machineDetailPage"
       top={
         !loading && machine && !loadError ? (
-          <div className="detailTopBar">
+          <div className="detailTopBar machineDetailTopBar">
             <h1>Maschinen Daten</h1>
-            <div className="detailTopActions">
+            <div className="detailTopActions machineDetailTopActions">
               <Link className="pillButton outline" href="/maschinen">
                 Zur Maschinenliste
               </Link>
@@ -1203,16 +1203,14 @@ export default function MachineDetailStaff({ machineId }: { machineId: string })
           </div>
         </div>
         <section className="tabSection machineWorkOrdersSection">
-          <div className="detailTopBar">
+          <div className="machineWorkOrdersHeader">
             <h2>Arbeitsaufträge</h2>
-            <div className="detailTopActions">
-              <Link
-                className="pillButton outline"
-                href={`/arbeitsauftrag?geraetenummer=${encodeURIComponent(machine.geraetenummer ?? "")}&machineId=${encodeURIComponent(machine.id)}`}
-              >
-                Alle anzeigen
-              </Link>
-            </div>
+            <Link
+              className="pillButton outline pillButtonSm"
+              href={`/arbeitsauftrag?geraetenummer=${encodeURIComponent(machine.geraetenummer ?? "")}&machineId=${encodeURIComponent(machine.id)}`}
+            >
+              Alle anzeigen
+            </Link>
           </div>
 
           <MachineWorkOrdersTable

@@ -5647,3 +5647,287 @@ body.pkw-portal-body {
     padding-right: max(12px, env(safe-area-inset-right, 0px));
   }
 }
+
+/* —— Maschinen-Detail: kompakt, weniger Leerraum —— */
+.machineDetailPage .appPageTopBar {
+  padding: 10px 14px 8px;
+}
+
+.machineDetailPage .appPageScroll {
+  padding: 12px 14px 16px;
+}
+
+.machineDetailPage .machineDetailBody {
+  gap: 12px;
+}
+
+.machineDetailPage .machineDetailTopBar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.machineDetailPage .machineDetailTopBar h1 {
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.machineDetailPage .machineDetailTopActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+.machineDetailPage .machineDetailTopActions .pillButton,
+.machineDetailPage .machineDetailTopActions .workStatusSelectCompact select {
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  justify-content: center;
+}
+
+.machineDetailPage .machineDetailTopActions .workStatusSelectCompact {
+  width: 100%;
+}
+
+.machineDetailPage .machineDetailTopActions .workStatusSelectCompact select {
+  min-width: 0;
+}
+
+.machineDetailPage .tabSection {
+  padding: 14px 16px;
+  border-radius: 18px;
+}
+
+.machineDetailPage .tabList {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  gap: 6px;
+}
+
+.machineDetailPage .tabButton {
+  padding: 7px 12px;
+  font-size: 0.82rem;
+}
+
+.machineDetailPage .stammdatenPanelLayout {
+  gap: 12px 16px;
+}
+
+.machineDetailPage .stammdatenStacked .fieldRow {
+  padding: 4px 0;
+  gap: 2px 10px;
+}
+
+.machineDetailPage .stammdatenStacked .fieldRow span {
+  font-size: 0.78rem;
+}
+
+.machineDetailPage .stammdatenPanelMedia .stammdatenPanelHeroMedia.machineHeroMedia {
+  --machine-hero-tile: 96px;
+}
+
+.machineDetailPage .machineWorkOrdersSection {
+  padding: 12px 14px;
+}
+
+.machineDetailPage .machineWorkOrdersHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.machineDetailPage .machineWorkOrdersHeader h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.pillButtonSm {
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+  font-size: 0.8rem !important;
+}
+
+@media (min-width: 900px) {
+  .machineDetailPage .machineDetailTopBar {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .machineDetailPage .machineDetailTopActions {
+    display: flex;
+    flex-wrap: wrap;
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  .machineDetailPage .machineDetailTopActions .pillButton,
+  .machineDetailPage .machineDetailTopActions .workStatusSelectCompact select {
+    width: auto;
+  }
+
+  .machineDetailPage .stammdatenPanelMedia .stammdatenPanelHeroMedia.machineHeroMedia {
+    --machine-hero-tile: 120px;
+  }
+}
+
+/* —— Home Scan-Flows (Inventur / Prüfen) —— */
+.scanFlowPage {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.scanFlowCard {
+  padding: 18px 16px;
+}
+
+.scanFlowCard h1 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+.scanFlowLead {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.scanFlowHint {
+  margin: 0 0 12px;
+  color: #6b7280;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.scanFlowError {
+  margin: 0 0 12px;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.scanFlowMessage {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #047857;
+  font-weight: 600;
+}
+
+.scanFlowHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.scanFlowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.scanFlowList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.scanFlowList li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+  font-size: 0.9rem;
+}
+
+.scanImportBanner {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.scanImportBanner p {
+  margin: 0 0 8px;
+}
+
+.pruefenScanResult {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pruefenScanHero {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.pruefenScanImage,
+.pruefenScanImagePlaceholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.pruefenScanNr {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.pruefenScanTitle {
+  margin: 2px 0 0;
+  color: #374151;
+}
+
+.pruefenScanMeta {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.pruefenScanStatus {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.pruefenScanMeldungRow {
+  display: grid;
+  grid-template-columns: minmax(6rem, 8rem) 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid #f3f4f6;
+}

@@ -6,6 +6,10 @@ import LagerFiltersBar from "../../components/LagerFiltersBar";
 import AppPageShell from "../../components/AppPageShell";
 import QrScannerModal from "../../components/QrScannerModal";
 import {
+  readInventurScanSession,
+  type InventurScanSession,
+} from "../../../lib/inventur-scan-session";
+import {
   EMPTY_LAGER_FILTERS,
   fetchLagerTeile,
   filterLagerTeileByFields,
@@ -50,6 +54,15 @@ export default function LagerInventurPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [qrScanOpen, setQrScanOpen] = useState(false);
+  const [scanSession, setScanSession] = useState<InventurScanSession | null>(null);
+  const [scanImportActive, setScanImportActive] = useState(false);
+  const [scanImportRequested, setScanImportRequested] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setScanImportRequested(params.get("import") === "scan");
+  }, []);
 
   const loadTeile = useCallback(async () => {
     setLoading(true);
@@ -96,10 +109,40 @@ export default function LagerInventurPage() {
     loadTeile();
   }, [permissionsLoaded, canRead, loadTeile]);
 
-  const filteredTeile = useMemo(
-    () => filterLagerTeileByFields(teile, filters),
-    [teile, filters]
+  useEffect(() => {
+    if (!scanImportRequested || loading) return;
+    const session = readInventurScanSession();
+    if (!session?.items.length) {
+      setStatusMessage("Kein Scan-Import gefunden. Bitte erneut scannen.");
+      return;
+    }
+    setScanSession(session);
+    setScanImportActive(true);
+    setStatusMessage(`${session.items.length} Teil(e) aus QR-Scan geladen.`);
+  }, [scanImportRequested, loading]);
+
+  function teilMatchesScan(teil: LagerTeil, scanValues: string[]) {
+    const id = teil.id.toLowerCase();
+    const hersteller = String(teil.herstellernummer ?? "").toLowerCase();
+    const artikel = String(teil.artikelnummer ?? "").toLowerCase();
+    return scanValues.some((scan) => {
+      const lower = scan.toLowerCase();
+      return lower === id || lower === hersteller || lower === artikel;
+    });
+  }
+
+  const scanValues = useMemo(
+    () => scanSession?.items.map((item) => item.herstellernummer) ?? [],
+    [scanSession]
   );
+
+  const filteredTeile = useMemo(() => {
+    let rows = filterLagerTeileByFields(teile, filters);
+    if (scanImportActive && scanValues.length > 0) {
+      rows = rows.filter((teil) => teilMatchesScan(teil, scanValues));
+    }
+    return rows;
+  }, [teile, filters, scanImportActive, scanValues]);
 
   function updateCount(teilId: string, value: string) {
     setCounts((current) => ({ ...current, [teilId]: value }));
@@ -170,7 +213,7 @@ export default function LagerInventurPage() {
 
   return (
     <AppPageShell
-      activeHref="/lager"
+      activeHref="/lager/inventur"
       top={
         <header className="pageHeader compactPageHeader">
           <div>
@@ -210,6 +253,27 @@ export default function LagerInventurPage() {
           </div>
         ) : (
           <>
+            {scanImportActive && scanSession ? (
+              <div className="scanImportBanner card">
+                <p>
+                  <strong>QR-Scan-Import:</strong> {scanSession.items.length} Code(s) — nur
+                  passende Lager-Teile werden angezeigt.
+                </p>
+                <div className="scanFlowActions">
+                  <button
+                    type="button"
+                    className="pillButton outline pillButtonSm"
+                    onClick={() => setScanImportActive(false)}
+                  >
+                    Alle Teile anzeigen
+                  </button>
+                  <Link href="/inventur-scan" className="pillButton outline pillButtonSm">
+                    Scan fortsetzen
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+
             {statusMessage ? (
               <p className="protocolNotice" role="status">
                 {statusMessage}
