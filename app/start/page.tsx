@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HomeMenuIcon from "../components/HomeMenuIcons";
+import StartPageEffects from "./StartPageEffects";
 import MobileBackBar from "../components/MobileBackBar";
 import PkwPortalSessionJanitor from "../components/PkwPortalSessionJanitor";
 import PwaInstallHint from "../components/PwaInstallHint";
@@ -12,6 +13,7 @@ export const metadata = {
 export default function StartPage() {
   return (
     <main className="pwaStartPage pwaStartPageWithNav">
+      <StartPageEffects />
       <PkwPortalSessionJanitor />
       <header className="pwaStartHeader">
         <div className="sidebarMark">B</div>

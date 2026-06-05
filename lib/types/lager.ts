@@ -11,6 +11,8 @@ export type LagerTeil = {
   lagerort?: string | null;
   lagerplatz?: string | null;
   lagerstand: number;
+  menge_min?: number | null;
+  menge_max?: number | null;
   listenpreis_netto?: number | null;
   listenpreis_brutto?: number | null;
   verkaufspreis?: number | null;

@@ -143,3 +143,15 @@ export function countLagerFahrzeugBedarf(
 ) {
   return buildLagerFahrzeugBedarf(teile, fahrzeuge, buchungen).length;
 }
+
+export function formatLagerFahrzeugTermin(
+  fz: LagerFahrzeugBedarfZeile["fahrzeuge"][number]
+) {
+  const slot = fz.slotStart
+    ? new Date(fz.slotStart).toLocaleString("de-AT", {
+        dateStyle: "short",
+        timeStyle: "short",
+      })
+    : null;
+  return slot ? `${fz.kennzeichen} · ${slot}` : fz.kennzeichen;
+}
