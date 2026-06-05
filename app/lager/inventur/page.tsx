@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { InventurSessionSummary } from "../../../lib/lager-inventur-session";
+import {
+  applyInventurSession,
+  fetchPendingInventurSessions,
+  formatInventurSessionAge,
+} from "../../../lib/lager-inventur-session";
 import LagerFiltersBar from "../../components/LagerFiltersBar";
 import AppPageShell from "../../components/AppPageShell";
 import QrScannerModal from "../../components/QrScannerModal";
@@ -14,10 +20,7 @@ import {
   updateLagerTeil,
   type LagerListFilters,
 } from "../../../lib/lager";
-import {
-  INVENTUR_NEU_PREFILL_KEY,
-  parseInventurScanFile,
-} from "../../../lib/lager-inventur-scan";
+import { INVENTUR_NEU_PREFILL_KEY } from "../../../lib/lager-inventur-scan";
 import type { LagerTeil } from "../../../lib/types/lager";
 
 function formatInventurDate(value?: string | null) {
@@ -55,7 +58,9 @@ export default function LagerInventurPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [qrScanOpen, setQrScanOpen] = useState(false);
   const [scannedTeilOrder, setScannedTeilOrder] = useState<string[]>([]);
-  const scanFileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingSessions, setPendingSessions] = useState<InventurSessionSummary[]>([]);
+  const hadSessionPrefillRef = useRef(false);
+  const adoptedSessionIdsRef = useRef<Set<string>>(new Set());
 
   const loadTeile = useCallback(async () => {
     setLoading(true);
@@ -75,6 +80,7 @@ export default function LagerInventurPage() {
       try {
         const prefillRaw = sessionStorage.getItem(INVENTUR_NEU_PREFILL_KEY);
         if (prefillRaw) {
+          hadSessionPrefillRef.current = true;
           sessionStorage.removeItem(INVENTUR_NEU_PREFILL_KEY);
           const prefill = JSON.parse(prefillRaw) as Record<string, string>;
           setScannedTeilOrder(Object.keys(prefill));
@@ -176,37 +182,70 @@ export default function LagerInventurPage() {
     setSavingId(null);
   }
 
-  function applyScanPrefill(order: string[], prefill: Record<string, string>) {
-    setScannedTeilOrder(order);
-    setCounts((current) => {
-      const next = { ...current };
-      for (const teil of teile) {
-        if (prefill[teil.id] !== undefined) {
-          next[teil.id] = prefill[teil.id];
+  const applyScanPrefill = useCallback(
+    (order: string[], prefill: Record<string, string>) => {
+      setScannedTeilOrder(order);
+      setCounts((current) => {
+        const next = { ...current };
+        for (const teil of teile) {
+          if (prefill[teil.id] !== undefined) {
+            next[teil.id] = prefill[teil.id];
+          }
         }
-      }
-      return next;
-    });
-    setStatusMessage(`Scan geladen: ${order.length} Teile`);
-  }
+        return next;
+      });
+    },
+    [teile]
+  );
 
-  function handleScanFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const parsed = parseInventurScanFile(String(reader.result ?? ""));
-      if (!parsed) {
-        setStatusMessage("Ungültige Scan-Datei.");
+  const adoptInventurSession = useCallback(
+    async (session: InventurSessionSummary) => {
+      if (adoptedSessionIdsRef.current.has(session.id)) return;
+      adoptedSessionIdsRef.current.add(session.id);
+      applyScanPrefill(session.payload.order, session.payload.counts);
+      const { error } = await applyInventurSession(session.id);
+      if (error) {
+        adoptedSessionIdsRef.current.delete(session.id);
+        setStatusMessage(error.message);
         return;
       }
-      applyScanPrefill(parsed.order, parsed.counts);
-    };
-    reader.onerror = () => setStatusMessage("Scan-Datei konnte nicht gelesen werden.");
-    reader.readAsText(file);
-  }
+      setPendingSessions((current) => current.filter((row) => row.id !== session.id));
+      setStatusMessage(
+        `Mobiler Scan übernommen: ${session.teilCount} Teile · ${session.createdByUsername} · ${formatInventurSessionAge(session.createdAt)}`
+      );
+    },
+    [applyScanPrefill]
+  );
+
+  const syncPendingInventurSessions = useCallback(
+    async (autoApply: boolean) => {
+      const { data, error } = await fetchPendingInventurSessions();
+      if (error) {
+        setStatusMessage(error.message);
+        return;
+      }
+      setPendingSessions(data);
+      if (!autoApply || hadSessionPrefillRef.current || data.length === 0) return;
+      const newest = data.find((session) => !adoptedSessionIdsRef.current.has(session.id));
+      if (newest) {
+        await adoptInventurSession(newest);
+      }
+    },
+    [adoptInventurSession]
+  );
+
+  useEffect(() => {
+    if (!permissionsLoaded || !canRead || loading || teile.length === 0) return;
+    void syncPendingInventurSessions(true);
+  }, [permissionsLoaded, canRead, loading, teile.length, syncPendingInventurSessions]);
+
+  useEffect(() => {
+    if (!permissionsLoaded || !canRead || loading) return;
+    const timer = window.setInterval(() => {
+      void syncPendingInventurSessions(true);
+    }, 20000);
+    return () => window.clearInterval(timer);
+  }, [permissionsLoaded, canRead, loading, syncPendingInventurSessions]);
 
   function handleQrScan(decoded: string) {
     const scan = extractScanValue(decoded);
@@ -258,20 +297,6 @@ export default function LagerInventurPage() {
             <button
               type="button"
               className="pillButton outline"
-              onClick={() => scanFileInputRef.current?.click()}
-            >
-              Scan-Datei laden
-            </button>
-            <input
-              ref={scanFileInputRef}
-              type="file"
-              accept="application/json,.json"
-              hidden
-              onChange={handleScanFileChange}
-            />
-            <button
-              type="button"
-              className="pillButton outline"
               onClick={() => setQrScanOpen(true)}
             >
               QR scannen
@@ -299,6 +324,28 @@ export default function LagerInventurPage() {
           </div>
         ) : (
           <>
+            {pendingSessions.length > 0 ? (
+              <div className="welcomeCard" style={{ marginBottom: 12 }}>
+                <h2 style={{ marginTop: 0, fontSize: "1rem" }}>Offene mobile Scans</h2>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {pendingSessions.map((session) => (
+                    <li key={session.id} style={{ marginBottom: 8 }}>
+                      {session.teilCount} Teile · {session.createdByUsername} ·{" "}
+                      {formatInventurSessionAge(session.createdAt)}
+                      <button
+                        type="button"
+                        className="pillButton outline"
+                        style={{ marginLeft: 10 }}
+                        onClick={() => void adoptInventurSession(session)}
+                      >
+                        Übernehmen
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
             {statusMessage ? (
               <p className="protocolNotice" role="status">
                 {statusMessage}

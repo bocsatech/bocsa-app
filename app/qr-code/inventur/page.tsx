@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import QrScannerModal from "../../components/QrScannerModal";
 import {
@@ -8,10 +7,8 @@ import {
   formatLagerValue,
   normalizeHerstellernummer,
 } from "../../../lib/lager";
-import {
-  downloadInventurScanFile,
-  INVENTUR_NEU_PREFILL_KEY,
-} from "../../../lib/lager-inventur-scan";
+import { createInventurSession } from "../../../lib/lager-inventur-session";
+import { INVENTUR_NEU_PREFILL_KEY } from "../../../lib/lager-inventur-scan";
 import type { LagerTeil } from "../../../lib/types/lager";
 
 function extractScanValue(raw: string) {
@@ -63,7 +60,6 @@ function parseQuantity(raw: string) {
 }
 
 export default function QrInventurScanPage() {
-  const router = useRouter();
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -73,6 +69,7 @@ export default function QrInventurScanPage() {
   const [scanError, setScanError] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
   const [finishMessage, setFinishMessage] = useState<string | null>(null);
+  const [finishing, setFinishing] = useState(false);
   const teileRef = useRef<LagerTeil[]>([]);
 
   useEffect(() => {
@@ -139,7 +136,7 @@ export default function QrInventurScanPage() {
     setScanOpen(true);
   }
 
-  function handleBeenden() {
+  async function handleBeenden() {
     let final = { ...sessionList };
     const merged = mergeCurrentIntoList(final);
     if (merged !== null) {
@@ -152,10 +149,23 @@ export default function QrInventurScanPage() {
       return;
     }
 
-    downloadInventurScanFile(order, final);
+    setFinishing(true);
+    setFinishMessage(null);
+    const { error } = await createInventurSession({ order, counts: final });
+    setFinishing(false);
+
+    if (error) {
+      setFinishMessage(error.message);
+      return;
+    }
+
     sessionStorage.setItem(INVENTUR_NEU_PREFILL_KEY, JSON.stringify(final));
-    setFinishMessage(`Scan-Datei gespeichert (${order.length} Teile).`);
-    window.setTimeout(() => router.push("/lager/inventur"), 400);
+    setSessionList({});
+    setScannedTeil(null);
+    setQuantity("");
+    setFinishMessage(
+      `Scan übertragen (${order.length} Teile). Am PC: Lager → Inventur lädt automatisch.`
+    );
   }
 
   const canScan = !loading && !loadError && teile.length > 0 && !scannedTeil;
@@ -259,9 +269,10 @@ export default function QrInventurScanPage() {
           type="button"
           className="pillButton outline"
           style={{ width: "100%", justifyContent: "center" }}
-          onClick={handleBeenden}
+          disabled={finishing}
+          onClick={() => void handleBeenden()}
         >
-          Beenden
+          {finishing ? "Übertragen…" : "Beenden"}
         </button>
       </section>
     </div>
