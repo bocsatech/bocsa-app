@@ -12,6 +12,8 @@ import {
   type MachineRecord,
 } from "../../lib/machines";
 
+const MOBILE_MQ = "(max-width: 760px)";
+
 export default function QRCodePage() {
   const router = useRouter();
   const [machines, setMachines] = useState<MachineRecord[]>([]);
@@ -20,6 +22,15 @@ export default function QRCodePage() {
   const [scanHint, setScanHint] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [qrOpen, setQrOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ);
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     async function loadMachines() {
@@ -49,8 +60,23 @@ export default function QRCodePage() {
       router.push(`/maschinen/${match.id}`);
       return;
     }
-    setScanHint(`Keine Maschine zu diesem Code: „${value}”`);
+    setScanHint(`Keine Maschine zu diesem Code: „${value}"`);
     setSearchQuery(value);
+  }
+
+  if (isMobile === null) {
+    return <main style={{ minHeight: "100dvh", background: "#ffffff" }} aria-hidden />;
+  }
+
+  if (isMobile) {
+    return (
+      <QrScannerModal
+        open={qrOpen}
+        plain
+        onClose={() => router.back()}
+        onScan={handleScan}
+      />
+    );
   }
 
   return (
