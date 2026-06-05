@@ -10,9 +10,60 @@ import type { Machine } from "../../../lib/types/machine";
 const MAX_IMAGES = 4;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
+type AppQrNav = {
+  onBearbeiten: () => void;
+  onZuruck: () => void;
+};
+
 type Props = {
   machineId: string;
+  appQrNav?: AppQrNav;
 };
+
+function AppQrNavBar({ onBearbeiten, onZuruck }: AppQrNav) {
+  return (
+    <footer
+      className="mobileBackBar mobileBackBarAlways"
+      role="navigation"
+      aria-label="QR-Scan Navigation"
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          width: "100%",
+          maxWidth: "22rem",
+        }}
+      >
+        <button
+          type="button"
+          className="mobileBackBarBtn"
+          style={{ flex: 1 }}
+          onClick={onZuruck}
+        >
+          <span className="mobileBackBarIcon" aria-hidden>
+            ←
+          </span>
+          Zurück
+        </button>
+        <button
+          type="button"
+          className="mobileBackBarBtn"
+          style={{ flex: 1 }}
+          onClick={onBearbeiten}
+        >
+          Bearbeiten
+        </button>
+      </div>
+    </footer>
+  );
+}
+
+function publicPageStyle(appQrNav?: AppQrNav) {
+  return appQrNav
+    ? { paddingBottom: "calc(88px + env(safe-area-inset-bottom, 0px))" }
+    : undefined;
+}
 
 function getPublicDocumentUrl(machine: Machine | null, keys: string[]) {
   const tabData = machine?.machine_tab_data;
@@ -34,7 +85,7 @@ function getPublicDocumentUrl(machine: Machine | null, keys: string[]) {
   return "";
 }
 
-export default function PublicMachineMeldung({ machineId }: Props) {
+export default function PublicMachineMeldung({ machineId, appQrNav }: Props) {
   usePublicScrollBody();
   const [machine, setMachine] = useState<Machine | null>(null);
   const [loading, setLoading] = useState(true);
@@ -164,27 +215,34 @@ export default function PublicMachineMeldung({ machineId }: Props) {
 
   if (loading) {
     return (
-      <main className="publicMachinePage">
-        <section className="publicMachineCard">
-          <p className="scanHint">Maschinendaten werden geladen…</p>
-        </section>
-      </main>
+      <>
+        <main className="publicMachinePage" style={publicPageStyle(appQrNav)}>
+          <section className="publicMachineCard">
+            <p className="scanHint">Maschinendaten werden geladen…</p>
+          </section>
+        </main>
+        {appQrNav ? <AppQrNavBar {...appQrNav} /> : null}
+      </>
     );
   }
 
   if (loadError || !machine) {
     return (
-      <main className="publicMachinePage">
-        <section className="publicMachineCard">
-          <h1>Maschine nicht gefunden</h1>
-          <p>{loadError ?? "Diese Maschine konnte nicht geladen werden."}</p>
-        </section>
-      </main>
+      <>
+        <main className="publicMachinePage" style={publicPageStyle(appQrNav)}>
+          <section className="publicMachineCard">
+            <h1>Maschine nicht gefunden</h1>
+            <p>{loadError ?? "Diese Maschine konnte nicht geladen werden."}</p>
+          </section>
+        </main>
+        {appQrNav ? <AppQrNavBar {...appQrNav} /> : null}
+      </>
     );
   }
 
   return (
-    <main className="publicMachinePage">
+    <>
+      <main className="publicMachinePage" style={publicPageStyle(appQrNav)}>
       <section className="publicMachineCard">
         <span className="badge">Maschine</span>
         <div className="publicMachineHeader">
@@ -273,6 +331,8 @@ export default function PublicMachineMeldung({ machineId }: Props) {
           {meldungStatus ? <p className="protocolNotice">{meldungStatus}</p> : null}
         </form>
       </section>
-    </main>
+      </main>
+      {appQrNav ? <AppQrNavBar {...appQrNav} /> : null}
+    </>
   );
 }

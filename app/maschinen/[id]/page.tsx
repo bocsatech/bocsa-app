@@ -1,9 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { usePublicScrollBody } from "../../../lib/use-mobile-scroll-body";
+
+const MOBILE_MQ = "(max-width: 760px)";
 
 const PublicMachineMeldung = dynamic(() => import("./PublicMachineMeldung"), {
   loading: () => (
@@ -27,13 +29,29 @@ const MachineDetailStaff = dynamic(() => import("./MachineDetailStaff"), {
 
 type ViewMode = "pending" | "public" | "staff";
 
-export default function MaschineDetailPage() {
+function MaschineDetailPageContent() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromQr = searchParams.get("fromQr") === "1";
   const machineId = params.id as string;
   const [mode, setMode] = useState<ViewMode>("pending");
-  usePublicScrollBody(mode !== "staff");
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ);
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const appQrScan = fromQr && isMobile === true;
+  usePublicScrollBody(!appQrScan && mode !== "staff");
+
+  useEffect(() => {
+    if (fromQr && isMobile) return;
+
     let cancelled = false;
 
     fetch("/api/auth/session", { cache: "no-store", credentials: "include" })
@@ -49,7 +67,29 @@ export default function MaschineDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fromQr, isMobile]);
+
+  if (appQrScan) {
+    return (
+      <PublicMachineMeldung
+        machineId={machineId}
+        appQrNav={{
+          onBearbeiten: () => router.replace(`/maschinen/${machineId}`),
+          onZuruck: () => router.push("/qr-code?scan=1"),
+        }}
+      />
+    );
+  }
+
+  if (fromQr && isMobile === null) {
+    return (
+      <main className="publicMachinePage">
+        <section className="publicMachineCard">
+          <p className="scanHint">Laden…</p>
+        </section>
+      </main>
+    );
+  }
 
   if (mode === "pending") {
     return (
@@ -66,4 +106,20 @@ export default function MaschineDetailPage() {
   }
 
   return <MachineDetailStaff machineId={machineId} />;
+}
+
+export default function MaschineDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="publicMachinePage">
+          <section className="publicMachineCard">
+            <p className="scanHint">Laden…</p>
+          </section>
+        </main>
+      }
+    >
+      <MaschineDetailPageContent />
+    </Suspense>
+  );
 }

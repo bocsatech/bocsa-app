@@ -58,12 +58,23 @@ export default function QRCodePage() {
   function handleScan(value: string) {
     const match = resolveMachineFromScan(machines, value);
     if (match) {
-      router.push(`/maschinen/${match.id}`);
+      if (isMobile !== false) {
+        router.push(`/maschinen/${match.id}?fromQr=1`);
+      } else {
+        router.push(`/maschinen/${match.id}`);
+      }
       return;
     }
     setScanHint(`Keine Maschine zu diesem Code: „${value}"`);
     setSearchQuery(value);
   }
+
+  useEffect(() => {
+    if (isMobile !== true) return;
+    if (new URLSearchParams(window.location.search).get("scan") === "1") {
+      setMobileScanOpen(true);
+    }
+  }, [isMobile]);
 
   if (isMobile !== false) {
     return (
