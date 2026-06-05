@@ -2,17 +2,14 @@
 
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useId, useState } from "react";
-import { createPortal } from "react-dom";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onScan: (value: string) => void;
-  /** Mobil: volle weiße Fläche, nur Kamera */
-  plain?: boolean;
 };
 
-export default function QrScannerModal({ open, onClose, onScan, plain = false }: Props) {
+export default function QrScannerModal({ open, onClose, onScan }: Props) {
   const readerId = useId().replace(/:/g, "");
   const [error, setError] = useState<string | null>(null);
 
@@ -67,32 +64,6 @@ export default function QrScannerModal({ open, onClose, onScan, plain = false }:
   }, [open, onClose, onScan, readerId]);
 
   if (!open) return null;
-
-  if (plain) {
-    const node = (
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="QR-Code scannen"
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 200,
-          background: "#ffffff",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div id={readerId} style={{ flex: 1, minHeight: 0, width: "100%" }} />
-        {error ? (
-          <p style={{ color: "#dc2626", padding: "12px 16px", margin: 0, textAlign: "center" }}>
-            {error}
-          </p>
-        ) : null}
-      </div>
-    );
-    return typeof document !== "undefined" ? createPortal(node, document.body) : node;
-  }
 
   return (
     <div

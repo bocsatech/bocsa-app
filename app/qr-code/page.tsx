@@ -64,19 +64,8 @@ export default function QRCodePage() {
     setSearchQuery(value);
   }
 
-  if (isMobile === null) {
-    return <main style={{ minHeight: "100dvh", background: "#ffffff" }} aria-hidden />;
-  }
-
-  if (isMobile) {
-    return (
-      <QrScannerModal
-        open={qrOpen}
-        plain
-        onClose={() => router.back()}
-        onScan={handleScan}
-      />
-    );
+  if (isMobile !== false) {
+    return <main style={{ minHeight: "100dvh", background: "#ffffff" }} />;
   }
 
   return (
