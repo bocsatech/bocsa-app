@@ -2,8 +2,12 @@
 
 import { Html5Qrcode } from "html5-qrcode";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { fetchLagerTeile, formatLagerValue } from "../../../lib/lager";
+import { useEffect, useId, useRef, useState } from "react";
+import {
+  fetchLagerTeile,
+  formatLagerValue,
+  normalizeHerstellernummer,
+} from "../../../lib/lager";
 import type { LagerTeil } from "../../../lib/types/lager";
 
 const INVENTUR_NEU_PREFILL_KEY = "bocsaInventurNeuPrefill";
@@ -38,8 +42,26 @@ function resolveTeilFromScan(teile: LagerTeil[], decoded: string) {
   );
   if (byNumbers) return byNumbers;
 
-  return null;
+  const compact = normalizeHerstellernummer(scan);
+  if (!compact) return null;
+
+  return (
+    teile.find(
+      (teil) => normalizeHerstellernummer(teil.herstellernummer) === compact
+    ) ?? null
+  );
 }
+
+const SCANNER_CONFIG = {
+  fps: 10,
+  qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+    const edge = Math.min(viewfinderWidth, viewfinderHeight);
+    const size = Math.min(260, Math.floor(edge * 0.85));
+    return { width: size, height: size };
+  },
+  aspectRatio: 1.777778,
+  disableFlip: false,
+} as const;
 
 function parseQuantity(raw: string) {
   const trimmed = String(raw ?? "").trim();
@@ -61,10 +83,15 @@ export default function QrInventurScanPage() {
   const [scanError, setScanError] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const scannedTeilRef = useRef<LagerTeil | null>(null);
+  const teileRef = useRef<LagerTeil[]>([]);
 
   useEffect(() => {
     scannedTeilRef.current = scannedTeil;
   }, [scannedTeil]);
+
+  useEffect(() => {
+    teileRef.current = teile;
+  }, [teile]);
 
   useEffect(() => {
     async function load() {
@@ -83,11 +110,23 @@ export default function QrInventurScanPage() {
     void load();
   }, []);
 
-  const handleDecoded = useCallback(
-    (decoded: string) => {
-      if (scannedTeilRef.current || loading || teile.length === 0) return;
+  useEffect(() => {
+    if (loading || loadError || teile.length === 0) return;
 
-      const match = resolveTeilFromScan(teile, decoded);
+    let scanner: Html5Qrcode | null = null;
+    let active = true;
+    let started = false;
+
+    function onDecoded(decoded: string) {
+      if (!active || scannedTeilRef.current) return;
+
+      const rows = teileRef.current;
+      if (rows.length === 0) {
+        setScanError("Lager nicht geladen.");
+        return;
+      }
+
+      const match = resolveTeilFromScan(rows, decoded);
       if (!match) {
         setScanError(`Unbekannter QR: ${extractScanValue(decoded) || decoded}`);
         return;
@@ -96,16 +135,7 @@ export default function QrInventurScanPage() {
       setScanError(null);
       setScannedTeil(match);
       setQuantity(String(match.lagerstand ?? 0));
-    },
-    [loading, teile]
-  );
-
-  useEffect(() => {
-    if (loading || loadError) return;
-
-    let scanner: Html5Qrcode | null = null;
-    let active = true;
-    let started = false;
+    }
 
     async function startScanner() {
       setCameraError(null);
@@ -113,11 +143,13 @@ export default function QrInventurScanPage() {
 
       try {
         await scanner.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 220, height: 220 } },
+          {
+            facingMode: "environment",
+          },
+          SCANNER_CONFIG,
           (decoded) => {
             if (!active) return;
-            handleDecoded(decoded);
+            onDecoded(decoded);
           },
           () => {}
         );
@@ -146,7 +178,7 @@ export default function QrInventurScanPage() {
         }
       }
     };
-  }, [handleDecoded, loadError, loading, readerId]);
+  }, [loadError, loading, readerId, teile.length]);
 
   function mergeCurrentIntoList(base: Record<string, string>) {
     if (!scannedTeil) return base;
@@ -185,9 +217,10 @@ export default function QrInventurScanPage() {
     >
       <div
         id={readerId}
+        className="qrReader"
         style={{
           flex: "1 1 50%",
-          minHeight: 0,
+          minHeight: 280,
           width: "100%",
           background: "#111827",
         }}
