@@ -18,4 +18,7 @@ export type LagerTeil = {
   verkaufspreis?: number | null;
   bestellstatus?: string | null;
   last_inventur_at?: string | null;
+  inventur_entwurf?: number | null;
+  inventur_entwurf_at?: string | null;
+  inventur_entwurf_by?: string | null;
 };

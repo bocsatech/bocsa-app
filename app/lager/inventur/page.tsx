@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { InventurSessionSummary } from "../../../lib/lager-inventur-session";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  applyInventurSession,
-  fetchPendingInventurSessions,
-  formatInventurSessionAge,
-} from "../../../lib/lager-inventur-session";
+  buildEntwurfPrefill,
+  fetchInventurEntwuerfe,
+} from "../../../lib/lager-inventur-entwurf";
 import LagerFiltersBar from "../../components/LagerFiltersBar";
 import AppPageShell from "../../components/AppPageShell";
 import QrScannerModal from "../../components/QrScannerModal";
@@ -20,7 +18,6 @@ import {
   updateLagerTeil,
   type LagerListFilters,
 } from "../../../lib/lager";
-import { INVENTUR_NEU_PREFILL_KEY } from "../../../lib/lager-inventur-scan";
 import type { LagerTeil } from "../../../lib/types/lager";
 
 function formatInventurDate(value?: string | null) {
@@ -58,9 +55,7 @@ export default function LagerInventurPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [qrScanOpen, setQrScanOpen] = useState(false);
   const [scannedTeilOrder, setScannedTeilOrder] = useState<string[]>([]);
-  const [pendingSessions, setPendingSessions] = useState<InventurSessionSummary[]>([]);
-  const hadSessionPrefillRef = useRef(false);
-  const adoptedSessionIdsRef = useRef<Set<string>>(new Set());
+  const [entwurfCount, setEntwurfCount] = useState(0);
 
   const loadTeile = useCallback(async () => {
     setLoading(true);
@@ -74,27 +69,28 @@ export default function LagerInventurPage() {
       const rows = data ?? [];
       setTeile(rows);
       const initial: Record<string, string> = {};
+      let entwurfRows = 0;
       for (const teil of rows) {
-        initial[teil.id] = String(teil.lagerstand ?? 0);
-      }
-      try {
-        const prefillRaw = sessionStorage.getItem(INVENTUR_NEU_PREFILL_KEY);
-        if (prefillRaw) {
-          hadSessionPrefillRef.current = true;
-          sessionStorage.removeItem(INVENTUR_NEU_PREFILL_KEY);
-          const prefill = JSON.parse(prefillRaw) as Record<string, string>;
-          setScannedTeilOrder(Object.keys(prefill));
-          for (const teil of rows) {
-            if (prefill[teil.id] !== undefined) {
-              initial[teil.id] = prefill[teil.id];
-            }
-          }
+        if (teil.inventur_entwurf != null) {
+          initial[teil.id] = String(teil.inventur_entwurf);
+          entwurfRows += 1;
         } else {
-          setScannedTeilOrder([]);
+          initial[teil.id] = String(teil.lagerstand ?? 0);
         }
-      } catch {
-        /* ignore invalid prefill */
+      }
+      if (entwurfRows > 0) {
+        const sorted = [...rows]
+          .filter((teil) => teil.inventur_entwurf != null)
+          .sort(
+            (a, b) =>
+              new Date(b.inventur_entwurf_at ?? 0).getTime() -
+              new Date(a.inventur_entwurf_at ?? 0).getTime()
+          );
+        setScannedTeilOrder(sorted.map((teil) => teil.id));
+        setEntwurfCount(sorted.length);
+      } else {
         setScannedTeilOrder([]);
+        setEntwurfCount(0);
       }
       setCounts(initial);
     }
@@ -170,12 +166,16 @@ export default function LagerInventurPage() {
     const { data, error } = await updateLagerTeil(teil.id, {
       lagerstand: nextStand,
       last_inventur_at: new Date().toISOString(),
+      inventur_entwurf: null,
+      inventur_entwurf_at: null,
+      inventur_entwurf_by: null,
     });
     if (error) {
       setStatusMessage(error.message);
     } else if (data) {
       setTeile((current) => current.map((row) => (row.id === data.id ? data : row)));
       setCounts((current) => ({ ...current, [data.id]: String(data.lagerstand ?? 0) }));
+      setEntwurfCount((current) => Math.max(0, current - (teil.inventur_entwurf != null ? 1 : 0)));
       setStatusMessage(`Gespeichert: ${formatLagerValue(data.herstellernummer)} → ${data.lagerstand}`);
     }
 
@@ -198,61 +198,41 @@ export default function LagerInventurPage() {
     [teile]
   );
 
-  const adoptInventurSession = useCallback(
-    async (session: InventurSessionSummary) => {
-      if (adoptedSessionIdsRef.current.has(session.id)) return;
-      adoptedSessionIdsRef.current.add(session.id);
-      applyScanPrefill(session.payload.order, session.payload.counts);
-      const { error } = await applyInventurSession(session.id);
-      if (error) {
-        adoptedSessionIdsRef.current.delete(session.id);
-        setStatusMessage(error.message);
+  const syncInventurEntwuerfe = useCallback(
+    async (announce: boolean) => {
+      const { data, error, setupRequired, setupHint } = await fetchInventurEntwuerfe();
+      if (setupRequired) {
+        if (setupHint) setStatusMessage(setupHint);
         return;
       }
-      setPendingSessions((current) => current.filter((row) => row.id !== session.id));
-      setStatusMessage(
-        `Mobiler Scan übernommen: ${session.teilCount} Teile · ${session.createdByUsername} · ${formatInventurSessionAge(session.createdAt)}`
-      );
+      if (error) {
+        if (announce) setStatusMessage(error.message);
+        return;
+      }
+      if (data.length === 0) {
+        setEntwurfCount(0);
+        return;
+      }
+      const { order, counts } = buildEntwurfPrefill(data);
+      applyScanPrefill(order, counts);
+      setEntwurfCount(data.length);
+      if (announce) {
+        const newest = data[0];
+        setStatusMessage(
+          `Mobiler Scan geladen: ${data.length} Teile${newest?.entwurfBy ? ` · ${newest.entwurfBy}` : ""}`
+        );
+      }
     },
     [applyScanPrefill]
   );
 
-  const syncPendingInventurSessions = useCallback(
-    async (autoApply: boolean) => {
-      const { data, error, setupRequired, setupHint } = await fetchPendingInventurSessions();
-      if (error && !setupRequired) {
-        setStatusMessage(error.message);
-        return;
-      }
-      if (setupRequired) {
-        setPendingSessions([]);
-        if (setupHint) {
-          setStatusMessage(setupHint);
-        }
-        return;
-      }
-      setPendingSessions(data);
-      if (!autoApply || hadSessionPrefillRef.current || data.length === 0) return;
-      const newest = data.find((session) => !adoptedSessionIdsRef.current.has(session.id));
-      if (newest) {
-        await adoptInventurSession(newest);
-      }
-    },
-    [adoptInventurSession]
-  );
-
-  useEffect(() => {
-    if (!permissionsLoaded || !canRead || loading || teile.length === 0) return;
-    void syncPendingInventurSessions(true);
-  }, [permissionsLoaded, canRead, loading, teile.length, syncPendingInventurSessions]);
-
   useEffect(() => {
     if (!permissionsLoaded || !canRead || loading) return;
     const timer = window.setInterval(() => {
-      void syncPendingInventurSessions(true);
+      void syncInventurEntwuerfe(false);
     }, 20000);
     return () => window.clearInterval(timer);
-  }, [permissionsLoaded, canRead, loading, syncPendingInventurSessions]);
+  }, [permissionsLoaded, canRead, loading, syncInventurEntwuerfe]);
 
   function handleQrScan(decoded: string) {
     const scan = extractScanValue(decoded);
@@ -331,26 +311,10 @@ export default function LagerInventurPage() {
           </div>
         ) : (
           <>
-            {pendingSessions.length > 0 ? (
-              <div className="welcomeCard" style={{ marginBottom: 12 }}>
-                <h2 style={{ marginTop: 0, fontSize: "1rem" }}>Offene mobile Scans</h2>
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  {pendingSessions.map((session) => (
-                    <li key={session.id} style={{ marginBottom: 8 }}>
-                      {session.teilCount} Teile · {session.createdByUsername} ·{" "}
-                      {formatInventurSessionAge(session.createdAt)}
-                      <button
-                        type="button"
-                        className="pillButton outline"
-                        style={{ marginLeft: 10 }}
-                        onClick={() => void adoptInventurSession(session)}
-                      >
-                        Übernehmen
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {entwurfCount > 0 ? (
+              <p className="protocolNotice" role="status" style={{ marginBottom: 12 }}>
+                {entwurfCount} mobile Entwürfe in NEU — prüfen, dann Speichern zum Abschließen.
+              </p>
             ) : null}
 
             {statusMessage ? (

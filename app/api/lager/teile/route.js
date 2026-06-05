@@ -34,6 +34,9 @@ function normalizeTeil(row) {
     lagerstand: row.lagerstand ?? 0,
     artikelnummer: row.artikelnummer ?? null,
     last_inventur_at: row.last_inventur_at ?? null,
+    inventur_entwurf: row.inventur_entwurf ?? null,
+    inventur_entwurf_at: row.inventur_entwurf_at ?? null,
+    inventur_entwurf_by: row.inventur_entwurf_by ?? null,
   };
 }
 

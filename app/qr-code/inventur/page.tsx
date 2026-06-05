@@ -7,8 +7,7 @@ import {
   formatLagerValue,
   normalizeHerstellernummer,
 } from "../../../lib/lager";
-import { createInventurSession } from "../../../lib/lager-inventur-session";
-import { INVENTUR_NEU_PREFILL_KEY } from "../../../lib/lager-inventur-scan";
+import { uploadInventurEntwurf } from "../../../lib/lager-inventur-entwurf";
 import type { LagerTeil } from "../../../lib/types/lager";
 
 function extractScanValue(raw: string) {
@@ -151,20 +150,23 @@ export default function QrInventurScanPage() {
 
     setFinishing(true);
     setFinishMessage(null);
-    const { error } = await createInventurSession({ order, counts: final });
+    const { error, setupRequired } = await uploadInventurEntwurf({ order, counts: final });
     setFinishing(false);
 
     if (error) {
-      setFinishMessage(error.message);
+      setFinishMessage(
+        setupRequired
+          ? "Inventur-Entwurf-Spalte fehlt. Bitte supabase/lager-inventur-entwurf.sql im Supabase SQL Editor ausführen."
+          : error.message
+      );
       return;
     }
 
-    sessionStorage.setItem(INVENTUR_NEU_PREFILL_KEY, JSON.stringify(final));
     setSessionList({});
     setScannedTeil(null);
     setQuantity("");
     setFinishMessage(
-      `Scan übertragen (${order.length} Teile). Am PC: Lager → Inventur lädt automatisch.`
+      `Scan übertragen (${order.length} Teile). Am PC: Lager → Inventur → NEU prüfen und speichern.`
     );
   }
 
