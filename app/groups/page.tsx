@@ -110,6 +110,24 @@ function isMenuPermission(permissionKey: string) {
   return permissionKey.startsWith("menu.");
 }
 
+function formatGroupsError(message: string) {
+  if (
+    message.includes("permission_groups_name_key") ||
+    message.includes("duplicate key value violates unique constraint")
+  ) {
+    return "Diese Gruppe existiert bereits — bitte einen anderen Namen wählen.";
+  }
+  if (message.includes("does not exist") || message.includes("Could not find")) {
+    return `${message}. Bitte den kompletten Inhalt von supabase/groups-permissions.sql im Supabase SQL Editor ausführen.`;
+  }
+  return message;
+}
+
+function groupNameTaken(groups: PermissionGroup[], name: string) {
+  const normalized = name.trim().toLowerCase();
+  return groups.some((group) => group.name.trim().toLowerCase() === normalized);
+}
+
 export default function GroupsPage() {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [groups, setGroups] = useState<PermissionGroup[]>([]);
@@ -169,7 +187,7 @@ export default function GroupsPage() {
       userPermissionsResult.error;
 
     if (firstError) {
-      setError(firstError.message);
+      setError(formatGroupsError(firstError.message));
       setUsers([]);
       setGroups([]);
       setPermissions([]);
@@ -213,6 +231,11 @@ export default function GroupsPage() {
     const name = newGroupName.trim();
     if (!name) return;
 
+    if (groupNameTaken(groups, name)) {
+      setError("Diese Gruppe existiert bereits — bitte einen anderen Namen wählen.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -223,7 +246,7 @@ export default function GroupsPage() {
       .single();
 
     if (error) {
-      setError(error.message);
+      setError(formatGroupsError(error.message));
     } else {
       setNewGroupName("");
       setNewGroupDescription("");
@@ -388,11 +411,7 @@ export default function GroupsPage() {
         </header>
       }
     >
-        {error ? (
-          <div className="protocolNotice">
-            {error}. Bitte den kompletten Inhalt von <code>supabase/groups-permissions.sql</code> im Supabase SQL Editor ausfuehren.
-          </div>
-        ) : null}
+        {error ? <div className="protocolNotice">{error}</div> : null}
 
         {loading ? (
           <div className="welcomeCard">
