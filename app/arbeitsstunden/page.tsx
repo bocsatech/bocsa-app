@@ -32,16 +32,20 @@ export default function ArbeitsstundenPage() {
       <div className="asSidebarStundenHeader">
         <p className="asSidebarStundenName">{displayName}</p>
         <div className="asSidebarStundenTimeline">
-          <div className="asSidebarStundenTimelineLabels">
-            <span>{hourLabel(WORK_START)}</span>
-            <span>{hourLabel(WORK_END)}</span>
+          <div
+            className="asSidebarStundenTimelineLabels"
+            style={{ gridTemplateColumns: `repeat(${hourMarks.length}, minmax(0, 1fr))` }}
+          >
+            {hourMarks.map((hour) => (
+              <span key={hour}>{hourLabel(hour)}</span>
+            ))}
           </div>
           <div className="asSidebarStundenTimelineTrack" aria-hidden="true">
-            {hourMarks.slice(1, -1).map((hour, index) => (
+            {hourMarks.map((hour, index) => (
               <span
                 key={hour}
                 className="asSidebarStundenTimelineTick"
-                style={{ left: `${((index + 1) / (hourMarks.length - 1)) * 100}%` }}
+                style={{ left: `${(index / (hourMarks.length - 1)) * 100}%` }}
               />
             ))}
           </div>
@@ -71,13 +75,25 @@ export default function ArbeitsstundenPage() {
         }
 
         .asSidebarStundenTimelineLabels {
-          display: flex;
-          justify-content: space-between;
+          display: grid;
           margin-bottom: 6px;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 600;
           color: #6b7280;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.02em;
+        }
+
+        .asSidebarStundenTimelineLabels span {
+          text-align: center;
+          white-space: nowrap;
+        }
+
+        .asSidebarStundenTimelineLabels span:first-child {
+          text-align: left;
+        }
+
+        .asSidebarStundenTimelineLabels span:last-child {
+          text-align: right;
         }
 
         .asSidebarStundenTimelineTrack {
