@@ -124,7 +124,7 @@ export const MEINE_MENU_NAV = {
   label: "Meine Menü",
   children: [
     { href: "/aufgaben", label: "Aufgaben" },
-    { href: "/arbeitsstunden", label: "Arbeitsstunden", permission: "menu.hours" },
+    { href: "/arbeitsstunden/aus-auftraegen", label: "Arbeitsstunden", permission: "menu.hours" },
     { href: "/persoenliche-sache", label: "Persönliche Sache" },
   ],
 } as const;

@@ -14,7 +14,7 @@ type StundenResponse = {
   error?: string;
 };
 
-export default function AufgabenStundenView() {
+export default function ArbeitsstundenAuftragView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [username, setUsername] = useState("");
@@ -25,7 +25,7 @@ export default function AufgabenStundenView() {
     setLoading(true);
     setError(null);
 
-    const response = await fetch("/api/aufgaben/stunden", {
+    const response = await fetch("/api/arbeitsstunden/aus-auftraegen", {
       credentials: "include",
       cache: "no-store",
     });
@@ -66,8 +66,8 @@ export default function AufgabenStundenView() {
   }
 
   return (
-    <div className="aufgabenStundenPage">
-      <article className="card usersPanel aufgabenSummaryCard">
+    <div className="asAuftragStundenPage">
+      <article className="card usersPanel asAuftragSummaryCard">
         <div className="asDayGrid">
           <div className="asStatCard">
             <strong>Benutzer</strong>
@@ -90,10 +90,10 @@ export default function AufgabenStundenView() {
         </div>
       ) : (
         tage.map((tag) => (
-          <article key={tag.datum} className="card usersPanel aufgabenDayCard">
-            <header className="aufgabenDayHead">
+          <article key={tag.datum} className="card usersPanel asAuftragDayCard">
+            <header className="asAuftragDayHead">
               <h2>{tag.datum}</h2>
-              <span className="aufgabenDayTotal">{formatAufgabenStunden(tag.gesamtStunden)} h</span>
+              <span className="asAuftragDayTotal">{formatAufgabenStunden(tag.gesamtStunden)} h</span>
             </header>
             <div className="machineTableScroll">
               <table className="asEntriesTable">

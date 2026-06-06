@@ -149,3 +149,43 @@
     display: none !important;
   }
 }
+
+.asAuftragStundenPage {
+  display: grid;
+  gap: 14px;
+  max-width: 52rem;
+}
+
+.asAuftragSummaryCard {
+  margin-top: 0;
+}
+
+.asAuftragDayCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.asAuftragDayHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.asAuftragDayHead h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.asAuftragDayTotal {
+  font-weight: 800;
+  color: #047857;
+  white-space: nowrap;
+}
+
+.asAuftragDayCard .machineTableScroll {
+  padding: 0 8px 8px;
+}
