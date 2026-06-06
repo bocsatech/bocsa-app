@@ -7,6 +7,7 @@ export default function ArbeitsstundenAusAuftraegenPage() {
     <AppPageShell
       activeHref="/arbeitsstunden/aus-auftraegen"
       subtitle="Betrieb"
+      contentClassName="asAuftragStundenShell"
       top={
         <header className="pageHeader compactPageHeader">
           <div>

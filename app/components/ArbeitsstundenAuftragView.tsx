@@ -388,8 +388,8 @@ export default function ArbeitsstundenAuftragView() {
                           <th>Auftrag</th>
                           <th>Referenz</th>
                           <th>Bezeichnung</th>
-                          <th>Stunden</th>
-                          <th />
+                          <th className="asAuftragHoursCol">Stunden</th>
+                          <th className="asAuftragActionCol" aria-label="Aktion" />
                         </tr>
                       </thead>
                       <tbody>
@@ -400,7 +400,9 @@ export default function ArbeitsstundenAuftragView() {
                               <td>{entry.auftragNr}</td>
                               <td>{entry.referenz}</td>
                               <td>{entry.bezeichnung}</td>
-                              <td>{formatAufgabenStunden(entry.stunden)} h</td>
+                              <td className="asAuftragHoursCol">
+                                {formatAufgabenStunden(entry.stunden)} h
+                              </td>
                               <td className="asAuftragRowAction">
                                 {editHref ? (
                                   <Link
@@ -460,7 +462,7 @@ export default function ArbeitsstundenAuftragView() {
                                 }
                               />
                             </td>
-                            <td>
+                            <td className="asAuftragHoursCol">
                               <input
                                 className="asAuftragCellInput asAuftragCellInputHours"
                                 value={row.stunden}
