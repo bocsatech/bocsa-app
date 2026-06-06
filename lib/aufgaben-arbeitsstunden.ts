@@ -17,7 +17,7 @@ import {
   workOrderUserLabel,
 } from "./work-orders";
 
-export type AuftragStundenPeriod = "tag" | "woche" | "monat" | "intervall";
+export type AuftragStundenPeriod = "alle" | "tag" | "woche" | "monat" | "intervall";
 
 export type AufgabenStundenEintrag = {
   datum: string;
@@ -80,7 +80,11 @@ export function resolveAuftragStundenRange(
   anchorDe: string,
   customFrom?: string,
   customTo?: string
-): { from: string; to: string } {
+): { from: string; to: string } | null {
+  if (period === "alle") {
+    return null;
+  }
+
   if (period === "intervall") {
     const from = normalizeGermanDate(customFrom ?? "") || germanToday();
     const to = normalizeGermanDate(customTo ?? "") || from;

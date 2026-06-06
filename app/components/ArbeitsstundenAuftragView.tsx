@@ -30,7 +30,7 @@ export default function ArbeitsstundenAuftragView() {
   const [username, setUsername] = useState("");
   const [gesamtStunden, setGesamtStunden] = useState(0);
   const [tage, setTage] = useState<AufgabenStundenTag[]>([]);
-  const [period, setPeriod] = useState<AuftragStundenPeriod>("monat");
+  const [period, setPeriod] = useState<AuftragStundenPeriod>("alle");
   const [anchorDisplay, setAnchorDisplay] = useState(
     toAustriaDateString(germanToday())
   );
@@ -101,6 +101,7 @@ export default function ArbeitsstundenAuftragView() {
             value={period}
             onChange={(event) => setPeriod(event.target.value as AuftragStundenPeriod)}
           >
+            <option value="alle">Alle</option>
             <option value="tag">Tag</option>
             <option value="woche">Woche</option>
             <option value="monat">Monat</option>
@@ -137,7 +138,7 @@ export default function ArbeitsstundenAuftragView() {
               />
             </label>
           </>
-        ) : (
+        ) : period === "alle" ? null : (
           <label className="arbeitsauftragFilterField">
             <span>{period === "tag" ? "Datum" : "Stichtag"}</span>
             <input
@@ -158,7 +159,9 @@ export default function ArbeitsstundenAuftragView() {
         </button>
       </div>
 
-      {rangeLabel ? (
+      {period === "alle" ? (
+        <p className="asAuftragRangeHint">Zeitraum: Alle Arbeitsaufträge</p>
+      ) : rangeLabel ? (
         <p className="asAuftragRangeHint">
           Zeitraum: {rangeLabel.from}
           {rangeLabel.to !== rangeLabel.from ? ` – ${rangeLabel.to}` : ""}

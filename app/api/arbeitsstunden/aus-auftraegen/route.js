@@ -10,7 +10,7 @@ import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 
-const VALID_PERIODS = new Set(["tag", "woche", "monat", "intervall"]);
+const VALID_PERIODS = new Set(["alle", "tag", "woche", "monat", "intervall"]);
 
 async function loadMachines(db) {
   const { data, error } = await db
@@ -49,8 +49,8 @@ export async function GET(request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const periodParam = String(searchParams.get("period") ?? "monat").trim();
-  const period = VALID_PERIODS.has(periodParam) ? periodParam : "monat";
+  const periodParam = String(searchParams.get("period") ?? "alle").trim();
+  const period = VALID_PERIODS.has(periodParam) ? periodParam : "alle";
   const anchor = String(searchParams.get("anchor") ?? germanToday()).trim();
   const from = String(searchParams.get("from") ?? "").trim();
   const to = String(searchParams.get("to") ?? "").trim();
