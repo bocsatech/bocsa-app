@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { germanToday } from "../../lib/dates";
 import AppPageShell from "../components/AppPageShell";
 
 const WORK_START = 7;
@@ -26,6 +27,7 @@ export default function ArbeitsstundenPage() {
   }, []);
 
   const hourMarks = Array.from({ length: WORK_END - WORK_START + 1 }, (_, index) => WORK_START + index);
+  const todayLabel = germanToday();
 
   return (
     <AppPageShell activeHref="/arbeitsstunden" subtitle="Betrieb">
@@ -50,6 +52,7 @@ export default function ArbeitsstundenPage() {
             ))}
           </div>
         </div>
+        <p className="asSidebarStundenDate">{todayLabel}</p>
       </div>
       <style jsx>{`
         .asSidebarStundenHeader {
@@ -72,6 +75,15 @@ export default function ArbeitsstundenPage() {
         .asSidebarStundenTimeline {
           flex: 1;
           min-width: 0;
+        }
+
+        .asSidebarStundenDate {
+          flex-shrink: 0;
+          margin: 0;
+          font-size: 1.05rem;
+          font-weight: 700;
+          color: #111827;
+          white-space: nowrap;
         }
 
         .asSidebarStundenTimelineLabels {
