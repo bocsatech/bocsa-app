@@ -75,12 +75,6 @@ const EXPECTED_MENU_PERMISSIONS: Permission[] = [
     category: "Seitenmenü",
   },
   {
-    key: "menu.hours",
-    label: "Menü: Arbeitsstunden",
-    description: "Arbeitsstunden im Seitenmenü anzeigen.",
-    category: "Seitenmenü",
-  },
-  {
     key: "menu.branches",
     label: "Menü: Filialen",
     description: "Filialen im Seitenmenü anzeigen.",

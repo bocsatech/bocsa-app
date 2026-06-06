@@ -124,14 +124,12 @@ export const MEINE_MENU_NAV = {
   label: "Meine Menü",
   children: [
     { href: "/aufgaben", label: "Aufgaben" },
-    { href: "/arbeitsstunden/aus-auftraegen", label: "Arbeitsstunden" },
     { href: "/persoenliche-sache", label: "Persönliche Sache" },
   ],
 } as const;
 
 export const APP_NAV_ITEMS = [
   { href: "/meldungen", label: "Meldungen", permission: "menu.machines" },
-  { href: "/arbeitsstunden", label: "Arbeitsstunden", permission: "menu.hours" },
   { href: "/filialen", label: "Filialen", permission: "menu.branches" },
   { href: "/qr-code", label: "QR-Code", permission: "menu.qr" },
 ] as const;

@@ -28,7 +28,6 @@ const homeMenuCards = [
   { label: "Lager-Meldungen", icon: "lager-meldungen", href: "/lager/meldungen" },
   { label: "Bewegungen", icon: "bewegungen", href: "/lager/bewegungen" },
   { label: "Inventur", icon: "inventur", href: "/lager/inventur" },
-  { label: "Arbeitsstunden", icon: "arbeitsstunden", href: "/arbeitsstunden" },
   { label: "Filialen", icon: "filialen", href: "/filialen" },
   { label: "QR-Code", icon: "qr", href: "/qr-code" },
 ] as const;
