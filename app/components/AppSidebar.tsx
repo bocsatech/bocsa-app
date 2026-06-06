@@ -141,6 +141,19 @@ export const ADMIN_NAV_ITEMS = [
   { href: "/groups", label: "Gruppen", permission: "menu.groups" },
 ] as const;
 
+const ALL_MENU_HREFS = [
+  HOME_NAV.href,
+  ...MEINE_MENU_NAV.children.map((child) => child.href),
+  BAUMASCHINEN_NAV.href,
+  ...BAUMASCHINEN_NAV.children.map((child) => child.href.split("?")[0]),
+  PKW_NAV.href,
+  ...PKW_NAV.children.map((child) => child.href.split("?")[0]),
+  LAGER_NAV.href,
+  ...LAGER_NAV.children.map((child) => child.href),
+  ...APP_NAV_ITEMS.map((item) => item.href),
+  ...ADMIN_NAV_ITEMS.map((item) => item.href),
+] as const;
+
 type NavItem = (typeof APP_NAV_ITEMS)[number];
 type MeineMenuSubItem = (typeof MEINE_MENU_NAV.children)[number];
 type AdminNavItem = (typeof ADMIN_NAV_ITEMS)[number];
@@ -174,12 +187,32 @@ type Props = {
   subtitle?: string;
 };
 
+function navHrefBase(href: string) {
+  return href.split("?")[0];
+}
+
 function isNavActive(
   item: NavItem | AdminNavItem | MeineMenuSubItem,
   activeHref: string | undefined,
   pathname: string
 ) {
-  return activeHref === item.href || pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const href = item.href;
+  const base = navHrefBase(href);
+  if (activeHref === href || activeHref === base || pathname === base) return true;
+  if (!pathname.startsWith(`${base}/`)) return false;
+
+  const hasMoreSpecificMatch = ALL_MENU_HREFS.some((other) => {
+    const otherBase = navHrefBase(other);
+    if (otherBase === base || !otherBase.startsWith(`${base}/`)) return false;
+    return (
+      activeHref === other ||
+      activeHref === otherBase ||
+      pathname === otherBase ||
+      pathname.startsWith(`${otherBase}/`)
+    );
+  });
+
+  return !hasMoreSpecificMatch;
 }
 
 function isMeineMenuSectionActive(activeHref: string | undefined, pathname: string) {
@@ -388,7 +421,7 @@ function MeineMenuNavGroup({
     <div className="sidebarNavGroup sidebarMeineMenuGroup">
       <button
         type="button"
-        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        className="sidebarNavParent"
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
@@ -438,6 +471,20 @@ function BaumaschinenNavGroup({
   const router = useRouter();
   const sectionActive = isBaumaschinenSectionActive(activeHref, pathname);
   const onListRoot = isBaumaschinenListRoot(pathname, aktion, geraettyp, geraetenummer);
+  const visibleChildren = BAUMASCHINEN_NAV.children.filter((child) => {
+    const childPermission =
+      "permission" in child && child.permission ? child.permission : BAUMASCHINEN_NAV.permission;
+    return canShowMenuItem(childPermission, permissions, groups, username);
+  });
+  const anySubActive = visibleChildren.some((child) =>
+    isBaumaschinenSubActive(child, activeHref, pathname, aktion)
+  );
+  const parentActive =
+    !anySubActive &&
+    (activeHref === BAUMASCHINEN_NAV.href ||
+      onListRoot ||
+      (pathname.startsWith("/maschinen/") && pathname !== "/maschinen/geraetgruppen") ||
+      isArbeitsauftragDetailPath(pathname));
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -467,7 +514,7 @@ function BaumaschinenNavGroup({
     <div className="sidebarNavGroup">
       <Link
         href={BAUMASCHINEN_NAV.href}
-        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        className={`sidebarNavParent${parentActive ? " active" : ""}`}
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
@@ -516,6 +563,8 @@ function LagerNavGroup({
 }) {
   const router = useRouter();
   const sectionActive = isLagerSectionActive(activeHref, pathname);
+  const anySubActive = LAGER_NAV.children.some((child) => isLagerSubActive(child, pathname));
+  const parentActive = !anySubActive && pathname === LAGER_NAV.href;
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -551,7 +600,7 @@ function LagerNavGroup({
     <div className="sidebarNavGroup">
       <Link
         href={LAGER_NAV.href}
-        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        className={`sidebarNavParent${parentActive ? " active" : ""}`}
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
@@ -596,6 +645,9 @@ function PkwNavGroup({
 }) {
   const router = useRouter();
   const sectionActive = isPkwSectionActive(activeHref, pathname);
+  const anySubActive = visibleChildren.some((child) => isPkwSubActive(child, pathname, aktion));
+  const parentActive =
+    !anySubActive && pathname === PKW_NAV.href && !aktion;
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -627,7 +679,7 @@ function PkwNavGroup({
     <div className="sidebarNavGroup">
       <Link
         href={PKW_NAV.href}
-        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        className={`sidebarNavParent${parentActive ? " active" : ""}`}
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
