@@ -228,7 +228,15 @@ export default function ArbeitsstundenAuftragView() {
             tage.map((tag) => (
               <article key={tag.datum} className="card usersPanel asAuftragDayCard">
                 <header className="asAuftragDayHead">
-                  <h2>{tag.datum}</h2>
+                  <div className="asAuftragDayTitleRow">
+                    <h2>{tag.datum}</h2>
+                    <Link
+                      href={`/arbeitsauftrag?dateFrom=${encodeURIComponent(tag.datum)}&dateTo=${encodeURIComponent(tag.datum)}&from=${encodeURIComponent(MEINE_STUNDEN_PATH)}`}
+                      className="pillButton outline asAuftragAddBtn"
+                    >
+                      + hinzufügen
+                    </Link>
+                  </div>
                   <span className="asAuftragDayTotal">
                     {formatAufgabenStunden(tag.gesamtStunden)} h
                   </span>

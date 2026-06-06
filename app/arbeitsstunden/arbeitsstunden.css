@@ -175,9 +175,23 @@
   background: #f8fafc;
 }
 
+.asAuftragDayTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .asAuftragDayHead h2 {
   margin: 0;
   font-size: 1.05rem;
+}
+
+.asAuftragAddBtn {
+  display: inline-flex;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 4px 10px;
 }
 
 .asAuftragDayTotal {
