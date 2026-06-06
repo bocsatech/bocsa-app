@@ -246,7 +246,6 @@ export default function ArbeitsstundenAuftragView() {
                     <thead>
                       <tr>
                         <th>Auftrag</th>
-                        <th>Typ</th>
                         <th>Referenz</th>
                         <th>Bezeichnung</th>
                         <th>Stunden</th>
@@ -257,7 +256,6 @@ export default function ArbeitsstundenAuftragView() {
                       {tag.eintraege.map((entry) => (
                         <tr key={`${entry.workOrderId}-${entry.quelle}`}>
                           <td>{entry.auftragNr}</td>
-                          <td>{entry.auftragTyp}</td>
                           <td>{entry.referenz}</td>
                           <td>{entry.bezeichnung}</td>
                           <td>{formatAufgabenStunden(entry.stunden)} h</td>
