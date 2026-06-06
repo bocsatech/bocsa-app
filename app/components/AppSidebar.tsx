@@ -339,7 +339,7 @@ function isBaumaschinenListRoot(
 function MeineMenuNavGroup({
   activeHref,
   pathname,
-  mobileMenuOpen,
+  submenuOpen,
   permissions,
   groups,
   username,
@@ -347,7 +347,7 @@ function MeineMenuNavGroup({
 }: {
   activeHref: string | undefined;
   pathname: string;
-  mobileMenuOpen: boolean;
+  submenuOpen: boolean;
   permissions: string[];
   groups: string[];
   username?: string;
@@ -362,29 +362,39 @@ function MeineMenuNavGroup({
     )
   );
   const sectionActive = isMeineMenuSectionActive(activeHref, pathname);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
-    if (sectionActive || mobileMenuOpen) setOpen(true);
-  }, [sectionActive, mobileMenuOpen]);
+    if (sectionActive) setOpen(true);
+  }, [sectionActive]);
+
+  useEffect(() => {
+    if (!sectionActive) setOpen(false);
+  }, [pathname, activeHref, sectionActive]);
 
   function handleParentClick() {
-    setOpen((current) => !current);
+    if (sectionActive && open) {
+      setOpen(false);
+      return;
+    }
+    setOpen(true);
   }
 
   if (visibleChildren.length === 0) return null;
+
+  const showSub = submenuOpen || open;
 
   return (
     <div className="sidebarNavGroup sidebarMeineMenuGroup">
       <button
         type="button"
-        className={`sidebarNavParent${sectionActive || open ? " active" : ""}`}
-        aria-expanded={open}
+        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        aria-expanded={showSub}
         onClick={handleParentClick}
       >
         {MEINE_MENU_NAV.label}
       </button>
-      {open ? (
+      {showSub ? (
         <div className="sidebarNavSub">
           {visibleChildren.map((child) => (
             <Link
@@ -704,7 +714,7 @@ function SidebarNavItems({
       <MeineMenuNavGroup
         activeHref={activeHref}
         pathname={pathname}
-        mobileMenuOpen={mobileMenuOpen}
+        submenuOpen={submenuOpen}
         permissions={permissions}
         groups={groups}
         username={username}
