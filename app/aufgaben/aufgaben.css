@@ -1,0 +1,39 @@
+.aufgabenStundenPage {
+  display: grid;
+  gap: 14px;
+  max-width: 52rem;
+}
+
+.aufgabenSummaryCard {
+  margin-top: 0;
+}
+
+.aufgabenDayCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.aufgabenDayHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.aufgabenDayHead h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.aufgabenDayTotal {
+  font-weight: 800;
+  color: #047857;
+  white-space: nowrap;
+}
+
+.aufgabenDayCard .machineTableScroll {
+  padding: 0 8px 8px;
+}
