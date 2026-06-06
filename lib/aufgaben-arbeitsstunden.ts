@@ -28,8 +28,99 @@ export type AufgabenStundenEintrag = {
   bezeichnung: string;
   workOrderId: string;
   parentId: string;
-  quelle: "maschine" | "pkw";
+  quelle: "maschine" | "pkw" | "manuell";
+  manualId?: string;
 };
+
+const MEINE_STUNDEN_META_PREFIX = "meine-stunden:";
+
+export function encodeMeineStundenManualMeta(auftragNr: string, bezeichnung: string) {
+  return `${MEINE_STUNDEN_META_PREFIX}${JSON.stringify({
+    auftragNr: auftragNr.trim(),
+    bezeichnung: bezeichnung.trim(),
+  })}`;
+}
+
+export function decodeMeineStundenManualMeta(raw: string) {
+  if (!raw.startsWith(MEINE_STUNDEN_META_PREFIX)) {
+    return { auftragNr: "—", bezeichnung: raw.trim() || "—" };
+  }
+  try {
+    const parsed = JSON.parse(raw.slice(MEINE_STUNDEN_META_PREFIX.length)) as {
+      auftragNr?: string;
+      bezeichnung?: string;
+    };
+    return {
+      auftragNr: String(parsed.auftragNr ?? "").trim() || "—",
+      bezeichnung: String(parsed.bezeichnung ?? "").trim() || "—",
+    };
+  } catch {
+    return { auftragNr: "—", bezeichnung: "—" };
+  }
+}
+
+export function isMeineStundenManualBeschreibung(raw: string) {
+  return String(raw ?? "").startsWith(MEINE_STUNDEN_META_PREFIX);
+}
+
+export function mapManualDbRowToEintrag(row: {
+  id: string;
+  datum: unknown;
+  stunden: unknown;
+  depot?: string | null;
+  beschreibung?: string | null;
+}): AufgabenStundenEintrag | null {
+  const beschreibung = String(row.beschreibung ?? "");
+  if (!isMeineStundenManualBeschreibung(beschreibung)) return null;
+
+  const datum = normalizeGermanDate(row.datum) || formatGermanDate(row.datum);
+  if (!datum) return null;
+
+  const meta = decodeMeineStundenManualMeta(beschreibung);
+  const stunden = Number(row.stunden ?? 0);
+  if (!Number.isFinite(stunden) || stunden <= 0) return null;
+
+  return {
+    datum,
+    stunden: Math.round(stunden * 100) / 100,
+    auftragNr: meta.auftragNr,
+    auftragTyp: "—",
+    referenz: String(row.depot ?? "").trim() || "—",
+    bezeichnung: meta.bezeichnung,
+    workOrderId: row.id,
+    parentId: "",
+    quelle: "manuell",
+    manualId: row.id,
+  };
+}
+
+export function mergeManualStundenIntoTage(
+  tage: AufgabenStundenTag[],
+  manualEintraege: AufgabenStundenEintrag[]
+): AufgabenStundenTag[] {
+  const byDay = new Map<string, AufgabenStundenEintrag[]>(
+    tage.map((tag) => [tag.datum, [...tag.eintraege]])
+  );
+
+  for (const entry of manualEintraege) {
+    const list = byDay.get(entry.datum) ?? [];
+    list.push(entry);
+    byDay.set(entry.datum, list);
+  }
+
+  return [...byDay.entries()]
+    .map(([datum, eintraege]) => ({
+      datum,
+      gesamtStunden:
+        Math.round(eintraege.reduce((sum, row) => sum + row.stunden, 0) * 100) / 100,
+      eintraege: eintraege.sort((a, b) => b.stunden - a.stunden),
+    }))
+    .sort((a, b) => germanDateComparable(b.datum).localeCompare(germanDateComparable(a.datum)));
+}
+
+export function sumTageStunden(tage: AufgabenStundenTag[]) {
+  return Math.round(tage.reduce((sum, tag) => sum + tag.gesamtStunden, 0) * 100) / 100;
+}
 
 export type AufgabenStundenTag = {
   datum: string;

@@ -8,6 +8,7 @@ import {
   type AufgabenStundenTag,
   type AuftragStundenPeriod,
 } from "../../lib/aufgaben-arbeitsstunden";
+import { parseStundenInput } from "../../lib/arbeitsstunden";
 import { buildArbeitsauftragDetailHref } from "../../lib/arbeitsauftrag-routes";
 import { buildPkwArbeitsauftragDetailHref } from "../../lib/pkw-arbeitsauftrag-routes";
 import { germanToday, normalizeGermanDate } from "../../lib/dates";
@@ -24,6 +25,15 @@ type StundenResponse = {
   error?: string;
 };
 
+type PendingRow = {
+  key: string;
+  manualId?: string;
+  auftragNr: string;
+  referenz: string;
+  bezeichnung: string;
+  stunden: string;
+};
+
 function displayToGermanDate(value: string) {
   return normalizeGermanDate(value) ?? "";
 }
@@ -31,6 +41,8 @@ function displayToGermanDate(value: string) {
 const MEINE_STUNDEN_PATH = "/arbeitsstunden/aus-auftraegen";
 
 function entryEditHref(entry: AufgabenStundenEintrag) {
+  if (entry.quelle === "manuell") return null;
+
   if (entry.quelle === "pkw") {
     return buildPkwArbeitsauftragDetailHref({
       fahrzeugId: entry.parentId,
@@ -46,6 +58,10 @@ function entryEditHref(entry: AufgabenStundenEintrag) {
     edit: true,
     from: MEINE_STUNDEN_PATH,
   });
+}
+
+function pendingStundenSum(rows: PendingRow[]) {
+  return rows.reduce((sum, row) => sum + (parseStundenInput(row.stunden) ?? 0), 0);
 }
 
 export default function ArbeitsstundenAuftragView() {
@@ -65,6 +81,8 @@ export default function ArbeitsstundenAuftragView() {
   const [rangeLabel, setRangeLabel] = useState<{ from: string; to: string } | null>(
     null
   );
+  const [pendingByDay, setPendingByDay] = useState<Record<string, PendingRow[]>>({});
+  const [savingKey, setSavingKey] = useState<string | null>(null);
 
   const anchorDe = useMemo(
     () => displayToGermanDate(anchorDisplay) || germanToday(),
@@ -109,12 +127,123 @@ export default function ArbeitsstundenAuftragView() {
     setGesamtStunden(result.gesamtStunden ?? 0);
     setTage(result.tage ?? []);
     setRangeLabel(result.range ?? null);
+    setPendingByDay({});
     setLoading(false);
   }, [period, anchorDe, fromDe, toDe]);
 
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  function addPendingRow(datum: string) {
+    setPendingByDay((current) => ({
+      ...current,
+      [datum]: [
+        ...(current[datum] ?? []),
+        {
+          key: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          auftragNr: "",
+          referenz: "",
+          bezeichnung: "",
+          stunden: "",
+        },
+      ],
+    }));
+  }
+
+  function updatePendingRow(datum: string, key: string, patch: Partial<PendingRow>) {
+    setPendingByDay((current) => ({
+      ...current,
+      [datum]: (current[datum] ?? []).map((row) =>
+        row.key === key ? { ...row, ...patch } : row
+      ),
+    }));
+  }
+
+  function removePendingRow(datum: string, key: string) {
+    setPendingByDay((current) => ({
+      ...current,
+      [datum]: (current[datum] ?? []).filter((row) => row.key !== key),
+    }));
+  }
+
+  function startEditManual(entry: AufgabenStundenEintrag) {
+    if (!entry.manualId) return;
+    setPendingByDay((current) => ({
+      ...current,
+      [entry.datum]: [
+        ...(current[entry.datum] ?? []).filter((row) => row.manualId !== entry.manualId),
+        {
+          key: `edit-${entry.manualId}`,
+          manualId: entry.manualId,
+          auftragNr: entry.auftragNr === "—" ? "" : entry.auftragNr,
+          referenz: entry.referenz === "—" ? "" : entry.referenz,
+          bezeichnung: entry.bezeichnung === "—" ? "" : entry.bezeichnung,
+          stunden: String(entry.stunden),
+        },
+      ],
+    }));
+  }
+
+  async function savePendingRow(datum: string, row: PendingRow) {
+    setSavingKey(row.key);
+    setError(null);
+
+    const response = await fetch("/api/arbeitsstunden/aus-auftraegen", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: row.manualId,
+        datum,
+        auftragNr: row.auftragNr,
+        referenz: row.referenz,
+        bezeichnung: row.bezeichnung,
+        stunden: row.stunden,
+      }),
+    });
+    const result = await response.json().catch(() => ({}));
+
+    setSavingKey(null);
+
+    if (!response.ok) {
+      setError(result.error ?? "Speichern fehlgeschlagen.");
+      return;
+    }
+
+    removePendingRow(datum, row.key);
+    await loadData();
+  }
+
+  function dayDisplayTotal(tag: AufgabenStundenTag) {
+    const pending = pendingByDay[tag.datum] ?? [];
+    const editingIds = new Set(
+      pending.filter((row) => row.manualId).map((row) => row.manualId as string)
+    );
+    const savedTotal = tag.eintraege
+      .filter((entry) => !(entry.quelle === "manuell" && entry.manualId && editingIds.has(entry.manualId)))
+      .reduce((sum, entry) => sum + entry.stunden, 0);
+    return Math.round((savedTotal + pendingStundenSum(pending)) * 100) / 100;
+  }
+
+  const displayGesamtStunden = useMemo(() => {
+    const pendingExtra = Object.entries(pendingByDay).reduce((sum, [datum, rows]) => {
+      const tag = tage.find((item) => item.datum === datum);
+      if (!tag) return sum + pendingStundenSum(rows);
+      const editingIds = new Set(
+        rows.filter((row) => row.manualId).map((row) => row.manualId as string)
+      );
+      const replaced = rows
+        .filter((row) => row.manualId)
+        .reduce((inner, row) => inner + (parseStundenInput(row.stunden) ?? 0), 0);
+      const original = tag.eintraege
+        .filter((entry) => entry.manualId && editingIds.has(entry.manualId))
+        .reduce((inner, entry) => inner + entry.stunden, 0);
+      const newRows = rows.filter((row) => !row.manualId);
+      return sum + pendingStundenSum(newRows) + (replaced - original);
+    }, 0);
+    return Math.round((gesamtStunden + pendingExtra) * 100) / 100;
+  }, [gesamtStunden, pendingByDay, tage]);
 
   return (
     <div className="asAuftragStundenPage">
@@ -211,7 +340,7 @@ export default function ArbeitsstundenAuftragView() {
               </div>
               <div className="asStatCard ok">
                 <strong>Arbeitsstunden gesamt</strong>
-                <b>{formatAufgabenStunden(gesamtStunden)} h</b>
+                <b>{formatAufgabenStunden(displayGesamtStunden)} h</b>
               </div>
               <div className="asStatCard">
                 <strong>Tage mit Einträgen</strong>
@@ -225,55 +354,142 @@ export default function ArbeitsstundenAuftragView() {
               <p>Keine Arbeitsstunden in Arbeitsaufträgen für diesen Zeitraum gefunden.</p>
             </div>
           ) : (
-            tage.map((tag) => (
-              <article key={tag.datum} className="card usersPanel asAuftragDayCard">
-                <header className="asAuftragDayHead">
-                  <div className="asAuftragDayTitleRow">
-                    <h2>{tag.datum}</h2>
-                    <Link
-                      href={`/arbeitsauftrag?dateFrom=${encodeURIComponent(tag.datum)}&dateTo=${encodeURIComponent(tag.datum)}&from=${encodeURIComponent(MEINE_STUNDEN_PATH)}`}
-                      className="pillButton outline asAuftragAddBtn"
-                    >
-                      + hinzufügen
-                    </Link>
-                  </div>
-                  <span className="asAuftragDayTotal">
-                    {formatAufgabenStunden(tag.gesamtStunden)} h
-                  </span>
-                </header>
-                <div className="machineTableScroll">
-                  <table className="asEntriesTable">
-                    <thead>
-                      <tr>
-                        <th>Auftrag</th>
-                        <th>Referenz</th>
-                        <th>Bezeichnung</th>
-                        <th>Stunden</th>
-                        <th />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tag.eintraege.map((entry) => (
-                        <tr key={`${entry.workOrderId}-${entry.quelle}`}>
-                          <td>{entry.auftragNr}</td>
-                          <td>{entry.referenz}</td>
-                          <td>{entry.bezeichnung}</td>
-                          <td>{formatAufgabenStunden(entry.stunden)} h</td>
-                          <td className="asAuftragRowAction">
-                            <Link
-                              href={entryEditHref(entry)}
-                              className="pillButton outline asAuftragEditBtn"
-                            >
-                              Bearbeiten
-                            </Link>
-                          </td>
+            tage.map((tag) => {
+              const pending = pendingByDay[tag.datum] ?? [];
+              const editingIds = new Set(
+                pending.filter((row) => row.manualId).map((row) => row.manualId as string)
+              );
+              const visibleEntries = tag.eintraege.filter(
+                (entry) =>
+                  !(entry.quelle === "manuell" && entry.manualId && editingIds.has(entry.manualId))
+              );
+
+              return (
+                <article key={tag.datum} className="card usersPanel asAuftragDayCard">
+                  <header className="asAuftragDayHead">
+                    <div className="asAuftragDayTitleRow">
+                      <h2>{tag.datum}</h2>
+                      <button
+                        type="button"
+                        className="pillButton outline asAuftragAddBtn"
+                        onClick={() => addPendingRow(tag.datum)}
+                      >
+                        + hinzufügen
+                      </button>
+                    </div>
+                    <span className="asAuftragDayTotal">
+                      {formatAufgabenStunden(dayDisplayTotal(tag))} h
+                    </span>
+                  </header>
+                  <div className="machineTableScroll">
+                    <table className="asEntriesTable">
+                      <thead>
+                        <tr>
+                          <th>Auftrag</th>
+                          <th>Referenz</th>
+                          <th>Bezeichnung</th>
+                          <th>Stunden</th>
+                          <th />
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </article>
-            ))
+                      </thead>
+                      <tbody>
+                        {visibleEntries.map((entry) => {
+                          const editHref = entryEditHref(entry);
+                          return (
+                            <tr key={`${entry.workOrderId}-${entry.quelle}`}>
+                              <td>{entry.auftragNr}</td>
+                              <td>{entry.referenz}</td>
+                              <td>{entry.bezeichnung}</td>
+                              <td>{formatAufgabenStunden(entry.stunden)} h</td>
+                              <td className="asAuftragRowAction">
+                                {editHref ? (
+                                  <Link
+                                    href={editHref}
+                                    className="pillButton outline asAuftragEditBtn"
+                                  >
+                                    Bearbeiten
+                                  </Link>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="pillButton outline asAuftragEditBtn"
+                                    onClick={() => startEditManual(entry)}
+                                  >
+                                    Bearbeiten
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {pending.map((row) => (
+                          <tr key={row.key} className="asAuftragPendingRow">
+                            <td>
+                              <input
+                                className="asAuftragCellInput"
+                                value={row.auftragNr}
+                                placeholder="Auftrag"
+                                onChange={(event) =>
+                                  updatePendingRow(tag.datum, row.key, {
+                                    auftragNr: event.target.value,
+                                  })
+                                }
+                              />
+                            </td>
+                            <td>
+                              <input
+                                className="asAuftragCellInput"
+                                value={row.referenz}
+                                placeholder="Referenz"
+                                onChange={(event) =>
+                                  updatePendingRow(tag.datum, row.key, {
+                                    referenz: event.target.value,
+                                  })
+                                }
+                              />
+                            </td>
+                            <td>
+                              <input
+                                className="asAuftragCellInput"
+                                value={row.bezeichnung}
+                                placeholder="Bezeichnung"
+                                onChange={(event) =>
+                                  updatePendingRow(tag.datum, row.key, {
+                                    bezeichnung: event.target.value,
+                                  })
+                                }
+                              />
+                            </td>
+                            <td>
+                              <input
+                                className="asAuftragCellInput asAuftragCellInputHours"
+                                value={row.stunden}
+                                placeholder="z. B. 1,5"
+                                onChange={(event) =>
+                                  updatePendingRow(tag.datum, row.key, {
+                                    stunden: event.target.value,
+                                  })
+                                }
+                              />
+                            </td>
+                            <td className="asAuftragRowAction">
+                              <button
+                                type="button"
+                                className="pillButton primary asAuftragEditBtn"
+                                disabled={savingKey === row.key}
+                                onClick={() => void savePendingRow(tag.datum, row)}
+                              >
+                                {savingKey === row.key ? "…" : "Speichern"}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </article>
+              );
+            })
           )}
         </>
       )}
