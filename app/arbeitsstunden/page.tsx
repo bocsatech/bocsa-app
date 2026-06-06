@@ -335,6 +335,16 @@ export default function ArbeitsstundenPage() {
     setPeriod("intervall");
   }
 
+  function selectTag() {
+    const today = germanToday();
+    setAnchorDate(today);
+    setPeriod("tag");
+    setIntervalFrom(today);
+    setIntervalTo(today);
+    setIntervalFromInput(today);
+    setIntervalToInput(today);
+  }
+
   function selectWoche() {
     setAnchorDate(visibleDates[0] ?? anchorDate);
     setPeriod("woche");
@@ -358,32 +368,41 @@ export default function ArbeitsstundenPage() {
           <div key={row.date} className="asSidebarStundenHeader">
             <p className="asSidebarStundenName">{index === 0 ? displayName : ""}</p>
             <TimelineTrack blocks={row.blocks} />
-            <p className="asSidebarStundenDate">{row.date}</p>
-            {index === 0 ? (
-              <div className="asSidebarStundenPeriodBtns">
-                <button
-                  type="button"
-                  className={`asSidebarStundenPeriodBtn${period === "woche" ? " active" : ""}`}
-                  onClick={selectWoche}
-                >
-                  Woche
-                </button>
-                <button
-                  type="button"
-                  className={`asSidebarStundenPeriodBtn${period === "monat" ? " active" : ""}`}
-                  onClick={selectMonat}
-                >
-                  Monat
-                </button>
-                <button
-                  type="button"
-                  className={`asSidebarStundenPeriodBtn${period === "intervall" ? " active" : ""}`}
-                  onClick={selectIntervall}
-                >
-                  Intervall
-                </button>
-              </div>
-            ) : null}
+            <div className="asSidebarStundenMeta">
+              <p className="asSidebarStundenDate">{row.date}</p>
+              {index === 0 ? (
+                <div className="asSidebarStundenPeriodBtns">
+                  <button
+                    type="button"
+                    className={`asSidebarStundenPeriodBtn${period === "tag" ? " active" : ""}`}
+                    onClick={selectTag}
+                  >
+                    Tag
+                  </button>
+                  <button
+                    type="button"
+                    className={`asSidebarStundenPeriodBtn${period === "woche" ? " active" : ""}`}
+                    onClick={selectWoche}
+                  >
+                    Woche
+                  </button>
+                  <button
+                    type="button"
+                    className={`asSidebarStundenPeriodBtn${period === "monat" ? " active" : ""}`}
+                    onClick={selectMonat}
+                  >
+                    Monat
+                  </button>
+                  <button
+                    type="button"
+                    className={`asSidebarStundenPeriodBtn${period === "intervall" ? " active" : ""}`}
+                    onClick={selectIntervall}
+                  >
+                    Intervall
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         ))}
 
@@ -432,7 +451,7 @@ export default function ArbeitsstundenPage() {
         .asSidebarStundenHeader {
           display: flex;
           align-items: center;
-          gap: 16px;
+          gap: 20px;
         }
 
         .asSidebarStundenName {
@@ -449,8 +468,15 @@ export default function ArbeitsstundenPage() {
           min-width: 0;
         }
 
-        .asSidebarStundenDate {
+        .asSidebarStundenMeta {
           flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 8px;
+        }
+
+        .asSidebarStundenDate {
           margin: 0;
           font-size: 1.05rem;
           font-weight: 700;
@@ -461,8 +487,8 @@ export default function ArbeitsstundenPage() {
         .asSidebarStundenPeriodBtns {
           display: flex;
           flex-wrap: wrap;
+          justify-content: flex-end;
           gap: 6px;
-          flex-shrink: 0;
         }
 
         .asSidebarStundenPeriodBtn {
@@ -487,7 +513,7 @@ export default function ArbeitsstundenPage() {
           flex-wrap: wrap;
           align-items: end;
           gap: 10px;
-          padding-left: calc(8rem + 16px);
+          padding-left: calc(8rem + 20px);
         }
 
         .asSidebarStundenIntervalField {
