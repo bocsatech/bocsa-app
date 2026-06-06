@@ -438,9 +438,9 @@ export default function PruefprotokollForm({ machineId, protokollId }: Props) {
               />
             </label>
             <div className="ppSignBox">
-              {protokoll.ergebnis.unterschriftUrl ? (
+              {protokoll.ergebnis.unterschriftUrl || userSignatureUrl ? (
                 <img
-                  src={protokoll.ergebnis.unterschriftUrl}
+                  src={protokoll.ergebnis.unterschriftUrl || userSignatureUrl || ""}
                   alt="Unterschrift"
                   style={{ maxHeight: 52, maxWidth: "100%", objectFit: "contain" }}
                 />
