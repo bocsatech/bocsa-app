@@ -1,8 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildUserMatchKeys } from "../../lib/aufgaben-arbeitsstunden";
-import { formatGermanDate, germanToday } from "../../lib/dates";
+import { periodRange } from "../../lib/arbeitsstunden";
+import {
+  formatGermanDate,
+  germanToday,
+  listGermanDatesInRange,
+  normalizeGermanDate,
+} from "../../lib/dates";
 import { collectAllPkwWorkOrders } from "../../lib/pkw-work-orders";
 import type { PkwFahrzeug } from "../../lib/types/pkw";
 import type { Machine } from "../../lib/types/machine";
@@ -25,6 +31,15 @@ type TimelineBlock = {
   leftPercent: number;
   widthPercent: number;
   isPoint: boolean;
+};
+
+type ViewPeriod = "tag" | "woche" | "monat" | "intervall";
+
+type LoadedTimelineData = {
+  displayName: string;
+  userKeys: string[];
+  machines: Machine[];
+  fahrzeuge: PkwFahrzeug[];
 };
 
 function hourLabel(hour: number) {
@@ -78,10 +93,10 @@ function minutesToPercent(minutes: number) {
   return ((clamped - WORK_START_MIN) / WORK_SPAN_MIN) * 100;
 }
 
-function buildTimelineBlock(order: WorkOrder, today: string): TimelineBlock | null {
+function buildTimelineBlock(order: WorkOrder, dayLabel: string): TimelineBlock | null {
   const start = orderStartDate(order);
   if (!start) return null;
-  if (formatGermanDate(start) !== today) return null;
+  if (formatGermanDate(start) !== dayLabel) return null;
 
   const startMinutes = start.getHours() * 60 + start.getMinutes();
   if (startMinutes >= WORK_END_MIN) return null;
@@ -122,11 +137,11 @@ function buildTimelineBlock(order: WorkOrder, today: string): TimelineBlock | nu
   };
 }
 
-function collectTodayTimelineBlocks(
+function collectTimelineBlocksForDay(
   machines: Machine[],
   fahrzeuge: PkwFahrzeug[],
   userKeys: string[],
-  today: string
+  dayLabel: string
 ) {
   const blocks: TimelineBlock[] = [];
   const seen = new Set<string>();
@@ -135,7 +150,7 @@ function collectTodayTimelineBlocks(
     if (!orderMatchesUser(order, userKeys)) continue;
     if (seen.has(order.id)) continue;
 
-    const block = buildTimelineBlock(order, today);
+    const block = buildTimelineBlock(order, dayLabel);
     if (!block) continue;
 
     seen.add(order.id);
@@ -145,13 +160,90 @@ function collectTodayTimelineBlocks(
   return blocks.sort((a, b) => a.leftPercent - b.leftPercent);
 }
 
+function resolveVisibleDates(
+  period: ViewPeriod,
+  anchorDate: string,
+  intervalFrom: string,
+  intervalTo: string
+) {
+  const anchor = normalizeGermanDate(anchorDate) || germanToday();
+
+  if (period === "tag") {
+    return [anchor];
+  }
+
+  if (period === "woche") {
+    const range = periodRange("woche", anchor);
+    return listGermanDatesInRange(range.from, range.to);
+  }
+
+  if (period === "monat") {
+    const range = periodRange("monat", anchor);
+    return listGermanDatesInRange(range.from, range.to);
+  }
+
+  const from = normalizeGermanDate(intervalFrom) || anchor;
+  const to = normalizeGermanDate(intervalTo) || from;
+  if (from.localeCompare(to) > 0) {
+    return listGermanDatesInRange(to, from);
+  }
+  return listGermanDatesInRange(from, to);
+}
+
+function TimelineTrack({ blocks }: { blocks: TimelineBlock[] }) {
+  const hourMarks = Array.from({ length: WORK_END - WORK_START + 1 }, (_, index) => WORK_START + index);
+
+  return (
+    <div className="asSidebarStundenTimeline">
+      <div
+        className="asSidebarStundenTimelineLabels"
+        style={{ gridTemplateColumns: `repeat(${hourMarks.length}, minmax(0, 1fr))` }}
+      >
+        {hourMarks.map((hour) => (
+          <span key={hour}>{hourLabel(hour)}</span>
+        ))}
+      </div>
+      <div className="asSidebarStundenTimelineTrack" aria-hidden="true">
+        {blocks.map((block) =>
+          block.isPoint ? (
+            <span
+              key={block.id}
+              className="asSidebarStundenBlockPoint"
+              style={{ left: `${block.leftPercent}%` }}
+            />
+          ) : (
+            <span
+              key={block.id}
+              className="asSidebarStundenBlock"
+              style={{
+                left: `${block.leftPercent}%`,
+                width: `${block.widthPercent}%`,
+              }}
+            />
+          )
+        )}
+        {hourMarks.map((hour, index) => (
+          <span
+            key={hour}
+            className="asSidebarStundenTimelineTick"
+            style={{ left: `${(index / (hourMarks.length - 1)) * 100}%` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ArbeitsstundenPage() {
-  const [displayName, setDisplayName] = useState("—");
-  const [timelineBlocks, setTimelineBlocks] = useState<TimelineBlock[]>([]);
+  const [loaded, setLoaded] = useState<LoadedTimelineData | null>(null);
+  const [period, setPeriod] = useState<ViewPeriod>("tag");
+  const [anchorDate, setAnchorDate] = useState(() => germanToday());
+  const [intervalFrom, setIntervalFrom] = useState(() => germanToday());
+  const [intervalTo, setIntervalTo] = useState(() => germanToday());
+  const [intervalFromInput, setIntervalFromInput] = useState(() => germanToday());
+  const [intervalToInput, setIntervalToInput] = useState(() => germanToday());
 
   const loadTimeline = useCallback(async () => {
-    const today = germanToday();
-
     try {
       const sessionResponse = await fetch("/api/auth/session", {
         credentials: "include",
@@ -165,10 +257,13 @@ export default function ArbeitsstundenPage() {
       const username =
         typeof sessionData?.username === "string" ? sessionData.username.trim() : "";
 
-      setDisplayName(fullName || username || "—");
-
       if (!username) {
-        setTimelineBlocks([]);
+        setLoaded({
+          displayName: fullName || "—",
+          userKeys: [],
+          machines: [],
+          fahrzeuge: [],
+        });
         return;
       }
 
@@ -181,9 +276,19 @@ export default function ArbeitsstundenPage() {
       const machines = machinesResponse.ok ? ((await machinesResponse.json()) as Machine[]) : [];
       const fahrzeuge = fahrzeugeResponse.ok ? ((await fahrzeugeResponse.json()) as PkwFahrzeug[]) : [];
 
-      setTimelineBlocks(collectTodayTimelineBlocks(machines, fahrzeuge, userKeys, today));
+      setLoaded({
+        displayName: fullName || username || "—",
+        userKeys,
+        machines,
+        fahrzeuge,
+      });
     } catch {
-      setTimelineBlocks([]);
+      setLoaded({
+        displayName: "—",
+        userKeys: [],
+        machines: [],
+        fahrzeuge: [],
+      });
     }
   }, []);
 
@@ -200,59 +305,134 @@ export default function ArbeitsstundenPage() {
     return () => window.removeEventListener("focus", onFocus);
   }, [loadTimeline]);
 
-  const hourMarks = Array.from({ length: WORK_END - WORK_START + 1 }, (_, index) => WORK_START + index);
-  const todayLabel = germanToday();
+  const visibleDates = useMemo(
+    () => resolveVisibleDates(period, anchorDate, intervalFrom, intervalTo),
+    [period, anchorDate, intervalFrom, intervalTo]
+  );
+
+  const dayRows = useMemo(() => {
+    if (!loaded) return [];
+
+    return visibleDates.map((date) => ({
+      date,
+      blocks: collectTimelineBlocksForDay(
+        loaded.machines,
+        loaded.fahrzeuge,
+        loaded.userKeys,
+        date
+      ),
+    }));
+  }, [loaded, visibleDates]);
+
+  function applyInterval() {
+    const from = normalizeGermanDate(intervalFromInput) || germanToday();
+    const to = normalizeGermanDate(intervalToInput) || from;
+    setIntervalFrom(from);
+    setIntervalTo(to);
+    setIntervalFromInput(from);
+    setIntervalToInput(to);
+    setAnchorDate(from);
+    setPeriod("intervall");
+  }
+
+  function selectWoche() {
+    setAnchorDate(visibleDates[0] ?? anchorDate);
+    setPeriod("woche");
+  }
+
+  function selectMonat() {
+    setAnchorDate(visibleDates[0] ?? anchorDate);
+    setPeriod("monat");
+  }
+
+  function selectIntervall() {
+    setPeriod("intervall");
+  }
+
+  const displayName = loaded?.displayName ?? "—";
 
   return (
     <AppPageShell activeHref="/arbeitsstunden" subtitle="Betrieb">
-      <div className="asSidebarStundenHeader">
-        <p className="asSidebarStundenName">{displayName}</p>
-        <div className="asSidebarStundenTimeline">
-          <div
-            className="asSidebarStundenTimelineLabels"
-            style={{ gridTemplateColumns: `repeat(${hourMarks.length}, minmax(0, 1fr))` }}
-          >
-            {hourMarks.map((hour) => (
-              <span key={hour}>{hourLabel(hour)}</span>
-            ))}
+      <div className="asSidebarStundenStack">
+        {dayRows.map((row, index) => (
+          <div key={row.date} className="asSidebarStundenHeader">
+            <p className="asSidebarStundenName">{index === 0 ? displayName : ""}</p>
+            <TimelineTrack blocks={row.blocks} />
+            <p className="asSidebarStundenDate">{row.date}</p>
+            {index === 0 ? (
+              <div className="asSidebarStundenPeriodBtns">
+                <button
+                  type="button"
+                  className={`asSidebarStundenPeriodBtn${period === "woche" ? " active" : ""}`}
+                  onClick={selectWoche}
+                >
+                  Woche
+                </button>
+                <button
+                  type="button"
+                  className={`asSidebarStundenPeriodBtn${period === "monat" ? " active" : ""}`}
+                  onClick={selectMonat}
+                >
+                  Monat
+                </button>
+                <button
+                  type="button"
+                  className={`asSidebarStundenPeriodBtn${period === "intervall" ? " active" : ""}`}
+                  onClick={selectIntervall}
+                >
+                  Intervall
+                </button>
+              </div>
+            ) : null}
           </div>
-          <div className="asSidebarStundenTimelineTrack" aria-hidden="true">
-            {timelineBlocks.map((block) =>
-              block.isPoint ? (
-                <span
-                  key={block.id}
-                  className="asSidebarStundenBlockPoint"
-                  style={{ left: `${block.leftPercent}%` }}
-                />
-              ) : (
-                <span
-                  key={block.id}
-                  className="asSidebarStundenBlock"
-                  style={{
-                    left: `${block.leftPercent}%`,
-                    width: `${block.widthPercent}%`,
-                  }}
-                />
-              )
-            )}
-            {hourMarks.map((hour, index) => (
-              <span
-                key={hour}
-                className="asSidebarStundenTimelineTick"
-                style={{ left: `${(index / (hourMarks.length - 1)) * 100}%` }}
+        ))}
+
+        {period === "intervall" ? (
+          <div className="asSidebarStundenInterval">
+            <label className="asSidebarStundenIntervalField">
+              <span>Von</span>
+              <input
+                type="text"
+                value={intervalFromInput}
+                placeholder="TT.MM.JJJJ"
+                onChange={(event) => setIntervalFromInput(event.target.value)}
+                onBlur={() => {
+                  const normalized = normalizeGermanDate(intervalFromInput);
+                  if (normalized) setIntervalFromInput(normalized);
+                }}
               />
-            ))}
+            </label>
+            <label className="asSidebarStundenIntervalField">
+              <span>Bis</span>
+              <input
+                type="text"
+                value={intervalToInput}
+                placeholder="TT.MM.JJJJ"
+                onChange={(event) => setIntervalToInput(event.target.value)}
+                onBlur={() => {
+                  const normalized = normalizeGermanDate(intervalToInput);
+                  if (normalized) setIntervalToInput(normalized);
+                }}
+              />
+            </label>
+            <button type="button" className="asSidebarStundenPeriodBtn" onClick={applyInterval}>
+              Anwenden
+            </button>
           </div>
-        </div>
-        <p className="asSidebarStundenDate">{todayLabel}</p>
+        ) : null}
       </div>
       <style jsx>{`
+        .asSidebarStundenStack {
+          display: grid;
+          gap: 14px;
+          max-width: 52rem;
+          padding: 8px 4px;
+        }
+
         .asSidebarStundenHeader {
           display: flex;
           align-items: center;
-          gap: 20px;
-          max-width: 52rem;
-          padding: 8px 4px;
+          gap: 16px;
         }
 
         .asSidebarStundenName {
@@ -276,6 +456,54 @@ export default function ArbeitsstundenPage() {
           font-weight: 700;
           color: #111827;
           white-space: nowrap;
+        }
+
+        .asSidebarStundenPeriodBtns {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+
+        .asSidebarStundenPeriodBtn {
+          border: 1px solid #d1d5db;
+          background: #ffffff;
+          color: #111827;
+          border-radius: 8px;
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .asSidebarStundenPeriodBtn.active {
+          background: #111827;
+          border-color: #111827;
+          color: #ffffff;
+        }
+
+        .asSidebarStundenInterval {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: end;
+          gap: 10px;
+          padding-left: calc(8rem + 16px);
+        }
+
+        .asSidebarStundenIntervalField {
+          display: grid;
+          gap: 4px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #6b7280;
+        }
+
+        .asSidebarStundenIntervalField input {
+          min-width: 7.5rem;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          padding: 6px 8px;
+          font-size: 14px;
         }
 
         .asSidebarStundenTimelineLabels {
