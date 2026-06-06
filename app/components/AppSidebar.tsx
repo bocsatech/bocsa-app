@@ -819,7 +819,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
             setMobileMenuOpen((open) => !open);
           }}
         >
-          {mobileMenuOpen ? "Schließen" : "Menü"}
+          {mobileMenuOpen ? "Schließen" : "Meine Menü"}
         </button>
       </div>
       <nav id="sidebar-main-nav" className="sidebarNav">
