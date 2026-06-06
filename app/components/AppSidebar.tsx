@@ -672,13 +672,6 @@ function SidebarNavItems({
 
   return (
     <>
-      <MeineMenuNavGroup
-        activeHref={activeHref}
-        pathname={pathname}
-        mobileMenuOpen={mobileMenuOpen}
-        onMobileNavClose={onMobileNavClose}
-      />
-
       {showHome ? (
         <Link
           href={HOME_NAV.href}
@@ -690,6 +683,13 @@ function SidebarNavItems({
           {HOME_NAV.label}
         </Link>
       ) : null}
+
+      <MeineMenuNavGroup
+        activeHref={activeHref}
+        pathname={pathname}
+        mobileMenuOpen={mobileMenuOpen}
+        onMobileNavClose={onMobileNavClose}
+      />
 
       {showBaumaschinen ? (
         <BaumaschinenNavGroup
