@@ -1,0 +1,41 @@
+.persoenlicheSachePage {
+  max-width: 42rem;
+}
+
+.persoenlicheSachePage .usersEditPanel {
+  margin-top: 0;
+}
+
+.persoenlicheSachePage .groupCreateForm input,
+.persoenlicheSachePage .userCreateForm input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.persoenlicheSachePage .groupCreateForm input:focus,
+.persoenlicheSachePage .userCreateForm input:focus,
+.persoenlicheSachePage .userFilialeField select:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.persoenlicheSachePage .documentationFieldRow {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.persoenlicheSachePage .documentationFieldRow > span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
