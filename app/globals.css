@@ -1292,6 +1292,12 @@ body.app-shell-route .appPageScroll > .welcomeCard {
   font-size: 0.86rem;
 }
 
+.sidebarMeineMenuGroup .sidebarNavSub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 @media (min-width: 761px) {
   .sidebarMenuToggle {
     display: none !important;

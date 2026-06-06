@@ -338,34 +338,36 @@ function isBaumaschinenListRoot(
 function MeineMenuNavGroup({
   activeHref,
   pathname,
-  submenuOpen,
+  mobileMenuOpen,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
   pathname: string;
-  submenuOpen: boolean;
+  mobileMenuOpen: boolean;
   onMobileNavClose?: () => void;
 }) {
   const sectionActive = isMeineMenuSectionActive(activeHref, pathname);
-  const [open, setOpen] = useState(submenuOpen || sectionActive);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    if (sectionActive) setOpen(true);
-  }, [sectionActive]);
+    if (sectionActive || mobileMenuOpen) setOpen(true);
+  }, [sectionActive, mobileMenuOpen]);
 
-  const showSub = submenuOpen || open;
+  function handleParentClick() {
+    setOpen((current) => !current);
+  }
 
   return (
     <div className="sidebarNavGroup sidebarMeineMenuGroup">
       <button
         type="button"
-        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
-        aria-expanded={showSub}
-        onClick={() => setOpen((current) => !current)}
+        className={`sidebarNavParent${sectionActive || open ? " active" : ""}`}
+        aria-expanded={open}
+        onClick={handleParentClick}
       >
         {MEINE_MENU_NAV.label}
       </button>
-      {showSub ? (
+      {open ? (
         <div className="sidebarNavSub">
           {MEINE_MENU_NAV.children.map((child) => (
             <Link
@@ -634,6 +636,7 @@ function SidebarNavItems({
   auth,
   submenuOpen,
   meldungenCount,
+  mobileMenuOpen,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -644,6 +647,7 @@ function SidebarNavItems({
   auth: SidebarAuth;
   submenuOpen: boolean;
   meldungenCount: number;
+  mobileMenuOpen: boolean;
   onMobileNavClose?: () => void;
 }) {
   const { permissions, groups, username } = auth;
@@ -671,7 +675,7 @@ function SidebarNavItems({
       <MeineMenuNavGroup
         activeHref={activeHref}
         pathname={pathname}
-        submenuOpen={submenuOpen}
+        mobileMenuOpen={mobileMenuOpen}
         onMobileNavClose={onMobileNavClose}
       />
 
@@ -753,12 +757,14 @@ function SidebarNavWithSearchParams({
   pathname,
   auth,
   meldungenCount,
+  mobileMenuOpen,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
   pathname: string;
   auth: SidebarAuth;
   meldungenCount: number;
+  mobileMenuOpen: boolean;
   onMobileNavClose?: () => void;
 }) {
   const searchParams = useSearchParams();
@@ -776,6 +782,7 @@ function SidebarNavWithSearchParams({
       auth={auth}
       submenuOpen={false}
       meldungenCount={meldungenCount}
+      mobileMenuOpen={mobileMenuOpen}
       onMobileNavClose={onMobileNavClose}
     />
   );
@@ -786,12 +793,14 @@ function SidebarNavFallback({
   pathname,
   auth,
   meldungenCount,
+  mobileMenuOpen,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
   pathname: string;
   auth: SidebarAuth;
   meldungenCount: number;
+  mobileMenuOpen: boolean;
   onMobileNavClose?: () => void;
 }) {
   return (
@@ -804,6 +813,7 @@ function SidebarNavFallback({
       auth={auth}
       submenuOpen
       meldungenCount={meldungenCount}
+      mobileMenuOpen={mobileMenuOpen}
       onMobileNavClose={onMobileNavClose}
     />
   );
@@ -902,6 +912,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
               pathname={pathname}
               auth={auth}
               meldungenCount={meldungenCount}
+              mobileMenuOpen={mobileMenuOpen}
               onMobileNavClose={closeMobileMenu}
             />
           }
@@ -911,6 +922,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
             pathname={pathname}
             auth={auth}
             meldungenCount={meldungenCount}
+            mobileMenuOpen={mobileMenuOpen}
             onMobileNavClose={closeMobileMenu}
           />
         </Suspense>
