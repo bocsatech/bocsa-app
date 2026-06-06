@@ -124,6 +124,7 @@ export const MEINE_MENU_NAV = {
   label: "Meine Menü",
   children: [
     { href: "/aufgaben", label: "Aufgaben" },
+    { href: "/arbeitsstunden", label: "Arbeitsstunden", permission: "menu.hours" },
     { href: "/persoenliche-sache", label: "Persönliche Sache" },
   ],
 } as const;
@@ -339,13 +340,27 @@ function MeineMenuNavGroup({
   activeHref,
   pathname,
   mobileMenuOpen,
+  permissions,
+  groups,
+  username,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
   pathname: string;
   mobileMenuOpen: boolean;
+  permissions: string[];
+  groups: string[];
+  username?: string;
   onMobileNavClose?: () => void;
 }) {
+  const visibleChildren = MEINE_MENU_NAV.children.filter((child) =>
+    canShowMenuItem(
+      "permission" in child ? child.permission : undefined,
+      permissions,
+      groups,
+      username
+    )
+  );
   const sectionActive = isMeineMenuSectionActive(activeHref, pathname);
   const [open, setOpen] = useState(true);
 
@@ -356,6 +371,8 @@ function MeineMenuNavGroup({
   function handleParentClick() {
     setOpen((current) => !current);
   }
+
+  if (visibleChildren.length === 0) return null;
 
   return (
     <div className="sidebarNavGroup sidebarMeineMenuGroup">
@@ -369,7 +386,7 @@ function MeineMenuNavGroup({
       </button>
       {open ? (
         <div className="sidebarNavSub">
-          {MEINE_MENU_NAV.children.map((child) => (
+          {visibleChildren.map((child) => (
             <Link
               key={child.href}
               href={child.href}
@@ -688,6 +705,9 @@ function SidebarNavItems({
         activeHref={activeHref}
         pathname={pathname}
         mobileMenuOpen={mobileMenuOpen}
+        permissions={permissions}
+        groups={groups}
+        username={username}
         onMobileNavClose={onMobileNavClose}
       />
 
