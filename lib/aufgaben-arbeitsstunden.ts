@@ -27,6 +27,7 @@ export type AufgabenStundenEintrag = {
   referenz: string;
   bezeichnung: string;
   workOrderId: string;
+  parentId: string;
   quelle: "maschine" | "pkw";
 };
 
@@ -125,6 +126,7 @@ export function collectAufgabenStundenFromAuftraege(
       referenz: order.geraetenummer || "—",
       bezeichnung: order.bezeichnung?.trim() || order.repairDescription?.trim() || "—",
       workOrderId: order.id,
+      parentId: order.machineId,
       quelle: "maschine",
     };
 
@@ -150,6 +152,7 @@ export function collectAufgabenStundenFromAuftraege(
       referenz: order.kennzeichen || "—",
       bezeichnung: order.bezeichnung?.trim() || order.kunde?.trim() || "—",
       workOrderId: order.id,
+      parentId: order.fahrzeugId,
       quelle: "pkw",
     };
 

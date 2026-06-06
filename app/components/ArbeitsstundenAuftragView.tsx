@@ -1,11 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   formatAufgabenStunden,
+  type AufgabenStundenEintrag,
   type AufgabenStundenTag,
   type AuftragStundenPeriod,
 } from "../../lib/aufgaben-arbeitsstunden";
+import { buildArbeitsauftragDetailHref } from "../../lib/arbeitsauftrag-routes";
+import { buildPkwArbeitsauftragDetailHref } from "../../lib/pkw-arbeitsauftrag-routes";
 import { germanToday, normalizeGermanDate } from "../../lib/dates";
 import { toAustriaDateString } from "../../lib/machines";
 import "../arbeitsauftrag-form.css";
@@ -22,6 +26,26 @@ type StundenResponse = {
 
 function displayToGermanDate(value: string) {
   return normalizeGermanDate(value) ?? "";
+}
+
+const MEINE_STUNDEN_PATH = "/arbeitsstunden/aus-auftraegen";
+
+function entryEditHref(entry: AufgabenStundenEintrag) {
+  if (entry.quelle === "pkw") {
+    return buildPkwArbeitsauftragDetailHref({
+      fahrzeugId: entry.parentId,
+      auftragId: entry.workOrderId,
+      edit: true,
+      from: MEINE_STUNDEN_PATH,
+    });
+  }
+
+  return buildArbeitsauftragDetailHref({
+    machineId: entry.parentId,
+    auftragId: entry.workOrderId,
+    edit: true,
+    from: MEINE_STUNDEN_PATH,
+  });
 }
 
 export default function ArbeitsstundenAuftragView() {
@@ -218,6 +242,7 @@ export default function ArbeitsstundenAuftragView() {
                         <th>Referenz</th>
                         <th>Bezeichnung</th>
                         <th>Stunden</th>
+                        <th />
                       </tr>
                     </thead>
                     <tbody>
@@ -228,6 +253,14 @@ export default function ArbeitsstundenAuftragView() {
                           <td>{entry.referenz}</td>
                           <td>{entry.bezeichnung}</td>
                           <td>{formatAufgabenStunden(entry.stunden)} h</td>
+                          <td className="asAuftragRowAction">
+                            <Link
+                              href={entryEditHref(entry)}
+                              className="pillButton outline asAuftragEditBtn"
+                            >
+                              Bearbeiten
+                            </Link>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
