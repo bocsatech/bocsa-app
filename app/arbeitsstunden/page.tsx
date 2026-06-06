@@ -25,6 +25,10 @@ const WORK_END = 17;
 const WORK_START_MIN = WORK_START * 60;
 const WORK_END_MIN = WORK_END * 60;
 const WORK_SPAN_MIN = WORK_END_MIN - WORK_START_MIN;
+const HOUR_MARKS = Array.from(
+  { length: WORK_END - WORK_START + 1 },
+  (_, index) => WORK_START + index
+);
 
 type TimelineBlock = {
   id: string;
@@ -190,50 +194,6 @@ function resolveVisibleDates(
   return listGermanDatesInRange(from, to);
 }
 
-function TimelineTrack({ blocks }: { blocks: TimelineBlock[] }) {
-  const hourMarks = Array.from({ length: WORK_END - WORK_START + 1 }, (_, index) => WORK_START + index);
-
-  return (
-    <div className="asSidebarStundenTimeline">
-      <div
-        className="asSidebarStundenTimelineLabels"
-        style={{ gridTemplateColumns: `repeat(${hourMarks.length}, minmax(0, 1fr))` }}
-      >
-        {hourMarks.map((hour) => (
-          <span key={hour}>{hourLabel(hour)}</span>
-        ))}
-      </div>
-      <div className="asSidebarStundenTimelineTrack" aria-hidden="true">
-        {blocks.map((block) =>
-          block.isPoint ? (
-            <span
-              key={block.id}
-              className="asSidebarStundenBlockPoint"
-              style={{ left: `${block.leftPercent}%` }}
-            />
-          ) : (
-            <span
-              key={block.id}
-              className="asSidebarStundenBlock"
-              style={{
-                left: `${block.leftPercent}%`,
-                width: `${block.widthPercent}%`,
-              }}
-            />
-          )
-        )}
-        {hourMarks.map((hour, index) => (
-          <span
-            key={hour}
-            className="asSidebarStundenTimelineTick"
-            style={{ left: `${(index / (hourMarks.length - 1)) * 100}%` }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function ArbeitsstundenPage() {
   const [loaded, setLoaded] = useState<LoadedTimelineData | null>(null);
   const [period, setPeriod] = useState<ViewPeriod>("tag");
@@ -368,7 +328,43 @@ export default function ArbeitsstundenPage() {
           <div key={row.date} className="asSidebarStundenDay">
             <div className="asSidebarStundenHeader">
               <p className="asSidebarStundenName">{index === 0 ? displayName : ""}</p>
-              <TimelineTrack blocks={row.blocks} />
+              <div className="asSidebarStundenTimeline">
+                <div
+                  className="asSidebarStundenTimelineLabels"
+                  style={{ gridTemplateColumns: `repeat(${HOUR_MARKS.length}, minmax(0, 1fr))` }}
+                >
+                  {HOUR_MARKS.map((hour) => (
+                    <span key={hour}>{hourLabel(hour)}</span>
+                  ))}
+                </div>
+                <div className="asSidebarStundenTimelineTrack" aria-hidden="true">
+                  {row.blocks.map((block) =>
+                    block.isPoint ? (
+                      <span
+                        key={block.id}
+                        className="asSidebarStundenBlockPoint"
+                        style={{ left: `${block.leftPercent}%` }}
+                      />
+                    ) : (
+                      <span
+                        key={block.id}
+                        className="asSidebarStundenBlock"
+                        style={{
+                          left: `${block.leftPercent}%`,
+                          width: `${block.widthPercent}%`,
+                        }}
+                      />
+                    )
+                  )}
+                  {HOUR_MARKS.map((hour, tickIndex) => (
+                    <span
+                      key={hour}
+                      className="asSidebarStundenTimelineTick"
+                      style={{ left: `${(tickIndex / (HOUR_MARKS.length - 1)) * 100}%` }}
+                    />
+                  ))}
+                </div>
+              </div>
               <p className="asSidebarStundenDate">{row.date}</p>
             </div>
             {index === 0 ? (
