@@ -365,12 +365,14 @@ export default function ArbeitsstundenPage() {
     <AppPageShell activeHref="/arbeitsstunden" subtitle="Betrieb">
       <div className="asSidebarStundenStack">
         {dayRows.map((row, index) => (
-          <div key={row.date} className="asSidebarStundenHeader">
-            <p className="asSidebarStundenName">{index === 0 ? displayName : ""}</p>
-            <TimelineTrack blocks={row.blocks} />
-            <div className="asSidebarStundenMeta">
+          <div key={row.date} className="asSidebarStundenDay">
+            <div className="asSidebarStundenHeader">
+              <p className="asSidebarStundenName">{index === 0 ? displayName : ""}</p>
+              <TimelineTrack blocks={row.blocks} />
               <p className="asSidebarStundenDate">{row.date}</p>
-              {index === 0 ? (
+            </div>
+            {index === 0 ? (
+              <div className="asSidebarStundenPeriodRow">
                 <div className="asSidebarStundenPeriodBtns">
                   <button
                     type="button"
@@ -401,8 +403,8 @@ export default function ArbeitsstundenPage() {
                     Intervall
                   </button>
                 </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </div>
         ))}
 
@@ -448,6 +450,11 @@ export default function ArbeitsstundenPage() {
           padding: 8px 4px;
         }
 
+        .asSidebarStundenDay {
+          display: grid;
+          gap: 8px;
+        }
+
         .asSidebarStundenHeader {
           display: flex;
           align-items: center;
@@ -464,24 +471,22 @@ export default function ArbeitsstundenPage() {
         }
 
         .asSidebarStundenTimeline {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .asSidebarStundenMeta {
-          flex-shrink: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 8px;
+          flex: 1 1 320px;
+          min-width: 280px;
         }
 
         .asSidebarStundenDate {
+          flex-shrink: 0;
           margin: 0;
           font-size: 1.05rem;
           font-weight: 700;
           color: #111827;
           white-space: nowrap;
+        }
+
+        .asSidebarStundenPeriodRow {
+          display: flex;
+          justify-content: flex-end;
         }
 
         .asSidebarStundenPeriodBtns {
