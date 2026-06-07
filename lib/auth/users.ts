@@ -6,6 +6,7 @@ import {
   normalizeUserFilialeCode,
   type UserFilialeCode,
 } from "../user-filiale";
+import { ensureUsersFilialeColumn } from "../users-filiale-setup.mjs";
 
 export const USERS_TABLE = "users";
 
@@ -37,9 +38,17 @@ const USER_AUTH_SELECT =
 const USER_AUTH_SELECT_LEGACY =
   "id, username, password_hash, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
 
-function isMissingFilialeColumn(error: { message?: string } | null) {
+function isMissingFilialeColumn(
+  error: { message?: string; code?: string } | null
+) {
   const msg = String(error?.message ?? "").toLowerCase();
-  return msg.includes("filiale_code") && msg.includes("does not exist");
+  if (!msg.includes("filiale_code")) return false;
+  const code = String(error?.code ?? "").toUpperCase();
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    code === "PGRST204"
+  );
 }
 
 function mapUser(row: Record<string, unknown> | null): AppUser | null {
@@ -151,6 +160,16 @@ export async function createUser(
     .single();
 
   if (error && isMissingFilialeColumn(error)) {
+    if (await ensureUsersFilialeColumn()) {
+      ({ data, error } = await db
+        .from(USERS_TABLE)
+        .insert({ ...insertBase, filiale_code: filialeCode ?? null })
+        .select("id, username, secret_pin, filiale_code")
+        .single());
+    }
+  }
+
+  if (error && isMissingFilialeColumn(error)) {
     ({ data, error } = await db
       .from(USERS_TABLE)
       .insert(insertBase)
@@ -171,6 +190,15 @@ export async function listUsers() {
     .from(USERS_TABLE)
     .select(USER_LIST_SELECT)
     .order("created_at", { ascending: false });
+
+  if (error && isMissingFilialeColumn(error)) {
+    if (await ensureUsersFilialeColumn()) {
+      ({ data, error } = await db
+        .from(USERS_TABLE)
+        .select(USER_LIST_SELECT)
+        .order("created_at", { ascending: false }));
+    }
+  }
 
   if (error && isMissingFilialeColumn(error)) {
     ({ data, error } = await db
@@ -231,11 +259,31 @@ export async function updateUserById(
     .select(USER_LIST_SELECT)
     .single();
 
-  if (error && isMissingFilialeColumn(error) && "filiale_code" in payload) {
+  if (error && isMissingFilialeColumn(error)) {
+    if (await ensureUsersFilialeColumn()) {
+      ({ data, error } = await db
+        .from(USERS_TABLE)
+        .update(payload)
+        .eq("id", id)
+        .select(USER_LIST_SELECT)
+        .single());
+    }
+  }
+
+  if (error && isMissingFilialeColumn(error)) {
     const { filiale_code: _omit, ...payloadWithoutFiliale } = payload;
+    const updatePayload =
+      "filiale_code" in payload ? payloadWithoutFiliale : payload;
+    if (Object.keys(updatePayload).length === 0) {
+      return {
+        user: null,
+        error:
+          'Spalte "filiale_code" fehlt. Bitte supabase/users-filiale-patch.sql im Supabase SQL Editor ausführen.',
+      };
+    }
     ({ data, error } = await db
       .from(USERS_TABLE)
-      .update(payloadWithoutFiliale)
+      .update(updatePayload)
       .eq("id", id)
       .select(USER_LIST_SELECT_LEGACY)
       .single());
