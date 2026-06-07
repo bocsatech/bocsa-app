@@ -40,7 +40,7 @@ import {
   saveMachineProtokollVorlage,
   clearMachineProtokollVorlageApi,
 } from "../../lib/geraetgruppe-protokoll";
-import { reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
+import { isLegacyAuftragNr, reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
 import type { UserFilialeCode } from "../../lib/user-filiale";
 import { normalizeUserFilialeCode } from "../../lib/user-filiale";
 import { fetchLagerTeile } from "../../lib/lager";
@@ -186,6 +186,19 @@ export default function ArbeitsauftragForm({
       ) {
         normalized = { ...normalized, protocol: stripped };
       }
+      const nr = normalized.auftragNr?.trim() ?? "";
+      if (!nr || !isLegacyAuftragNr(nr)) {
+        try {
+          const { auftragNr } = await reserveWorkOrderAuftragNr({
+            type: normalized.type,
+            depot: normalized.depot || data.depot || "",
+            date: normalized.date,
+          });
+          normalized = { ...normalized, auftragNr };
+        } catch {
+          /* bestehende Nummer beibehalten */
+        }
+      }
       setOrder(normalized);
     } else if (initialType?.trim()) {
       const resolved = await fetchProtocolForNewWorkOrder(data);
@@ -200,8 +213,7 @@ export default function ArbeitsauftragForm({
       try {
         const { auftragNr } = await reserveWorkOrderAuftragNr({
           type: empty.type,
-          geraetenummer: data.geraetenummer ?? "",
-          filialeCode: normalizeUserFilialeCode(session.profile?.filialeCode) ?? "",
+          depot: empty.depot || data.depot || "",
           date: empty.date,
         });
         setOrder({ ...empty, auftragNr });
@@ -400,12 +412,12 @@ export default function ArbeitsauftragForm({
 
     let normalized = normalizeWorkOrder(orderToSave);
 
-    if (!normalized.auftragNr?.trim()) {
+    const existingNr = normalized.auftragNr?.trim() ?? "";
+    if (!existingNr || !isLegacyAuftragNr(existingNr)) {
       try {
         const { auftragNr } = await reserveWorkOrderAuftragNr({
           type: normalized.type,
-          geraetenummer: baseMachine.geraetenummer ?? "",
-          filialeCode: filialeCode || "",
+          depot: normalized.depot || baseMachine.depot || "",
           date: normalized.date,
         });
         normalized = { ...normalized, auftragNr };
