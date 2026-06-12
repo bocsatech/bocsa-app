@@ -7,8 +7,10 @@ import AppPageShell from "../components/AppPageShell";
 import GeraetenummerFilterPicker from "../components/GeraetenummerFilterPicker";
 import GeraetenummerCodesModal from "../components/GeraetenummerCodesModal";
 import MachineAddModal from "../components/MachineAddModal";
+import MachineKpiRow from "../components/MachineKpiRow";
 import MachineList from "../components/MachineList";
 import QrScannerModal from "../components/QrScannerModal";
+import "./maschinen-kpi.css";
 import {
   fetchMachines,
   GERAETTYP_OPTIONS,
@@ -332,6 +334,8 @@ function MaschinenPageContent() {
                 Zurücksetzen
               </button>
             </div>
+
+            <MachineKpiRow machines={machines} />
 
             {scanHint ? (
               <p className="scanHint" role="status">

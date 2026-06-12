@@ -1,0 +1,82 @@
+.maschinenKpiRow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.maschinenKpiCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px 9px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.maschinenKpiCardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 1.75rem;
+}
+
+.maschinenKpiCardTitle {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111827;
+}
+
+.maschinenKpiCardTitle .maschinenKpiAccent {
+  color: #f97316;
+}
+
+.maschinenKpiCardIcon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  color: #f97316;
+}
+
+.maschinenKpiCardIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.maschinenKpiCardValue {
+  margin: 0;
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  font-weight: 800;
+  line-height: 1;
+  color: #111827;
+}
+
+.maschinenKpiCardSub {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: #6b7280;
+}
+
+@media (max-width: 1200px) {
+  .maschinenKpiRow {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .maschinenKpiCard {
+    flex: 0 0 min(148px, 38vw);
+    scroll-snap-align: start;
+  }
+}
