@@ -24,33 +24,50 @@
     }
     .photo {
       flex: 1.15;
-      background:
-        linear-gradient(135deg, rgba(0,0,0,.28), rgba(0,0,0,.06)),
-        linear-gradient(160deg, #cbd5e1 0%, #94a3b8 35%, #64748b 70%, #475569 100%);
       position: relative;
       min-height: 0;
+      background-color: #f5f6fa;
+      background-image:
+        linear-gradient(135deg, rgba(15, 23, 42, .06), rgba(15, 23, 42, .01)),
+        url("bocsa-app-home.jpg");
+      background-repeat: no-repeat;
+      background-position: top left;
+      background-size: 100% 100%;
     }
-    .logoWrap {
+    .logoBadge {
       position: absolute;
-      left: 22mm;
-      top: 50%;
-      transform: translateY(-50%);
+      left: 16mm;
+      top: 14mm;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
+      padding: 10px 16px 10px 12px;
+      background: rgba(15, 23, 42, 0.92);
+      border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
     }
-    .logoWrap svg {
-      width: 72px;
-      height: 72px;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,.35));
+    .logoBadge svg {
+      width: 52px;
+      height: 52px;
       flex-shrink: 0;
     }
-    .logoWrap span {
+    .logoText {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
       color: #fff;
-      font-size: 26px;
+      line-height: 1.05;
+    }
+    .logoText strong {
+      font-size: 18px;
       font-weight: 800;
-      letter-spacing: .06em;
-      text-shadow: 0 2px 8px rgba(0,0,0,.45);
+      letter-spacing: .04em;
+    }
+    .logoText span {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: #fb923c;
     }
     .footer {
       flex: 0.85;
@@ -87,8 +104,8 @@
 </head>
 <body>
   <article class="cover">
-    <section class="photo" aria-label="Industrie">
-      <div class="logoWrap">
+    <section class="photo" aria-label="Bocsa Tech Programm">
+      <div class="logoBadge">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true">
           <defs>
             <linearGradient id="bocsa-bg" x1="256" y1="32" x2="256" y2="480" gradientUnits="userSpaceOnUse">
@@ -103,7 +120,10 @@
             <text x="256" y="318" text-anchor="middle" font-family="system-ui,sans-serif" font-size="168" font-weight="800" fill="#ffffff">B</text>
           </g>
         </svg>
-        <span>BOCSA TECH</span>
+        <div class="logoText">
+          <strong>BOCSA TECH</strong>
+          <span>INDUSTRIAL SaaS</span>
+        </div>
       </div>
     </section>
     <footer class="footer">

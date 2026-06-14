@@ -8,6 +8,7 @@ Ez **nem** a Bocsa Tech webalkalmazás része. Önálló dokumentum a PDCA elemz
 |------|--------|
 | `lean-production-borito.html` | Nyomtatható borító (böngészőben megnyitva) |
 | `lean-production-borito.png` | Előnézeti kép |
+| `bocsa-app-home.jpg` | Bocsa Tech program képernyőkép (borító háttér) |
 
 ## Tartalom
 
@@ -20,4 +21,4 @@ Ez **nem** a Bocsa Tech webalkalmazás része. Önálló dokumentum a PDCA elemz
 
 1. Nyisd meg a `lean-production-borito.html` fájlt Chrome vagy Safari böngészőben (dupla kattintás).
 2. Nyomtatás: **Cmd+P** (Mac) → cél: **PDF mentése** vagy A4 fekvő nyomtatás.
-3. A gyári fotó helyett most szürke háttér van — ha megvan az eredeti Word/PDF forrás, cserélhető a `.photo` szekció háttérképe.
+3. A háttérkép a Bocsa Tech Home oldal (`bocsa-app-home.jpg`). Frissítés: `node scripts/capture-pdca-screenshots.mjs` (Playwright szükséges).
