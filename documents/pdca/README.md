@@ -8,13 +8,15 @@ Ez **nem** a Bocsa Tech webalkalmazás része. Önálló dokumentum a PDCA elemz
 |------|--------|
 | `lean-production-borito.html` | Nyomtatható borító (böngészőben megnyitva) |
 | `lean-production-borito.png` | Előnézeti kép |
+| `pdca-zyklus-de.svg` | PDCA ciklus németül (önálló ábra) |
 
 ## Tartalom
 
 - **LEAN PRODUCTION**
 - **Laxenburg 2026**
 - Szerző: **Bocsa Robert**
-- Bocsa Tech logó (fogaskerék + B)
+- Bocsa Betrieb logó + dashboard háttér
+- PDCA ciklus németül: Planung → Umsetzung → Überprüfung → Verbesserung
 
 ## Használat
 
