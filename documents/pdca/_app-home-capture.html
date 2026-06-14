@@ -149,7 +149,7 @@
     const cards = [
       ["Kleingerät", "kleingeraet", true],
       ["Elektrogerät", "elektrogeraet", true],
-      ["Baumaschinen", "baumaschinen", true],
+      ["Baumaschinen", "grossgeraet", true],
       ["Bauarbeitsauftrag", "arbeitsauftrag", false],
       ["Bauprüfprotokoll", "pruefprotokoll", true],
       ["PKW", "pkw", true],
@@ -170,7 +170,7 @@
       el.className = "card" + (photo ? " photo" : "");
       el.innerHTML =
         `<span>${label}</span>` +
-        `<img src="../../public/icons/home/${icon}.svg" alt="" onerror="this.src='../../public/icons/home/${icon}.png'" />`;
+        `<img src="../../public/icons/home/${icon}.png" alt="" />`;
       grid.appendChild(el);
     }
   </script>
