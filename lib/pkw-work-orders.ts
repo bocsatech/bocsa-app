@@ -140,6 +140,7 @@ export function filterPkwWorkOrderEntries(
   const machineFilters: WorkOrderListFilters = {
     geraetenummer: filters.kennzeichen,
     auftrag: filters.auftrag,
+    auftragsart: "",
     bearbeiter: filters.bearbeiter,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
