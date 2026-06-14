@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import BocsaMark from "./BocsaMark";
 import LogoutButton from "./LogoutButton";
 import {
   ARBEITSAUFTRAG_DETAIL_PATH,
@@ -967,7 +968,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
   return (
     <aside className={`sidebar${mobileMenuOpen ? " sidebarMenuOpen" : ""}`}>
       <div className="sidebarHeader">
-        <div className="sidebarMark">B</div>
+        <BocsaMark />
         <div className="sidebarHeaderText">
           <p className="sidebarTitle">Bocsa</p>
           <p className="sidebarSubtitle">{subtitle}</p>

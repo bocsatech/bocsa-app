@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BocsaMark from "../components/BocsaMark";
 import HomeMenuIcon from "../components/HomeMenuIcons";
 import StartPageEffects from "./StartPageEffects";
 import MobileBackBar from "../components/MobileBackBar";
@@ -16,7 +17,7 @@ export default function StartPage() {
       <StartPageEffects />
       <PkwPortalSessionJanitor />
       <header className="pwaStartHeader">
-        <div className="sidebarMark">B</div>
+        <BocsaMark />
         <div>
           <h1>Bocsa</h1>
           <p className="subtitle">Betrieb · PKW-Service · Lager</p>
