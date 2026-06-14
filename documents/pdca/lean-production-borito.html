@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>LEAN PRODUCTION — Laxenburg 2026</title>
+  <style>
+    @page { size: A4 landscape; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+    .cover {
+      width: 297mm;
+      height: 210mm;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0,0,0,.15);
+      overflow: hidden;
+    }
+    .photo {
+      flex: 1.15;
+      background:
+        linear-gradient(135deg, rgba(0,0,0,.28), rgba(0,0,0,.06)),
+        linear-gradient(160deg, #cbd5e1 0%, #94a3b8 35%, #64748b 70%, #475569 100%);
+      position: relative;
+      min-height: 0;
+    }
+    .logoWrap {
+      position: absolute;
+      left: 22mm;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logoWrap svg {
+      width: 72px;
+      height: 72px;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,.35));
+      flex-shrink: 0;
+    }
+    .logoWrap span {
+      color: #fff;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-shadow: 0 2px 8px rgba(0,0,0,.45);
+    }
+    .footer {
+      flex: 0.85;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: end;
+      padding: 14mm 18mm 16mm;
+      background: #fff;
+    }
+    .titleBlock h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: .02em;
+      color: #111;
+      line-height: 1.05;
+    }
+    .titleBlock p {
+      margin-top: 6px;
+      font-size: 18px;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+    .authorBlock {
+      text-align: right;
+      font-size: 22px;
+      font-weight: 600;
+      color: #111;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .cover { box-shadow: none; width: 100vw; height: 100vh; }
+    }
+  </style>
+</head>
+<body>
+  <article class="cover">
+    <section class="photo" aria-label="Industrie">
+      <div class="logoWrap">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true">
+          <defs>
+            <linearGradient id="bocsa-bg" x1="256" y1="32" x2="256" y2="480" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#ff7a1a"/>
+              <stop offset="0.55" stop-color="#e85d04"/>
+              <stop offset="1" stop-color="#dc4f03"/>
+            </linearGradient>
+          </defs>
+          <rect width="512" height="512" rx="96" fill="url(#bocsa-bg)"/>
+          <g fill="#ffffff">
+            <path fill-rule="evenodd" d="M256 72 302 104 358 88 392 136 448 136 472 192 520 224 504 280 536 328 504 376 472 432 416 432 392 480 336 496 302 448 256 480 210 448 176 496 120 480 96 432 40 432 16 376 48 328 16 280 48 224 96 192 120 136 176 136 200 88 210 104 Z M256 176a80 80 0 1 0 0.01 0Z"/>
+            <text x="256" y="318" text-anchor="middle" font-family="system-ui,sans-serif" font-size="168" font-weight="800" fill="#ffffff">B</text>
+          </g>
+        </svg>
+        <span>BOCSA TECH</span>
+      </div>
+    </section>
+    <footer class="footer">
+      <div class="titleBlock">
+        <h1>LEAN PRODUCTION</h1>
+        <p>Laxenburg 2026</p>
+      </div>
+      <div class="authorBlock">Bocsa Robert</div>
+    </footer>
+  </article>
+</body>
+</html>
