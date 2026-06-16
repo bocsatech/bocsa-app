@@ -1,0 +1,47 @@
+A második forradalom az autóiparban – magyarázó összefoglaló
+
+Üdvözlöm. Ebben az összefoglalóban a lean gondolkodás egyik legfontosabb alapművének tartalmát fogom elmagyarázni. A könyv eredeti német címe: Die zweite Revolution in der Automobilindustrie, vagyis A második forradalom az autóiparban. Sokak számára ismerősebb alcíme: A gép, amely megváltoztatta a világot. A mű 1990-ben jelent meg, és mindmáig a valaha készült legátfogóbb autóipari benchmark-tanulmánynak tartják.
+
+A kutatást a Massachusetts Institute of Technology, az MIT végezte. A szerzők James P. Womack, Daniel T. Jones és Daniel Roos. Öt évig vizsgálták a világ autóiparát: a gyártás mélységét, a beszállítói hálózatot, a termelési rendszereket és a termelékenységet. A cél az volt, hogy megértsék, miért teljesítenek egyes gyárak sokkal jobban, mint mások.
+
+Az MIT tanulmány legfontosabb eredményeit most egyszerűen elmondom. A japán autógyárak termelékenysége körülbelül kétszer akkora volt, mint az európai és amerikai gyáraké. Ugyanakkor a hibarátájuk nagyjából a fele volt a nyugati gyárakénak. Tehát kevesebb hibával, több outputot produkáltak. Érdekes még, hogy az Egyesült Államokban és Európában létesített japán transzplant gyárak – vagyis az anyaországon kívül épült üzemek – ugyanolyan jó teljesítményt értek el, mint a japán stammwerke, a hazai gyárak. Ez azt jelzi, hogy a siker nem a földrajzi helyen múlik, hanem a működési rendszeren. A megtakarított költségeket a gyártók részben jobb felszereltség, részben alacsonyabb árak formájában adták tovább a végfelhasználóknak.
+
+Mi volt hát a lényeges sikerfaktor? Egy megélt működési rendszer, amely forradalmi termelési alapelveken nyugszik. Ennek a legismertebb példája a Toyota termelési filozófiája. A Toyota hat alapelvét így érdemes megérteni.
+
+Először is: csak azt gyártsd, amire szükség van, és akkor, amikor szükség van rá. Ez a just-in-time, az időben történő gyártás alapgondolata. Másodszor: ha hiba történik, állítsd le a termelést. Nem engedjük tovább a hibás terméket a folyamatban. Harmadszor: távolíts el mindent a folyamatból, ami nem teremt értéket. Negyedszer: tiszteld a munkatársakat. Ötödször: használd ki a munkatársak tudását és képességeit. És végül: add át nekik a felelősséget és a döntési jogköröket is.
+
+Most térjünk át a lean management három alapcéljára, amelyeket japánul gyakran a három M betűvel foglalnak össze.
+
+Az első a muda, vagyis a pazarlás elkerülése. Pazarláson minden olyan tevékenységet értünk, amely erőforrást fogyaszt – legyen az munkaerő, gép, anyag vagy energia –, de nem ad hozzá értéket a termékhez vagy szolgáltatáshoz. Ilyen lehet például a felesleges várakozás, a túltermelés vagy a felesleges mozgatás.
+
+A második a mura, a kiegyensúlyozatlanság elkerülése. Itt arról van szó, amikor a kapacitások nincsenek összehangolva: az egyik munkaállomás túlterhelt, a másik üresjáratban van. Ez szintén pazarlást szül.
+
+A harmadik a muri, a túlterhelés elkerülése. Ha embereket vagy gépeket tartósan túl magas tempóban kényszerítünk, hibák, kifáradás és leállások lesznek az eredmény.
+
+A lean gondolkodás középpontjában az érték áll. Fontos megérteni: egy termék vagy szolgáltatás értékét kizárólag a végfelhasználó, vagyis az ügyfél szemszögéből lehet meghatározni. A lean egyik alapállítása: érték akkor van, ha az ügyfél igényeit egy meghatározott áron kielégítjük. A fókuszban ezért nemcsak a termék áll, hanem a munkatárs, a gép és a nyersanyag is – mind abból a szempontból, hogy hogyan járulnak hozzá az ügyfél számára értelmezhető eredményhez.
+
+Az értékáram azonosítása a következő lépés. Ha részletesen felvesszük és ábrázoljuk az értékáramot, vagyis azt az útvonalat, amelyen a termék vagy szolgáltatás a nyersanyagtól az ügyfélig jut, akkor láthatóvá válnak a pazarlások. A teljes folyamat együttes vizsgálata segít a lényegre koncentrálni: hol van szűk keresztmetszet, hol hosszú az átfutási idő, hol terhel túl sok adminisztráció.
+
+Az értéknek áramolnia kell – ezt Henry Ford is felismerte már 1913-ban, amikor a műhelygyártásról átállt folyamatos gyártásra. A híres mondása: Mozgasd a lemezt! A lényeg az, hogy az értékteremtés ne álljon meg rakodásoknál, puffereknél és várakozásoknál. Csak akkor lehet ideálisan és költséghatékonyan termelni, ha az értékáram akadálytalanul áramlik a vállalaton keresztül.
+
+A lean másik kulcsfogalma a pull-elv, vagyis az, hogy az értéket az ügyfél húzza. Az ügyfél rendelésével ő határozza meg, mikor szeretné megkapni az árut. A gyártásnak az ügyfél ritmusához kell igazodnia. Ha gyorsan és rugalmasan tudunk reagálni az ügyfelek igényeire, akkor sok raktárkészletre és felesleges felhalmozásra nincs szükség. A felszabaduló tőke pedig javítja a befektetés megtérülését, a return on investment értékét.
+
+A lean nem arról szól, hogy egyszer javítunk, és kész. A tökéletességre való törekvés folyamatos folyamat. Minden elért szint csak az alapja a következő fejlesztésnek. Soha nincs elég. Mindig és mindenhol lehet még jobban csinálni. A legkisebb javítás is lehet egy nagy ugrás alapja.
+
+A folyamatos fejlesztés, a kaizen vagy a magyar gyakorlatban is használt KVP lényege, hogy a munkatársak aktívan alakíthatják a folyamatokat. A munkaszervezés kialakításának felelősségét szándékosan azokra bízzuk, akik a munkát végzik. A minőséget ott kell biztosítani, ahol keletkezik – nem utólag, a végén ellenőrizve.
+
+A lean vállalatban a hibák és a fejlesztések kultúrája is más. A hibákat nem elrejteni kell, hanem fejlesztési lehetőségként kezelni, hogy ne ismételődjenek. A szervezetnek láthatóvá kell tennie a problémákat. A munkatársaknak készen kell állniuk arra, hogy tartósan megoldják a felismert nehézségeket. A fejlesztési munkát pedig a mindennapi munka részévé kell tenni, nem külön projektként kezelni.
+
+Végül az értékteremtés fogalmát érdemes tisztázni. Munkaszervezési szempontból értékteremtésről akkor beszélünk, ha az eredmény a kedvezményezett számára pénzben is kifejezhető hasznot jelent. Mindig az ügyfél szemszögéből kell nézni. Elvben az értékteremtés a tevékenység utáni és előtti érték különbsége.
+
+A gyártási folyamatban háromféle tevékenységet különböztetünk meg.
+
+Az első az értékteremtő tevékenység. Ilyen például a vágás, a hajlítás, a hegesztés, a szerelés vagy a festés. Ezek közvetlenül növelik a termék értékét az ügyfél számára.
+
+A második a nem értékteremtő, de szükséges tevékenység. Ilyen például az átállítás, a gépek karbantartása vagy az alkatrészek át- és kicsomagolása. Ezek nem növelik közvetlenül az értéket, de a folyamat működéséhez elengedhetetlenek. Ez az elkerülhetetlen ráfordítás.
+
+A harmadik – és a lean szempontjából a legveszélyesebb – a nem értékteremtő és nem is szükséges tevékenység. Ilyen például az alkatrészek keresése, vagy amikor ugyanazt a darabot többször be-, át- és kikészletezzük. A legnagyobb pazarlások ide tartoznak. Ezeket kell elsőként megszüntetni vagy csökkenteni.
+
+Összefoglalva: a második autóipari forradalom tanulsága az, hogy a versenyképesség nem csak a technológián, hanem elsősorban a működési rendszeren, a folyamatokon, a munkatársakon és az ügyfélközpontú értékteremtésen múlik. Ez a lean management alapja.
+
+Köszönöm a figyelmet.
