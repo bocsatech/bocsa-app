@@ -1,0 +1,112 @@
+A második forradalom az autóiparban – 1. rész
+
+A gép, amely megváltoztatta a világot
+- Megjelenés: 1990
+- A német kiadás címe: Die zweite Revolution in der Automobilindustrie – A második forradalom az autóiparban
+- A valaha készült legátfogóbb benchmark-tanulmány
+- Végrehajtó: Massachusetts Institute of Technology (MIT)
+- Szerzők: James P. Womack, Daniel T. Jones és Daniel Roos
+Öt éves kutatómunka során elemezték a világ autóiparát, beleértve:
+- a gyártási mélységeket,
+- a beszállítói világot,
+- az alapul szolgáló termelési rendszereket,
+- a termelékenységet.
+
+A második forradalom az autóiparban – 2. rész
+
+Az MIT-tanulmány legfontosabb eredményei:
+- A japán autógyárak termelékenysége kétszer akkora, mint az európai és amerikai gyáraké.
+- A japán autógyárak hibarátája nagyjából az európai és amerikai gyárak 50 százaléka.
+- Az Egyesült Államokban és Európában létesített transzplant gyárak ugyanolyan termelékenységet érnek el, mint a japán anyagyárak.
+- A költségelőnyöket részben jobb felszereltség, részben árelőny formájában adják tovább a végfelhasználóknak.
+
+Lényeges sikerfaktor:
+- Megélt működési rendszer forradalmi termelési alapelveken
+
+Toyota termelési alapelvei:
+- Csak azt gyártsd, amire szükség van, és akkor, amikor szükség van rá.
+- Állítsd le a termelést, ha hiba történik.
+- Távolíts el mindent a folyamatból, ami nem teremt értéket.
+- Tiszteld a munkatársakat.
+- Használd ki a munkatársak képességeit.
+- Add át a munkatársaknak a felelősséget és a jogköröket.
+
+A Lean Management alapcéljai
+
+A pazarlás (muda) elkerülése
+- Pazarláson minden olyan tevékenységet értünk, amely erőforrásokat fogyaszt – munkaerőt, üzemeltetési eszközöket, anyagot stb. –, de nem teremt értéket.
+
+A kiegyensúlyozatlanság (mura) elkerülése
+- Kiegyensúlyozatlanság alatt olyan pazarlásokat értünk, amelyek a kapacitások – munkatársak, termelőeszközök – elégtelen összehangolásából adódnak.
+
+A túlterhelés (muri) elkerülése
+- Túlterhelés alatt olyan pazarlásokat értünk, amelyek a kapacitások – munkatársak, termelőeszközök – túllépéséből adódnak.
+
+Az érték áll a középpontban
+
+Egy termék vagy szolgáltatás értéke kizárólag a végfelhasználó szemszögéből határozható meg!
+
+Tézis:
+„Érték akkor van, ha az ügyfél igényeit egy meghatározott áron kielégítjük!”
+
+A fókuszban többek között a termék, a munkatárs, a gépek és a nyersanyag áll.
+
+Az értékáram azonosítása
+
+Az értékáram részletes felmérésével és ábrázolásával azonosíthatók a pazarlások azokban a folyamatokban, amelyek a termék vagy szolgáltatás előállításához szükségesek.
+
+Az értékáram holisztikus vizsgálata és vizuális megjelenítése a lényegesre fókuszálja az optimalizálást – például szűk keresztmetszetekre, átfutási időkre, adminisztrációra!
+
+Az értéknek áramolnia kell
+
+Henry Ford már 1913-ban felismerte, hogy az értéket – vagyis az értékteremtést – áramlásba kell hozni. „Mozgasd a lemezt!” – ez volt a mottója, amikor a műhelygyártásról folyamatos gyártásra állt át.
+
+Csak akkor generálható az érték ideálisan és költségoptimalizáltan, ha az értékáram akadálytalanul áramlik a vállalaton keresztül, rakodások és pufferek nélkül!
+
+Az értéket az ügyfél húzza (a pull-elv)
+
+Az ügyfél a király. Rendelésével ő határozza meg, mikor szeretné megkapni az árut. Csak a pontos ügyfélritmusban történő gyártás biztosítja, hogy a kívánt áru a megfelelő időben rendelkezésre áll.
+
+„Ha gyorsan és rugalmasan tudunk reagálni ügyfeleink igényeire az ő rendelési gyakoriságukban, megspórolhatjuk az értékáram mentén felhalmozott készleteket és rakodásokat! A felszabaduló pénz növeli a ROI-t, a befektetés megtérülését!”
+
+A tökéletességre törekvés
+
+Még ha egyszer már javítottunk is egy rendszert és a benne lévő folyamatokat, az nem jelenti, hogy elértük az optimumot.
+
+„Minden elért szint csak az alapja a következő fejlesztésnek. Soha nincs elég. Mindig és mindenhol van lehetőség még jobban csinálni. A legkisebb javítás is lehet egy ugrásszerű fejlődés alapja.”
+
+A munkaszervezés kialakításának felelősségét tudatosan a végrehajtó munkatársak felelősségi körébe is helyezzük.
+
+A folyamatos fejlesztés, a KVP lehetővé teszi a munkatársak számára a vállalati folyamatok aktív alakítását.
+
+Alapötlet: a munka minőségét ott kell biztosítani, ahol létrejön.
+
+Hiba- és fejlesztéskultúra a Lean vállalatban
+
+- Olyan hibakultúra kialakítása, amely a hibákat fejlesztési potenciálként kezeli, azzal a céllal, hogy ne ismételődjenek.
+- Olyan fejlesztéskultúra kialakítása, amelynek középpontjában a meghatározott célok elérésén folyamatosan végzett munka áll.
+- Olyan szervezet felépítése, amely láthatóvá teszi a problémákat és kihívásokat.
+- Olyan munkatársak fejlesztése, akik készek és képesek a felismert problémákat tartósan megoldani és az akadályokat elhárítani.
+- A fejlesztési munka szervezeti megalapozása a mindennapi munkában.
+
+Értékteremtés
+
+- Munkaszervezési és szervezeti szempontból értékteremtésről akkor van szó, ha olyan eredmény születik, amely a teljesítmény kedvezményezettje számára pénzben kifejezhető hasznot jelent.
+- Az értékteremtést mindig az ügyfél szemszögéből kell vizsgálni. Elvben az értékteremtés a termék vagy szolgáltatás értéke és a tevékenység előtti érték közötti különbség.
+- Minden olyan tevékenység, amely az ügyfél szemszögéből növeli a termék vagy szolgáltatás értékét.
+
+Értékteremtő és nem értékteremtő tevékenységek a gyártási folyamatban
+
+Értékteremtő tevékenységek
+- Olyan tevékenységek, amelyek az ügyfél szemszögéből növelik a termék vagy szolgáltatás értékét.
+  Példák: vágás, hajlítás, hegesztés, szerelés, festés
+
+Nem értékteremtő, de szükséges tevékenységek
+- Tervezett tevékenységek, amelyek ugyan nem járulnak hozzá az értéknöveléshez, de adott körülmények között elvégzendők.
+  Példák a külső ügyfél szemszögéből: átállítás, gépek karbantartása, alkatrészek át- és kicsomagolása
+  Elkerülhetetlen „pazarlás”: olyan ráfordítás, amely szükséges az értékteremtő folyamat támogatásához és fenntartásához
+
+Nem értékteremtő és nem szükséges tevékenységek
+- Nem tervezett tevékenységek, amelyek nem járulnak hozzá az értéknöveléshez, és nem is szükségesek az értékteremtő folyamat támogatásához.
+  Példák: alkatrészek keresése, alkatrészek többszöri be-, át- és kikészletezése
+  A legnagyobb pazarlások a nem szükséges, nem értékteremtő tevékenységek.
