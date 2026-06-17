@@ -7,7 +7,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       width: 1100px;
-      min-height: 800px;
+      min-height: 620px;
       font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       background: linear-gradient(145deg, #f0f4ff 0%, #fff5eb 50%, #f0fdf4 100%);
       padding: 36px 40px 44px;
@@ -49,6 +49,21 @@
       font-weight: 600;
       color: #e85d04;
     }
+    .params {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .param {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .param span { display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+    .param strong { display: block; margin-top: 4px; font-size: 18px; color: #0f172a; }
     .table-wrap {
       border-radius: 18px;
       overflow: hidden;
@@ -70,19 +85,19 @@
     }
     thead th.aspect {
       background: linear-gradient(135deg, #475569, #334155);
-      width: 22%;
+      width: 28%;
     }
     thead th.old {
       background: linear-gradient(135deg, #ef4444, #dc2626);
-      width: 39%;
+      width: 36%;
     }
     thead th.new {
       background: linear-gradient(135deg, #22c55e, #16a34a);
-      width: 39%;
+      width: 36%;
     }
     tbody td {
-      padding: 15px 20px;
-      vertical-align: top;
+      padding: 18px 20px;
+      vertical-align: middle;
       line-height: 1.45;
       border-bottom: 1px solid #f1f5f9;
     }
@@ -95,24 +110,16 @@
     }
     tbody td.old {
       background: #fff5f5;
-      color: #7f1d1d;
+      color: #991b1b;
+      font-weight: 700;
+      font-size: 16px;
       border-right: 1px solid #fecaca;
     }
     tbody td.new {
       background: #f0fdf4;
-      color: #14532d;
-    }
-    tbody tr.highlight td.old {
-      background: #fee2e2;
-      font-weight: 700;
-      font-size: 16px;
-      color: #991b1b;
-    }
-    tbody tr.highlight td.new {
-      background: #dcfce7;
-      font-weight: 700;
-      font-size: 16px;
       color: #166534;
+      font-weight: 700;
+      font-size: 16px;
     }
     tbody tr.highlight td:first-child {
       background: #fff7ed;
@@ -148,16 +155,6 @@
     }
     .summary p { padding-left: 8px; }
     .summary strong { color: #c2410c; font-weight: 800; }
-    .pill {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .pill.bad { background: #fecaca; color: #991b1b; }
-    .pill.good { background: #bbf7d0; color: #166534; }
   </style>
 </head>
 <body>
@@ -170,50 +167,42 @@
       </div>
     </div>
 
+    <div class="params">
+      <div class="param"><span>Monteur</span><strong>100 € / Std.</strong></div>
+      <div class="param"><span>Geräte / Jahr</span><strong>500</strong></div>
+      <div class="param"><span>Papier</span><strong>5 Min. / Gerät</strong></div>
+      <div class="param"><span>Digital</span><strong>1 Min. / Gerät</strong></div>
+    </div>
+
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th class="aspect">Aspekt</th>
-            <th class="old">Altes Programm (Papier)</th>
-            <th class="new">Neues Programm (digital)</th>
+            <th class="old">Papier (5 Min.)</th>
+            <th class="new">Digital (1 Min.)</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Komplexität</td>
-            <td class="old"><span class="pill bad">langsam</span> problematisch; Computer auf Baustelle und beim Kunden erforderlich</td>
-            <td class="new"><span class="pill good">schnell</span> einfach; direkt im Programm ausfüllbar</td>
-          </tr>
-          <tr>
-            <td>Wartbarkeit</td>
-            <td class="old">schwerfällig, Dokumentenaufbewahrung, Wettereinflüsse</td>
-            <td class="new">wartungsfrei, digital archiviert</td>
-          </tr>
-          <tr>
-            <td>Verarbeitungs-<br>geschwindigkeit</td>
-            <td class="old">zeitintensiv, doppelte Datenerfassung (Papier + Computer)</td>
-            <td class="new">online, sofort verfügbar – nur 1 Minute pro Gerät</td>
-          </tr>
-          <tr>
-            <td>Fehlerrisiko</td>
-            <td class="old">Lesefehler, Tippfehler, unleserliche Handschrift</td>
-            <td class="new">geringeres Risiko durch direkte digitale Erfassung</td>
-          </tr>
           <tr class="highlight">
             <td>Zeitaufwand pro Gerät</td>
             <td class="old">5 Minuten</td>
             <td class="new">1 Minute</td>
           </tr>
           <tr class="highlight">
-            <td>Jahreszeit (500 Geräte)</td>
+            <td>Gesamtzeit / Jahr (500 Geräte)</td>
             <td class="old">2.500 Min. = 41,7 Stunden</td>
             <td class="new">500 Min. = 8,3 Stunden</td>
           </tr>
           <tr class="highlight">
-            <td>Arbeitskosten / Jahr<br><span style="font-weight:500;font-size:13px">(100 € / Stunde)</span></td>
+            <td>Arbeitskosten / Jahr</td>
             <td class="old">4.167 €</td>
             <td class="new">833 €</td>
+          </tr>
+          <tr class="highlight">
+            <td>Ersparnis / Jahr</td>
+            <td class="old">—</td>
+            <td class="new">33,3 Std. · 3.333 €</td>
           </tr>
         </tbody>
       </table>
@@ -221,11 +210,12 @@
 
     <div class="summary">
       <p>
-        Mit dem neuen Programm kann das Formular in nur <strong>1 Minute</strong> ausgefüllt werden,
-        direkt im Programm auf einem sofort verfügbaren Dokument. Damit lassen sich
-        <strong>4 Minuten pro Gerät</strong> einsparen. Bei <strong>500 Geräten pro Jahr</strong> ergibt das eine
-        Zeitersparnis von <strong>33,3 Stunden</strong> und eine Einsparung der Arbeitskosten von
-        <strong>3.333 €</strong> – bei einem Monteur mit einem Stundensatz von 100 €.
+        Ein Monteur füllt Prüfpapiere aus (<strong>100 € / Stunde</strong>). Bei
+        <strong>500 Geräten pro Jahr</strong> dauert die Papiererfassung
+        <strong>5 Minuten pro Gerät</strong>, die digitale Erfassung nur
+        <strong>1 Minute</strong>. Pro Gerät werden <strong>4 Minuten</strong> eingespart –
+        das sind <strong>2.000 Minuten = 33,3 Stunden</strong> und
+        <strong>3.333 €</strong> Arbeitskostenersparnis pro Jahr.
       </p>
     </div>
   </div>
