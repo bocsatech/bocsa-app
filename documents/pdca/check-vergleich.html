@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>CHECK – Überprüfung Vergleich</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1100px;
+      min-height: 720px;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: #fff;
+      padding: 40px 48px 48px;
+      color: #111;
+    }
+    .top {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .badge {
+      background: #e85d04;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 10px 22px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .titles h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #111;
+      line-height: 1.2;
+    }
+    .titles p {
+      margin-top: 6px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 28px;
+      font-size: 16px;
+    }
+    thead th {
+      background: #e85d04;
+      color: #fff;
+      font-weight: 800;
+      text-align: left;
+      padding: 14px 18px;
+      border: 1px solid #d4d4d8;
+    }
+    tbody td {
+      padding: 14px 18px;
+      border: 1px solid #d4d4d8;
+      vertical-align: top;
+      line-height: 1.4;
+    }
+    tbody tr:nth-child(even) td { background: #fafafa; }
+    tbody td:first-child { font-weight: 700; color: #111; }
+    .summary {
+      background: #fff7ed;
+      border: 2px solid #e85d04;
+      border-radius: 16px;
+      padding: 22px 26px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.55;
+      color: #111;
+    }
+    .summary strong { color: #c2410c; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="badge">CHECK</div>
+    <div class="titles">
+      <h1>Überprüfung – Vergleich der Ergebnisse</h1>
+      <p>Prüfung und Analyse</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:22%">Aspekt</th>
+        <th style="width:39%">Altes Programm (Papier)</th>
+        <th style="width:39%">Neues Programm (digital)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Komplexität</td>
+        <td>langsam, problematisch; Computer auf Baustelle und beim Kunden erforderlich</td>
+        <td>schnell, einfach; direkt im Programm ausfüllbar</td>
+      </tr>
+      <tr>
+        <td>Wartbarkeit</td>
+        <td>schwerfällig, Dokumentenaufbewahrung, Wettereinflüsse</td>
+        <td>wartungsfrei, digital archiviert</td>
+      </tr>
+      <tr>
+        <td>Verarbeitungs-<br>geschwindigkeit</td>
+        <td>zeitintensiv, doppelte Datenerfassung (Papier + Computer)</td>
+        <td>online, sofort verfügbar – nur 1 Minute pro Gerät</td>
+      </tr>
+      <tr>
+        <td>Fehlerrisiko</td>
+        <td>Lesefehler, Tippfehler, unleserliche Handschrift</td>
+        <td>geringeres Risiko durch direkte digitale Erfassung</td>
+      </tr>
+      <tr>
+        <td>Zeitaufwand pro Gerät</td>
+        <td>5 Minuten</td>
+        <td>1 Minute</td>
+      </tr>
+      <tr>
+        <td>Jahreszeit (500 Geräte)</td>
+        <td>2.500 Min. = 41,7 Stunden</td>
+        <td>500 Min. = 8,3 Stunden</td>
+      </tr>
+      <tr>
+        <td>Arbeitskosten / Jahr<br><span style="font-weight:500;font-size:14px">(100 € / Stunde)</span></td>
+        <td>4.167 €</td>
+        <td>833 €</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="summary">
+    Mit dem neuen Programm kann das Formular in nur <strong>1 Minute</strong> ausgefüllt werden,
+    direkt im Programm auf einem sofort verfügbaren Dokument. Damit lassen sich
+    <strong>4 Minuten pro Gerät</strong> einsparen. Bei <strong>500 Geräten pro Jahr</strong> ergibt das eine
+  Zeitersparnis von <strong>33,3 Stunden</strong> und eine Einsparung der Arbeitskosten von
+    <strong>3.333 €</strong> – bei einem Monteur mit einem Stundensatz von 100 €.
+  </div>
+</body>
+</html>
