@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <title>Megtakarítás – vizsgapapír digitalizálás</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1100px;
+      height: 780px;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: #f8fafc;
+      padding: 36px 44px;
+      color: #1e293b;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .sub {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+    .params {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .param {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .param span { display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+    .param strong { display: block; margin-top: 4px; font-size: 20px; color: #0f172a; }
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr;
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 28px;
+    }
+    .box {
+      border-radius: 16px;
+      padding: 24px;
+      color: #fff;
+    }
+    .box.old { background: linear-gradient(145deg, #ef4444, #b91c1c); }
+    .box.new { background: linear-gradient(145deg, #22c55e, #15803d); }
+    .box h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; opacity: .95; }
+    .box .row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; }
+    .box .row.total { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.3); font-size: 17px; font-weight: 700; }
+    .arrow {
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+      color: #94a3b8;
+      font-weight: 300;
+    }
+    .bars { margin-bottom: 28px; }
+    .bars h3 { font-size: 14px; color: #475569; margin-bottom: 12px; font-weight: 600; }
+    .bar-row { margin-bottom: 14px; }
+    .bar-label { font-size: 13px; color: #64748b; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .bar-track { height: 28px; background: #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; font-weight: 700; color: #fff; }
+    .bar-fill.old { width: 100%; background: #ef4444; }
+    .bar-fill.new { width: 20%; background: #22c55e; min-width: 72px; }
+    .bar-fill.save { width: 80%; background: #3b82f6; }
+    .result {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .result-card {
+      background: #fff;
+      border: 2px solid #3b82f6;
+      border-radius: 16px;
+      padding: 22px 24px;
+      text-align: center;
+    }
+    .result-card span { font-size: 13px; color: #64748b; }
+    .result-card strong { display: block; margin-top: 8px; font-size: 36px; font-weight: 800; color: #1d4ed8; }
+    .result-card small { display: block; margin-top: 6px; font-size: 14px; color: #475569; }
+    .note { margin-top: 20px; font-size: 12px; color: #94a3b8; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>Megtakarítás: papír vs. digitális vizsgapapír</h1>
+  <p class="sub">Szerelő · 500 gép/év · óradíj 100 €</p>
+
+  <div class="params">
+    <div class="param"><span>Gépek évente</span><strong>500</strong></div>
+    <div class="param"><span>Papír (régi)</span><strong>5 perc / gép</strong></div>
+    <div class="param"><span>Digitális (új)</span><strong>1 perc / gép</strong></div>
+    <div class="param"><span>Óradíj</span><strong>100 €</strong></div>
+  </div>
+
+  <div class="compare">
+    <div class="box old">
+      <h2>❌ Papíros kitöltés</h2>
+      <div class="row"><span>Idő / gép</span><span>5 perc</span></div>
+      <div class="row"><span>Összes idő / év</span><span>2 500 perc</span></div>
+      <div class="row"><span>Összes idő / év</span><span>41,7 óra</span></div>
+      <div class="row total"><span>Munkaköltség / év</span><span>4 167 €</span></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="box new">
+      <h2>✓ Digitális (1 perc)</h2>
+      <div class="row"><span>Idő / gép</span><span>1 perc</span></div>
+      <div class="row"><span>Összes idő / év</span><span>500 perc</span></div>
+      <div class="row"><span>Összes idő / év</span><span>8,3 óra</span></div>
+      <div class="row total"><span>Munkaköltség / év</span><span>833 €</span></div>
+    </div>
+  </div>
+
+  <div class="bars">
+    <h3>Éves időráfordítás összehasonlítás</h3>
+    <div class="bar-row">
+      <div class="bar-label"><span>Papír (5 perc/gép)</span><span>2 500 perc = 41,7 óra</span></div>
+      <div class="bar-track"><div class="bar-fill old">100%</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label"><span>Digitális (1 perc/gép)</span><span>500 perc = 8,3 óra</span></div>
+      <div class="bar-track"><div class="bar-fill new">20%</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label"><span>Megtakarítás</span><span>2 000 perc = 33,3 óra</span></div>
+      <div class="bar-track"><div class="bar-fill save">80% kevesebb idő</div></div>
+    </div>
+  </div>
+
+  <div class="result">
+    <div class="result-card">
+      <span>Éves időmegtakarítás</span>
+      <strong>33,3 óra</strong>
+      <small>2 000 perc · gépenként 4 perc megtakarítás</small>
+    </div>
+    <div class="result-card">
+      <span>Éves munkabér-megtakarítás</span>
+      <strong>3 333 €</strong>
+      <small>80% költségcsökkenés · 100 €/óra</small>
+    </div>
+  </div>
+
+  <p class="note">Számítás: 500 gép × (5 − 1) perc = 2 000 perc · 2 000 ÷ 60 × 100 € = 3 333 €</p>
+</body>
+</html>
