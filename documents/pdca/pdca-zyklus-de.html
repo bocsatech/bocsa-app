@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>PDCA-Zyklus</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1200px;
+      height: 900px;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: linear-gradient(160deg, #e8eef5 0%, #f4f7fb 45%, #e3eaf3 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before, body::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 100%;
+      opacity: 0.35;
+      background: repeating-linear-gradient(
+        135deg,
+        transparent,
+        transparent 18px,
+        rgba(100, 130, 170, 0.08) 18px,
+        rgba(100, 130, 170, 0.08) 20px
+      );
+    }
+    body::before { left: 0; }
+    body::after { right: 0; }
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+      z-index: 1;
+    }
+    .header h1 {
+      font-size: 52px;
+      font-weight: 800;
+      color: #1e3a5f;
+      letter-spacing: 0.02em;
+    }
+    .header p {
+      margin-top: 10px;
+      font-size: 22px;
+      color: #3d5a80;
+      font-weight: 500;
+    }
+    .grid-wrap {
+      position: relative;
+      width: 720px;
+      height: 720px;
+      z-index: 1;
+    }
+    .center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 4px 24px rgba(30, 58, 95, 0.12);
+      z-index: 2;
+    }
+    .arrow {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 90px;
+      height: 90px;
+      margin: -45px 0 0 -45px;
+      border: 3px solid #b0bec5;
+      border-color: transparent #b0bec5 #b0bec5 transparent;
+      border-radius: 50%;
+      transform: rotate(-45deg);
+    }
+    .arrow:nth-child(2) { transform: rotate(45deg); }
+    .arrow:nth-child(3) { transform: rotate(135deg); }
+    .arrow:nth-child(4) { transform: rotate(225deg); }
+    .quad {
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: #fff;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    .quad.plan { background: linear-gradient(145deg, #2196f3, #1565c0); top: 0; left: 0; }
+    .quad.do { background: linear-gradient(145deg, #43a047, #2e7d32); top: 0; right: 0; }
+    .quad.check { background: linear-gradient(145deg, #ffa726, #f57c00); bottom: 0; right: 0; }
+    .quad.act { background: linear-gradient(145deg, #ef5350, #c62828); bottom: 0; left: 0; }
+    .icon-ring {
+      width: 88px;
+      height: 88px;
+      background: #fff;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    .icon-ring svg { width: 48px; height: 48px; }
+    .quad h2 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+    .quad p {
+      font-size: 17px;
+      font-weight: 600;
+      opacity: 0.95;
+      text-align: center;
+      max-width: 260px;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>PDCA-Zyklus</h1>
+    <p>Planen – Umsetzen – Prüfen – Handeln</p>
+  </header>
+
+  <div class="grid-wrap">
+    <div class="quad plan">
+      <div class="icon-ring">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="8" width="22" height="28" rx="2" stroke="#1565c0" stroke-width="2.5"/>
+          <circle cx="32" cy="32" r="10" stroke="#1565c0" stroke-width="2.5"/>
+          <circle cx="32" cy="32" r="4" fill="#1565c0"/>
+          <path d="M38 26l4-4" stroke="#1565c0" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2>PLAN</h2>
+      <p>Planung und Zielsetzung</p>
+    </div>
+
+    <div class="quad do">
+      <div class="icon-ring">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="8" stroke="#2e7d32" stroke-width="2.5"/>
+          <path d="M24 8v6M24 34v6M8 24h6M34 24h6M13 13l4 4M31 31l4 4M35 13l-4 4M17 31l-4 4" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2>DO</h2>
+      <p>Umsetzung und Durchführung</p>
+    </div>
+
+    <div class="quad check">
+      <div class="icon-ring">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="28" width="6" height="12" fill="#f57c00"/>
+          <rect x="18" y="20" width="6" height="20" fill="#f57c00"/>
+          <rect x="28" y="12" width="6" height="28" fill="#f57c00"/>
+          <circle cx="34" cy="34" r="10" stroke="#f57c00" stroke-width="2.5"/>
+          <path d="M31 34l2 2 5-5" stroke="#f57c00" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2>CHECK</h2>
+      <p>Prüfung und Analyse</p>
+    </div>
+
+    <div class="quad act">
+      <div class="icon-ring">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 36 L16 28 L24 32 L40 14" stroke="#c62828" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M34 14h6v6" stroke="#c62828" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2>ACT</h2>
+      <p>Verbesserung und Einführung</p>
+    </div>
+
+    <div class="center">
+      <div class="arrow"></div>
+      <div class="arrow"></div>
+      <div class="arrow"></div>
+      <div class="arrow"></div>
+    </div>
+  </div>
+</body>
+</html>
