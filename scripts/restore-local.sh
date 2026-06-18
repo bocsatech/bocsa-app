@@ -38,5 +38,5 @@ npm install --no-audit --no-fund
 
 echo ""
 echo "Kész. Indítás: npm run dev"
-echo "Login: admin / demo123 (Geheimzahl 42, pl. +8 → 50)"
+echo "Login: admin / demo123 (Geheimzahl in Supabase users.secret_pin, z. B. 10)"
 echo "Ha Supabase hiba: futtasd supabase/emergency-restore.sql a SQL Editorban."
