@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { createClient } from "@supabase/supabase-js";
 
 const root = resolve(import.meta.dirname, "..");
 const required = [
@@ -11,6 +12,8 @@ const required = [
   "app/page.tsx",
   "app/login/page.tsx",
 ];
+
+const EXPECTED_URL = "https://duvzbcxsfzeqjnvohifm.supabase.co";
 
 const manifest = resolve(
   root,
@@ -35,6 +38,47 @@ function readEnvLocal() {
 function hasValue(env, key) {
   const value = env?.[key];
   return typeof value === "string" && value.length > 0;
+}
+
+async function verifySupabase(env) {
+  const url = env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key =
+    env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+  if (!url || !key) {
+    return { ok: false, message: "Supabase URL vagy kulcs hiányzik" };
+  }
+
+  if (url !== EXPECTED_URL) {
+    return {
+      ok: false,
+      message: `Rossz Supabase URL: ${url} (helyes: ${EXPECTED_URL})`,
+    };
+  }
+
+  const db = createClient(url, key);
+  const { data, error } = await db
+    .from("users")
+    .select("username, secret_pin")
+    .eq("username", "admin")
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, message: `Supabase hiba: ${error.message}` };
+  }
+  if (!data) {
+    return {
+      ok: false,
+      message:
+        'admin felhasználó nem található — ellenőrizd az anon key-t (Supabase → Settings → API)',
+    };
+  }
+
+  return {
+    ok: true,
+    message: `admin OK (Geheimzahl: ${data.secret_pin ?? "?"})`,
+  };
 }
 
 let ok = true;
@@ -69,22 +113,32 @@ if (!env) {
     hasValue(env, "SUPABASE_SERVICE_ROLE_KEY") ||
     anonOk;
 
-  console.log(`${urlOk ? "✓" : "✗"} NEXT_PUBLIC_SUPABASE_URL`);
-  console.log(`${anonOk ? "✓" : "✗"} NEXT_PUBLIC_SUPABASE_ANON_KEY`);
-  console.log(`${sessionOk ? "✓" : "✗"} SESSION_SECRET (vagy Service-Role / Anon Key)`);
+  const url = env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  console.log(`${url === EXPECTED_URL ? "✓" : "✗"} NEXT_PUBLIC_SUPABASE_URL`);
+  if (url && url !== EXPECTED_URL) {
+    console.log(`  → helyes: ${EXPECTED_URL}`);
+    ok = false;
+  } else if (!urlOk) ok = false;
 
-  if (!urlOk || !anonOk || !sessionOk) ok = false;
+  console.log(`${anonOk ? "✓" : "✗"} NEXT_PUBLIC_SUPABASE_ANON_KEY`);
+  if (!anonOk) ok = false;
+
+  console.log(`${sessionOk ? "✓" : "✗"} SESSION_SECRET (vagy Service-Role / Anon Key)`);
+  if (!sessionOk) ok = false;
+
+  if (urlOk && anonOk) {
+    const supabase = await verifySupabase(env);
+    console.log(`${supabase.ok ? "✓" : "✗"} Supabase kapcsolat: ${supabase.message}`);
+    if (!supabase.ok) ok = false;
+  }
 }
 
 console.log("");
 if (!ok) {
-  if (!env) {
-    console.log("→ cp .env.local.example .env.local");
-  }
-  console.log("→ Supabase → Settings → API → URL + anon key másolása");
-  console.log("→ SESSION_SECRET=barmilyen-hosszu-random-szoveg");
-  console.log("");
-  console.log("Utána: npm run dev  →  http://localhost:3000/login");
+  console.log("Javítás:");
+  console.log("  open -e .env.local");
+  console.log("  # URL + anon key ellenőrzése, majd:");
+  console.log("  npm run fix:local");
   process.exit(1);
 }
 
@@ -95,4 +149,4 @@ if (hasBrokenCache) {
 
 console.log("Minden rendben.");
 console.log("Indítás: npm run dev");
-console.log("Login: admin / demo123  (Geheimzahl 42)");
+console.log("Teszt:   npm run test:local");

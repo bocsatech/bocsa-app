@@ -28,7 +28,10 @@ export async function POST(request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Benutzer nicht gefunden." },
+        {
+          error:
+            "Benutzer nicht gefunden. Prüfen Sie .env.local: NEXT_PUBLIC_SUPABASE_URL=https://duvzbcxsfzeqjnvohifm.supabase.co und den anon key aus Supabase → Settings → API.",
+        },
         { status: 404 }
       );
     }
