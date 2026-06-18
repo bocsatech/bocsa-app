@@ -594,16 +594,20 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
 
         .asSidebarStundenNameRepeat {
           display: block;
-          padding-left: 23px;
+          padding-left: 28px;
         }
 
         .asSidebarStundenCheck {
-          width: 15px;
-          height: 15px;
+          width: 18px;
+          height: 18px;
           margin: 0;
           flex-shrink: 0;
-          accent-color: #111827;
+          accent-color: #047857;
           cursor: pointer;
+          border: 2px solid #374151;
+          border-radius: 4px;
+          background: #ffffff;
+          box-shadow: 0 0 0 1px rgba(17, 24, 39, 0.08);
         }
 
         .asSidebarStundenUserPick {

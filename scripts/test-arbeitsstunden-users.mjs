@@ -102,4 +102,10 @@ if (missing.length > 0) {
   fail(`Hiányzó nevek az oldalon: ${missing.join(", ")}`);
 }
 
+const checkboxCount = (pageRes.text.match(/type="checkbox"/g) ?? []).length;
+if (checkboxCount < expected.length) {
+  fail(`Checkbox hiány: ${checkboxCount} db, elvárt legalább ${expected.length}`);
+}
+ok(`checkbox => ${checkboxCount} db a név előtt`);
+
 console.log(`\n✓ Minden felhasználó (${expected.length}) megjelenik az oldalon.`);
