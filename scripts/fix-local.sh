@@ -1,17 +1,55 @@
 #!/usr/bin/env bash
-# Gyors javítás 404/500 esetén — git pull nélkül is működik.
+# Teljes lokális javítás: git sync + fájl-ellenőrzés + tiszta dev indítás.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-for port in 3000 3001; do
+required=(
+  "app/login/page.tsx"
+  "app/page.tsx"
+  "app/layout.js"
+  "proxy.ts"
+)
+
+stop_port() {
+  local port="$1"
+  local pids
   pids="$(lsof -ti :"$port" 2>/dev/null || true)"
   if [[ -n "$pids" ]]; then
     kill -9 $pids 2>/dev/null || true
   fi
+}
+
+stop_port 3000
+stop_port 3001
+
+missing=0
+for file in "${required[@]}"; do
+  if [[ ! -f "$file" ]]; then
+    echo "✗ Hiányzik: $file"
+    missing=1
+  fi
 done
+
+if [[ "$missing" -eq 1 ]]; then
+  echo ""
+  echo "→ Hiányzó fájlok — legfrissebb kód letöltése…"
+  git rebase --abort 2>/dev/null || true
+  if git remote get-url origin >/dev/null 2>&1; then
+    git fetch origin main
+    git reset --hard origin/main
+  else
+    echo "HIBA: nincs git remote. Klónozd újra:"
+    echo "  cd ~ && rm -rf bocsa-app"
+    echo "  git clone https://github.com/bocsatech/bocsa-app"
+    exit 1
+  fi
+  echo "→ npm install…"
+  npm install --no-audit --no-fund
+fi
 
 rm -rf .next
 echo "→ .next törölve"
 echo "→ Dev szerver indul (webpack)…"
+echo "→ Böngésző: http://localhost:3000/login"
 exec npx next dev --webpack "$@"

@@ -21,10 +21,7 @@ function isPublicMachinePath(pathname: string) {
 
 function isPublicMachineApi(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  return (
-    (request.method === "GET" && /^\/api\/machines\/[^/]+$/.test(pathname)) ||
-    (request.method === "POST" && /^\/api\/machines\/[^/]+\/meldung$/.test(pathname))
-  );
+  return ((request.method === "GET" && /^\/api\/machines\/[^/]+$/.test(pathname)) || (request.method === "POST" && /^\/api\/machines\/[^/]+\/meldung$/.test(pathname)));
 }
 
 function isPublicPkwApi(request: NextRequest) {
@@ -35,7 +32,7 @@ function isPublicPkwApi(request: NextRequest) {
   return false;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (pathname === "/arbeitsprotokol" || pathname.startsWith("/arbeitsprotokol/")) {

@@ -6,7 +6,7 @@ const root = resolve(import.meta.dirname, "..");
 const required = [
   "package.json",
   "next.config.mjs",
-  "middleware.ts",
+  "proxy.ts",
   "app/layout.js",
   "app/page.tsx",
   "app/login/page.tsx",
@@ -49,7 +49,7 @@ if (!ok) {
 
 if (hasBrokenCache) {
   console.log("Javítás:");
-  console.log("  npm run dev:clean");
+  console.log("  npm run fix:local");
   process.exit(1);
 }
 
