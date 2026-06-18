@@ -9,6 +9,7 @@
     "dev:clean": "bash scripts/dev-fresh.sh",
     "fix:local": "bash scripts/fix-local.sh",
     "check:local": "node scripts/check-local.mjs",
+    "test:local": "node scripts/test-local-login.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
