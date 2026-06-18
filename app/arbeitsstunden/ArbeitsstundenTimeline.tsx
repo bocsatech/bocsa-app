@@ -326,42 +326,42 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
     setPeriod("intervall");
   }
 
+  const periodButtons = (
+    <div className="asSidebarStundenPeriodBtns">
+      <button
+        type="button"
+        className={`asSidebarStundenPeriodBtn${period === "tag" ? " active" : ""}`}
+        onClick={selectTag}
+      >
+        Tag
+      </button>
+      <button
+        type="button"
+        className={`asSidebarStundenPeriodBtn${period === "woche" ? " active" : ""}`}
+        onClick={selectWoche}
+      >
+        Woche
+      </button>
+      <button
+        type="button"
+        className={`asSidebarStundenPeriodBtn${period === "monat" ? " active" : ""}`}
+        onClick={selectMonat}
+      >
+        Monat
+      </button>
+      <button
+        type="button"
+        className={`asSidebarStundenPeriodBtn${period === "intervall" ? " active" : ""}`}
+        onClick={selectIntervall}
+      >
+        Intervall
+      </button>
+    </div>
+  );
+
   return (
     <AppPageShell activeHref="/arbeitsstunden" subtitle="Betrieb">
       <div className="asSidebarStundenStack">
-        <div className="asSidebarStundenPeriodRow">
-          <div className="asSidebarStundenPeriodBtns">
-            <button
-              type="button"
-              className={`asSidebarStundenPeriodBtn${period === "tag" ? " active" : ""}`}
-              onClick={selectTag}
-            >
-              Tag
-            </button>
-            <button
-              type="button"
-              className={`asSidebarStundenPeriodBtn${period === "woche" ? " active" : ""}`}
-              onClick={selectWoche}
-            >
-              Woche
-            </button>
-            <button
-              type="button"
-              className={`asSidebarStundenPeriodBtn${period === "monat" ? " active" : ""}`}
-              onClick={selectMonat}
-            >
-              Monat
-            </button>
-            <button
-              type="button"
-              className={`asSidebarStundenPeriodBtn${period === "intervall" ? " active" : ""}`}
-              onClick={selectIntervall}
-            >
-              Intervall
-            </button>
-          </div>
-        </div>
-
         {timelineRows.map((row, rowIndex) => (
           <div key={row.key} className="asSidebarStundenDay">
             <div className="asSidebarStundenHeader">
@@ -407,7 +407,10 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
                   ))}
                 </div>
               </div>
-              <p className="asSidebarStundenDate">{row.date}</p>
+              <div className="asSidebarStundenMeta">
+                <p className="asSidebarStundenDate">{row.date}</p>
+                {periodButtons}
+              </div>
             </div>
           </div>
         ))}
@@ -450,7 +453,7 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
         .asSidebarStundenStack {
           display: grid;
           gap: 14px;
-          max-width: 52rem;
+          max-width: 64rem;
           padding: 8px 4px;
         }
 
@@ -462,12 +465,12 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
         .asSidebarStundenHeader {
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 16px;
         }
 
         .asSidebarStundenName {
           flex-shrink: 0;
-          min-width: 8rem;
+          min-width: 7rem;
           margin: 0;
           font-size: 1.05rem;
           font-weight: 700;
@@ -475,8 +478,8 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
         }
 
         .asSidebarStundenTimeline {
-          flex: 1 1 320px;
-          min-width: 280px;
+          flex: 1 1 240px;
+          min-width: 200px;
         }
 
         .asSidebarStundenTimelineLabelsSpacer {
@@ -484,8 +487,16 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
           margin-bottom: 6px;
         }
 
-        .asSidebarStundenDate {
+        .asSidebarStundenMeta {
           flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 8px;
+          min-width: 11rem;
+        }
+
+        .asSidebarStundenDate {
           margin: 0;
           font-size: 1.05rem;
           font-weight: 700;
@@ -493,17 +504,11 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
           white-space: nowrap;
         }
 
-        .asSidebarStundenPeriodRow {
-          display: flex;
-          justify-content: flex-end;
-          margin-bottom: 4px;
-        }
-
         .asSidebarStundenPeriodBtns {
           display: flex;
           flex-wrap: wrap;
           justify-content: flex-end;
-          gap: 6px;
+          gap: 4px;
         }
 
         .asSidebarStundenPeriodBtn {
