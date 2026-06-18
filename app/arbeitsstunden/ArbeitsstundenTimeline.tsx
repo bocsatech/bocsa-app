@@ -201,6 +201,9 @@ function resolveVisibleDates(
 
 export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
   const [users, setUsers] = useState(initialUsers);
+  const [selectedUsernames, setSelectedUsernames] = useState<Set<string>>(
+    () => new Set(initialUsers.map((user) => user.username))
+  );
   const [loaded, setLoaded] = useState<LoadedMachinesData | null>(null);
   const [period, setPeriod] = useState<ViewPeriod>("tag");
   const [anchorDate, setAnchorDate] = useState(() => germanToday());
@@ -211,6 +214,23 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
 
   useEffect(() => {
     setUsers(initialUsers);
+    setSelectedUsernames((prev) => {
+      const next = new Set<string>();
+      for (const user of initialUsers) {
+        if (prev.size === 0 || prev.has(user.username)) {
+          next.add(user.username);
+        }
+      }
+      if (next.size === 0 && initialUsers.length > 0) {
+        return new Set(initialUsers.map((user) => user.username));
+      }
+      for (const user of initialUsers) {
+        if (!prev.has(user.username)) {
+          next.add(user.username);
+        }
+      }
+      return next;
+    });
   }, [initialUsers]);
 
   useEffect(() => {
@@ -222,21 +242,22 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
         const rows = Array.isArray(payload?.users) ? payload.users : [];
         if (rows.length === 0) return;
 
-        setUsers(
-          rows
-            .map((user: { username?: string; fullName?: string; displayName?: string }) => {
-              const username = String(user.username ?? "").trim();
-              if (!username) return null;
-              const fullName = String(user.fullName ?? "").trim();
-              const displayName = String(user.displayName ?? "").trim() || fullName || username;
-              return {
-                username,
-                displayName,
-                userKeys: buildUserMatchKeys(username, fullName),
-              } satisfies TimelineUser;
-            })
-            .filter(Boolean) as TimelineUser[]
-        );
+        const mapped = rows
+          .map((user: { username?: string; fullName?: string; displayName?: string }) => {
+            const username = String(user.username ?? "").trim();
+            if (!username) return null;
+            const fullName = String(user.fullName ?? "").trim();
+            const displayName = String(user.displayName ?? "").trim() || fullName || username;
+            return {
+              username,
+              displayName,
+              userKeys: buildUserMatchKeys(username, fullName),
+            } satisfies TimelineUser;
+          })
+          .filter(Boolean) as TimelineUser[];
+
+        setUsers(mapped);
+        setSelectedUsernames(new Set(mapped.map((user) => user.username)));
       })
       .catch(() => undefined);
   }, [initialUsers.length]);
@@ -278,18 +299,57 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
   const machines = loaded?.machines ?? [];
   const fahrzeuge = loaded?.fahrzeuge ?? [];
 
+  const visibleUsers = useMemo(
+    () => users.filter((user) => selectedUsernames.has(user.username)),
+    [users, selectedUsernames]
+  );
+
+  function toggleUserSelection(username: string, checked: boolean) {
+    setSelectedUsernames((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(username);
+      } else {
+        next.delete(username);
+      }
+      return next;
+    });
+  }
+
+  function selectAllUsers() {
+    setSelectedUsernames(new Set(users.map((user) => user.username)));
+  }
+
+  const hiddenUsers = useMemo(
+    () => users.filter((user) => !selectedUsernames.has(user.username)),
+    [users, selectedUsernames]
+  );
+
   const timelineRows = useMemo(
     () =>
       visibleDates.flatMap((date) =>
-        users.map((user) => ({
+        visibleUsers.map((user) => ({
           key: `${date}::${user.username}`,
+          username: user.username,
           date,
           displayName: user.displayName,
           blocks: collectTimelineBlocksForDay(machines, fahrzeuge, user.userKeys, date),
         }))
       ),
-    [users, visibleDates, machines, fahrzeuge]
+    [visibleUsers, visibleDates, machines, fahrzeuge]
   );
+
+  const firstRowByUser = useMemo(() => {
+    const seen = new Set<string>();
+    const first = new Set<string>();
+    for (const row of timelineRows) {
+      if (!seen.has(row.username)) {
+        seen.add(row.username);
+        first.add(row.key);
+      }
+    }
+    return first;
+  }, [timelineRows]);
 
   function applyInterval() {
     const from = normalizeGermanDate(intervalFromInput) || germanToday();
@@ -362,10 +422,52 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
   return (
     <AppPageShell activeHref="/arbeitsstunden" subtitle="Betrieb">
       <div className="asSidebarStundenStack">
+        {hiddenUsers.length > 0 ? (
+          <div className="asSidebarStundenUserPick">
+            <span className="asSidebarStundenUserPickLabel">Ausgeblendet</span>
+            {hiddenUsers.map((user) => (
+              <label key={user.username} className="asSidebarStundenUserPickItem">
+                <input
+                  type="checkbox"
+                  className="asSidebarStundenCheck"
+                  checked={false}
+                  onChange={() => toggleUserSelection(user.username, true)}
+                  aria-label={`${user.displayName} einblenden`}
+                />
+                <span>{user.displayName}</span>
+              </label>
+            ))}
+          </div>
+        ) : null}
+
+        {visibleUsers.length === 0 ? (
+          <div className="asSidebarStundenEmpty">
+            <p>Kein Benutzer ausgewählt.</p>
+            <button type="button" className="asSidebarStundenSelectAll" onClick={selectAllUsers}>
+              Alle auswählen
+            </button>
+          </div>
+        ) : null}
+
         {timelineRows.map((row, rowIndex) => (
           <div key={row.key} className="asSidebarStundenDay">
             <div className="asSidebarStundenHeader">
-              <p className="asSidebarStundenName">{row.displayName}</p>
+              <div className="asSidebarStundenName">
+                {firstRowByUser.has(row.key) ? (
+                  <label className="asSidebarStundenNameLabel">
+                    <input
+                      type="checkbox"
+                      className="asSidebarStundenCheck"
+                      checked={selectedUsernames.has(row.username)}
+                      onChange={(event) => toggleUserSelection(row.username, event.target.checked)}
+                      aria-label={`${row.displayName} vergleichen`}
+                    />
+                    <span>{row.displayName}</span>
+                  </label>
+                ) : (
+                  <span className="asSidebarStundenNameRepeat">{row.displayName}</span>
+                )}
+              </div>
               <div className="asSidebarStundenTimeline">
                 {rowIndex === 0 ? (
                   <div
@@ -475,6 +577,92 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
           font-size: 1.05rem;
           font-weight: 700;
           color: #111827;
+        }
+
+        .asSidebarStundenNameLabel {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          user-select: none;
+        }
+
+        .asSidebarStundenNameLabel span,
+        .asSidebarStundenNameRepeat {
+          line-height: 1.2;
+        }
+
+        .asSidebarStundenNameRepeat {
+          display: block;
+          padding-left: 23px;
+        }
+
+        .asSidebarStundenCheck {
+          width: 15px;
+          height: 15px;
+          margin: 0;
+          flex-shrink: 0;
+          accent-color: #111827;
+          cursor: pointer;
+        }
+
+        .asSidebarStundenUserPick {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px 12px;
+          padding: 8px 10px;
+          border: 1px solid #e5e7eb;
+          border-radius: 10px;
+          background: #f9fafb;
+        }
+
+        .asSidebarStundenUserPickLabel {
+          font-size: 12px;
+          font-weight: 700;
+          color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-right: 4px;
+        }
+
+        .asSidebarStundenUserPickItem {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #111827;
+          cursor: pointer;
+          user-select: none;
+        }
+
+        .asSidebarStundenEmpty {
+          margin: 0;
+          padding: 12px 10px;
+          color: #6b7280;
+          font-size: 0.95rem;
+          text-align: center;
+        }
+
+        .asSidebarStundenEmpty p {
+          margin: 0;
+        }
+
+        .asSidebarStundenSelectAll {
+          margin-top: 10px;
+          border: 1px solid #d1d5db;
+          background: #ffffff;
+          color: #111827;
+          border-radius: 8px;
+          padding: 6px 12px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .asSidebarStundenSelectAll:hover {
+          background: #f9fafb;
         }
 
         .asSidebarStundenTimeline {
