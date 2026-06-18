@@ -7,6 +7,7 @@
     "dev:turbo": "next dev",
     "dev:webpack": "next dev --webpack",
     "dev:clean": "bash scripts/dev-fresh.sh",
+    "fix:local": "bash scripts/fix-local.sh",
     "check:local": "node scripts/check-local.mjs",
     "build": "next build",
     "start": "next start",

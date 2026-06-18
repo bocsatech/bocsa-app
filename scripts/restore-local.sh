@@ -7,7 +7,7 @@ cd "$ROOT"
 echo "→ Git rebase megszakítása (ha van)..."
 git rebase --abort 2>/dev/null || true
 
-echo "→ Legfrissebb kód letöltése..."
+echo "→ Legfrissebb kód letöltése (fetch + reset — divergent branch nélkül)..."
 if git remote get-url new-origin >/dev/null 2>&1; then
   git fetch new-origin main
   git reset --hard new-origin/main

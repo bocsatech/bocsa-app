@@ -60,4 +60,8 @@ console.log("  1. cp .env.local.example .env.local  (és töltsd ki a kulcsokat)
 console.log("  2. npm run dev");
 console.log("  3. Böngésző: http://localhost:3000/login");
 console.log("");
-console.log("Ha 404/500 marad: npm run dev:clean");
+console.log("Ha 404/500 marad (git pull nélkül is):");
+console.log("  rm -rf .next && npx next dev --webpack");
+console.log("");
+console.log("Legfrissebb kód + javítás:");
+console.log("  git fetch origin main && git reset --hard origin/main && npm install && npm run dev");
