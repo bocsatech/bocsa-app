@@ -48,7 +48,7 @@ if [[ "$missing" -eq 1 ]]; then
   npm install --no-audit --no-fund
 fi
 
-rm -rf .next
+rm -rf .next node_modules/.cache
 echo "→ .next törölve"
 echo "→ Dev szerver indul (webpack)…"
 echo "→ Böngésző: http://localhost:3000/login"

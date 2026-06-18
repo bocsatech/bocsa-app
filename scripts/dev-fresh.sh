@@ -11,6 +11,6 @@ for port in 3000 3001; do
   fi
 done
 
-rm -rf .next
-echo "→ .next törölve, dev indul…"
+rm -rf .next node_modules/.cache
+echo "→ .next + webpack cache törölve, dev indul…"
 exec bash scripts/dev.sh

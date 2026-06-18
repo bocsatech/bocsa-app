@@ -21,6 +21,15 @@ const manifest = resolve(
 );
 const hasBrokenCache = existsSync(resolve(root, ".next")) && !existsSync(manifest);
 
+const requiredPkwModules = [
+  "lib/pkw-ersatzteile.mjs",
+  "lib/pkw-reifen.mjs",
+  "lib/dates-server.mjs",
+  "lib/pkw-fahrzeug-payload.mjs",
+  "lib/pkw-ersatzteile.ts",
+  "lib/pkw-reifen.ts",
+];
+
 function readEnvLocal() {
   const path = resolve(root, ".env.local");
   if (!existsSync(path)) return null;
@@ -99,6 +108,12 @@ if (hasBrokenCache) {
   console.log("✓ .next cache");
 } else {
   console.log("○ .next cache (első indításkor jön létre)");
+}
+
+for (const rel of requiredPkwModules) {
+  const exists = existsSync(resolve(root, rel));
+  console.log(`${exists ? "✓" : "✗"} ${rel}`);
+  if (!exists) ok = false;
 }
 
 const env = readEnvLocal();

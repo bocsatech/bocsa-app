@@ -11,6 +11,8 @@
     "setup:env": "node scripts/setup-env-local.mjs",
     "check:local": "node scripts/check-local.mjs",
     "test:local": "node scripts/test-local-login.mjs",
+    "test:arbeitsstunden": "node scripts/test-arbeitsstunden-users.mjs",
+    "verify:local": "node scripts/verify-local.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

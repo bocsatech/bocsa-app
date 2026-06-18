@@ -5,9 +5,11 @@
 
 ## Állapot
 
-- [ ] Localhost rendben
+- [x] Localhost rendben — minden felhasználó megjelenik (Zeitbalken)
 - [ ] Web = localhost
 
 ## Teendők / jegyzetek
 
-*(ide írj innentől)*
+- Tag/Woche/Monat/Intervall: minden user külön sorban
+- Teszt: `npm run test:arbeitsstunden`
+- Ellenőrzés: `npm run verify:local`
