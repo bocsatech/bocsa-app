@@ -7,20 +7,7 @@ import {
   normalizeSecretPin,
 } from "../../../../lib/auth/pin";
 import { findUserByUsername } from "../../../../lib/auth/users";
-
-function authConfigError(error) {
-  const message = error instanceof Error ? error.message : String(error);
-  if (message.includes("SESSION_SECRET")) {
-    return NextResponse.json(
-      {
-        error:
-          "Server-Konfiguration: SESSION_SECRET fehlt (Vercel → Settings → Environment Variables).",
-      },
-      { status: 500 }
-    );
-  }
-  return null;
-}
+import { authConfigErrorResponse } from "../../../../lib/auth/config-error.mjs";
 
 export async function POST(request) {
   try {
@@ -82,8 +69,13 @@ export async function POST(request) {
 
     return response;
   } catch (error) {
-    const configResponse = authConfigError(error);
-    if (configResponse) return configResponse;
+    const configResponse = authConfigErrorResponse(error);
+    if (configResponse) {
+      return NextResponse.json(
+        { error: configResponse.error },
+        { status: configResponse.status }
+      );
+    }
     console.error("[auth/challenge]", error);
     return NextResponse.json(
       { error: "Aufgabe konnte nicht erstellt werden." },

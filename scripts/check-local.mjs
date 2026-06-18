@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -18,6 +18,25 @@ const manifest = resolve(
 );
 const hasBrokenCache = existsSync(resolve(root, ".next")) && !existsSync(manifest);
 
+function readEnvLocal() {
+  const path = resolve(root, ".env.local");
+  if (!existsSync(path)) return null;
+  const values = {};
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const idx = trimmed.indexOf("=");
+    if (idx === -1) continue;
+    values[trimmed.slice(0, idx).trim()] = trimmed.slice(idx + 1).trim();
+  }
+  return values;
+}
+
+function hasValue(env, key) {
+  const value = env?.[key];
+  return typeof value === "string" && value.length > 0;
+}
+
 let ok = true;
 
 console.log("BOCSA lokális ellenőrzés\n");
@@ -31,37 +50,49 @@ for (const rel of required) {
 }
 
 if (hasBrokenCache) {
-  console.log("✗ .next cache sérült (ez okozza a 404/500 hibát)");
+  console.log("✗ .next cache sérült (404/500)");
 } else if (existsSync(resolve(root, ".next"))) {
   console.log("✓ .next cache");
 } else {
-  console.log("○ .next cache (még nincs — első indításkor jön létre)");
+  console.log("○ .next cache (első indításkor jön létre)");
+}
+
+const env = readEnvLocal();
+if (!env) {
+  console.log("✗ .env.local hiányzik");
+  ok = false;
+} else {
+  const urlOk = hasValue(env, "NEXT_PUBLIC_SUPABASE_URL");
+  const anonOk = hasValue(env, "NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  const sessionOk =
+    hasValue(env, "SESSION_SECRET") ||
+    hasValue(env, "SUPABASE_SERVICE_ROLE_KEY") ||
+    anonOk;
+
+  console.log(`${urlOk ? "✓" : "✗"} NEXT_PUBLIC_SUPABASE_URL`);
+  console.log(`${anonOk ? "✓" : "✗"} NEXT_PUBLIC_SUPABASE_ANON_KEY`);
+  console.log(`${sessionOk ? "✓" : "✗"} SESSION_SECRET (vagy Service-Role / Anon Key)`);
+
+  if (!urlOk || !anonOk || !sessionOk) ok = false;
 }
 
 console.log("");
 if (!ok) {
-  console.log("HIBA: Hiányzó fájlok — töltsd le újra a projektet:");
-  console.log("  cd ~ && rm -rf bocsa-app");
-  console.log("  git clone https://github.com/bocsatech/bocsa-app");
-  console.log("  cd bocsa-app && npm install");
+  if (!env) {
+    console.log("→ cp .env.local.example .env.local");
+  }
+  console.log("→ Supabase → Settings → API → URL + anon key másolása");
+  console.log("→ SESSION_SECRET=barmilyen-hosszu-random-szoveg");
+  console.log("");
+  console.log("Utána: npm run dev  →  http://localhost:3000/login");
   process.exit(1);
 }
 
 if (hasBrokenCache) {
-  console.log("Javítás:");
-  console.log("  npm run fix:local");
+  console.log("Javítás: npm run fix:local");
   process.exit(1);
 }
 
-console.log("Fájlok rendben.");
-console.log("");
-console.log("Következő lépések:");
-console.log("  1. cp .env.local.example .env.local  (és töltsd ki a kulcsokat)");
-console.log("  2. npm run dev");
-console.log("  3. Böngésző: http://localhost:3000/login");
-console.log("");
-console.log("Ha 404/500 marad (git pull nélkül is):");
-console.log("  rm -rf .next && npx next dev --webpack");
-console.log("");
-console.log("Legfrissebb kód + javítás:");
-console.log("  git fetch origin main && git reset --hard origin/main && npm install && npm run dev");
+console.log("Minden rendben.");
+console.log("Indítás: npm run dev");
+console.log("Login: admin / demo123  (Geheimzahl 42)");
