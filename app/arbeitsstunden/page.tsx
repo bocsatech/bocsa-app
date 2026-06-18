@@ -196,6 +196,7 @@ function resolveVisibleDates(
 
 export default function ArbeitsstundenPage() {
   const [loaded, setLoaded] = useState<LoadedTimelineData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<ViewPeriod>("tag");
   const [anchorDate, setAnchorDate] = useState(() => germanToday());
   const [intervalFrom, setIntervalFrom] = useState(() => germanToday());
@@ -204,6 +205,7 @@ export default function ArbeitsstundenPage() {
   const [intervalToInput, setIntervalToInput] = useState(() => germanToday());
 
   const loadTimeline = useCallback(async () => {
+    setLoading(true);
     try {
       const sessionResponse = await fetch("/api/auth/session", {
         credentials: "include",
@@ -249,6 +251,8 @@ export default function ArbeitsstundenPage() {
         machines: [],
         fahrzeuge: [],
       });
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -322,8 +326,24 @@ export default function ArbeitsstundenPage() {
   const displayName = loaded?.displayName ?? "—";
 
   return (
-    <AppPageShell activeHref="/arbeitsstunden" subtitle="Betrieb">
+    <AppPageShell
+      activeHref="/arbeitsstunden"
+      subtitle="Betrieb"
+      top={
+        <header className="pageHeader compactPageHeader">
+          <div>
+            <h1 style={{ margin: 0 }}>Arbeitsstunden</h1>
+            <p className="subtitle" style={{ margin: "6px 0 0" }}>
+              Zeitbalken 07:00–17:00 · aus Arbeitsaufträgen
+            </p>
+          </div>
+        </header>
+      }
+    >
       <div className="asSidebarStundenStack">
+        {loading ? (
+          <p className="asSidebarStundenLoading">Laden…</p>
+        ) : null}
         {dayRows.map((row, index) => (
           <div key={row.date} className="asSidebarStundenDay">
             <div className="asSidebarStundenHeader">
@@ -444,6 +464,12 @@ export default function ArbeitsstundenPage() {
           gap: 14px;
           max-width: 52rem;
           padding: 8px 4px;
+        }
+
+        .asSidebarStundenLoading {
+          margin: 0;
+          font-size: 14px;
+          color: #6b7280;
         }
 
         .asSidebarStundenDay {
