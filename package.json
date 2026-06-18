@@ -8,6 +8,7 @@
     "dev:webpack": "next dev --webpack",
     "dev:clean": "bash scripts/dev-fresh.sh",
     "fix:local": "bash scripts/fix-local.sh",
+    "setup:env": "node scripts/setup-env-local.mjs",
     "check:local": "node scripts/check-local.mjs",
     "test:local": "node scripts/test-local-login.mjs",
     "build": "next build",
