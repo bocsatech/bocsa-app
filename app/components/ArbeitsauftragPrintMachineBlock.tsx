@@ -93,8 +93,13 @@ export default function ArbeitsauftragPrintMachineBlock({
       <div className="aaWorksheetAuftragBand">
         <span className="aaWorksheetAuftragLabel">Arbeitsauftrag</span>
         <span className="aaWorksheetAuftragMeta">
+          {auftragNr && auftragNr !== "—" ? (
+            <>
+              Auftrag-Nr. <strong className="aaAuftragNr">{auftragNr}</strong>
+              {" · "}
+            </>
+          ) : null}
           {formatOrderType(order.type)}
-          {auftragNr && auftragNr !== "—" ? ` · ${auftragNr}` : ""}
           {order.date ? ` · ${order.date}` : ""}
           {order.time ? ` ${order.time}` : ""}
           {bearbeiter !== "—" ? ` · ${bearbeiter}` : ""}

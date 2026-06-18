@@ -653,7 +653,14 @@ export default function ArbeitsauftragForm({
                     " · Auftrag-Nr. wird vergeben…"
                   )}
                 </p>
-              ) : null}
+              ) : (
+                <p className="subtitle" style={{ marginBottom: 12 }}>
+                  Auftrag-Nr.:{" "}
+                  <strong className="aaAuftragNr">{formatWorkOrderAuftragNr(order)}</strong>
+                  {" · "}
+                  {formatOrderType(order.type)}
+                </p>
+              )}
               {saveError ? (
                 <p style={{ color: "#dc2626" }}>{saveError}</p>
               ) : null}

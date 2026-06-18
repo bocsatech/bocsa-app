@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   buildWorkOrderInfoParts,
+  formatOrderType,
   formatWorkOrderAuftragNr,
   formatWorkOrderDepot,
   formatWorkOrderHourMeterDisplay,
@@ -65,6 +66,7 @@ export default function MachineWorkOrdersTable({
             <tr>
               <th>Datum</th>
               <th>Auftrag-Nr.</th>
+              <th>Art</th>
               <th>Info</th>
               <th>Stundenzählerstand</th>
               <th>Depot</th>
@@ -110,6 +112,7 @@ function WorkOrderRow({
     <tr>
       <td className="woDate">{order.date || "—"}</td>
       <td className="woAuftragNr">{formatWorkOrderAuftragNr(order)}</td>
+      <td className="woArt">{formatOrderType(order.type)}</td>
       <td className="woInfoCell">
         {infoParts.length === 0 ? (
           "—"

@@ -210,6 +210,24 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
                 />
               </label>
               <label className="arbeitsauftragFilterField">
+                <span>Auftrag-Nr.</span>
+                <input
+                  type="search"
+                  value={filters.auftrag}
+                  onChange={(event) => updateFilter("auftrag", event.target.value)}
+                  placeholder="z. B. 250528-ABCD"
+                />
+              </label>
+              <label className="arbeitsauftragFilterField">
+                <span>Auftragsart</span>
+                <input
+                  type="search"
+                  value={filters.auftragsart}
+                  onChange={(event) => updateFilter("auftragsart", event.target.value)}
+                  placeholder="z. B. Service"
+                />
+              </label>
+              <label className="arbeitsauftragFilterField">
                 <span>Bearbeiter</span>
                 <input
                   type="search"
@@ -335,26 +353,25 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
 
                         <span className="machineResultMeta">
                           <RowField
+                            label="Auftrag-Nr."
+                            value={formatWorkOrderAuftragNr(entry)}
+                            emphasize
+                          />
+                          <RowField
                             label="Auftragsart"
                             value={formatOrderType(entry.type)}
-                            emphasize
                           />
                           <RowField
                             label="Bearbeiter"
                             value={workOrderUserLabel(entry) || "—"}
                           />
-                          <RowField
-                            label="Reparaturbeschreibung"
-                            value={truncateRepairDescription(entry.repairDescription, 80)}
-                            className="machineResultDetail"
-                          />
                         </span>
 
                         <span className="machineResultMeta">
                           <RowField
-                            label="Auftrag-Nr."
-                            value={formatWorkOrderAuftragNr(entry)}
-                            strongValue
+                            label="Reparaturbeschreibung"
+                            value={truncateRepairDescription(entry.repairDescription, 80)}
+                            className="machineResultDetail"
                           />
                           <RowField label="Datum" value={entry.date || "—"} />
                           <RowField label="Depot" value={entry.filiale || "—"} strongValue />

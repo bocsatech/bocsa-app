@@ -78,21 +78,47 @@ async function main() {
 
   let orderCount = 0;
   let withProtocol = 0;
+  let missingId = 0;
+  let missingAuftragNr = 0;
 
   for (const machine of machines ?? []) {
     const orders = machine.machine_tab_data?.work_orders;
     if (!Array.isArray(orders)) continue;
     for (const order of orders) {
       orderCount += 1;
+      if (!order?.id || typeof order.id !== "string" || !String(order.id).trim()) {
+        missingId += 1;
+      }
+      if (
+        order &&
+        typeof order === "object" &&
+        (!order.auftragNr || !String(order.auftragNr).trim())
+      ) {
+        missingAuftragNr += 1;
+      }
       if (order?.protocol && typeof order.protocol === "object") {
         withProtocol += 1;
       }
     }
   }
 
+  const { error: arbeitsprotokolError } = await supabase
+    .from("arbeitsprotokol")
+    .select("id")
+    .limit(1);
+
   console.log("");
-  console.log(`Arbeitsaufträge in DB: ${orderCount}`);
+  console.log(`Arbeitsaufträge in maschines.machine_tab_data: ${orderCount}`);
   console.log(`davon mit gespeichertem protocol: ${withProtocol}`);
+  console.log(`ohne order.id (Legacy — wird beim Laden ergänzt): ${missingId}`);
+  console.log(`ohne gespeicherte auftragNr (Anzeige aus wo_-ID): ${missingAuftragNr}`);
+  if (arbeitsprotokolError) {
+    console.log("Legacy-Tabelle public.arbeitsprotokol: nicht vorhanden (OK)");
+  } else {
+    console.log(
+      "⚠ Legacy-Tabelle public.arbeitsprotokol existiert noch — Daten ggf. in work_orders[] prüfen"
+    );
+  }
   console.log("");
 
   if (failed > 0) {
