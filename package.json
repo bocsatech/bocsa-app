@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "bash scripts/dev.sh",
+    "dev:turbo": "next dev",
     "dev:webpack": "next dev --webpack",
     "dev:clean": "bash scripts/dev-fresh.sh",
     "check:local": "node scripts/check-local.mjs",

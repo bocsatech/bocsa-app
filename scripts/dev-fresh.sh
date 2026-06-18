@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Dev szerver tiszta indítás (.next cache törlése).
+# Dev szerver tiszta indítás (.next cache teljes törlése).
 set -euo pipefail
-cd "$(dirname "$0")/.."
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
 
-for pid in $(lsof -ti :3000 2>/dev/null || true); do
-  kill -9 "$pid" 2>/dev/null || true
+for port in 3000 3001; do
+  pids="$(lsof -ti :"$port" 2>/dev/null || true)"
+  if [[ -n "$pids" ]]; then
+    kill -9 $pids 2>/dev/null || true
+  fi
 done
 
 rm -rf .next
 echo "→ .next törölve, dev indul…"
-exec npm run dev
+exec bash scripts/dev.sh
