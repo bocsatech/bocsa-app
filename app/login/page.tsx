@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import BocsaMark from "../components/BocsaMark";
 
 type ChallengeState = {
   compact: string;
@@ -125,7 +126,7 @@ function LoginForm() {
     <main className="loginPage">
       <section className="loginCard">
         <div className="loginBrand">
-          <span className="sidebarMark">B</span>
+          <BocsaMark />
           <div>
             <h1>Bocsa</h1>
             <p>Anmeldung</p>

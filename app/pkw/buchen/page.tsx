@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import BocsaMark from "../../components/BocsaMark";
 import {
   fetchPkwServicearten,
   fetchPkwSlots,
@@ -229,7 +230,7 @@ function PkwBuchenForm() {
       <div className="pkwPortalPage">
         <div className="pkwPortalHeaderTop">
           <header className="pkwPortalHeader">
-            <div className="sidebarMark">B</div>
+            <BocsaMark />
             <div>
               <h1>PKW Termin buchen</h1>
               <p className="subtitle">Bocsa PKW-Service</p>

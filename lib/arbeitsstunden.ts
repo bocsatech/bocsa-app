@@ -1,4 +1,4 @@
-import { collectAllWorkOrders, parseWorkHours, workOrderUserLabel } from "./work-orders";
+import { collectAllWorkOrders, parseWorkHours, workOrderUserLabel, formatWorkOrderAuftragNr } from "./work-orders";
 import type { WorkOrderListEntry } from "./work-orders";
 import {
   formatGermanDate,
@@ -173,8 +173,11 @@ export function collectProtokollEintraege(
 }
 
 function formatOrderLabel(order: WorkOrderListEntry) {
+  const nr = formatWorkOrderAuftragNr(order);
   const type = order.type?.trim() || "Auftrag";
-  return type === "Reperatur" ? "Reparatur" : type;
+  const typeLabel = type === "Reperatur" ? "Reparatur" : type;
+  if (nr && nr !== "—") return `${nr} · ${typeLabel}`;
+  return typeLabel;
 }
 
 function orderMatchesUserAndDate(

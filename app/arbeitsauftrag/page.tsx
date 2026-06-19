@@ -13,6 +13,7 @@ function readListFilters(searchParams: URLSearchParams): Partial<WorkOrderListFi
   return {
     geraetenummer: searchParams.get("geraetenummer") ?? "",
     auftrag: searchParams.get("auftrag") ?? searchParams.get("auftragNr") ?? "",
+    auftragsart: searchParams.get("auftragsart") ?? searchParams.get("type") ?? "",
     bearbeiter: searchParams.get("bearbeiter") ?? "",
     filiale: searchParams.get("filiale") ?? "",
     dateFrom: searchParams.get("dateFrom") ?? "",

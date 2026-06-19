@@ -62,7 +62,10 @@ export type WorkOrderListEntry = WorkOrder & {
 
 export type WorkOrderListFilters = {
   geraetenummer: string;
+  /** Auftrag-Nr. (Anzeige, gespeichert oder Legacy wo_-ID) */
   auftrag: string;
+  /** Auftragsart (Service, Reparatur, …) */
+  auftragsart: string;
   bearbeiter: string;
   dateFrom: string;
   dateTo: string;
@@ -72,6 +75,7 @@ export type WorkOrderListFilters = {
 export const EMPTY_WORK_ORDER_FILTERS: WorkOrderListFilters = {
   geraetenummer: "",
   auftrag: "",
+  auftragsart: "",
   bearbeiter: "",
   dateFrom: "",
   dateTo: "",
@@ -116,13 +120,99 @@ export function formatWorkOrderHourMeterDisplay(
   return `${value} Bh`;
 }
 
+/** Legacy wo_-ID → YYMMDD-KURZ (nicht die letzten 9 Ziffern des Timestamps). */
+export function deriveLegacyAuftragNrFromWoId(id: string): string {
+  const raw = id.trim();
+  if (!raw) return "—";
+  if (!raw.startsWith("wo_")) return raw;
+
+  const body = raw.slice(3);
+  const sep = body.indexOf("_");
+  if (sep <= 0) return body;
+
+  const ts = body.slice(0, sep);
+  const suffix = body.slice(sep + 1);
+  const ms = Number(ts);
+  if (!Number.isFinite(ms) || ms <= 0) {
+    return suffix.slice(0, 8).toUpperCase() || "—";
+  }
+
+  const d = new Date(ms);
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const shortSuffix = suffix.slice(0, 4).toUpperCase();
+  return `${yy}${mm}${dd}-${shortSuffix}`;
+}
+
+/** Fehlerhafte alte Werte (z. B. letzte 9 Ziffern des wo_-Timestamps). */
+function isCorruptStoredAuftragNr(stored: string, id: string): boolean {
+  const value = stored.trim();
+  if (!value) return false;
+  if (/^\d{9,}$/.test(value)) return true;
+  const rawId = id.trim();
+  if (!rawId.startsWith("wo_")) return false;
+
+  const body = rawId.slice(3);
+  const sep = body.indexOf("_");
+  if (sep <= 0) return false;
+
+  const ts = body.slice(0, sep);
+  return value === ts || value === ts.slice(-9);
+}
+
+function resolveStoredAuftragNr(order: Pick<WorkOrder, "id" | "auftragNr">): string {
+  const stored = String(order.auftragNr ?? "").trim();
+  if (!stored) return "";
+  if (isCorruptStoredAuftragNr(stored, String(order.id ?? ""))) return "";
+  return stored;
+}
+
+/** Anzeige: gespeichertes auftragNr, sonst Legacy-Ableitung aus order.id. */
+export function formatWorkOrderNumber(
+  order: Pick<WorkOrder, "id" | "auftragNr"> | string
+): string {
+  if (typeof order !== "string") {
+    const stored = resolveStoredAuftragNr(order);
+    if (stored) return stored;
+    return deriveLegacyAuftragNrFromWoId(String(order.id ?? ""));
+  }
+
+  const raw = order.trim();
+  if (!raw) return "—";
+  if (!raw.startsWith("wo_")) return raw;
+  return deriveLegacyAuftragNrFromWoId(raw);
+}
+
+/** Alias — bestehende Aufrufer in der App. */
 export function formatWorkOrderAuftragNr(order: Pick<WorkOrder, "id" | "auftragNr">) {
-  const nr = order.auftragNr?.trim();
-  if (nr) return nr;
-  const digits = order.id.replace(/\D/g, "");
-  if (digits.length >= 6) return digits.slice(-9);
-  const compact = order.id.replace(/^wo_/, "").trim();
-  return compact || "—";
+  return formatWorkOrderNumber(order);
+}
+
+export function formatWorkOrderDisplay(order: Pick<WorkOrder, "id" | "auftragNr" | "type">) {
+  return {
+    number: formatWorkOrderNumber(order),
+    typeLabel: formatOrderType(order.type),
+  };
+}
+
+function workOrderNumberMatchesFilter(
+  entry: Pick<WorkOrder, "id" | "auftragNr">,
+  filter: string
+) {
+  const needle = normalizeFilterValue(filter);
+  if (!needle) return true;
+
+  const display = formatWorkOrderNumber(entry);
+  const idNorm = normalizeFilterValue(entry.id);
+  const displayNorm = normalizeFilterValue(display);
+  const storedNorm = normalizeFilterValue(String(entry.auftragNr ?? ""));
+
+  return (
+    idNorm.includes(needle) ||
+    displayNorm.includes(needle) ||
+    storedNorm.includes(needle)
+  );
 }
 
 /** Referenz in Lagerbewegungen kann formatWorkOrderAuftragNr-Wert sein, nicht nur order.auftragNr. */
@@ -132,9 +222,7 @@ export function workOrderMatchesAuftragNr(
 ): boolean {
   const q = query.trim();
   if (!q) return false;
-  const nr = order.auftragNr?.trim();
-  if (nr && nr === q) return true;
-  return formatWorkOrderAuftragNr(order) === q;
+  return workOrderNumberMatchesFilter(order, q);
 }
 
 export function findWorkOrderByAuftragNr<T extends Pick<WorkOrder, "id" | "auftragNr">>(
@@ -209,7 +297,6 @@ export function filterWorkOrderEntries(
   filters: WorkOrderListFilters
 ) {
   const geraet = normalizeFilterValue(filters.geraetenummer);
-  const auftrag = normalizeFilterValue(filters.auftrag);
   const bearbeiter = normalizeFilterValue(filters.bearbeiter);
   const filiale = normalizeFilterValue(filters.filiale);
   const dateFrom = normalizeGermanDate(filters.dateFrom.trim()) ?? "";
@@ -220,18 +307,19 @@ export function filterWorkOrderEntries(
       return false;
     }
 
-    if (auftrag) {
-      const query = filters.auftrag.trim();
-      const nr = normalizeFilterValue(entry.auftragNr ?? "");
+    if (!workOrderNumberMatchesFilter(entry, filters.auftrag)) {
+      return false;
+    }
+
+    const auftragsart = normalizeFilterValue(filters.auftragsart);
+    if (auftragsart) {
       const typeLabel = normalizeFilterValue(formatOrderType(entry.type));
       const rawType = normalizeFilterValue(entry.type);
-      const matchesAuftragNr = query ? workOrderMatchesAuftragNr(entry, query) : false;
       if (
-        !matchesAuftragNr &&
-        !nr.includes(auftrag) &&
-        typeLabel !== auftrag &&
-        rawType !== auftrag &&
-        !rawType.includes(auftrag)
+        typeLabel !== auftragsart &&
+        rawType !== auftragsart &&
+        !typeLabel.includes(auftragsart) &&
+        !rawType.includes(auftragsart)
       ) {
         return false;
       }
@@ -462,11 +550,20 @@ export function normalizeWorkOrder(order: WorkOrder): WorkOrder {
   const legacyServiceParts = normalizeServicePartsFromOrder(record);
   const protocol = normalizeProtocol(record.protocol, legacyServiceParts);
   const serviceParts = servicePartsFromSchedule(protocol.serviceSchedule);
+  const id =
+    typeof order.id === "string" && order.id.trim() ? order.id.trim() : newWorkOrderId();
+  const rawAuftragNr =
+    typeof record.auftragNr === "string" && record.auftragNr.trim()
+      ? record.auftragNr.trim()
+      : typeof order.auftragNr === "string" && order.auftragNr.trim()
+        ? order.auftragNr.trim()
+        : "";
+  const auftragNr = resolveStoredAuftragNr({ id, auftragNr: rawAuftragNr });
 
   return {
     ...order,
-    auftragNr:
-      typeof order.auftragNr === "string" ? order.auftragNr.trim() : "",
+    id,
+    auftragNr,
     date: formatGermanDate(order.date) || String(order.date ?? "").trim(),
     notes: typeof order.notes === "string" ? order.notes : "",
     parts: Array.isArray(order.parts) ? order.parts : [],
@@ -493,5 +590,13 @@ export function getWorkOrderSortKey(order: Pick<WorkOrder, "date" | "time">) {
 
 export function isWorkOrder(value: unknown): value is WorkOrder {
   if (!value || typeof value !== "object") return false;
-  return typeof (value as WorkOrder).id === "string";
+  const record = value as Record<string, unknown>;
+  if (typeof record.id === "string" && record.id.trim()) return true;
+  return (
+    typeof record.type === "string" ||
+    typeof record.date === "string" ||
+    record.protocol != null ||
+    Array.isArray(record.serviceParts) ||
+    Array.isArray(record.parts)
+  );
 }
