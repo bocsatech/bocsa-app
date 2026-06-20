@@ -9,6 +9,8 @@ Ez **nem** a Bocsa Tech webalkalmazás része. Önálló dokumentum a PDCA elemz
 | `lean-production-borito.html` | Nyomtatható borító (böngészőben megnyitva) |
 | `lean-production-borito.png` | Előnézeti kép |
 | `bocsa-app-home.jpg` | Bocsa Tech program képernyőkép (borító háttér) |
+| `fragebogen-lean-management-de-hu.html` | Fragebogen mintamegoldás DE + HU feladatonként |
+| `Fragebogen_Lean_Management_Musterloesung_DE_HU.pdf` | Nyomtatható PDF (8 oldal) |
 
 ## Saját JPG (chatben / e-mailben küldött kép)
 
@@ -34,3 +36,17 @@ node scripts/capture-pdca-screenshots.mjs /útvonal/a/program-kepernyokep.jpg
 1. Nyisd meg a `lean-production-borito.html` fájlt Chrome vagy Safari böngészőben (dupla kattintás).
 2. Nyomtatás: **Cmd+P** (Mac) / **Ctrl+P** (Windows) → PDF mentés, A4 fekvő.
 3. Automatikus mock screenshot (ha nincs saját JPG): `node scripts/capture-pdca-screenshots.mjs`
+
+## Fragebogen Lean Management (DE / HU)
+
+Mintamegoldás feladatonként: német kérdés és válasz, alatta magyar fordítás.
+
+```bash
+# PDF a documents/pdca mappába
+node scripts/generate-lean-fragebogen-pdf.mjs
+
+# Mac: Letöltések mappába
+bash documents/pdca/asztalra-fragebogen.sh
+# vagy:
+node scripts/generate-lean-fragebogen-pdf.mjs ~/Downloads/Fragebogen_Lean_Management_Musterloesung_DE_HU.pdf
+```
