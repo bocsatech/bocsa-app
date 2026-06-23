@@ -19,7 +19,12 @@ type UserRow = {
   filiale_code?: UserFilialeCode | null;
   photo_url?: string | null;
   signature_url?: string | null;
+  is_active?: boolean | null;
 };
+
+function isUserActive(user: UserRow) {
+  return user.is_active !== false;
+}
 
 function formatDate(value: string | null) {
   if (!value) return "-";
@@ -33,6 +38,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [canWrite, setCanWrite] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -43,6 +49,9 @@ export default function UsersPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [togglingActive, setTogglingActive] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
   const [editFullName, setEditFullName] = useState("");
   const [editPosition, setEditPosition] = useState("");
   const [editSite, setEditSite] = useState("");
@@ -82,6 +91,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!selectedUser) return;
+    setEditUsername(selectedUser.username ?? "");
     setEditFullName(selectedUser.full_name ?? "");
     setEditPosition(selectedUser.position ?? "");
     setEditSite(selectedUser.site ?? "");
@@ -115,7 +125,9 @@ export default function UsersPage() {
       const groups: string[] = Array.isArray(data.groups) ? data.groups : [];
       const username =
         typeof data.user?.username === "string" ? data.user.username.trim().toLowerCase() : "";
+      const userId = typeof data.user?.id === "string" ? data.user.id : null;
 
+      setCurrentUserId(userId);
       setCanWrite(
         data.canManageUsers === true ||
           permissions.includes("users.write") ||
@@ -199,12 +211,19 @@ export default function UsersPage() {
       return;
     }
 
+    const username = editUsername.trim();
+    if (!username) {
+      setSaveMessage("Benutzername darf nicht leer sein.");
+      return;
+    }
+
     setSavingProfile(true);
     const response = await fetch(`/api/users/${selectedUser.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
+        username,
         fullName: editFullName,
         position: editPosition,
         site: editSite,
@@ -223,6 +242,63 @@ export default function UsersPage() {
     }
     setSaveMessage("Benutzerdaten gespeichert.");
     setEditPassword("");
+    await loadUsers();
+  }
+
+  async function handleToggleActive() {
+    if (!selectedUser) return;
+    setSaveMessage(null);
+    setTogglingActive(true);
+
+    const response = await fetch(`/api/users/${selectedUser.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ isActive: !isUserActive(selectedUser) }),
+    });
+    const data = await response.json().catch(() => ({}));
+    setTogglingActive(false);
+
+    if (!response.ok) {
+      setSaveMessage(data.error ?? "Status konnte nicht geändert werden.");
+      return;
+    }
+
+    setSaveMessage(
+      isUserActive(selectedUser)
+        ? "Benutzer wurde deaktiviert."
+        : "Benutzer wurde aktiviert."
+    );
+    await loadUsers();
+  }
+
+  async function handleDeleteUser() {
+    if (!selectedUser) return;
+    const label = selectedUser.username ?? selectedUser.id;
+    if (
+      !window.confirm(
+        `Benutzer „${label}" wirklich endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.`
+      )
+    ) {
+      return;
+    }
+
+    setSaveMessage(null);
+    setDeletingUser(true);
+    const response = await fetch(`/api/users/${selectedUser.id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    const data = await response.json().catch(() => ({}));
+    setDeletingUser(false);
+
+    if (!response.ok) {
+      setSaveMessage(data.error ?? "Benutzer konnte nicht gelöscht werden.");
+      return;
+    }
+
+    setSelectedUserId(null);
+    setSaveMessage(`Benutzer „${label}" wurde gelöscht.`);
     await loadUsers();
   }
 
@@ -319,17 +395,38 @@ export default function UsersPage() {
 
         {selectedUser && canWrite ? (
           <article className="card userCreateCard usersPanel usersEditPanel">
-            <div className="cardHeader">
-              <p className="cardTitle">
-                Benutzer bearbeiten: <strong>{selectedUser.username ?? "-"}</strong>
-              </p>
+            <div className="cardHeader usersEditHeader">
+              <p className="cardTitle">Benutzer bearbeiten</p>
+              <span
+                className={`usersStatusBadge ${
+                  isUserActive(selectedUser) ? "isActive" : "isInactive"
+                }`}
+              >
+                {isUserActive(selectedUser) ? "Aktiv" : "Deaktiviert"}
+              </span>
             </div>
             {saveMessage ? (
-              <p className={saveMessage.includes("gespeichert") ? "protocolNotice success" : "protocolNotice"}>
+              <p
+                className={
+                  saveMessage.includes("gespeichert") ||
+                  saveMessage.includes("aktiviert") ||
+                  saveMessage.includes("deaktiviert") ||
+                  saveMessage.includes("gelöscht")
+                    ? "protocolNotice success"
+                    : "protocolNotice"
+                }
+              >
                 {saveMessage}
               </p>
             ) : null}
             <form className="groupCreateForm userCreateForm" onSubmit={handleSaveUserProfile}>
+              <input
+                value={editUsername}
+                onChange={(event) => setEditUsername(event.target.value)}
+                placeholder="Benutzername"
+                autoComplete="username"
+                required
+              />
               <input
                 value={editFullName}
                 onChange={(event) => setEditFullName(event.target.value)}
@@ -449,6 +546,37 @@ export default function UsersPage() {
                 {savingProfile ? "Speichern..." : "Benutzer aktualisieren"}
               </button>
             </form>
+            <div className="usersDangerActions">
+              <button
+                type="button"
+                className="pillButton outline"
+                disabled={togglingActive || deletingUser}
+                onClick={() => void handleToggleActive()}
+              >
+                {togglingActive
+                  ? "Wird geändert..."
+                  : isUserActive(selectedUser)
+                    ? "Deaktivieren"
+                    : "Aktivieren"}
+              </button>
+              <button
+                type="button"
+                className="pillButton danger"
+                disabled={
+                  deletingUser ||
+                  togglingActive ||
+                  selectedUser.id === currentUserId
+                }
+                title={
+                  selectedUser.id === currentUserId
+                    ? "Eigener Benutzer kann nicht gelöscht werden."
+                    : undefined
+                }
+                onClick={() => void handleDeleteUser()}
+              >
+                {deletingUser ? "Wird gelöscht..." : "Benutzer löschen"}
+              </button>
+            </div>
           </article>
         ) : null}
 
@@ -479,6 +607,7 @@ export default function UsersPage() {
             <div className="serviceTable usersTable">
               <div className="serviceRow headerRow">
                 <span>Benutzername</span>
+                <span>Status</span>
                 <span>Filiale</span>
                 <span>Erstellt am</span>
                 <span>ID</span>
@@ -491,7 +620,7 @@ export default function UsersPage() {
                     key={user.id}
                     className={`serviceRow usersTableRow ${
                       selectedUserId === user.id ? "isSelected" : ""
-                    }`}
+                    } ${!isUserActive(user) ? "isInactiveUser" : ""}`}
                     style={{ cursor: canWrite ? "pointer" : "default" }}
                     onClick={() => {
                       if (canWrite) {
@@ -501,6 +630,15 @@ export default function UsersPage() {
                     }}
                   >
                     <span>{user.username ?? "-"}</span>
+                    <span>
+                      <span
+                        className={`usersStatusBadge compact ${
+                          isUserActive(user) ? "isActive" : "isInactive"
+                        }`}
+                      >
+                        {isUserActive(user) ? "Aktiv" : "Inaktiv"}
+                      </span>
+                    </span>
                     <span>{userFilialeLabel(user.filiale_code)}</span>
                     <span>{formatDate(user.created_at)}</span>
                     <span className="code">{user.id}</span>

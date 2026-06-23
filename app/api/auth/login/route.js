@@ -77,6 +77,13 @@ export async function POST(request) {
       );
     }
 
+    if (user.is_active === false) {
+      return NextResponse.json(
+        { error: "Dieser Benutzer ist deaktiviert. Bitte wenden Sie sich an einen Administrator." },
+        { status: 403 }
+      );
+    }
+
     if (user.id !== challenge.userId) {
       return NextResponse.json(
         { error: "Aufgabe passt nicht zum Benutzernamen. Bitte Benutzername erneut eingeben." },

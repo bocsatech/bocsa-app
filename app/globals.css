@@ -4289,7 +4289,72 @@ body.lagerPickerOpen {
 }
 
 .usersListPanel .serviceTable .serviceRow {
-  grid-template-columns: minmax(120px, 1.2fr) minmax(100px, 0.9fr) minmax(140px, 1fr) minmax(180px, 1.4fr);
+  grid-template-columns: minmax(120px, 1.1fr) minmax(88px, 0.7fr) minmax(100px, 0.8fr) minmax(140px, 1fr) minmax(180px, 1.2fr);
+}
+
+.usersEditHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.usersStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.usersStatusBadge.compact {
+  padding: 3px 8px;
+  font-size: 0.72rem;
+}
+
+.usersStatusBadge.isActive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.usersStatusBadge.isInactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.usersDangerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.usersTableRow.isInactiveUser {
+  opacity: 0.72;
+}
+
+.usersTableRow.isInactiveUser:hover {
+  opacity: 0.9;
+}
+
+.pillButton.danger {
+  border-color: #fecaca;
+  background: #fff;
+  color: #b91c1c;
+}
+
+.pillButton.danger:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.pillButton.danger:disabled {
+  opacity: 0.55;
 }
 
 .userFilialeField {

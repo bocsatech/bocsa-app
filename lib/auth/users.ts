@@ -30,6 +30,7 @@ export type AppUser = {
   ecard_number?: string | null;
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
+  is_active?: boolean;
   created_at?: string;
 };
 
@@ -41,18 +42,22 @@ const USER_PERSONAL_COLUMNS =
   "company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone";
 
 const USER_LIST_SELECT =
-  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, created_at`;
+  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, ${USER_PERSONAL_COLUMNS}, created_at`;
 const USER_LIST_SELECT_LEGACY =
   "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
 const USER_LIST_SELECT_NO_PERSONAL =
+  "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, created_at";
+const USER_LIST_SELECT_NO_ACTIVE =
   "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
 
 const USER_AUTH_SELECT =
-  `id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, created_at`;
+  `id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, ${USER_PERSONAL_COLUMNS}, created_at`;
 const USER_AUTH_SELECT_LEGACY =
   "id, username, password_hash, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
 const USER_AUTH_SELECT_NO_PERSONAL =
-  "id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
+  "id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, created_at";
+const USER_AUTH_SELECT_NO_ACTIVE =
+  `id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, created_at`;
 
 function isMissingPersonalColumn(
   error: { message?: string; code?: string } | null
@@ -104,6 +109,19 @@ function stripPersonalPayload(payload: Record<string, unknown>) {
   return next;
 }
 
+function isMissingActiveColumn(
+  error: { message?: string; code?: string } | null
+) {
+  const msg = String(error?.message ?? "").toLowerCase();
+  if (!msg.includes("is_active")) return false;
+  const code = String(error?.code ?? "").toUpperCase();
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    code === "PGRST204"
+  );
+}
+
 function isMissingFilialeColumn(
   error: { message?: string; code?: string } | null
 ) {
@@ -115,6 +133,16 @@ function isMissingFilialeColumn(
     msg.includes("schema cache") ||
     code === "PGRST204"
   );
+}
+
+function normalizeUsername(value: unknown) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function readIsActive(row: Record<string, unknown>) {
+  if (row.is_active === false) return false;
+  if (row.is_active === true) return true;
+  return true;
 }
 
 function mapUser(row: Record<string, unknown> | null): AppUser | null {
@@ -170,6 +198,7 @@ function mapUser(row: Record<string, unknown> | null): AppUser | null {
       typeof row.emergency_contact_phone === "string"
         ? row.emergency_contact_phone
         : null,
+    is_active: readIsActive(row),
     created_at:
       typeof row.created_at === "string" ? row.created_at : undefined,
   };
@@ -197,6 +226,14 @@ export async function findUserByUsername(username: string) {
     ({ data, error } = await db
       .from(USERS_TABLE)
       .select(USER_AUTH_SELECT_NO_PERSONAL)
+      .eq("username", normalized)
+      .maybeSingle());
+  }
+
+  if (error && isMissingActiveColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .select(USER_AUTH_SELECT_NO_ACTIVE)
       .eq("username", normalized)
       .maybeSingle());
   }
@@ -317,6 +354,13 @@ export async function listUsers() {
       .order("created_at", { ascending: false }));
   }
 
+  if (error && isMissingActiveColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .select(USER_LIST_SELECT_NO_ACTIVE)
+      .order("created_at", { ascending: false }));
+  }
+
   if (error && isMissingFilialeColumn(error)) {
     ({ data, error } = await db
       .from(USERS_TABLE)
@@ -348,10 +392,28 @@ export async function updateUserById(
     ecardNumber?: string;
     emergencyContactName?: string;
     emergencyContactPhone?: string;
+    username?: string;
+    isActive?: boolean;
   }
 ) {
   const db = getDb();
   const payload: Record<string, unknown> = {};
+
+  if (patch.username !== undefined) {
+    const normalized = normalizeUsername(patch.username);
+    if (!normalized) {
+      return { user: null, error: "Benutzername darf nicht leer sein." };
+    }
+    const existing = await findUserByUsername(normalized);
+    if (existing.error) {
+      return { user: null, error: existing.error };
+    }
+    if (existing.user && existing.user.id !== id) {
+      return { user: null, error: "Benutzername ist bereits vergeben." };
+    }
+    payload.username = normalized;
+  }
+  if (patch.isActive !== undefined) payload.is_active = patch.isActive;
 
   if (typeof patch.password === "string" && patch.password.length > 0) {
     payload.password_hash = await hashPassword(patch.password);
@@ -413,6 +475,23 @@ export async function updateUserById(
     }
   }
 
+  if (error && isMissingActiveColumn(error)) {
+    const { is_active: _omit, ...updatePayload } = payload;
+    if ("is_active" in payload && Object.keys(updatePayload).length === 0) {
+      return {
+        user: null,
+        error:
+          'Spalte "is_active" fehlt. Bitte supabase/users-is-active.sql im Supabase SQL Editor ausführen.',
+      };
+    }
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .update("is_active" in payload ? updatePayload : payload)
+      .eq("id", id)
+      .select(USER_LIST_SELECT_NO_ACTIVE)
+      .single());
+  }
+
   if (error && isMissingPersonalColumn(error)) {
     const updatePayload = stripPersonalPayload(payload);
     if (Object.keys(updatePayload).length === 0) {
@@ -451,4 +530,11 @@ export async function updateUserById(
 
   if (error) return { user: null, error: error.message };
   return { user: data, error: null };
+}
+
+export async function deleteUserById(id: string) {
+  const db = getDb();
+  const { error } = await db.from(USERS_TABLE).delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, error: null };
 }

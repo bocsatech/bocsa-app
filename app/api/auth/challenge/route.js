@@ -36,6 +36,13 @@ export async function POST(request) {
       );
     }
 
+    if (user.is_active === false) {
+      return NextResponse.json(
+        { error: "Dieser Benutzer ist deaktiviert." },
+        { status: 403 }
+      );
+    }
+
     const secretPin = normalizeSecretPin(user.secret_pin);
     if (secretPin === null) {
       return NextResponse.json(
