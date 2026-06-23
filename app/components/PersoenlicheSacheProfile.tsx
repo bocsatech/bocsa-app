@@ -16,6 +16,15 @@ type UserRow = {
   filiale_code?: UserFilialeCode | null;
   photo_url?: string | null;
   signature_url?: string | null;
+  company_mobile?: string | null;
+  private_mobile?: string | null;
+  company_email?: string | null;
+  private_email?: string | null;
+  birth_date?: string | null;
+  address?: string | null;
+  ecard_number?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
 };
 
 function fileToDataUrl(file: File) {
@@ -41,6 +50,15 @@ export default function PersoenlicheSacheProfile() {
   const [editPassword, setEditPassword] = useState("");
   const [editPhotoUrl, setEditPhotoUrl] = useState("");
   const [editSignatureUrl, setEditSignatureUrl] = useState("");
+  const [editCompanyMobile, setEditCompanyMobile] = useState("");
+  const [editPrivateMobile, setEditPrivateMobile] = useState("");
+  const [editCompanyEmail, setEditCompanyEmail] = useState("");
+  const [editPrivateEmail, setEditPrivateEmail] = useState("");
+  const [editBirthDate, setEditBirthDate] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editEcardNumber, setEditEcardNumber] = useState("");
+  const [editEmergencyContactName, setEditEmergencyContactName] = useState("");
+  const [editEmergencyContactPhone, setEditEmergencyContactPhone] = useState("");
 
   const applyUser = useCallback((row: UserRow) => {
     setUser(row);
@@ -54,6 +72,15 @@ export default function PersoenlicheSacheProfile() {
     setEditPassword("");
     setEditPhotoUrl(row.photo_url ?? "");
     setEditSignatureUrl(row.signature_url ?? "");
+    setEditCompanyMobile(row.company_mobile ?? "");
+    setEditPrivateMobile(row.private_mobile ?? "");
+    setEditCompanyEmail(row.company_email ?? "");
+    setEditPrivateEmail(row.private_email ?? "");
+    setEditBirthDate(row.birth_date ?? "");
+    setEditAddress(row.address ?? "");
+    setEditEcardNumber(row.ecard_number ?? "");
+    setEditEmergencyContactName(row.emergency_contact_name ?? "");
+    setEditEmergencyContactPhone(row.emergency_contact_phone ?? "");
   }, []);
 
   const loadProfile = useCallback(async () => {
@@ -110,6 +137,15 @@ export default function PersoenlicheSacheProfile() {
         password: editPassword || undefined,
         photoUrl: editPhotoUrl,
         signatureUrl: editSignatureUrl,
+        companyMobile: editCompanyMobile,
+        privateMobile: editPrivateMobile,
+        companyEmail: editCompanyEmail,
+        privateEmail: editPrivateEmail,
+        birthDate: editBirthDate,
+        address: editAddress,
+        ecardNumber: editEcardNumber,
+        emergencyContactName: editEmergencyContactName,
+        emergencyContactPhone: editEmergencyContactPhone,
       }),
     });
     const data = await response.json().catch(() => ({}));
@@ -203,6 +239,66 @@ export default function PersoenlicheSacheProfile() {
           placeholder="Neues Passwort (leer = unverändert)"
           autoComplete="new-password"
         />
+
+        <section className="personalFieldsSection">
+          <h3 className="personalFieldsSectionTitle">Kontakt &amp; Persönliches</h3>
+          <input
+            type="tel"
+            value={editCompanyMobile}
+            onChange={(event) => setEditCompanyMobile(event.target.value)}
+            placeholder="Firmen-Handynummer"
+          />
+          <input
+            type="tel"
+            value={editPrivateMobile}
+            onChange={(event) => setEditPrivateMobile(event.target.value)}
+            placeholder="Privat-Handynummer"
+          />
+          <input
+            type="email"
+            value={editCompanyEmail}
+            onChange={(event) => setEditCompanyEmail(event.target.value)}
+            placeholder="Firmen-E-Mail"
+          />
+          <input
+            type="email"
+            value={editPrivateEmail}
+            onChange={(event) => setEditPrivateEmail(event.target.value)}
+            placeholder="Privat-E-Mail"
+          />
+          <input
+            value={editBirthDate}
+            onChange={(event) => setEditBirthDate(event.target.value)}
+            placeholder="Geburtstag (TT.MM.JJJJ)"
+          />
+          <textarea
+            value={editAddress}
+            onChange={(event) => setEditAddress(event.target.value)}
+            placeholder="Adresse"
+            rows={3}
+          />
+          <input
+            value={editEcardNumber}
+            onChange={(event) => setEditEcardNumber(event.target.value)}
+            placeholder="E-Card Nummer"
+          />
+        </section>
+
+        <section className="personalFieldsSection">
+          <h3 className="personalFieldsSectionTitle">Notfallkontakt</h3>
+          <input
+            value={editEmergencyContactName}
+            onChange={(event) => setEditEmergencyContactName(event.target.value)}
+            placeholder="Name"
+          />
+          <input
+            type="tel"
+            value={editEmergencyContactPhone}
+            onChange={(event) => setEditEmergencyContactPhone(event.target.value)}
+            placeholder="Handynummer"
+          />
+        </section>
+
         <div className="fieldRow documentationFieldRow">
           <span>Benutzerfoto</span>
           <div className="documentUploadControls documentUploadControlsCompact">

@@ -7,7 +7,8 @@
 }
 
 .persoenlicheSachePage .groupCreateForm input,
-.persoenlicheSachePage .userCreateForm input {
+.persoenlicheSachePage .userCreateForm input,
+.persoenlicheSachePage .userCreateForm textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #dbe2ea;
@@ -17,12 +18,34 @@
   box-sizing: border-box;
 }
 
+.persoenlicheSachePage .userCreateForm textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
 .persoenlicheSachePage .groupCreateForm input:focus,
 .persoenlicheSachePage .userCreateForm input:focus,
+.persoenlicheSachePage .userCreateForm textarea:focus,
 .persoenlicheSachePage .userFilialeField select:focus {
   outline: none;
   border-color: #f97316;
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.persoenlicheSachePage .personalFieldsSection {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.persoenlicheSachePage .personalFieldsSectionTitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .persoenlicheSachePage .documentationFieldRow {

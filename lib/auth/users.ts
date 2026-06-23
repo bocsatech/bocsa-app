@@ -21,6 +21,15 @@ export type AppUser = {
   filiale_code?: UserFilialeCode | null;
   photo_url?: string | null;
   signature_url?: string | null;
+  company_mobile?: string | null;
+  private_mobile?: string | null;
+  company_email?: string | null;
+  private_email?: string | null;
+  birth_date?: string | null;
+  address?: string | null;
+  ecard_number?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
   created_at?: string;
 };
 
@@ -28,15 +37,72 @@ function getDb() {
   return getSupabaseAdmin() ?? supabase;
 }
 
+const USER_PERSONAL_COLUMNS =
+  "company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone";
+
 const USER_LIST_SELECT =
-  "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
+  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, created_at`;
 const USER_LIST_SELECT_LEGACY =
   "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
+const USER_LIST_SELECT_NO_PERSONAL =
+  "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
 
 const USER_AUTH_SELECT =
-  "id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
+  `id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, created_at`;
 const USER_AUTH_SELECT_LEGACY =
   "id, username, password_hash, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
+const USER_AUTH_SELECT_NO_PERSONAL =
+  "id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
+
+function isMissingPersonalColumn(
+  error: { message?: string; code?: string } | null
+) {
+  const msg = String(error?.message ?? "").toLowerCase();
+  const personalColumns = [
+    "company_mobile",
+    "private_mobile",
+    "company_email",
+    "private_email",
+    "birth_date",
+    "address",
+    "ecard_number",
+    "emergency_contact_name",
+    "emergency_contact_phone",
+  ];
+  if (!personalColumns.some((column) => msg.includes(column))) return false;
+  const code = String(error?.code ?? "").toUpperCase();
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    code === "PGRST204"
+  );
+}
+
+function optionalText(value: unknown) {
+  if (value === undefined) return undefined;
+  const text = String(value ?? "").trim();
+  return text || null;
+}
+
+const PERSONAL_PAYLOAD_KEYS = [
+  "company_mobile",
+  "private_mobile",
+  "company_email",
+  "private_email",
+  "birth_date",
+  "address",
+  "ecard_number",
+  "emergency_contact_name",
+  "emergency_contact_phone",
+] as const;
+
+function stripPersonalPayload(payload: Record<string, unknown>) {
+  const next = { ...payload };
+  for (const key of PERSONAL_PAYLOAD_KEYS) {
+    delete next[key];
+  }
+  return next;
+}
 
 function isMissingFilialeColumn(
   error: { message?: string; code?: string } | null
@@ -83,6 +149,27 @@ function mapUser(row: Record<string, unknown> | null): AppUser | null {
       typeof row.photo_url === "string" ? row.photo_url : null,
     signature_url:
       typeof row.signature_url === "string" ? row.signature_url : null,
+    company_mobile:
+      typeof row.company_mobile === "string" ? row.company_mobile : null,
+    private_mobile:
+      typeof row.private_mobile === "string" ? row.private_mobile : null,
+    company_email:
+      typeof row.company_email === "string" ? row.company_email : null,
+    private_email:
+      typeof row.private_email === "string" ? row.private_email : null,
+    birth_date:
+      typeof row.birth_date === "string" ? row.birth_date : null,
+    address: typeof row.address === "string" ? row.address : null,
+    ecard_number:
+      typeof row.ecard_number === "string" ? row.ecard_number : null,
+    emergency_contact_name:
+      typeof row.emergency_contact_name === "string"
+        ? row.emergency_contact_name
+        : null,
+    emergency_contact_phone:
+      typeof row.emergency_contact_phone === "string"
+        ? row.emergency_contact_phone
+        : null,
     created_at:
       typeof row.created_at === "string" ? row.created_at : undefined,
   };
@@ -97,6 +184,22 @@ export async function findUserByUsername(username: string) {
     .select(USER_AUTH_SELECT)
     .eq("username", normalized)
     .maybeSingle();
+
+  if (error && isMissingFilialeColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .select(USER_AUTH_SELECT_NO_PERSONAL)
+      .eq("username", normalized)
+      .maybeSingle());
+  }
+
+  if (error && isMissingPersonalColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .select(USER_AUTH_SELECT_NO_PERSONAL)
+      .eq("username", normalized)
+      .maybeSingle());
+  }
 
   if (error && isMissingFilialeColumn(error)) {
     ({ data, error } = await db
@@ -203,6 +306,20 @@ export async function listUsers() {
   if (error && isMissingFilialeColumn(error)) {
     ({ data, error } = await db
       .from(USERS_TABLE)
+      .select(USER_LIST_SELECT_NO_PERSONAL)
+      .order("created_at", { ascending: false }));
+  }
+
+  if (error && isMissingPersonalColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .select(USER_LIST_SELECT_NO_PERSONAL)
+      .order("created_at", { ascending: false }));
+  }
+
+  if (error && isMissingFilialeColumn(error)) {
+    ({ data, error } = await db
+      .from(USERS_TABLE)
       .select(USER_LIST_SELECT_LEGACY)
       .order("created_at", { ascending: false }));
   }
@@ -222,6 +339,15 @@ export async function updateUserById(
     filialeCode?: UserFilialeCode | null;
     photoUrl?: string;
     signatureUrl?: string;
+    companyMobile?: string;
+    privateMobile?: string;
+    companyEmail?: string;
+    privateEmail?: string;
+    birthDate?: string;
+    address?: string;
+    ecardNumber?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
   }
 ) {
   const db = getDb();
@@ -247,6 +373,23 @@ export async function updateUserById(
   if (patch.photoUrl !== undefined) payload.photo_url = patch.photoUrl.trim() || null;
   if (patch.signatureUrl !== undefined)
     payload.signature_url = patch.signatureUrl.trim() || null;
+  if (patch.companyMobile !== undefined)
+    payload.company_mobile = optionalText(patch.companyMobile);
+  if (patch.privateMobile !== undefined)
+    payload.private_mobile = optionalText(patch.privateMobile);
+  if (patch.companyEmail !== undefined)
+    payload.company_email = optionalText(patch.companyEmail);
+  if (patch.privateEmail !== undefined)
+    payload.private_email = optionalText(patch.privateEmail);
+  if (patch.birthDate !== undefined)
+    payload.birth_date = optionalText(patch.birthDate);
+  if (patch.address !== undefined) payload.address = optionalText(patch.address);
+  if (patch.ecardNumber !== undefined)
+    payload.ecard_number = optionalText(patch.ecardNumber);
+  if (patch.emergencyContactName !== undefined)
+    payload.emergency_contact_name = optionalText(patch.emergencyContactName);
+  if (patch.emergencyContactPhone !== undefined)
+    payload.emergency_contact_phone = optionalText(patch.emergencyContactPhone);
 
   if (Object.keys(payload).length === 0) {
     return { user: null, error: "Keine Änderungen übergeben." };
@@ -268,6 +411,23 @@ export async function updateUserById(
         .select(USER_LIST_SELECT)
         .single());
     }
+  }
+
+  if (error && isMissingPersonalColumn(error)) {
+    const updatePayload = stripPersonalPayload(payload);
+    if (Object.keys(updatePayload).length === 0) {
+      return {
+        user: null,
+        error:
+          'Persönliche Felder fehlen in der Datenbank. Bitte supabase/users-personal-fields.sql im Supabase SQL Editor ausführen.',
+      };
+    }
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .update(updatePayload)
+      .eq("id", id)
+      .select(USER_LIST_SELECT_NO_PERSONAL)
+      .single());
   }
 
   if (error && isMissingFilialeColumn(error)) {
