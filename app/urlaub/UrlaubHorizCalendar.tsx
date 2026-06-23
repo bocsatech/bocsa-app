@@ -14,6 +14,7 @@ import {
 import {
   applyVariantToDateKeys,
   countUrlaubDaysInYear,
+  dateKeysForBlock,
   removeDateKeysFromBlocks,
   variantForDate,
 } from "../../lib/urlaub-blocks";
@@ -375,8 +376,8 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
         <div className="urlaubEditBar">
           <span className="urlaubEditBarLabel">
             {hasSelection
-              ? `${selectedKeys.size} Tag${selectedKeys.size === 1 ? "" : "e"} ausgewählt`
-              : "Tage anklicken zum Auswählen"}
+              ? `${selectedKeys.size} Tag${selectedKeys.size === 1 ? "" : "e"} ausgewählt — Löschen entfernt auch bestehende Einträge`
+              : "Tage anklicken (auch bereits belegte) — dann Typ wählen oder Löschen"}
           </span>
           <div className="urlaubTypeBtns">
             {APPLY_VARIANTS.map((variant) => (
@@ -538,14 +539,31 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                     {user.blocks.map((block) => {
                       const pos = blockStyle(block, days);
                       if (!pos) return null;
+                      const blockDayKeys = isEditable
+                        ? days
+                            .slice(
+                              days.findIndex((d) => d.dateKey === block.startKey),
+                              days.findIndex((d) => d.dateKey === block.endKey) + 1
+                            )
+                            .map((d) => d.dateKey)
+                        : [];
+                      const blockSelected =
+                        isEditable && blockDayKeys.some((key) => selectedKeys.has(key));
                       return (
                         <div
                           key={`${user.username}-${block.startKey}-${block.endKey}-${block.variant}`}
-                          className={`urlaubBlock urlaubBlock--${block.variant}`}
+                          className={[
+                            `urlaubBlock urlaubBlock--${block.variant}`,
+                            isEditable ? "urlaubBlock--editMode" : "",
+                            blockSelected ? "urlaubBlock--selected" : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
                           style={{ left: pos.left, width: pos.width }}
                           title={block.label}
+                          aria-hidden={isEditable ? true : undefined}
                         >
-                          {block.label}
+                          {!isEditable ? block.label : null}
                         </div>
                       );
                     })}

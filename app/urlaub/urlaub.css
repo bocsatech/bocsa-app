@@ -463,6 +463,7 @@
 
 .urlaubDayColBody {
   background: #ffffff;
+  position: relative;
 }
 
 .urlaubDayCol.weekend,
@@ -500,7 +501,18 @@
 .urlaubDayColBody--selected {
   box-shadow: inset 0 0 0 2px #374151 !important;
   background: #f9fafb !important;
-  z-index: 2;
+  z-index: 4;
+}
+
+.urlaubTimelineRow--editable .urlaubBlock {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.urlaubTimelineRow--editable .urlaubBlock--selected {
+  opacity: 0.35;
+  outline: 2px dashed #374151;
+  outline-offset: -2px;
 }
 
 .urlaubBlock {
