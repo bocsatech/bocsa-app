@@ -14,6 +14,7 @@ type Props = {
   disabled?: boolean;
   placeholder?: string;
   id?: string;
+  openPickerOnFocus?: boolean;
 };
 
 function CalendarIcon() {
@@ -41,6 +42,7 @@ export default function GermanDateField({
   disabled = false,
   placeholder,
   id,
+  openPickerOnFocus = false,
 }: Props) {
   const autoId = useId();
   const inputId = id ?? autoId;
@@ -75,6 +77,8 @@ export default function GermanDateField({
         placeholder={placeholder ?? DE_DATE_PLACEHOLDER}
         inputMode="numeric"
         onChange={(event) => onChange(event.target.value)}
+        onFocus={openPickerOnFocus ? openPicker : undefined}
+        onClick={openPickerOnFocus ? openPicker : undefined}
       />
       {!pickerDisabled ? (
         <>

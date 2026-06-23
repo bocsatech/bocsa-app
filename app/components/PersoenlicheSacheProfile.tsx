@@ -1,10 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import GermanDateField from "./GermanDateField";
 import {
   DEFAULT_USER_FILIALEN,
   type UserFilialeCode,
 } from "../../lib/user-filiale";
+
+function isLocalHostEnvironment() {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1";
+}
 
 type UserRow = {
   id: string;
@@ -59,6 +66,11 @@ export default function PersoenlicheSacheProfile() {
   const [editEcardNumber, setEditEcardNumber] = useState("");
   const [editEmergencyContactName, setEditEmergencyContactName] = useState("");
   const [editEmergencyContactPhone, setEditEmergencyContactPhone] = useState("");
+  const [birthDatePickerEnabled, setBirthDatePickerEnabled] = useState(false);
+
+  useEffect(() => {
+    setBirthDatePickerEnabled(isLocalHostEnvironment());
+  }, []);
 
   const applyUser = useCallback((row: UserRow) => {
     setUser(row);
@@ -266,11 +278,20 @@ export default function PersoenlicheSacheProfile() {
             onChange={(event) => setEditPrivateEmail(event.target.value)}
             placeholder="Privat-E-Mail"
           />
-          <input
-            value={editBirthDate}
-            onChange={(event) => setEditBirthDate(event.target.value)}
-            placeholder="Geburtstag (TT.MM.JJJJ)"
-          />
+          {birthDatePickerEnabled ? (
+            <GermanDateField
+              value={editBirthDate}
+              onChange={setEditBirthDate}
+              placeholder="Geburtstag (TT.MM.JJJJ)"
+              openPickerOnFocus
+            />
+          ) : (
+            <input
+              value={editBirthDate}
+              onChange={(event) => setEditBirthDate(event.target.value)}
+              placeholder="Geburtstag (TT.MM.JJJJ)"
+            />
+          )}
           <textarea
             value={editAddress}
             onChange={(event) => setEditAddress(event.target.value)}

@@ -8,7 +8,8 @@
 
 .persoenlicheSachePage .groupCreateForm input,
 .persoenlicheSachePage .userCreateForm input,
-.persoenlicheSachePage .userCreateForm textarea {
+.persoenlicheSachePage .userCreateForm textarea,
+.persoenlicheSachePage .userCreateForm .dateFieldWithPicker .dateFieldText {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #dbe2ea;
@@ -16,6 +17,23 @@
   background: #fff;
   font: inherit;
   box-sizing: border-box;
+}
+
+.persoenlicheSachePage .userCreateForm .dateFieldWithPicker {
+  width: 100%;
+}
+
+.persoenlicheSachePage .userCreateForm .dateFieldWithPicker .dateFieldText:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.persoenlicheSachePage .userCreateForm .dateFieldPickerBtn {
+  width: 42px;
+  height: 42px;
+  border-color: #dbe2ea;
+  border-radius: 10px;
 }
 
 .persoenlicheSachePage .userCreateForm textarea {
