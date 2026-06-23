@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getCurrentSession } from "../../../lib/auth/permissions";
-import { listUsers } from "../../../lib/auth/users";
-import { mapDbUsersToUrlaubTimelineUsers } from "../../../lib/urlaub-timeline-users";
+import { getCurrentSession } from "../../../../lib/auth/permissions";
+import { listUsers } from "../../../../lib/auth/users";
+import { mapDbUsersToUrlaubTimelineUsers } from "../../../../lib/urlaub-timeline-users";
 
 export const runtime = "nodejs";
 

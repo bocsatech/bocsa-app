@@ -298,6 +298,42 @@ export function monthLabelAtScroll(days: TimelineDay[], scrollLeft: number, colu
   return austrianMonthLabel(day.date.getFullYear(), day.monthIndex);
 }
 
+export function visibleDayIndexAtScroll(
+  days: TimelineDay[],
+  scrollLeft: number,
+  columnWidth: number,
+  viewportWidth = 0
+) {
+  if (days.length === 0) return 0;
+  const anchor = scrollLeft + Math.min(columnWidth * 2, Math.max(0, viewportWidth * 0.15));
+  return Math.min(days.length - 1, Math.max(0, Math.floor(anchor / columnWidth)));
+}
+
+export function firstDayIndexOfMonth(days: TimelineDay[], year: number, monthIndex: number) {
+  return days.findIndex((day) => day.date.getFullYear() === year && day.monthIndex === monthIndex);
+}
+
+export function scrollIndexForMonthOffset(days: TimelineDay[], fromIndex: number, monthDelta: number) {
+  if (days.length === 0 || fromIndex < 0) return 0;
+  const anchor = days[fromIndex];
+  let year = anchor.date.getFullYear();
+  let monthIndex = anchor.monthIndex + monthDelta;
+  while (monthIndex < 0) {
+    monthIndex += 12;
+    year -= 1;
+  }
+  while (monthIndex > 11) {
+    monthIndex -= 12;
+    year += 1;
+  }
+  const index = firstDayIndexOfMonth(days, year, monthIndex);
+  return index >= 0 ? index : Math.min(days.length - 1, Math.max(0, fromIndex + monthDelta * 28));
+}
+
+export function scrollIndexForWeekOffset(fromIndex: number, weekDelta: number, dayCount: number) {
+  return Math.min(dayCount - 1, Math.max(0, fromIndex + weekDelta * 7));
+}
+
 export function spanDaysInclusive(startKey: string, endKey: string, days: TimelineDay[]) {
   const start = dateKeyToIndex(days, startKey);
   const end = dateKeyToIndex(days, endKey);

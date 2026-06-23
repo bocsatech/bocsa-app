@@ -52,8 +52,9 @@ const checks = [
   ["Timeline wrap", pageRes.text.includes("urlaubTimelineWrap")],
   ["Mitarbeiter sorok", pageRes.text.includes("urlaubUserCell")],
   ["Monatsband", pageRes.text.includes("urlaubMonthSegment")],
-  ["Sichtbar indikátor", pageRes.text.includes("Sichtbar:")],
-  ["Urlaub blokkok", pageRes.text.includes("urlaubBlock")],
+  ["Monat navigáció", pageRes.text.includes("Nächster Monat") && pageRes.text.includes("Letzter Monat")],
+  ["Woche navigáció", pageRes.text.includes("Nächste Woche") && pageRes.text.includes("Letzte Woche")],
+  ["Bearbeitung gomb", pageRes.text.includes("Bearbeitung")],
 ];
 
 console.log("");
