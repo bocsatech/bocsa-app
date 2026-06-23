@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Urlaub Timeline Demo</title>
+  <link rel="stylesheet" href="../../app/urlaub/urlaub.css" />
+  <style>
+    body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: #f3f4f6; padding: 20px; }
+    .demoShell { max-width: 980px; margin: 0 auto; }
+    .demoBadge { display: inline-block; margin-bottom: 10px; padding: 4px 10px; border-radius: 999px; background: #047857; color: #fff; font-size: 12px; font-weight: 700; }
+    .urlaubPageHeader h1 { margin: 0 0 12px; }
+  </style>
+</head>
+<body>
+  <div class="demoShell">
+    <span class="demoBadge">Demo — Urlaub Timeline AT</span>
+    <div class="urlaubPage">
+      <header class="urlaubPageHeader"><h1>Urlaub</h1></header>
+      <section class="urlaubTimelineWrap">
+        <div class="urlaubCalToolbar">
+          <p class="urlaubCalToolbarHint">Frei horizontal scrollen — jeder Tag eine Spalte.</p>
+        </div>
+        <div class="urlaubTimeline">
+          <div class="urlaubTimelineUsersHead"><span>Mitarbeiter</span></div>
+          <div class="urlaubTimelineUsers">
+            <div class="urlaubUserCell"><span class="urlaubUserAvatar">RB</span><span class="urlaubUserName">Robert Bocsa</span></div>
+          </div>
+          <div class="urlaubTimelineMain">
+            <div class="urlaubTimelineScroll" style="overflow-x:hidden;">
+              <div class="urlaubTimelineGrid" style="width:1120px;">
+                <div class="urlaubTimelineHeader">
+                  <div class="urlaubTimelineHeaderRow">
+                    <div class="urlaubDayCol urlaubDayColHead">Mo</div><div class="urlaubDayCol urlaubDayColHead">Di</div><div class="urlaubDayCol urlaubDayColHead">Mi</div><div class="urlaubDayCol urlaubDayColHead">Do</div><div class="urlaubDayCol urlaubDayColHead">Fr</div><div class="urlaubDayCol urlaubDayColHead weekend">Sa</div><div class="urlaubDayCol urlaubDayColHead weekend">So</div>
+                    <div class="urlaubDayCol urlaubDayColHead">Mo</div><div class="urlaubDayCol urlaubDayColHead">Di</div><div class="urlaubDayCol urlaubDayColHead">Mi</div><div class="urlaubDayCol urlaubDayColHead">Do</div><div class="urlaubDayCol urlaubDayColHead">Fr</div><div class="urlaubDayCol urlaubDayColHead weekend">Sa</div><div class="urlaubDayCol urlaubDayColHead weekend">So</div>
+                    <div class="urlaubDayCol urlaubDayColHead">Mo</div><div class="urlaubDayCol urlaubDayColHead">Di</div><div class="urlaubDayCol urlaubDayColHead">Mi</div><div class="urlaubDayCol urlaubDayColHead">Do</div><div class="urlaubDayCol urlaubDayColHead">Fr</div><div class="urlaubDayCol urlaubDayColHead weekend">Sa</div><div class="urlaubDayCol urlaubDayColHead weekend">So</div>
+                    <div class="urlaubDayCol urlaubDayColHead">Mo</div><div class="urlaubDayCol urlaubDayColHead">Di</div><div class="urlaubDayCol urlaubDayColHead">Mi</div><div class="urlaubDayCol urlaubDayColHead">Do</div><div class="urlaubDayCol urlaubDayColHead">Fr</div><div class="urlaubDayCol urlaubDayColHead weekend">Sa</div><div class="urlaubDayCol urlaubDayColHead weekend">So</div>
+                  </div>
+                  <div class="urlaubTimelineHeaderRow">
+                    <div class="urlaubDayCol urlaubDayColHead">1</div><div class="urlaubDayCol urlaubDayColHead">2</div><div class="urlaubDayCol urlaubDayColHead">3</div><div class="urlaubDayCol urlaubDayColHead">4</div><div class="urlaubDayCol urlaubDayColHead">5</div><div class="urlaubDayCol urlaubDayColHead weekend">6</div><div class="urlaubDayCol urlaubDayColHead weekend">7</div>
+                    <div class="urlaubDayCol urlaubDayColHead">8</div><div class="urlaubDayCol urlaubDayColHead">9</div><div class="urlaubDayCol urlaubDayColHead">10</div><div class="urlaubDayCol urlaubDayColHead">11</div><div class="urlaubDayCol urlaubDayColHead">12</div><div class="urlaubDayCol urlaubDayColHead weekend">13</div><div class="urlaubDayCol urlaubDayColHead weekend">14</div>
+                    <div class="urlaubDayCol urlaubDayColHead">15</div><div class="urlaubDayCol urlaubDayColHead">16</div><div class="urlaubDayCol urlaubDayColHead">17</div><div class="urlaubDayCol urlaubDayColHead">18</div><div class="urlaubDayCol urlaubDayColHead">19</div><div class="urlaubDayCol urlaubDayColHead weekend">20</div><div class="urlaubDayCol urlaubDayColHead weekend">21</div>
+                    <div class="urlaubDayCol urlaubDayColHead">22</div><div class="urlaubDayCol urlaubDayColHead">23</div><div class="urlaubDayCol urlaubDayColHead">24</div><div class="urlaubDayCol urlaubDayColHead">25</div><div class="urlaubDayCol urlaubDayColHead">26</div><div class="urlaubDayCol urlaubDayColHead weekend">27</div><div class="urlaubDayCol urlaubDayColHead weekend">28</div>
+                  </div>
+                  <div class="urlaubTimelineHeaderRow urlaubTimelineHeaderWeeks">
+                    <div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek">Woche 49</div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek weekend"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek weekend"></div>
+                    <div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek">Woche 50</div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek weekend"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek weekend"></div>
+                    <div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek">Woche 51</div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek weekend"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek weekend"></div>
+                    <div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek">Woche 52</div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek weekend"></div><div class="urlaubDayCol urlaubDayColHead urlaubDayColWeek weekend"></div>
+                  </div>
+                </div>
+                <div class="urlaubTimelineRow" style="width:1120px;">
+                  <div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div>
+                  <div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div>
+                  <div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div>
+                  <div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div>
+                  <div class="urlaubBlock urlaubBlock--urlaub" style="left:124px;width:32px;">Ur 4.</div>
+                  <div class="urlaubBlock urlaubBlock--status" style="left:324px;width:32px;">Ma</div>
+                  <div class="urlaubBlock urlaubBlock--status" style="left:364px;width:32px;">Ch</div>
+                  <div class="urlaubBlock urlaubBlock--urlaub-plan" style="left:564px;width:152px;">Urlaub 15.–18. Dez. 2025</div>
+                  <div class="urlaubBlock urlaubBlock--urlaub" style="left:844px;width:72px;">Urlaub 22.–23.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

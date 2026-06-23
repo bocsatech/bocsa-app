@@ -12,6 +12,7 @@
     "check:local": "node scripts/check-local.mjs",
     "test:local": "node scripts/test-local-login.mjs",
     "test:arbeitsstunden": "node scripts/test-arbeitsstunden-users.mjs",
+    "demo:urlaub-monat": "node scripts/capture-urlaub-monat-demo.mjs",
     "verify:local": "node scripts/verify-local.mjs",
     "build": "next build",
     "start": "next start",
