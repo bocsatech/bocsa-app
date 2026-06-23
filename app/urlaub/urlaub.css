@@ -25,6 +25,13 @@
   overflow: hidden;
 }
 
+.urlaubEmpty {
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
 .urlaubCalToolbar {
   display: flex;
   align-items: center;

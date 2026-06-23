@@ -7,45 +7,19 @@ import {
   dateKeyFromDate,
   monthLabelAtScroll,
 } from "../../lib/austria-holidays";
+import {
+  mapDbUsersToUrlaubTimelineUsers,
+  type UrlaubBlock,
+  type UrlaubTimelineUser,
+} from "../../lib/urlaub-timeline-users";
 
 export const DAY_COLUMN_WIDTH = 40;
 
 const TIMELINE_DAYS = 550;
 const DAYS_BEFORE_TODAY = 120;
 
-type UrlaubBlock = {
-  startKey: string;
-  endKey: string;
-  label: string;
-  variant: "urlaub" | "urlaub-plan" | "status";
-};
-
-type TimelineUser = {
-  id: string;
-  name: string;
-  initials: string;
-  blocks: UrlaubBlock[];
-};
-
-const DEMO_USERS: TimelineUser[] = [
-  {
-    id: "robert",
-    name: "Robert Bocsa",
-    initials: "RB",
-    blocks: [
-      { startKey: "2025-12-04", endKey: "2025-12-04", label: "Ur 4.", variant: "urlaub" },
-      { startKey: "2025-12-08", endKey: "2025-12-08", label: "Ma", variant: "status" },
-      { startKey: "2025-12-09", endKey: "2025-12-09", label: "Ch", variant: "status" },
-      { startKey: "2025-12-10", endKey: "2025-12-10", label: "Er", variant: "status" },
-      { startKey: "2025-12-15", endKey: "2025-12-18", label: "Urlaub 15.–18. Dez. 2025", variant: "urlaub-plan" },
-      { startKey: "2025-12-22", endKey: "2025-12-23", label: "Urlaub 22.–23.", variant: "urlaub" },
-      { startKey: "2025-12-29", endKey: "2025-12-29", label: "Zw", variant: "status" },
-      { startKey: "2026-01-02", endKey: "2026-01-02", label: "Ne", variant: "status" },
-    ],
-  },
-];
-
 type Props = {
+  initialUsers?: UrlaubTimelineUser[];
   anchorDate?: Date;
 };
 
@@ -59,10 +33,36 @@ function blockStyle(block: UrlaubBlock, days: { dateKey: string }[]) {
   };
 }
 
-export default function UrlaubHorizCalendar({ anchorDate }: Props) {
+export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [users, setUsers] = useState<UrlaubTimelineUser[]>(initialUsers);
   const [visibleMonth, setVisibleMonth] = useState("");
   const anchor = anchorDate ?? new Date();
+
+  useEffect(() => {
+    setUsers(initialUsers);
+  }, [initialUsers]);
+
+  useEffect(() => {
+    if (initialUsers.length > 0) return;
+
+    fetch("/api/urlaub/benutzer", { credentials: "include", cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        const rows = Array.isArray(payload?.users) ? payload.users : [];
+        if (rows.length === 0) return;
+        setUsers(
+          rows.map((user: UrlaubTimelineUser) => ({
+            username: user.username,
+            displayName: user.displayName,
+            initials: user.initials,
+            blocks: user.blocks ?? [],
+          }))
+        );
+      })
+      .catch(() => undefined);
+  }, [initialUsers.length]);
+
   const timelineStart = useMemo(() => {
     const start = new Date(anchor);
     start.setHours(0, 0, 0, 0);
@@ -103,6 +103,14 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
     return () => viewport.removeEventListener("scroll", syncVisibleMonth);
   }, [syncVisibleMonth]);
 
+  if (users.length === 0) {
+    return (
+      <section className="urlaubTimelineWrap">
+        <p className="urlaubEmpty">Keine Mitarbeiter geladen.</p>
+      </section>
+    );
+  }
+
   return (
     <section className="urlaubTimelineWrap" aria-label="Urlaubskalender Österreich">
       <div className="urlaubCalToolbar">
@@ -111,15 +119,15 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
             Sichtbar: <strong>{visibleMonth || "—"}</strong>
           </span>
           <div className="urlaubCalLegend" aria-hidden="true">
-          <span className="urlaubCalLegendItem">
-            <span className="urlaubCalLegendSwatch weekend" /> Sa / So
-          </span>
-          <span className="urlaubCalLegendItem">
-            <span className="urlaubCalLegendSwatch holiday" /> Feiertag
-          </span>
-          <span className="urlaubCalLegendItem">
-            <span className="urlaubCalLegendSwatch urlaub" /> Urlaub
-          </span>
+            <span className="urlaubCalLegendItem">
+              <span className="urlaubCalLegendSwatch weekend" /> Sa / So
+            </span>
+            <span className="urlaubCalLegendItem">
+              <span className="urlaubCalLegendSwatch holiday" /> Feiertag
+            </span>
+            <span className="urlaubCalLegendItem">
+              <span className="urlaubCalLegendSwatch urlaub" /> Urlaub
+            </span>
           </div>
         </div>
       </div>
@@ -130,12 +138,12 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
         </div>
 
         <div className="urlaubTimelineUsers">
-          {DEMO_USERS.map((user) => (
-            <div key={user.id} className="urlaubUserCell">
+          {users.map((user) => (
+            <div key={user.username} className="urlaubUserCell">
               <span className="urlaubUserAvatar" aria-hidden="true">
                 {user.initials}
               </span>
-              <span className="urlaubUserName">{user.name}</span>
+              <span className="urlaubUserName">{user.displayName}</span>
             </div>
           ))}
         </div>
@@ -213,11 +221,11 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
                 </div>
               </div>
 
-              {DEMO_USERS.map((user) => (
-                <div key={user.id} className="urlaubTimelineRow" style={{ width: gridWidth }}>
+              {users.map((user) => (
+                <div key={user.username} className="urlaubTimelineRow" style={{ width: gridWidth }}>
                   {days.map((day) => (
                     <div
-                      key={`bg-${user.id}-${day.dateKey}`}
+                      key={`bg-${user.username}-${day.dateKey}`}
                       className={[
                         "urlaubDayCol",
                         "urlaubDayColBody",
@@ -234,7 +242,7 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
                     if (!pos) return null;
                     return (
                       <div
-                        key={`${user.id}-${block.startKey}-${block.label}`}
+                        key={`${user.username}-${block.startKey}-${block.label}`}
                         className={`urlaubBlock urlaubBlock--${block.variant}`}
                         style={{ left: pos.left, width: pos.width }}
                         title={block.label}

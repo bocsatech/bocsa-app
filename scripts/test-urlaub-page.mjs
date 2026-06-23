@@ -50,10 +50,10 @@ if (!pageRes.response.ok) fail(`/urlaub => ${pageRes.response.status}`);
 const checks = [
   ["Meine Menü link: Urlaub", pageRes.text.includes('href="/urlaub"') && pageRes.text.includes("Urlaub")],
   ["Timeline wrap", pageRes.text.includes("urlaubTimelineWrap")],
-  ["Horizontale Timeline", pageRes.text.includes("Frei horizontal scrollen") || pageRes.text.includes("urlaubTimelineScroll")],
-  ["Woche label", pageRes.text.includes("Woche ")],
-  ["Mitarbeiter oszlop", pageRes.text.includes("Robert Bocsa") || pageRes.text.includes("Mitarbeiter")],
-  ["Feiertag jelölés", pageRes.text.includes("Feiertag") || pageRes.text.includes("urlaubCalHoliday")],
+  ["Mitarbeiter sorok", pageRes.text.includes("urlaubUserCell")],
+  ["Monatsband", pageRes.text.includes("urlaubMonthSegment")],
+  ["Sichtbar indikátor", pageRes.text.includes("Sichtbar:")],
+  ["Urlaub blokkok", pageRes.text.includes("urlaubBlock")],
 ];
 
 console.log("");
