@@ -284,6 +284,9 @@ export default function PersoenlicheSacheProfile() {
               onChange={setEditBirthDate}
               placeholder="Geburtstag (TT.MM.JJJJ)"
               openPickerOnFocus
+              pickerVariant="calendar"
+              minYear={new Date().getFullYear() - 100}
+              maxYear={new Date().getFullYear()}
             />
           ) : (
             <input

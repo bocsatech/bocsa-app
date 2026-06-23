@@ -1,11 +1,14 @@
 "use client";
 
-import { useId, useRef } from "react";
+import { useId, useRef, useState } from "react";
 import {
   DE_DATE_PLACEHOLDER,
   formatGermanDate,
   germanDateComparable,
 } from "../../lib/dates";
+import GermanDateCalendarPopover, {
+  initialCalendarView,
+} from "./GermanDateCalendarPopover";
 
 type Props = {
   value: string;
@@ -15,6 +18,9 @@ type Props = {
   placeholder?: string;
   id?: string;
   openPickerOnFocus?: boolean;
+  pickerVariant?: "native" | "calendar";
+  minYear?: number;
+  maxYear?: number;
 };
 
 function CalendarIcon() {
@@ -43,15 +49,31 @@ export default function GermanDateField({
   placeholder,
   id,
   openPickerOnFocus = false,
+  pickerVariant = "native",
+  minYear,
+  maxYear,
 }: Props) {
   const autoId = useId();
   const inputId = id ?? autoId;
   const nativeRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const isoValue = germanDateComparable(value);
   const pickerDisabled = readOnly || disabled;
+  const nowYear = new Date().getFullYear();
+  const calendarMinYear = minYear ?? nowYear - 100;
+  const calendarMaxYear = maxYear ?? nowYear;
+  const initialView = initialCalendarView(value);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [viewYear, setViewYear] = useState(initialView.year);
+  const [viewMonth, setViewMonth] = useState(initialView.month);
 
-  function openPicker() {
-    if (pickerDisabled) return;
+  function syncViewFromValue(nextValue: string) {
+    const nextView = initialCalendarView(nextValue);
+    setViewYear(nextView.year);
+    setViewMonth(nextView.month);
+  }
+
+  function openNativePicker() {
     const el = nativeRef.current;
     if (!el) return;
     if (typeof el.showPicker === "function") {
@@ -65,8 +87,28 @@ export default function GermanDateField({
     el.click();
   }
 
+  function openPicker() {
+    if (pickerDisabled) return;
+    if (pickerVariant === "calendar") {
+      syncViewFromValue(value);
+      setCalendarOpen(true);
+      return;
+    }
+    openNativePicker();
+  }
+
+  function handleSelectDay(day: number) {
+    const date = new Date(viewYear, viewMonth - 1, day);
+    onChange(formatGermanDate(date));
+  }
+
   return (
-    <div className={`dateFieldWithPicker${pickerDisabled ? " isDisabled" : ""}`}>
+    <div
+      ref={rootRef}
+      className={`dateFieldWithPicker${pickerDisabled ? " isDisabled" : ""}${
+        pickerVariant === "calendar" ? " hasCalendarPopover" : ""
+      }`}
+    >
       <input
         type="text"
         id={inputId}
@@ -88,21 +130,39 @@ export default function GermanDateField({
             onClick={openPicker}
             aria-label="Datum wählen"
             title="Datum wählen"
+            aria-expanded={pickerVariant === "calendar" ? calendarOpen : undefined}
           >
             <CalendarIcon />
           </button>
-          <input
-            ref={nativeRef}
-            type="date"
-            className="dateFieldNativePicker"
-            value={isoValue}
-            tabIndex={-1}
-            aria-hidden
-            onChange={(event) => {
-              const next = event.target.value;
-              onChange(next ? formatGermanDate(next) : "");
-            }}
-          />
+          {pickerVariant === "calendar" ? (
+            <GermanDateCalendarPopover
+              open={calendarOpen}
+              value={value}
+              viewYear={viewYear}
+              viewMonth={viewMonth}
+              minYear={calendarMinYear}
+              maxYear={calendarMaxYear}
+              onClose={() => setCalendarOpen(false)}
+              onViewChange={(year, month) => {
+                setViewYear(year);
+                setViewMonth(month);
+              }}
+              onSelectDay={handleSelectDay}
+            />
+          ) : (
+            <input
+              ref={nativeRef}
+              type="date"
+              className="dateFieldNativePicker"
+              value={isoValue}
+              tabIndex={-1}
+              aria-hidden
+              onChange={(event) => {
+                const next = event.target.value;
+                onChange(next ? formatGermanDate(next) : "");
+              }}
+            />
+          )}
         </>
       ) : null}
     </div>

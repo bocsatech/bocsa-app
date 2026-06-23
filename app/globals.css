@@ -3073,6 +3073,106 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   padding: 0;
 }
 
+.dateFieldWithPicker.hasCalendarPopover {
+  position: relative;
+}
+
+.germanDateCalendarPopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+}
+
+.germanDateCalendarNav {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.germanDateCalendarSelectField select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  color: #111827;
+}
+
+.germanDateCalendarSelectField select:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.germanDateCalendarWeekdays,
+.germanDateCalendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.germanDateCalendarWeekdays {
+  margin-bottom: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-align: center;
+}
+
+.germanDateCalendarDay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  color: #111827;
+  cursor: pointer;
+}
+
+.germanDateCalendarDay:hover:not(.isEmpty) {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.germanDateCalendarDay.isSelected {
+  background: #f97316;
+  color: #fff;
+}
+
+.germanDateCalendarDay.isEmpty {
+  cursor: default;
+}
+
+.germanDateCalendarHint {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .machineDetailPage .stammdatenStacked .dateFieldWithPicker .dateFieldText,
 .machineDetailPage .stammdatenStacked .dateFieldWithPicker .dateFieldPickerBtn {
   padding: 2px 0;
