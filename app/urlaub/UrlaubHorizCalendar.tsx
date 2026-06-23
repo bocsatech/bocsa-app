@@ -15,9 +15,9 @@ import {
 } from "../../lib/austria-holidays";
 import {
   applyVariantToDateKeys,
-  countUrlaubDaysInYear,
   dateKeysForBlock,
   removeDateKeysFromBlocks,
+  summarizeUrlaubQuotaInYear,
   variantForDate,
 } from "../../lib/urlaub-blocks";
 import {
@@ -169,9 +169,20 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
     [sessionUsername, users]
   );
 
-  const urlaubDaysUsed = useMemo(
-    () => (currentUser ? countUrlaubDaysInYear(currentUser.blocks, days, calendarYear) : 0),
-    [calendarYear, currentUser, days]
+  const todayKey = useMemo(() => dateKeyFromDate(anchor), [anchor]);
+
+  const urlaubQuota = useMemo(
+    () =>
+      currentUser
+        ? summarizeUrlaubQuotaInYear(
+            currentUser.blocks,
+            days,
+            calendarYear,
+            todayKey,
+            ANNUAL_URLAUB_DAYS
+          )
+        : null,
+    [calendarYear, currentUser, days, todayKey]
   );
 
   const todayIndex = days.findIndex((day) => day.isToday);
@@ -405,13 +416,21 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
         </div>
 
         <div className="urlaubCalToolbarRight">
-          {editMode && sessionUsername ? (
+          {sessionUsername && urlaubQuota ? (
             <span className="urlaubQuota" aria-live="polite">
-              Urlaub {calendarYear}:{" "}
-              <strong className={urlaubDaysUsed > ANNUAL_URLAUB_DAYS ? "urlaubQuota--over" : ""}>
-                {urlaubDaysUsed}
+              Urlaub {urlaubQuota.year}:{" "}
+              <strong>{urlaubQuota.taken}</strong> genommen ·{" "}
+              <strong className="urlaubQuotaPlanned">{urlaubQuota.planned}</strong> geplant ·{" "}
+              <strong
+                className={
+                  urlaubQuota.remaining <= 0 && urlaubQuota.total >= ANNUAL_URLAUB_DAYS
+                    ? "urlaubQuota--over"
+                    : ""
+                }
+              >
+                {urlaubQuota.remaining}
               </strong>{" "}
-              / {ANNUAL_URLAUB_DAYS}
+              übrig / {ANNUAL_URLAUB_DAYS}
             </span>
           ) : null}
           {saveState === "saving" ? (

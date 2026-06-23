@@ -145,6 +145,46 @@ export function countUrlaubDaysInYear(blocks: UrlaubBlock[], days: TimelineDay[]
   return count;
 }
 
+export type UrlaubQuotaSummary = {
+  year: number;
+  taken: number;
+  planned: number;
+  total: number;
+  remaining: number;
+};
+
+export function summarizeUrlaubQuotaInYear(
+  blocks: UrlaubBlock[],
+  days: TimelineDay[],
+  year: number,
+  todayKey: string,
+  annualDays: number
+): UrlaubQuotaSummary {
+  let taken = 0;
+  let planned = 0;
+
+  for (const block of blocks) {
+    if (block.variant !== "urlaub" && block.variant !== "urlaub-plan") continue;
+    for (const key of dateKeysForBlock(block, days)) {
+      if (Number(key.slice(0, 4)) !== year) continue;
+      if (block.variant === "urlaub-plan" || key > todayKey) {
+        planned += 1;
+      } else {
+        taken += 1;
+      }
+    }
+  }
+
+  const total = taken + planned;
+  return {
+    year,
+    taken,
+    planned,
+    total,
+    remaining: Math.max(0, annualDays - total),
+  };
+}
+
 /** @deprecated use isDateMarked */
 export function isDateMarkedUrlaub(blocks: UrlaubBlock[], dateKey: string, days: TimelineDay[]) {
   return isDateMarked(blocks, dateKey, days);
