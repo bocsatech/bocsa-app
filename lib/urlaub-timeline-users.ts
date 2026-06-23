@@ -1,9 +1,35 @@
+export const ANNUAL_URLAUB_DAYS = 25;
+
+export type UrlaubBlockVariant =
+  | "urlaub"
+  | "urlaub-plan"
+  | "zeitausgleich"
+  | "sonderurlaub"
+  | "krankenstand"
+  | "pflegeurlaub";
+
 export type UrlaubBlock = {
   startKey: string;
   endKey: string;
   label: string;
-  variant: "urlaub" | "urlaub-plan" | "status";
+  variant: UrlaubBlockVariant;
 };
+
+export const ABSENCE_VARIANT_LABELS: Record<UrlaubBlockVariant, string> = {
+  urlaub: "Urlaub",
+  "urlaub-plan": "Urlaub (Plan)",
+  zeitausgleich: "Zeitausgleich",
+  sonderurlaub: "Sonderurlaub",
+  krankenstand: "Krankenstand",
+  pflegeurlaub: "Pflegeurlaub",
+};
+
+export const CONTEXT_MENU_VARIANTS: UrlaubBlockVariant[] = [
+  "zeitausgleich",
+  "sonderurlaub",
+  "krankenstand",
+  "pflegeurlaub",
+];
 
 export type UrlaubTimelineUser = {
   username: string;

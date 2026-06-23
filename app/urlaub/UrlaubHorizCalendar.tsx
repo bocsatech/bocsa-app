@@ -10,22 +10,40 @@ import {
   scrollIndexForWeekOffset,
   visibleDayIndexAtScroll,
 } from "../../lib/austria-holidays";
-import { isDateMarkedUrlaub, toggleUrlaubDay } from "../../lib/urlaub-blocks";
 import {
-  mapDbUsersToUrlaubTimelineUsers,
+  applyVariantToDateKeys,
+  countUrlaubDaysInYear,
+  dateKeyAtIndex,
+  dateKeysInInclusiveRange,
+  extendSelectionWithRange,
+  indexFromPointer,
+  removeDateKeysFromBlocks,
+  toggleUrlaubDay,
+  variantForDate,
+} from "../../lib/urlaub-blocks";
+import {
+  ANNUAL_URLAUB_DAYS,
+  ABSENCE_VARIANT_LABELS,
+  CONTEXT_MENU_VARIANTS,
   type UrlaubBlock,
+  type UrlaubBlockVariant,
   type UrlaubTimelineUser,
 } from "../../lib/urlaub-timeline-users";
 
 export const DAY_COLUMN_WIDTH = 40;
 
-const TIMELINE_DAYS = 550;
-const DAYS_BEFORE_TODAY = 120;
+const TIMELINE_DAYS = 730;
+const DAYS_BEFORE_TODAY = 180;
 
 type Props = {
   initialUsers?: UrlaubTimelineUser[];
   anchorDate?: Date;
 };
+
+type ContextMenuState = {
+  x: number;
+  y: number;
+} | null;
 
 function blockStyle(block: UrlaubBlock, days: { dateKey: string }[]) {
   const start = days.findIndex((day) => day.dateKey === block.startKey);
@@ -41,11 +59,21 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   const scrollRef = useRef<HTMLDivElement>(null);
   const usersColRef = useRef<HTMLDivElement>(null);
   const syncingScrollRef = useRef(false);
+  const initialScrollDoneRef = useRef(false);
+  const dragActiveRef = useRef(false);
+  const rangeAnchorRef = useRef<string | null>(null);
+  const editableRowRef = useRef<HTMLDivElement>(null);
+  const clickTimerRef = useRef<number | null>(null);
+
   const [users, setUsers] = useState<UrlaubTimelineUser[]>(initialUsers);
   const [visibleMonth, setVisibleMonth] = useState("");
   const [sessionUsername, setSessionUsername] = useState("");
   const [editMode, setEditMode] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [dragPreviewKeys, setDragPreviewKeys] = useState<Set<string>>(new Set());
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
   const anchor = anchorDate ?? new Date();
+  const calendarYear = anchor.getFullYear();
 
   useEffect(() => {
     setUsers(initialUsers);
@@ -91,6 +119,16 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   const days = useMemo(
     () => buildTimelineDays(timelineStart, TIMELINE_DAYS, anchor),
     [anchor, timelineStart]
+  );
+
+  const currentUser = useMemo(
+    () => users.find((user) => user.username === sessionUsername) ?? null,
+    [sessionUsername, users]
+  );
+
+  const urlaubDaysUsed = useMemo(
+    () => (currentUser ? countUrlaubDaysInYear(currentUser.blocks, days, calendarYear) : 0),
+    [calendarYear, currentUser, days]
   );
 
   const todayIndex = days.findIndex((day) => day.isToday);
@@ -147,6 +185,44 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
     [days, scrollToDayIndex]
   );
 
+  const updateCurrentUserBlocks = useCallback(
+    (updater: (blocks: UrlaubBlock[]) => UrlaubBlock[]) => {
+      if (!sessionUsername) return;
+      setUsers((current) =>
+        current.map((user) =>
+          user.username === sessionUsername ? { ...user, blocks: updater(user.blocks) } : user
+        )
+      );
+    },
+    [sessionUsername]
+  );
+
+  const clearSelection = useCallback(() => {
+    setSelectedKeys(new Set());
+    setDragPreviewKeys(new Set());
+    rangeAnchorRef.current = null;
+    dragActiveRef.current = false;
+  }, []);
+
+  const applyVariantToSelection = useCallback(
+    (variant: UrlaubBlockVariant) => {
+      if (selectedKeys.size === 0) return;
+      updateCurrentUserBlocks((blocks) =>
+        applyVariantToDateKeys(blocks, [...selectedKeys], variant, days)
+      );
+      clearSelection();
+      setContextMenu(null);
+    },
+    [clearSelection, days, selectedKeys, updateCurrentUserBlocks]
+  );
+
+  const deleteSelection = useCallback(() => {
+    if (selectedKeys.size === 0) return;
+    updateCurrentUserBlocks((blocks) => removeDateKeysFromBlocks(blocks, selectedKeys, days));
+    clearSelection();
+    setContextMenu(null);
+  }, [clearSelection, days, selectedKeys, updateCurrentUserBlocks]);
+
   useEffect(() => {
     const viewport = scrollRef.current;
     const usersCol = usersColRef.current;
@@ -176,10 +252,11 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
 
   useEffect(() => {
     const viewport = scrollRef.current;
-    if (!viewport || todayIndex < 0) return;
+    if (!viewport || todayIndex < 0 || initialScrollDoneRef.current) return;
+    initialScrollDoneRef.current = true;
     viewport.scrollLeft = Math.max(0, todayIndex * DAY_COLUMN_WIDTH - viewport.clientWidth * 0.35);
-    syncVisibleMonth();
-  }, [todayIndex, syncVisibleMonth]);
+    setVisibleMonth(monthLabelAtScroll(days, viewport.scrollLeft, DAY_COLUMN_WIDTH));
+  }, [days, todayIndex]);
 
   useEffect(() => {
     const viewport = scrollRef.current;
@@ -189,19 +266,151 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
     return () => viewport.removeEventListener("scroll", syncVisibleMonth);
   }, [syncVisibleMonth]);
 
+  useEffect(() => {
+    if (!editMode) clearSelection();
+  }, [clearSelection, editMode]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!editMode || selectedKeys.size === 0) return;
+      if (event.key === "Delete" || event.key === "Backspace") {
+        event.preventDefault();
+        deleteSelection();
+      }
+      if (event.key === "Escape") {
+        clearSelection();
+        setContextMenu(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [clearSelection, deleteSelection, editMode, selectedKeys.size]);
+
+  useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    window.addEventListener("click", closeMenu);
+    window.addEventListener("scroll", closeMenu, true);
+    return () => {
+      window.removeEventListener("click", closeMenu);
+      window.removeEventListener("scroll", closeMenu, true);
+    };
+  }, []);
+
   const handleToggleEdit = () => {
     setEditMode((current) => !current);
+    setContextMenu(null);
   };
 
-  const handleDayClick = (username: string, dateKey: string) => {
-    if (!editMode || username !== sessionUsername) return;
-    setUsers((current) =>
-      current.map((user) =>
-        user.username === username
-          ? { ...user, blocks: toggleUrlaubDay(user.blocks, dateKey, days) }
-          : user
-      )
+  const handleDayClick = (dateKey: string) => {
+    if (!editMode || !sessionUsername) return;
+    if (dragActiveRef.current) return;
+
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current);
+    }
+    clickTimerRef.current = window.setTimeout(() => {
+      clickTimerRef.current = null;
+      if (dragActiveRef.current) return;
+      updateCurrentUserBlocks((blocks) => toggleUrlaubDay(blocks, dateKey, days));
+      clearSelection();
+    }, 220);
+  };
+
+  const handleDayDoubleClick = (dateKey: string) => {
+    if (!editMode || !sessionUsername) return;
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
+
+    const anchorKey = rangeAnchorRef.current;
+    if (anchorKey && anchorKey !== dateKey) {
+      setSelectedKeys(new Set(dateKeysInInclusiveRange(anchorKey, dateKey, days)));
+    } else {
+      setSelectedKeys(new Set([dateKey]));
+    }
+    rangeAnchorRef.current = dateKey;
+  };
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>, dateKey: string) => {
+    if (!editMode || !sessionUsername || event.button !== 0) return;
+    if ((event.target as HTMLElement).closest(".urlaubBlock")) return;
+
+    dragActiveRef.current = false;
+    rangeAnchorRef.current = dateKey;
+    const row = editableRowRef.current;
+    const viewport = scrollRef.current;
+    if (!row || !viewport) return;
+
+    const startIndex = indexFromPointer(
+      event.clientX,
+      row.getBoundingClientRect().left,
+      viewport.scrollLeft
     );
+    const startKey = dateKeyAtIndex(days, startIndex) ?? dateKey;
+    rangeAnchorRef.current = startKey;
+    setDragPreviewKeys(new Set([startKey]));
+
+    const onMove = (moveEvent: PointerEvent) => {
+      dragActiveRef.current = true;
+      const endIndex = indexFromPointer(
+        moveEvent.clientX,
+        row.getBoundingClientRect().left,
+        viewport.scrollLeft
+      );
+      const endKey = dateKeyAtIndex(days, endIndex);
+      if (!endKey || !rangeAnchorRef.current) return;
+      setDragPreviewKeys(
+        new Set(dateKeysInInclusiveRange(rangeAnchorRef.current, endKey, days))
+      );
+    };
+
+    const onUp = (upEvent: PointerEvent) => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+
+      if (dragActiveRef.current && rangeAnchorRef.current) {
+        const endIndex = indexFromPointer(
+          upEvent.clientX,
+          row.getBoundingClientRect().left,
+          viewport.scrollLeft
+        );
+        const endKey = dateKeyAtIndex(days, endIndex);
+        if (endKey) {
+          setSelectedKeys(
+            new Set(dateKeysInInclusiveRange(rangeAnchorRef.current, endKey, days))
+          );
+        }
+        setDragPreviewKeys(new Set());
+        rangeAnchorRef.current = null;
+        window.setTimeout(() => {
+          dragActiveRef.current = false;
+        }, 0);
+        return;
+      }
+
+      setDragPreviewKeys(new Set());
+      dragActiveRef.current = false;
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  const handleContextMenu = (event: React.MouseEvent, dateKey: string) => {
+    if (!editMode || !sessionUsername) return;
+    event.preventDefault();
+
+    let keys = selectedKeys;
+    if (keys.size === 0) {
+      keys = new Set([dateKey]);
+      setSelectedKeys(keys);
+    } else if (!keys.has(dateKey)) {
+      keys = extendSelectionWithRange(keys, dateKey, dateKey, days);
+      setSelectedKeys(keys);
+    }
+
+    setContextMenu({ x: event.clientX, y: event.clientY });
   };
 
   if (users.length === 0) {
@@ -211,6 +420,8 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
       </section>
     );
   }
+
+  const activeHighlight = dragPreviewKeys.size > 0 ? dragPreviewKeys : selectedKeys;
 
   return (
     <section className="urlaubTimelineWrap" aria-label="Urlaubskalender Österreich">
@@ -234,6 +445,19 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
         </div>
 
         <div className="urlaubCalToolbarRight">
+          {editMode && sessionUsername ? (
+            <span className="urlaubQuota" aria-live="polite">
+              Urlaub {calendarYear}:{" "}
+              <strong className={urlaubDaysUsed > ANNUAL_URLAUB_DAYS ? "urlaubQuota--over" : ""}>
+                {urlaubDaysUsed}
+              </strong>{" "}
+              / {ANNUAL_URLAUB_DAYS}
+            </span>
+          ) : (
+            <span className="urlaubQuotaPlaceholder" hidden>
+              / {ANNUAL_URLAUB_DAYS}
+            </span>
+          )}
           <button
             type="button"
             className={`urlaubEditBtn${editMode ? " urlaubEditBtn--active" : ""}`}
@@ -259,13 +483,20 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
             <span className="urlaubCalLegendItem">
               <span className="urlaubCalLegendSwatch urlaub" /> Urlaub
             </span>
+            {CONTEXT_MENU_VARIANTS.map((variant) => (
+              <span key={variant} className="urlaubCalLegendItem">
+                <span className={`urlaubCalLegendSwatch ${variant}`} />{" "}
+                {ABSENCE_VARIANT_LABELS[variant]}
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
       {editMode && sessionUsername ? (
         <p className="urlaubEditHint">
-          Bearbeitungsmodus: Klicken Sie auf Tage in Ihrer Zeile, um Urlaub zu setzen oder zu entfernen.
+          Ziehen oder Doppelklick für Auswahl · Rechtsklick für Typ · Entf zum Löschen · Einfachklick
+          toggelt einen Urlaubstag
         </p>
       ) : null}
 
@@ -371,6 +602,7 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                 return (
                   <div
                     key={user.username}
+                    ref={isEditable ? editableRowRef : undefined}
                     className={[
                       "urlaubTimelineRow",
                       isEditable ? "urlaubTimelineRow--editable" : "",
@@ -380,7 +612,9 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                     style={{ width: gridWidth }}
                   >
                     {days.map((day) => {
-                      const marked = isDateMarkedUrlaub(user.blocks, day.dateKey, days);
+                      const variant = variantForDate(user.blocks, day.dateKey, days);
+                      const marked = variant !== null;
+                      const isSelected = isEditable && activeHighlight.has(day.dateKey);
                       return (
                         <div
                           key={`bg-${user.username}-${day.dateKey}`}
@@ -391,25 +625,20 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                             day.holiday ? "holiday" : "",
                             day.isToday ? "today" : "",
                             isEditable ? "urlaubDayColBody--clickable" : "",
-                            marked ? "urlaubDayColBody--marked" : "",
+                            marked && variant ? `urlaubDayColBody--${variant}` : "",
+                            isSelected ? "urlaubDayColBody--selected" : "",
                           ]
                             .filter(Boolean)
                             .join(" ")}
-                          onClick={isEditable ? () => handleDayClick(user.username, day.dateKey) : undefined}
-                          onKeyDown={
-                            isEditable
-                              ? (event) => {
-                                  if (event.key === "Enter" || event.key === " ") {
-                                    event.preventDefault();
-                                    handleDayClick(user.username, day.dateKey);
-                                  }
-                                }
-                              : undefined
+                          onClick={isEditable ? () => handleDayClick(day.dateKey) : undefined}
+                          onDoubleClick={
+                            isEditable ? () => handleDayDoubleClick(day.dateKey) : undefined
                           }
-                          role={isEditable ? "button" : undefined}
-                          tabIndex={isEditable ? 0 : undefined}
-                          aria-label={
-                            isEditable ? `${day.dateKey}${marked ? ", Urlaub" : ""}` : undefined
+                          onPointerDown={
+                            isEditable ? (event) => handlePointerDown(event, day.dateKey) : undefined
+                          }
+                          onContextMenu={
+                            isEditable ? (event) => handleContextMenu(event, day.dateKey) : undefined
                           }
                         />
                       );
@@ -419,7 +648,7 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                       if (!pos) return null;
                       return (
                         <div
-                          key={`${user.username}-${block.startKey}-${block.label}`}
+                          key={`${user.username}-${block.startKey}-${block.endKey}-${block.variant}`}
                           className={`urlaubBlock urlaubBlock--${block.variant}`}
                           style={{ left: pos.left, width: pos.width }}
                           title={block.label}
@@ -435,6 +664,39 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
           </div>
         </div>
       </div>
+
+      {contextMenu && editMode ? (
+        <div
+          className="urlaubContextMenu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          role="menu"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <p className="urlaubContextMenuTitle">
+            {selectedKeys.size} Tag{selectedKeys.size === 1 ? "" : "e"}
+          </p>
+          {CONTEXT_MENU_VARIANTS.map((variant) => (
+            <button
+              key={variant}
+              type="button"
+              className={`urlaubContextMenuItem urlaubContextMenuItem--${variant}`}
+              role="menuitem"
+              onClick={() => applyVariantToSelection(variant)}
+            >
+              {ABSENCE_VARIANT_LABELS[variant]}
+            </button>
+          ))}
+          <hr className="urlaubContextMenuSep" />
+          <button
+            type="button"
+            className="urlaubContextMenuItem urlaubContextMenuItem--danger"
+            role="menuitem"
+            onClick={deleteSelection}
+          >
+            Löschen
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }
