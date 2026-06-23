@@ -1,0 +1,188 @@
+.urlaubPage {
+  display: grid;
+  gap: 16px;
+  max-width: 72rem;
+}
+
+.urlaubPageHeader h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.urlaubPageHeader p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.urlaubCalWrap {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.06);
+  overflow: hidden;
+}
+
+.urlaubCalToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.urlaubCalToolbarHint {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.urlaubCalLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+.urlaubCalLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.urlaubCalLegendSwatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+}
+
+.urlaubCalLegendSwatch.weekend {
+  background: #f3f4f6;
+}
+
+.urlaubCalLegendSwatch.holiday {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.urlaubCalLegendSwatch.today {
+  background: #ecfdf5;
+  border-color: #059669;
+}
+
+.urlaubCalViewport {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.urlaubCalMonth {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 16px 18px 20px;
+  box-sizing: border-box;
+}
+
+.urlaubCalMonthTitle {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.urlaubCalWeekdays,
+.urlaubCalWeek {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.urlaubCalWeekdays {
+  margin-bottom: 8px;
+}
+
+.urlaubCalWeekday {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  padding: 4px 0;
+}
+
+.urlaubCalWeek {
+  margin-bottom: 6px;
+}
+
+.urlaubCalDay,
+.urlaubCalDayEmpty {
+  min-height: 72px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.urlaubCalDayEmpty {
+  border-color: transparent;
+  background: transparent;
+}
+
+.urlaubCalDay {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 8px 6px;
+}
+
+.urlaubCalDay.weekend {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.urlaubCalDay.holiday {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.urlaubCalDay.today {
+  box-shadow: inset 0 0 0 2px #059669;
+}
+
+.urlaubCalDayNum {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+
+.urlaubCalDay.weekend .urlaubCalDayNum {
+  color: #6b7280;
+}
+
+.urlaubCalHoliday {
+  font-size: 0.62rem;
+  line-height: 1.25;
+  font-weight: 600;
+  color: #b45309;
+}
+
+@media (max-width: 720px) {
+  .urlaubCalDay,
+  .urlaubCalDayEmpty {
+    min-height: 58px;
+  }
+
+  .urlaubCalHoliday {
+    font-size: 0.55rem;
+  }
+}

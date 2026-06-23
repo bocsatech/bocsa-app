@@ -1,15 +1,16 @@
 import AppPageShell from "../components/AppPageShell";
+import UrlaubHorizCalendar from "./UrlaubHorizCalendar";
+import "./urlaub.css";
 
 export default function UrlaubPage() {
   return (
     <AppPageShell activeHref="/urlaub" subtitle="Betrieb">
-      <div className="welcomePage">
-        <div className="welcomeCard">
+      <div className="urlaubPage">
+        <header className="urlaubPageHeader">
           <h1>Urlaub</h1>
-          <p style={{ margin: "10px 0 0", color: "var(--muted, #6b7280)" }}>
-            Urlaubsanträge und Abwesenheiten — demnächst.
-          </p>
-        </div>
+          <p>Österreichischer Kalender — ein Monat sichtbar, horizontal scrollbar.</p>
+        </header>
+        <UrlaubHorizCalendar />
       </div>
     </AppPageShell>
   );
