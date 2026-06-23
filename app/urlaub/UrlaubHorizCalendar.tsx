@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  buildMonthSegments,
   buildTimelineDays,
   dateKeyFromDate,
+  monthLabelAtScroll,
 } from "../../lib/austria-holidays";
 
 export const DAY_COLUMN_WIDTH = 40;
@@ -59,6 +61,7 @@ function blockStyle(block: UrlaubBlock, days: { dateKey: string }[]) {
 
 export default function UrlaubHorizCalendar({ anchorDate }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [visibleMonth, setVisibleMonth] = useState("");
   const anchor = anchorDate ?? new Date();
   const timelineStart = useMemo(() => {
     const start = new Date(anchor);
@@ -74,20 +77,43 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
 
   const todayIndex = days.findIndex((day) => day.isToday);
   const gridWidth = days.length * DAY_COLUMN_WIDTH;
+  const monthSegments = useMemo(
+    () => buildMonthSegments(days, DAY_COLUMN_WIDTH),
+    [days]
+  );
+
+  const syncVisibleMonth = useCallback(() => {
+    const viewport = scrollRef.current;
+    if (!viewport) return;
+    setVisibleMonth(monthLabelAtScroll(days, viewport.scrollLeft, DAY_COLUMN_WIDTH));
+  }, [days]);
 
   useEffect(() => {
     const viewport = scrollRef.current;
     if (!viewport || todayIndex < 0) return;
     viewport.scrollLeft = Math.max(0, todayIndex * DAY_COLUMN_WIDTH - viewport.clientWidth * 0.35);
-  }, [todayIndex]);
+    syncVisibleMonth();
+  }, [todayIndex, syncVisibleMonth]);
+
+  useEffect(() => {
+    const viewport = scrollRef.current;
+    if (!viewport) return;
+    viewport.addEventListener("scroll", syncVisibleMonth, { passive: true });
+    syncVisibleMonth();
+    return () => viewport.removeEventListener("scroll", syncVisibleMonth);
+  }, [syncVisibleMonth]);
 
   return (
     <section className="urlaubTimelineWrap" aria-label="Urlaubskalender Österreich">
       <div className="urlaubCalToolbar">
         <p className="urlaubCalToolbarHint">
-          Frei horizontal scrollen — jeder Tag eine Spalte, beliebiger Monatsausschnitt.
+          Frei horizontal scrollen — Monat oben als Band + fixer Indikator rechts.
         </p>
-        <div className="urlaubCalLegend" aria-hidden="true">
+        <div className="urlaubCalToolbarRight">
+          <span className="urlaubMonthIndicator" aria-live="polite">
+            Sichtbar: <strong>{visibleMonth || "—"}</strong>
+          </span>
+          <div className="urlaubCalLegend" aria-hidden="true">
           <span className="urlaubCalLegendItem">
             <span className="urlaubCalLegendSwatch weekend" /> Sa / So
           </span>
@@ -97,6 +123,7 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
           <span className="urlaubCalLegendItem">
             <span className="urlaubCalLegendSwatch urlaub" /> Urlaub
           </span>
+          </div>
         </div>
       </div>
 
@@ -120,6 +147,18 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
           <div className="urlaubTimelineScroll" ref={scrollRef}>
             <div className="urlaubTimelineGrid" style={{ width: gridWidth }}>
               <div className="urlaubTimelineHeader">
+                <div className="urlaubTimelineHeaderRow urlaubTimelineHeaderMonths">
+                  {monthSegments.map((segment) => (
+                    <div
+                      key={`${segment.year}-${segment.monthIndex}`}
+                      className="urlaubMonthSegment"
+                      style={{ width: segment.widthPx }}
+                      title={segment.label}
+                    >
+                      {segment.label}
+                    </div>
+                  ))}
+                </div>
                 <div className="urlaubTimelineHeaderRow">
                   {days.map((day) => (
                     <div

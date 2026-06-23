@@ -249,6 +249,55 @@ export function dateKeyToIndex(days: TimelineDay[], dateKey: string) {
   return days.findIndex((day) => day.dateKey === dateKey);
 }
 
+export type TimelineMonthSegment = {
+  label: string;
+  year: number;
+  monthIndex: number;
+  dayCount: number;
+  widthPx: number;
+};
+
+export function buildMonthSegments(days: TimelineDay[], columnWidth: number): TimelineMonthSegment[] {
+  const segments: TimelineMonthSegment[] = [];
+  let index = 0;
+
+  while (index < days.length) {
+    const first = days[index];
+    const year = first.date.getFullYear();
+    const monthIndex = first.monthIndex;
+    let dayCount = 0;
+
+    while (
+      index + dayCount < days.length &&
+      days[index + dayCount].date.getFullYear() === year &&
+      days[index + dayCount].monthIndex === monthIndex
+    ) {
+      dayCount += 1;
+    }
+
+    segments.push({
+      label: austrianMonthLabel(year, monthIndex),
+      year,
+      monthIndex,
+      dayCount,
+      widthPx: dayCount * columnWidth,
+    });
+    index += dayCount;
+  }
+
+  return segments;
+}
+
+export function monthLabelAtScroll(days: TimelineDay[], scrollLeft: number, columnWidth: number) {
+  if (days.length === 0) return "";
+  const index = Math.min(
+    days.length - 1,
+    Math.max(0, Math.floor((scrollLeft + columnWidth * 2) / columnWidth))
+  );
+  const day = days[index];
+  return austrianMonthLabel(day.date.getFullYear(), day.monthIndex);
+}
+
 export function spanDaysInclusive(startKey: string, endKey: string, days: TimelineDay[]) {
   const start = dateKeyToIndex(days, startKey);
   const end = dateKeyToIndex(days, endKey);
