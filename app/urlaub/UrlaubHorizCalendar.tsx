@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  addMonthOffset,
   austrianMonthLabel,
   buildMonthSegments,
   buildTimelineDays,
@@ -10,6 +11,7 @@ import {
   monthLabelAtScroll,
   scrollIndexForWeekOffset,
   visibleDayIndexAtScroll,
+  visibleMonthKeyAtScroll,
 } from "../../lib/austria-holidays";
 import {
   applyVariantToDateKeys,
@@ -133,15 +135,12 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   const readVisibleMonthKey = useCallback((): VisibleMonthKey | null => {
     const viewport = scrollRef.current;
     if (!viewport || days.length === 0) return visibleMonthKeyRef.current;
-    const index = visibleDayIndexAtScroll(
+    return visibleMonthKeyAtScroll(
       days,
       viewport.scrollLeft,
       DAY_COLUMN_WIDTH,
       viewport.clientWidth
     );
-    const day = days[index];
-    if (!day) return visibleMonthKeyRef.current;
-    return { year: day.date.getFullYear(), monthIndex: day.monthIndex };
   }, [days]);
 
   const syncVisibleMonth = useCallback(() => {
@@ -152,13 +151,35 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   }, [readVisibleMonthKey]);
 
   const scrollToDayIndex = useCallback(
-    (index: number, behavior: ScrollBehavior = "smooth") => {
+    (index: number, behavior: ScrollBehavior = "smooth", align: "start" | "view" = "view") => {
       const viewport = scrollRef.current;
       if (!viewport || index < 0) return;
-      const left = Math.max(0, index * DAY_COLUMN_WIDTH - viewport.clientWidth * 0.08);
+      const left =
+        align === "start"
+          ? Math.max(0, index * DAY_COLUMN_WIDTH)
+          : Math.max(0, index * DAY_COLUMN_WIDTH - viewport.clientWidth * 0.08);
       viewport.scrollTo({ left, behavior });
     },
     []
+  );
+
+  const scrollByMonth = useCallback(
+    (direction: -1 | 1) => {
+      const viewport = scrollRef.current;
+      if (!viewport) return;
+
+      const baseKey = visibleMonthKeyRef.current ?? readVisibleMonthKey();
+      if (!baseKey) return;
+
+      const target = addMonthOffset(baseKey.year, baseKey.monthIndex, direction);
+      const index = firstDayIndexOfMonth(days, target.year, target.monthIndex);
+      if (index < 0) return;
+
+      visibleMonthKeyRef.current = target;
+      setVisibleMonth(austrianMonthLabel(target.year, target.monthIndex));
+      scrollToDayIndex(index, "smooth", "start");
+    },
+    [days, readVisibleMonthKey, scrollToDayIndex]
   );
 
   const scrollByWeek = useCallback(
@@ -174,31 +195,6 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
       scrollToDayIndex(scrollIndexForWeekOffset(fromIndex, direction, days.length));
     },
     [days, scrollToDayIndex]
-  );
-
-  const scrollByMonth = useCallback(
-    (direction: -1 | 1) => {
-      const key = readVisibleMonthKey();
-      if (!key) return;
-
-      let year = key.year;
-      let monthIndex = key.monthIndex + direction;
-      if (monthIndex < 0) {
-        monthIndex = 11;
-        year -= 1;
-      } else if (monthIndex > 11) {
-        monthIndex = 0;
-        year += 1;
-      }
-
-      const index = firstDayIndexOfMonth(days, year, monthIndex);
-      if (index < 0) return;
-
-      visibleMonthKeyRef.current = { year, monthIndex };
-      setVisibleMonth(austrianMonthLabel(year, monthIndex));
-      scrollToDayIndex(index);
-    },
-    [days, readVisibleMonthKey, scrollToDayIndex]
   );
 
   const updateCurrentUserBlocks = useCallback(
@@ -266,7 +262,9 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
     if (!viewport || todayIndex < 0 || initialScrollDoneRef.current) return;
     initialScrollDoneRef.current = true;
     viewport.scrollLeft = Math.max(0, todayIndex * DAY_COLUMN_WIDTH - viewport.clientWidth * 0.35);
-    setVisibleMonth(monthLabelAtScroll(days, viewport.scrollLeft, DAY_COLUMN_WIDTH));
+    setVisibleMonth(
+      monthLabelAtScroll(days, viewport.scrollLeft, DAY_COLUMN_WIDTH, viewport.clientWidth)
+    );
     const day = days[todayIndex];
     if (day) {
       visibleMonthKeyRef.current = {
@@ -539,14 +537,7 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                     {user.blocks.map((block) => {
                       const pos = blockStyle(block, days);
                       if (!pos) return null;
-                      const blockDayKeys = isEditable
-                        ? days
-                            .slice(
-                              days.findIndex((d) => d.dateKey === block.startKey),
-                              days.findIndex((d) => d.dateKey === block.endKey) + 1
-                            )
-                            .map((d) => d.dateKey)
-                        : [];
+                      const blockDayKeys = isEditable ? dateKeysForBlock(block, days) : [];
                       const blockSelected =
                         isEditable && blockDayKeys.some((key) => selectedKeys.has(key));
                       return (

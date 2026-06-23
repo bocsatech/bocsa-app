@@ -288,12 +288,14 @@ export function buildMonthSegments(days: TimelineDay[], columnWidth: number): Ti
   return segments;
 }
 
-export function monthLabelAtScroll(days: TimelineDay[], scrollLeft: number, columnWidth: number) {
+export function monthLabelAtScroll(
+  days: TimelineDay[],
+  scrollLeft: number,
+  columnWidth: number,
+  viewportWidth = 0
+) {
   if (days.length === 0) return "";
-  const index = Math.min(
-    days.length - 1,
-    Math.max(0, Math.floor((scrollLeft + columnWidth * 2) / columnWidth))
-  );
+  const index = visibleDayIndexAtScroll(days, scrollLeft, columnWidth, viewportWidth);
   const day = days[index];
   return austrianMonthLabel(day.date.getFullYear(), day.monthIndex);
 }
@@ -305,8 +307,37 @@ export function visibleDayIndexAtScroll(
   viewportWidth = 0
 ) {
   if (days.length === 0) return 0;
-  const anchor = scrollLeft + Math.min(columnWidth * 2, Math.max(0, viewportWidth * 0.15));
+  const anchor =
+    viewportWidth > 0
+      ? scrollLeft + viewportWidth * 0.5
+      : scrollLeft + columnWidth * 2;
   return Math.min(days.length - 1, Math.max(0, Math.floor(anchor / columnWidth)));
+}
+
+export function visibleMonthKeyAtScroll(
+  days: TimelineDay[],
+  scrollLeft: number,
+  columnWidth: number,
+  viewportWidth = 0
+) {
+  const index = visibleDayIndexAtScroll(days, scrollLeft, columnWidth, viewportWidth);
+  const day = days[index];
+  if (!day) return null;
+  return { year: day.date.getFullYear(), monthIndex: day.monthIndex };
+}
+
+export function addMonthOffset(year: number, monthIndex: number, delta: number) {
+  let nextYear = year;
+  let nextMonth = monthIndex + delta;
+  while (nextMonth < 0) {
+    nextMonth += 12;
+    nextYear -= 1;
+  }
+  while (nextMonth > 11) {
+    nextMonth -= 12;
+    nextYear += 1;
+  }
+  return { year: nextYear, monthIndex: nextMonth };
 }
 
 export function firstDayIndexOfMonth(days: TimelineDay[], year: number, monthIndex: number) {
