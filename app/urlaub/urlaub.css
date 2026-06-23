@@ -206,6 +206,21 @@
   color: #dc2626;
 }
 
+.urlaubSaveState {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.urlaubSaveState--ok {
+  color: #047857;
+}
+
+.urlaubSaveState--err {
+  color: #dc2626;
+}
+
 .urlaubCalToolbarRight {
   display: flex;
   flex-wrap: wrap;

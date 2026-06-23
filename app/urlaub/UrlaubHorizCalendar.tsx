@@ -60,12 +60,14 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   const syncingScrollRef = useRef(false);
   const initialScrollDoneRef = useRef(false);
   const visibleMonthKeyRef = useRef<VisibleMonthKey | null>(null);
+  const persistTimerRef = useRef<number | null>(null);
 
   const [users, setUsers] = useState<UrlaubTimelineUser[]>(initialUsers);
   const [visibleMonth, setVisibleMonth] = useState("");
   const [sessionUsername, setSessionUsername] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const anchor = anchorDate ?? new Date();
   const calendarYear = anchor.getFullYear();
 
@@ -84,8 +86,6 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   }, []);
 
   useEffect(() => {
-    if (initialUsers.length > 0) return;
-
     fetch("/api/urlaub/benutzer", { credentials: "include", cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
@@ -101,7 +101,45 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
         );
       })
       .catch(() => undefined);
-  }, [initialUsers.length]);
+  }, []);
+
+  const persistUserBlocks = useCallback(
+    (blocks: UrlaubBlock[]) => {
+      if (!sessionUsername) return;
+      if (persistTimerRef.current !== null) {
+        window.clearTimeout(persistTimerRef.current);
+      }
+      setSaveState("saving");
+      persistTimerRef.current = window.setTimeout(() => {
+        persistTimerRef.current = null;
+        fetch("/api/urlaub", {
+          method: "PUT",
+          credentials: "include",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ blocks }),
+        })
+          .then(async (response) => {
+            if (!response.ok) {
+              const payload = await response.json().catch(() => ({}));
+              throw new Error(payload.error ?? "Speichern fehlgeschlagen");
+            }
+            setSaveState("saved");
+          })
+          .catch(() => setSaveState("error"));
+      }, 450);
+    },
+    [sessionUsername]
+  );
+
+  useEffect(
+    () => () => {
+      if (persistTimerRef.current !== null) {
+        window.clearTimeout(persistTimerRef.current);
+      }
+    },
+    []
+  );
 
   const timelineStart = useMemo(() => {
     const start = new Date(anchor);
@@ -200,13 +238,17 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   const updateCurrentUserBlocks = useCallback(
     (updater: (blocks: UrlaubBlock[]) => UrlaubBlock[]) => {
       if (!sessionUsername) return;
+      let nextBlocks: UrlaubBlock[] | null = null;
       setUsers((current) =>
-        current.map((user) =>
-          user.username === sessionUsername ? { ...user, blocks: updater(user.blocks) } : user
-        )
+        current.map((user) => {
+          if (user.username !== sessionUsername) return user;
+          nextBlocks = updater(user.blocks);
+          return { ...user, blocks: nextBlocks };
+        })
       );
+      if (nextBlocks) persistUserBlocks(nextBlocks);
     },
-    [sessionUsername]
+    [persistUserBlocks, sessionUsername]
   );
 
   const clearSelection = useCallback(() => {
@@ -353,6 +395,15 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
               </strong>{" "}
               / {ANNUAL_URLAUB_DAYS}
             </span>
+          ) : null}
+          {saveState === "saving" ? (
+            <span className="urlaubSaveState">Speichern…</span>
+          ) : null}
+          {saveState === "saved" ? (
+            <span className="urlaubSaveState urlaubSaveState--ok">Gespeichert</span>
+          ) : null}
+          {saveState === "error" ? (
+            <span className="urlaubSaveState urlaubSaveState--err">Speichern fehlgeschlagen</span>
           ) : null}
           <button
             type="button"
