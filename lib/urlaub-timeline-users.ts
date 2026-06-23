@@ -24,12 +24,16 @@ export const ABSENCE_VARIANT_LABELS: Record<UrlaubBlockVariant, string> = {
   pflegeurlaub: "Pflegeurlaub",
 };
 
-export const CONTEXT_MENU_VARIANTS: UrlaubBlockVariant[] = [
+export const APPLY_VARIANTS: UrlaubBlockVariant[] = [
+  "urlaub",
   "zeitausgleich",
   "sonderurlaub",
   "krankenstand",
   "pflegeurlaub",
 ];
+
+/** @deprecated */
+export const CONTEXT_MENU_VARIANTS = APPLY_VARIANTS.slice(1);
 
 export type UrlaubTimelineUser = {
   username: string;

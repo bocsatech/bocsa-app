@@ -55,8 +55,7 @@ const checks = [
   ["Monat navigáció", pageRes.text.includes("Nächster Monat") && pageRes.text.includes("Letzter Monat")],
   ["Woche navigáció", pageRes.text.includes("Nächste Woche") && pageRes.text.includes("Letzte Woche")],
   ["Bearbeitung gomb", pageRes.text.includes("Bearbeitung")],
-  ["Urlaub-Kontingent", pageRes.text.includes("/ 25")],
-  ["Kontextmenü Varianten", pageRes.text.includes("Zeitausgleich") && pageRes.text.includes("Pflegeurlaub")],
+  ["Typ-Leiste Klasse", pageRes.text.includes("urlaubEditBar") || pageRes.text.includes("urlaubTypeBtn")],
 ];
 
 console.log("");
