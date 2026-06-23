@@ -246,6 +246,22 @@ export async function updatePkwBuchung(
   return parseJson<PkwBuchung>(response);
 }
 
+export async function deletePkwBuchung(id: string) {
+  const response = await fetch(`/api/pkw/buchungen/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  return parseJson<{ ok: true; id: string; kennzeichen?: string }>(response);
+}
+
+export function confirmDeletePkwBuchung(buchung: Pick<PkwBuchung, "kennzeichen" | "slot_start" | "source">) {
+  const sourceLabel = buchung.source === "portal" ? "Kunden-Termin" : "Termin";
+  const when = formatSlotLabel(buchung.slot_start);
+  return window.confirm(
+    `${sourceLabel} „${buchung.kennzeichen.trim()}" (${when}) endgültig löschen?\n\nDieser Vorgang kann nicht rückgängig gemacht werden.`
+  );
+}
+
 export async function fetchPkwServicearten() {
   const response = await fetch(`/api/pkw/servicearten?ts=${Date.now()}`, {
     cache: "no-store",

@@ -13,6 +13,8 @@ import {
   fetchPkwServicearten,
   fetchPkwTeam,
   formatSlotLabel,
+  confirmDeletePkwBuchung,
+  deletePkwBuchung,
   PKW_SERVICE_HOURS,
 } from "../../lib/pkw";
 import { hasPkwServiceRead, hasPkwServiceWrite } from "../../lib/pkw-permissions";
@@ -74,6 +76,7 @@ export default function PkwServicePage() {
   const [error, setError] = useState<string | null>(null);
   const [editBuchung, setEditBuchung] = useState<PkwBuchung | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [team, setTeam] = useState<PkwTeamUser[]>([]);
   const [fahrzeuge, setFahrzeuge] = useState<PkwFahrzeug[]>([]);
 
@@ -174,6 +177,23 @@ export default function PkwServicePage() {
       }
       return [...cur, b].sort((a, c) => a.slot_start.localeCompare(c.slot_start));
     });
+  }
+
+  async function handleDelete(b: PkwBuchung) {
+    if (!confirmDeletePkwBuchung(b)) return;
+    setDeletingId(b.id);
+    setError(null);
+    const { error: deleteError } = await deletePkwBuchung(b.id);
+    setDeletingId(null);
+    if (deleteError) {
+      setError(deleteError);
+      return;
+    }
+    setBuchungen((cur) => cur.filter((x) => x.id !== b.id));
+    if (editBuchung?.id === b.id) {
+      setModalOpen(false);
+      setEditBuchung(null);
+    }
   }
 
   function setPreset(preset: "today" | "week" | "next7") {
@@ -347,7 +367,9 @@ export default function PkwServicePage() {
                               b.assigned_user_id ? teamById.get(b.assigned_user_id) ?? null : null
                             }
                             canWrite={canWrite}
+                            deleting={deletingId === b.id}
                             onEdit={() => openEdit(b)}
+                            onDelete={() => void handleDelete(b)}
                           />
                         </div>
                       ))
@@ -398,9 +420,19 @@ export default function PkwServicePage() {
                     <td>{BUCHUNG_SOURCE_LABELS[b.source] ?? b.source}</td>
                     {canWrite ? (
                       <td>
-                        <button type="button" className="pillButton outline" onClick={() => openEdit(b)}>
-                          Bearbeiten
-                        </button>
+                        <div className="pkwTableActions">
+                          <button type="button" className="pillButton outline" onClick={() => openEdit(b)}>
+                            Bearbeiten
+                          </button>
+                          <button
+                            type="button"
+                            className="pillButton danger"
+                            disabled={deletingId === b.id}
+                            onClick={() => void handleDelete(b)}
+                          >
+                            {deletingId === b.id ? "Löschen…" : "Löschen"}
+                          </button>
+                        </div>
                       </td>
                     ) : null}
                   </tr>
@@ -433,13 +465,17 @@ function BuchungCard({
   serviceLabels,
   monteur,
   canWrite,
+  deleting,
   onEdit,
+  onDelete,
 }: {
   buchung: PkwBuchung;
   serviceLabels: Record<string, string>;
   monteur: string | null;
   canWrite: boolean;
+  deleting: boolean;
   onEdit: () => void;
+  onDelete: () => void;
 }) {
   const schritte = (b.munkafolyamat ?? []).filter((s) => s.text?.trim());
   return (
@@ -466,9 +502,19 @@ function BuchungCard({
         </ul>
       ) : null}
       {canWrite ? (
-        <button type="button" className="pillButton outline pkwBuchungEditBtn" onClick={onEdit}>
-          Bearbeiten
-        </button>
+        <div className="pkwBuchungCardActions">
+          <button type="button" className="pillButton outline pkwBuchungEditBtn" onClick={onEdit}>
+            Bearbeiten
+          </button>
+          <button
+            type="button"
+            className="pillButton danger pkwBuchungEditBtn"
+            disabled={deleting}
+            onClick={onDelete}
+          >
+            {deleting ? "…" : "Löschen"}
+          </button>
+        </div>
       ) : null}
     </div>
   );

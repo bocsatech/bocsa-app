@@ -129,3 +129,36 @@ export async function PATCH(request, { params }) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(normalizeBuchungRow(data));
 }
+
+export async function DELETE(_request, { params }) {
+  if (!(await canAccessPkwService("write"))) {
+    return NextResponse.json(
+      { error: "Keine Berechtigung: pkw.service.write" },
+      { status: 403 }
+    );
+  }
+
+  const db = getSupabaseAdmin();
+  const id = (await params).id;
+  if (!id) {
+    return NextResponse.json({ error: "Termin-ID fehlt." }, { status: 400 });
+  }
+
+  const { data: existing, error: loadError } = await db
+    .from("pkw_buchungen")
+    .select("id, kennzeichen, slot_start")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (loadError) {
+    return NextResponse.json({ error: loadError.message }, { status: 500 });
+  }
+  if (!existing) {
+    return NextResponse.json({ error: "Termin nicht gefunden." }, { status: 404 });
+  }
+
+  const { error } = await db.from("pkw_buchungen").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true, id, kennzeichen: existing.kennzeichen });
+}

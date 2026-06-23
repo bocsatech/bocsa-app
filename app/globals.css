@@ -5221,6 +5221,18 @@ body.lagerPickerOpen {
   align-self: flex-start;
 }
 
+.pkwBuchungCardActions,
+.pkwTableActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.pkwTableActions {
+  justify-content: flex-end;
+}
+
 /* PKW-Termin — gleiche Karte wie Maschine hinzufügen */
 .pkwBuchungModal.machineAddModal {
   width: min(920px, calc(100vw - 48px));
