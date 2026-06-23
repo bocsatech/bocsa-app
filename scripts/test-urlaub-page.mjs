@@ -49,10 +49,10 @@ if (!pageRes.response.ok) fail(`/urlaub => ${pageRes.response.status}`);
 
 const checks = [
   ["Meine Menü link: Urlaub", pageRes.text.includes('href="/urlaub"') && pageRes.text.includes("Urlaub")],
-  ["Kalender wrap CSS", pageRes.text.includes("urlaubCalWrap")],
-  ["Österreichischer Kalender szöveg", pageRes.text.includes("Österreichischer Kalender")],
-  ["Nincs régi placeholder", !pageRes.text.includes("demnächst")],
-  ["Hónap címke (Jänner|Februar|…)", /urlaubCalMonthTitle|Jänner|Februar|März|Juni|Juli/.test(pageRes.text)],
+  ["Timeline wrap", pageRes.text.includes("urlaubTimelineWrap")],
+  ["Horizontale Timeline", pageRes.text.includes("Frei horizontal scrollen") || pageRes.text.includes("urlaubTimelineScroll")],
+  ["Woche label", pageRes.text.includes("Woche ")],
+  ["Mitarbeiter oszlop", pageRes.text.includes("Robert Bocsa") || pageRes.text.includes("Mitarbeiter")],
   ["Feiertag jelölés", pageRes.text.includes("Feiertag") || pageRes.text.includes("urlaubCalHoliday")],
 ];
 

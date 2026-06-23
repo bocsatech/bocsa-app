@@ -190,3 +190,68 @@ export function buildCalendarMonths(startYear: number, startMonth: number, count
 
   return months;
 }
+
+export type TimelineDay = {
+  date: Date;
+  dateKey: string;
+  day: number;
+  monthIndex: number;
+  weekdayLabel: (typeof WEEKDAY_LABELS_AT)[number];
+  weekdayIndex: number;
+  isoWeek: number;
+  isWeekend: boolean;
+  isToday: boolean;
+  isMonday: boolean;
+  isMonthStart: boolean;
+  holiday: AustrianHoliday | null;
+};
+
+export function isoWeekNumber(date: Date) {
+  const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = utc.getUTCDay() || 7;
+  utc.setUTCDate(utc.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+  return Math.ceil(((utc.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
+}
+
+export function buildTimelineDays(start: Date, dayCount: number, today = new Date()) {
+  const holidayMap = austrianHolidayMapForRange(
+    start.getFullYear(),
+    addDays(start, dayCount - 1).getFullYear()
+  );
+  const todayKey = dateKeyFromDate(today);
+  const days: TimelineDay[] = [];
+
+  for (let i = 0; i < dayCount; i += 1) {
+    const date = addDays(start, i);
+    const weekdayIndex = mondayBasedWeekday(date);
+    const dateKey = dateKeyFromDate(date);
+    days.push({
+      date,
+      dateKey,
+      day: date.getDate(),
+      monthIndex: date.getMonth(),
+      weekdayLabel: WEEKDAY_LABELS_AT[weekdayIndex],
+      weekdayIndex,
+      isoWeek: isoWeekNumber(date),
+      isWeekend: isWeekendDate(date),
+      isToday: dateKey === todayKey,
+      isMonday: weekdayIndex === 0,
+      isMonthStart: date.getDate() === 1,
+      holiday: holidayMap.get(dateKey) ?? null,
+    });
+  }
+
+  return days;
+}
+
+export function dateKeyToIndex(days: TimelineDay[], dateKey: string) {
+  return days.findIndex((day) => day.dateKey === dateKey);
+}
+
+export function spanDaysInclusive(startKey: string, endKey: string, days: TimelineDay[]) {
+  const start = dateKeyToIndex(days, startKey);
+  const end = dateKeyToIndex(days, endKey);
+  if (start < 0 || end < 0) return null;
+  return { start, end, length: end - start + 1 };
+}

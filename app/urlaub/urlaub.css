@@ -1,7 +1,7 @@
 .urlaubPage {
   display: grid;
   gap: 16px;
-  max-width: 72rem;
+  max-width: 100%;
 }
 
 .urlaubPageHeader h1 {
@@ -17,7 +17,7 @@
   font-size: 0.95rem;
 }
 
-.urlaubCalWrap {
+.urlaubTimelineWrap {
   border: 1px solid #e5e7eb;
   border-radius: 14px;
   background: #ffffff;
@@ -36,6 +36,7 @@
 }
 
 .urlaubCalToolbarHint {
+  margin: 0;
   font-size: 0.85rem;
   color: #6b7280;
 }
@@ -66,123 +67,212 @@
 }
 
 .urlaubCalLegendSwatch.holiday {
-  background: #fef3c7;
+  background: #fffbeb;
   border-color: #f59e0b;
 }
 
-.urlaubCalLegendSwatch.today {
-  background: #ecfdf5;
-  border-color: #059669;
+.urlaubCalLegendSwatch.urlaub {
+  background: #86efac;
+  border-color: #22c55e;
 }
 
-.urlaubCalViewport {
+.urlaubTimeline {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-rows: 84px auto;
+}
+
+.urlaubTimelineUsersHead {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-.urlaubCalMonth {
-  flex: 0 0 100%;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  padding: 16px 18px 20px;
+  align-items: flex-end;
+  padding: 0 12px 8px;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fafafa;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
   box-sizing: border-box;
 }
 
-.urlaubCalMonthTitle {
-  margin: 0 0 12px;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #111827;
+.urlaubTimelineUsers {
+  grid-column: 1;
+  grid-row: 2;
+  border-right: 1px solid #e5e7eb;
+  background: #fafafa;
 }
 
-.urlaubCalWeekdays,
-.urlaubCalWeek {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+.urlaubTimelineMain {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.urlaubCalWeekdays {
-  margin-bottom: 8px;
+.urlaubUserCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 12px;
+  border-bottom: 1px solid #e5e7eb;
+  box-sizing: border-box;
 }
 
-.urlaubCalWeekday {
-  text-align: center;
+.urlaubUserAvatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #6b7280, #374151);
+  color: #fff;
   font-size: 0.72rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.urlaubUserName {
+  font-size: 0.88rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.urlaubTimelineScroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+}
+
+.urlaubTimelineGrid {
+  min-width: min-content;
+}
+
+.urlaubTimelineHeader {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+.urlaubTimelineHeaderRow {
+  display: flex;
+  height: 28px;
+}
+
+.urlaubTimelineHeaderWeeks {
+  height: 28px;
+}
+
+.urlaubTimelineHeaderWeeks .urlaubDayColWeek {
+  font-size: 0.62rem;
+  font-weight: 700;
   color: #6b7280;
-  padding: 4px 0;
+  justify-content: flex-start;
+  padding-left: 4px;
+  overflow: visible;
+  white-space: nowrap;
 }
 
-.urlaubCalWeek {
-  margin-bottom: 6px;
+.urlaubTimelineRow {
+  position: relative;
+  display: flex;
+  height: 56px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.urlaubCalDay,
-.urlaubCalDayEmpty {
-  min-height: 72px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
+.urlaubDayCol {
+  flex: 0 0 40px;
+  width: 40px;
+  box-sizing: border-box;
+  border-right: 1px solid #eef0f3;
+}
+
+.urlaubDayColHead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.urlaubDayColHead.monthStart {
+  color: #111827;
+  font-weight: 800;
+}
+
+.urlaubDayColBody {
   background: #ffffff;
 }
 
-.urlaubCalDayEmpty {
-  border-color: transparent;
-  background: transparent;
-}
-
-.urlaubCalDay {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 8px 6px;
-}
-
-.urlaubCalDay.weekend {
+.urlaubDayCol.weekend,
+.urlaubDayColBody.weekend {
   background: #f3f4f6;
-  border-color: #e5e7eb;
 }
 
-.urlaubCalDay.holiday {
+.urlaubDayCol.holiday,
+.urlaubDayColBody.holiday {
   background: #fffbeb;
-  border-color: #fcd34d;
 }
 
-.urlaubCalDay.today {
+.urlaubDayCol.today,
+.urlaubDayColBody.today {
   box-shadow: inset 0 0 0 2px #059669;
+  z-index: 1;
 }
 
-.urlaubCalDayNum {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #111827;
-  line-height: 1;
+.urlaubBlock {
+  position: absolute;
+  top: 10px;
+  height: 36px;
+  border-radius: 8px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
 }
 
-.urlaubCalDay.weekend .urlaubCalDayNum {
-  color: #6b7280;
+.urlaubBlock--urlaub {
+  background: #86efac;
+  border: 1px solid #4ade80;
+  color: #14532d;
 }
 
-.urlaubCalHoliday {
+.urlaubBlock--urlaub-plan {
+  background: #fde68a;
+  border: 2px dashed #d97706;
+  color: #92400e;
+}
+
+.urlaubBlock--status {
+  top: 16px;
+  height: 24px;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  justify-content: center;
+  padding: 0 4px;
   font-size: 0.62rem;
-  line-height: 1.25;
-  font-weight: 600;
-  color: #b45309;
 }
 
 @media (max-width: 720px) {
-  .urlaubCalDay,
-  .urlaubCalDayEmpty {
-    min-height: 58px;
+  .urlaubTimeline {
+    grid-template-columns: 148px minmax(0, 1fr);
   }
 
-  .urlaubCalHoliday {
-    font-size: 0.55rem;
+  .urlaubUserName {
+    font-size: 0.78rem;
   }
 }
