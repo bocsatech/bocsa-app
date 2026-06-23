@@ -106,9 +106,6 @@ export default function UrlaubHorizCalendar({ anchorDate }: Props) {
   return (
     <section className="urlaubTimelineWrap" aria-label="Urlaubskalender Österreich">
       <div className="urlaubCalToolbar">
-        <p className="urlaubCalToolbarHint">
-          Frei horizontal scrollen — Monat oben als Band + fixer Indikator rechts.
-        </p>
         <div className="urlaubCalToolbarRight">
           <span className="urlaubMonthIndicator" aria-live="polite">
             Sichtbar: <strong>{visibleMonth || "—"}</strong>

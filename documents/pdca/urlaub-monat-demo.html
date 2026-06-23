@@ -2,102 +2,32 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <title>Urlaub — Monatsanzeige Demo</title>
+  <title>Urlaub — Monatsanzeige</title>
   <link rel="stylesheet" href="../../app/urlaub/urlaub.css" />
   <style>
     body {
       margin: 0;
       font-family: "Segoe UI", Arial, sans-serif;
-      background: #eef2f7;
-      padding: 22px;
-      color: #111827;
+      background: #f3f4f6;
+      padding: 20px;
     }
-    .demoShell { max-width: 1020px; margin: 0 auto; }
-    .demoTitle { margin: 0 0 6px; font-size: 1.35rem; font-weight: 800; }
-    .demoLead { margin: 0 0 16px; color: #4b5563; font-size: 0.95rem; max-width: 52rem; line-height: 1.45; }
-    .demoBadge {
-      display: inline-block;
-      margin-bottom: 10px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #047857;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .demoNotes {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .demoNote {
-      background: #fff;
-      border: 1px solid #dbeafe;
-      border-left: 4px solid #2563eb;
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 0.82rem;
-      line-height: 1.4;
-    }
-    .demoNote strong { display: block; margin-bottom: 4px; color: #1d4ed8; }
-    .demoNote.hu { border-left-color: #d97706; border-color: #fde68a; }
-    .demoNote.hu strong { color: #b45309; }
-    .callout {
-      position: absolute;
-      z-index: 5;
-      font-size: 0.68rem;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,.12);
-    }
-    .callout.one { top: 118px; left: 280px; background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-    .callout.two { top: 18px; right: 24px; background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-    .demoFrame { position: relative; }
+    .demoShell { max-width: 980px; margin: 0 auto; }
+    .urlaubPageHeader h1 { margin: 0 0 12px; font-size: 1.5rem; font-weight: 800; }
     .urlaubTimelineScroll { overflow-x: hidden; }
   </style>
 </head>
 <body>
   <div class="demoShell">
-    <span class="demoBadge">Demo — Monatsanzeige beim Scrollen</span>
-    <h1 class="demoTitle">Wie erkennt man den aktuellen Monat?</h1>
-    <p class="demoLead">
-      Zwei ergänzende Lösungen: (1) <strong>Monatsband</strong> über den Tagen — jeder Monat als grüner Balken mit vollem Namen.
-      (2) <strong>Fixer Indikator</strong> oben rechts — „Sichtbar: …“ aktualisiert sich beim horizontalen Scrollen.
-    </p>
-
-    <div class="demoNotes">
-      <div class="demoNote">
-        <strong>1 · Monatsband (statisch mitscrollend)</strong>
-        Jeder Monat bekommt eine Spaltenbreite = Anzahl Tage × 40 px. Beim Scrollen sieht man sofort, ob man in Dezember oder Jänner ist.
-      </div>
-      <div class="demoNote hu">
-        <strong>1 · Hónap sáv (görgetéssel együtt mozog)</strong>
-        Minden hónap neve a saját napjai fölött látszik — így bármely résznél egyértelmű a hónap.
-      </div>
-      <div class="demoNote">
-        <strong>2 · Sichtbar-Indikator (dynamisch)</strong>
-        Beim Scroll-Event: sichtbarer Tag = scrollLeft ÷ Spaltenbreite → Monatsname in der Toolbar.
-      </div>
-      <div class="demoNote hu">
-        <strong>2 · „Sichtbar” jelző (dinamikus)</strong>
-        Görgetéskor a jobb felső badge mutatja: épp melyik hónap látszik a viewportban.
-      </div>
-    </div>
-
-    <div class="demoFrame">
-      <span class="callout one">① Monatsband</span>
-      <span class="callout two">② Sichtbar: Dezember 2025</span>
-
+    <div class="urlaubPage">
+      <header class="urlaubPageHeader"><h1>Urlaub</h1></header>
       <section class="urlaubTimelineWrap">
         <div class="urlaubCalToolbar">
-          <p class="urlaubCalToolbarHint">Frei horizontal scrollen — Monat oben als Band + fixer Indikator.</p>
           <div class="urlaubCalToolbarRight">
             <span class="urlaubMonthIndicator">Sichtbar: <strong>Dezember 2025</strong></span>
             <div class="urlaubCalLegend">
               <span class="urlaubCalLegendItem"><span class="urlaubCalLegendSwatch weekend"></span> Sa / So</span>
+              <span class="urlaubCalLegendItem"><span class="urlaubCalLegendSwatch holiday"></span> Feiertag</span>
+              <span class="urlaubCalLegendItem"><span class="urlaubCalLegendSwatch urlaub"></span> Urlaub</span>
             </div>
           </div>
         </div>
@@ -112,8 +42,7 @@
               <div class="urlaubTimelineGrid" style="width:1120px;">
                 <div class="urlaubTimelineHeader">
                   <div class="urlaubTimelineHeaderRow urlaubTimelineHeaderMonths">
-                    <div class="urlaubMonthSegment" style="width:1240px;">Dezember 2025</div>
-                    <div class="urlaubMonthSegment" style="width:1240px;">Jänner 2026</div>
+                    <div class="urlaubMonthSegment" style="width:1120px;">Dezember 2025</div>
                   </div>
                   <div class="urlaubTimelineHeaderRow">
                     <div class="urlaubDayCol urlaubDayColHead">Mo</div><div class="urlaubDayCol urlaubDayColHead">Di</div><div class="urlaubDayCol urlaubDayColHead">Mi</div><div class="urlaubDayCol urlaubDayColHead">Do</div><div class="urlaubDayCol urlaubDayColHead">Fr</div><div class="urlaubDayCol urlaubDayColHead weekend">Sa</div><div class="urlaubDayCol urlaubDayColHead weekend">So</div>
@@ -139,7 +68,9 @@
                   <div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div>
                   <div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div>
                   <div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div><div class="urlaubDayCol urlaubDayColBody weekend"></div>
+                  <div class="urlaubBlock urlaubBlock--urlaub" style="left:124px;width:32px;">Ur 4.</div>
                   <div class="urlaubBlock urlaubBlock--urlaub-plan" style="left:564px;width:152px;">Urlaub 15.–18.</div>
+                  <div class="urlaubBlock urlaubBlock--urlaub" style="left:844px;width:72px;">Urlaub 22.–23.</div>
                 </div>
               </div>
             </div>

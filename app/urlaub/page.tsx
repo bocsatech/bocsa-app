@@ -8,7 +8,6 @@ export default function UrlaubPage() {
       <div className="urlaubPage">
         <header className="urlaubPageHeader">
           <h1>Urlaub</h1>
-          <p>Horizontale Timeline — frei scrollen, österreichische Feiertage.</p>
         </header>
         <UrlaubHorizCalendar />
       </div>
