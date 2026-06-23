@@ -11,7 +11,6 @@ import {
   leftVisibleDayIndexAtScroll,
   monthLabelAtScroll,
   scrollIndexForWeekOffset,
-  visibleDayIndexAtScroll,
   visibleMonthKeyAtScroll,
 } from "../../lib/austria-holidays";
 import {
