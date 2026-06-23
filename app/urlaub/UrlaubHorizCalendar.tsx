@@ -8,6 +8,7 @@ import {
   buildTimelineDays,
   dateKeyFromDate,
   firstDayIndexOfMonth,
+  leftVisibleDayIndexAtScroll,
   monthLabelAtScroll,
   scrollIndexForWeekOffset,
   visibleDayIndexAtScroll,
@@ -224,13 +225,18 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
     (direction: -1 | 1) => {
       const viewport = scrollRef.current;
       if (!viewport) return;
-      const fromIndex = visibleDayIndexAtScroll(
-        days,
-        viewport.scrollLeft,
-        DAY_COLUMN_WIDTH,
-        viewport.clientWidth
-      );
-      scrollToDayIndex(scrollIndexForWeekOffset(fromIndex, direction, days.length));
+
+      const fromIndex = leftVisibleDayIndexAtScroll(viewport.scrollLeft, DAY_COLUMN_WIDTH);
+      const targetIndex = scrollIndexForWeekOffset(fromIndex, direction, days.length);
+      const day = days[targetIndex];
+      if (day) {
+        visibleMonthKeyRef.current = {
+          year: day.date.getFullYear(),
+          monthIndex: day.monthIndex,
+        };
+        setVisibleMonth(austrianMonthLabel(day.date.getFullYear(), day.monthIndex));
+      }
+      scrollToDayIndex(targetIndex, "smooth", "start");
     },
     [days, scrollToDayIndex]
   );

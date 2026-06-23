@@ -300,6 +300,10 @@ export function monthLabelAtScroll(
   return austrianMonthLabel(day.date.getFullYear(), day.monthIndex);
 }
 
+export function leftVisibleDayIndexAtScroll(scrollLeft: number, columnWidth: number) {
+  return Math.max(0, Math.floor(scrollLeft / columnWidth));
+}
+
 export function visibleDayIndexAtScroll(
   days: TimelineDay[],
   scrollLeft: number,
