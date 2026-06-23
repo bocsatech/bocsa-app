@@ -21,3 +21,7 @@ create table if not exists public.urlaub_tage (
 
 create index if not exists urlaub_tage_user_datum_idx
   on public.urlaub_tage (username, datum desc);
+
+alter table public.urlaub_tage disable row level security;
+
+grant all on table public.urlaub_tage to anon, authenticated, service_role;

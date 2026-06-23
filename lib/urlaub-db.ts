@@ -81,7 +81,7 @@ export function dbRowsToBlocks(rows: Array<{ datum?: unknown; variant?: unknown 
 }
 
 export function blocksToDbRows(username: string, blocks: UrlaubBlock[]) {
-  const name = String(username ?? "").trim();
+  const name = String(username ?? "").trim().toLowerCase();
   if (!name) return [];
 
   const now = new Date().toISOString();
@@ -106,7 +106,7 @@ export function attachBlocksToUrlaubUsers(
   const rowsByUser = new Map<string, Array<{ datum?: unknown; variant?: unknown }>>();
 
   for (const row of rows) {
-    const username = String(row.username ?? "").trim();
+    const username = String(row.username ?? "").trim().toLowerCase();
     if (!username) continue;
     const bucket = rowsByUser.get(username) ?? [];
     bucket.push(row);
@@ -115,7 +115,7 @@ export function attachBlocksToUrlaubUsers(
 
   return users.map((user) => ({
     ...user,
-    blocks: dbRowsToBlocks(rowsByUser.get(user.username) ?? []),
+    blocks: dbRowsToBlocks(rowsByUser.get(user.username.trim().toLowerCase()) ?? []),
   }));
 }
 

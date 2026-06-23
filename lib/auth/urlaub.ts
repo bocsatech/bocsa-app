@@ -19,12 +19,13 @@ export async function resolveUrlaubWriteUsername(requested?: string | null) {
   const session = await getCurrentSession();
   if (!session) return null;
 
-  const requestedName = String(requested ?? "").trim();
-  if (!requestedName || requestedName === session.username) {
-    return session.username;
+  const sessionName = session.username.trim().toLowerCase();
+  const requestedName = String(requested ?? "").trim().toLowerCase();
+  if (!requestedName || requestedName === sessionName) {
+    return sessionName;
   }
 
-  if (session.username.trim().toLowerCase() === "admin") {
+  if (sessionName === "admin") {
     return requestedName;
   }
 

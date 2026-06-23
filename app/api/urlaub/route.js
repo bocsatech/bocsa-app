@@ -75,7 +75,9 @@ export async function PUT(request) {
   }
 
   if (rows.length > 0) {
-    const { error: insertError } = await db.from(TABLE).insert(rows);
+    const { error: insertError } = await db.from(TABLE).upsert(rows, {
+      onConflict: "username,datum",
+    });
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }

@@ -68,6 +68,7 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   const [editMode, setEditMode] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState("");
   const anchor = anchorDate ?? new Date();
   const calendarYear = anchor.getFullYear();
 
@@ -110,6 +111,7 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
         window.clearTimeout(persistTimerRef.current);
       }
       setSaveState("saving");
+      setSaveError("");
       persistTimerRef.current = window.setTimeout(() => {
         persistTimerRef.current = null;
         fetch("/api/urlaub", {
@@ -120,13 +122,19 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
           body: JSON.stringify({ blocks }),
         })
           .then(async (response) => {
+            const payload = await response.json().catch(() => ({}));
             if (!response.ok) {
-              const payload = await response.json().catch(() => ({}));
-              throw new Error(payload.error ?? "Speichern fehlgeschlagen");
+              throw new Error(
+                typeof payload.error === "string" ? payload.error : "Speichern fehlgeschlagen"
+              );
             }
             setSaveState("saved");
+            setSaveError("");
           })
-          .catch(() => setSaveState("error"));
+          .catch((error: unknown) => {
+            setSaveState("error");
+            setSaveError(error instanceof Error ? error.message : "Speichern fehlgeschlagen");
+          });
       }, 450);
     },
     [sessionUsername]
@@ -154,7 +162,10 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   );
 
   const currentUser = useMemo(
-    () => users.find((user) => user.username === sessionUsername) ?? null,
+    () =>
+      users.find(
+        (user) => user.username.trim().toLowerCase() === sessionUsername.trim().toLowerCase()
+      ) ?? null,
     [sessionUsername, users]
   );
 
@@ -246,7 +257,9 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
       let nextBlocks: UrlaubBlock[] | null = null;
       setUsers((current) =>
         current.map((user) => {
-          if (user.username !== sessionUsername) return user;
+          if (user.username.trim().toLowerCase() !== sessionUsername.trim().toLowerCase()) {
+            return user;
+          }
           nextBlocks = updater(user.blocks);
           return { ...user, blocks: nextBlocks };
         })
@@ -408,7 +421,9 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
             <span className="urlaubSaveState urlaubSaveState--ok">Gespeichert</span>
           ) : null}
           {saveState === "error" ? (
-            <span className="urlaubSaveState urlaubSaveState--err">Speichern fehlgeschlagen</span>
+            <span className="urlaubSaveState urlaubSaveState--err" title={saveError}>
+              {saveError || "Speichern fehlgeschlagen"}
+            </span>
           ) : null}
           <button
             type="button"
@@ -460,7 +475,10 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
               key={user.username}
               className={[
                 "urlaubUserCell",
-                editMode && user.username === sessionUsername ? "urlaubUserCell--editable" : "",
+                editMode &&
+                user.username.trim().toLowerCase() === sessionUsername.trim().toLowerCase()
+                  ? "urlaubUserCell--editable"
+                  : "",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -547,7 +565,9 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
               </div>
 
               {users.map((user) => {
-                const isEditable = editMode && user.username === sessionUsername;
+                const isEditable =
+                  editMode &&
+                  user.username.trim().toLowerCase() === sessionUsername.trim().toLowerCase();
                 return (
                   <div
                     key={user.username}
