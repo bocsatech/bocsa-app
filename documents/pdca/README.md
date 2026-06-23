@@ -11,6 +11,7 @@ Ez **nem** a Bocsa Tech webalkalmazás része. Önálló dokumentum a PDCA elemz
 | `bocsa-app-home.jpg` | Bocsa Tech program képernyőkép (borító háttér) |
 | `fragebogen-lean-management-de-hu.html` | Fragebogen mintamegoldás DE + HU feladatonként |
 | `Fragebogen_Lean_Management_Musterloesung_DE_HU.pdf` | Nyomtatható PDF (8 oldal) |
+| `Muda-Walk.pptx` | Szerkeszthető Muda-Walk táblázat (PowerPoint) |
 
 ## Saját JPG (chatben / e-mailben küldött kép)
 
@@ -50,3 +51,13 @@ bash documents/pdca/asztalra-fragebogen.sh
 # vagy:
 node scripts/generate-lean-fragebogen-pdf.mjs ~/Downloads/Fragebogen_Lean_Management_Musterloesung_DE_HU.pdf
 ```
+
+## Muda-Walk (PowerPoint – minden szöveg szerkeszthető)
+
+```bash
+node scripts/generate-muda-walk-pptx.mjs
+# Mac Letöltések:
+bash documents/pdca/asztalra-muda-walk.sh
+```
+
+Egy dia: Team, Datum, táblázat (7 Muda oszlop + Beschreibung + Wie viel?). PowerPointban minden cella szerkeszthető; bemásolható más prezentációba.
