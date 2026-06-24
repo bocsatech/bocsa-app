@@ -1453,6 +1453,16 @@ body.app-shell-route .appPageScroll > .welcomeCard {
   align-items: start;
 }
 
+.machineStatusRowMarksOnly {
+  grid-template-columns: 12px;
+  justify-items: center;
+}
+
+.machineStatusIndicatorsMarksOnly {
+  gap: 6px;
+  justify-items: center;
+}
+
 .machineStatusMark {
   width: 12px;
   height: 12px;

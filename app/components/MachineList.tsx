@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { isLocalHostEnvironment } from "../../lib/local-host";
 import {
   formatDate,
   formatValue,
@@ -19,6 +20,11 @@ type Props = {
 
 export default function MachineList({ machines }: Props) {
   const router = useRouter();
+  const [compactStatusOnly, setCompactStatusOnly] = useState(false);
+
+  useEffect(() => {
+    setCompactStatusOnly(isLocalHostEnvironment());
+  }, []);
 
   const sortedMachines = useMemo(() => {
     return [...machines].sort((a, b) => {
@@ -50,7 +56,11 @@ export default function MachineList({ machines }: Props) {
               className="machineResultRow"
               onClick={() => router.push(`/maschinen/${row.id}`)}
             >
-              <MachineStatusIndicators machine={machine} className="machineResultStatus" />
+              <MachineStatusIndicators
+                machine={machine}
+                className="machineResultStatus"
+                marksOnly={compactStatusOnly}
+              />
 
               <span className="machineThumb" aria-label="Bild">
                 {row.image ? <img src={row.image} alt="" /> : <span>Bild</span>}
@@ -66,9 +76,17 @@ export default function MachineList({ machines }: Props) {
               </span>
 
               <span className="machineResultMeta">
-                <MachineField label="Prüfung" value={getColumnValue(row, "inspection")} format="date" />
+                {!compactStatusOnly ? (
+                  <MachineField label="Prüfung" value={getColumnValue(row, "inspection")} format="date" />
+                ) : null}
                 <MachineField label="Ext. §78-ÖVE E8701" value={row.elektro_ove} format="date" />
-                <MachineField label="Intern §11 gültig bis" value={getInternExpiryValue(machine)} format="date" />
+                {!compactStatusOnly ? (
+                  <MachineField
+                    label="Intern §11 gültig bis"
+                    value={getInternExpiryValue(machine)}
+                    format="date"
+                  />
+                ) : null}
               </span>
 
               <span className="machineResultMeta">
