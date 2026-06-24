@@ -8,6 +8,7 @@ import {
   getLastServiceDateValue,
   hasValue,
 } from "../../lib/machines";
+import { getLastRecordedBetriebsstundenDisplay } from "../../lib/work-orders";
 import type { MachineRecord } from "../../lib/machines";
 import type { Machine } from "../../lib/types/machine";
 import MachineStatusIndicators from "./MachineStatusIndicators";
@@ -75,8 +76,11 @@ function MachineResultRow({
         <MachineField label="Seriennummer" value={row.serial_number} mutedValue />
       </span>
 
-      <span className="machineResultMeta">
-        <MachineField label="Ext. §78-ÖVE E8701" value={row.elektro_ove} format="date" />
+      <span className="machineResultMeta machineResultCenter">
+        <MachineField
+          label="Betriebsstunden"
+          value={getLastRecordedBetriebsstundenDisplay(machine)}
+        />
       </span>
 
       <span className="machineResultMeta">

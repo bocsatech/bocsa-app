@@ -656,6 +656,11 @@ body.app-shell-route .appPageScroll > .welcomeCard {
   min-width: 0;
 }
 
+.machineResultCenter {
+  justify-self: start;
+  align-self: center;
+}
+
 .machineResultLabel {
   color: #6b7280;
   font-weight: 600;

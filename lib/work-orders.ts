@@ -116,6 +116,29 @@ export function formatWorkOrderHourMeterDisplay(
   return `${value} Bh`;
 }
 
+/** Letzte erfasste Betriebsstunden: neuester Arbeitsauftrag, sonst Stundenzählerstand. */
+export function getLastRecordedBetriebsstundenDisplay(machine: Machine | null): string | null {
+  if (!machine) return null;
+
+  for (const order of getWorkOrders(machine)) {
+    const raw =
+      order.hourMeterMachine?.trim() || order.hourMeterReturn?.trim() || "";
+    if (!raw) continue;
+    const display = formatWorkOrderHourMeterDisplay(order);
+    return display === "—" ? null : display;
+  }
+
+  const reading = machine.hour_meter_reading;
+  if (reading !== null && reading !== undefined && reading !== "") {
+    const num = Number(reading);
+    if (Number.isFinite(num)) {
+      return `${num.toLocaleString("de-AT")} Bh`;
+    }
+  }
+
+  return null;
+}
+
 export function formatWorkOrderAuftragNr(order: Pick<WorkOrder, "id" | "auftragNr">) {
   const nr = order.auftragNr?.trim();
   if (nr) return nr;
