@@ -20,8 +20,10 @@ import {
   formatWorkOrderAuftragNr,
   type WorkOrder,
 } from "../../lib/work-orders";
+import { resolveOrderRepairStatus } from "../../lib/geraetstatus";
 import type { Machine } from "../../lib/types/machine";
 import ArbeitsauftragSheetMedia from "./ArbeitsauftragSheetMedia";
+import GeraetstatusSelect from "./GeraetstatusSelect";
 
 type Props = {
   machine: Machine;
@@ -87,6 +89,7 @@ export default function ArbeitsauftragPrintMachineBlock({
     stammdatenFields ?? machineToStammdatenFields(machine)
   );
   const rows = filterArbeitsauftragSheetFields(baseFields, { showEmpty: false });
+  const geratstatus = resolveOrderRepairStatus(order, machine);
 
   return (
     <section className="aaWorksheetMachine aaMachineOverview aaMachineOverviewSheet aaBlock">
@@ -115,6 +118,9 @@ export default function ArbeitsauftragPrintMachineBlock({
               if (field.dbKey && ARBEITSAUFTRAG_SHEET_SKIP_FIELDS.has(field.dbKey)) {
                 return null;
               }
+              if (field.dbKey === "damage_status") {
+                return null;
+              }
               const value = field.value?.trim() ? field.value : "—";
               return (
                 <div key={field.label} className="fieldRow aaFieldRow">
@@ -123,14 +129,16 @@ export default function ArbeitsauftragPrintMachineBlock({
                     <strong className={printFieldValueClass(field)}>
                       {value === "—" ? "Keine Meldung" : value}
                     </strong>
-                  ) : field.dbKey === "damage_status" ? (
-                    <strong className={printFieldValueClass(field)}>{value}</strong>
                   ) : (
                     <span className={printFieldValueClass(field)}>{value}</span>
                   )}
                 </div>
               );
             })}
+            <div className="fieldRow aaFieldRow">
+              <span>Gerätstatus</span>
+              <GeraetstatusSelect value={geratstatus} readOnly />
+            </div>
           </div>
         </div>
         <ArbeitsauftragSheetMedia machine={machine} />

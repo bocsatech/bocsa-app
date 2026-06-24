@@ -10,6 +10,7 @@ import ArbeitsauftragPrintPreview from "./ArbeitsauftragPrintPreview";
 import type { SessionAuthSlice } from "../../lib/machine-permissions";
 import type { ArbeitsauftragWorksheetMachineBlockHandle } from "./ArbeitsauftragWorksheetMachineBlock";
 import ArbeitsauftragProtokollSection from "./ArbeitsauftragProtokollSection";
+import GeraetstatusSelect from "./GeraetstatusSelect";
 import {
   buildStammdatenPatch,
   fetchMachineById,
@@ -41,6 +42,7 @@ import {
   clearMachineProtokollVorlageApi,
 } from "../../lib/geraetgruppe-protokoll";
 import { isLegacyAuftragNr, reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
+import { resolveOrderRepairStatus } from "../../lib/geraetstatus";
 import type { UserFilialeCode } from "../../lib/user-filiale";
 import { normalizeUserFilialeCode } from "../../lib/user-filiale";
 import { fetchLagerTeile } from "../../lib/lager";
@@ -169,6 +171,12 @@ export default function ArbeitsauftragForm({
 
     if (existing) {
       let normalized = normalizeWorkOrder(existing);
+      if (!normalized.repairStatus?.trim()) {
+        normalized = {
+          ...normalized,
+          repairStatus: resolveOrderRepairStatus(normalized, data),
+        };
+      }
       const eigen = readMachineEigenVorlage(data);
       const stripped = stripLegacyAutofillProtocol(normalized.protocol);
       const protocolEmpty =
@@ -216,9 +224,9 @@ export default function ArbeitsauftragForm({
           depot: empty.depot || data.depot || "",
           date: empty.date,
         });
-        setOrder({ ...empty, auftragNr });
+        setOrder({ ...empty, auftragNr, repairStatus: resolveOrderRepairStatus(empty, data) });
       } catch {
-        setOrder(empty);
+        setOrder({ ...empty, repairStatus: resolveOrderRepairStatus(empty, data) });
       }
     } else {
       setError("Ungültiger Link. Bitte Arbeitsauftrag aus der Liste wählen.");
@@ -411,6 +419,10 @@ export default function ArbeitsauftragForm({
     }
 
     let normalized = normalizeWorkOrder(orderToSave);
+    normalized = {
+      ...normalized,
+      repairStatus: resolveOrderRepairStatus(normalized, baseMachine),
+    };
 
     const existingNr = normalized.auftragNr?.trim() ?? "";
     if (!existingNr || !isLegacyAuftragNr(existingNr)) {
@@ -459,6 +471,7 @@ export default function ArbeitsauftragForm({
     }
 
     const patch = buildStammdatenPatch(baseMachine, fields);
+    patch.damage_status = normalized.repairStatus;
     patch.machine_tab_data = mergeWorkOrder(baseMachine, normalized, username);
 
     const { data, error: saveErr } = await updateMachine(baseMachine.id, patch);
@@ -743,6 +756,14 @@ export default function ArbeitsauftragForm({
                     readOnly={!canWrite}
                     placeholder="Zusätzliche Bemerkung…"
                     onChange={(e) => updateOrder({ notes: e.target.value })}
+                  />
+                </label>
+                <label className="protocolField" style={{ marginTop: 12 }}>
+                  <span>Gerätstatus</span>
+                  <GeraetstatusSelect
+                    value={order.repairStatus ?? resolveOrderRepairStatus(order, machine)}
+                    readOnly={!canWrite}
+                    onChange={(next) => updateOrder({ repairStatus: next })}
                   />
                 </label>
                 <label className="protocolField" style={{ marginTop: 12 }}>

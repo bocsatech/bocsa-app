@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import GermanDateField from "./GermanDateField";
 import GeraetenummerPicker from "./GeraetenummerPicker";
+import GeraetstatusSelect from "./GeraetstatusSelect";
 import MachineHeroMedia from "./MachineHeroMedia";
 import type { GeraetenummerCodesConfig, GeraetenummerPick } from "../../lib/geraetenummer";
 import {
@@ -40,6 +41,8 @@ type Props = {
   /** Freitext unter Gerätstatus (machine_tab_data.note) */
   note?: string;
   onNoteChange?: (value: string) => void;
+  /** z. B. Arbeitsauftrag: Gerätstatus separat im Formular */
+  excludeDbKeys?: string[];
 };
 
 /** Feste Kopfreihenfolge im Stammdaten-Tab (Gerätegruppe direkt über Gerättyp). */
@@ -52,8 +55,9 @@ export const STAMMDATEN_HEAD_FIELD_KEYS = [
 export function buildStammdatenRowsForDisplay(
   stammdatenForm: StammdatenField[],
   isEditing: boolean,
-  options?: { hideGeraetenummer?: boolean }
+  options?: { hideGeraetenummer?: boolean; excludeDbKeys?: string[] }
 ) {
+  const excludeDbKeys = new Set(options?.excludeDbKeys ?? []);
   const visibleStammdatenForm = isEditing
     ? stammdatenForm
     : stammdatenForm.filter((field) => hasValue(field.value));
@@ -70,6 +74,7 @@ export function buildStammdatenRowsForDisplay(
   const ordered: StammdatenField[] = [];
 
   function take(key: string) {
+    if (excludeDbKeys.has(key)) return;
     const field = rows.find((row) => row.dbKey === key);
     if (!field?.dbKey || used.has(field.dbKey)) return;
     ordered.push(field);
@@ -86,15 +91,17 @@ export function buildStammdatenRowsForDisplay(
 
   for (const field of rows) {
     if (!field.dbKey || used.has(field.dbKey) || trailingKeys.has(field.dbKey)) continue;
+    if (excludeDbKeys.has(field.dbKey)) continue;
     ordered.push(field);
     used.add(field.dbKey);
   }
 
   for (const key of STAMMDATEN_TRAILING_FIELD_KEYS) {
+    if (excludeDbKeys.has(key)) continue;
     take(key);
   }
 
-  return ordered;
+  return ordered.filter((field) => !field.dbKey || !excludeDbKeys.has(field.dbKey));
 }
 
 function StammdatenReadOnlyValue({
@@ -131,13 +138,14 @@ export default function MachineStammdatenPanelContent({
   creating = false,
   note = "",
   onNoteChange,
+  excludeDbKeys,
 }: Props) {
   const fieldEditOpts = creating ? { creating: true as const } : undefined;
   const bezeichnungStammdaten = stammdatenForm.find((f) => f.dbKey === "bezeichnung");
   const stammdatenRowsForDisplay = buildStammdatenRowsForDisplay(
     stammdatenForm,
     isEditing,
-    { hideGeraetenummer: useStructuredGeraetenummer }
+    { hideGeraetenummer: useStructuredGeraetenummer, excludeDbKeys }
   );
 
   return (
@@ -222,21 +230,12 @@ export default function MachineStammdatenPanelContent({
                   )
                 ) : field.dbKey === "damage_status" ? (
                   !isEditing ? (
-                    <strong
-                      className={`geraetstatusValue ${stammdatenStatusClassName(field.value)}`}
-                    >
-                      {field.value || "—"}
-                    </strong>
+                    <GeraetstatusSelect value={field.value} readOnly />
                   ) : (
-                    <select
-                      className={`statusSelect ${stammdatenStatusClassName(field.value)}`}
+                    <GeraetstatusSelect
                       value={field.value}
-                      onChange={(e) => onUpdateField(index, e.target.value)}
-                    >
-                      <option value="">Gerätstatus</option>
-                      <option value="Fertig">Fertig</option>
-                      <option value="In Reperatur">In Reperatur</option>
-                    </select>
+                      onChange={(next) => onUpdateField(index, next)}
+                    />
                   )
                 ) : field.type === "date" ? (
                   !isEditing ? (

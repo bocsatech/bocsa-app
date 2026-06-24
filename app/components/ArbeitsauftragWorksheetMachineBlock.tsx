@@ -92,6 +92,7 @@ const ArbeitsauftragWorksheetMachineBlock = forwardRef<
             canWrite={canWrite}
             sessionAuth={sessionAuth}
             onUpdateField={updateField}
+            excludeDbKeys={["damage_status"]}
           />
         </div>
       </div>

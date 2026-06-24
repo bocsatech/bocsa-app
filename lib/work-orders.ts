@@ -504,6 +504,7 @@ export function normalizeWorkOrder(order: WorkOrder): WorkOrder {
     protocolSubgroup:
       typeof order.protocolSubgroup === "string" ? order.protocolSubgroup.trim() || null : null,
     repairDescription: typeof order.repairDescription === "string" ? order.repairDescription : "",
+    repairStatus: typeof order.repairStatus === "string" ? order.repairStatus : "",
   };
 }
 

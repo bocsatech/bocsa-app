@@ -7,13 +7,14 @@ import {
   formatWorkOrderAuftragNr,
   formatWorkOrderDepot,
   formatWorkOrderHourMeterDisplay,
-  formatWorkOrderStatus,
   getWorkOrders,
   workOrderUserLabel,
   type WorkOrder,
 } from "../../lib/work-orders";
+import { resolveOrderRepairStatus } from "../../lib/geraetstatus";
 import type { Machine } from "../../lib/types/machine";
 import { buildArbeitsauftragDetailHref } from "../../lib/arbeitsauftrag-routes";
+import GeraetstatusSelect from "./GeraetstatusSelect";
 
 type Props = {
   machine: Machine;
@@ -69,7 +70,7 @@ export default function MachineWorkOrdersTable({
               <th>Stundenzählerstand</th>
               <th>Depot</th>
               <th>User</th>
-              <th>Status</th>
+              <th>Gerätstatus</th>
               <th className="woActionsCol">Aktionen</th>
             </tr>
           </thead>
@@ -135,7 +136,12 @@ function WorkOrderRow({
       <td className="woHourMeter">{formatWorkOrderHourMeterDisplay(order)}</td>
       <td className="woDepot">{formatWorkOrderDepot(order, machine.depot)}</td>
       <td className="woUser">{workOrderUserLabel(order) || "—"}</td>
-      <td className="woStatus">{formatWorkOrderStatus(order)}</td>
+      <td className="woStatus">
+        <GeraetstatusSelect
+          value={resolveOrderRepairStatus(order, machine)}
+          readOnly
+        />
+      </td>
       <td className="woActionsCol">
         <div className="woActions">
           <Link
