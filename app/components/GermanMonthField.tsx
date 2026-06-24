@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
-import { resolveLocalhostPickerVariant } from "../../lib/local-host";
+import { useId, useMemo } from "react";
+import { useLocalhostPickerVariant } from "../../lib/use-localhost-picker-variant";
 
 const DE_MONTHS = [
   "Januar",
@@ -53,11 +53,7 @@ export default function GermanMonthField({
   const nowYear = new Date().getFullYear();
   const calendarMinYear = minYear ?? nowYear - 5;
   const calendarMaxYear = maxYear ?? nowYear + 5;
-  const [resolvedVariant, setResolvedVariant] = useState<"native" | "calendar">("native");
-
-  useEffect(() => {
-    setResolvedVariant(resolveLocalhostPickerVariant(pickerVariant));
-  }, [pickerVariant]);
+  const resolvedVariant = useLocalhostPickerVariant(pickerVariant);
 
   const parsed = parseIsoMonth(value);
   const viewYear = parsed?.year ?? nowYear;

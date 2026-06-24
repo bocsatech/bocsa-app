@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
   DE_DATE_PLACEHOLDER,
   formatGermanDate,
   germanDateComparable,
 } from "../../lib/dates";
-import { resolveLocalhostPickerVariant } from "../../lib/local-host";
+import { useLocalhostPickerVariant } from "../../lib/use-localhost-picker-variant";
 import GermanDateCalendarPopover, {
   initialCalendarView,
 } from "./GermanDateCalendarPopover";
@@ -60,6 +60,7 @@ export default function GermanDateField({
   const inputId = id ?? autoId;
   const nativeRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const resolvedVariant = useLocalhostPickerVariant(pickerVariant);
   const displayValue = valueFormat === "iso" ? (value ? formatGermanDate(value) : "") : value;
   const isoValue = valueFormat === "iso" ? value : germanDateComparable(value);
   const pickerDisabled = readOnly || disabled;
@@ -67,14 +68,9 @@ export default function GermanDateField({
   const calendarMinYear = minYear ?? nowYear - 100;
   const calendarMaxYear = maxYear ?? nowYear + 10;
   const initialView = initialCalendarView(displayValue);
-  const [resolvedVariant, setResolvedVariant] = useState<"native" | "calendar">("native");
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [viewYear, setViewYear] = useState(initialView.year);
   const [viewMonth, setViewMonth] = useState(initialView.month);
-
-  useEffect(() => {
-    setResolvedVariant(resolveLocalhostPickerVariant(pickerVariant));
-  }, [pickerVariant]);
 
   const shouldOpenOnFocus =
     openPickerOnFocus ?? (resolvedVariant === "calendar" && !pickerDisabled);
@@ -107,11 +103,15 @@ export default function GermanDateField({
     el.click();
   }
 
+  function openCalendar() {
+    syncViewFromValue(displayValue);
+    setCalendarOpen(true);
+  }
+
   function openPicker() {
     if (pickerDisabled) return;
     if (resolvedVariant === "calendar") {
-      syncViewFromValue(displayValue);
-      setCalendarOpen(true);
+      openCalendar();
       return;
     }
     openNativePicker();
@@ -139,8 +139,8 @@ export default function GermanDateField({
         placeholder={placeholder ?? DE_DATE_PLACEHOLDER}
         inputMode="numeric"
         onChange={(event) => emitChange(event.target.value)}
-        onFocus={shouldOpenOnFocus ? openPicker : undefined}
-        onClick={shouldOpenOnFocus ? openPicker : undefined}
+        onFocus={shouldOpenOnFocus ? openCalendar : undefined}
+        onClick={shouldOpenOnFocus ? openCalendar : undefined}
       />
       {!pickerDisabled ? (
         <>
@@ -162,6 +162,7 @@ export default function GermanDateField({
               viewMonth={viewMonth}
               minYear={calendarMinYear}
               maxYear={calendarMaxYear}
+              anchorRef={rootRef}
               onClose={() => setCalendarOpen(false)}
               onViewChange={(year, month) => {
                 setViewYear(year);

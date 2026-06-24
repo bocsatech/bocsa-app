@@ -3122,6 +3122,14 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
 }
 
+.germanDateCalendarPopover.isPortaled {
+  position: fixed;
+  z-index: 10050;
+  top: 0;
+  left: 0;
+  right: auto;
+}
+
 .germanDateCalendarNav {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
@@ -4633,6 +4641,38 @@ body.lagerPickerOpen {
   line-height: 1.2;
 }
 
+.arbeitsauftragFilterField .dateFieldWithPicker {
+  width: 100%;
+  min-width: 0;
+}
+
+.arbeitsauftragFilterField .dateFieldWithPicker .dateFieldText {
+  box-sizing: border-box;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.arbeitsauftragFilterField .dateFieldWithPicker .dateFieldText:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.arbeitsauftragFilterField .dateFieldPickerBtn {
+  width: 44px;
+  height: 44px;
+  border-color: #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
 .arbeitsauftragFilterField select {
   appearance: none;
   -webkit-appearance: none;
@@ -5204,6 +5244,19 @@ body.lagerPickerOpen {
   border-radius: 6px;
 }
 
+.pkwField .dateFieldWithPicker,
+.pkwFieldInline .dateFieldWithPicker {
+  width: 100%;
+}
+
+.pkwField .dateFieldWithPicker .dateFieldText,
+.pkwFieldInline .dateFieldWithPicker .dateFieldText {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+}
+
 .pkwModalActions {
   display: flex;
   justify-content: flex-end;
@@ -5417,6 +5470,12 @@ body.lagerPickerOpen {
   border-radius: 10px;
   background: #fff;
   box-sizing: border-box;
+}
+
+.pkwBuchungModal .pkwField .dateFieldWithPicker .dateFieldText {
+  width: 100%;
+  min-height: auto;
+  height: auto;
 }
 
 .pkwBuchungModal .pkwFieldset {

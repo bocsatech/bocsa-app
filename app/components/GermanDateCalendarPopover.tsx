@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { formatGermanDate, parseGermanDate } from "../../lib/dates";
 
 const DE_MONTHS = [
@@ -20,6 +21,11 @@ const DE_MONTHS = [
 
 const DE_WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
+type PopoverPosition = {
+  top: number;
+  left: number;
+};
+
 type Props = {
   open: boolean;
   value: string;
@@ -27,6 +33,7 @@ type Props = {
   viewMonth: number;
   minYear: number;
   maxYear: number;
+  anchorRef?: React.RefObject<HTMLElement | null>;
   onClose: () => void;
   onViewChange: (year: number, month: number) => void;
   onSelectDay: (day: number) => void;
@@ -41,6 +48,22 @@ function mondayBasedOffset(year: number, month: number) {
   return weekday === 0 ? 6 : weekday - 1;
 }
 
+function computePopoverPosition(
+  anchor: HTMLElement,
+  popover: HTMLElement | null
+): PopoverPosition {
+  const rect = anchor.getBoundingClientRect();
+  const width = popover?.offsetWidth ?? 288;
+  const height = popover?.offsetHeight ?? 320;
+  let left = rect.right - width;
+  left = Math.max(8, Math.min(left, window.innerWidth - width - 8));
+  let top = rect.bottom + 8;
+  if (top + height > window.innerHeight - 8 && rect.top > height + 16) {
+    top = Math.max(8, rect.top - height - 8);
+  }
+  return { top, left };
+}
+
 export default function GermanDateCalendarPopover({
   open,
   value,
@@ -48,11 +71,14 @@ export default function GermanDateCalendarPopover({
   viewMonth,
   minYear,
   maxYear,
+  anchorRef,
   onClose,
   onViewChange,
   onSelectDay,
 }: Props) {
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<PopoverPosition | null>(null);
+  const usePortal = Boolean(anchorRef);
   const parsed = parseGermanDate(value);
   const selectedDay =
     parsed &&
@@ -77,6 +103,28 @@ export default function GermanDateCalendarPopover({
     return cells;
   }, [viewYear, viewMonth]);
 
+  const updatePosition = useCallback(() => {
+    if (!open || !anchorRef?.current) {
+      setPosition(null);
+      return;
+    }
+    setPosition(computePopoverPosition(anchorRef.current, popoverRef.current));
+  }, [anchorRef, open]);
+
+  useLayoutEffect(() => {
+    updatePosition();
+  }, [updatePosition, viewYear, viewMonth]);
+
+  useEffect(() => {
+    if (!open || !usePortal) return;
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, updatePosition, usePortal]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -84,6 +132,7 @@ export default function GermanDateCalendarPopover({
       const target = event.target;
       if (!(target instanceof Node)) return;
       if (popoverRef.current?.contains(target)) return;
+      if (anchorRef?.current?.contains(target)) return;
       onClose();
     }
 
@@ -97,12 +146,18 @@ export default function GermanDateCalendarPopover({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [anchorRef, onClose, open]);
 
   if (!open) return null;
 
-  return (
-    <div ref={popoverRef} className="germanDateCalendarPopover" role="dialog" aria-label="Datum wählen">
+  const popover = (
+    <div
+      ref={popoverRef}
+      className={`germanDateCalendarPopover${usePortal ? " isPortaled" : ""}`}
+      style={usePortal && position ? { top: position.top, left: position.left } : undefined}
+      role="dialog"
+      aria-label="Datum wählen"
+    >
       <div className="germanDateCalendarNav">
         <label className="germanDateCalendarSelectField">
           <span className="srOnly">Monat</span>
@@ -163,6 +218,12 @@ export default function GermanDateCalendarPopover({
       ) : null}
     </div>
   );
+
+  if (usePortal && typeof document !== "undefined") {
+    return createPortal(popover, document.body);
+  }
+
+  return popover;
 }
 
 export function initialCalendarView(value: string) {
