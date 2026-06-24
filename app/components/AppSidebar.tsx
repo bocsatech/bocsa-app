@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore, type MouseEvent } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import LogoutButton from "./LogoutButton";
@@ -11,8 +11,21 @@ import {
 } from "../../lib/arbeitsauftrag-routes";
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
+import { isLocalHostEnvironment } from "../../lib/local-host";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
+
+function subscribeNoop() {
+  return () => {};
+}
+
+function readMeineMenuLabel() {
+  return isLocalHostEnvironment() ? "Meine Menu" : "Meine Menü";
+}
+
+function useMeineMenuLabel() {
+  return useSyncExternalStore(subscribeNoop, readMeineMenuLabel, () => "Meine Menü");
+}
 
 function isMobileSidebarViewport() {
   return typeof window !== "undefined" && window.matchMedia(MOBILE_SIDEBAR_MQ).matches;
@@ -387,6 +400,7 @@ function MeineMenuNavGroup({
   username?: string;
   onMobileNavClose?: () => void;
 }) {
+  const meineMenuLabel = useMeineMenuLabel();
   const visibleChildren = MEINE_MENU_NAV.children.filter((child) =>
     canShowMenuItem(
       "permission" in child ? child.permission : undefined,
@@ -426,7 +440,7 @@ function MeineMenuNavGroup({
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        {MEINE_MENU_NAV.label}
+        {meineMenuLabel}
       </button>
       {showSub ? (
         <div className="sidebarNavSub">
@@ -931,6 +945,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
   const { permissions, groups, username } = auth;
   const showLager = canShowMenuItem(LAGER_NAV.permission, permissions, groups, username);
   const meldungenCount = useLagerMeldungenCount(showLager);
+  const meineMenuLabel = useMeineMenuLabel();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   const scrollYRef = useRef(0);
@@ -984,7 +999,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
             setMobileMenuOpen((open) => !open);
           }}
         >
-          {mobileMenuOpen ? "Schließen" : "Meine Menü"}
+          {mobileMenuOpen ? "Schließen" : meineMenuLabel}
         </button>
       </div>
       <nav id="sidebar-main-nav" className="sidebarNav">
