@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import MaintenanceLagerParts from "./MaintenanceLagerParts";
+import GermanDateField from "./GermanDateField";
 import {
   BUCHUNG_STATUS_LABELS,
   createPkwBuchung,
@@ -314,12 +315,10 @@ export default function PkwBuchungEditModal({
             </label>
             <label className="pkwField">
               <span>Datum *</span>
-              <input
-                type="date"
+              <GermanDateField
                 value={day}
-                min={dateInputMin}
-                onChange={(e) => {
-                  const next = e.target.value;
+                valueFormat="iso"
+                onChange={(next) => {
                   setDay(next);
                   if (next !== day) setSlotStart("");
                 }}

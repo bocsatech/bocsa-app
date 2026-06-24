@@ -2,6 +2,8 @@
 
 import { dateYmdLocal } from "../../lib/pkw";
 import type { PkwTerminZeitraumPreset } from "../../lib/lager-pkw-termine";
+import GermanDateField from "./GermanDateField";
+import GermanMonthField from "./GermanMonthField";
 
 type Props = {
   preset: PkwTerminZeitraumPreset;
@@ -59,7 +61,7 @@ export default function LagerPkwTerminFilterBar({
         <div className="lagerZeitraumFrei">
           <label className="arbeitsauftragFilterField">
             <span>Datum</span>
-            <input type="date" value={tag} onChange={(e) => onTagChange(e.target.value)} />
+            <GermanDateField value={tag} onChange={onTagChange} valueFormat="iso" />
           </label>
           <button
             type="button"
@@ -74,7 +76,7 @@ export default function LagerPkwTerminFilterBar({
         <div className="lagerZeitraumFrei">
           <label className="arbeitsauftragFilterField">
             <span>Monat</span>
-            <input type="month" value={monat} onChange={(e) => onMonatChange(e.target.value)} />
+            <GermanMonthField value={monat} onChange={onMonatChange} />
           </label>
         </div>
       ) : null}
@@ -96,11 +98,11 @@ export default function LagerPkwTerminFilterBar({
         <div className="lagerZeitraumFrei">
           <label className="arbeitsauftragFilterField">
             <span>Von</span>
-            <input type="date" value={von} onChange={(e) => onVonChange(e.target.value)} />
+            <GermanDateField value={von} onChange={onVonChange} valueFormat="iso" />
           </label>
           <label className="arbeitsauftragFilterField">
             <span>Bis</span>
-            <input type="date" value={bis} onChange={(e) => onBisChange(e.target.value)} />
+            <GermanDateField value={bis} onChange={onBisChange} valueFormat="iso" />
           </label>
         </div>
       ) : null}

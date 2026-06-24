@@ -4,6 +4,7 @@ import "../arbeitsauftrag-list.css";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import AppPageShell from "./AppPageShell";
+import GermanDateField from "./GermanDateField";
 import PkwStatusIndicators from "./PkwStatusIndicators";
 import { formatKundeName, fetchPkwFahrzeuge } from "../../lib/pkw";
 import { hasValue } from "../../lib/machines";
@@ -158,20 +159,16 @@ export default function PkwArbeitsauftragList({ initialFilters, returnFahrzeugId
           </label>
           <label className="arbeitsauftragFilterField">
             <span>Datum von</span>
-            <input
-              type="text"
+            <GermanDateField
               value={filters.dateFrom}
-              onChange={(event) => updateFilter("dateFrom", event.target.value)}
-              placeholder="TT.MM.JJJJ"
+              onChange={(value) => updateFilter("dateFrom", value)}
             />
           </label>
           <label className="arbeitsauftragFilterField">
             <span>Datum bis</span>
-            <input
-              type="text"
+            <GermanDateField
               value={filters.dateTo}
-              onChange={(event) => updateFilter("dateTo", event.target.value)}
-              placeholder="TT.MM.JJJJ"
+              onChange={(value) => updateFilter("dateTo", value)}
             />
           </label>
           <label className="arbeitsauftragFilterField">

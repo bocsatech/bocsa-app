@@ -1,11 +1,12 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   DE_DATE_PLACEHOLDER,
   formatGermanDate,
   germanDateComparable,
 } from "../../lib/dates";
+import { resolveLocalhostPickerVariant } from "../../lib/local-host";
 import GermanDateCalendarPopover, {
   initialCalendarView,
 } from "./GermanDateCalendarPopover";
@@ -19,6 +20,7 @@ type Props = {
   id?: string;
   openPickerOnFocus?: boolean;
   pickerVariant?: "native" | "calendar";
+  valueFormat?: "german" | "iso";
   minYear?: number;
   maxYear?: number;
 };
@@ -48,8 +50,9 @@ export default function GermanDateField({
   disabled = false,
   placeholder,
   id,
-  openPickerOnFocus = false,
-  pickerVariant = "native",
+  openPickerOnFocus,
+  pickerVariant,
+  valueFormat = "german",
   minYear,
   maxYear,
 }: Props) {
@@ -57,15 +60,32 @@ export default function GermanDateField({
   const inputId = id ?? autoId;
   const nativeRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const isoValue = germanDateComparable(value);
+  const displayValue = valueFormat === "iso" ? (value ? formatGermanDate(value) : "") : value;
+  const isoValue = valueFormat === "iso" ? value : germanDateComparable(value);
   const pickerDisabled = readOnly || disabled;
   const nowYear = new Date().getFullYear();
   const calendarMinYear = minYear ?? nowYear - 100;
-  const calendarMaxYear = maxYear ?? nowYear;
-  const initialView = initialCalendarView(value);
+  const calendarMaxYear = maxYear ?? nowYear + 10;
+  const initialView = initialCalendarView(displayValue);
+  const [resolvedVariant, setResolvedVariant] = useState<"native" | "calendar">("native");
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [viewYear, setViewYear] = useState(initialView.year);
   const [viewMonth, setViewMonth] = useState(initialView.month);
+
+  useEffect(() => {
+    setResolvedVariant(resolveLocalhostPickerVariant(pickerVariant));
+  }, [pickerVariant]);
+
+  const shouldOpenOnFocus =
+    openPickerOnFocus ?? (resolvedVariant === "calendar" && !pickerDisabled);
+
+  function emitChange(nextGermanValue: string) {
+    if (valueFormat === "iso") {
+      onChange(nextGermanValue ? germanDateComparable(nextGermanValue) : "");
+      return;
+    }
+    onChange(nextGermanValue);
+  }
 
   function syncViewFromValue(nextValue: string) {
     const nextView = initialCalendarView(nextValue);
@@ -89,8 +109,8 @@ export default function GermanDateField({
 
   function openPicker() {
     if (pickerDisabled) return;
-    if (pickerVariant === "calendar") {
-      syncViewFromValue(value);
+    if (resolvedVariant === "calendar") {
+      syncViewFromValue(displayValue);
       setCalendarOpen(true);
       return;
     }
@@ -99,28 +119,28 @@ export default function GermanDateField({
 
   function handleSelectDay(day: number) {
     const date = new Date(viewYear, viewMonth - 1, day);
-    onChange(formatGermanDate(date));
+    emitChange(formatGermanDate(date));
   }
 
   return (
     <div
       ref={rootRef}
       className={`dateFieldWithPicker${pickerDisabled ? " isDisabled" : ""}${
-        pickerVariant === "calendar" ? " hasCalendarPopover" : ""
+        resolvedVariant === "calendar" ? " hasCalendarPopover" : ""
       }`}
     >
       <input
         type="text"
         id={inputId}
         className="dateFieldText"
-        value={value}
+        value={displayValue}
         readOnly={readOnly}
         disabled={disabled}
         placeholder={placeholder ?? DE_DATE_PLACEHOLDER}
         inputMode="numeric"
-        onChange={(event) => onChange(event.target.value)}
-        onFocus={openPickerOnFocus ? openPicker : undefined}
-        onClick={openPickerOnFocus ? openPicker : undefined}
+        onChange={(event) => emitChange(event.target.value)}
+        onFocus={shouldOpenOnFocus ? openPicker : undefined}
+        onClick={shouldOpenOnFocus ? openPicker : undefined}
       />
       {!pickerDisabled ? (
         <>
@@ -130,14 +150,14 @@ export default function GermanDateField({
             onClick={openPicker}
             aria-label="Datum wählen"
             title="Datum wählen"
-            aria-expanded={pickerVariant === "calendar" ? calendarOpen : undefined}
+            aria-expanded={resolvedVariant === "calendar" ? calendarOpen : undefined}
           >
             <CalendarIcon />
           </button>
-          {pickerVariant === "calendar" ? (
+          {resolvedVariant === "calendar" ? (
             <GermanDateCalendarPopover
               open={calendarOpen}
-              value={value}
+              value={displayValue}
               viewYear={viewYear}
               viewMonth={viewMonth}
               minYear={calendarMinYear}
@@ -159,7 +179,7 @@ export default function GermanDateField({
               aria-hidden
               onChange={(event) => {
                 const next = event.target.value;
-                onChange(next ? formatGermanDate(next) : "");
+                emitChange(next ? formatGermanDate(next) : "");
               }}
             />
           )}

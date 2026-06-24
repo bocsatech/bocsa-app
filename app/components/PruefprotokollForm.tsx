@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import "../arbeitsauftrag-form.css";
 import "../pruefprotokoll/pruefprotokoll.css";
 import AppPageShell from "./AppPageShell";
+import GermanDateField from "./GermanDateField";
 import {
   PRUEFPROTOKOLL_SECTIONS,
   createEmptyPruefprotokoll,
@@ -304,12 +305,15 @@ export default function PruefprotokollForm({ machineId, protokollId }: Props) {
             </label>
             <label className="ppField">
               <span>Prüfdatum</span>
-              <input
-                value={protokoll.geraetedaten.pruefdatum}
-                readOnly={!canWrite}
-                placeholder="TT.MM.JJJJ"
-                onChange={(e) => updateGeraet("pruefdatum", e.target.value)}
-              />
+              {canWrite ? (
+                <GermanDateField
+                  value={protokoll.geraetedaten.pruefdatum}
+                  placeholder="TT.MM.JJJJ"
+                  onChange={(value) => updateGeraet("pruefdatum", value)}
+                />
+              ) : (
+                <input value={protokoll.geraetedaten.pruefdatum} readOnly />
+              )}
             </label>
             <label className="ppField ppFieldManual">
               <span>Betr. Std. / km</span>
@@ -330,11 +334,15 @@ export default function PruefprotokollForm({ machineId, protokollId }: Props) {
             </label>
             <label className="ppField">
               <span>Datum letzte Prüfung</span>
-              <input
-                value={protokoll.geraetedaten.datumLetztePruefung}
-                readOnly={!canWrite}
-                onChange={(e) => updateGeraet("datumLetztePruefung", e.target.value)}
-              />
+              {canWrite ? (
+                <GermanDateField
+                  value={protokoll.geraetedaten.datumLetztePruefung}
+                  placeholder="TT.MM.JJJJ"
+                  onChange={(value) => updateGeraet("datumLetztePruefung", value)}
+                />
+              ) : (
+                <input value={protokoll.geraetedaten.datumLetztePruefung} readOnly />
+              )}
             </label>
             <label className="ppField">
               <span>Fahrgestellnummer</span>

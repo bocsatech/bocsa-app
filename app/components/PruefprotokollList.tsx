@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AppPageShell from "./AppPageShell";
+import GermanDateField from "./GermanDateField";
 import { fetchMachines } from "../../lib/machines";
 import type { Machine } from "../../lib/types/machine";
 import {
@@ -135,20 +136,16 @@ export default function PruefprotokollList() {
           </label>
           <label className="arbeitsauftragFilterField">
             <span>Datum von</span>
-            <input
-              type="text"
+            <GermanDateField
               value={filters.dateFrom}
-              placeholder="TT.MM.JJJJ"
-              onChange={(e) => updateFilter("dateFrom", e.target.value)}
+              onChange={(value) => updateFilter("dateFrom", value)}
             />
           </label>
           <label className="arbeitsauftragFilterField">
             <span>Datum bis</span>
-            <input
-              type="text"
+            <GermanDateField
               value={filters.dateTo}
-              placeholder="TT.MM.JJJJ"
-              onChange={(e) => updateFilter("dateTo", e.target.value)}
+              onChange={(value) => updateFilter("dateTo", value)}
             />
           </label>
           <label className="arbeitsauftragFilterField">

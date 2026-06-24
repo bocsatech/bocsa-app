@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../../components/AppPageShell";
+import GermanDateField from "../../components/GermanDateField";
 import LagerBewegungFahrzeugLink from "../../components/LagerBewegungFahrzeugLink";
 import LagerBewegungReferenzLink from "../../components/LagerBewegungReferenzLink";
 import LagerBewegungRowCard from "../../components/LagerBewegungRowCard";
@@ -116,11 +117,15 @@ export default function LagerBewegungenPage() {
           <div className="lagerZeitraumFrei">
             <label className="arbeitsauftragFilterField">
               <span>Von</span>
-              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
+              <GermanDateField
+                value={customFrom}
+                onChange={setCustomFrom}
+                valueFormat="iso"
+              />
             </label>
             <label className="arbeitsauftragFilterField">
               <span>Bis</span>
-              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
+              <GermanDateField value={customTo} onChange={setCustomTo} valueFormat="iso" />
             </label>
           </div>
         ) : null}

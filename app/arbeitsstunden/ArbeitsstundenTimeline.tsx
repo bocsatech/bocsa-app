@@ -10,6 +10,7 @@ import {
   listGermanDatesInRange,
   normalizeGermanDate,
 } from "../../lib/dates";
+import GermanDateField from "../components/GermanDateField";
 import { collectAllPkwWorkOrders } from "../../lib/pkw-work-orders";
 import type { PkwFahrzeug } from "../../lib/types/pkw";
 import type { Machine } from "../../lib/types/machine";
@@ -521,27 +522,21 @@ export default function ArbeitsstundenTimeline({ initialUsers }: Props) {
           <div className="asSidebarStundenInterval">
             <label className="asSidebarStundenIntervalField">
               <span>Von</span>
-              <input
-                type="text"
+              <GermanDateField
                 value={intervalFromInput}
-                placeholder="TT.MM.JJJJ"
-                onChange={(event) => setIntervalFromInput(event.target.value)}
-                onBlur={() => {
-                  const normalized = normalizeGermanDate(intervalFromInput);
-                  if (normalized) setIntervalFromInput(normalized);
+                onChange={(value) => {
+                  const normalized = normalizeGermanDate(value);
+                  setIntervalFromInput(normalized ?? value);
                 }}
               />
             </label>
             <label className="asSidebarStundenIntervalField">
               <span>Bis</span>
-              <input
-                type="text"
+              <GermanDateField
                 value={intervalToInput}
-                placeholder="TT.MM.JJJJ"
-                onChange={(event) => setIntervalToInput(event.target.value)}
-                onBlur={() => {
-                  const normalized = normalizeGermanDate(intervalToInput);
-                  if (normalized) setIntervalToInput(normalized);
+                onChange={(value) => {
+                  const normalized = normalizeGermanDate(value);
+                  setIntervalToInput(normalized ?? value);
                 }}
               />
             </label>

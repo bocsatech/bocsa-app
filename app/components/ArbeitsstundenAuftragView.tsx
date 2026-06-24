@@ -12,6 +12,7 @@ import { parseStundenInput } from "../../lib/arbeitsstunden";
 import { buildArbeitsauftragDetailHref } from "../../lib/arbeitsauftrag-routes";
 import { buildPkwArbeitsauftragDetailHref } from "../../lib/pkw-arbeitsauftrag-routes";
 import { germanToday, normalizeGermanDate } from "../../lib/dates";
+import GermanDateField from "./GermanDateField";
 import { toAustriaDateString } from "../../lib/machines";
 import "../arbeitsauftrag-form.css";
 import "../arbeitsstunden/arbeitsstunden.css";
@@ -266,27 +267,21 @@ export default function ArbeitsstundenAuftragView() {
           <>
             <label className="arbeitsauftragFilterField">
               <span>Von</span>
-              <input
-                type="text"
+              <GermanDateField
                 value={fromDisplay}
-                placeholder="TT.MM.JJJJ"
-                onChange={(event) => setFromDisplay(event.target.value)}
-                onBlur={() => {
-                  const normalized = displayToGermanDate(fromDisplay);
-                  if (normalized) setFromDisplay(toAustriaDateString(normalized));
+                onChange={(value) => {
+                  const normalized = displayToGermanDate(value);
+                  setFromDisplay(normalized ? toAustriaDateString(normalized) : value);
                 }}
               />
             </label>
             <label className="arbeitsauftragFilterField">
               <span>Bis</span>
-              <input
-                type="text"
+              <GermanDateField
                 value={toDisplay}
-                placeholder="TT.MM.JJJJ"
-                onChange={(event) => setToDisplay(event.target.value)}
-                onBlur={() => {
-                  const normalized = displayToGermanDate(toDisplay);
-                  if (normalized) setToDisplay(toAustriaDateString(normalized));
+                onChange={(value) => {
+                  const normalized = displayToGermanDate(value);
+                  setToDisplay(normalized ? toAustriaDateString(normalized) : value);
                 }}
               />
             </label>
@@ -294,14 +289,11 @@ export default function ArbeitsstundenAuftragView() {
         ) : period === "alle" ? null : (
           <label className="arbeitsauftragFilterField">
             <span>{period === "tag" ? "Datum" : "Stichtag"}</span>
-            <input
-              type="text"
+            <GermanDateField
               value={anchorDisplay}
-              placeholder="TT.MM.JJJJ"
-              onChange={(event) => setAnchorDisplay(event.target.value)}
-              onBlur={() => {
-                const normalized = displayToGermanDate(anchorDisplay);
-                if (normalized) setAnchorDisplay(toAustriaDateString(normalized));
+              onChange={(value) => {
+                const normalized = displayToGermanDate(value);
+                setAnchorDisplay(normalized ? toAustriaDateString(normalized) : value);
               }}
             />
           </label>

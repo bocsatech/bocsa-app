@@ -3193,6 +3193,12 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   color: #6b7280;
 }
 
+.germanMonthField {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 8px;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;

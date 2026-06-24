@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import AppPageShell from "../components/AppPageShell";
+import GermanDateField from "../components/GermanDateField";
 import PkwBuchungEditModal from "../components/PkwBuchungEditModal";
 import {
   BUCHUNG_SOURCE_LABELS,
@@ -248,12 +249,10 @@ export default function PkwServicePage() {
           <div className="pkwToolbar pkwToolbarWrap">
             <label className="pkwFieldInline">
               <span>Von</span>
-              <input
-                type="date"
+              <GermanDateField
                 value={fromDay}
-                max={toDay}
-                onChange={(e) => {
-                  const v = e.target.value;
+                valueFormat="iso"
+                onChange={(v) => {
                   setFromDay(v);
                   if (v > toDay) setToDay(v);
                 }}
@@ -261,12 +260,10 @@ export default function PkwServicePage() {
             </label>
             <label className="pkwFieldInline">
               <span>Bis</span>
-              <input
-                type="date"
+              <GermanDateField
                 value={toDay}
-                min={fromDay}
-                onChange={(e) => {
-                  const v = e.target.value;
+                valueFormat="iso"
+                onChange={(v) => {
                   setToDay(v);
                   if (v < fromDay) setFromDay(v);
                 }}
@@ -317,12 +314,10 @@ export default function PkwServicePage() {
           <div className="pkwBoardDayPicker">
             <label className="pkwFieldInline">
               <span>Tagesansicht</span>
-              <input
-                type="date"
+              <GermanDateField
                 value={boardDay}
-                min={fromDay}
-                max={toDay}
-                onChange={(e) => setBoardDay(e.target.value)}
+                valueFormat="iso"
+                onChange={setBoardDay}
               />
             </label>
           </div>

@@ -15,6 +15,7 @@ import {
 } from "../../../lib/pkw";
 import { usePkwPortalLifecycle } from "../../hooks/usePkwPortalLifecycle";
 import PkwPortalNavBar from "../../components/PkwPortalNavBar";
+import GermanDateField from "../../components/GermanDateField";
 import PwaInstallHint from "../../components/PwaInstallHint";
 import type { PkwServiceArt, PkwSlotOption } from "../../../lib/types/pkw";
 
@@ -320,7 +321,7 @@ function PkwBuchenForm() {
             <h2>Termin</h2>
             <label className="pkwField">
               <span>Datum</span>
-              <input type="date" value={day} onChange={(e) => setDay(e.target.value)} />
+              <GermanDateField value={day} onChange={setDay} valueFormat="iso" />
             </label>
             <div className="pkwSlotGrid">
               {slots.map((slot) => (

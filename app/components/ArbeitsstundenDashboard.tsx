@@ -16,6 +16,7 @@ import {
   type DaySummary,
   type PeriodKind,
 } from "../../lib/arbeitsstunden";
+import GermanDateField from "./GermanDateField";
 import { toAustriaDateString } from "../../lib/machines";
 
 type Tab = "tag" | "liste" | "vergleich";
@@ -380,12 +381,7 @@ export default function ArbeitsstundenDashboard() {
           {tab === "tag" ? (
             <label className="arbeitsauftragFilterField">
               <span>Datum</span>
-              <input
-                type="text"
-                value={datumDisplay}
-                placeholder="TT.MM.JJJJ"
-                onChange={(e) => onDatumDisplayChange(e.target.value)}
-              />
+              <GermanDateField value={datumDisplay} onChange={onDatumDisplayChange} />
             </label>
           ) : (
             <>
@@ -403,12 +399,7 @@ export default function ArbeitsstundenDashboard() {
               </label>
               <label className="arbeitsauftragFilterField">
                 <span>Stichtag</span>
-                <input
-                  type="text"
-                  value={datumDisplay}
-                  placeholder="TT.MM.JJJJ"
-                  onChange={(e) => onDatumDisplayChange(e.target.value)}
-                />
+                <GermanDateField value={datumDisplay} onChange={onDatumDisplayChange} />
               </label>
             </>
           )}

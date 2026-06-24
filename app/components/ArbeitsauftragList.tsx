@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import AppPageShell from "./AppPageShell";
+import GermanDateField from "./GermanDateField";
 import MachineStatusIndicators from "./MachineStatusIndicators";
 import { fetchMachines, formatValue, hasValue } from "../../lib/machines";
 import type { MachineRecord } from "../../lib/machines";
@@ -220,20 +221,16 @@ export default function ArbeitsauftragList({ initialFilters, returnMachineId }: 
               </label>
               <label className="arbeitsauftragFilterField">
                 <span>Datum von</span>
-                <input
-                  type="text"
+                <GermanDateField
                   value={filters.dateFrom}
-                  onChange={(event) => updateFilter("dateFrom", event.target.value)}
-                  placeholder="TT.MM.JJJJ"
+                  onChange={(value) => updateFilter("dateFrom", value)}
                 />
               </label>
               <label className="arbeitsauftragFilterField">
                 <span>Datum bis</span>
-                <input
-                  type="text"
+                <GermanDateField
                   value={filters.dateTo}
-                  onChange={(event) => updateFilter("dateTo", event.target.value)}
-                  placeholder="TT.MM.JJJJ"
+                  onChange={(value) => updateFilter("dateTo", value)}
                 />
               </label>
               <label className="arbeitsauftragFilterField">
