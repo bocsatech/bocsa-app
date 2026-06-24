@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { currentUserHasPermission } from "../../../../../lib/auth/permissions";
 import { canManageMachineMedia } from "../../../../../lib/machine-permissions-server.mjs";
-import { buildMachineQrPngBuffer, getMachineQrTargetUrl } from "../../../../../lib/qr-code.mjs";
+import { getMachineQrTargetUrl } from "../../../../../lib/qr-code.mjs";
 import { persistMachineQrCode } from "../../../../../lib/machine-qr.mjs";
 import { getSupabaseAdmin } from "../../../../../lib/supabaseAdmin";
 
@@ -17,51 +16,6 @@ function normalizeMachine(row) {
     geraetenummer: row.geraetenummer ?? null,
     qr_code: row.qr_code ?? null,
   };
-}
-
-async function canReadMachineQr() {
-  return currentUserHasPermission("machines.read");
-}
-
-export async function GET(request, { params }) {
-  if (!(await canReadMachineQr())) {
-    return NextResponse.json({ error: "Keine Berechtigung: machines.read" }, { status: 403 });
-  }
-
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return NextResponse.json({ error: "Supabase ist nicht konfiguriert." }, { status: 500 });
-  }
-
-  const { id } = await params;
-  const { data: machine, error: loadError } = await supabase
-    .from(MACHINE_TABLE)
-    .select(MACHINE_COLUMNS)
-    .eq("id", id)
-    .single();
-
-  if (loadError || !machine) {
-    return NextResponse.json({ error: "Maschine nicht gefunden." }, { status: 404 });
-  }
-
-  try {
-    const origin = request.nextUrl.origin;
-    const png = await buildMachineQrPngBuffer(normalizeMachine(machine), origin, { plain: true });
-    return new NextResponse(png, {
-      headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "private, max-age=300",
-      },
-    });
-  } catch (qrError) {
-    return NextResponse.json(
-      {
-        error:
-          qrError instanceof Error ? qrError.message : "QR-Code konnte nicht erstellt werden.",
-      },
-      { status: 400 }
-    );
-  }
 }
 
 export async function POST(request, { params }) {

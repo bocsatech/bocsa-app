@@ -1,7 +1,6 @@
 "use client";
 
 import { formatValue } from "../../lib/machines";
-import { getMachineQrImageUrl } from "../../lib/machine-qr-display";
 import type { Machine } from "../../lib/types/machine";
 
 type Props = {
@@ -10,9 +9,6 @@ type Props = {
 
 /** Arbeitsauftrag-Munkalap: Maschinenbild + QR rechts (rahmenlos, gleiche Größe). */
 export default function ArbeitsauftragSheetMedia({ machine }: Props) {
-  const qrSrc = machine.id ? getMachineQrImageUrl(machine.id) : machine.qr_code ?? null;
-  const qrLabel = formatValue(machine.geraetenummer);
-
   return (
     <div className="aaSheetImageCol">
       <div className="aaSheetMediaStack">
@@ -26,17 +22,14 @@ export default function ArbeitsauftragSheetMedia({ machine }: Props) {
           )}
         </div>
         <div
-          className={`aaSheetMediaItem aaSheetQrSlot machineQrSlot ${qrSrc ? "hasQrImage machineQrLabeled" : ""}`}
+          className={`aaSheetMediaItem aaSheetQrSlot machineQrSlot ${machine.qr_code ? "hasQrImage" : ""}`}
         >
-          {qrSrc ? (
-            <>
-              <img
-                className="machineQrImage aaSheetQrImage"
-                src={qrSrc}
-                alt={`QR Code ${qrLabel}`}
-              />
-              {qrLabel ? <p className="machineQrCaption">{qrLabel}</p> : null}
-            </>
+          {machine.qr_code ? (
+            <img
+              className="machineQrImage aaSheetQrImage"
+              src={machine.qr_code}
+              alt={`QR Code ${formatValue(machine.geraetenummer)}`}
+            />
           ) : (
             <span className="aaSheetMediaPlaceholder">QR Code</span>
           )}

@@ -1,7 +1,6 @@
 "use client";
 
 import { formatValue } from "../../lib/machines";
-import { getMachineQrImageUrl } from "../../lib/machine-qr-display";
 import type { Machine } from "../../lib/types/machine";
 
 type Props = {
@@ -17,8 +16,6 @@ export default function MachineHeroMedia({
   showQrCode = true,
 }: Props) {
   const mediaClass = ["machineHeroMedia", className].filter(Boolean).join(" ");
-  const qrSrc = machine.id ? getMachineQrImageUrl(machine.id) : machine.qr_code ?? null;
-  const qrLabel = formatValue(machine.geraetenummer);
 
   return (
     <div className={mediaClass}>
@@ -30,26 +27,23 @@ export default function MachineHeroMedia({
         )}
       </div>
       {showQrCode ? (
-        <div className={`machineQrSlot ${qrSrc ? "hasQrImage machineQrLabeled" : ""}`}>
-          {qrSrc ? (
-            <>
-              <img
-                className="machineQrImage"
-                src={qrSrc}
-                alt={`QR Code ${qrLabel}`}
-              />
-              {qrLabel ? <p className="machineQrCaption">{qrLabel}</p> : null}
-            </>
-          ) : (
-            <div className="qrPlaceholder">
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-          )}
-          {!qrSrc ? <p>QR Code</p> : null}
-        </div>
+      <div className={`machineQrSlot ${machine.qr_code ? "hasQrImage machineQrLabeled" : ""}`}>
+        {machine.qr_code ? (
+          <img
+            className="machineQrImage"
+            src={machine.qr_code}
+            alt={`QR Code ${formatValue(machine.geraetenummer)}`}
+          />
+        ) : (
+          <div className="qrPlaceholder">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+        )}
+        {!machine.qr_code ? <p>QR Code</p> : null}
+      </div>
       ) : null}
     </div>
   );
