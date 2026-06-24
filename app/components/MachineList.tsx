@@ -1,12 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useSyncExternalStore } from "react";
-import { isLocalHostEnvironment } from "../../lib/local-host";
+import { useMemo } from "react";
 import {
   formatDate,
   formatValue,
-  getInternExpiryValue,
   getLastServiceDateValue,
   hasValue,
 } from "../../lib/machines";
@@ -18,21 +16,8 @@ type Props = {
   machines: Machine[];
 };
 
-function subscribeNoop() {
-  return () => {};
-}
-
-function readHideDuplicateMetaDates() {
-  return isLocalHostEnvironment();
-}
-
 export default function MachineList({ machines }: Props) {
   const router = useRouter();
-  const hideDuplicateMetaDates = useSyncExternalStore(
-    subscribeNoop,
-    readHideDuplicateMetaDates,
-    () => false
-  );
 
   const sortedMachines = useMemo(() => {
     return [...machines].sort((a, b) => {
@@ -59,7 +44,6 @@ export default function MachineList({ machines }: Props) {
           <MachineResultRow
             key={row.id}
             row={row}
-            hideDuplicateMetaDates={hideDuplicateMetaDates}
             onOpen={() => router.push(`/maschinen/${row.id}`)}
           />
         ))}
@@ -70,11 +54,9 @@ export default function MachineList({ machines }: Props) {
 
 function MachineResultRow({
   row,
-  hideDuplicateMetaDates,
   onOpen,
 }: {
   row: Machine;
-  hideDuplicateMetaDates: boolean;
   onOpen: () => void;
 }) {
   const machine = row as MachineRecord;
@@ -94,17 +76,7 @@ function MachineResultRow({
       </span>
 
       <span className="machineResultMeta">
-        {hideDuplicateMetaDates ? null : (
-          <MachineField label="Prüfung" value={getColumnValue(row, "inspection")} format="date" />
-        )}
         <MachineField label="Ext. §78-ÖVE E8701" value={row.elektro_ove} format="date" />
-        {hideDuplicateMetaDates ? null : (
-          <MachineField
-            label="Intern §11 gültig bis"
-            value={getInternExpiryValue(machine)}
-            format="date"
-          />
-        )}
       </span>
 
       <span className="machineResultMeta">

@@ -7,12 +7,6 @@ import {
   type UserFilialeCode,
 } from "../../lib/user-filiale";
 
-function isLocalHostEnvironment() {
-  if (typeof window === "undefined") return false;
-  const host = window.location.hostname;
-  return host === "localhost" || host === "127.0.0.1";
-}
-
 type UserRow = {
   id: string;
   username: string | null;
@@ -66,11 +60,6 @@ export default function PersoenlicheSacheProfile() {
   const [editEcardNumber, setEditEcardNumber] = useState("");
   const [editEmergencyContactName, setEditEmergencyContactName] = useState("");
   const [editEmergencyContactPhone, setEditEmergencyContactPhone] = useState("");
-  const [birthDatePickerEnabled, setBirthDatePickerEnabled] = useState(false);
-
-  useEffect(() => {
-    setBirthDatePickerEnabled(isLocalHostEnvironment());
-  }, []);
 
   const applyUser = useCallback((row: UserRow) => {
     setUser(row);
@@ -278,23 +267,15 @@ export default function PersoenlicheSacheProfile() {
             onChange={(event) => setEditPrivateEmail(event.target.value)}
             placeholder="Privat-E-Mail"
           />
-          {birthDatePickerEnabled ? (
-            <GermanDateField
-              value={editBirthDate}
-              onChange={setEditBirthDate}
-              placeholder="Geburtstag (TT.MM.JJJJ)"
-              openPickerOnFocus
-              pickerVariant="calendar"
-              minYear={new Date().getFullYear() - 100}
-              maxYear={new Date().getFullYear()}
-            />
-          ) : (
-            <input
-              value={editBirthDate}
-              onChange={(event) => setEditBirthDate(event.target.value)}
-              placeholder="Geburtstag (TT.MM.JJJJ)"
-            />
-          )}
+          <GermanDateField
+            value={editBirthDate}
+            onChange={setEditBirthDate}
+            placeholder="Geburtstag (TT.MM.JJJJ)"
+            openPickerOnFocus
+            pickerVariant="calendar"
+            minYear={new Date().getFullYear() - 100}
+            maxYear={new Date().getFullYear()}
+          />
           <textarea
             value={editAddress}
             onChange={(event) => setEditAddress(event.target.value)}
