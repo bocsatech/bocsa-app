@@ -10,9 +10,9 @@ import {
   PRUEFPROTOKOLL_SECTIONS,
   createEmptyPruefprotokoll,
   getPruefprotokolle,
-  machineToGeraetedaten,
   mergePruefprotokoll,
   normalizePruefprotokoll,
+  preparePruefprotokollForSave,
   type Pruefprotokoll,
   type PruefprotokollCheckItem,
 } from "../../lib/pruefprotokoll";
@@ -140,18 +140,17 @@ export default function PruefprotokollForm({ machineId, protokollId }: Props) {
     setMessage(null);
     setError(null);
 
-    const toSave = normalizePruefprotokoll(
+    const { protokoll: toSave, intern811ValidUntil } = preparePruefprotokollForSave(
+      machine,
       {
         ...protokoll,
-        pruefdatum: protokoll.geraetedaten.pruefdatum,
-        geraetedaten: machineToGeraetedaten(machine, protokoll.geraetedaten),
         ergebnis: {
           ...protokoll.ergebnis,
           unterschriftUrl:
             protokoll.ergebnis.unterschriftUrl || userSignatureUrl || null,
         },
       },
-      machine
+      username
     );
 
     const protokollUrl = `/pruefprotokoll/form?machineId=${encodeURIComponent(
@@ -166,13 +165,18 @@ export default function PruefprotokollForm({ machineId, protokollId }: Props) {
           }
         : { pruefprotokoll: protokollUrl };
 
-    const { data, error: saveErr } = await updateMachine(machine.id, {
+    const machinePatch: Parameters<typeof updateMachine>[1] = {
       machine_tab_data: {
         ...mergedTabData,
         pruefprotokoll_url: protokollUrl,
         documentation: mergedDocumentation,
       },
-    });
+    };
+    if (intern811ValidUntil) {
+      machinePatch.intern_8_11 = intern811ValidUntil;
+    }
+
+    const { data, error: saveErr } = await updateMachine(machine.id, machinePatch);
 
     setSaving(false);
 

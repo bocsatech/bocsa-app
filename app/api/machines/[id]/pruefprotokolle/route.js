@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getCurrentSession, currentUserHasPermission } from "../../../../../lib/auth/permissions";
 import { getSupabaseAdmin } from "../../../../../lib/supabaseAdmin";
+import {
+  intern8_11ValidUntilFromPruefdatum,
+  normalizePruefprotokoll,
+} from "../../../../../lib/pruefprotokoll";
 
 const MACHINE_TABLE = "maschines";
 
@@ -64,20 +68,24 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: "Maschine nicht gefunden." }, { status: 404 });
   }
 
+  const machine = normalizeMachine(row);
   const tabData =
-    row.machine_tab_data && typeof row.machine_tab_data === "object"
-      ? { ...row.machine_tab_data }
+    machine.machine_tab_data && typeof machine.machine_tab_data === "object"
+      ? { ...machine.machine_tab_data }
       : {};
 
   const existing = Array.isArray(tabData.pruefprotokolle) ? tabData.pruefprotokolle : [];
   const stamp = new Date().toISOString();
-  const protokoll = {
-    ...body,
-    updatedAt: stamp,
-    updatedBy: session?.username ?? body.updatedBy,
-    createdAt: body.createdAt ?? stamp,
-    createdBy: body.createdBy ?? session?.username,
-  };
+  const protokoll = normalizePruefprotokoll(
+    {
+      ...body,
+      updatedAt: stamp,
+      updatedBy: session?.username ?? body.updatedBy,
+      createdAt: body.createdAt ?? stamp,
+      createdBy: body.createdBy ?? session?.username,
+    },
+    machine
+  );
 
   const index = existing.findIndex((item) => item?.id === protokoll.id);
   const pruefprotokolle =
@@ -85,9 +93,20 @@ export async function POST(request, { params }) {
       ? existing.map((item, i) => (i === index ? protokoll : item))
       : [protokoll, ...existing];
 
+  const intern811ValidUntil = intern8_11ValidUntilFromPruefdatum(
+    protokoll.pruefdatum || protokoll.geraetedaten?.pruefdatum
+  );
+
+  const updatePayload = {
+    machine_tab_data: { ...tabData, pruefprotokolle },
+  };
+  if (intern811ValidUntil) {
+    updatePayload.intern_8_11_gultig_bis = intern811ValidUntil;
+  }
+
   const { data: updated, error: saveError } = await db
     .from(MACHINE_TABLE)
-    .update({ machine_tab_data: { ...tabData, pruefprotokolle } })
+    .update(updatePayload)
     .eq("id", id)
     .select("*")
     .single();

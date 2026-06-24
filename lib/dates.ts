@@ -81,6 +81,18 @@ export function germanToday(): string {
   return formatGermanDate(new Date());
 }
 
+/** TT.MM.JJJJ + Monate (Kalendermonate, Tag wird gekappt) */
+export function addMonthsToGermanDate(value: unknown, months: number): string | null {
+  const date = parseGermanDate(value);
+  if (!date || !Number.isFinite(months)) return null;
+
+  const day = date.getDate();
+  const target = new Date(date.getFullYear(), date.getMonth() + months, 1);
+  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  target.setDate(Math.min(day, lastDay));
+  return formatGermanDate(target);
+}
+
 /** Nur für Sortierung / Bereichsfilter (nicht in der UI anzeigen) */
 export function germanDateComparable(value: unknown): string {
   const date = parseGermanDate(value);

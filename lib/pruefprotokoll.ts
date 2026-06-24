@@ -1,11 +1,16 @@
 import type { Machine } from "./types/machine";
 import { GERAETTYP_OPTIONS } from "./machines";
 import {
+  addMonthsToGermanDate,
+  compareGermanDates,
   formatGermanDate,
   germanToday,
   isGermanDateInRange,
   normalizeGermanDate,
 } from "./dates";
+
+/** Intern §8/11: Gültigkeit ab Prüfdatum (Monate) */
+export const INTERN_8_11_VALIDITY_MONTHS = 12;
 
 export type PruefprotokollCheckItem = {
   code: string;
@@ -288,6 +293,64 @@ export function createDefaultChecklist(
   return items;
 }
 
+export function getLatestPruefdatumFromProtokolle(
+  machine: Machine,
+  excludeProtokollId?: string
+): string | null {
+  const dates = getPruefprotokolle(machine)
+    .filter((item) => item.id !== excludeProtokollId)
+    .map((item) =>
+      normalizeGermanDate(item.pruefdatum || item.geraetedaten.pruefdatum)
+    )
+    .filter((value): value is string => Boolean(value));
+
+  if (dates.length === 0) return null;
+  return [...dates].sort((a, b) => compareGermanDates(b, a))[0];
+}
+
+export function intern8_11ValidUntilFromPruefdatum(pruefdatum: unknown): string | null {
+  return addMonthsToGermanDate(pruefdatum, INTERN_8_11_VALIDITY_MONTHS);
+}
+
+export function preparePruefprotokollForSave(
+  machine: Machine,
+  protokoll: Pruefprotokoll,
+  username?: string
+): { protokoll: Pruefprotokoll; intern811ValidUntil: string | null } {
+  const previousPruefdatum = getLatestPruefdatumFromProtokolle(machine, protokoll.id);
+  const pruefdatumNormalized = normalizeGermanDate(
+    protokoll.geraetedaten.pruefdatum || protokoll.pruefdatum
+  );
+  const pruefdatum =
+    pruefdatumNormalized ??
+    String(protokoll.geraetedaten.pruefdatum || protokoll.pruefdatum || "").trim();
+
+  const manualLetzte = String(protokoll.geraetedaten.datumLetztePruefung ?? "").trim();
+  const datumLetztePruefung =
+    normalizeGermanDate(manualLetzte) ?? (manualLetzte || previousPruefdatum || "");
+
+  const toSave = normalizePruefprotokoll(
+    {
+      ...protokoll,
+      pruefdatum,
+      geraetedaten: machineToGeraetedaten(machine, {
+        ...protokoll.geraetedaten,
+        pruefdatum,
+        datumLetztePruefung,
+      }),
+      updatedBy: username || protokoll.updatedBy || protokoll.createdBy,
+    },
+    machine
+  );
+
+  return {
+    protokoll: toSave,
+    intern811ValidUntil: intern8_11ValidUntilFromPruefdatum(
+      toSave.pruefdatum || toSave.geraetedaten.pruefdatum
+    ),
+  };
+}
+
 export function machineToGeraetedaten(
   machine: Machine,
   partial?: Partial<PruefprotokollGeraetedaten>
@@ -308,7 +371,7 @@ export function machineToGeraetedaten(
     herstellerTyp: partial?.herstellerTyp ?? herstellerParts.join(" / "),
     datumLetztePruefung:
       partial?.datumLetztePruefung ??
-      formatGermanDate(machine.intern_8_11 ?? machine.prufung ?? ""),
+      formatGermanDate(getLatestPruefdatumFromProtokolle(machine) ?? ""),
     fahrgestellnummer:
       partial?.fahrgestellnummer ?? String(machine.license_plate ?? "").trim(),
     seriennummer: partial?.seriennummer ?? String(machine.serial_number ?? "").trim(),
