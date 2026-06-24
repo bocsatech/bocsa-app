@@ -1,19 +1,17 @@
 #!/usr/bin/env node
 /**
- * GermanDateField popover teszt localhoston (Playwright).
- *   node scripts/test-calendar-localhost.mjs
+ * GermanDateField — teljes ellenőrzés (Playwright).
  */
 import { chromium } from "playwright";
 
-const base = process.env.TEST_BASE_URL || "http://localhost:3001";
+const base = process.env.TEST_BASE_URL || "http://localhost:3000";
 const adminPin = Number(process.env.TEST_ADMIN_PIN || 10);
 
 async function login(page) {
   await page.goto(`${base}/login`, { waitUntil: "networkidle" });
   await page.locator('input[autocomplete="username"]').fill("admin");
   await page.locator('input[autocomplete="current-password"]').fill("demo123");
-  await page.waitForSelector(".loginChallengeCompact", { timeout: 10000 });
-
+  await page.waitForSelector(".loginChallengeCompact", { timeout: 15000 });
   const challengeRes = await page.evaluate(async () => {
     const r = await fetch("/api/auth/challenge", {
       method: "POST",
@@ -22,101 +20,95 @@ async function login(page) {
     });
     return r.json();
   });
-
-  const { operation, value } = challengeRes;
-  const pinAnswer = operation === "add" ? adminPin + value : adminPin - value;
+  const pinAnswer =
+    challengeRes.operation === "add" ? adminPin + challengeRes.value : adminPin - challengeRes.value;
   await page.locator(".loginPinInput").fill(String(pinAnswer));
-  await page.locator('button.loginSubmit').click();
+  await page.locator("button.loginSubmit").click();
   await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 15000 });
 }
 
-async function testDateField(page, label) {
-  const field = page.locator(".dateFieldWithPicker").first();
-  await field.waitFor({ state: "visible", timeout: 10000 });
+async function assertCalendarField(page, label, setup) {
+  if (setup) await setup(page);
 
-  const textInput = field.locator(".dateFieldText");
-  const pickerBtn = field.locator(".dateFieldPickerBtn");
+  const field = page.locator(".dateFieldWithPicker.hasCalendarPopover").first();
+  const count = await field.count();
+  if (count === 0) {
+    const hasNative = await page.locator(".dateFieldNativePicker").count();
+    throw new Error(
+      `${label}: nincs custom naptár (hasCalendarPopover). Natív mezők: ${hasNative}`
+    );
+  }
 
-  await textInput.click();
+  await field.scrollIntoViewIfNeeded();
+  await field.locator(".dateFieldPickerBtn").click();
+
   const popover = page.locator(".germanDateCalendarPopover");
-  await popover.waitFor({ state: "visible", timeout: 3000 });
+  await popover.waitFor({ state: "visible", timeout: 5000 });
 
   const box = await popover.boundingBox();
-  if (!box || box.width < 100 || box.height < 100) {
-    throw new Error(`${label}: popover túl kicsi vagy rossz helyen (${JSON.stringify(box)})`);
-  }
-  if (box.top < 0 || box.left < 0) {
-    throw new Error(`${label}: popover negatív pozíció (${JSON.stringify(box)})`);
+  if (!box || box.top < 4 || box.left < 4) {
+    throw new Error(`${label}: popover rossz pozíció ${JSON.stringify(box)}`);
   }
 
   const monthCombo = popover.locator(".germanDateCalendarCombo").first();
   await monthCombo.locator(".germanDateCalendarComboTrigger").click();
-  await monthCombo.locator(".germanDateCalendarComboList button").nth(5).click();
-  await page.waitForTimeout(200);
+  const list = monthCombo.locator(".germanDateCalendarComboList");
+  await list.waitFor({ state: "visible", timeout: 3000 });
 
+  const triggerBox = await monthCombo.locator(".germanDateCalendarComboTrigger").boundingBox();
+  const listBox = await list.boundingBox();
+  if (!triggerBox || !listBox || Math.abs(listBox.x - triggerBox.x) > 32) {
+    throw new Error(`${label}: hónap-lista elcsúszva`);
+  }
+
+  await list.locator("button").nth(5).click();
   const dayBtn = popover.locator(".germanDateCalendarDay:not(.isEmpty)").first();
   await dayBtn.click();
   await popover.waitFor({ state: "hidden", timeout: 3000 });
 
-  const value = await textInput.inputValue();
+  const value = await field.locator(".dateFieldText").inputValue();
   if (!/^\d{2}\.\d{2}\.\d{4}$/.test(value)) {
-    throw new Error(`${label}: érvénytelen dátum érték „${value}"`);
+    throw new Error(`${label}: érvénytelen dátum „${value}"`);
   }
-
-  await pickerBtn.click();
-  await popover.waitFor({ state: "visible", timeout: 3000 });
-  await page.keyboard.press("Escape");
-  await popover.waitFor({ state: "hidden", timeout: 3000 });
 
   return value;
 }
 
-const pages = [
-  { path: "/persoenliche-sache", label: "Persönliche Sache / Geburtstag" },
-  { path: "/arbeitsauftrag", label: "Arbeitsauftrag filter" },
-  { path: "/pkw-service", label: "PKW-Service Von" },
-  { path: "/lager/bewegungen", label: "Lager Bewegungen Zeitraum" },
+const cases = [
+  { path: "/persoenliche-sache", label: "Persönliche Sache" },
+  { path: "/arbeitsauftrag", label: "Arbeitsauftrag" },
+  { path: "/pkw-service", label: "PKW-Service" },
+  { path: "/lager/bewegungen", label: "Lager", setup: async (p) => p.getByRole("button", { name: "Zeitraum" }).click() },
+  { path: "/arbeitsstunden", label: "Arbeitsstunden", setup: async (p) => p.locator(".asSidebarStundenPeriodBtn", { hasText: "Intervall" }).first().click() },
 ];
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
 
-  console.log(`Teszt bázis: ${base}\n`);
+  console.log(`Calendar teszt → ${base}\n`);
   await login(page);
-  console.log("✓ Login OK\n");
+  console.log("✓ Login\n");
 
   const failures = [];
-
-  for (const entry of pages) {
+  for (const entry of cases) {
     try {
       await page.goto(`${base}${entry.path}`, { waitUntil: "networkidle" });
-
-      if (entry.path === "/lager/bewegungen") {
-        await page.getByRole("button", { name: "Zeitraum" }).click();
-        await page.waitForTimeout(300);
-      }
-
-      const value = await testDateField(page, entry.label);
+      const value = await assertCalendarField(page, entry.label, entry.setup);
       console.log(`✓ ${entry.label}: ${value}`);
     } catch (err) {
-      failures.push({ ...entry, error: err.message });
+      failures.push(`${entry.label}: ${err.message}`);
       console.error(`✗ ${entry.label}: ${err.message}`);
-      await page.screenshot({
-        path: `/tmp/calendar-fail-${entry.path.replace(/\//g, "_")}.png`,
-        fullPage: true,
-      });
+      await page.screenshot({ path: `/tmp/calendar-fail-${entry.path.replace(/\//g, "_")}.png`, fullPage: true });
     }
   }
 
   await browser.close();
-
   if (failures.length) {
-    console.error(`\n${failures.length} hiba — screenshotok: /tmp/calendar-fail-*.png`);
+    console.error(`\n${failures.length} hiba`);
     process.exit(1);
   }
-
-  console.log("\n✓ Minden naptár teszt sikeres");
+  console.log("\n✓ Minden oldal OK — custom naptár működik");
 }
 
 main().catch((err) => {

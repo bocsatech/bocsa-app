@@ -3120,6 +3120,7 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+  overflow: visible;
 }
 
 .germanDateCalendarPopover.isPortaled {
@@ -4743,6 +4744,23 @@ body.lagerPickerOpen {
   border-color: #d1d5db;
   border-radius: 12px;
   background: #f9fafb;
+}
+
+.asSidebarStundenIntervalField .dateFieldWithPicker {
+  min-width: 7.5rem;
+}
+
+.asSidebarStundenIntervalField .dateFieldWithPicker .dateFieldText {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.asSidebarStundenIntervalField .dateFieldPickerBtn {
+  width: 36px;
+  height: 36px;
 }
 
 .arbeitsauftragFilterField select {

@@ -2,6 +2,7 @@
 
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { RefObject } from "react";
 import { formatGermanDate, parseGermanDate } from "../../lib/dates";
 import GermanDateCalendarCombo from "./GermanDateCalendarCombo";
 
@@ -34,7 +35,7 @@ type Props = {
   viewMonth: number;
   minYear: number;
   maxYear: number;
-  anchorRef?: React.RefObject<HTMLElement | null>;
+  anchorRef?: RefObject<HTMLElement | null>;
   onClose: () => void;
   onViewChange: (year: number, month: number) => void;
   onSelectDay: (day: number) => void;
@@ -105,10 +106,7 @@ export default function GermanDateCalendarPopover({
   }, [viewYear, viewMonth]);
 
   const updatePosition = useCallback(() => {
-    if (!open || !anchorRef?.current) {
-      setPosition(null);
-      return;
-    }
+    if (!open || !anchorRef?.current) return;
     setPosition(computePopoverPosition(anchorRef.current, popoverRef.current));
   }, [anchorRef, open]);
 
@@ -157,13 +155,23 @@ export default function GermanDateCalendarPopover({
 
   if (!open) return null;
 
+  const fallbackPosition =
+    usePortal && anchorRef?.current
+      ? computePopoverPosition(anchorRef.current, null)
+      : null;
+  const resolvedPosition = position ?? fallbackPosition;
+
   const popover = (
     <div
       ref={popoverRef}
       className={`germanDateCalendarPopover${usePortal ? " isPortaled" : ""}${
-        usePortal && !position ? " isPositioning" : ""
+        usePortal && !resolvedPosition ? " isPositioning" : ""
       }`}
-      style={usePortal && position ? { top: position.top, left: position.left } : undefined}
+      style={
+        usePortal && resolvedPosition
+          ? { top: resolvedPosition.top, left: resolvedPosition.left }
+          : undefined
+      }
       role="dialog"
       aria-label="Datum wählen"
     >
