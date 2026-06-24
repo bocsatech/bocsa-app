@@ -2,6 +2,7 @@
 
 import { useId, useMemo } from "react";
 import { useLocalhostPickerVariant } from "../../lib/use-localhost-picker-variant";
+import GermanDateCalendarCombo from "./GermanDateCalendarCombo";
 
 const DE_MONTHS = [
   "Januar",
@@ -79,41 +80,21 @@ export default function GermanMonthField({
 
   return (
     <div className="germanMonthField">
-      <label className="germanDateCalendarSelectField">
-        <span className="srOnly">Monat</span>
-        <select
-          id={inputId}
-          value={viewMonth}
-          disabled={disabled}
-          onChange={(event) => {
-            const month = Number(event.target.value);
-            onChange(`${viewYear}-${String(month).padStart(2, "0")}`);
-          }}
-        >
-          {DE_MONTHS.map((label, index) => (
-            <option key={label} value={index + 1}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="germanDateCalendarSelectField">
-        <span className="srOnly">Jahr</span>
-        <select
-          value={viewYear}
-          disabled={disabled}
-          onChange={(event) => {
-            const year = Number(event.target.value);
-            onChange(`${year}-${String(viewMonth).padStart(2, "0")}`);
-          }}
-        >
-          {years.map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
-      </label>
+      <GermanDateCalendarCombo
+        id={inputId}
+        ariaLabel="Monat"
+        value={viewMonth}
+        disabled={disabled}
+        options={DE_MONTHS.map((label, index) => ({ value: index + 1, label }))}
+        onChange={(month) => onChange(`${viewYear}-${String(month).padStart(2, "0")}`)}
+      />
+      <GermanDateCalendarCombo
+        ariaLabel="Jahr"
+        value={viewYear}
+        disabled={disabled}
+        options={years.map((year) => ({ value: year, label: String(year) }))}
+        onChange={(year) => onChange(`${year}-${String(viewMonth).padStart(2, "0")}`)}
+      />
     </div>
   );
 }

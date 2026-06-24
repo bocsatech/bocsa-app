@@ -3,6 +3,7 @@
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { formatGermanDate, parseGermanDate } from "../../lib/dates";
+import GermanDateCalendarCombo from "./GermanDateCalendarCombo";
 
 const DE_MONTHS = [
   "Januar",
@@ -112,8 +113,14 @@ export default function GermanDateCalendarPopover({
   }, [anchorRef, open]);
 
   useLayoutEffect(() => {
+    if (!open) {
+      setPosition(null);
+      return;
+    }
     updatePosition();
-  }, [updatePosition, viewYear, viewMonth]);
+    const frame = window.requestAnimationFrame(updatePosition);
+    return () => window.cancelAnimationFrame(frame);
+  }, [open, updatePosition, viewYear, viewMonth]);
 
   useEffect(() => {
     if (!open || !usePortal) return;
@@ -153,38 +160,26 @@ export default function GermanDateCalendarPopover({
   const popover = (
     <div
       ref={popoverRef}
-      className={`germanDateCalendarPopover${usePortal ? " isPortaled" : ""}`}
+      className={`germanDateCalendarPopover${usePortal ? " isPortaled" : ""}${
+        usePortal && !position ? " isPositioning" : ""
+      }`}
       style={usePortal && position ? { top: position.top, left: position.left } : undefined}
       role="dialog"
       aria-label="Datum wählen"
     >
       <div className="germanDateCalendarNav">
-        <label className="germanDateCalendarSelectField">
-          <span className="srOnly">Monat</span>
-          <select
-            value={viewMonth}
-            onChange={(event) => onViewChange(viewYear, Number(event.target.value))}
-          >
-            {DE_MONTHS.map((label, index) => (
-              <option key={label} value={index + 1}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="germanDateCalendarSelectField">
-          <span className="srOnly">Jahr</span>
-          <select
-            value={viewYear}
-            onChange={(event) => onViewChange(Number(event.target.value), viewMonth)}
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </label>
+        <GermanDateCalendarCombo
+          ariaLabel="Monat"
+          value={viewMonth}
+          options={DE_MONTHS.map((label, index) => ({ value: index + 1, label }))}
+          onChange={(month) => onViewChange(viewYear, month)}
+        />
+        <GermanDateCalendarCombo
+          ariaLabel="Jahr"
+          value={viewYear}
+          options={years.map((year) => ({ value: year, label: String(year) }))}
+          onChange={(year) => onViewChange(year, viewMonth)}
+        />
       </div>
 
       <div className="germanDateCalendarWeekdays" aria-hidden>

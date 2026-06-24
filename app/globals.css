@@ -3130,11 +3130,83 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   right: auto;
 }
 
+.germanDateCalendarPopover.isPortaled.isPositioning {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .germanDateCalendarNav {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 8px;
   margin-bottom: 10px;
+}
+
+.germanDateCalendarCombo {
+  position: relative;
+  min-width: 0;
+}
+
+.germanDateCalendarComboTrigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  color: #111827;
+  cursor: pointer;
+}
+
+.germanDateCalendarComboTrigger:focus-visible {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.germanDateCalendarComboChevron {
+  color: #6b7280;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.germanDateCalendarComboList {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 2;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.germanDateCalendarComboList button {
+  width: 100%;
+  text-align: left;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  color: #111827;
+  cursor: pointer;
+}
+
+.germanDateCalendarComboList button:hover,
+.germanDateCalendarComboList button.isSelected {
+  background: #fff7ed;
+  color: #c2410c;
 }
 
 .germanDateCalendarSelectField select {
