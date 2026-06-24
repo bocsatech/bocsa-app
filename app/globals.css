@@ -648,10 +648,37 @@ body.app-shell-route .appPageScroll > .welcomeCard {
 
 .machineResultMain,
 .machineResultMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 6px;
+  align-items: baseline;
   min-width: 0;
+}
+
+.machineResultLabel {
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.machineResultValue {
+  min-width: 0;
+  word-break: break-word;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.machineResultValueStrong {
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.machineResultValueMuted {
+  color: #6b7280;
+  font-size: 0.88rem;
 }
 
 .machineResultTitle {

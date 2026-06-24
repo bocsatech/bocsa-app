@@ -88,12 +88,9 @@ function MachineResultRow({
       </span>
 
       <span className="machineResultMain">
-        <span className="machineResultTitle">
-          <strong>Gerätenummer</strong>
-          <b>{formatValue(getColumnValue(row, "geraetenummer"))}</b>
-        </span>
-        <MachineField className="machineResultTitle" label="Bezeichnung" value={row.bezeichnung} strongValue />
-        <MachineField className="machineResultDetail" label="Seriennummer" value={row.serial_number} />
+        <MachineField label="Gerätenummer" value={getColumnValue(row, "geraetenummer")} strongValue />
+        <MachineField label="Bezeichnung" value={row.bezeichnung} strongValue />
+        <MachineField label="Seriennummer" value={row.serial_number} mutedValue />
       </span>
 
       <span className="machineResultMeta">
@@ -121,24 +118,36 @@ function MachineResultRow({
 function MachineField({
   label,
   value,
-  className,
   format,
   strongValue = false,
+  mutedValue = false,
 }: {
   label: string;
   value: unknown;
-  className?: string;
   format?: "date";
   strongValue?: boolean;
+  mutedValue?: boolean;
 }) {
   if (!hasValue(value)) return null;
 
   const content = format === "date" ? formatDate(value) : formatValue(value);
+  const valueClassName = [
+    "machineResultValue",
+    strongValue ? "machineResultValueStrong" : "",
+    mutedValue ? "machineResultValueMuted" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <span className={className}>
-      <strong>{label}</strong>
-      {strongValue ? <b>{content}</b> : content}
-    </span>
+    <>
+      <strong className="machineResultLabel">{label}:</strong>
+      {strongValue ? (
+        <b className={valueClassName}>{content}</b>
+      ) : (
+        <span className={valueClassName}>{content}</span>
+      )}
+    </>
   );
 }
 
