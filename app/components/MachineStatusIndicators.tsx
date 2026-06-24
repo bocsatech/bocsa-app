@@ -20,29 +20,20 @@ type Props = {
   className?: string;
   /** Liste: immer 3 Zeilen, damit Karten bündig bleiben */
   fixedSlots?: boolean;
-  /** Localhost: nur farbige Markierungen ohne Datums-Text */
-  marksOnly?: boolean;
 };
 
 export default function MachineStatusIndicators({
   machine,
   className = "",
   fixedSlots = false,
-  marksOnly = false,
 }: Props) {
-  const geratstatus = <GeratstatusIndicator machine={machine} marksOnly={marksOnly} />;
-  const intern = (
-    <InternIndicator value={getInternExpiryValue(machine)} marksOnly={marksOnly} />
-  );
-  const service = (
-    <ServiceIndicator lastServiceDate={getLastServiceDateValue(machine)} marksOnly={marksOnly} />
-  );
+  const geratstatus = <GeratstatusIndicator machine={machine} />;
+  const intern = <InternIndicator value={getInternExpiryValue(machine)} />;
+  const service = <ServiceIndicator lastServiceDate={getLastServiceDateValue(machine)} />;
 
   if (!fixedSlots) {
     return (
-      <div
-        className={`machineStatusIndicators${marksOnly ? " machineStatusIndicatorsMarksOnly" : ""} ${className}`.trim()}
-      >
+      <div className={`machineStatusIndicators ${className}`.trim()}>
         {geratstatus}
         {intern}
         {service}
@@ -67,13 +58,7 @@ export default function MachineStatusIndicators({
   );
 }
 
-function GeratstatusIndicator({
-  machine,
-  marksOnly = false,
-}: {
-  machine: MachineRecord;
-  marksOnly?: boolean;
-}) {
+function GeratstatusIndicator({ machine }: { machine: MachineRecord }) {
   const status = getGeratstatusValue(machine);
   if (!hasValue(status)) return null;
 
@@ -82,18 +67,11 @@ function GeratstatusIndicator({
       label="Status"
       variant={getGeratstatusVariant(status)}
       text={formatValue(status)}
-      marksOnly={marksOnly}
     />
   );
 }
 
-function InternIndicator({
-  value,
-  marksOnly = false,
-}: {
-  value: unknown;
-  marksOnly?: boolean;
-}) {
+function InternIndicator({ value }: { value: unknown }) {
   const expiry = parseDateOnly(value);
   if (!expiry) return null;
 
@@ -103,18 +81,11 @@ function InternIndicator({
       label="Intern §11"
       variant={valid ? "valid" : "expired"}
       text={valid ? `bis ${formatDate(expiry)}` : "Abgelaufen"}
-      marksOnly={marksOnly}
     />
   );
 }
 
-function ServiceIndicator({
-  lastServiceDate,
-  marksOnly = false,
-}: {
-  lastServiceDate: unknown;
-  marksOnly?: boolean;
-}) {
+function ServiceIndicator({ lastServiceDate }: { lastServiceDate: unknown }) {
   const validUntil = getServiceValidUntil(lastServiceDate);
   if (!validUntil) return null;
 
@@ -124,7 +95,6 @@ function ServiceIndicator({
       label="Service"
       variant={valid ? "valid" : "expired"}
       text={valid ? `bis ${formatGermanMonthYear(validUntil)}` : "Fällig"}
-      marksOnly={marksOnly}
     />
   );
 }
@@ -133,25 +103,11 @@ function StatusIndicatorRow({
   label,
   variant,
   text,
-  marksOnly = false,
 }: {
   label: string;
   variant: "fertig" | "repair" | "valid" | "expired" | "default";
   text: string;
-  marksOnly?: boolean;
 }) {
-  if (marksOnly) {
-    return (
-      <span
-        className="machineStatusRow machineStatusRowMarksOnly"
-        title={`${label}: ${text}`}
-        aria-label={`${label}: ${text}`}
-      >
-        <span className={`machineStatusMark ${variant}`} aria-hidden="true" />
-      </span>
-    );
-  }
-
   return (
     <span className="machineStatusRow">
       <span className={`machineStatusMark ${variant}`} aria-hidden="true" />

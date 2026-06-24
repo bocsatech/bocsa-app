@@ -76,11 +76,11 @@ export default function MachineList({ machines }: Props) {
               </span>
 
               <span className="machineResultMeta">
-                {!compactStatusOnly ? (
+                {!hideDuplicateMetaDates ? (
                   <MachineField label="Prüfung" value={getColumnValue(row, "inspection")} format="date" />
                 ) : null}
                 <MachineField label="Ext. §78-ÖVE E8701" value={row.elektro_ove} format="date" />
-                {!compactStatusOnly ? (
+                {!hideDuplicateMetaDates ? (
                   <MachineField
                     label="Intern §11 gültig bis"
                     value={getInternExpiryValue(machine)}
