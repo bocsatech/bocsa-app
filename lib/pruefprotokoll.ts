@@ -293,15 +293,31 @@ export function createDefaultChecklist(
   return items;
 }
 
+function readRawPruefprotokolle(machine: Machine): Array<Record<string, unknown>> {
+  const tabData = machine.machine_tab_data;
+  if (!tabData || typeof tabData !== "object") return [];
+
+  const list = (tabData as Record<string, unknown>).pruefprotokolle;
+  if (!Array.isArray(list)) return [];
+
+  return list.filter(
+    (item): item is Record<string, unknown> => Boolean(item) && typeof item === "object"
+  );
+}
+
 export function getLatestPruefdatumFromProtokolle(
   machine: Machine,
   excludeProtokollId?: string
 ): string | null {
-  const dates = getPruefprotokolle(machine)
-    .filter((item) => item.id !== excludeProtokollId)
-    .map((item) =>
-      normalizeGermanDate(item.pruefdatum || item.geraetedaten.pruefdatum)
-    )
+  const dates = readRawPruefprotokolle(machine)
+    .filter((item) => String(item.id ?? "") !== excludeProtokollId)
+    .map((item) => {
+      const geraetedaten =
+        item.geraetedaten && typeof item.geraetedaten === "object"
+          ? (item.geraetedaten as Record<string, unknown>)
+          : {};
+      return normalizeGermanDate(item.pruefdatum ?? geraetedaten.pruefdatum ?? "");
+    })
     .filter((value): value is string => Boolean(value));
 
   if (dates.length === 0) return null;
@@ -370,8 +386,9 @@ export function machineToGeraetedaten(
     betrStdKm: partial?.betrStdKm ?? "",
     herstellerTyp: partial?.herstellerTyp ?? herstellerParts.join(" / "),
     datumLetztePruefung:
-      partial?.datumLetztePruefung ??
-      formatGermanDate(getLatestPruefdatumFromProtokolle(machine) ?? ""),
+      partial?.datumLetztePruefung !== undefined
+        ? partial.datumLetztePruefung
+        : formatGermanDate(getLatestPruefdatumFromProtokolle(machine) ?? ""),
     fahrgestellnummer:
       partial?.fahrgestellnummer ?? String(machine.license_plate ?? "").trim(),
     seriennummer: partial?.seriennummer ?? String(machine.serial_number ?? "").trim(),
