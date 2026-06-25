@@ -15,18 +15,26 @@ import MachineStatusIndicators from "./MachineStatusIndicators";
 
 type Props = {
   machines: Machine[];
+  /** Keresés után: rangsorolt sorrend megtartása (Enter = első sor). */
+  preserveOrder?: boolean;
+  highlightFirst?: boolean;
 };
 
-export default function MachineList({ machines }: Props) {
+export default function MachineList({
+  machines,
+  preserveOrder = false,
+  highlightFirst = false,
+}: Props) {
   const router = useRouter();
 
   const sortedMachines = useMemo(() => {
+    if (preserveOrder) return machines;
     return [...machines].sort((a, b) => {
       const aValue = getColumnValue(a, "geraetenummer").toLowerCase();
       const bValue = getColumnValue(b, "geraetenummer").toLowerCase();
       return aValue.localeCompare(bValue, "de");
     });
-  }, [machines]);
+  }, [machines, preserveOrder]);
 
   if (machines.length === 0) {
     return (
@@ -41,10 +49,11 @@ export default function MachineList({ machines }: Props) {
   return (
     <article className="card machineResultCard">
       <div className="machineResultList">
-        {sortedMachines.map((row) => (
+        {sortedMachines.map((row, index) => (
           <MachineResultRow
             key={row.id}
             row={row}
+            highlighted={highlightFirst && index === 0}
             onOpen={() => router.push(`/maschinen/${row.id}`)}
           />
         ))}
@@ -56,14 +65,22 @@ export default function MachineList({ machines }: Props) {
 function MachineResultRow({
   row,
   onOpen,
+  highlighted = false,
 }: {
   row: Machine;
   onOpen: () => void;
+  highlighted?: boolean;
 }) {
   const machine = row as MachineRecord;
 
   return (
-    <button type="button" className="machineResultRow" onClick={onOpen}>
+    <button
+      type="button"
+      className={["machineResultRow", highlighted ? "isQuickSearchTop" : ""]
+        .filter(Boolean)
+        .join(" ")}
+      onClick={onOpen}
+    >
       <MachineStatusIndicators machine={machine} className="machineResultStatus" />
 
       <span className="machineThumb" aria-label="Bild">

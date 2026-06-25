@@ -103,6 +103,8 @@ export const STAMMDATEN_TRAILING_FIELD_KEYS = [
   "damage_status",
 ] as const;
 
+export { filterMachines, machineSearchBlob, searchMachines } from "./machine-search";
+
 export async function fetchMachines() {
   const response = await fetch(`/api/machines?ts=${Date.now()}`, {
     cache: "no-store",
@@ -135,21 +137,6 @@ export async function fetchMachineById(id: string) {
   }
 
   return { data: result as Machine, error: null };
-}
-
-export function filterMachines(machines: Machine[], query: string) {
-  const q = query.trim().toLowerCase();
-  if (!q) return machines;
-
-  return machines.filter(
-    (machine) =>
-      machine.geraetenummer?.toLowerCase().includes(q) ||
-      machine.bezeichnung?.toLowerCase().includes(q) ||
-      machine.serial_number?.toLowerCase().includes(q) ||
-      machine.subgroup?.toLowerCase().includes(q) ||
-      machine.depot?.toLowerCase().includes(q) ||
-      machine.id.toLowerCase().includes(q)
-  );
 }
 
 export function resolveMachineFromScan(machines: Machine[], scanned: string) {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
+import MachineQuickSearch from "../components/MachineQuickSearch";
 import GeraetenummerFilterPicker from "../components/GeraetenummerFilterPicker";
 import GeraetenummerCodesModal from "../components/GeraetenummerCodesModal";
 import MachineAddModal from "../components/MachineAddModal";
@@ -15,6 +16,7 @@ import {
   fetchMachines,
   GERAETTYP_OPTIONS,
   resolveMachineFromScan,
+  searchMachines,
 } from "../../lib/machines";
 import { supabase } from "../../lib/supabase";
 import {
@@ -57,6 +59,7 @@ function MaschinenPageContent() {
   const [geraetenummerCodes, setGeraetenummerCodes] =
     useState<GeraetenummerCodesConfig>(DEFAULT_GERAETENUMMER_CODES);
   const [scanHint, setScanHint] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [qrOpen, setQrOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [codesOpen, setCodesOpen] = useState(false);
@@ -187,7 +190,7 @@ function MaschinenPageContent() {
     };
   }, [loadMachines]);
 
-  const filteredMachines = useMemo(() => {
+  const structurallyFilteredMachines = useMemo(() => {
     const qTyp = filters.geraettyp.trim().toLowerCase();
     const qFiliale = filters.filiale.trim().toLowerCase();
     const qMeldung = filters.meldung.trim().toLowerCase();
@@ -214,6 +217,11 @@ function MaschinenPageContent() {
       return true;
     });
   }, [filters, geraetenummerFilter, machines]);
+
+  const filteredMachines = useMemo(
+    () => searchMachines(structurallyFilteredMachines, searchQuery),
+    [searchQuery, structurallyFilteredMachines]
+  );
 
   const filialeOptions = useMemo(() => {
     return Array.from(
@@ -243,12 +251,32 @@ function MaschinenPageContent() {
   function resetFilters() {
     setFilters(EMPTY_MACHINE_FILTERS);
     setGeraetenummerFilter(EMPTY_GERAETENUMMER_FILTER);
+    setSearchQuery("");
     setScanHint(null);
   }
 
   function updateFilter<K extends keyof MachineFilters>(key: K, value: MachineFilters[K]) {
     setFilters((current) => ({ ...current, [key]: value }));
     setScanHint(null);
+  }
+
+  function handleSearchSubmit() {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    const exact = resolveMachineFromScan(machines, query);
+    if (exact) {
+      openMachine(exact);
+      return;
+    }
+
+    const first = filteredMachines[0];
+    if (first) {
+      openMachine(first);
+      return;
+    }
+
+    setScanHint(`Keine Maschine zu „${query}”`);
   }
 
   async function handleMachineCreated(machine: Machine) {
@@ -275,6 +303,18 @@ function MaschinenPageContent() {
           </div>
         ) : (
           <>
+            <div className="card maschinenQuickSearchCard">
+              <MachineQuickSearch
+                value={searchQuery}
+                onChange={(next) => {
+                  setSearchQuery(next);
+                  setScanHint(null);
+                }}
+                onSubmit={handleSearchSubmit}
+                resultCount={filteredMachines.length}
+              />
+            </div>
+
             <div className="searchToolbar card maschinenFiltersBar">
               <div className="arbeitsauftragFilterField maschinenFilterGeraetenummer">
                 <span>Gerätenummer</span>
@@ -343,7 +383,11 @@ function MaschinenPageContent() {
               </p>
             ) : null}
 
-            <MachineList machines={filteredMachines} />
+            <MachineList
+              machines={filteredMachines}
+              preserveOrder={Boolean(searchQuery.trim())}
+              highlightFirst={Boolean(searchQuery.trim())}
+            />
           </>
         )}
 

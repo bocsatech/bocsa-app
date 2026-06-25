@@ -5,6 +5,106 @@
   margin-bottom: 24px;
 }
 
+.maschinenQuickSearchCard {
+  margin-bottom: 16px;
+  padding: 14px 16px 12px;
+}
+
+.machineQuickSearch {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.machineQuickSearchLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.machineQuickSearchField {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 12px 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  background: #f9fafb;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.machineQuickSearchField:focus-within {
+  border-color: #f97316;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+}
+
+.machineQuickSearchField.isDisabled {
+  opacity: 0.65;
+}
+
+.machineQuickSearchIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+
+.machineQuickSearchInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.98rem;
+  color: #111827;
+  outline: none;
+}
+
+.machineQuickSearchInput::placeholder {
+  color: #9ca3af;
+}
+
+.machineQuickSearchInput::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.machineQuickSearchShortcut {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #6b7280;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.machineQuickSearchMeta {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.machineQuickSearchMeta strong {
+  color: #111827;
+}
+
+.machineResultRow.isQuickSearchTop {
+  border-color: #f97316;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.18);
+  background: #fff7ed;
+}
+
 .maschinenKpiCard {
   display: flex;
   flex-direction: column;
