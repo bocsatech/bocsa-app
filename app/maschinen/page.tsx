@@ -316,7 +316,6 @@ function MaschinenPageContent() {
 
               <div className="maschinenFiltersBarNested">
                 <div className="arbeitsauftragFilterField maschinenFilterGeraetenummer">
-                  <span>Gerätenummer</span>
                   <GeraetenummerFilterPicker
                     codes={geraetenummerCodes}
                     value={geraetenummerFilter}

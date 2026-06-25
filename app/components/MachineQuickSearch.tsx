@@ -99,16 +99,12 @@ export default function MachineQuickSearch({
           {isMac ? "⌘K" : "Ctrl+K"}
         </kbd>
       </div>
-      <p className="machineQuickSearchMeta" aria-live="polite">
-        {trimmed ? (
-          <>
-            <strong>{resultCount}</strong> Treffer
-            {resultCount > 0 ? " · Enter öffnet den ersten" : " · Keine Maschine gefunden"}
-          </>
-        ) : (
-          <>Tipp: {isMac ? "⌘K" : "Ctrl+K"} fokussiert die Suche · Enter öffnet den ersten Treffer</>
-        )}
-      </p>
+      {trimmed ? (
+        <p className="machineQuickSearchMeta" aria-live="polite">
+          <strong>{resultCount}</strong> Treffer
+          {resultCount > 0 ? " · Enter öffnet den ersten" : " · Keine Maschine gefunden"}
+        </p>
+      ) : null}
     </div>
   );
 }
