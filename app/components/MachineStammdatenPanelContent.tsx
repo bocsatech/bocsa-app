@@ -244,6 +244,7 @@ export default function MachineStammdatenPanelContent({
                     <GermanDateField
                       value={field.value}
                       onChange={(next) => onUpdateField(index, next)}
+                      openPickerOnFocus
                       pickerVariant="calendar"
                     />
                   )

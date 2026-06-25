@@ -196,6 +196,7 @@ const MachineStammdatenPanel = forwardRef<MachineStammdatenPanelHandle, Props>(
                         value={field.value}
                         readOnly={!canWrite}
                         onChange={(next) => updateField(index, next)}
+                        openPickerOnFocus
                         pickerVariant="calendar"
                       />
                     )

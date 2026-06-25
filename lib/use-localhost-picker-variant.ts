@@ -10,5 +10,15 @@ export function useLocalhostPickerVariant(explicit?: "native" | "calendar") {
     if (isLocalDevEnvironment()) return "calendar" as const;
     return "native" as const;
   };
-  return useSyncExternalStore(() => () => {}, getClientSnapshot, getServerSnapshot);
+
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined") return () => {};
+      // npm start localhost: SSR native → kliens calendar (egy frame után frissít)
+      const id = window.requestAnimationFrame(onStoreChange);
+      return () => window.cancelAnimationFrame(id);
+    },
+    getClientSnapshot,
+    getServerSnapshot
+  );
 }
