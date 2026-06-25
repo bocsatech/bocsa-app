@@ -18,8 +18,7 @@
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px;
   align-items: end;
-  padding-top: 4px;
-  border-top: 1px solid #f1f5f9;
+  padding-top: 0;
 }
 
 .maschinenFiltersBarNested .pillButton {
