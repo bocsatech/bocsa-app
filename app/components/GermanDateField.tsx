@@ -6,7 +6,7 @@ import {
   formatGermanDate,
   germanDateComparable,
 } from "../../lib/dates";
-import { resolveLocalhostPickerVariant } from "../../lib/local-host";
+import { useLocalhostPickerVariant } from "../../lib/use-localhost-picker-variant";
 import GermanDateCalendarPopover, {
   initialCalendarView,
 } from "./GermanDateCalendarPopover";
@@ -71,11 +71,8 @@ export default function GermanDateField({
   const [viewYear, setViewYear] = useState(initialView.year);
   const [viewMonth, setViewMonth] = useState(initialView.month);
 
-  function activeVariant() {
-    return resolveLocalhostPickerVariant(pickerVariant);
-  }
-
-  const useCalendar = activeVariant() === "calendar";
+  const resolvedVariant = useLocalhostPickerVariant(pickerVariant);
+  const useCalendar = resolvedVariant === "calendar";
   const shouldOpenOnFocus =
     openPickerOnFocus ?? (useCalendar && !pickerDisabled);
 
@@ -116,7 +113,7 @@ export default function GermanDateField({
     event.preventDefault();
     event.stopPropagation();
     if (pickerDisabled) return;
-    if (activeVariant() !== "calendar") {
+    if (resolvedVariant !== "calendar") {
       openNativePicker();
       return;
     }

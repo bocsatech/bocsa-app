@@ -1,4 +1,4 @@
-/** npm run dev → custom naptár; production → natív picker (kivéve explicit calendar). */
+/** npm run dev → custom naptár; production → natív picker (kivéve explicit calendar localhoston). */
 export function isLocalDevEnvironment() {
   return process.env.NODE_ENV === "development";
 }
@@ -14,18 +14,23 @@ export function isLocalHostEnvironment() {
   ) {
     return true;
   }
-  if (isLocalDevEnvironment()) {
-    return /^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(host);
+  if (/^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(host)) {
+    return true;
   }
   return false;
 }
 
+function shouldUseLocalhostCalendar() {
+  if (isLocalDevEnvironment()) return true;
+  if (typeof window !== "undefined" && isLocalHostEnvironment()) return true;
+  return false;
+}
+
+/** explicit calendar = custom naptár csak localhoston; production mindig native. */
 export function resolveLocalhostPickerVariant(
   explicit?: "native" | "calendar"
 ): "native" | "calendar" {
   if (explicit === "native") return "native";
-  if (explicit === "calendar") return "calendar";
-  if (isLocalDevEnvironment()) return "calendar";
-  if (typeof window !== "undefined" && isLocalHostEnvironment()) return "calendar";
+  if (shouldUseLocalhostCalendar()) return "calendar";
   return "native";
 }
