@@ -8,22 +8,24 @@
 .maschinenFiltersPanel {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 12px;
   margin-bottom: 24px;
   padding: 16px 18px 18px;
 }
 
 .maschinenFiltersPanel .machineQuickSearch {
-  margin-bottom: 10px;
-  padding-bottom: 0;
-  border-bottom: none;
+  margin: 0;
+  padding: 0;
+  border: none;
   box-shadow: none;
+  background: transparent;
 }
 
 .maschinenFiltersPanel .machineQuickSearchMeta {
-  margin-bottom: 0;
-  padding-bottom: 0;
+  margin: 0;
+  padding: 0;
   border: none;
+  background: transparent;
 }
 
 .maschinenFiltersBarNested {
@@ -34,21 +36,31 @@
   margin: 0;
   padding: 0;
   border: none;
-  border-top: none;
-  box-shadow: none;
+  background: transparent;
 }
 
 .maschinenFiltersPanel .maschinenFiltersBarNested,
 .maschinenFiltersPanel .maschinenFilterGeraetenummer,
-.maschinenFiltersPanel .arbeitsauftragFilterField {
+.maschinenFiltersPanel .arbeitsauftragFilterField,
+.maschinenFiltersPanel .machineQuickSearchLabel,
+.maschinenFiltersPanel .machineQuickSearchMeta {
+  border: none !important;
   border-top: none !important;
-  box-shadow: none;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
 }
 
 .maschinenFiltersPanel .maschinenFilterGeraetenummer::before,
-.maschinenFiltersPanel .maschinenFiltersBarNested::before {
-  content: none;
-  display: none;
+.maschinenFiltersPanel .maschinenFilterGeraetenummer::after,
+.maschinenFiltersPanel .maschinenFiltersBarNested::before,
+.maschinenFiltersPanel .maschinenFiltersBarNested::after,
+.maschinenFiltersPanel .machineQuickSearch::before,
+.maschinenFiltersPanel .machineQuickSearch::after,
+.maschinenFiltersPanel .machineQuickSearchMeta::before,
+.maschinenFiltersPanel .machineQuickSearchMeta::after {
+  content: none !important;
+  display: none !important;
 }
 
 .maschinenFiltersBarNested .pillButton {
