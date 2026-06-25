@@ -303,7 +303,7 @@ function MaschinenPageContent() {
           </div>
         ) : (
           <>
-            <div className="card maschinenQuickSearchCard">
+            <div className="card maschinenFiltersPanel">
               <MachineQuickSearch
                 value={searchQuery}
                 onChange={(next) => {
@@ -313,66 +313,66 @@ function MaschinenPageContent() {
                 onSubmit={handleSearchSubmit}
                 resultCount={filteredMachines.length}
               />
-            </div>
 
-            <div className="searchToolbar card maschinenFiltersBar">
-              <div className="arbeitsauftragFilterField maschinenFilterGeraetenummer">
-                <span>Gerätenummer</span>
-                <GeraetenummerFilterPicker
-                  codes={geraetenummerCodes}
-                  value={geraetenummerFilter}
-                  onChange={(next) => {
-                    setGeraetenummerFilter(next);
-                    setScanHint(null);
-                  }}
-                />
+              <div className="maschinenFiltersBar maschinenFiltersBarNested">
+                <div className="arbeitsauftragFilterField maschinenFilterGeraetenummer">
+                  <span>Gerätenummer</span>
+                  <GeraetenummerFilterPicker
+                    codes={geraetenummerCodes}
+                    value={geraetenummerFilter}
+                    onChange={(next) => {
+                      setGeraetenummerFilter(next);
+                      setScanHint(null);
+                    }}
+                  />
+                </div>
+                <label className="arbeitsauftragFilterField">
+                  <span>Gerättyp</span>
+                  <select
+                    value={filters.geraettyp}
+                    onChange={(event) => updateFilter("geraettyp", event.target.value)}
+                  >
+                    <option value="">Alle</option>
+                    {GERAETTYP_OPTIONS.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="arbeitsauftragFilterField">
+                  <span>Filiale</span>
+                  <select
+                    value={filters.filiale}
+                    onChange={(event) => updateFilter("filiale", event.target.value)}
+                  >
+                    <option value="">Alle</option>
+                    {filialeOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="arbeitsauftragFilterField">
+                  <span>Meldung</span>
+                  <select
+                    value={filters.meldung}
+                    onChange={(event) => updateFilter("meldung", event.target.value)}
+                  >
+                    <option value="">Alle</option>
+                    <option value="mit">Mit Meldung</option>
+                    <option value="ohne">Ohne Meldung</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="pillButton outline arbeitsauftragFilterReset"
+                  onClick={resetFilters}
+                >
+                  Zurücksetzen
+                </button>
               </div>
-              <label className="arbeitsauftragFilterField">
-                <span>Gerättyp</span>
-                <select
-                  value={filters.geraettyp}
-                  onChange={(event) => updateFilter("geraettyp", event.target.value)}
-                >
-                  <option value="">Alle</option>
-                  {GERAETTYP_OPTIONS.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="arbeitsauftragFilterField">
-                <span>Filiale</span>
-                <select
-                  value={filters.filiale}
-                  onChange={(event) => updateFilter("filiale", event.target.value)}
-                >
-                  <option value="">Alle</option>
-                  {filialeOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="arbeitsauftragFilterField">
-                <span>Meldung</span>
-                <select
-                  value={filters.meldung}
-                  onChange={(event) => updateFilter("meldung", event.target.value)}
-                >
-                  <option value="">Alle</option>
-                  <option value="mit">Mit Meldung</option>
-                  <option value="ohne">Ohne Meldung</option>
-                </select>
-              </label>
-              <button
-                type="button"
-                className="pillButton outline arbeitsauftragFilterReset"
-                onClick={resetFilters}
-              >
-                Zurücksetzen
-              </button>
             </div>
 
             <MachineKpiRow machines={machines} />

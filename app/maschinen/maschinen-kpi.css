@@ -5,9 +5,34 @@
   margin-bottom: 24px;
 }
 
+.maschinenFiltersPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px 18px 18px;
+}
+
+.maschinenFiltersBarNested {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  align-items: end;
+  padding-top: 4px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.maschinenFiltersBarNested .pillButton {
+  align-self: end;
+}
+
+.maschinenFiltersBarNested .maschinenFilterGeraetenummer {
+  grid-column: 1 / -1;
+}
+
 .maschinenQuickSearchCard {
-  margin-bottom: 16px;
-  padding: 14px 16px 12px;
+  margin-bottom: 0;
+  padding: 0;
 }
 
 .machineQuickSearch {
