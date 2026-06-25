@@ -314,7 +314,7 @@ function MaschinenPageContent() {
                 resultCount={filteredMachines.length}
               />
 
-              <div className="maschinenFiltersBar maschinenFiltersBarNested">
+              <div className="maschinenFiltersBarNested">
                 <div className="arbeitsauftragFilterField maschinenFilterGeraetenummer">
                   <span>Gerätenummer</span>
                   <GeraetenummerFilterPicker

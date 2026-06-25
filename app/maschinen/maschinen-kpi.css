@@ -8,9 +8,22 @@
 .maschinenFiltersPanel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
   margin-bottom: 24px;
   padding: 16px 18px 18px;
+}
+
+.maschinenFiltersPanel .machineQuickSearch {
+  margin-bottom: 10px;
+  padding-bottom: 0;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+.maschinenFiltersPanel .machineQuickSearchMeta {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border: none;
 }
 
 .maschinenFiltersBarNested {
@@ -18,7 +31,24 @@
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px;
   align-items: end;
-  padding-top: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-top: none;
+  box-shadow: none;
+}
+
+.maschinenFiltersPanel .maschinenFiltersBarNested,
+.maschinenFiltersPanel .maschinenFilterGeraetenummer,
+.maschinenFiltersPanel .arbeitsauftragFilterField {
+  border-top: none !important;
+  box-shadow: none;
+}
+
+.maschinenFiltersPanel .maschinenFilterGeraetenummer::before,
+.maschinenFiltersPanel .maschinenFiltersBarNested::before {
+  content: none;
+  display: none;
 }
 
 .maschinenFiltersBarNested .pillButton {
