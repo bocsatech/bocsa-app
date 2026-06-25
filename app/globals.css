@@ -2085,7 +2085,8 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
 .machineDetailPage .stammdatenStacked .fieldRow strong.meldungStatusValue,
 .machineDetailPage .stammdatenStacked .fieldRow .fieldRowDisplayValue,
 .machineDetailPage .stammdatenStacked .fieldRow .fieldRowCombinedValue,
-.machineDetailPage .stammdatenStacked .fieldRow .germanDateField {
+.machineDetailPage .stammdatenStacked .fieldRow .germanDateField,
+.machineDetailPage .stammdatenStacked .fieldRow .dateFieldWithPicker {
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -3292,14 +3293,46 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   border: 0;
 }
 
-.machineDetailPage .stammdatenStacked .dateFieldWithPicker .dateFieldText,
-.machineDetailPage .stammdatenStacked .dateFieldWithPicker .dateFieldPickerBtn {
+.machineDetailPage .tabPanel.readOnlyPanel .stammdatenStacked .dateFieldWithPicker .dateFieldText,
+.machineDetailPage .tabPanel.readOnlyPanel .stammdatenStacked .dateFieldWithPicker .dateFieldPickerBtn {
   padding: 2px 0;
   min-height: 0;
   border-radius: 8px;
 }
 
-.machineDetailPage .stammdatenStacked .dateFieldPickerBtn {
+/* Localhost custom naptár — Stammdaten, mint Persönliche Sache / Geburtstag */
+.machineDetailPage .tabPanel:not(.readOnlyPanel) .stammdatenStacked .dateFieldWithPicker.hasCalendarPopover {
+  width: 100%;
+}
+
+.machineDetailPage .tabPanel:not(.readOnlyPanel) .stammdatenStacked .dateFieldWithPicker.hasCalendarPopover .dateFieldText {
+  width: 100%;
+  padding: 10px 12px;
+  min-height: 42px;
+  height: 42px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.machineDetailPage .tabPanel:not(.readOnlyPanel) .stammdatenStacked .dateFieldWithPicker.hasCalendarPopover .dateFieldText:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.machineDetailPage .tabPanel:not(.readOnlyPanel) .stammdatenStacked .dateFieldWithPicker.hasCalendarPopover .dateFieldPickerBtn {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+}
+
+.machineDetailPage .stammdatenStacked .dateFieldWithPicker:not(.hasCalendarPopover) .dateFieldPickerBtn {
   width: 32px;
   height: 32px;
   border: 1px solid #e5e7eb;
