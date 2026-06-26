@@ -4557,14 +4557,14 @@ body.lagerPickerOpen {
   max-width: 100%;
 }
 
-.usersPageContent .userCreateFormLabeled .userFormField {
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormField {
   display: grid;
   gap: 6px;
   width: 50%;
   max-width: 100%;
 }
 
-.usersPageContent .userCreateFormLabeled .userFormFieldLabel {
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormFieldLabel {
   font-size: 0.82rem;
   font-weight: 600;
   color: #6b7280;
@@ -4572,22 +4572,22 @@ body.lagerPickerOpen {
   letter-spacing: 0.02em;
 }
 
-.usersPageContent .userCreateFormLabeled .userFormFieldControl {
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl {
   display: grid;
   gap: 6px;
   width: 100%;
   max-width: 100%;
 }
 
-.usersPageContent .userCreateFormLabeled .userFormFieldControl > input,
-.usersPageContent .userCreateFormLabeled .userFormFieldControl > select,
-.usersPageContent .userCreateFormLabeled .userFormFieldControl > textarea,
-.usersPageContent .userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker {
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > input,
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > select,
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > textarea,
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker {
   width: 100%;
   max-width: 100%;
 }
 
-.usersPageContent .userCreateFormLabeled .userFormFieldControl > select,
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > select,
 .usersPageContent .userCreateForm .userFilialeField select {
   padding: 10px 12px;
   border: 1px solid #dbe2ea;
@@ -4597,7 +4597,7 @@ body.lagerPickerOpen {
   box-sizing: border-box;
 }
 
-.usersPageContent .userCreateFormLabeled .userProfileFormFields .userFilialeField {
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormFields .userFilialeField {
   width: 50%;
   max-width: 100%;
 }
@@ -4609,58 +4609,58 @@ body.lagerPickerOpen {
   align-items: start;
 }
 
-.userProfileFormLayout--single {
-  grid-template-columns: 1fr;
-}
-
 .userProfileFormFields {
   display: grid;
   gap: 12px;
   min-width: 0;
 }
 
-.userProfileFormFields--withHeadMedia {
+.usersPageContent .userCreateForm--localhost .userProfileFormLayout--single {
+  grid-template-columns: 1fr;
+}
+
+.usersPageContent .userCreateForm--localhost .userProfileFormFields--withHeadMedia {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   column-gap: 24px;
   align-items: start;
 }
 
-.userProfileFormMainFields {
+.usersPageContent .userCreateForm--localhost .userProfileFormMainFields {
   display: grid;
   gap: 12px;
   grid-column: 1;
   min-width: 0;
 }
 
-.userProfileFormFields--withHeadMedia > .userProfileFormHeadMedia {
+.usersPageContent .userCreateForm--localhost .userProfileFormFields--withHeadMedia > .userProfileFormHeadMedia {
   grid-column: 2;
   grid-row: 1;
   align-self: start;
 }
 
-.usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFormField,
-.usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFilialeField {
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFormField,
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFilialeField {
   width: 100%;
   max-width: 100%;
 }
 
-.userProfileFormHeadMedia {
+.usersPageContent .userCreateForm--localhost .userProfileFormHeadMedia {
   display: grid;
   gap: 12px;
   min-width: 0;
 }
 
-.userProfileFormHeadMedia .userFormField--media {
+.usersPageContent .userCreateForm--localhost .userProfileFormHeadMedia .userFormField--media {
   width: 100%;
   max-width: 100%;
 }
 
-.usersPageContent .userCreateFormLabeled .userFormField--media {
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormField--media {
   width: 50%;
   max-width: 100%;
 }
 
-.userFormMediaPanel {
+.usersPageContent .userCreateForm--localhost .userFormMediaPanel {
   display: grid;
   gap: 10px;
   padding: 10px 12px;
@@ -4670,13 +4670,13 @@ body.lagerPickerOpen {
   box-sizing: border-box;
 }
 
-.userFormMediaPreview {
+.usersPageContent .userCreateForm--localhost .userFormMediaPreview {
   display: flex;
   align-items: center;
   min-height: 2.5rem;
 }
 
-.userFormMediaPhoto {
+.usersPageContent .userCreateForm--localhost .userFormMediaPhoto {
   width: 72px;
   height: 72px;
   object-fit: cover;
@@ -4685,13 +4685,13 @@ body.lagerPickerOpen {
   background: #f3f4f6;
 }
 
-.userFormMediaSignature {
+.usersPageContent .userCreateForm--localhost .userFormMediaSignature {
   max-width: 100%;
   max-height: 72px;
   object-fit: contain;
 }
 
-.userFormMediaButton {
+.usersPageContent .userCreateForm--localhost .userFormMediaButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4707,16 +4707,16 @@ body.lagerPickerOpen {
   cursor: pointer;
 }
 
-.userFormMediaButton:hover {
+.usersPageContent .userCreateForm--localhost .userFormMediaButton:hover {
   border-color: #f97316;
   color: #9a3412;
 }
 
-.userFormMediaFileInput {
+.usersPageContent .userCreateForm--localhost .userFormMediaFileInput {
   display: none;
 }
 
-.persoenlicheSachePage .userCreateFormLabeled .userFormField--media {
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormField--media {
   width: 50%;
   max-width: 100%;
 }
@@ -4817,15 +4817,15 @@ body.lagerPickerOpen {
     grid-template-columns: 1fr;
   }
 
-  .userProfileFormFields--withHeadMedia {
+  .usersPageContent .userCreateForm--localhost .userProfileFormFields--withHeadMedia {
     grid-template-columns: 1fr;
   }
 
-  .userProfileFormMainFields {
+  .usersPageContent .userCreateForm--localhost .userProfileFormMainFields {
     grid-column: 1;
   }
 
-  .userProfileFormFields--withHeadMedia > .userProfileFormHeadMedia {
+  .usersPageContent .userCreateForm--localhost .userProfileFormFields--withHeadMedia > .userProfileFormHeadMedia {
     grid-column: 1;
     grid-row: auto;
   }
@@ -4840,9 +4840,9 @@ body.lagerPickerOpen {
   .usersPageContent .userCreateForm textarea,
   .usersPageContent .userCreateForm .dateFieldWithPicker,
   .usersPageContent .userCreateForm .userFilialeField,
-  .usersPageContent .userCreateFormLabeled .userFormField,
-  .usersPageContent .userCreateFormLabeled .userProfileFormFields .userFilialeField,
-  .usersPageContent .userCreateFormLabeled .userFormField--media,
+  .usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormField,
+  .usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormFields .userFilialeField,
+  .usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userFormField--media,
   .persoenlicheSachePage .userCreateFormLabeled .userFormField--media {
     width: 100%;
   }

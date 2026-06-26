@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import AppPageShell from "../components/AppPageShell";
 import GermanDateField from "../components/GermanDateField";
 import DirectManagerField, { type SupervisorOption } from "../components/DirectManagerField";
@@ -300,6 +300,11 @@ function UserProfileFieldsBlock({
   );
 }
 
+function wrapLocalhostMainFields(isLocalhost: boolean, content: ReactNode) {
+  if (!isLocalhost) return content;
+  return <div className="userProfileFormMainFields">{content}</div>;
+}
+
 export default function UsersPage() {
   const isLocalhost = useIsLocalhost();
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -368,7 +373,7 @@ export default function UsersPage() {
       position: user.position,
     }));
   const userFormClassName = `groupCreateForm userCreateForm${
-    isLocalhost ? " userCreateFormLabeled" : ""
+    isLocalhost ? " userCreateFormLabeled userCreateForm--localhost" : ""
   }`;
 
   useEffect(() => {
@@ -613,54 +618,8 @@ export default function UsersPage() {
             <form className={userFormClassName} onSubmit={handleCreateUser}>
               <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
                 <div className={`userProfileFormFields${isLocalhost ? " userProfileFormFields--withHeadMedia" : ""}`}>
-                  {isLocalhost ? (
-                    <>
-                      <div className="userProfileFormMainFields">
-                        <UserFormTextInput
-                          label="Benutzername"
-                          value={newUsername}
-                          onChange={setNewUsername}
-                          autoComplete="username"
-                          required
-                        />
-                        <UserFormTextInput
-                          label="Passwort (min. 6 Zeichen)"
-                          type="password"
-                          value={newPassword}
-                          onChange={setNewPassword}
-                          autoComplete="new-password"
-                          minLength={6}
-                          required
-                        />
-                        <UserFormTextInput
-                          label="Geheimzahl (0–99)"
-                          value={newSecretPin}
-                          onChange={(value) => setNewSecretPin(value.replace(/\D/g, ""))}
-                          inputMode="numeric"
-                          pattern="[0-9]{1,2}"
-                          maxLength={2}
-                          required
-                        />
-                        <UserProfileFieldsBlock
-                          form={newProfile}
-                          onChange={updateNewProfile}
-                          onFileError={setCreateMessage}
-                          showOvertime
-                          supervisors={supervisorOptions}
-                        />
-                      </div>
-                      <UserProfileMediaFields
-                        mode="inline"
-                        grouped
-                        idPrefix="user-create"
-                        photoUrl={newProfile.photoUrl}
-                        signatureUrl={newProfile.signatureUrl}
-                        onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
-                        onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
-                        onError={setCreateMessage}
-                      />
-                    </>
-                  ) : (
+                  {wrapLocalhostMainFields(
+                    isLocalhost,
                     <>
                       <UserFormTextInput
                         label="Benutzername"
@@ -696,6 +655,18 @@ export default function UsersPage() {
                       />
                     </>
                   )}
+                  {isLocalhost ? (
+                    <UserProfileMediaFields
+                      mode="inline"
+                      grouped
+                      idPrefix="user-create"
+                      photoUrl={newProfile.photoUrl}
+                      signatureUrl={newProfile.signatureUrl}
+                      onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
+                      onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
+                      onError={setCreateMessage}
+                    />
+                  ) : null}
                 </div>
                 {!isLocalhost ? (
                   <UserProfileMediaFields
@@ -818,55 +789,8 @@ export default function UsersPage() {
             <form className={userFormClassName} onSubmit={handleSaveUserProfile}>
               <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
                 <div className={`userProfileFormFields${isLocalhost ? " userProfileFormFields--withHeadMedia" : ""}`}>
-                  {isLocalhost ? (
-                    <>
-                      <div className="userProfileFormMainFields">
-                        <UserFormTextInput
-                          label="Benutzername"
-                          value={editUsername}
-                          onChange={setEditUsername}
-                          autoComplete="username"
-                          required
-                        />
-                        <UserProfileFieldsBlock
-                          form={editProfile}
-                          onChange={updateEditProfile}
-                          onFileError={setSaveMessage}
-                          showOvertime
-                          supervisors={supervisorOptions}
-                          excludeUserId={selectedUser.id}
-                        />
-                        <section className="personalFieldsSection">
-                          <h3 className="personalFieldsSectionTitle">Zugang</h3>
-                          <UserFormTextInput
-                            label="Geheimzahl (0–99)"
-                            value={editSecretPin}
-                            onChange={(value) => setEditSecretPin(value.replace(/\D/g, ""))}
-                            inputMode="numeric"
-                            pattern="[0-9]{1,2}"
-                            maxLength={2}
-                          />
-                          <UserFormTextInput
-                            label="Neues Passwort (leer = unverändert)"
-                            type="password"
-                            value={editPassword}
-                            onChange={setEditPassword}
-                            autoComplete="new-password"
-                          />
-                        </section>
-                      </div>
-                      <UserProfileMediaFields
-                        mode="inline"
-                        grouped
-                        idPrefix={`user-edit-${selectedUser.id}`}
-                        photoUrl={editProfile.photoUrl}
-                        signatureUrl={editProfile.signatureUrl}
-                        onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
-                        onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
-                        onError={setSaveMessage}
-                      />
-                    </>
-                  ) : (
+                  {wrapLocalhostMainFields(
+                    isLocalhost,
                     <>
                       <UserFormTextInput
                         label="Benutzername"
@@ -903,6 +827,18 @@ export default function UsersPage() {
                       </section>
                     </>
                   )}
+                  {isLocalhost ? (
+                    <UserProfileMediaFields
+                      mode="inline"
+                      grouped
+                      idPrefix={`user-edit-${selectedUser.id}`}
+                      photoUrl={editProfile.photoUrl}
+                      signatureUrl={editProfile.signatureUrl}
+                      onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
+                      onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
+                      onError={setSaveMessage}
+                    />
+                  ) : null}
                 </div>
                 {!isLocalhost ? (
                   <UserProfileMediaFields

@@ -286,7 +286,7 @@ export default function PersoenlicheSacheProfile() {
         </p>
       ) : null}
       <form
-        className={`groupCreateForm userCreateForm${isLocalhost ? " userCreateFormLabeled" : ""}`}
+        className={`groupCreateForm userCreateForm${isLocalhost ? " userCreateFormLabeled userCreateForm--localhost" : ""}`}
         onSubmit={handleSaveProfile}
       >
         <input

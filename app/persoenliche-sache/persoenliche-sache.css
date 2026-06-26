@@ -13,11 +13,11 @@
   width: 100%;
 }
 
-.persoenlicheSachePage .userCreateFormLabeled .userFormField,
-.persoenlicheSachePage .userCreateFormLabeled .userFilialeField,
-.persoenlicheSachePage .userCreateFormLabeled input,
-.persoenlicheSachePage .userCreateFormLabeled textarea,
-.persoenlicheSachePage .userCreateFormLabeled .dateFieldWithPicker {
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormField,
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFilialeField,
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled input,
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled textarea,
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .dateFieldWithPicker {
   width: 50%;
   max-width: 100%;
   box-sizing: border-box;
@@ -56,9 +56,9 @@
   box-sizing: border-box;
 }
 
-.persoenlicheSachePage .userCreateFormLabeled input,
-.persoenlicheSachePage .userCreateFormLabeled textarea,
-.persoenlicheSachePage .userCreateFormLabeled .dateFieldWithPicker .dateFieldText {
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled input,
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled textarea,
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .dateFieldWithPicker .dateFieldText {
   padding: 10px 12px;
   border: 1px solid #dbe2ea;
   border-radius: 10px;
