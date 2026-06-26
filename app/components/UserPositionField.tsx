@@ -2,6 +2,7 @@
 
 import { USER_POSITION_SUGGESTIONS } from "../../lib/user-position";
 import { useIsLocalhost } from "../../lib/use-is-localhost";
+import UserFormField, { useFormPlaceholder } from "./UserFormField";
 
 type UserPositionFieldProps = {
   value: string;
@@ -17,13 +18,14 @@ export default function UserPositionField({
   listId = "user-position-suggestions",
 }: UserPositionFieldProps) {
   const isLocalhost = useIsLocalhost();
+  const fieldPlaceholder = useFormPlaceholder(placeholder);
 
   return (
-    <>
+    <UserFormField label={placeholder}>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
+        placeholder={fieldPlaceholder}
         list={isLocalhost ? listId : undefined}
       />
       {isLocalhost ? (
@@ -33,6 +35,6 @@ export default function UserPositionField({
           ))}
         </datalist>
       ) : null}
-    </>
+    </UserFormField>
   );
 }

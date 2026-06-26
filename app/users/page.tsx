@@ -4,6 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
 import GermanDateField from "../components/GermanDateField";
 import DirectManagerField, { type SupervisorOption } from "../components/DirectManagerField";
+import UserFormField, {
+  UserFormSelect,
+  UserFormTextInput,
+  UserFormTextarea,
+  useFormPlaceholder,
+} from "../components/UserFormField";
 import UserPositionField from "../components/UserPositionField";
 import {
   DEFAULT_USER_FILIALEN,
@@ -252,139 +258,135 @@ function UserProfileFieldsBlock({
   supervisors = [],
   excludeUserId = null,
 }: UserProfileFieldsBlockProps) {
+  const birthDatePlaceholder = useFormPlaceholder("Geburtstag (TT.MM.JJJJ)");
+
   return (
     <>
-      <input
+      <UserFormTextInput
+        label="Vollständiger Name"
         value={form.fullName}
-        onChange={(event) => onChange("fullName", event.target.value)}
-        placeholder="Vollständiger Name"
+        onChange={(value) => onChange("fullName", value)}
       />
       <UserPositionField
         value={form.position}
         onChange={(value) => onChange("position", value)}
         listId={excludeUserId ? `user-position-${excludeUserId}` : "user-position-create"}
       />
-      <label className="userFilialeField">
-        <span>Filiale</span>
-        <select
-          value={form.filialeCode}
-          onChange={(event) => onChange("filialeCode", event.target.value as UserFilialeCode | "")}
-        >
-          <option value="">— keine Filiale —</option>
-          {DEFAULT_USER_FILIALEN.map((filiale) => (
-            <option key={filiale.code} value={filiale.code}>
-              {filiale.label} ({filiale.code})
-            </option>
-          ))}
-        </select>
-      </label>
-      <input
+      <UserFormSelect
+        label="Filiale"
+        value={form.filialeCode}
+        onChange={(value) => onChange("filialeCode", value as UserFilialeCode | "")}
+      >
+        <option value="">— keine Filiale —</option>
+        {DEFAULT_USER_FILIALEN.map((filiale) => (
+          <option key={filiale.code} value={filiale.code}>
+            {filiale.label} ({filiale.code})
+          </option>
+        ))}
+      </UserFormSelect>
+      <UserFormTextInput
+        label="Standort (optional)"
         value={form.site}
-        onChange={(event) => onChange("site", event.target.value)}
-        placeholder="Standort (optional)"
+        onChange={(value) => onChange("site", value)}
       />
 
       <section className="personalFieldsSection">
         <h3 className="personalFieldsSectionTitle">Arbeit</h3>
-        <label className="userFilialeField">
-          <span>Arbeitsbereich</span>
-          <select
-            value={form.workArea}
-            onChange={(event) => onChange("workArea", event.target.value as UserWorkArea | "")}
-          >
-            <option value="">— nicht angegeben —</option>
-            {USER_WORK_AREAS.map((area) => (
-              <option key={area.value} value={area.value}>
-                {area.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <UserFormSelect
+          label="Arbeitsbereich"
+          value={form.workArea}
+          onChange={(value) => onChange("workArea", value as UserWorkArea | "")}
+        >
+          <option value="">— nicht angegeben —</option>
+          {USER_WORK_AREAS.map((area) => (
+            <option key={area.value} value={area.value}>
+              {area.label}
+            </option>
+          ))}
+        </UserFormSelect>
         <DirectManagerField
           value={form.directManager}
           onChange={(value) => onChange("directManager", value)}
           supervisors={supervisors}
           excludeUserId={excludeUserId}
         />
-        <input
+        <UserFormTextInput
+          label="Bankkonto / IBAN"
           value={form.bankAccount}
-          onChange={(event) => onChange("bankAccount", event.target.value)}
-          placeholder="Bankkonto / IBAN"
+          onChange={(value) => onChange("bankAccount", value)}
         />
         {showOvertime ? (
-          <label className="userFilialeField">
-            <span>Überstunden (Std.)</span>
-            <input
-              type="number"
-              step="0.25"
-              value={form.overtimeHoursBalance}
-              onChange={(event) => onChange("overtimeHoursBalance", event.target.value)}
-              placeholder="0"
-            />
-          </label>
+          <UserFormTextInput
+            label="Überstunden (Std.)"
+            type="number"
+            step="0.25"
+            value={form.overtimeHoursBalance}
+            onChange={(value) => onChange("overtimeHoursBalance", value)}
+          />
         ) : null}
       </section>
 
       <section className="personalFieldsSection">
         <h3 className="personalFieldsSectionTitle">Kontakt &amp; Persönliches</h3>
-        <input
+        <UserFormTextInput
+          label="Firmen-Handynummer"
           type="tel"
           value={form.companyMobile}
-          onChange={(event) => onChange("companyMobile", event.target.value)}
-          placeholder="Firmen-Handynummer"
+          onChange={(value) => onChange("companyMobile", value)}
         />
-        <input
+        <UserFormTextInput
+          label="Privat-Handynummer"
           type="tel"
           value={form.privateMobile}
-          onChange={(event) => onChange("privateMobile", event.target.value)}
-          placeholder="Privat-Handynummer"
+          onChange={(value) => onChange("privateMobile", value)}
         />
-        <input
+        <UserFormTextInput
+          label="Firmen-E-Mail"
           type="email"
           value={form.companyEmail}
-          onChange={(event) => onChange("companyEmail", event.target.value)}
-          placeholder="Firmen-E-Mail"
+          onChange={(value) => onChange("companyEmail", value)}
         />
-        <input
+        <UserFormTextInput
+          label="Privat-E-Mail"
           type="email"
           value={form.privateEmail}
-          onChange={(event) => onChange("privateEmail", event.target.value)}
-          placeholder="Privat-E-Mail"
+          onChange={(value) => onChange("privateEmail", value)}
         />
-        <GermanDateField
-          value={form.birthDate}
-          onChange={(value) => onChange("birthDate", value)}
-          placeholder="Geburtstag (TT.MM.JJJJ)"
-          openPickerOnFocus
-          pickerVariant="calendar"
-          minYear={new Date().getFullYear() - 100}
-          maxYear={new Date().getFullYear()}
-        />
-        <textarea
+        <UserFormField label="Geburtstag (TT.MM.JJJJ)">
+          <GermanDateField
+            value={form.birthDate}
+            onChange={(value) => onChange("birthDate", value)}
+            placeholder={birthDatePlaceholder}
+            openPickerOnFocus
+            pickerVariant="calendar"
+            minYear={new Date().getFullYear() - 100}
+            maxYear={new Date().getFullYear()}
+          />
+        </UserFormField>
+        <UserFormTextarea
+          label="Adresse"
           value={form.address}
-          onChange={(event) => onChange("address", event.target.value)}
-          placeholder="Adresse"
-          rows={3}
+          onChange={(value) => onChange("address", value)}
         />
-        <input
+        <UserFormTextInput
+          label="E-Card Nummer"
           value={form.ecardNumber}
-          onChange={(event) => onChange("ecardNumber", event.target.value)}
-          placeholder="E-Card Nummer"
+          onChange={(value) => onChange("ecardNumber", value)}
         />
       </section>
 
       <section className="personalFieldsSection">
         <h3 className="personalFieldsSectionTitle">Notfallkontakt</h3>
-        <input
+        <UserFormTextInput
+          label="Name"
           value={form.emergencyContactName}
-          onChange={(event) => onChange("emergencyContactName", event.target.value)}
-          placeholder="Name"
+          onChange={(value) => onChange("emergencyContactName", value)}
         />
-        <input
+        <UserFormTextInput
+          label="Handynummer"
           type="tel"
           value={form.emergencyContactPhone}
-          onChange={(event) => onChange("emergencyContactPhone", event.target.value)}
-          placeholder="Handynummer"
+          onChange={(value) => onChange("emergencyContactPhone", value)}
         />
       </section>
     </>
@@ -467,6 +469,9 @@ export default function UsersPage() {
       full_name: user.full_name,
       position: user.position,
     }));
+  const userFormClassName = `groupCreateForm userCreateForm${
+    isLocalhost ? " userCreateFormLabeled" : ""
+  }`;
 
   useEffect(() => {
     if (!selectedUser) return;
@@ -707,32 +712,32 @@ export default function UsersPage() {
             <div className="cardHeader">
               <p className="cardTitle">Neuer Benutzer</p>
             </div>
-            <form className="groupCreateForm userCreateForm" onSubmit={handleCreateUser}>
+            <form className={userFormClassName} onSubmit={handleCreateUser}>
               <div className="userProfileFormLayout">
                 <div className="userProfileFormFields">
-                  <input
+                  <UserFormTextInput
+                    label="Benutzername"
                     value={newUsername}
-                    onChange={(event) => setNewUsername(event.target.value)}
-                    placeholder="Benutzername"
+                    onChange={setNewUsername}
                     autoComplete="username"
                     required
                   />
-                  <input
+                  <UserFormTextInput
+                    label="Passwort (min. 6 Zeichen)"
                     type="password"
                     value={newPassword}
-                    onChange={(event) => setNewPassword(event.target.value)}
-                    placeholder="Passwort (min. 6 Zeichen)"
+                    onChange={setNewPassword}
                     autoComplete="new-password"
                     minLength={6}
                     required
                   />
-                  <input
+                  <UserFormTextInput
+                    label="Geheimzahl (0–99)"
+                    value={newSecretPin}
+                    onChange={(value) => setNewSecretPin(value.replace(/\D/g, ""))}
                     inputMode="numeric"
                     pattern="[0-9]{1,2}"
                     maxLength={2}
-                    value={newSecretPin}
-                    onChange={(event) => setNewSecretPin(event.target.value.replace(/\D/g, ""))}
-                    placeholder="Geheimzahl (0–99)"
                     required
                   />
                   <UserProfileFieldsBlock
@@ -855,13 +860,13 @@ export default function UsersPage() {
                 {saveMessage}
               </p>
             ) : null}
-            <form className="groupCreateForm userCreateForm" onSubmit={handleSaveUserProfile}>
+            <form className={userFormClassName} onSubmit={handleSaveUserProfile}>
               <div className="userProfileFormLayout">
                 <div className="userProfileFormFields">
-                  <input
+                  <UserFormTextInput
+                    label="Benutzername"
                     value={editUsername}
-                    onChange={(event) => setEditUsername(event.target.value)}
-                    placeholder="Benutzername"
+                    onChange={setEditUsername}
                     autoComplete="username"
                     required
                   />
@@ -875,19 +880,19 @@ export default function UsersPage() {
                   />
                   <section className="personalFieldsSection">
                     <h3 className="personalFieldsSectionTitle">Zugang</h3>
-                    <input
+                    <UserFormTextInput
+                      label="Geheimzahl (0–99)"
+                      value={editSecretPin}
+                      onChange={(value) => setEditSecretPin(value.replace(/\D/g, ""))}
                       inputMode="numeric"
                       pattern="[0-9]{1,2}"
                       maxLength={2}
-                      value={editSecretPin}
-                      onChange={(event) => setEditSecretPin(event.target.value.replace(/\D/g, ""))}
-                      placeholder="Geheimzahl (0–99)"
                     />
-                    <input
+                    <UserFormTextInput
+                      label="Neues Passwort (leer = unverändert)"
                       type="password"
                       value={editPassword}
-                      onChange={(event) => setEditPassword(event.target.value)}
-                      placeholder="Neues Passwort (leer = unverändert)"
+                      onChange={setEditPassword}
                       autoComplete="new-password"
                     />
                   </section>

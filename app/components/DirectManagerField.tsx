@@ -6,6 +6,7 @@ import {
   supervisorUserLabel,
 } from "../../lib/user-position";
 import { useIsLocalhost } from "../../lib/use-is-localhost";
+import UserFormField from "./UserFormField";
 
 export type SupervisorOption = {
   id: string;
@@ -44,8 +45,7 @@ export default function DirectManagerField({
   }
 
   return (
-    <label className="userFilialeField">
-      <span>Direkter Vorgesetzter</span>
+    <UserFormField label="Direkter Vorgesetzter">
       <select
         value={hasLegacyValue ? resolvedValue : resolvedValue || ""}
         onChange={(event) => onChange(event.target.value)}
@@ -65,6 +65,6 @@ export default function DirectManagerField({
           Keine Vorgesetzten — Position „Vorgesetzter“ bei mindestens einem Benutzer setzen.
         </span>
       ) : null}
-    </label>
+    </UserFormField>
   );
 }
