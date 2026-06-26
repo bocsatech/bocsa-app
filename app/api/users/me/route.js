@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
 import { updateUserById } from "../../../../lib/auth/users";
-import { isLocalhostHost } from "../../../../lib/localhost-request";
 import {
   loadUrlaubQuotaForUsername,
   normalizeOvertimeHours,
 } from "../../../../lib/user-me-stats.mjs";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import {
-  loadPersonalProfile,
-  mergeAuthUserWithPersonalProfile,
+  buildMeUserFromAuthAndPersonal,
   updatePersonalProfile,
 } from "../../../../lib/user-personal-profile";
 import {
   parseUserProfilePatchFromBody,
-  profileFieldsFromRow,
+  profilePatchToUserUpdate,
   validateAndNormalizeProfilePatch,
 } from "../../../../lib/user-profile-fields";
 
@@ -65,17 +62,6 @@ function urlaubQuotaOptions(authRow) {
   };
 }
 
-async function resolveLocalhostApiRequest() {
-  try {
-    const headerStore = await headers();
-    const host =
-      headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
-    return isLocalhostHost(host);
-  } catch {
-    return false;
-  }
-}
-
 export async function GET() {
   try {
     const session = await getCurrentSession();
@@ -89,18 +75,7 @@ export async function GET() {
       return NextResponse.json({ error: authError }, { status: 500 });
     }
 
-    const isLocalhost = await resolveLocalhostApiRequest();
-    let user;
-    if (isLocalhost) {
-      user = { ...authRow };
-    } else {
-      const personal = await loadPersonalProfile(session.userId);
-      const mergedProfile =
-        personal.error || personal.missingTable || personal.missingRow
-          ? profileFieldsFromRow(authRow)
-          : (personal.profile ?? profileFieldsFromRow(authRow));
-      user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
-    }
+    const user = await buildMeUserFromAuthAndPersonal(authRow, session.userId);
     const urlaub = await loadUrlaubQuotaForUsername(
       db,
       session.username,
@@ -147,9 +122,7 @@ export async function PATCH(request) {
     return NextResponse.json({ error: profileValidationError }, { status: 400 });
   }
 
-  if (await resolveLocalhostApiRequest()) {
-    delete profilePatch.position;
-  }
+  delete profilePatch.position;
 
   const authPatch = {
     password: password || undefined,
@@ -171,23 +144,17 @@ export async function PATCH(request) {
     }
   }
 
-  let profile = null;
   if (hasProfileChanges) {
-    const { profile: updatedProfile, error: profileError } = await updatePersonalProfile(
-      session.userId,
-      profilePatch
-    );
+    const { error: profileError } = await updatePersonalProfile(session.userId, profilePatch);
     if (profileError) {
-      const isLocalhost = await resolveLocalhostApiRequest();
-      if (!isLocalhost) {
-        return NextResponse.json({ error: profileError }, { status: 400 });
+      const { error: userError } = await updateUserById(
+        session.userId,
+        profilePatchToUserUpdate(profilePatch)
+      );
+      if (userError) {
+        return NextResponse.json({ error: userError }, { status: 400 });
       }
-    } else {
-      profile = updatedProfile;
     }
-  } else {
-    const loaded = await loadPersonalProfile(session.userId);
-    profile = loaded.profile;
   }
 
   const { row: authRow, error: authError } = await loadAuthUserRow(session.userId);
@@ -201,14 +168,7 @@ export async function PATCH(request) {
     session.username,
     urlaubQuotaOptions(authRow)
   );
-
-  const isLocalhost = await resolveLocalhostApiRequest();
-  let user;
-  if (isLocalhost) {
-    user = { ...authRow };
-  } else {
-    user = mergeAuthUserWithPersonalProfile(authRow, profile ?? profileFieldsFromRow(authRow));
-  }
+  const user = await buildMeUserFromAuthAndPersonal(authRow, session.userId);
 
   return NextResponse.json({
     user,

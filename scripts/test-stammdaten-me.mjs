@@ -61,4 +61,18 @@ if (!meRes.json.user?.username) {
 }
 
 console.log(`✓ GET /api/users/me => ${meRes.json.user.username}, Position: ${meRes.json.user.position ?? "—"}`);
+
+const patchRes = await request("/api/users/me", {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json", cookie },
+  body: JSON.stringify({ address: "Teststraße 1" }),
+});
+if (!patchRes.response.ok) {
+  fail(`PATCH /api/users/me => ${patchRes.response.status}: ${patchRes.json.error || "?"}`);
+}
+if (patchRes.json.user?.address !== "Teststraße 1") {
+  fail(`PATCH /api/users/me => address nicht gespeichert (${patchRes.json.user?.address ?? "?"})`);
+}
+console.log("✓ PATCH /api/users/me => address gespeichert");
+
 console.log("\nMinden Stammdaten API teszt sikeres.");

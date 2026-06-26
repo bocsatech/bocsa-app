@@ -199,6 +199,54 @@ export function validateAndNormalizeProfilePatch(patch: UserProfilePatch): {
   return { patch: next, error: null };
 }
 
+export function profilePatchToUserUpdate(patch: UserProfilePatch) {
+  const update: {
+    fullName?: string;
+    position?: string;
+    site?: string;
+    filialeCode?: UserFilialeCode | null;
+    photoUrl?: string;
+    signatureUrl?: string;
+    companyMobile?: string | null;
+    privateMobile?: string | null;
+    companyEmail?: string | null;
+    privateEmail?: string | null;
+    birthDate?: string | null;
+    address?: string | null;
+    ecardNumber?: string | null;
+    emergencyContactName?: string | null;
+    emergencyContactPhone?: string | null;
+    bankAccount?: string | null;
+    directManager?: string | null;
+    workArea?: UserWorkArea | null;
+  } = {};
+
+  if (patch.fullName !== undefined) update.fullName = patch.fullName;
+  if (patch.position !== undefined) update.position = patch.position;
+  if (patch.site !== undefined) update.site = patch.site;
+  if (patch.filialeCode !== undefined) update.filialeCode = patch.filialeCode;
+  if (patch.photoUrl !== undefined) update.photoUrl = patch.photoUrl;
+  if (patch.signatureUrl !== undefined) update.signatureUrl = patch.signatureUrl;
+  if (patch.companyMobile !== undefined) update.companyMobile = patch.companyMobile;
+  if (patch.privateMobile !== undefined) update.privateMobile = patch.privateMobile;
+  if (patch.companyEmail !== undefined) update.companyEmail = patch.companyEmail;
+  if (patch.privateEmail !== undefined) update.privateEmail = patch.privateEmail;
+  if (patch.birthDate !== undefined) update.birthDate = patch.birthDate;
+  if (patch.address !== undefined) update.address = patch.address;
+  if (patch.ecardNumber !== undefined) update.ecardNumber = patch.ecardNumber;
+  if (patch.emergencyContactName !== undefined) {
+    update.emergencyContactName = patch.emergencyContactName;
+  }
+  if (patch.emergencyContactPhone !== undefined) {
+    update.emergencyContactPhone = patch.emergencyContactPhone;
+  }
+  if (patch.bankAccount !== undefined) update.bankAccount = patch.bankAccount;
+  if (patch.directManager !== undefined) update.directManager = patch.directManager;
+  if (patch.workArea !== undefined) update.workArea = patch.workArea;
+
+  return update;
+}
+
 export function parseUserProfilePatchFromBody(body: Record<string, unknown>): UserProfilePatch {
   return {
     fullName: body.fullName !== undefined ? String(body.fullName ?? "") : undefined,

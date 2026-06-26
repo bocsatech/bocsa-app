@@ -4,7 +4,6 @@ import {
   getCurrentSession,
 } from "../../../../lib/auth/permissions";
 import { deleteUserById, updateUserById } from "../../../../lib/auth/users";
-import { isLocalhostRequest } from "../../../../lib/localhost-request";
 import { syncPersonalProfilePositionFromAdmin } from "../../../../lib/user-personal-profile";
 import {
   parseUserProfilePatchFromBody,
@@ -88,10 +87,7 @@ export async function PATCH(request, { params }) {
 
   if (error) return NextResponse.json({ error }, { status: 400 });
 
-  if (
-    isLocalhostRequest(request) &&
-    (profile.position !== undefined || body.position !== undefined)
-  ) {
+  if (profile.position !== undefined || body.position !== undefined) {
     const nextPosition =
       profile.position !== undefined ? profile.position : String(body.position ?? "");
     await syncPersonalProfilePositionFromAdmin(id, nextPosition);

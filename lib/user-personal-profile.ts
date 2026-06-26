@@ -194,4 +194,20 @@ export function mergeAuthUserWithPersonalProfile(
   return merged;
 }
 
+export async function buildMeUserFromAuthAndPersonal(
+  authRow: Record<string, unknown>,
+  userId: string
+) {
+  const personal = await loadPersonalProfile(userId);
+  const mergedProfile =
+    personal.error || personal.missingTable || personal.missingRow
+      ? profileFieldsFromRow(authRow)
+      : (personal.profile ?? profileFieldsFromRow(authRow));
+  const user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
+  if (authRow.position !== undefined) {
+    user.position = authRow.position;
+  }
+  return user;
+}
+
 export type { UserProfileFields, UserProfilePatch };

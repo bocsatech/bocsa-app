@@ -14,7 +14,6 @@ import {
   USER_WORK_AREAS,
   type UserWorkArea,
 } from "../../lib/user-stammdaten";
-import { useIsLocalhost } from "../../lib/use-is-localhost";
 
 type UrlaubStats = {
   year: number;
@@ -56,7 +55,6 @@ type UserRow = {
 };
 
 export default function PersoenlicheSacheProfile() {
-  const isLocalhost = useIsLocalhost();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<UserRow | null>(null);
@@ -319,7 +317,7 @@ export default function PersoenlicheSacheProfile() {
           value={editPosition}
           onChange={setEditPosition}
           listId="stammdaten-position"
-          readOnly={isLocalhost}
+          readOnly
         />
         <UserFormSelect
           label="Filiale"
