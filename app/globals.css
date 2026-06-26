@@ -4552,6 +4552,71 @@ body.lagerPickerOpen {
   box-sizing: border-box;
 }
 
+.usersPageContent .userCreateForm .userProfileFormFields input,
+.usersPageContent .userCreateForm .userProfileFormFields textarea,
+.usersPageContent .userCreateForm .userProfileFormFields .dateFieldWithPicker,
+.usersPageContent .userCreateForm .userProfileFormFields .dateFieldWithPicker .dateFieldText,
+.usersPageContent .userCreateForm .userProfileFormFields .userFilialeField {
+  width: 100%;
+  max-width: 100%;
+}
+
+.userProfileFormLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  gap: 24px;
+  align-items: start;
+}
+
+.userProfileFormFields {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.userProfileFormMedia {
+  display: grid;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid #e8edf2;
+  border-radius: 14px;
+  background: #f8fafc;
+  position: sticky;
+  top: 12px;
+}
+
+.userProfileFormMedia .userProfileMediaBlock {
+  display: grid;
+  gap: 8px;
+}
+
+.userProfileFormMedia .userProfileMediaBlock > span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.userProfileFormMedia .userProfileMediaActions {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.userProfilePhotoPreview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.userProfileSignaturePreview {
+  max-width: 100%;
+  max-height: 88px;
+  object-fit: contain;
+}
+
 .usersPageContent .userCreateForm .dateFieldWithPicker {
   width: 50%;
   max-width: 100%;
@@ -4598,6 +4663,16 @@ body.lagerPickerOpen {
 
 .usersPageContent .userCreateForm .pillButton.primary {
   width: fit-content;
+}
+
+@media (max-width: 900px) {
+  .userProfileFormLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .userProfileFormMedia {
+    position: static;
+  }
 }
 
 @media (max-width: 720px) {

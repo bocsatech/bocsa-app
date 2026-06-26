@@ -159,14 +159,15 @@ type UserProfileFieldsBlockProps = {
   excludeUserId?: string | null;
 };
 
-function UserProfileFieldsBlock({
+function UserProfileMediaFields({
   form,
   onChange,
   onFileError,
-  showOvertime = false,
-  supervisors = [],
-  excludeUserId = null,
-}: UserProfileFieldsBlockProps) {
+}: {
+  form: ProfileFormState;
+  onChange: <K extends keyof ProfileFormState>(key: K, value: ProfileFormState[K]) => void;
+  onFileError: (message: string) => void;
+}) {
   async function handleFile(
     file: File | undefined,
     field: "photoUrl" | "signatureUrl",
@@ -181,6 +182,76 @@ function UserProfileFieldsBlock({
     }
   }
 
+  return (
+    <aside className="userProfileFormMedia">
+      <div className="fieldRow documentationFieldRow userProfileMediaBlock">
+        <span>Benutzerfoto</span>
+        <div className="documentUploadControls documentUploadControlsCompact">
+          <div className="documentUploadActions userProfileMediaActions">
+            {form.photoUrl ? (
+              <img
+                src={form.photoUrl}
+                alt="Benutzerfoto"
+                className="publicMachineThumb userProfilePhotoPreview"
+              />
+            ) : (
+              <span className="documentEmptyHint">Kein Foto hinterlegt.</span>
+            )}
+            <label className="pillButton outline documentUploadButton">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  await handleFile(file, "photoUrl", "Foto konnte nicht gelesen werden.");
+                }}
+              />
+              Foto auswählen
+            </label>
+          </div>
+        </div>
+      </div>
+      <div className="fieldRow documentationFieldRow userProfileMediaBlock">
+        <span>Unterschrift (Prüfprotokoll)</span>
+        <div className="documentUploadControls documentUploadControlsCompact">
+          <div className="documentUploadActions userProfileMediaActions">
+            {form.signatureUrl ? (
+              <img
+                src={form.signatureUrl}
+                alt="Unterschrift"
+                className="userProfileSignaturePreview"
+              />
+            ) : (
+              <span className="documentEmptyHint">Keine Unterschrift hinterlegt.</span>
+            )}
+            <label className="pillButton outline documentUploadButton">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  await handleFile(file, "signatureUrl", "Unterschrift konnte nicht gelesen werden.");
+                }}
+              />
+              Unterschrift auswählen
+            </label>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function UserProfileFieldsBlock({
+  form,
+  onChange,
+  onFileError,
+  showOvertime = false,
+  supervisors = [],
+  excludeUserId = null,
+}: UserProfileFieldsBlockProps) {
   return (
     <>
       <input
@@ -316,64 +387,6 @@ function UserProfileFieldsBlock({
           placeholder="Handynummer"
         />
       </section>
-
-      <div className="fieldRow documentationFieldRow" style={{ gridColumn: "1 / -1" }}>
-        <span>Benutzerfoto</span>
-        <div className="documentUploadControls documentUploadControlsCompact">
-          <div className="documentUploadActions">
-            {form.photoUrl ? (
-              <img
-                src={form.photoUrl}
-                alt="Benutzerfoto"
-                className="publicMachineThumb"
-                style={{ width: 72, height: 72 }}
-              />
-            ) : (
-              <span className="documentEmptyHint">Kein Foto hinterlegt.</span>
-            )}
-            <label className="pillButton outline documentUploadButton">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  await handleFile(file, "photoUrl", "Foto konnte nicht gelesen werden.");
-                }}
-              />
-              Foto auswählen
-            </label>
-          </div>
-        </div>
-      </div>
-      <div className="fieldRow documentationFieldRow" style={{ gridColumn: "1 / -1" }}>
-        <span>Unterschrift (Prüfprotokoll)</span>
-        <div className="documentUploadControls documentUploadControlsCompact">
-          <div className="documentUploadActions">
-            {form.signatureUrl ? (
-              <img
-                src={form.signatureUrl}
-                alt="Unterschrift"
-                style={{ maxWidth: 220, maxHeight: 72, objectFit: "contain" }}
-              />
-            ) : (
-              <span className="documentEmptyHint">Keine Unterschrift hinterlegt.</span>
-            )}
-            <label className="pillButton outline documentUploadButton">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  await handleFile(file, "signatureUrl", "Unterschrift konnte nicht gelesen werden.");
-                }}
-              />
-              Unterschrift auswählen
-            </label>
-          </div>
-        </div>
-      </div>
     </>
   );
 }
@@ -695,38 +708,47 @@ export default function UsersPage() {
               <p className="cardTitle">Neuer Benutzer</p>
             </div>
             <form className="groupCreateForm userCreateForm" onSubmit={handleCreateUser}>
-              <input
-                value={newUsername}
-                onChange={(event) => setNewUsername(event.target.value)}
-                placeholder="Benutzername"
-                autoComplete="username"
-                required
-              />
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                placeholder="Passwort (min. 6 Zeichen)"
-                autoComplete="new-password"
-                minLength={6}
-                required
-              />
-              <input
-                inputMode="numeric"
-                pattern="[0-9]{1,2}"
-                maxLength={2}
-                value={newSecretPin}
-                onChange={(event) => setNewSecretPin(event.target.value.replace(/\D/g, ""))}
-                placeholder="Geheimzahl (0–99)"
-                required
-              />
-              <UserProfileFieldsBlock
-                form={newProfile}
-                onChange={updateNewProfile}
-                onFileError={setCreateMessage}
-                showOvertime
-                supervisors={supervisorOptions}
-              />
+              <div className="userProfileFormLayout">
+                <div className="userProfileFormFields">
+                  <input
+                    value={newUsername}
+                    onChange={(event) => setNewUsername(event.target.value)}
+                    placeholder="Benutzername"
+                    autoComplete="username"
+                    required
+                  />
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    placeholder="Passwort (min. 6 Zeichen)"
+                    autoComplete="new-password"
+                    minLength={6}
+                    required
+                  />
+                  <input
+                    inputMode="numeric"
+                    pattern="[0-9]{1,2}"
+                    maxLength={2}
+                    value={newSecretPin}
+                    onChange={(event) => setNewSecretPin(event.target.value.replace(/\D/g, ""))}
+                    placeholder="Geheimzahl (0–99)"
+                    required
+                  />
+                  <UserProfileFieldsBlock
+                    form={newProfile}
+                    onChange={updateNewProfile}
+                    onFileError={setCreateMessage}
+                    showOvertime
+                    supervisors={supervisorOptions}
+                  />
+                </div>
+                <UserProfileMediaFields
+                  form={newProfile}
+                  onChange={updateNewProfile}
+                  onFileError={setCreateMessage}
+                />
+              </div>
               <button type="submit" className="pillButton primary" disabled={creating}>
                 {creating ? "Wird angelegt..." : "Benutzer speichern"}
               </button>
@@ -834,39 +856,48 @@ export default function UsersPage() {
               </p>
             ) : null}
             <form className="groupCreateForm userCreateForm" onSubmit={handleSaveUserProfile}>
-              <input
-                value={editUsername}
-                onChange={(event) => setEditUsername(event.target.value)}
-                placeholder="Benutzername"
-                autoComplete="username"
-                required
-              />
-              <UserProfileFieldsBlock
-                form={editProfile}
-                onChange={updateEditProfile}
-                onFileError={setSaveMessage}
-                showOvertime
-                supervisors={supervisorOptions}
-                excludeUserId={selectedUser.id}
-              />
-              <section className="personalFieldsSection">
-                <h3 className="personalFieldsSectionTitle">Zugang</h3>
-                <input
-                  inputMode="numeric"
-                  pattern="[0-9]{1,2}"
-                  maxLength={2}
-                  value={editSecretPin}
-                  onChange={(event) => setEditSecretPin(event.target.value.replace(/\D/g, ""))}
-                  placeholder="Geheimzahl (0–99)"
+              <div className="userProfileFormLayout">
+                <div className="userProfileFormFields">
+                  <input
+                    value={editUsername}
+                    onChange={(event) => setEditUsername(event.target.value)}
+                    placeholder="Benutzername"
+                    autoComplete="username"
+                    required
+                  />
+                  <UserProfileFieldsBlock
+                    form={editProfile}
+                    onChange={updateEditProfile}
+                    onFileError={setSaveMessage}
+                    showOvertime
+                    supervisors={supervisorOptions}
+                    excludeUserId={selectedUser.id}
+                  />
+                  <section className="personalFieldsSection">
+                    <h3 className="personalFieldsSectionTitle">Zugang</h3>
+                    <input
+                      inputMode="numeric"
+                      pattern="[0-9]{1,2}"
+                      maxLength={2}
+                      value={editSecretPin}
+                      onChange={(event) => setEditSecretPin(event.target.value.replace(/\D/g, ""))}
+                      placeholder="Geheimzahl (0–99)"
+                    />
+                    <input
+                      type="password"
+                      value={editPassword}
+                      onChange={(event) => setEditPassword(event.target.value)}
+                      placeholder="Neues Passwort (leer = unverändert)"
+                      autoComplete="new-password"
+                    />
+                  </section>
+                </div>
+                <UserProfileMediaFields
+                  form={editProfile}
+                  onChange={updateEditProfile}
+                  onFileError={setSaveMessage}
                 />
-                <input
-                  type="password"
-                  value={editPassword}
-                  onChange={(event) => setEditPassword(event.target.value)}
-                  placeholder="Neues Passwort (leer = unverändert)"
-                  autoComplete="new-password"
-                />
-              </section>
+              </div>
               <button type="submit" className="pillButton primary" disabled={savingProfile}>
                 {savingProfile ? "Speichern..." : "Benutzer aktualisieren"}
               </button>
