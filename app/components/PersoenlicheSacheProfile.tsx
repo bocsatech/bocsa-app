@@ -5,6 +5,7 @@ import GermanDateField from "./GermanDateField";
 import DirectManagerField, { type SupervisorOption } from "./DirectManagerField";
 import UserPositionField from "./UserPositionField";
 import UserProfileMediaFields from "./UserProfileMediaFields";
+import { UserFormSelect, UserFormTextInput } from "./UserFormField";
 import {
   DEFAULT_USER_FILIALEN,
   type UserFilialeCode,
@@ -299,48 +300,52 @@ export default function PersoenlicheSacheProfile() {
           onChange={setEditPosition}
           listId="stammdaten-position"
         />
-        <label className="userFilialeField">
-          <span>Filiale</span>
-          <select
-            value={editFilialeCode}
-            onChange={(event) => setEditFilialeCode(event.target.value as UserFilialeCode | "")}
-          >
-            <option value="">— keine Filiale —</option>
-            {DEFAULT_USER_FILIALEN.map((filiale) => (
-              <option key={filiale.code} value={filiale.code}>
-                {filiale.label} ({filiale.code})
-              </option>
-            ))}
-          </select>
-        </label>
+        <UserFormSelect
+          label="Filiale"
+          value={editFilialeCode}
+          onChange={(value) => setEditFilialeCode(value as UserFilialeCode | "")}
+        >
+          <option value="">— keine Filiale —</option>
+          {DEFAULT_USER_FILIALEN.map((filiale) => (
+            <option key={filiale.code} value={filiale.code}>
+              {filiale.label} ({filiale.code})
+            </option>
+          ))}
+        </UserFormSelect>
 
         <section className="personalFieldsSection">
           <h3 className="personalFieldsSectionTitle">Arbeit</h3>
-          <label className="userFilialeField">
-            <span>Arbeitsbereich</span>
-            <select
-              value={editWorkArea}
-              onChange={(event) => setEditWorkArea(event.target.value as UserWorkArea | "")}
-            >
-              <option value="">— nicht angegeben —</option>
-              {USER_WORK_AREAS.map((area) => (
-                <option key={area.value} value={area.value}>
-                  {area.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <UserFormSelect
+            label="Arbeitsbereich"
+            value={editWorkArea}
+            onChange={(value) => setEditWorkArea(value as UserWorkArea | "")}
+          >
+            <option value="">— nicht angegeben —</option>
+            {USER_WORK_AREAS.map((area) => (
+              <option key={area.value} value={area.value}>
+                {area.label}
+              </option>
+            ))}
+          </UserFormSelect>
           <DirectManagerField
             value={editDirectManager}
             onChange={setEditDirectManager}
             supervisors={supervisors}
             excludeUserId={user.id}
           />
-          <input
-            value={editBankAccount}
-            onChange={(event) => setEditBankAccount(event.target.value)}
-            placeholder="Bankkonto / IBAN"
-          />
+          {isLocalhost ? (
+            <UserFormTextInput
+              label="Bankkonto / IBAN"
+              value={editBankAccount}
+              onChange={setEditBankAccount}
+            />
+          ) : (
+            <input
+              value={editBankAccount}
+              onChange={(event) => setEditBankAccount(event.target.value)}
+              placeholder="Bankkonto / IBAN"
+            />
+          )}
         </section>
 
         <section className="personalFieldsSection">

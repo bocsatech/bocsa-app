@@ -4799,6 +4799,23 @@ body.lagerPickerOpen {
   border-top: 1px solid #f1f5f9;
 }
 
+.usersPageContent .userCreateForm--localhost .userProfileFormMainFields .personalFieldsSection {
+  display: contents;
+}
+
+.usersPageContent .userCreateForm--localhost .personalFieldsSectionTitle {
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields > .userFormField,
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields .personalFieldsSection .userFormField,
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields > .userFilialeField,
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields .personalFieldsSection .userFilialeField {
+  width: 100%;
+  max-width: 100%;
+}
+
 .usersPageContent .userCreateForm .personalFieldsSectionTitle {
   margin: 0;
   font-size: 0.82rem;

@@ -105,6 +105,21 @@
   border-top: 1px solid #f1f5f9;
 }
 
+.persoenlicheSachePage .userCreateForm--localhost .personalFieldsSection {
+  display: contents;
+}
+
+.persoenlicheSachePage .userCreateForm--localhost .personalFieldsSectionTitle {
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .personalFieldsSection .userFormField,
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .personalFieldsSection .userFilialeField {
+  width: 50%;
+  max-width: 100%;
+}
+
 .persoenlicheSachePage .personalFieldsSectionTitle {
   margin: 0;
   font-size: 0.82rem;
