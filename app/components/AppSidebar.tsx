@@ -854,6 +854,16 @@ function SidebarNavItems({
         onMobileNavClose={onMobileNavClose}
       />
 
+      <EinstellungenNavGroup
+        activeHref={activeHref}
+        pathname={pathname}
+        submenuOpen={submenuOpen}
+        permissions={permissions}
+        groups={groups}
+        username={username}
+        onMobileNavClose={onMobileNavClose}
+      />
+
       {showBaumaschinen ? (
         <BaumaschinenNavGroup
           activeHref={activeHref}
@@ -898,16 +908,6 @@ function SidebarNavItems({
           {item.label}
         </Link>
       ))}
-
-      <EinstellungenNavGroup
-        activeHref={activeHref}
-        pathname={pathname}
-        submenuOpen={submenuOpen}
-        permissions={permissions}
-        groups={groups}
-        username={username}
-        onMobileNavClose={onMobileNavClose}
-      />
     </>
   );
 }
