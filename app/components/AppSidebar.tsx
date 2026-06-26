@@ -138,10 +138,16 @@ export const APP_NAV_ITEMS = [
   { href: "/qr-code", label: "QR-Code", permission: "menu.qr" },
 ] as const;
 
-export const ADMIN_NAV_ITEMS = [
-  { href: "/users", label: "Benutzer", permission: "menu.users" },
-  { href: "/groups", label: "Gruppen", permission: "menu.groups" },
-] as const;
+export const EINSTELLUNGEN_NAV = {
+  label: "Einstellungen",
+  children: [
+    { href: "/users", label: "Benutzer", permission: "menu.users" },
+    { href: "/groups", label: "Gruppen", permission: "menu.groups" },
+  ],
+} as const;
+
+/** @deprecated — use EINSTELLUNGEN_NAV.children */
+export const ADMIN_NAV_ITEMS = EINSTELLUNGEN_NAV.children;
 
 const ALL_MENU_HREFS = [
   HOME_NAV.href,
@@ -153,12 +159,13 @@ const ALL_MENU_HREFS = [
   LAGER_NAV.href,
   ...LAGER_NAV.children.map((child) => child.href),
   ...APP_NAV_ITEMS.map((item) => item.href),
-  ...ADMIN_NAV_ITEMS.map((item) => item.href),
+  ...EINSTELLUNGEN_NAV.children.map((item) => item.href),
 ] as const;
 
 type NavItem = (typeof APP_NAV_ITEMS)[number];
 type MeineMenuSubItem = (typeof MEINE_MENU_NAV.children)[number];
-type AdminNavItem = (typeof ADMIN_NAV_ITEMS)[number];
+type EinstellungenNavItem = (typeof EINSTELLUNGEN_NAV.children)[number];
+type AdminNavItem = EinstellungenNavItem;
 type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number];
 
 type SidebarAuth = {
@@ -194,7 +201,7 @@ function navHrefBase(href: string) {
 }
 
 function isNavActive(
-  item: NavItem | AdminNavItem | MeineMenuSubItem,
+  item: NavItem | AdminNavItem | MeineMenuSubItem | EinstellungenNavItem,
   activeHref: string | undefined,
   pathname: string
 ) {
@@ -219,6 +226,10 @@ function isNavActive(
 
 function isMeineMenuSectionActive(activeHref: string | undefined, pathname: string) {
   return MEINE_MENU_NAV.children.some((child) => isNavActive(child, activeHref, pathname));
+}
+
+function isEinstellungenSectionActive(activeHref: string | undefined, pathname: string) {
+  return EINSTELLUNGEN_NAV.children.some((child) => isNavActive(child, activeHref, pathname));
 }
 
 function isBaumaschinenSectionActive(activeHref: string | undefined, pathname: string) {
@@ -428,6 +439,77 @@ function MeineMenuNavGroup({
         onClick={handleParentClick}
       >
         {MEINE_MENU_NAV.label}
+      </button>
+      {showSub ? (
+        <div className="sidebarNavSub">
+          {visibleChildren.map((child) => (
+            <Link
+              key={child.href}
+              href={child.href}
+              className={isNavActive(child, activeHref, pathname) ? "active" : undefined}
+              onClick={() => onMobileNavClose?.()}
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function EinstellungenNavGroup({
+  activeHref,
+  pathname,
+  submenuOpen,
+  permissions,
+  groups,
+  username,
+  onMobileNavClose,
+}: {
+  activeHref: string | undefined;
+  pathname: string;
+  submenuOpen: boolean;
+  permissions: string[];
+  groups: string[];
+  username?: string;
+  onMobileNavClose?: () => void;
+}) {
+  const visibleChildren = EINSTELLUNGEN_NAV.children.filter((child) =>
+    canShowMenuItem(child.permission, permissions, groups, username)
+  );
+  const sectionActive = isEinstellungenSectionActive(activeHref, pathname);
+  const [open, setOpen] = useState(submenuOpen || sectionActive);
+
+  useEffect(() => {
+    if (sectionActive) setOpen(true);
+  }, [sectionActive]);
+
+  useEffect(() => {
+    if (!sectionActive) setOpen(false);
+  }, [pathname, activeHref, sectionActive]);
+
+  function handleParentClick() {
+    if (sectionActive && open) {
+      setOpen(false);
+      return;
+    }
+    setOpen(true);
+  }
+
+  if (visibleChildren.length === 0) return null;
+
+  const showSub = submenuOpen || open;
+
+  return (
+    <div className="sidebarNavGroup sidebarEinstellungenGroup">
+      <button
+        type="button"
+        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        aria-expanded={showSub}
+        onClick={handleParentClick}
+      >
+        {EINSTELLUNGEN_NAV.label}
       </button>
       {showSub ? (
         <div className="sidebarNavSub">
@@ -747,9 +829,6 @@ function SidebarNavItems({
   const navItems = APP_NAV_ITEMS.filter((item) =>
     canShowMenuItem(item.permission, permissions, groups, username)
   );
-  const adminItems = ADMIN_NAV_ITEMS.filter((item) =>
-    canShowMenuItem(item.permission, permissions, groups, username)
-  );
 
   return (
     <>
@@ -820,18 +899,15 @@ function SidebarNavItems({
         </Link>
       ))}
 
-      {adminItems.length > 0 ? <div className="sidebarNavDivider" aria-hidden="true" /> : null}
-
-      {adminItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={isNavActive(item, activeHref, pathname) ? "active" : undefined}
-          onClick={() => onMobileNavClose?.()}
-        >
-          {item.label}
-        </Link>
-      ))}
+      <EinstellungenNavGroup
+        activeHref={activeHref}
+        pathname={pathname}
+        submenuOpen={submenuOpen}
+        permissions={permissions}
+        groups={groups}
+        username={username}
+        onMobileNavClose={onMobileNavClose}
+      />
     </>
   );
 }

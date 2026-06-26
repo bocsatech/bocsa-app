@@ -1324,10 +1324,15 @@ body.app-shell-route .appPageScroll > .welcomeCard {
   font-size: 0.86rem;
 }
 
-.sidebarMeineMenuGroup .sidebarNavSub {
+.sidebarMeineMenuGroup .sidebarNavSub,
+.sidebarEinstellungenGroup .sidebarNavSub {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.sidebarEinstellungenGroup .sidebarNavParent {
+  font-size: 0.86rem;
 }
 
 @media (min-width: 761px) {
