@@ -4539,6 +4539,76 @@ body.lagerPickerOpen {
   margin-top: 12px;
 }
 
+.usersPageContent .userCreateForm input,
+.usersPageContent .userCreateForm textarea,
+.usersPageContent .userCreateForm .dateFieldWithPicker .dateFieldText {
+  width: 50%;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.usersPageContent .userCreateForm .dateFieldWithPicker {
+  width: 50%;
+  max-width: 100%;
+}
+
+.usersPageContent .userCreateForm .userFilialeField {
+  width: 50%;
+  max-width: 100%;
+}
+
+.usersPageContent .userCreateForm .userFilialeField select {
+  width: 100%;
+}
+
+.usersPageContent .userCreateForm textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.usersPageContent .userCreateForm input:focus,
+.usersPageContent .userCreateForm textarea:focus,
+.usersPageContent .userCreateForm .userFilialeField select:focus,
+.usersPageContent .userCreateForm .dateFieldWithPicker .dateFieldText:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.usersPageContent .userCreateForm .personalFieldsSection {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.usersPageContent .userCreateForm .personalFieldsSectionTitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.usersPageContent .userCreateForm .pillButton.primary {
+  width: fit-content;
+}
+
+@media (max-width: 720px) {
+  .usersPageContent .userCreateForm input,
+  .usersPageContent .userCreateForm textarea,
+  .usersPageContent .userCreateForm .dateFieldWithPicker,
+  .usersPageContent .userCreateForm .userFilialeField {
+    width: 100%;
+  }
+}
+
 .usersListPanel .serviceTable {
   border: 1px solid #e5e7eb;
   border-radius: 14px;
