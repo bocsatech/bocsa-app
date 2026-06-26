@@ -71,7 +71,6 @@ export default function PersoenlicheSacheProfile() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [editFullName, setEditFullName] = useState("");
   const [editPosition, setEditPosition] = useState("");
-  const [editSite, setEditSite] = useState("");
   const [editFilialeCode, setEditFilialeCode] = useState<UserFilialeCode | "">("");
   const [editSecretPin, setEditSecretPin] = useState("");
   const [editPassword, setEditPassword] = useState("");

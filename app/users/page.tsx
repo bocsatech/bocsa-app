@@ -74,7 +74,6 @@ type ProfileFormState = {
 const emptyProfileForm = (): ProfileFormState => ({
   fullName: "",
   position: "",
-  site: "",
   filialeCode: "",
   photoUrl: "",
   signatureUrl: "",
@@ -97,7 +96,6 @@ function profileFormFromUser(user: UserRow): ProfileFormState {
   return {
     fullName: user.full_name ?? "",
     position: user.position ?? "",
-    site: user.site ?? "",
     filialeCode: user.filiale_code ?? "",
     photoUrl: user.photo_url ?? "",
     signatureUrl: user.signature_url ?? "",
@@ -124,7 +122,6 @@ function profilePayloadFromForm(form: ProfileFormState) {
   return {
     fullName: form.fullName,
     position: form.position,
-    site: form.site,
     filialeCode: form.filialeCode || null,
     photoUrl: form.photoUrl,
     signatureUrl: form.signatureUrl,
@@ -283,12 +280,6 @@ function UserProfileFieldsBlock({
           </option>
         ))}
       </UserFormSelect>
-      <UserFormTextInput
-        label="Standort (optional)"
-        value={form.site}
-        onChange={(value) => onChange("site", value)}
-      />
-
       <section className="personalFieldsSection">
         <h3 className="personalFieldsSectionTitle">Arbeit</h3>
         <UserFormSelect
