@@ -58,7 +58,12 @@ fi
 
 rm -rf .next node_modules/.cache
 echo "→ .next törölve"
-echo "→ Dev szerver indul (webpack, port 3000)…"
-echo "→ Böngésző: http://localhost:3000/login"
-echo "→ Ha nem tölt be: npm run test:local"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  Dev szerver indul (webpack, port 3000)…"
+echo ""
+echo "  Ready után nyisd meg:  http://localhost:3000/login"
+echo "  A terminál itt „megáll” — a szerver fut (Ctrl+C = leállítás)."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 exec npx next dev --webpack "$@"

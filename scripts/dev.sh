@@ -23,4 +23,19 @@ if [[ -d .next && ! -f "$manifest" ]]; then
   rm -rf .next
 fi
 
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  Dev szerver indul…"
+echo ""
+echo "  A „Ready in …ms” UTÁN a terminál NEM áll le —"
+echo "  ez normális: a szerver fut és várja a böngészőt."
+echo ""
+echo "  Nyisd meg:  http://localhost:3000/login"
+echo "  Leállítás:  Ctrl+C  (Mac: ugyanez)"
+echo ""
+echo "  Teszt (másik terminál ablakban, Ready után):"
+echo "    npm run test:local"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
 exec npx next dev --webpack "$@"
