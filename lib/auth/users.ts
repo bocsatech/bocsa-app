@@ -6,6 +6,11 @@ import {
   normalizeUserFilialeCode,
   type UserFilialeCode,
 } from "../user-filiale";
+import {
+  normalizeUserWorkArea,
+  STAMMDATEN_USER_COLUMNS,
+  type UserWorkArea,
+} from "../user-stammdaten";
 import { ensureUsersFilialeColumn } from "../users-filiale-setup.mjs";
 
 export const USERS_TABLE = "users";
@@ -30,6 +35,10 @@ export type AppUser = {
   ecard_number?: string | null;
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
+  bank_account?: string | null;
+  direct_manager?: string | null;
+  work_area?: UserWorkArea | null;
+  overtime_hours_balance?: number | null;
   is_active?: boolean;
   created_at?: string;
 };
@@ -40,9 +49,10 @@ function getDb() {
 
 const USER_PERSONAL_COLUMNS =
   "company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone";
+const USER_EXTENDED_COLUMNS = `${USER_PERSONAL_COLUMNS}, ${STAMMDATEN_USER_COLUMNS}`;
 
 const USER_LIST_SELECT =
-  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, ${USER_PERSONAL_COLUMNS}, created_at`;
+  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, ${USER_EXTENDED_COLUMNS}, created_at`;
 const USER_LIST_SELECT_LEGACY =
   "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
 const USER_LIST_SELECT_NO_PERSONAL =
@@ -51,13 +61,28 @@ const USER_LIST_SELECT_NO_ACTIVE =
   "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
 
 const USER_AUTH_SELECT =
-  `id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, ${USER_PERSONAL_COLUMNS}, created_at`;
+  `id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, ${USER_EXTENDED_COLUMNS}, created_at`;
 const USER_AUTH_SELECT_LEGACY =
   "id, username, password_hash, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
 const USER_AUTH_SELECT_NO_PERSONAL =
   "id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, created_at";
 const USER_AUTH_SELECT_NO_ACTIVE =
-  `id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, created_at`;
+  `id, username, password_hash, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_EXTENDED_COLUMNS}, created_at`;
+
+function isMissingStammdatenColumn(
+  error: { message?: string; code?: string } | null
+) {
+  const msg = String(error?.message ?? "").toLowerCase();
+  const columns = ["bank_account", "direct_manager", "work_area", "overtime_hours_balance"];
+  if (!columns.some((column) => msg.includes(column))) return false;
+  const code = String(error?.code ?? "").toUpperCase();
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    code === "42703" ||
+    code === "PGRST204"
+  );
+}
 
 function isMissingPersonalColumn(
   error: { message?: string; code?: string } | null
@@ -101,6 +126,13 @@ const PERSONAL_PAYLOAD_KEYS = [
   "emergency_contact_phone",
 ] as const;
 
+const STAMMDATEN_PAYLOAD_KEYS = [
+  "bank_account",
+  "direct_manager",
+  "work_area",
+  "overtime_hours_balance",
+] as const;
+
 function stripPersonalPayload(payload: Record<string, unknown>) {
   const next = { ...payload };
   for (const key of PERSONAL_PAYLOAD_KEYS) {
@@ -108,6 +140,17 @@ function stripPersonalPayload(payload: Record<string, unknown>) {
   }
   return next;
 }
+
+function stripStammdatenPayload(payload: Record<string, unknown>) {
+  const next = { ...payload };
+  for (const key of STAMMDATEN_PAYLOAD_KEYS) {
+    delete next[key];
+  }
+  return next;
+}
+
+const USER_LIST_SELECT_NO_STAMMDATEN =
+  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, ${USER_PERSONAL_COLUMNS}, created_at`;
 
 function isMissingActiveColumn(
   error: { message?: string; code?: string } | null
@@ -392,6 +435,10 @@ export async function updateUserById(
     ecardNumber?: string;
     emergencyContactName?: string;
     emergencyContactPhone?: string;
+    bankAccount?: string;
+    directManager?: string;
+    workArea?: UserWorkArea | null;
+    overtimeHoursBalance?: number;
     username?: string;
     isActive?: boolean;
   }
@@ -452,6 +499,30 @@ export async function updateUserById(
     payload.emergency_contact_name = optionalText(patch.emergencyContactName);
   if (patch.emergencyContactPhone !== undefined)
     payload.emergency_contact_phone = optionalText(patch.emergencyContactPhone);
+  if (patch.bankAccount !== undefined)
+    payload.bank_account = optionalText(patch.bankAccount);
+  if (patch.directManager !== undefined)
+    payload.direct_manager = optionalText(patch.directManager);
+  if (patch.workArea !== undefined) {
+    if (patch.workArea === null || patch.workArea === "") {
+      payload.work_area = null;
+    } else {
+      const area = normalizeUserWorkArea(patch.workArea);
+      if (!area) {
+        return {
+          user: null,
+          error: "Ungültiger Arbeitsbereich. Erlaubt: Lager, Werkstatt.",
+        };
+      }
+      payload.work_area = area;
+    }
+  }
+  if (patch.overtimeHoursBalance !== undefined) {
+    const numeric = Number(patch.overtimeHoursBalance);
+    payload.overtime_hours_balance = Number.isFinite(numeric)
+      ? Math.round(numeric * 100) / 100
+      : 0;
+  }
 
   if (Object.keys(payload).length === 0) {
     return { user: null, error: "Keine Änderungen übergeben." };
@@ -489,6 +560,23 @@ export async function updateUserById(
       .update("is_active" in payload ? updatePayload : payload)
       .eq("id", id)
       .select(USER_LIST_SELECT_NO_ACTIVE)
+      .single());
+  }
+
+  if (error && isMissingStammdatenColumn(error)) {
+    const updatePayload = stripStammdatenPayload(payload);
+    if (Object.keys(updatePayload).length === 0) {
+      return {
+        user: null,
+        error:
+          'Stammdaten-Felder fehlen in der Datenbank. Bitte supabase/users-stammdaten-fields.sql im Supabase SQL Editor ausführen.',
+      };
+    }
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .update(updatePayload)
+      .eq("id", id)
+      .select(USER_LIST_SELECT_NO_STAMMDATEN)
       .single());
   }
 

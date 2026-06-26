@@ -1,0 +1,46 @@
+.stammdatenPage .stammdatenOverview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.stammdatenStatCard {
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fafafa;
+}
+
+.stammdatenStatCard h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.stammdatenStatGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.stammdatenStatRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.92rem;
+}
+
+.stammdatenStatRow strong {
+  font-weight: 700;
+}
+
+.stammdatenStatHint {
+  margin: 10px 0 0;
+  color: #6b7280;
+  font-size: 0.84rem;
+}
+
+@media (max-width: 760px) {
+  .stammdatenPage .stammdatenOverview {
+    grid-template-columns: 1fr;
+  }
+}

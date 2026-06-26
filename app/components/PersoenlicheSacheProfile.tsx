@@ -6,6 +6,24 @@ import {
   DEFAULT_USER_FILIALEN,
   type UserFilialeCode,
 } from "../../lib/user-filiale";
+import {
+  USER_WORK_AREAS,
+  type UserWorkArea,
+} from "../../lib/user-stammdaten";
+
+type UrlaubStats = {
+  year: number;
+  taken: number;
+  planned: number;
+  remaining: number;
+  annualDays: number;
+  formatted?: {
+    taken: string;
+    planned: string;
+    remaining: string;
+    annualDays: string;
+  };
+};
 
 type UserRow = {
   id: string;
@@ -26,6 +44,10 @@ type UserRow = {
   ecard_number?: string | null;
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
+  bank_account?: string | null;
+  direct_manager?: string | null;
+  work_area?: UserWorkArea | null;
+  overtime_hours_balance?: number | null;
 };
 
 function fileToDataUrl(file: File) {
@@ -60,8 +82,13 @@ export default function PersoenlicheSacheProfile() {
   const [editEcardNumber, setEditEcardNumber] = useState("");
   const [editEmergencyContactName, setEditEmergencyContactName] = useState("");
   const [editEmergencyContactPhone, setEditEmergencyContactPhone] = useState("");
+  const [editBankAccount, setEditBankAccount] = useState("");
+  const [editDirectManager, setEditDirectManager] = useState("");
+  const [editWorkArea, setEditWorkArea] = useState<UserWorkArea | "">("");
+  const [urlaubStats, setUrlaubStats] = useState<UrlaubStats | null>(null);
+  const [overtimeHours, setOvertimeHours] = useState(0);
 
-  const applyUser = useCallback((row: UserRow) => {
+  const applyUser = useCallback((row: UserRow, stats?: { urlaub?: UrlaubStats; overtimeHours?: number }) => {
     setUser(row);
     setEditFullName(row.full_name ?? "");
     setEditPosition(row.position ?? "");
@@ -82,6 +109,11 @@ export default function PersoenlicheSacheProfile() {
     setEditEcardNumber(row.ecard_number ?? "");
     setEditEmergencyContactName(row.emergency_contact_name ?? "");
     setEditEmergencyContactPhone(row.emergency_contact_phone ?? "");
+    setEditBankAccount(row.bank_account ?? "");
+    setEditDirectManager(row.direct_manager ?? "");
+    setEditWorkArea(row.work_area ?? "");
+    if (stats?.urlaub) setUrlaubStats(stats.urlaub);
+    if (stats?.overtimeHours !== undefined) setOvertimeHours(stats.overtimeHours);
   }, []);
 
   const loadProfile = useCallback(async () => {
@@ -101,7 +133,10 @@ export default function PersoenlicheSacheProfile() {
       return;
     }
 
-    applyUser(result.user as UserRow);
+    applyUser(result.user as UserRow, {
+      urlaub: result.urlaub as UrlaubStats | undefined,
+      overtimeHours: typeof result.overtimeHours === "number" ? result.overtimeHours : 0,
+    });
     setLoading(false);
   }, [applyUser]);
 
@@ -147,6 +182,9 @@ export default function PersoenlicheSacheProfile() {
         ecardNumber: editEcardNumber,
         emergencyContactName: editEmergencyContactName,
         emergencyContactPhone: editEmergencyContactPhone,
+        bankAccount: editBankAccount,
+        directManager: editDirectManager,
+        workArea: editWorkArea || null,
       }),
     });
     const data = await response.json().catch(() => ({}));
@@ -159,7 +197,10 @@ export default function PersoenlicheSacheProfile() {
 
     setSaveMessage("Gespeichert.");
     setEditPassword("");
-    applyUser(data.user as UserRow);
+    applyUser(data.user as UserRow, {
+      urlaub: data.urlaub as UrlaubStats | undefined,
+      overtimeHours: typeof data.overtimeHours === "number" ? data.overtimeHours : overtimeHours,
+    });
   }
 
   if (loading) {
@@ -180,10 +221,46 @@ export default function PersoenlicheSacheProfile() {
   }
 
   return (
-    <article className="card userCreateCard usersPanel usersEditPanel">
+    <>
+      <div className="stammdatenOverview">
+        <article className="stammdatenStatCard">
+          <h3>Urlaub {urlaubStats?.year ?? new Date().getFullYear()}</h3>
+          <div className="stammdatenStatGrid">
+            <div className="stammdatenStatRow">
+              <span>Genommen</span>
+              <strong>{urlaubStats?.formatted?.taken ?? urlaubStats?.taken ?? 0}</strong>
+            </div>
+            <div className="stammdatenStatRow">
+              <span>Geplant / reserviert</span>
+              <strong>{urlaubStats?.formatted?.planned ?? urlaubStats?.planned ?? 0}</strong>
+            </div>
+            <div className="stammdatenStatRow">
+              <span>Übrig</span>
+              <strong>{urlaubStats?.formatted?.remaining ?? urlaubStats?.remaining ?? 0}</strong>
+            </div>
+          </div>
+          <p className="stammdatenStatHint">
+            Kontingent {urlaubStats?.formatted?.annualDays ?? urlaubStats?.annualDays ?? 25} Tage —
+            Planung unter Menüpunkt Urlaub.
+          </p>
+        </article>
+
+        <article className="stammdatenStatCard">
+          <h3>Überstunden</h3>
+          <div className="stammdatenStatGrid">
+            <div className="stammdatenStatRow">
+              <span>Verfügbar</span>
+              <strong>{overtimeHours} Std.</strong>
+            </div>
+          </div>
+          <p className="stammdatenStatHint">Saldo wird von der Verwaltung gepflegt.</p>
+        </article>
+      </div>
+
+      <article className="card userCreateCard usersPanel usersEditPanel">
       <div className="cardHeader">
         <p className="cardTitle">
-          Benutzer bearbeiten: <strong>{user.username ?? "—"}</strong>
+          Stammdaten: <strong>{user.username ?? "—"}</strong>
         </p>
       </div>
       {saveMessage ? (
@@ -223,23 +300,36 @@ export default function PersoenlicheSacheProfile() {
         <input
           value={editSite}
           onChange={(event) => setEditSite(event.target.value)}
-          placeholder="Standort / Werkstatt (optional)"
+          placeholder="Standort (optional)"
         />
-        <input
-          inputMode="numeric"
-          pattern="[0-9]{1,2}"
-          maxLength={2}
-          value={editSecretPin}
-          onChange={(event) => setEditSecretPin(event.target.value.replace(/\D/g, ""))}
-          placeholder="Geheimzahl (0–99)"
-        />
-        <input
-          type="password"
-          value={editPassword}
-          onChange={(event) => setEditPassword(event.target.value)}
-          placeholder="Neues Passwort (leer = unverändert)"
-          autoComplete="new-password"
-        />
+
+        <section className="personalFieldsSection">
+          <h3 className="personalFieldsSectionTitle">Arbeit</h3>
+          <label className="userFilialeField">
+            <span>Arbeitsbereich</span>
+            <select
+              value={editWorkArea}
+              onChange={(event) => setEditWorkArea(event.target.value as UserWorkArea | "")}
+            >
+              <option value="">— nicht angegeben —</option>
+              {USER_WORK_AREAS.map((area) => (
+                <option key={area.value} value={area.value}>
+                  {area.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <input
+            value={editDirectManager}
+            onChange={(event) => setEditDirectManager(event.target.value)}
+            placeholder="Direkter Vorgesetzter"
+          />
+          <input
+            value={editBankAccount}
+            onChange={(event) => setEditBankAccount(event.target.value)}
+            placeholder="Bankkonto / IBAN"
+          />
+        </section>
 
         <section className="personalFieldsSection">
           <h3 className="personalFieldsSectionTitle">Kontakt &amp; Persönliches</h3>
@@ -286,6 +376,25 @@ export default function PersoenlicheSacheProfile() {
             value={editEcardNumber}
             onChange={(event) => setEditEcardNumber(event.target.value)}
             placeholder="E-Card Nummer"
+          />
+        </section>
+
+        <section className="personalFieldsSection">
+          <h3 className="personalFieldsSectionTitle">Zugang</h3>
+          <input
+            inputMode="numeric"
+            pattern="[0-9]{1,2}"
+            maxLength={2}
+            value={editSecretPin}
+            onChange={(event) => setEditSecretPin(event.target.value.replace(/\D/g, ""))}
+            placeholder="Geheimzahl (0–99)"
+          />
+          <input
+            type="password"
+            value={editPassword}
+            onChange={(event) => setEditPassword(event.target.value)}
+            placeholder="Neues Passwort (leer = unverändert)"
+            autoComplete="new-password"
           />
         </section>
 
@@ -372,9 +481,10 @@ export default function PersoenlicheSacheProfile() {
           </div>
         </div>
         <button type="submit" className="pillButton primary" disabled={savingProfile}>
-          {savingProfile ? "Speichern…" : "Benutzer aktualisieren"}
+          {savingProfile ? "Speichern…" : "Stammdaten speichern"}
         </button>
       </form>
     </article>
+    </>
   );
 }

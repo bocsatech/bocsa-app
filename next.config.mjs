@@ -11,6 +11,16 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/persoenliche-sache",
+        destination: "/stammdaten",
+        permanent: true,
+      },
+      {
+        source: "/persoenliche-sache/:path*",
+        destination: "/stammdaten",
+        permanent: true,
+      },
+      {
         source: "/filialen",
         destination: "/firma",
         permanent: true,

@@ -121,13 +121,13 @@ export const LAGER_NAV = {
 } as const;
 
 export const MEINE_MENU_NAV = {
-  label: "Meine Menu",
+  label: "Persönliche Menu",
   children: [
     { href: "/aufgaben", label: "Aufgaben" },
     { href: "/nachrichten", label: "Nachrichten" },
     { href: "/arbeitsstunden/aus-auftraegen", label: "Arbeitsstunden" },
     { href: "/urlaub", label: "Urlaub" },
-    { href: "/persoenliche-sache", label: "Persönliche Sache" },
+    { href: "/stammdaten", label: "Stammdaten" },
   ],
 } as const;
 

@@ -1,14 +1,21 @@
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
-import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { updateUserById } from "../../../../lib/auth/users";
-import { normalizeUserFilialeCode } from "../../../../lib/user-filiale";
 import { normalizeGermanDate } from "../../../../lib/dates";
+import { STAMMDATEN_USER_COLUMNS, normalizeUserWorkArea } from "../../../../lib/user-stammdaten";
+import {
+  loadUrlaubQuotaForUsername,
+  normalizeOvertimeHours,
+} from "../../../../lib/user-me-stats.mjs";
+import { normalizeUserFilialeCode } from "../../../../lib/user-filiale";
+import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 const USER_PERSONAL_COLUMNS =
   "company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone";
 
 const USER_SELECT =
+  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, ${STAMMDATEN_USER_COLUMNS}, created_at`;
+const USER_SELECT_NO_STAMMDATEN =
   `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, created_at`;
 const USER_SELECT_NO_PERSONAL =
   "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
@@ -37,6 +44,13 @@ function isMissingPersonalColumn(error) {
   return msg.includes("does not exist") || msg.includes("schema cache");
 }
 
+function isMissingStammdatenColumn(error) {
+  const msg = String(error?.message ?? "").toLowerCase();
+  const columns = ["bank_account", "direct_manager", "work_area", "overtime_hours_balance"];
+  if (!columns.some((column) => msg.includes(column))) return false;
+  return msg.includes("does not exist") || msg.includes("schema cache");
+}
+
 function optionalText(value) {
   if (value === undefined) return undefined;
   const text = String(value ?? "").trim();
@@ -49,34 +63,22 @@ async function loadOwnProfile(userId) {
     return { user: null, error: "Supabase ist nicht konfiguriert." };
   }
 
-  let { data, error } = await db
-    .from("users")
-    .select(USER_SELECT)
-    .eq("id", userId)
-    .maybeSingle();
+  let { data, error } = await db.from("users").select(USER_SELECT).eq("id", userId).maybeSingle();
+
+  if (error && isMissingStammdatenColumn(error)) {
+    ({ data, error } = await db.from("users").select(USER_SELECT_NO_STAMMDATEN).eq("id", userId).maybeSingle());
+  }
 
   if (error && isMissingFilialeColumn(error)) {
-    ({ data, error } = await db
-      .from("users")
-      .select(USER_SELECT_NO_PERSONAL)
-      .eq("id", userId)
-      .maybeSingle());
+    ({ data, error } = await db.from("users").select(USER_SELECT_NO_PERSONAL).eq("id", userId).maybeSingle());
   }
 
   if (error && isMissingPersonalColumn(error)) {
-    ({ data, error } = await db
-      .from("users")
-      .select(USER_SELECT_NO_PERSONAL)
-      .eq("id", userId)
-      .maybeSingle());
+    ({ data, error } = await db.from("users").select(USER_SELECT_NO_PERSONAL).eq("id", userId).maybeSingle());
   }
 
   if (error && isMissingFilialeColumn(error)) {
-    ({ data, error } = await db
-      .from("users")
-      .select(USER_SELECT_LEGACY)
-      .eq("id", userId)
-      .maybeSingle());
+    ({ data, error } = await db.from("users").select(USER_SELECT_LEGACY).eq("id", userId).maybeSingle());
   }
 
   if (error) {
@@ -95,12 +97,20 @@ export async function GET() {
     return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
   }
 
+  const db = getSupabaseAdmin();
   const { user, error } = await loadOwnProfile(session.userId);
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
   }
 
-  return NextResponse.json({ user });
+  const urlaub = await loadUrlaubQuotaForUsername(db, session.username);
+  const overtimeHours = normalizeOvertimeHours(user.overtime_hours_balance);
+
+  return NextResponse.json({
+    user,
+    urlaub,
+    overtimeHours,
+  });
 }
 
 export async function PATCH(request) {
@@ -134,6 +144,22 @@ export async function PATCH(request) {
       if (!filialeCode) {
         return NextResponse.json(
           { error: "Ungültige Filiale. Erlaubt: S (Schwechat), H (Horn), W (Wien)." },
+          { status: 400 }
+        );
+      }
+    }
+  }
+
+  let workArea;
+  if (body.workArea !== undefined || body.work_area !== undefined) {
+    const raw = body.workArea ?? body.work_area;
+    if (raw === null || raw === "") {
+      workArea = null;
+    } else {
+      workArea = normalizeUserWorkArea(raw);
+      if (!workArea) {
+        return NextResponse.json(
+          { error: "Ungültiger Arbeitsbereich. Erlaubt: Lager, Werkstatt." },
           { status: 400 }
         );
       }
@@ -198,11 +224,27 @@ export async function PATCH(request) {
       body.emergencyContactPhone !== undefined
         ? optionalText(body.emergencyContactPhone ?? body.emergency_contact_phone)
         : undefined,
+    bankAccount:
+      body.bankAccount !== undefined
+        ? optionalText(body.bankAccount ?? body.bank_account)
+        : undefined,
+    directManager:
+      body.directManager !== undefined
+        ? optionalText(body.directManager ?? body.direct_manager)
+        : undefined,
+    workArea,
   });
 
   if (error) {
     return NextResponse.json({ error }, { status: 400 });
   }
 
-  return NextResponse.json({ user });
+  const db = getSupabaseAdmin();
+  const urlaub = await loadUrlaubQuotaForUsername(db, session.username);
+
+  return NextResponse.json({
+    user,
+    urlaub,
+    overtimeHours: normalizeOvertimeHours(user.overtime_hours_balance),
+  });
 }

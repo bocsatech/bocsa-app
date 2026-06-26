@@ -20,6 +20,7 @@ Optional:
 - `chat-setup.sql` — interner Chat (1:1 Nachrichten, max. 100 Zeichen)
 - `firma-setup.sql` — Firmendaten (app_settings key `firma`, optional)
 - `urlaub-half-day.sql` — halber Urlaubstag (Spalte `portion` in `urlaub_tage`)
+- `users-stammdaten-fields.sql` — Stammdaten (Bank, Vorgesetzter, Arbeitsbereich, Überstunden)
 - `fix-admin-user-group.sql` — Admin-Gruppe zuweisen
 - `lager-bewegungen.sql` — nur falls `schema-patches.sql` nicht lief
 
