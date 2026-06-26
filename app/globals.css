@@ -4613,6 +4613,29 @@ body.lagerPickerOpen {
   grid-template-columns: 1fr;
 }
 
+.userProfileFormHeadRow--withMedia {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px 24px;
+  align-items: start;
+}
+
+.userProfileFormHeadRow--withMedia > .userFormField:first-child {
+  width: 100%;
+  max-width: 100%;
+}
+
+.userProfileFormHeadMedia {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.userProfileFormHeadMedia .userFormField--media {
+  width: 100%;
+  max-width: 100%;
+}
+
 .usersPageContent .userCreateFormLabeled .userFormField--media {
   width: 50%;
   max-width: 100%;
@@ -4778,6 +4801,10 @@ body.lagerPickerOpen {
 
 @media (max-width: 900px) {
   .userProfileFormLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .userProfileFormHeadRow--withMedia {
     grid-template-columns: 1fr;
   }
 

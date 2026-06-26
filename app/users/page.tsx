@@ -613,13 +613,27 @@ export default function UsersPage() {
             <form className={userFormClassName} onSubmit={handleCreateUser}>
               <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
                 <div className="userProfileFormFields">
-                  <UserFormTextInput
-                    label="Benutzername"
-                    value={newUsername}
-                    onChange={setNewUsername}
-                    autoComplete="username"
-                    required
-                  />
+                  <div className={`userProfileFormHeadRow${isLocalhost ? " userProfileFormHeadRow--withMedia" : ""}`}>
+                    <UserFormTextInput
+                      label="Benutzername"
+                      value={newUsername}
+                      onChange={setNewUsername}
+                      autoComplete="username"
+                      required
+                    />
+                    {isLocalhost ? (
+                      <UserProfileMediaFields
+                        mode="inline"
+                        grouped
+                        idPrefix="user-create"
+                        photoUrl={newProfile.photoUrl}
+                        signatureUrl={newProfile.signatureUrl}
+                        onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
+                        onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
+                        onError={setCreateMessage}
+                      />
+                    ) : null}
+                  </div>
                   <UserFormTextInput
                     label="Passwort (min. 6 Zeichen)"
                     type="password"
@@ -645,17 +659,6 @@ export default function UsersPage() {
                     showOvertime
                     supervisors={supervisorOptions}
                   />
-                  {isLocalhost ? (
-                    <UserProfileMediaFields
-                      mode="inline"
-                      idPrefix="user-create"
-                      photoUrl={newProfile.photoUrl}
-                      signatureUrl={newProfile.signatureUrl}
-                      onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
-                      onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
-                      onError={setCreateMessage}
-                    />
-                  ) : null}
                 </div>
                 {!isLocalhost ? (
                   <UserProfileMediaFields
@@ -778,13 +781,27 @@ export default function UsersPage() {
             <form className={userFormClassName} onSubmit={handleSaveUserProfile}>
               <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
                 <div className="userProfileFormFields">
-                  <UserFormTextInput
-                    label="Benutzername"
-                    value={editUsername}
-                    onChange={setEditUsername}
-                    autoComplete="username"
-                    required
-                  />
+                  <div className={`userProfileFormHeadRow${isLocalhost ? " userProfileFormHeadRow--withMedia" : ""}`}>
+                    <UserFormTextInput
+                      label="Benutzername"
+                      value={editUsername}
+                      onChange={setEditUsername}
+                      autoComplete="username"
+                      required
+                    />
+                    {isLocalhost ? (
+                      <UserProfileMediaFields
+                        mode="inline"
+                        grouped
+                        idPrefix={`user-edit-${selectedUser.id}`}
+                        photoUrl={editProfile.photoUrl}
+                        signatureUrl={editProfile.signatureUrl}
+                        onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
+                        onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
+                        onError={setSaveMessage}
+                      />
+                    ) : null}
+                  </div>
                   <UserProfileFieldsBlock
                     form={editProfile}
                     onChange={updateEditProfile}
@@ -811,17 +828,6 @@ export default function UsersPage() {
                       autoComplete="new-password"
                     />
                   </section>
-                  {isLocalhost ? (
-                    <UserProfileMediaFields
-                      mode="inline"
-                      idPrefix={`user-edit-${selectedUser.id}`}
-                      photoUrl={editProfile.photoUrl}
-                      signatureUrl={editProfile.signatureUrl}
-                      onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
-                      onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
-                      onError={setSaveMessage}
-                    />
-                  ) : null}
                 </div>
                 {!isLocalhost ? (
                   <UserProfileMediaFields

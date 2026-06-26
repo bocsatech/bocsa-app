@@ -11,6 +11,7 @@ type UserProfileMediaFieldsProps = {
   onError: (message: string) => void;
   mode: "inline" | "aside" | "stacked";
   idPrefix?: string;
+  grouped?: boolean;
 };
 
 async function fileToDataUrl(file: File) {
@@ -64,6 +65,7 @@ export default function UserProfileMediaFields({
   onError,
   mode,
   idPrefix = "user-profile",
+  grouped = false,
 }: UserProfileMediaFieldsProps) {
   async function handlePhoto(file: File | undefined) {
     if (!file) return;
@@ -118,7 +120,7 @@ export default function UserProfileMediaFields({
   ) : null;
 
   if (mode === "inline") {
-    return (
+    const fields = (
       <>
         <UserFormField label="Benutzerfoto" className="userFormField--media">
           <MediaUploadPanel
@@ -140,6 +142,12 @@ export default function UserProfileMediaFields({
         </UserFormField>
       </>
     );
+
+    if (grouped) {
+      return <div className="userProfileFormHeadMedia">{fields}</div>;
+    }
+
+    return fields;
   }
 
   if (mode === "stacked") {
