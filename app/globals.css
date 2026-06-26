@@ -4609,6 +4609,76 @@ body.lagerPickerOpen {
   align-items: start;
 }
 
+.userProfileFormLayout--single {
+  grid-template-columns: 1fr;
+}
+
+.usersPageContent .userCreateFormLabeled .userFormField--media {
+  width: 50%;
+  max-width: 100%;
+}
+
+.userFormMediaPanel {
+  display: grid;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.userFormMediaPreview {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
+
+.userFormMediaPhoto {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+
+.userFormMediaSignature {
+  max-width: 100%;
+  max-height: 72px;
+  object-fit: contain;
+}
+
+.userFormMediaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.userFormMediaButton:hover {
+  border-color: #f97316;
+  color: #9a3412;
+}
+
+.userFormMediaFileInput {
+  display: none;
+}
+
+.persoenlicheSachePage .userCreateFormLabeled .userFormField--media {
+  width: 50%;
+  max-width: 100%;
+}
+
 .userProfileFormFields {
   display: grid;
   gap: 12px;
@@ -4722,7 +4792,9 @@ body.lagerPickerOpen {
   .usersPageContent .userCreateForm .dateFieldWithPicker,
   .usersPageContent .userCreateForm .userFilialeField,
   .usersPageContent .userCreateFormLabeled .userFormField,
-  .usersPageContent .userCreateFormLabeled .userProfileFormFields .userFilialeField {
+  .usersPageContent .userCreateFormLabeled .userProfileFormFields .userFilialeField,
+  .usersPageContent .userCreateFormLabeled .userFormField--media,
+  .persoenlicheSachePage .userCreateFormLabeled .userFormField--media {
     width: 100%;
   }
 }

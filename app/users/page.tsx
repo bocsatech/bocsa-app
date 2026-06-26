@@ -11,6 +11,7 @@ import UserFormField, {
   useFormPlaceholder,
 } from "../components/UserFormField";
 import UserPositionField from "../components/UserPositionField";
+import UserProfileMediaFields from "../components/UserProfileMediaFields";
 import {
   DEFAULT_USER_FILIALEN,
   userFilialeLabel,
@@ -161,91 +162,6 @@ type UserProfileFieldsBlockProps = {
   excludeUserId?: string | null;
 };
 
-function UserProfileMediaFields({
-  form,
-  onChange,
-  onFileError,
-}: {
-  form: ProfileFormState;
-  onChange: <K extends keyof ProfileFormState>(key: K, value: ProfileFormState[K]) => void;
-  onFileError: (message: string) => void;
-}) {
-  async function handleFile(
-    file: File | undefined,
-    field: "photoUrl" | "signatureUrl",
-    errorMessage: string
-  ) {
-    if (!file) return;
-    try {
-      const dataUrl = await fileToDataUrl(file);
-      onChange(field, dataUrl);
-    } catch {
-      onFileError(errorMessage);
-    }
-  }
-
-  return (
-    <aside className="userProfileFormMedia">
-      <div className="fieldRow documentationFieldRow userProfileMediaBlock">
-        <span>Benutzerfoto</span>
-        <div className="documentUploadControls documentUploadControlsCompact">
-          <div className="documentUploadActions userProfileMediaActions">
-            {form.photoUrl ? (
-              <img
-                src={form.photoUrl}
-                alt="Benutzerfoto"
-                className="publicMachineThumb userProfilePhotoPreview"
-              />
-            ) : (
-              <span className="documentEmptyHint">Kein Foto hinterlegt.</span>
-            )}
-            <label className="pillButton outline documentUploadButton">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  await handleFile(file, "photoUrl", "Foto konnte nicht gelesen werden.");
-                }}
-              />
-              Foto auswählen
-            </label>
-          </div>
-        </div>
-      </div>
-      <div className="fieldRow documentationFieldRow userProfileMediaBlock">
-        <span>Unterschrift (Prüfprotokoll)</span>
-        <div className="documentUploadControls documentUploadControlsCompact">
-          <div className="documentUploadActions userProfileMediaActions">
-            {form.signatureUrl ? (
-              <img
-                src={form.signatureUrl}
-                alt="Unterschrift"
-                className="userProfileSignaturePreview"
-              />
-            ) : (
-              <span className="documentEmptyHint">Keine Unterschrift hinterlegt.</span>
-            )}
-            <label className="pillButton outline documentUploadButton">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  await handleFile(file, "signatureUrl", "Unterschrift konnte nicht gelesen werden.");
-                }}
-              />
-              Unterschrift auswählen
-            </label>
-          </div>
-        </div>
-      </div>
-    </aside>
-  );
-}
-
 function UserProfileFieldsBlock({
   form,
   onChange,
@@ -382,15 +298,6 @@ function UserProfileFieldsBlock({
       </section>
     </>
   );
-}
-
-async function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ""));
-    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
-    reader.readAsDataURL(file);
-  });
 }
 
 export default function UsersPage() {
@@ -704,7 +611,7 @@ export default function UsersPage() {
               <p className="cardTitle">Neuer Benutzer</p>
             </div>
             <form className={userFormClassName} onSubmit={handleCreateUser}>
-              <div className="userProfileFormLayout">
+              <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
                 <div className="userProfileFormFields">
                   <UserFormTextInput
                     label="Benutzername"
@@ -738,12 +645,29 @@ export default function UsersPage() {
                     showOvertime
                     supervisors={supervisorOptions}
                   />
+                  {isLocalhost ? (
+                    <UserProfileMediaFields
+                      mode="inline"
+                      idPrefix="user-create"
+                      photoUrl={newProfile.photoUrl}
+                      signatureUrl={newProfile.signatureUrl}
+                      onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
+                      onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
+                      onError={setCreateMessage}
+                    />
+                  ) : null}
                 </div>
-                <UserProfileMediaFields
-                  form={newProfile}
-                  onChange={updateNewProfile}
-                  onFileError={setCreateMessage}
-                />
+                {!isLocalhost ? (
+                  <UserProfileMediaFields
+                    mode="aside"
+                    idPrefix="user-create"
+                    photoUrl={newProfile.photoUrl}
+                    signatureUrl={newProfile.signatureUrl}
+                    onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
+                    onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
+                    onError={setCreateMessage}
+                  />
+                ) : null}
               </div>
               <button type="submit" className="pillButton primary" disabled={creating}>
                 {creating ? "Wird angelegt..." : "Benutzer speichern"}
@@ -852,7 +776,7 @@ export default function UsersPage() {
               </p>
             ) : null}
             <form className={userFormClassName} onSubmit={handleSaveUserProfile}>
-              <div className="userProfileFormLayout">
+              <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
                 <div className="userProfileFormFields">
                   <UserFormTextInput
                     label="Benutzername"
@@ -887,12 +811,29 @@ export default function UsersPage() {
                       autoComplete="new-password"
                     />
                   </section>
+                  {isLocalhost ? (
+                    <UserProfileMediaFields
+                      mode="inline"
+                      idPrefix={`user-edit-${selectedUser.id}`}
+                      photoUrl={editProfile.photoUrl}
+                      signatureUrl={editProfile.signatureUrl}
+                      onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
+                      onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
+                      onError={setSaveMessage}
+                    />
+                  ) : null}
                 </div>
-                <UserProfileMediaFields
-                  form={editProfile}
-                  onChange={updateEditProfile}
-                  onFileError={setSaveMessage}
-                />
+                {!isLocalhost ? (
+                  <UserProfileMediaFields
+                    mode="aside"
+                    idPrefix={`user-edit-${selectedUser.id}`}
+                    photoUrl={editProfile.photoUrl}
+                    signatureUrl={editProfile.signatureUrl}
+                    onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
+                    onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
+                    onError={setSaveMessage}
+                  />
+                ) : null}
               </div>
               <button type="submit" className="pillButton primary" disabled={savingProfile}>
                 {savingProfile ? "Speichern..." : "Benutzer aktualisieren"}

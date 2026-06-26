@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import GermanDateField from "./GermanDateField";
 import DirectManagerField, { type SupervisorOption } from "./DirectManagerField";
 import UserPositionField from "./UserPositionField";
+import UserProfileMediaFields from "./UserProfileMediaFields";
 import {
   DEFAULT_USER_FILIALEN,
   type UserFilialeCode,
@@ -52,15 +53,6 @@ type UserRow = {
   work_area?: UserWorkArea | null;
   overtime_hours_balance?: number | null;
 };
-
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ""));
-    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
-    reader.readAsDataURL(file);
-  });
-}
 
 export default function PersoenlicheSacheProfile() {
   const isLocalhost = useIsLocalhost();
@@ -433,73 +425,15 @@ export default function PersoenlicheSacheProfile() {
           />
         </section>
 
-        <div className="fieldRow documentationFieldRow">
-          <span>Benutzerfoto</span>
-          <div className="documentUploadControls documentUploadControlsCompact">
-            <div className="documentUploadActions">
-              {editPhotoUrl ? (
-                <img
-                  src={editPhotoUrl}
-                  alt="Benutzerfoto"
-                  className="publicMachineThumb"
-                  style={{ width: 72, height: 72 }}
-                />
-              ) : (
-                <span className="documentEmptyHint">Kein Foto hinterlegt.</span>
-              )}
-              <label className="pillButton outline documentUploadButton">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (event) => {
-                    const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (!file) return;
-                    try {
-                      setEditPhotoUrl(await fileToDataUrl(file));
-                    } catch {
-                      setSaveMessage("Foto konnte nicht gelesen werden.");
-                    }
-                  }}
-                />
-                Foto auswählen
-              </label>
-            </div>
-          </div>
-        </div>
-        <div className="fieldRow documentationFieldRow">
-          <span>Unterschrift (Prüfprotokoll)</span>
-          <div className="documentUploadControls documentUploadControlsCompact">
-            <div className="documentUploadActions">
-              {editSignatureUrl ? (
-                <img
-                  src={editSignatureUrl}
-                  alt="Unterschrift"
-                  style={{ maxWidth: 220, maxHeight: 72, objectFit: "contain" }}
-                />
-              ) : (
-                <span className="documentEmptyHint">Keine Unterschrift hinterlegt.</span>
-              )}
-              <label className="pillButton outline documentUploadButton">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (event) => {
-                    const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (!file) return;
-                    try {
-                      setEditSignatureUrl(await fileToDataUrl(file));
-                    } catch {
-                      setSaveMessage("Unterschrift konnte nicht gelesen werden.");
-                    }
-                  }}
-                />
-                Unterschrift auswählen
-              </label>
-            </div>
-          </div>
-        </div>
+        <UserProfileMediaFields
+          mode={isLocalhost ? "inline" : "stacked"}
+          idPrefix={`stammdaten-${user.id}`}
+          photoUrl={editPhotoUrl}
+          signatureUrl={editSignatureUrl}
+          onPhotoChange={setEditPhotoUrl}
+          onSignatureChange={setEditSignatureUrl}
+          onError={setSaveMessage}
+        />
         <button type="submit" className="pillButton primary" disabled={savingProfile}>
           {savingProfile ? "Speichern…" : "Stammdaten speichern"}
         </button>
