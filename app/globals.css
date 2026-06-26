@@ -4622,34 +4622,20 @@ body.lagerPickerOpen {
 .userProfileFormFields--withHeadMedia {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   column-gap: 24px;
-  row-gap: 12px;
+  align-items: start;
 }
 
-.userProfileFormFields--withHeadMedia > *:not(.userProfileFormHeadMedia) {
+.userProfileFormMainFields {
+  display: grid;
+  gap: 12px;
   grid-column: 1;
+  min-width: 0;
 }
 
 .userProfileFormFields--withHeadMedia > .userProfileFormHeadMedia {
   grid-column: 2;
   grid-row: 1;
   align-self: start;
-}
-
-.userProfileFormFields--withHeadMedia > .userFormField:first-child {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: start;
-  align-content: start;
-  height: auto;
-}
-
-.userProfileFormFields--withHeadMedia > .userFormField:first-child .userFormFieldControl {
-  align-self: start;
-}
-
-.usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFormField:first-child .userFormFieldControl > input {
-  min-height: 0;
-  height: auto;
 }
 
 .usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFormField,
@@ -4833,6 +4819,10 @@ body.lagerPickerOpen {
 
   .userProfileFormFields--withHeadMedia {
     grid-template-columns: 1fr;
+  }
+
+  .userProfileFormMainFields {
+    grid-column: 1;
   }
 
   .userProfileFormFields--withHeadMedia > .userProfileFormHeadMedia {
