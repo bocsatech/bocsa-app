@@ -4635,6 +4635,23 @@ body.lagerPickerOpen {
   align-self: start;
 }
 
+.userProfileFormFields--withHeadMedia > .userFormField:first-child {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  align-content: start;
+  height: auto;
+}
+
+.userProfileFormFields--withHeadMedia > .userFormField:first-child .userFormFieldControl {
+  align-self: start;
+}
+
+.usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFormField:first-child .userFormFieldControl > input {
+  min-height: 0;
+  height: auto;
+}
+
 .usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFormField,
 .usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFilialeField {
   width: 100%;
