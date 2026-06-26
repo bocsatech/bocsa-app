@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
 import GermanDateField from "../components/GermanDateField";
+import DirectManagerField, { type SupervisorOption } from "../components/DirectManagerField";
+import UserPositionField from "../components/UserPositionField";
 import {
   DEFAULT_USER_FILIALEN,
   userFilialeLabel,
@@ -12,6 +14,8 @@ import {
   USER_WORK_AREAS,
   type UserWorkArea,
 } from "../../lib/user-stammdaten";
+import { isSupervisorPosition } from "../../lib/user-position";
+import { useIsLocalhost } from "../../lib/use-is-localhost";
 
 type UserRow = {
   id: string;
@@ -151,6 +155,8 @@ type UserProfileFieldsBlockProps = {
   onChange: <K extends keyof ProfileFormState>(key: K, value: ProfileFormState[K]) => void;
   onFileError: (message: string) => void;
   showOvertime?: boolean;
+  supervisors?: SupervisorOption[];
+  excludeUserId?: string | null;
 };
 
 function UserProfileFieldsBlock({
@@ -158,6 +164,8 @@ function UserProfileFieldsBlock({
   onChange,
   onFileError,
   showOvertime = false,
+  supervisors = [],
+  excludeUserId = null,
 }: UserProfileFieldsBlockProps) {
   async function handleFile(
     file: File | undefined,
@@ -180,10 +188,10 @@ function UserProfileFieldsBlock({
         onChange={(event) => onChange("fullName", event.target.value)}
         placeholder="Vollständiger Name"
       />
-      <input
+      <UserPositionField
         value={form.position}
-        onChange={(event) => onChange("position", event.target.value)}
-        placeholder="Position / Funktion"
+        onChange={(value) => onChange("position", value)}
+        listId={excludeUserId ? `user-position-${excludeUserId}` : "user-position-create"}
       />
       <label className="userFilialeField">
         <span>Filiale</span>
@@ -221,10 +229,11 @@ function UserProfileFieldsBlock({
             ))}
           </select>
         </label>
-        <input
+        <DirectManagerField
           value={form.directManager}
-          onChange={(event) => onChange("directManager", event.target.value)}
-          placeholder="Direkter Vorgesetzter"
+          onChange={(value) => onChange("directManager", value)}
+          supervisors={supervisors}
+          excludeUserId={excludeUserId}
         />
         <input
           value={form.bankAccount}
@@ -379,6 +388,7 @@ async function fileToDataUrl(file: File) {
 }
 
 export default function UsersPage() {
+  const isLocalhost = useIsLocalhost();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -436,6 +446,14 @@ export default function UsersPage() {
   }, [users, selectedUserId]);
 
   const selectedUser = users.find((user) => user.id === selectedUserId) ?? null;
+  const supervisorOptions: SupervisorOption[] = users
+    .filter((user) => isUserActive(user) && isSupervisorPosition(user.position))
+    .map((user) => ({
+      id: user.id,
+      username: user.username,
+      full_name: user.full_name,
+      position: user.position,
+    }));
 
   useEffect(() => {
     if (!selectedUser) return;
@@ -704,6 +722,7 @@ export default function UsersPage() {
                 onChange={updateNewProfile}
                 onFileError={setCreateMessage}
                 showOvertime
+                supervisors={supervisorOptions}
               />
               <button type="submit" className="pillButton primary" disabled={creating}>
                 {creating ? "Wird angelegt..." : "Benutzer speichern"}
@@ -751,6 +770,8 @@ export default function UsersPage() {
                 onChange={updateEditProfile}
                 onFileError={setSaveMessage}
                 showOvertime
+                supervisors={supervisorOptions}
+                excludeUserId={selectedUser.id}
               />
               <section className="personalFieldsSection">
                 <h3 className="personalFieldsSectionTitle">Zugang</h3>
@@ -836,6 +857,7 @@ export default function UsersPage() {
               <div className="serviceRow headerRow">
                 <span>Benutzername</span>
                 <span>Status</span>
+                {isLocalhost ? <span>Position</span> : null}
                 <span>Filiale</span>
                 <span>Erstellt am</span>
                 <span>ID</span>
@@ -867,6 +889,7 @@ export default function UsersPage() {
                         {isUserActive(user) ? "Aktiv" : "Inaktiv"}
                       </span>
                     </span>
+                    {isLocalhost ? <span>{user.position?.trim() || "—"}</span> : null}
                     <span>{userFilialeLabel(user.filiale_code)}</span>
                     <span>{formatDate(user.created_at)}</span>
                     <span className="code">{user.id}</span>

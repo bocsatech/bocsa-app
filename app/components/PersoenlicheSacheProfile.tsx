@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import GermanDateField from "./GermanDateField";
+import DirectManagerField, { type SupervisorOption } from "./DirectManagerField";
+import UserPositionField from "./UserPositionField";
 import {
   DEFAULT_USER_FILIALEN,
   type UserFilialeCode,
@@ -10,6 +12,7 @@ import {
   USER_WORK_AREAS,
   type UserWorkArea,
 } from "../../lib/user-stammdaten";
+import { useIsLocalhost } from "../../lib/use-is-localhost";
 
 type UrlaubStats = {
   year: number;
@@ -60,6 +63,7 @@ function fileToDataUrl(file: File) {
 }
 
 export default function PersoenlicheSacheProfile() {
+  const isLocalhost = useIsLocalhost();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<UserRow | null>(null);
@@ -87,6 +91,7 @@ export default function PersoenlicheSacheProfile() {
   const [editWorkArea, setEditWorkArea] = useState<UserWorkArea | "">("");
   const [urlaubStats, setUrlaubStats] = useState<UrlaubStats | null>(null);
   const [overtimeHours, setOvertimeHours] = useState(0);
+  const [supervisors, setSupervisors] = useState<SupervisorOption[]>([]);
 
   const applyUser = useCallback((row: UserRow, stats?: { urlaub?: UrlaubStats; overtimeHours?: number }) => {
     setUser(row);
@@ -143,6 +148,25 @@ export default function PersoenlicheSacheProfile() {
   useEffect(() => {
     void loadProfile();
   }, [loadProfile]);
+
+  useEffect(() => {
+    if (!isLocalhost) {
+      setSupervisors([]);
+      return;
+    }
+
+    async function loadSupervisors() {
+      const response = await fetch("/api/users/supervisors", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) return;
+      setSupervisors(Array.isArray(result.supervisors) ? result.supervisors : []);
+    }
+
+    void loadSupervisors();
+  }, [isLocalhost]);
 
   async function handleSaveProfile(event: React.FormEvent) {
     event.preventDefault();
@@ -278,10 +302,10 @@ export default function PersoenlicheSacheProfile() {
           onChange={(event) => setEditFullName(event.target.value)}
           placeholder="Vollständiger Name"
         />
-        <input
+        <UserPositionField
           value={editPosition}
-          onChange={(event) => setEditPosition(event.target.value)}
-          placeholder="Position / Funktion"
+          onChange={setEditPosition}
+          listId="stammdaten-position"
         />
         <label className="userFilialeField">
           <span>Filiale</span>
@@ -319,10 +343,11 @@ export default function PersoenlicheSacheProfile() {
               ))}
             </select>
           </label>
-          <input
+          <DirectManagerField
             value={editDirectManager}
-            onChange={(event) => setEditDirectManager(event.target.value)}
-            placeholder="Direkter Vorgesetzter"
+            onChange={setEditDirectManager}
+            supervisors={supervisors}
+            excludeUserId={user.id}
           />
           <input
             value={editBankAccount}
