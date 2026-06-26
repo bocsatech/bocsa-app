@@ -829,6 +829,9 @@ function SidebarNavItems({
   const navItems = APP_NAV_ITEMS.filter((item) =>
     canShowMenuItem(item.permission, permissions, groups, username)
   );
+  const navItemsBeforeQr = navItems.filter((item) => item.href !== "/qr-code");
+  const showQrCodeNav = navItems.some((item) => item.href === "/qr-code");
+  const qrCodeNavItem = navItems.find((item) => item.href === "/qr-code");
 
   return (
     <>
@@ -845,16 +848,6 @@ function SidebarNavItems({
       ) : null}
 
       <MeineMenuNavGroup
-        activeHref={activeHref}
-        pathname={pathname}
-        submenuOpen={submenuOpen}
-        permissions={permissions}
-        groups={groups}
-        username={username}
-        onMobileNavClose={onMobileNavClose}
-      />
-
-      <EinstellungenNavGroup
         activeHref={activeHref}
         pathname={pathname}
         submenuOpen={submenuOpen}
@@ -898,7 +891,7 @@ function SidebarNavItems({
         />
       ) : null}
 
-      {navItems.map((item) => (
+      {navItemsBeforeQr.map((item) => (
         <Link
           key={item.href}
           href={item.href}
@@ -908,6 +901,28 @@ function SidebarNavItems({
           {item.label}
         </Link>
       ))}
+
+      {showQrCodeNav && qrCodeNavItem ? (
+        <Link
+          href={qrCodeNavItem.href}
+          className={
+            isNavActive(qrCodeNavItem, activeHref, pathname) ? "active" : undefined
+          }
+          onClick={() => onMobileNavClose?.()}
+        >
+          {qrCodeNavItem.label}
+        </Link>
+      ) : null}
+
+      <EinstellungenNavGroup
+        activeHref={activeHref}
+        pathname={pathname}
+        submenuOpen={submenuOpen}
+        permissions={permissions}
+        groups={groups}
+        username={username}
+        onMobileNavClose={onMobileNavClose}
+      />
     </>
   );
 }
