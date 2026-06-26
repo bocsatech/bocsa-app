@@ -254,6 +254,7 @@ function UserProfileFieldsBlock({
   supervisors = [],
   excludeUserId = null,
 }: UserProfileFieldsBlockProps) {
+  const isLocalhost = useIsLocalhost();
   const birthDatePlaceholder = useFormPlaceholder("Geburtstag (TT.MM.JJJJ)");
 
   return (
@@ -307,9 +308,9 @@ function UserProfileFieldsBlock({
         />
         {showOvertime ? (
           <UserFormTextInput
-            label="Überstunden (Std.)"
+            label={isLocalhost ? "Urlaub" : "Überstunden (Std.)"}
             type="number"
-            step="0.25"
+            step={isLocalhost ? "1" : "0.25"}
             value={form.overtimeHoursBalance}
             onChange={(value) => onChange("overtimeHoursBalance", value)}
           />
