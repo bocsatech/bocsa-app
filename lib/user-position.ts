@@ -4,9 +4,12 @@ export const USER_POSITION_SUGGESTIONS = [
   SUPERVISOR_POSITION,
   "Werkstattleiter",
   "Lagerleiter",
+  "Filialeleiter",
   "Mechaniker",
+  "Informatiker",
   "Lagerist",
   "Verwaltung",
+  "Titkarsag",
   "Azubi",
   "Praktikant",
 ] as const;
