@@ -17,6 +17,7 @@ Demo PKW: `npm run seed:pkw` (PIN 1234, Kennzeichen W 1234 AB).
 
 Optional:
 
+- `chat-setup.sql` — interner Chat (1:1 Nachrichten, max. 100 Zeichen)
 - `fix-admin-user-group.sql` — Admin-Gruppe zuweisen
 - `lager-bewegungen.sql` — nur falls `schema-patches.sql` nicht lief
 
