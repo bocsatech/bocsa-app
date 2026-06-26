@@ -1,94 +1,59 @@
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
 import { updateUserById } from "../../../../lib/auth/users";
-import { normalizeGermanDate } from "../../../../lib/dates";
-import { STAMMDATEN_USER_COLUMNS, normalizeUserWorkArea } from "../../../../lib/user-stammdaten";
 import {
   loadUrlaubQuotaForUsername,
   normalizeOvertimeHours,
 } from "../../../../lib/user-me-stats.mjs";
-import { normalizeUserFilialeCode } from "../../../../lib/user-filiale";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import {
+  loadPersonalProfile,
+  mergeAuthUserWithPersonalProfile,
+  updatePersonalProfile,
+} from "../../../../lib/user-personal-profile";
+import {
+  parseUserProfilePatchFromBody,
+  profileFieldsFromRow,
+  validateAndNormalizeProfilePatch,
+} from "../../../../lib/user-profile-fields";
 
-const USER_PERSONAL_COLUMNS =
-  "company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone";
+const AUTH_USER_SELECT =
+  "id, username, secret_pin, overtime_hours_balance, full_name, position, site, filiale_code, photo_url, signature_url, company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone, bank_account, direct_manager, work_area, created_at";
+const AUTH_USER_SELECT_NO_STAMMDATEN =
+  "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone, created_at";
+const AUTH_USER_SELECT_MINIMAL =
+  "id, username, secret_pin, overtime_hours_balance, created_at";
 
-const USER_SELECT =
-  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, ${STAMMDATEN_USER_COLUMNS}, created_at`;
-const USER_SELECT_NO_STAMMDATEN =
-  `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, ${USER_PERSONAL_COLUMNS}, created_at`;
-const USER_SELECT_NO_PERSONAL =
-  "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, created_at";
-const USER_SELECT_LEGACY =
-  "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
-
-function isMissingFilialeColumn(error) {
+function isMissingColumn(error, columns) {
   const msg = String(error?.message ?? "").toLowerCase();
-  return msg.includes("filiale_code") && msg.includes("does not exist");
-}
-
-function isMissingPersonalColumn(error) {
-  const msg = String(error?.message ?? "").toLowerCase();
-  const personalColumns = [
-    "company_mobile",
-    "private_mobile",
-    "company_email",
-    "private_email",
-    "birth_date",
-    "address",
-    "ecard_number",
-    "emergency_contact_name",
-    "emergency_contact_phone",
-  ];
-  if (!personalColumns.some((column) => msg.includes(column))) return false;
-  return msg.includes("does not exist") || msg.includes("schema cache");
-}
-
-function isMissingStammdatenColumn(error) {
-  const msg = String(error?.message ?? "").toLowerCase();
-  const columns = ["bank_account", "direct_manager", "work_area", "overtime_hours_balance"];
   if (!columns.some((column) => msg.includes(column))) return false;
   return msg.includes("does not exist") || msg.includes("schema cache");
 }
 
-function optionalText(value) {
-  if (value === undefined) return undefined;
-  const text = String(value ?? "").trim();
-  return text || null;
-}
-
-async function loadOwnProfile(userId) {
+async function loadAuthUserRow(userId) {
   const db = getSupabaseAdmin();
   if (!db) {
-    return { user: null, error: "Supabase ist nicht konfiguriert." };
+    return { row: null, error: "Supabase ist nicht konfiguriert." };
   }
 
-  let { data, error } = await db.from("users").select(USER_SELECT).eq("id", userId).maybeSingle();
+  let { data, error } = await db.from("users").select(AUTH_USER_SELECT).eq("id", userId).maybeSingle();
 
-  if (error && isMissingStammdatenColumn(error)) {
-    ({ data, error } = await db.from("users").select(USER_SELECT_NO_STAMMDATEN).eq("id", userId).maybeSingle());
+  if (error && isMissingColumn(error, ["overtime_hours_balance", "bank_account", "direct_manager", "work_area"])) {
+    ({ data, error } = await db.from("users").select(AUTH_USER_SELECT_NO_STAMMDATEN).eq("id", userId).maybeSingle());
   }
 
-  if (error && isMissingFilialeColumn(error)) {
-    ({ data, error } = await db.from("users").select(USER_SELECT_NO_PERSONAL).eq("id", userId).maybeSingle());
-  }
-
-  if (error && isMissingPersonalColumn(error)) {
-    ({ data, error } = await db.from("users").select(USER_SELECT_NO_PERSONAL).eq("id", userId).maybeSingle());
-  }
-
-  if (error && isMissingFilialeColumn(error)) {
-    ({ data, error } = await db.from("users").select(USER_SELECT_LEGACY).eq("id", userId).maybeSingle());
+  if (error && isMissingColumn(error, ["company_mobile", "filiale_code"])) {
+    ({ data, error } = await db.from("users").select(AUTH_USER_SELECT_MINIMAL).eq("id", userId).maybeSingle());
   }
 
   if (error) {
-    return { user: null, error: error.message };
+    return { row: null, error: error.message };
   }
   if (!data) {
-    return { user: null, error: "Benutzer nicht gefunden." };
+    return { row: null, error: "Benutzer nicht gefunden." };
   }
 
-  return { user: data, error: null };
+  return { row: data, error: null };
 }
 
 export async function GET() {
@@ -98,13 +63,20 @@ export async function GET() {
   }
 
   const db = getSupabaseAdmin();
-  const { user, error } = await loadOwnProfile(session.userId);
-  if (error) {
-    return NextResponse.json({ error }, { status: 500 });
+  const { row: authRow, error: authError } = await loadAuthUserRow(session.userId);
+  if (authError) {
+    return NextResponse.json({ error: authError }, { status: 500 });
   }
 
+  const { profile, error: profileError, missingTable } = await loadPersonalProfile(session.userId);
+  if (profileError) {
+    return NextResponse.json({ error: profileError }, { status: 500 });
+  }
+
+  const mergedProfile = missingTable ? profileFieldsFromRow(authRow) : profile;
+  const user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
   const urlaub = await loadUrlaubQuotaForUsername(db, session.username);
-  const overtimeHours = normalizeOvertimeHours(user.overtime_hours_balance);
+  const overtimeHours = normalizeOvertimeHours(authRow.overtime_hours_balance);
 
   return NextResponse.json({
     user,
@@ -134,117 +106,60 @@ export async function PATCH(request) {
     );
   }
 
-  const filialeRaw = body.filialeCode ?? body.filiale_code;
-  let filialeCode;
-  if (filialeRaw !== undefined) {
-    if (filialeRaw === null || filialeRaw === "") {
-      filialeCode = null;
-    } else {
-      filialeCode = normalizeUserFilialeCode(filialeRaw);
-      if (!filialeCode) {
-        return NextResponse.json(
-          { error: "Ungültige Filiale. Erlaubt: S (Schwechat), H (Horn), W (Wien)." },
-          { status: 400 }
-        );
-      }
-    }
+  const rawProfilePatch = parseUserProfilePatchFromBody(body);
+  const { patch: profilePatch, error: profileValidationError } =
+    validateAndNormalizeProfilePatch(rawProfilePatch);
+  if (profileValidationError) {
+    return NextResponse.json({ error: profileValidationError }, { status: 400 });
   }
 
-  let workArea;
-  if (body.workArea !== undefined || body.work_area !== undefined) {
-    const raw = body.workArea ?? body.work_area;
-    if (raw === null || raw === "") {
-      workArea = null;
-    } else {
-      workArea = normalizeUserWorkArea(raw);
-      if (!workArea) {
-        return NextResponse.json(
-          { error: "Ungültiger Arbeitsbereich. Erlaubt: Lager, Werkstatt." },
-          { status: 400 }
-        );
-      }
-    }
-  }
-
-  let birthDate;
-  if (body.birthDate !== undefined || body.birth_date !== undefined) {
-    const raw = body.birthDate ?? body.birth_date ?? "";
-    if (raw === null || String(raw).trim() === "") {
-      birthDate = null;
-    } else {
-      const normalized = normalizeGermanDate(raw);
-      if (!normalized) {
-        return NextResponse.json(
-          { error: "Geburtstag muss im Format TT.MM.JJJJ sein." },
-          { status: 400 }
-        );
-      }
-      birthDate = normalized;
-    }
-  }
-
-  const { user, error } = await updateUserById(session.userId, {
+  const authPatch = {
     password: password || undefined,
     secretPin: body.secretPin ?? body.secret_pin,
-    fullName: body.fullName !== undefined ? String(body.fullName ?? "") : undefined,
-    position: body.position !== undefined ? String(body.position ?? "") : undefined,
-    site: body.site !== undefined ? String(body.site ?? "") : undefined,
-    filialeCode,
-    photoUrl: body.photoUrl !== undefined ? String(body.photoUrl ?? "") : undefined,
-    signatureUrl:
-      body.signatureUrl !== undefined ? String(body.signatureUrl ?? "") : undefined,
-    companyMobile:
-      body.companyMobile !== undefined
-        ? optionalText(body.companyMobile ?? body.company_mobile)
-        : undefined,
-    privateMobile:
-      body.privateMobile !== undefined
-        ? optionalText(body.privateMobile ?? body.private_mobile)
-        : undefined,
-    companyEmail:
-      body.companyEmail !== undefined
-        ? optionalText(body.companyEmail ?? body.company_email)
-        : undefined,
-    privateEmail:
-      body.privateEmail !== undefined
-        ? optionalText(body.privateEmail ?? body.private_email)
-        : undefined,
-    birthDate,
-    address:
-      body.address !== undefined ? optionalText(body.address) : undefined,
-    ecardNumber:
-      body.ecardNumber !== undefined
-        ? optionalText(body.ecardNumber ?? body.ecard_number)
-        : undefined,
-    emergencyContactName:
-      body.emergencyContactName !== undefined
-        ? optionalText(body.emergencyContactName ?? body.emergency_contact_name)
-        : undefined,
-    emergencyContactPhone:
-      body.emergencyContactPhone !== undefined
-        ? optionalText(body.emergencyContactPhone ?? body.emergency_contact_phone)
-        : undefined,
-    bankAccount:
-      body.bankAccount !== undefined
-        ? optionalText(body.bankAccount ?? body.bank_account)
-        : undefined,
-    directManager:
-      body.directManager !== undefined
-        ? optionalText(body.directManager ?? body.direct_manager)
-        : undefined,
-    workArea,
-  });
+  };
 
-  if (error) {
-    return NextResponse.json({ error }, { status: 400 });
+  const hasAuthChanges =
+    authPatch.password !== undefined || authPatch.secretPin !== undefined;
+  const hasProfileChanges = Object.values(profilePatch).some((value) => value !== undefined);
+
+  if (!hasAuthChanges && !hasProfileChanges) {
+    return NextResponse.json({ error: "Keine Änderungen übergeben." }, { status: 400 });
+  }
+
+  if (hasAuthChanges) {
+    const { error: authError } = await updateUserById(session.userId, authPatch);
+    if (authError) {
+      return NextResponse.json({ error: authError }, { status: 400 });
+    }
+  }
+
+  let profile = null;
+  if (hasProfileChanges) {
+    const { profile: updatedProfile, error: profileError } = await updatePersonalProfile(
+      session.userId,
+      profilePatch
+    );
+    if (profileError) {
+      return NextResponse.json({ error: profileError }, { status: 400 });
+    }
+    profile = updatedProfile;
+  } else {
+    const loaded = await loadPersonalProfile(session.userId);
+    profile = loaded.profile;
+  }
+
+  const { row: authRow, error: authError } = await loadAuthUserRow(session.userId);
+  if (authError) {
+    return NextResponse.json({ error: authError }, { status: 500 });
   }
 
   const db = getSupabaseAdmin();
   const urlaub = await loadUrlaubQuotaForUsername(db, session.username);
+  const user = mergeAuthUserWithPersonalProfile(authRow, profile ?? profileFieldsFromRow(authRow));
 
   return NextResponse.json({
     user,
     urlaub,
-    overtimeHours: normalizeOvertimeHours(user.overtime_hours_balance),
+    overtimeHours: normalizeOvertimeHours(authRow.overtime_hours_balance),
   });
 }

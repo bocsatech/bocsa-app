@@ -12,6 +12,13 @@ import {
   type UserWorkArea,
 } from "../user-stammdaten";
 import { ensureUsersFilialeColumn } from "../users-filiale-setup.mjs";
+import {
+  seedPersonalProfileFromAdminRow,
+} from "../user-personal-profile";
+import {
+  userProfilePatchToDbPayload,
+  type UserProfilePatch,
+} from "../user-profile-fields";
 
 export const USERS_TABLE = "users";
 
@@ -320,7 +327,11 @@ export async function createUser(
   username: string,
   password: string,
   secretPin: number,
-  filialeCode?: UserFilialeCode | null
+  options?: {
+    filialeCode?: UserFilialeCode | null;
+    profile?: UserProfilePatch;
+    overtimeHoursBalance?: number;
+  }
 ) {
   const pin = normalizeSecretPin(secretPin);
   if (pin === null) {
@@ -329,40 +340,63 @@ export async function createUser(
 
   const db = getDb();
   const password_hash = await hashPassword(password);
+  const profilePayload = userProfilePatchToDbPayload(options?.profile ?? {});
+  const filialeCode =
+    options?.filialeCode !== undefined
+      ? options.filialeCode
+      : (profilePayload.filiale_code as UserFilialeCode | null | undefined) ?? null;
 
   const insertBase = {
     username: username.trim().toLowerCase(),
     password_hash,
     secret_pin: pin,
+    filiale_code: filialeCode ?? null,
+    ...profilePayload,
+    overtime_hours_balance:
+      options?.overtimeHoursBalance !== undefined
+        ? Math.round(Number(options.overtimeHoursBalance) * 100) / 100
+        : 0,
   };
 
   let { data, error } = await db
     .from(USERS_TABLE)
-    .insert({ ...insertBase, filiale_code: filialeCode ?? null })
-    .select("id, username, secret_pin, filiale_code")
+    .insert(insertBase)
+    .select(USER_LIST_SELECT)
     .single();
+
+  if (error && isMissingStammdatenColumn(error)) {
+    const fallbackPayload = stripStammdatenPayload(insertBase);
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .insert(fallbackPayload)
+      .select(USER_LIST_SELECT_NO_STAMMDATEN)
+      .single());
+  }
 
   if (error && isMissingFilialeColumn(error)) {
     if (await ensureUsersFilialeColumn()) {
       ({ data, error } = await db
         .from(USERS_TABLE)
-        .insert({ ...insertBase, filiale_code: filialeCode ?? null })
-        .select("id, username, secret_pin, filiale_code")
+        .insert(insertBase)
+        .select(USER_LIST_SELECT)
         .single());
     }
   }
 
   if (error && isMissingFilialeColumn(error)) {
+    const { filiale_code: _omit, ...withoutFiliale } = insertBase;
     ({ data, error } = await db
       .from(USERS_TABLE)
-      .insert(insertBase)
-      .select("id, username, secret_pin")
+      .insert(withoutFiliale)
+      .select(USER_LIST_SELECT_LEGACY)
       .single());
   }
 
   if (error) {
     return { user: null, error: error.message };
   }
+
+  await seedPersonalProfileFromAdminRow(String(data.id), data as Record<string, unknown>);
 
   return { user: data, error: null };
 }

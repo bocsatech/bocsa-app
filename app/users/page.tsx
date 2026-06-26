@@ -2,11 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AppPageShell from "../components/AppPageShell";
+import GermanDateField from "../components/GermanDateField";
 import {
   DEFAULT_USER_FILIALEN,
   userFilialeLabel,
   type UserFilialeCode,
 } from "../../lib/user-filiale";
+import {
+  USER_WORK_AREAS,
+  type UserWorkArea,
+} from "../../lib/user-stammdaten";
 
 type UserRow = {
   id: string;
@@ -19,8 +24,116 @@ type UserRow = {
   filiale_code?: UserFilialeCode | null;
   photo_url?: string | null;
   signature_url?: string | null;
+  company_mobile?: string | null;
+  private_mobile?: string | null;
+  company_email?: string | null;
+  private_email?: string | null;
+  birth_date?: string | null;
+  address?: string | null;
+  ecard_number?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  bank_account?: string | null;
+  direct_manager?: string | null;
+  work_area?: UserWorkArea | null;
+  overtime_hours_balance?: number | null;
   is_active?: boolean | null;
 };
+
+type ProfileFormState = {
+  fullName: string;
+  position: string;
+  site: string;
+  filialeCode: UserFilialeCode | "";
+  photoUrl: string;
+  signatureUrl: string;
+  companyMobile: string;
+  privateMobile: string;
+  companyEmail: string;
+  privateEmail: string;
+  birthDate: string;
+  address: string;
+  ecardNumber: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  bankAccount: string;
+  directManager: string;
+  workArea: UserWorkArea | "";
+  overtimeHoursBalance: string;
+};
+
+const emptyProfileForm = (): ProfileFormState => ({
+  fullName: "",
+  position: "",
+  site: "",
+  filialeCode: "",
+  photoUrl: "",
+  signatureUrl: "",
+  companyMobile: "",
+  privateMobile: "",
+  companyEmail: "",
+  privateEmail: "",
+  birthDate: "",
+  address: "",
+  ecardNumber: "",
+  emergencyContactName: "",
+  emergencyContactPhone: "",
+  bankAccount: "",
+  directManager: "",
+  workArea: "",
+  overtimeHoursBalance: "0",
+});
+
+function profileFormFromUser(user: UserRow): ProfileFormState {
+  return {
+    fullName: user.full_name ?? "",
+    position: user.position ?? "",
+    site: user.site ?? "",
+    filialeCode: user.filiale_code ?? "",
+    photoUrl: user.photo_url ?? "",
+    signatureUrl: user.signature_url ?? "",
+    companyMobile: user.company_mobile ?? "",
+    privateMobile: user.private_mobile ?? "",
+    companyEmail: user.company_email ?? "",
+    privateEmail: user.private_email ?? "",
+    birthDate: user.birth_date ?? "",
+    address: user.address ?? "",
+    ecardNumber: user.ecard_number ?? "",
+    emergencyContactName: user.emergency_contact_name ?? "",
+    emergencyContactPhone: user.emergency_contact_phone ?? "",
+    bankAccount: user.bank_account ?? "",
+    directManager: user.direct_manager ?? "",
+    workArea: user.work_area ?? "",
+    overtimeHoursBalance:
+      user.overtime_hours_balance === null || user.overtime_hours_balance === undefined
+        ? "0"
+        : String(user.overtime_hours_balance),
+  };
+}
+
+function profilePayloadFromForm(form: ProfileFormState) {
+  return {
+    fullName: form.fullName,
+    position: form.position,
+    site: form.site,
+    filialeCode: form.filialeCode || null,
+    photoUrl: form.photoUrl,
+    signatureUrl: form.signatureUrl,
+    companyMobile: form.companyMobile,
+    privateMobile: form.privateMobile,
+    companyEmail: form.companyEmail,
+    privateEmail: form.privateEmail,
+    birthDate: form.birthDate,
+    address: form.address,
+    ecardNumber: form.ecardNumber,
+    emergencyContactName: form.emergencyContactName,
+    emergencyContactPhone: form.emergencyContactPhone,
+    bankAccount: form.bankAccount,
+    directManager: form.directManager,
+    workArea: form.workArea || null,
+    overtimeHoursBalance: Number(form.overtimeHoursBalance) || 0,
+  };
+}
 
 function isUserActive(user: UserRow) {
   return user.is_active !== false;
@@ -33,6 +146,238 @@ function formatDate(value: string | null) {
   return date.toLocaleString("de-AT");
 }
 
+type UserProfileFieldsBlockProps = {
+  form: ProfileFormState;
+  onChange: <K extends keyof ProfileFormState>(key: K, value: ProfileFormState[K]) => void;
+  onFileError: (message: string) => void;
+  showOvertime?: boolean;
+};
+
+function UserProfileFieldsBlock({
+  form,
+  onChange,
+  onFileError,
+  showOvertime = false,
+}: UserProfileFieldsBlockProps) {
+  async function handleFile(
+    file: File | undefined,
+    field: "photoUrl" | "signatureUrl",
+    errorMessage: string
+  ) {
+    if (!file) return;
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      onChange(field, dataUrl);
+    } catch {
+      onFileError(errorMessage);
+    }
+  }
+
+  return (
+    <>
+      <input
+        value={form.fullName}
+        onChange={(event) => onChange("fullName", event.target.value)}
+        placeholder="Vollständiger Name"
+      />
+      <input
+        value={form.position}
+        onChange={(event) => onChange("position", event.target.value)}
+        placeholder="Position / Funktion"
+      />
+      <label className="userFilialeField">
+        <span>Filiale</span>
+        <select
+          value={form.filialeCode}
+          onChange={(event) => onChange("filialeCode", event.target.value as UserFilialeCode | "")}
+        >
+          <option value="">— keine Filiale —</option>
+          {DEFAULT_USER_FILIALEN.map((filiale) => (
+            <option key={filiale.code} value={filiale.code}>
+              {filiale.label} ({filiale.code})
+            </option>
+          ))}
+        </select>
+      </label>
+      <input
+        value={form.site}
+        onChange={(event) => onChange("site", event.target.value)}
+        placeholder="Standort (optional)"
+      />
+
+      <section className="personalFieldsSection">
+        <h3 className="personalFieldsSectionTitle">Arbeit</h3>
+        <label className="userFilialeField">
+          <span>Arbeitsbereich</span>
+          <select
+            value={form.workArea}
+            onChange={(event) => onChange("workArea", event.target.value as UserWorkArea | "")}
+          >
+            <option value="">— nicht angegeben —</option>
+            {USER_WORK_AREAS.map((area) => (
+              <option key={area.value} value={area.value}>
+                {area.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <input
+          value={form.directManager}
+          onChange={(event) => onChange("directManager", event.target.value)}
+          placeholder="Direkter Vorgesetzter"
+        />
+        <input
+          value={form.bankAccount}
+          onChange={(event) => onChange("bankAccount", event.target.value)}
+          placeholder="Bankkonto / IBAN"
+        />
+        {showOvertime ? (
+          <label className="userFilialeField">
+            <span>Überstunden (Std.)</span>
+            <input
+              type="number"
+              step="0.25"
+              value={form.overtimeHoursBalance}
+              onChange={(event) => onChange("overtimeHoursBalance", event.target.value)}
+              placeholder="0"
+            />
+          </label>
+        ) : null}
+      </section>
+
+      <section className="personalFieldsSection">
+        <h3 className="personalFieldsSectionTitle">Kontakt &amp; Persönliches</h3>
+        <input
+          type="tel"
+          value={form.companyMobile}
+          onChange={(event) => onChange("companyMobile", event.target.value)}
+          placeholder="Firmen-Handynummer"
+        />
+        <input
+          type="tel"
+          value={form.privateMobile}
+          onChange={(event) => onChange("privateMobile", event.target.value)}
+          placeholder="Privat-Handynummer"
+        />
+        <input
+          type="email"
+          value={form.companyEmail}
+          onChange={(event) => onChange("companyEmail", event.target.value)}
+          placeholder="Firmen-E-Mail"
+        />
+        <input
+          type="email"
+          value={form.privateEmail}
+          onChange={(event) => onChange("privateEmail", event.target.value)}
+          placeholder="Privat-E-Mail"
+        />
+        <GermanDateField
+          value={form.birthDate}
+          onChange={(value) => onChange("birthDate", value)}
+          placeholder="Geburtstag (TT.MM.JJJJ)"
+          openPickerOnFocus
+          pickerVariant="calendar"
+          minYear={new Date().getFullYear() - 100}
+          maxYear={new Date().getFullYear()}
+        />
+        <textarea
+          value={form.address}
+          onChange={(event) => onChange("address", event.target.value)}
+          placeholder="Adresse"
+          rows={3}
+        />
+        <input
+          value={form.ecardNumber}
+          onChange={(event) => onChange("ecardNumber", event.target.value)}
+          placeholder="E-Card Nummer"
+        />
+      </section>
+
+      <section className="personalFieldsSection">
+        <h3 className="personalFieldsSectionTitle">Notfallkontakt</h3>
+        <input
+          value={form.emergencyContactName}
+          onChange={(event) => onChange("emergencyContactName", event.target.value)}
+          placeholder="Name"
+        />
+        <input
+          type="tel"
+          value={form.emergencyContactPhone}
+          onChange={(event) => onChange("emergencyContactPhone", event.target.value)}
+          placeholder="Handynummer"
+        />
+      </section>
+
+      <div className="fieldRow documentationFieldRow" style={{ gridColumn: "1 / -1" }}>
+        <span>Benutzerfoto</span>
+        <div className="documentUploadControls documentUploadControlsCompact">
+          <div className="documentUploadActions">
+            {form.photoUrl ? (
+              <img
+                src={form.photoUrl}
+                alt="Benutzerfoto"
+                className="publicMachineThumb"
+                style={{ width: 72, height: 72 }}
+              />
+            ) : (
+              <span className="documentEmptyHint">Kein Foto hinterlegt.</span>
+            )}
+            <label className="pillButton outline documentUploadButton">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  await handleFile(file, "photoUrl", "Foto konnte nicht gelesen werden.");
+                }}
+              />
+              Foto auswählen
+            </label>
+          </div>
+        </div>
+      </div>
+      <div className="fieldRow documentationFieldRow" style={{ gridColumn: "1 / -1" }}>
+        <span>Unterschrift (Prüfprotokoll)</span>
+        <div className="documentUploadControls documentUploadControlsCompact">
+          <div className="documentUploadActions">
+            {form.signatureUrl ? (
+              <img
+                src={form.signatureUrl}
+                alt="Unterschrift"
+                style={{ maxWidth: 220, maxHeight: 72, objectFit: "contain" }}
+              />
+            ) : (
+              <span className="documentEmptyHint">Keine Unterschrift hinterlegt.</span>
+            )}
+            <label className="pillButton outline documentUploadButton">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  await handleFile(file, "signatureUrl", "Unterschrift konnte nicht gelesen werden.");
+                }}
+              />
+              Unterschrift auswählen
+            </label>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+async function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +388,7 @@ export default function UsersPage() {
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newSecretPin, setNewSecretPin] = useState("");
-  const [newFilialeCode, setNewFilialeCode] = useState<UserFilialeCode | "">("");
+  const [newProfile, setNewProfile] = useState<ProfileFormState>(emptyProfileForm);
   const [createMessage, setCreateMessage] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -52,14 +397,17 @@ export default function UsersPage() {
   const [togglingActive, setTogglingActive] = useState(false);
   const [deletingUser, setDeletingUser] = useState(false);
   const [editUsername, setEditUsername] = useState("");
-  const [editFullName, setEditFullName] = useState("");
-  const [editPosition, setEditPosition] = useState("");
-  const [editSite, setEditSite] = useState("");
-  const [editFilialeCode, setEditFilialeCode] = useState<UserFilialeCode | "">("");
   const [editSecretPin, setEditSecretPin] = useState("");
   const [editPassword, setEditPassword] = useState("");
-  const [editPhotoUrl, setEditPhotoUrl] = useState("");
-  const [editSignatureUrl, setEditSignatureUrl] = useState("");
+  const [editProfile, setEditProfile] = useState<ProfileFormState>(emptyProfileForm);
+
+  function updateNewProfile<K extends keyof ProfileFormState>(key: K, value: ProfileFormState[K]) {
+    setNewProfile((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateEditProfile<K extends keyof ProfileFormState>(key: K, value: ProfileFormState[K]) {
+    setEditProfile((current) => ({ ...current, [key]: value }));
+  }
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -92,18 +440,13 @@ export default function UsersPage() {
   useEffect(() => {
     if (!selectedUser) return;
     setEditUsername(selectedUser.username ?? "");
-    setEditFullName(selectedUser.full_name ?? "");
-    setEditPosition(selectedUser.position ?? "");
-    setEditSite(selectedUser.site ?? "");
-    setEditFilialeCode(selectedUser.filiale_code ?? "");
+    setEditProfile(profileFormFromUser(selectedUser));
     setEditSecretPin(
       selectedUser.secret_pin === null || selectedUser.secret_pin === undefined
         ? ""
         : String(selectedUser.secret_pin)
     );
     setEditPassword("");
-    setEditPhotoUrl(selectedUser.photo_url ?? "");
-    setEditSignatureUrl(selectedUser.signature_url ?? "");
   }, [selectedUserId, selectedUser]);
 
   useEffect(() => {
@@ -166,7 +509,7 @@ export default function UsersPage() {
         username,
         password,
         secretPin,
-        filialeCode: newFilialeCode || null,
+        ...profilePayloadFromForm(newProfile),
       }),
     });
 
@@ -181,19 +524,10 @@ export default function UsersPage() {
     setNewUsername("");
     setNewPassword("");
     setNewSecretPin("");
-    setNewFilialeCode("");
+    setNewProfile(emptyProfileForm());
     setShowCreateForm(false);
     setCreateMessage(`Benutzer „${data.user?.username ?? username}" wurde angelegt.`);
     await loadUsers();
-  }
-
-  async function fileToDataUrl(file: File) {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result ?? ""));
-      reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
-      reader.readAsDataURL(file);
-    });
   }
 
   async function handleSaveUserProfile(event: React.FormEvent) {
@@ -224,14 +558,9 @@ export default function UsersPage() {
       credentials: "include",
       body: JSON.stringify({
         username,
-        fullName: editFullName,
-        position: editPosition,
-        site: editSite,
-        filialeCode: editFilialeCode || null,
         secretPin: pin === "" ? undefined : Number(pin),
         password: editPassword || undefined,
-        photoUrl: editPhotoUrl,
-        signatureUrl: editSignatureUrl,
+        ...profilePayloadFromForm(editProfile),
       }),
     });
     const data = await response.json().catch(() => ({}));
@@ -370,22 +699,12 @@ export default function UsersPage() {
                 placeholder="Geheimzahl (0–99)"
                 required
               />
-              <label className="userFilialeField">
-                <span>Filiale</span>
-                <select
-                  value={newFilialeCode}
-                  onChange={(event) =>
-                    setNewFilialeCode(event.target.value as UserFilialeCode | "")
-                  }
-                >
-                  <option value="">— keine Filiale —</option>
-                  {DEFAULT_USER_FILIALEN.map((filiale) => (
-                    <option key={filiale.code} value={filiale.code}>
-                      {filiale.label} ({filiale.code})
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <UserProfileFieldsBlock
+                form={newProfile}
+                onChange={updateNewProfile}
+                onFileError={setCreateMessage}
+                showOvertime
+              />
               <button type="submit" className="pillButton primary" disabled={creating}>
                 {creating ? "Wird angelegt..." : "Benutzer speichern"}
               </button>
@@ -427,121 +746,30 @@ export default function UsersPage() {
                 autoComplete="username"
                 required
               />
-              <input
-                value={editFullName}
-                onChange={(event) => setEditFullName(event.target.value)}
-                placeholder="Vollständiger Name"
+              <UserProfileFieldsBlock
+                form={editProfile}
+                onChange={updateEditProfile}
+                onFileError={setSaveMessage}
+                showOvertime
               />
-              <input
-                value={editPosition}
-                onChange={(event) => setEditPosition(event.target.value)}
-                placeholder="Position / Funktion"
-              />
-              <label className="userFilialeField">
-                <span>Filiale</span>
-                <select
-                  value={editFilialeCode}
-                  onChange={(event) =>
-                    setEditFilialeCode(event.target.value as UserFilialeCode | "")
-                  }
-                >
-                  <option value="">— keine Filiale —</option>
-                  {DEFAULT_USER_FILIALEN.map((filiale) => (
-                    <option key={filiale.code} value={filiale.code}>
-                      {filiale.label} ({filiale.code})
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <input
-                value={editSite}
-                onChange={(event) => setEditSite(event.target.value)}
-                placeholder="Standort / Werkstatt (optional)"
-              />
-              <input
-                inputMode="numeric"
-                pattern="[0-9]{1,2}"
-                maxLength={2}
-                value={editSecretPin}
-                onChange={(event) => setEditSecretPin(event.target.value.replace(/\D/g, ""))}
-                placeholder="Geheimzahl (0–99)"
-              />
-              <input
-                type="password"
-                value={editPassword}
-                onChange={(event) => setEditPassword(event.target.value)}
-                placeholder="Neues Passwort (leer = unverändert)"
-                autoComplete="new-password"
-              />
-              <div className="fieldRow documentationFieldRow" style={{ gridColumn: "1 / -1" }}>
-                <span>Benutzerfoto</span>
-                <div className="documentUploadControls documentUploadControlsCompact">
-                  <div className="documentUploadActions">
-                    {editPhotoUrl ? (
-                      <img
-                        src={editPhotoUrl}
-                        alt="Benutzerfoto"
-                        className="publicMachineThumb"
-                        style={{ width: 72, height: 72 }}
-                      />
-                    ) : (
-                      <span className="documentEmptyHint">Kein Foto hinterlegt.</span>
-                    )}
-                    <label className="pillButton outline documentUploadButton">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (event) => {
-                          const file = event.target.files?.[0];
-                          event.target.value = "";
-                          if (!file) return;
-                          try {
-                            const dataUrl = await fileToDataUrl(file);
-                            setEditPhotoUrl(dataUrl);
-                          } catch {
-                            setSaveMessage("Foto konnte nicht gelesen werden.");
-                          }
-                        }}
-                      />
-                      Foto auswählen
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="fieldRow documentationFieldRow" style={{ gridColumn: "1 / -1" }}>
-                <span>Unterschrift (Prüfprotokoll)</span>
-                <div className="documentUploadControls documentUploadControlsCompact">
-                  <div className="documentUploadActions">
-                    {editSignatureUrl ? (
-                      <img
-                        src={editSignatureUrl}
-                        alt="Unterschrift"
-                        style={{ maxWidth: 220, maxHeight: 72, objectFit: "contain" }}
-                      />
-                    ) : (
-                      <span className="documentEmptyHint">Keine Unterschrift hinterlegt.</span>
-                    )}
-                    <label className="pillButton outline documentUploadButton">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (event) => {
-                          const file = event.target.files?.[0];
-                          event.target.value = "";
-                          if (!file) return;
-                          try {
-                            const dataUrl = await fileToDataUrl(file);
-                            setEditSignatureUrl(dataUrl);
-                          } catch {
-                            setSaveMessage("Unterschrift konnte nicht gelesen werden.");
-                          }
-                        }}
-                      />
-                      Unterschrift auswählen
-                    </label>
-                  </div>
-                </div>
-              </div>
+              <section className="personalFieldsSection">
+                <h3 className="personalFieldsSectionTitle">Zugang</h3>
+                <input
+                  inputMode="numeric"
+                  pattern="[0-9]{1,2}"
+                  maxLength={2}
+                  value={editSecretPin}
+                  onChange={(event) => setEditSecretPin(event.target.value.replace(/\D/g, ""))}
+                  placeholder="Geheimzahl (0–99)"
+                />
+                <input
+                  type="password"
+                  value={editPassword}
+                  onChange={(event) => setEditPassword(event.target.value)}
+                  placeholder="Neues Passwort (leer = unverändert)"
+                  autoComplete="new-password"
+                />
+              </section>
               <button type="submit" className="pillButton primary" disabled={savingProfile}>
                 {savingProfile ? "Speichern..." : "Benutzer aktualisieren"}
               </button>

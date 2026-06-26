@@ -4,7 +4,10 @@ import {
   getCurrentSession,
 } from "../../../../lib/auth/permissions";
 import { deleteUserById, updateUserById } from "../../../../lib/auth/users";
-import { normalizeUserFilialeCode } from "../../../../lib/user-filiale";
+import {
+  parseUserProfilePatchFromBody,
+  validateAndNormalizeProfilePatch,
+} from "../../../../lib/user-profile-fields";
 
 export async function PATCH(request, { params }) {
   if (!(await currentUserCanManageUsers())) {
@@ -34,26 +37,24 @@ export async function PATCH(request, { params }) {
     );
   }
 
-  const filialeRaw = body.filialeCode ?? body.filiale_code;
-  let filialeCode;
-  if (filialeRaw !== undefined) {
-    if (filialeRaw === null || filialeRaw === "") {
-      filialeCode = null;
-    } else {
-      filialeCode = normalizeUserFilialeCode(filialeRaw);
-      if (!filialeCode) {
-        return NextResponse.json(
-          { error: "Ungültige Filiale. Erlaubt: S (Schwechat), H (Horn), W (Wien)." },
-          { status: 400 }
-        );
-      }
-    }
-  }
-
   let isActive;
   if (body.isActive !== undefined || body.is_active !== undefined) {
     const raw = body.isActive ?? body.is_active;
     isActive = raw === true || raw === "true" || raw === 1 || raw === "1";
+  }
+
+  const rawProfilePatch = parseUserProfilePatchFromBody(body);
+  const { patch: profile, error: profileValidationError } =
+    validateAndNormalizeProfilePatch(rawProfilePatch);
+  if (profileValidationError) {
+    return NextResponse.json({ error: profileValidationError }, { status: 400 });
+  }
+
+  let overtimeHoursBalance;
+  if (body.overtimeHoursBalance !== undefined || body.overtime_hours_balance !== undefined) {
+    const raw = body.overtimeHoursBalance ?? body.overtime_hours_balance;
+    const numeric = Number(raw);
+    overtimeHoursBalance = Number.isFinite(numeric) ? numeric : 0;
   }
 
   const { user, error } = await updateUserById(id, {
@@ -62,27 +63,25 @@ export async function PATCH(request, { params }) {
     isActive,
     password: password || undefined,
     secretPin: body.secretPin ?? body.secret_pin,
-    fullName:
-      body.fullName !== undefined
-        ? String(body.fullName ?? "")
-        : undefined,
-    position:
-      body.position !== undefined
-        ? String(body.position ?? "")
-        : undefined,
-    site:
-      body.site !== undefined
-        ? String(body.site ?? "")
-        : undefined,
-    filialeCode,
-    photoUrl:
-      body.photoUrl !== undefined
-        ? String(body.photoUrl ?? "")
-        : undefined,
-    signatureUrl:
-      body.signatureUrl !== undefined
-        ? String(body.signatureUrl ?? "")
-        : undefined,
+    fullName: profile.fullName,
+    position: profile.position,
+    site: profile.site,
+    filialeCode: profile.filialeCode,
+    photoUrl: profile.photoUrl,
+    signatureUrl: profile.signatureUrl,
+    companyMobile: profile.companyMobile,
+    privateMobile: profile.privateMobile,
+    companyEmail: profile.companyEmail,
+    privateEmail: profile.privateEmail,
+    birthDate: profile.birthDate,
+    address: profile.address,
+    ecardNumber: profile.ecardNumber,
+    emergencyContactName: profile.emergencyContactName,
+    emergencyContactPhone: profile.emergencyContactPhone,
+    bankAccount: profile.bankAccount,
+    directManager: profile.directManager,
+    workArea: profile.workArea,
+    overtimeHoursBalance,
   });
 
   if (error) return NextResponse.json({ error }, { status: 400 });
