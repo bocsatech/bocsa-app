@@ -53,7 +53,6 @@ type UserRow = {
 type ProfileFormState = {
   fullName: string;
   position: string;
-  site: string;
   filialeCode: UserFilialeCode | "";
   photoUrl: string;
   signatureUrl: string;
