@@ -96,7 +96,6 @@ export default function PersoenlicheSacheProfile() {
     setUser(row);
     setEditFullName(row.full_name ?? "");
     setEditPosition(row.position ?? "");
-    setEditSite(row.site ?? "");
     setEditFilialeCode(row.filiale_code ?? "");
     setEditSecretPin(
       row.secret_pin === null || row.secret_pin === undefined ? "" : String(row.secret_pin)
@@ -190,7 +189,6 @@ export default function PersoenlicheSacheProfile() {
       body: JSON.stringify({
         fullName: editFullName,
         position: editPosition,
-        site: editSite,
         filialeCode: editFilialeCode || null,
         secretPin: pin === "" ? undefined : Number(pin),
         password: editPassword || undefined,
@@ -320,11 +318,6 @@ export default function PersoenlicheSacheProfile() {
             ))}
           </select>
         </label>
-        <input
-          value={editSite}
-          onChange={(event) => setEditSite(event.target.value)}
-          placeholder="Standort (optional)"
-        />
 
         <section className="personalFieldsSection">
           <h3 className="personalFieldsSectionTitle">Arbeit</h3>
