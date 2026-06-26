@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
 import { updateUserById } from "../../../../lib/auth/users";
+import { isLocalhostHost } from "../../../../lib/localhost-request";
 import {
   loadUrlaubQuotaForUsername,
   normalizeOvertimeHours,
@@ -56,6 +58,20 @@ async function loadAuthUserRow(userId) {
   return { row: data, error: null };
 }
 
+function isLocalhostApiRequest() {
+  const headerStore = headers();
+  const host =
+    headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
+  return isLocalhostHost(host);
+}
+
+function urlaubQuotaOptions(authRow) {
+  return {
+    usePerUserQuota: isLocalhostApiRequest(),
+    annualDaysSource: authRow?.overtime_hours_balance,
+  };
+}
+
 export async function GET() {
   const session = await getCurrentSession();
   if (!session) {
@@ -75,7 +91,11 @@ export async function GET() {
 
   const mergedProfile = missingTable ? profileFieldsFromRow(authRow) : profile;
   const user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
-  const urlaub = await loadUrlaubQuotaForUsername(db, session.username);
+  const urlaub = await loadUrlaubQuotaForUsername(
+    db,
+    session.username,
+    urlaubQuotaOptions(authRow)
+  );
   const overtimeHours = normalizeOvertimeHours(authRow.overtime_hours_balance);
 
   return NextResponse.json({
@@ -154,7 +174,11 @@ export async function PATCH(request) {
   }
 
   const db = getSupabaseAdmin();
-  const urlaub = await loadUrlaubQuotaForUsername(db, session.username);
+  const urlaub = await loadUrlaubQuotaForUsername(
+    db,
+    session.username,
+    urlaubQuotaOptions(authRow)
+  );
   const user = mergeAuthUserWithPersonalProfile(authRow, profile ?? profileFieldsFromRow(authRow));
 
   return NextResponse.json({

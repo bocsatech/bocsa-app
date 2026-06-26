@@ -1,3 +1,5 @@
+import { resolveUserAnnualUrlaubDays } from "./urlaub-annual-days";
+
 export const ANNUAL_URLAUB_DAYS = 25;
 
 export type UrlaubBlockVariant =
@@ -55,6 +57,8 @@ export type UrlaubTimelineUser = {
   displayName: string;
   initials: string;
   blocks: UrlaubBlock[];
+  /** Localhost: aus Admin-Feld „Urlaub“ (users.overtime_hours_balance) */
+  annualDays?: number;
 };
 
 export function userInitials(displayName: string) {
@@ -66,19 +70,26 @@ export function userInitials(displayName: string) {
 }
 
 export function mapDbUsersToUrlaubTimelineUsers(
-  users: Array<{ username?: unknown; full_name?: unknown }>
+  users: Array<{ username?: unknown; full_name?: unknown; overtime_hours_balance?: unknown }>,
+  options?: { usePerUserQuota?: boolean }
 ): UrlaubTimelineUser[] {
+  const usePerUserQuota = options?.usePerUserQuota === true;
+
   return users
     .map((user) => {
       const username = String(user.username ?? "").trim();
       if (!username) return null;
       const fullName = typeof user.full_name === "string" ? user.full_name.trim() : "";
       const displayName = fullName || username;
+      const annualDays = usePerUserQuota
+        ? resolveUserAnnualUrlaubDays(user.overtime_hours_balance, true)
+        : undefined;
       return {
         username,
         displayName,
         initials: userInitials(displayName),
         blocks: [],
+        ...(annualDays !== undefined ? { annualDays } : {}),
       };
     })
     .filter((user): user is UrlaubTimelineUser => user !== null)
@@ -86,3 +97,4 @@ export function mapDbUsersToUrlaubTimelineUsers(
       a.displayName.localeCompare(b.displayName, "de", { sensitivity: "base" })
     );
 }
+

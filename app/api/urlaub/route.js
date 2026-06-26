@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { dateKeyFromDate } from "../../../lib/austria-holidays";
 import { currentUserCanReadUrlaub, resolveUrlaubWriteUsername } from "../../../lib/auth/urlaub";
 import { getCurrentSession } from "../../../lib/auth/permissions";
+import { isLocalhostRequest } from "../../../lib/localhost-request";
+import { resolveUserAnnualUrlaubDays } from "../../../lib/urlaub-annual-days";
 import { exceedsAnnualUrlaubQuota } from "../../../lib/urlaub-blocks";
 import {
   ANNUAL_URLAUB_DAYS,
@@ -38,6 +40,20 @@ async function loadAllRows(db) {
     ({ data, error } = await db.from(TABLE).select(SELECT_LEGACY));
   }
   return { data, error };
+}
+
+async function loadAnnualUrlaubDaysForUsername(db, username, request) {
+  const usePerUserQuota = isLocalhostRequest(request);
+  if (!usePerUserQuota) return ANNUAL_URLAUB_DAYS;
+
+  const { data, error } = await db
+    .from("users")
+    .select("overtime_hours_balance")
+    .eq("username", String(username).trim().toLowerCase())
+    .maybeSingle();
+
+  if (error || !data) return ANNUAL_URLAUB_DAYS;
+  return resolveUserAnnualUrlaubDays(data.overtime_hours_balance, true);
 }
 
 export async function GET() {
@@ -88,10 +104,11 @@ export async function PUT(request) {
 
   const calendarYear = new Date().getFullYear();
   const todayKey = dateKeyFromDate(new Date());
-  if (exceedsAnnualUrlaubQuota(blocks, calendarYear, todayKey, ANNUAL_URLAUB_DAYS)) {
+  const annualUrlaubDays = await loadAnnualUrlaubDaysForUsername(db, username, request);
+  if (exceedsAnnualUrlaubQuota(blocks, calendarYear, todayKey, annualUrlaubDays)) {
     return NextResponse.json(
       {
-        error: `Maximal ${formatUrlaubQuotaValue(ANNUAL_URLAUB_DAYS)} Urlaubstage pro Jahr — Kontingent überschritten.`,
+        error: `Maximal ${formatUrlaubQuotaValue(annualUrlaubDays)} Urlaubstage pro Jahr — Kontingent überschritten.`,
       },
       { status: 400 }
     );

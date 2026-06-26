@@ -22,6 +22,7 @@ import {
   variantForDate,
   wouldExceedUrlaubQuotaAfterApply,
 } from "../../lib/urlaub-blocks";
+import { useIsLocalhost } from "../../lib/use-is-localhost";
 import {
   ANNUAL_URLAUB_DAYS,
   ABSENCE_VARIANT_LABELS,
@@ -49,6 +50,7 @@ type VisibleMonthKey = {
 };
 
 export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: Props) {
+  const isLocalhost = useIsLocalhost();
   const scrollRef = useRef<HTMLDivElement>(null);
   const usersColRef = useRef<HTMLDivElement>(null);
   const syncingScrollRef = useRef(false);
@@ -92,6 +94,7 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
             displayName: user.displayName,
             initials: user.initials,
             blocks: user.blocks ?? [],
+            annualDays: user.annualDays,
           }))
         );
       })
@@ -163,6 +166,14 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
     [sessionUsername, users]
   );
 
+  const currentUserAnnualDays = useMemo(() => {
+    if (!currentUser) return ANNUAL_URLAUB_DAYS;
+    if (isLocalhost && typeof currentUser.annualDays === "number") {
+      return currentUser.annualDays;
+    }
+    return ANNUAL_URLAUB_DAYS;
+  }, [currentUser, isLocalhost]);
+
   const todayKey = useMemo(() => dateKeyFromDate(anchor), [anchor]);
 
   const urlaubQuota = useMemo(
@@ -173,10 +184,10 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
             days,
             calendarYear,
             todayKey,
-            ANNUAL_URLAUB_DAYS
+            currentUserAnnualDays
           )
         : null,
-    [calendarYear, currentUser, days, todayKey]
+    [calendarYear, currentUser, currentUserAnnualDays, days, todayKey]
   );
 
   const todayIndex = days.findIndex((day) => day.isToday);
@@ -289,13 +300,13 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
           days,
           calendarYear,
           todayKey,
-          ANNUAL_URLAUB_DAYS,
+          currentUserAnnualDays,
           portion
         )
       ) {
         setSaveState("error");
         setSaveError(
-          `Maximal ${formatUrlaubQuotaValue(ANNUAL_URLAUB_DAYS)} Urlaubstage pro Jahr — Kontingent überschritten.`
+          `Maximal ${formatUrlaubQuotaValue(currentUserAnnualDays)} Urlaubstage pro Jahr — Kontingent überschritten.`
         );
         return;
       }
@@ -306,7 +317,7 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
       setSaveError("");
       setSaveState("idle");
     },
-    [calendarYear, clearSelection, currentUser?.blocks, days, selectedKeys, todayKey, updateCurrentUserBlocks]
+    [calendarYear, clearSelection, currentUser?.blocks, currentUserAnnualDays, days, selectedKeys, todayKey, updateCurrentUserBlocks]
   );
 
   const deleteSelection = useCallback(() => {
@@ -440,14 +451,14 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
               geplant ·{" "}
               <strong
                 className={
-                  urlaubQuota.remaining <= 0 && urlaubQuota.total >= ANNUAL_URLAUB_DAYS
+                  urlaubQuota.remaining <= 0 && urlaubQuota.total >= currentUserAnnualDays
                     ? "urlaubQuota--over"
                     : ""
                 }
               >
                 {formatUrlaubQuotaValue(urlaubQuota.remaining)}
               </strong>{" "}
-              übrig / {formatUrlaubQuotaValue(ANNUAL_URLAUB_DAYS)}
+              übrig / {formatUrlaubQuotaValue(currentUserAnnualDays)}
             </span>
           ) : null}
           {saveState === "saving" ? (

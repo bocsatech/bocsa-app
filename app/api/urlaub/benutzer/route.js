@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentUserCanReadUrlaub } from "../../../../lib/auth/urlaub";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
 import { listUsers } from "../../../../lib/auth/users";
+import { isLocalhostRequest } from "../../../../lib/localhost-request";
 import {
   attachBlocksToUrlaubUsers,
   isMissingUrlaubPortionColumn,
@@ -16,7 +17,7 @@ const TABLE = "urlaub_tage";
 const SELECT_WITH_PORTION = "username, datum, variant, portion";
 const SELECT_LEGACY = "username, datum, variant";
 
-export async function GET() {
+export async function GET(request) {
   const session = await getCurrentSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
@@ -30,7 +31,9 @@ export async function GET() {
     return NextResponse.json({ error }, { status: 500 });
   }
 
-  const baseUsers = mapDbUsersToUrlaubTimelineUsers(users ?? []);
+  const baseUsers = mapDbUsersToUrlaubTimelineUsers(users ?? [], {
+    usePerUserQuota: isLocalhostRequest(request),
+  });
   const db = getSupabaseAdmin();
   if (!db) {
     return NextResponse.json({ users: baseUsers });
