@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
 import { updateUserById } from "../../../../lib/auth/users";
+import { isLocalhostHost } from "../../../../lib/localhost-request";
 import {
   loadUrlaubQuotaForUsername,
   normalizeOvertimeHours,
@@ -63,6 +65,13 @@ function urlaubQuotaOptions(authRow) {
   };
 }
 
+function isLocalhostApiRequest() {
+  const headerStore = headers();
+  const host =
+    headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
+  return isLocalhostHost(host);
+}
+
 export async function GET() {
   const session = await getCurrentSession();
   if (!session) {
@@ -82,6 +91,10 @@ export async function GET() {
 
   const mergedProfile = missingTable ? profileFieldsFromRow(authRow) : profile;
   const user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
+  if (isLocalhostApiRequest()) {
+    user.position =
+      typeof authRow.position === "string" ? authRow.position : authRow.position ?? null;
+  }
   const urlaub = await loadUrlaubQuotaForUsername(
     db,
     session.username,
@@ -122,6 +135,10 @@ export async function PATCH(request) {
     validateAndNormalizeProfilePatch(rawProfilePatch);
   if (profileValidationError) {
     return NextResponse.json({ error: profileValidationError }, { status: 400 });
+  }
+
+  if (isLocalhostApiRequest()) {
+    delete profilePatch.position;
   }
 
   const authPatch = {
@@ -171,6 +188,10 @@ export async function PATCH(request) {
     urlaubQuotaOptions(authRow)
   );
   const user = mergeAuthUserWithPersonalProfile(authRow, profile ?? profileFieldsFromRow(authRow));
+  if (isLocalhostApiRequest()) {
+    user.position =
+      typeof authRow.position === "string" ? authRow.position : authRow.position ?? null;
+  }
 
   return NextResponse.json({
     user,

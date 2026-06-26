@@ -107,6 +107,30 @@ export async function updatePersonalProfile(userId: string, patch: UserProfilePa
   return { profile: profileFieldsFromRow(data), error: null };
 }
 
+export async function syncPersonalProfilePositionFromAdmin(
+  userId: string,
+  position: string | null | undefined
+) {
+  const db = getDb();
+  const { error } = await db.from(PERSONAL_PROFILES_TABLE).upsert(
+    {
+      user_id: userId,
+      position: typeof position === "string" ? position.trim() || null : null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
+
+  if (error) {
+    if (isMissingPersonalProfilesTable(error)) {
+      return { ok: false, error: null, missingTable: true };
+    }
+    return { ok: false, error: error.message, missingTable: false };
+  }
+
+  return { ok: true, error: null, missingTable: false };
+}
+
 export function mergeAuthUserWithPersonalProfile(
   authRow: Record<string, unknown>,
   profile: UserProfileFields

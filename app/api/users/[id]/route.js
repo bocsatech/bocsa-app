@@ -4,6 +4,8 @@ import {
   getCurrentSession,
 } from "../../../../lib/auth/permissions";
 import { deleteUserById, updateUserById } from "../../../../lib/auth/users";
+import { isLocalhostRequest } from "../../../../lib/localhost-request";
+import { syncPersonalProfilePositionFromAdmin } from "../../../../lib/user-personal-profile";
 import {
   parseUserProfilePatchFromBody,
   validateAndNormalizeProfilePatch,
@@ -85,6 +87,11 @@ export async function PATCH(request, { params }) {
   });
 
   if (error) return NextResponse.json({ error }, { status: 400 });
+
+  if (isLocalhostRequest(request) && profile.position !== undefined) {
+    await syncPersonalProfilePositionFromAdmin(id, profile.position);
+  }
+
   return NextResponse.json({ user });
 }
 
