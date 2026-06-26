@@ -158,6 +158,13 @@ function stripStammdatenPayload(payload: Record<string, unknown>) {
 
 const USER_LIST_SELECT_NO_STAMMDATEN =
   `id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, is_active, ${USER_PERSONAL_COLUMNS}, created_at`;
+const USER_LIST_SELECT_NO_FILIALE =
+  `id, username, secret_pin, full_name, position, site, photo_url, signature_url, is_active, ${USER_EXTENDED_COLUMNS}, created_at`;
+
+function stripFilialePayload(payload: Record<string, unknown>) {
+  const { filiale_code: _omit, ...rest } = payload;
+  return rest;
+}
 
 function isMissingActiveColumn(
   error: { message?: string; code?: string } | null
@@ -420,7 +427,7 @@ export async function listUsers() {
   if (error && isMissingFilialeColumn(error)) {
     ({ data, error } = await db
       .from(USERS_TABLE)
-      .select(USER_LIST_SELECT_NO_PERSONAL)
+      .select(USER_LIST_SELECT_NO_FILIALE)
       .order("created_at", { ascending: false }));
   }
 
@@ -580,6 +587,24 @@ export async function updateUserById(
     }
   }
 
+  if (error && isMissingFilialeColumn(error)) {
+    const updatePayload =
+      "filiale_code" in payload ? stripFilialePayload(payload) : payload;
+    if (Object.keys(updatePayload).length === 0) {
+      return {
+        user: null,
+        error:
+          'Spalte "filiale_code" fehlt. Bitte supabase/users-filiale-patch.sql im Supabase SQL Editor ausführen.',
+      };
+    }
+    ({ data, error } = await db
+      .from(USERS_TABLE)
+      .update(updatePayload)
+      .eq("id", id)
+      .select(USER_LIST_SELECT_NO_FILIALE)
+      .single());
+  }
+
   if (error && isMissingActiveColumn(error)) {
     const { is_active: _omit, ...updatePayload } = payload;
     if ("is_active" in payload && Object.keys(updatePayload).length === 0) {
@@ -628,25 +653,6 @@ export async function updateUserById(
       .update(updatePayload)
       .eq("id", id)
       .select(USER_LIST_SELECT_NO_PERSONAL)
-      .single());
-  }
-
-  if (error && isMissingFilialeColumn(error)) {
-    const { filiale_code: _omit, ...payloadWithoutFiliale } = payload;
-    const updatePayload =
-      "filiale_code" in payload ? payloadWithoutFiliale : payload;
-    if (Object.keys(updatePayload).length === 0) {
-      return {
-        user: null,
-        error:
-          'Spalte "filiale_code" fehlt. Bitte supabase/users-filiale-patch.sql im Supabase SQL Editor ausführen.',
-      };
-    }
-    ({ data, error } = await db
-      .from(USERS_TABLE)
-      .update(updatePayload)
-      .eq("id", id)
-      .select(USER_LIST_SELECT_LEGACY)
       .single());
   }
 

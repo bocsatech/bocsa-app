@@ -589,6 +589,9 @@ export default function UsersPage() {
     }
     setSaveMessage("Benutzerdaten gespeichert.");
     setEditPassword("");
+    if (data.user) {
+      setEditProfile(profileFormFromUser(data.user as UserRow));
+    }
     await loadUsers();
   }
 
