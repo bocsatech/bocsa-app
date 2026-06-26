@@ -121,10 +121,28 @@
 .persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > input:not([type="file"]),
 .persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > select {
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   min-height: 42px;
   height: 42px;
   padding: 0 12px;
-  line-height: 1.25;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background-color: #fff;
+  font: inherit;
+  line-height: 40px;
+}
+
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  cursor: pointer;
 }
 
 .persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker {
@@ -137,7 +155,10 @@
   min-height: 42px;
   height: 42px;
   padding: 0 12px;
-  line-height: 1.25;
+  line-height: 40px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background-color: #fff;
 }
 
 .persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldPickerBtn {
