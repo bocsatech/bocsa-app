@@ -13,11 +13,11 @@
   width: 100%;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormField,
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFilialeField,
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled input,
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled textarea,
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .dateFieldWithPicker {
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .userFormField,
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .userFilialeField,
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled input,
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled textarea,
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .dateFieldWithPicker {
   width: 50%;
   max-width: 100%;
   box-sizing: border-box;
@@ -56,9 +56,9 @@
   box-sizing: border-box;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled input,
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled textarea,
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .dateFieldWithPicker .dateFieldText {
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled input,
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled textarea,
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .dateFieldWithPicker .dateFieldText {
   padding: 10px 12px;
   border: 1px solid #dbe2ea;
   border-radius: 10px;
@@ -105,21 +105,21 @@
   border-top: 1px solid #f1f5f9;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost .personalFieldsSection {
+.persoenlicheSachePage .userCreateForm--labeled .personalFieldsSection {
   display: contents;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost .personalFieldsSectionTitle {
+.persoenlicheSachePage .userCreateForm--labeled .personalFieldsSectionTitle {
   padding-top: 0;
   border-top: 1px solid #f1f5f9;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost .userFormFieldControl > datalist {
+.persoenlicheSachePage .userCreateForm--labeled .userFormFieldControl > datalist {
   display: none;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > input:not([type="file"]),
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > select {
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .userFormFieldControl > input:not([type="file"]),
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .userFormFieldControl > select {
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
@@ -133,7 +133,7 @@
   line-height: 40px;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > select {
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .userFormFieldControl > select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -145,12 +145,12 @@
   cursor: pointer;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker {
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker {
   min-height: 42px;
   height: 42px;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker .dateFieldText {
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker .dateFieldText {
   box-sizing: border-box;
   min-height: 42px;
   height: 42px;
@@ -161,14 +161,14 @@
   background-color: #fff;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldPickerBtn {
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .userFormFieldControl .dateFieldPickerBtn {
   width: 42px;
   height: 42px;
   flex: 0 0 42px;
 }
 
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .personalFieldsSection .userFormField,
-.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .personalFieldsSection .userFilialeField {
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .personalFieldsSection .userFormField,
+.persoenlicheSachePage .userCreateForm--labeled.userCreateFormLabeled .personalFieldsSection .userFilialeField {
   width: 50%;
   max-width: 100%;
 }

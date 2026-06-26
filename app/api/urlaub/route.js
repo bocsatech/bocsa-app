@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { dateKeyFromDate } from "../../../lib/austria-holidays";
 import { currentUserCanReadUrlaub, resolveUrlaubWriteUsername } from "../../../lib/auth/urlaub";
 import { getCurrentSession } from "../../../lib/auth/permissions";
-import { isLocalhostRequest } from "../../../lib/localhost-request";
 import { resolveUserAnnualUrlaubDays } from "../../../lib/urlaub-annual-days";
 import { exceedsAnnualUrlaubQuota } from "../../../lib/urlaub-blocks";
 import {
@@ -42,10 +41,7 @@ async function loadAllRows(db) {
   return { data, error };
 }
 
-async function loadAnnualUrlaubDaysForUsername(db, username, request) {
-  const usePerUserQuota = isLocalhostRequest(request);
-  if (!usePerUserQuota) return ANNUAL_URLAUB_DAYS;
-
+async function loadAnnualUrlaubDaysForUsername(db, username) {
   const { data, error } = await db
     .from("users")
     .select("overtime_hours_balance")
@@ -104,7 +100,7 @@ export async function PUT(request) {
 
   const calendarYear = new Date().getFullYear();
   const todayKey = dateKeyFromDate(new Date());
-  const annualUrlaubDays = await loadAnnualUrlaubDaysForUsername(db, username, request);
+  const annualUrlaubDays = await loadAnnualUrlaubDaysForUsername(db, username);
   if (exceedsAnnualUrlaubQuota(blocks, calendarYear, todayKey, annualUrlaubDays)) {
     return NextResponse.json(
       {

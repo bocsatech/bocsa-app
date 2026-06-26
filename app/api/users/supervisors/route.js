@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
 import { listUsers } from "../../../../lib/auth/users";
-import { isLocalhostRequest } from "../../../../lib/localhost-request";
 import { isSupervisorPosition, supervisorUserLabel } from "../../../../lib/user-position";
 
-export async function GET(request) {
-  if (!isLocalhostRequest(request)) {
-    return NextResponse.json({ supervisors: [] });
-  }
-
+export async function GET() {
   const session = await getCurrentSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });

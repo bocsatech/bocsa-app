@@ -1,6 +1,4 @@
-import { headers } from "next/headers";
 import { listUsers } from "../../lib/auth/users";
-import { isLocalhostHost } from "../../lib/localhost-request";
 import { attachBlocksToUrlaubUsers, isMissingUrlaubTablesError } from "../../lib/urlaub-db";
 import { mapDbUsersToUrlaubTimelineUsers, type UrlaubTimelineUser } from "../../lib/urlaub-timeline-users";
 import { getSupabaseAdmin } from "../../lib/supabaseAdmin";
@@ -9,14 +7,9 @@ import UrlaubHorizCalendar from "./UrlaubHorizCalendar";
 import "./urlaub.css";
 
 async function loadInitialUrlaubUsers(): Promise<UrlaubTimelineUser[]> {
-  const headerStore = await headers();
-  const host =
-    headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
-  const usePerUserQuota = isLocalhostHost(host);
-
   const { users, error } = await listUsers();
   if (error) return [];
-  const baseUsers = mapDbUsersToUrlaubTimelineUsers(users ?? [], { usePerUserQuota });
+  const baseUsers = mapDbUsersToUrlaubTimelineUsers(users ?? [], { usePerUserQuota: true });
   const db = getSupabaseAdmin();
   if (!db) return baseUsers;
 

@@ -22,7 +22,6 @@ import {
   variantForDate,
   wouldExceedUrlaubQuotaAfterApply,
 } from "../../lib/urlaub-blocks";
-import { useIsLocalhost } from "../../lib/use-is-localhost";
 import {
   ANNUAL_URLAUB_DAYS,
   ABSENCE_VARIANT_LABELS,
@@ -50,7 +49,6 @@ type VisibleMonthKey = {
 };
 
 export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: Props) {
-  const isLocalhost = useIsLocalhost();
   const scrollRef = useRef<HTMLDivElement>(null);
   const usersColRef = useRef<HTMLDivElement>(null);
   const syncingScrollRef = useRef(false);
@@ -168,11 +166,11 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
 
   const currentUserAnnualDays = useMemo(() => {
     if (!currentUser) return ANNUAL_URLAUB_DAYS;
-    if (isLocalhost && typeof currentUser.annualDays === "number") {
+    if (typeof currentUser.annualDays === "number") {
       return currentUser.annualDays;
     }
     return ANNUAL_URLAUB_DAYS;
-  }, [currentUser, isLocalhost]);
+  }, [currentUser]);
 
   const todayKey = useMemo(() => dateKeyFromDate(anchor), [anchor]);
 

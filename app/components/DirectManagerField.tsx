@@ -5,7 +5,6 @@ import {
   resolveDirectManagerFormValue,
   supervisorUserLabel,
 } from "../../lib/user-position";
-import { useIsLocalhost } from "../../lib/use-is-localhost";
 import { UserFormSelect } from "./UserFormField";
 
 export type SupervisorOption = {
@@ -28,21 +27,10 @@ export default function DirectManagerField({
   supervisors,
   excludeUserId,
 }: DirectManagerFieldProps) {
-  const isLocalhost = useIsLocalhost();
   const options = supervisors.filter((supervisor) => supervisor.id !== excludeUserId);
   const resolvedValue = resolveDirectManagerFormValue(value, options);
   const hasLegacyValue =
     resolvedValue !== "" && !options.some((supervisor) => supervisor.id === resolvedValue);
-
-  if (!isLocalhost) {
-    return (
-      <input
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder="Direkter Vorgesetzter"
-      />
-    );
-  }
 
   return (
     <UserFormSelect

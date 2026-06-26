@@ -5,7 +5,7 @@ import GermanDateField from "./GermanDateField";
 import DirectManagerField, { type SupervisorOption } from "./DirectManagerField";
 import UserPositionField from "./UserPositionField";
 import UserProfileMediaFields from "./UserProfileMediaFields";
-import { UserFormSelect, UserFormTextInput } from "./UserFormField";
+import UserFormField, { UserFormSelect, UserFormTextInput, UserFormTextarea } from "./UserFormField";
 import {
   DEFAULT_USER_FILIALEN,
   type UserFilialeCode,
@@ -14,7 +14,6 @@ import {
   USER_WORK_AREAS,
   type UserWorkArea,
 } from "../../lib/user-stammdaten";
-import { useIsLocalhost } from "../../lib/use-is-localhost";
 
 type UrlaubStats = {
   year: number;
@@ -56,7 +55,6 @@ type UserRow = {
 };
 
 export default function PersoenlicheSacheProfile() {
-  const isLocalhost = useIsLocalhost();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<UserRow | null>(null);
@@ -141,11 +139,6 @@ export default function PersoenlicheSacheProfile() {
   }, [loadProfile]);
 
   useEffect(() => {
-    if (!isLocalhost) {
-      setSupervisors([]);
-      return;
-    }
-
     async function loadSupervisors() {
       const response = await fetch("/api/users/supervisors", {
         credentials: "include",
@@ -157,7 +150,7 @@ export default function PersoenlicheSacheProfile() {
     }
 
     void loadSupervisors();
-  }, [isLocalhost]);
+  }, []);
 
   async function handleSaveProfile(event: React.FormEvent) {
     event.preventDefault();
@@ -287,13 +280,13 @@ export default function PersoenlicheSacheProfile() {
         </p>
       ) : null}
       <form
-        className={`groupCreateForm userCreateForm${isLocalhost ? " userCreateFormLabeled userCreateForm--localhost" : ""}`}
+        className="groupCreateForm userCreateForm userCreateFormLabeled userCreateForm--labeled"
         onSubmit={handleSaveProfile}
       >
-        <input
+        <UserFormTextInput
+          label="Vollständiger Name"
           value={editFullName}
-          onChange={(event) => setEditFullName(event.target.value)}
-          placeholder="Vollständiger Name"
+          onChange={setEditFullName}
         />
         <UserPositionField
           value={editPosition}
@@ -333,105 +326,94 @@ export default function PersoenlicheSacheProfile() {
             supervisors={supervisors}
             excludeUserId={user.id}
           />
-          {isLocalhost ? (
-            <UserFormTextInput
-              label="Bankkonto / IBAN"
-              value={editBankAccount}
-              onChange={setEditBankAccount}
-            />
-          ) : (
-            <input
-              value={editBankAccount}
-              onChange={(event) => setEditBankAccount(event.target.value)}
-              placeholder="Bankkonto / IBAN"
-            />
-          )}
+          <UserFormTextInput
+            label="Bankkonto / IBAN"
+            value={editBankAccount}
+            onChange={setEditBankAccount}
+          />
         </section>
 
         <section className="personalFieldsSection">
           <h3 className="personalFieldsSectionTitle">Kontakt &amp; Persönliches</h3>
-          <input
+          <UserFormTextInput
+            label="Firmen-Handynummer"
             type="tel"
             value={editCompanyMobile}
-            onChange={(event) => setEditCompanyMobile(event.target.value)}
-            placeholder="Firmen-Handynummer"
+            onChange={setEditCompanyMobile}
           />
-          <input
+          <UserFormTextInput
+            label="Privat-Handynummer"
             type="tel"
             value={editPrivateMobile}
-            onChange={(event) => setEditPrivateMobile(event.target.value)}
-            placeholder="Privat-Handynummer"
+            onChange={setEditPrivateMobile}
           />
-          <input
+          <UserFormTextInput
+            label="Firmen-E-Mail"
             type="email"
             value={editCompanyEmail}
-            onChange={(event) => setEditCompanyEmail(event.target.value)}
-            placeholder="Firmen-E-Mail"
+            onChange={setEditCompanyEmail}
           />
-          <input
+          <UserFormTextInput
+            label="Privat-E-Mail"
             type="email"
             value={editPrivateEmail}
-            onChange={(event) => setEditPrivateEmail(event.target.value)}
-            placeholder="Privat-E-Mail"
+            onChange={setEditPrivateEmail}
           />
-          <GermanDateField
-            value={editBirthDate}
-            onChange={setEditBirthDate}
-            placeholder="Geburtstag (TT.MM.JJJJ)"
-            openPickerOnFocus
-            pickerVariant="calendar"
-            minYear={new Date().getFullYear() - 100}
-            maxYear={new Date().getFullYear()}
-          />
-          <textarea
-            value={editAddress}
-            onChange={(event) => setEditAddress(event.target.value)}
-            placeholder="Adresse"
-            rows={3}
-          />
-          <input
+          <UserFormField label="Geburtstag (TT.MM.JJJJ)">
+            <GermanDateField
+              value={editBirthDate}
+              onChange={setEditBirthDate}
+              placeholder=""
+              openPickerOnFocus
+              pickerVariant="calendar"
+              minYear={new Date().getFullYear() - 100}
+              maxYear={new Date().getFullYear()}
+            />
+          </UserFormField>
+          <UserFormTextarea label="Adresse" value={editAddress} onChange={setEditAddress} />
+          <UserFormTextInput
+            label="E-Card Nummer"
             value={editEcardNumber}
-            onChange={(event) => setEditEcardNumber(event.target.value)}
-            placeholder="E-Card Nummer"
+            onChange={setEditEcardNumber}
           />
         </section>
 
         <section className="personalFieldsSection">
           <h3 className="personalFieldsSectionTitle">Zugang</h3>
-          <input
+          <UserFormTextInput
+            label="Geheimzahl (0–99)"
+            value={editSecretPin}
+            onChange={(value) => setEditSecretPin(value.replace(/\D/g, ""))}
             inputMode="numeric"
             pattern="[0-9]{1,2}"
             maxLength={2}
-            value={editSecretPin}
-            onChange={(event) => setEditSecretPin(event.target.value.replace(/\D/g, ""))}
-            placeholder="Geheimzahl (0–99)"
           />
-          <input
+          <UserFormTextInput
+            label="Neues Passwort (leer = unverändert)"
             type="password"
             value={editPassword}
-            onChange={(event) => setEditPassword(event.target.value)}
-            placeholder="Neues Passwort (leer = unverändert)"
+            onChange={setEditPassword}
             autoComplete="new-password"
           />
         </section>
 
         <section className="personalFieldsSection">
           <h3 className="personalFieldsSectionTitle">Notfallkontakt</h3>
-          <input
+          <UserFormTextInput
+            label="Name"
             value={editEmergencyContactName}
-            onChange={(event) => setEditEmergencyContactName(event.target.value)}
-            placeholder="Name"
+            onChange={setEditEmergencyContactName}
           />
-          <input
+          <UserFormTextInput
+            label="Handynummer"
             type="tel"
             value={editEmergencyContactPhone}
-            onChange={(event) => setEditEmergencyContactPhone(event.target.value)}
-            placeholder="Handynummer"
+            onChange={setEditEmergencyContactPhone}
           />
         </section>
 
         <UserProfileMediaFields
-          mode={isLocalhost ? "inline" : "stacked"}
+          mode="inline"
           idPrefix={`stammdaten-${user.id}`}
           photoUrl={editPhotoUrl}
           signatureUrl={editSignatureUrl}

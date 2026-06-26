@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
 import { updateUserById } from "../../../../lib/auth/users";
-import { isLocalhostHost } from "../../../../lib/localhost-request";
 import {
   loadUrlaubQuotaForUsername,
   normalizeOvertimeHours,
@@ -58,16 +56,9 @@ async function loadAuthUserRow(userId) {
   return { row: data, error: null };
 }
 
-function isLocalhostApiRequest() {
-  const headerStore = headers();
-  const host =
-    headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
-  return isLocalhostHost(host);
-}
-
 function urlaubQuotaOptions(authRow) {
   return {
-    usePerUserQuota: isLocalhostApiRequest(),
+    usePerUserQuota: true,
     annualDaysSource: authRow?.overtime_hours_balance,
   };
 }

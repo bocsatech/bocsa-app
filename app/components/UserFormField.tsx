@@ -1,11 +1,9 @@
 "use client";
 
 import type { ReactNode, SelectHTMLAttributes } from "react";
-import { useIsLocalhost } from "../../lib/use-is-localhost";
 
-export function useFormPlaceholder(fallback: string) {
-  const isLocalhost = useIsLocalhost();
-  return isLocalhost ? "" : fallback;
+export function useFormPlaceholder(_fallback: string) {
+  return "";
 }
 
 type UserFormFieldProps = {
@@ -15,11 +13,6 @@ type UserFormFieldProps = {
 };
 
 export default function UserFormField({ label, children, className }: UserFormFieldProps) {
-  const isLocalhost = useIsLocalhost();
-  if (!isLocalhost) {
-    return <>{children}</>;
-  }
-
   return (
     <div className={`userFormField${className ? ` ${className}` : ""}`}>
       <span className="userFormFieldLabel">{label}</span>
@@ -49,15 +42,13 @@ export function UserFormTextInput({
   type = "text",
   ...rest
 }: UserFormTextInputProps) {
-  const placeholder = useFormPlaceholder(label);
-
   return (
     <UserFormField label={label}>
       <input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
+        placeholder=""
         {...rest}
       />
     </UserFormField>
@@ -72,14 +63,12 @@ type UserFormTextareaProps = {
 };
 
 export function UserFormTextarea({ label, value, onChange, rows = 3 }: UserFormTextareaProps) {
-  const placeholder = useFormPlaceholder(label);
-
   return (
     <UserFormField label={label}>
       <textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
+        placeholder=""
         rows={rows}
       />
     </UserFormField>
@@ -94,21 +83,11 @@ type UserFormSelectProps = {
 } & Pick<SelectHTMLAttributes<HTMLSelectElement>, "required">;
 
 export function UserFormSelect({ label, value, onChange, children, required }: UserFormSelectProps) {
-  const isLocalhost = useIsLocalhost();
-  const select = (
-    <select value={value} onChange={(event) => onChange(event.target.value)} required={required}>
-      {children}
-    </select>
-  );
-
-  if (isLocalhost) {
-    return <UserFormField label={label}>{select}</UserFormField>;
-  }
-
   return (
-    <label className="userFilialeField">
-      <span>{label}</span>
-      {select}
-    </label>
+    <UserFormField label={label}>
+      <select value={value} onChange={(event) => onChange(event.target.value)} required={required}>
+        {children}
+      </select>
+    </UserFormField>
   );
 }

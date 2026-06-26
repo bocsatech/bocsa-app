@@ -22,7 +22,6 @@ import {
   type UserWorkArea,
 } from "../../lib/user-stammdaten";
 import { isSupervisorPosition } from "../../lib/user-position";
-import { useIsLocalhost } from "../../lib/use-is-localhost";
 
 type UserRow = {
   id: string;
@@ -170,7 +169,6 @@ function UserProfileFieldsBlock({
   supervisors = [],
   excludeUserId = null,
 }: UserProfileFieldsBlockProps) {
-  const isLocalhost = useIsLocalhost();
   const birthDatePlaceholder = useFormPlaceholder("Geburtstag (TT.MM.JJJJ)");
 
   return (
@@ -224,9 +222,9 @@ function UserProfileFieldsBlock({
         />
         {showOvertime ? (
           <UserFormTextInput
-            label={isLocalhost ? "Urlaub" : "Überstunden (Std.)"}
+            label="Urlaub"
             type="number"
-            step={isLocalhost ? "1" : "0.25"}
+            step="1"
             value={form.overtimeHoursBalance}
             onChange={(value) => onChange("overtimeHoursBalance", value)}
           />
@@ -300,13 +298,11 @@ function UserProfileFieldsBlock({
   );
 }
 
-function wrapLocalhostMainFields(isLocalhost: boolean, content: ReactNode) {
-  if (!isLocalhost) return content;
+function wrapProfileMainFields(content: ReactNode) {
   return <div className="userProfileFormMainFields">{content}</div>;
 }
 
 export default function UsersPage() {
-  const isLocalhost = useIsLocalhost();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -372,9 +368,7 @@ export default function UsersPage() {
       full_name: user.full_name,
       position: user.position,
     }));
-  const userFormClassName = `groupCreateForm userCreateForm${
-    isLocalhost ? " userCreateFormLabeled userCreateForm--localhost" : ""
-  }`;
+  const userFormClassName = "groupCreateForm userCreateForm userCreateFormLabeled userCreateForm--labeled";
 
   useEffect(() => {
     if (!selectedUser) return;
@@ -616,10 +610,9 @@ export default function UsersPage() {
               <p className="cardTitle">Neuer Benutzer</p>
             </div>
             <form className={userFormClassName} onSubmit={handleCreateUser}>
-              <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
-                <div className={`userProfileFormFields${isLocalhost ? " userProfileFormFields--withHeadMedia" : ""}`}>
-                  {wrapLocalhostMainFields(
-                    isLocalhost,
+              <div className="userProfileFormLayout userProfileFormLayout--single">
+                <div className="userProfileFormFields userProfileFormFields--withHeadMedia">
+                  {wrapProfileMainFields(
                     <>
                       <UserFormTextInput
                         label="Benutzername"
@@ -655,22 +648,9 @@ export default function UsersPage() {
                       />
                     </>
                   )}
-                  {isLocalhost ? (
-                    <UserProfileMediaFields
-                      mode="inline"
-                      grouped
-                      idPrefix="user-create"
-                      photoUrl={newProfile.photoUrl}
-                      signatureUrl={newProfile.signatureUrl}
-                      onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
-                      onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
-                      onError={setCreateMessage}
-                    />
-                  ) : null}
-                </div>
-                {!isLocalhost ? (
                   <UserProfileMediaFields
-                    mode="aside"
+                    mode="inline"
+                    grouped
                     idPrefix="user-create"
                     photoUrl={newProfile.photoUrl}
                     signatureUrl={newProfile.signatureUrl}
@@ -678,7 +658,7 @@ export default function UsersPage() {
                     onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
                     onError={setCreateMessage}
                   />
-                ) : null}
+                </div>
               </div>
               <button type="submit" className="pillButton primary" disabled={creating}>
                 {creating ? "Wird angelegt..." : "Benutzer speichern"}
@@ -711,13 +691,11 @@ export default function UsersPage() {
             <div className="cardHeader">
               <p className="cardTitle">Benutzer ({users.length})</p>
             </div>
-            <div
-              className={`serviceTable usersTable${isLocalhost ? " usersTableWithPosition" : ""}`}
-            >
+            <div className="serviceTable usersTable usersTableWithPosition">
               <div className="serviceRow headerRow">
                 <span>Benutzername</span>
                 <span>Status</span>
-                {isLocalhost ? <span>Position</span> : null}
+                <span>Position</span>
                 <span>Filiale</span>
                 <span>Erstellt am</span>
                 <span>ID</span>
@@ -749,7 +727,7 @@ export default function UsersPage() {
                         {isUserActive(user) ? "Aktiv" : "Inaktiv"}
                       </span>
                     </span>
-                    {isLocalhost ? <span>{user.position?.trim() || "—"}</span> : null}
+                    <span>{user.position?.trim() || "—"}</span>
                     <span>{userFilialeLabel(user.filiale_code)}</span>
                     <span>{formatDate(user.created_at)}</span>
                     <span className="code">{user.id}</span>
@@ -787,10 +765,9 @@ export default function UsersPage() {
               </p>
             ) : null}
             <form className={userFormClassName} onSubmit={handleSaveUserProfile}>
-              <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
-                <div className={`userProfileFormFields${isLocalhost ? " userProfileFormFields--withHeadMedia" : ""}`}>
-                  {wrapLocalhostMainFields(
-                    isLocalhost,
+              <div className="userProfileFormLayout userProfileFormLayout--single">
+                <div className="userProfileFormFields userProfileFormFields--withHeadMedia">
+                  {wrapProfileMainFields(
                     <>
                       <UserFormTextInput
                         label="Benutzername"
@@ -827,22 +804,9 @@ export default function UsersPage() {
                       </section>
                     </>
                   )}
-                  {isLocalhost ? (
-                    <UserProfileMediaFields
-                      mode="inline"
-                      grouped
-                      idPrefix={`user-edit-${selectedUser.id}`}
-                      photoUrl={editProfile.photoUrl}
-                      signatureUrl={editProfile.signatureUrl}
-                      onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
-                      onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
-                      onError={setSaveMessage}
-                    />
-                  ) : null}
-                </div>
-                {!isLocalhost ? (
                   <UserProfileMediaFields
-                    mode="aside"
+                    mode="inline"
+                    grouped
                     idPrefix={`user-edit-${selectedUser.id}`}
                     photoUrl={editProfile.photoUrl}
                     signatureUrl={editProfile.signatureUrl}
@@ -850,7 +814,7 @@ export default function UsersPage() {
                     onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
                     onError={setSaveMessage}
                   />
-                ) : null}
+                </div>
               </div>
               <button type="submit" className="pillButton primary" disabled={savingProfile}>
                 {savingProfile ? "Speichern..." : "Benutzer aktualisieren"}
