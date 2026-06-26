@@ -4650,16 +4650,14 @@ body.lagerPickerOpen {
   border-bottom-color: #bfdbfe;
 }
 
-@media (min-width: 1100px) {
-  .usersPageContent {
-    grid-template-columns: minmax(360px, 460px) minmax(0, 1fr);
-    align-items: start;
-  }
-
-  .usersListPanel {
-    grid-column: 2;
-    grid-row: 1 / span 3;
-  }
+.usersListPanel .serviceTable.usersTableWithPosition .serviceRow {
+  grid-template-columns:
+    minmax(120px, 1.1fr)
+    minmax(88px, 0.7fr)
+    minmax(100px, 0.8fr)
+    minmax(88px, 0.7fr)
+    minmax(140px, 1fr)
+    minmax(180px, 1.2fr);
 }
 
 @media (max-width: 1100px) {

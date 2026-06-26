@@ -731,6 +731,79 @@ export default function UsersPage() {
           </article>
         ) : null}
 
+        {loading ? (
+          <div className="welcomeCard">
+            <h1>Laden...</h1>
+          </div>
+        ) : error ? (
+          <div className="welcomeCard">
+            <h1>Fehler</h1>
+            <p>{error}</p>
+            {error.includes("users") && error.includes("fehlt") ? (
+              <p>
+                Führen Sie zuerst <code>supabase/users-setup.sql</code> im Supabase SQL Editor aus.
+              </p>
+            ) : error.includes("filiale_code") ? (
+              <p>
+                Für Filiale (S/H/W): <code>supabase/users-filiale-patch.sql</code> im Supabase SQL
+                Editor ausführen.
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <article className="card usersPanel usersListPanel">
+            <div className="cardHeader">
+              <p className="cardTitle">Benutzer ({users.length})</p>
+            </div>
+            <div
+              className={`serviceTable usersTable${isLocalhost ? " usersTableWithPosition" : ""}`}
+            >
+              <div className="serviceRow headerRow">
+                <span>Benutzername</span>
+                <span>Status</span>
+                {isLocalhost ? <span>Position</span> : null}
+                <span>Filiale</span>
+                <span>Erstellt am</span>
+                <span>ID</span>
+              </div>
+              {users.length === 0 ? (
+                <p className="scanHint userTableEmpty">Noch keine Benutzer vorhanden.</p>
+              ) : (
+                users.map((user) => (
+                  <div
+                    key={user.id}
+                    className={`serviceRow usersTableRow ${
+                      selectedUserId === user.id ? "isSelected" : ""
+                    } ${!isUserActive(user) ? "isInactiveUser" : ""}`}
+                    style={{ cursor: canWrite ? "pointer" : "default" }}
+                    onClick={() => {
+                      if (canWrite) {
+                        setSelectedUserId(user.id);
+                        setSaveMessage(null);
+                      }
+                    }}
+                  >
+                    <span>{user.username ?? "-"}</span>
+                    <span>
+                      <span
+                        className={`usersStatusBadge compact ${
+                          isUserActive(user) ? "isActive" : "isInactive"
+                        }`}
+                      >
+                        {isUserActive(user) ? "Aktiv" : "Inaktiv"}
+                      </span>
+                    </span>
+                    {isLocalhost ? <span>{user.position?.trim() || "—"}</span> : null}
+                    <span>{userFilialeLabel(user.filiale_code)}</span>
+                    <span>{formatDate(user.created_at)}</span>
+                    <span className="code">{user.id}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </article>
+        )}
+
         {selectedUser && canWrite ? (
           <article className="card userCreateCard usersPanel usersEditPanel">
             <div className="cardHeader usersEditHeader">
@@ -828,77 +901,6 @@ export default function UsersPage() {
             </div>
           </article>
         ) : null}
-
-        {loading ? (
-          <div className="welcomeCard">
-            <h1>Laden...</h1>
-          </div>
-        ) : error ? (
-          <div className="welcomeCard">
-            <h1>Fehler</h1>
-            <p>{error}</p>
-            {error.includes("users") && error.includes("fehlt") ? (
-              <p>
-                Führen Sie zuerst <code>supabase/users-setup.sql</code> im Supabase SQL Editor aus.
-              </p>
-            ) : error.includes("filiale_code") ? (
-              <p>
-                Für Filiale (S/H/W): <code>supabase/users-filiale-patch.sql</code> im Supabase SQL
-                Editor ausführen.
-              </p>
-            ) : null}
-          </div>
-        ) : (
-          <article className="card usersPanel usersListPanel">
-            <div className="cardHeader">
-              <p className="cardTitle">Benutzer ({users.length})</p>
-            </div>
-            <div className="serviceTable usersTable">
-              <div className="serviceRow headerRow">
-                <span>Benutzername</span>
-                <span>Status</span>
-                {isLocalhost ? <span>Position</span> : null}
-                <span>Filiale</span>
-                <span>Erstellt am</span>
-                <span>ID</span>
-              </div>
-              {users.length === 0 ? (
-                <p className="scanHint userTableEmpty">Noch keine Benutzer vorhanden.</p>
-              ) : (
-                users.map((user) => (
-                  <div
-                    key={user.id}
-                    className={`serviceRow usersTableRow ${
-                      selectedUserId === user.id ? "isSelected" : ""
-                    } ${!isUserActive(user) ? "isInactiveUser" : ""}`}
-                    style={{ cursor: canWrite ? "pointer" : "default" }}
-                    onClick={() => {
-                      if (canWrite) {
-                        setSelectedUserId(user.id);
-                        setSaveMessage(null);
-                      }
-                    }}
-                  >
-                    <span>{user.username ?? "-"}</span>
-                    <span>
-                      <span
-                        className={`usersStatusBadge compact ${
-                          isUserActive(user) ? "isActive" : "isInactive"
-                        }`}
-                      >
-                        {isUserActive(user) ? "Aktiv" : "Inaktiv"}
-                      </span>
-                    </span>
-                    {isLocalhost ? <span>{user.position?.trim() || "—"}</span> : null}
-                    <span>{userFilialeLabel(user.filiale_code)}</span>
-                    <span>{formatDate(user.created_at)}</span>
-                    <span className="code">{user.id}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </article>
-        )}
       </section>
     </AppPageShell>
   );
