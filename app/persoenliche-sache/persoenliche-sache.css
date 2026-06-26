@@ -110,8 +110,40 @@
 }
 
 .persoenlicheSachePage .userCreateForm--localhost .personalFieldsSectionTitle {
-  padding-top: 12px;
+  padding-top: 0;
   border-top: 1px solid #f1f5f9;
+}
+
+.persoenlicheSachePage .userCreateForm--localhost .userFormFieldControl > datalist {
+  display: none;
+}
+
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > input:not([type="file"]),
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl > select {
+  box-sizing: border-box;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 12px;
+  line-height: 1.25;
+}
+
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker {
+  min-height: 42px;
+  height: 42px;
+}
+
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldWithPicker .dateFieldText {
+  box-sizing: border-box;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 12px;
+  line-height: 1.25;
+}
+
+.persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .userFormFieldControl .dateFieldPickerBtn {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
 }
 
 .persoenlicheSachePage .userCreateForm--localhost.userCreateFormLabeled .personalFieldsSection .userFormField,

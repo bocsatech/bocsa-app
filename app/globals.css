@@ -4804,8 +4804,40 @@ body.lagerPickerOpen {
 }
 
 .usersPageContent .userCreateForm--localhost .personalFieldsSectionTitle {
-  padding-top: 12px;
+  padding-top: 0;
   border-top: 1px solid #f1f5f9;
+}
+
+.usersPageContent .userCreateForm--localhost .userFormFieldControl > datalist {
+  display: none;
+}
+
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields .userFormFieldControl > input:not([type="file"]),
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields .userFormFieldControl > select {
+  box-sizing: border-box;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 12px;
+  line-height: 1.25;
+}
+
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields .userFormFieldControl .dateFieldWithPicker {
+  min-height: 42px;
+  height: 42px;
+}
+
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields .userFormFieldControl .dateFieldWithPicker .dateFieldText {
+  box-sizing: border-box;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 12px;
+  line-height: 1.25;
+}
+
+.usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields .userFormFieldControl .dateFieldPickerBtn {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
 }
 
 .usersPageContent .userCreateForm--localhost.userCreateFormLabeled .userProfileFormMainFields > .userFormField,
