@@ -4613,14 +4613,30 @@ body.lagerPickerOpen {
   grid-template-columns: 1fr;
 }
 
-.userProfileFormHeadRow--withMedia {
+.userProfileFormFields {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px 24px;
-  align-items: start;
+  gap: 12px;
+  min-width: 0;
 }
 
-.userProfileFormHeadRow--withMedia > .userFormField:first-child {
+.userProfileFormFields--withHeadMedia {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 24px;
+  row-gap: 12px;
+}
+
+.userProfileFormFields--withHeadMedia > *:not(.userProfileFormHeadMedia) {
+  grid-column: 1;
+}
+
+.userProfileFormFields--withHeadMedia > .userProfileFormHeadMedia {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+}
+
+.usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFormField,
+.usersPageContent .userCreateFormLabeled .userProfileFormFields--withHeadMedia .userFilialeField {
   width: 100%;
   max-width: 100%;
 }
@@ -4700,12 +4716,6 @@ body.lagerPickerOpen {
 .persoenlicheSachePage .userCreateFormLabeled .userFormField--media {
   width: 50%;
   max-width: 100%;
-}
-
-.userProfileFormFields {
-  display: grid;
-  gap: 12px;
-  min-width: 0;
 }
 
 .userProfileFormMedia {
@@ -4804,8 +4814,13 @@ body.lagerPickerOpen {
     grid-template-columns: 1fr;
   }
 
-  .userProfileFormHeadRow--withMedia {
+  .userProfileFormFields--withHeadMedia {
     grid-template-columns: 1fr;
+  }
+
+  .userProfileFormFields--withHeadMedia > .userProfileFormHeadMedia {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .userProfileFormMedia {

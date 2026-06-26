@@ -612,28 +612,26 @@ export default function UsersPage() {
             </div>
             <form className={userFormClassName} onSubmit={handleCreateUser}>
               <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
-                <div className="userProfileFormFields">
-                  <div className={`userProfileFormHeadRow${isLocalhost ? " userProfileFormHeadRow--withMedia" : ""}`}>
-                    <UserFormTextInput
-                      label="Benutzername"
-                      value={newUsername}
-                      onChange={setNewUsername}
-                      autoComplete="username"
-                      required
+                <div className={`userProfileFormFields${isLocalhost ? " userProfileFormFields--withHeadMedia" : ""}`}>
+                  <UserFormTextInput
+                    label="Benutzername"
+                    value={newUsername}
+                    onChange={setNewUsername}
+                    autoComplete="username"
+                    required
+                  />
+                  {isLocalhost ? (
+                    <UserProfileMediaFields
+                      mode="inline"
+                      grouped
+                      idPrefix="user-create"
+                      photoUrl={newProfile.photoUrl}
+                      signatureUrl={newProfile.signatureUrl}
+                      onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
+                      onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
+                      onError={setCreateMessage}
                     />
-                    {isLocalhost ? (
-                      <UserProfileMediaFields
-                        mode="inline"
-                        grouped
-                        idPrefix="user-create"
-                        photoUrl={newProfile.photoUrl}
-                        signatureUrl={newProfile.signatureUrl}
-                        onPhotoChange={(value) => updateNewProfile("photoUrl", value)}
-                        onSignatureChange={(value) => updateNewProfile("signatureUrl", value)}
-                        onError={setCreateMessage}
-                      />
-                    ) : null}
-                  </div>
+                  ) : null}
                   <UserFormTextInput
                     label="Passwort (min. 6 Zeichen)"
                     type="password"
@@ -780,28 +778,26 @@ export default function UsersPage() {
             ) : null}
             <form className={userFormClassName} onSubmit={handleSaveUserProfile}>
               <div className={`userProfileFormLayout${isLocalhost ? " userProfileFormLayout--single" : ""}`}>
-                <div className="userProfileFormFields">
-                  <div className={`userProfileFormHeadRow${isLocalhost ? " userProfileFormHeadRow--withMedia" : ""}`}>
-                    <UserFormTextInput
-                      label="Benutzername"
-                      value={editUsername}
-                      onChange={setEditUsername}
-                      autoComplete="username"
-                      required
+                <div className={`userProfileFormFields${isLocalhost ? " userProfileFormFields--withHeadMedia" : ""}`}>
+                  <UserFormTextInput
+                    label="Benutzername"
+                    value={editUsername}
+                    onChange={setEditUsername}
+                    autoComplete="username"
+                    required
+                  />
+                  {isLocalhost ? (
+                    <UserProfileMediaFields
+                      mode="inline"
+                      grouped
+                      idPrefix={`user-edit-${selectedUser.id}`}
+                      photoUrl={editProfile.photoUrl}
+                      signatureUrl={editProfile.signatureUrl}
+                      onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
+                      onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
+                      onError={setSaveMessage}
                     />
-                    {isLocalhost ? (
-                      <UserProfileMediaFields
-                        mode="inline"
-                        grouped
-                        idPrefix={`user-edit-${selectedUser.id}`}
-                        photoUrl={editProfile.photoUrl}
-                        signatureUrl={editProfile.signatureUrl}
-                        onPhotoChange={(value) => updateEditProfile("photoUrl", value)}
-                        onSignatureChange={(value) => updateEditProfile("signatureUrl", value)}
-                        onError={setSaveMessage}
-                      />
-                    ) : null}
-                  </div>
+                  ) : null}
                   <UserProfileFieldsBlock
                     form={editProfile}
                     onChange={updateEditProfile}
