@@ -140,7 +140,7 @@ export const APP_NAV_ITEMS = [
 export const EINSTELLUNGEN_NAV = {
   label: "Einstellungen",
   children: [
-    { href: "/filialen", label: "Filialen", permission: "menu.branches" },
+    { href: "/firma", label: "Firma", permission: "menu.branches" },
     { href: "/users", label: "Benutzer", permission: "menu.users" },
     { href: "/groups", label: "Gruppen", permission: "menu.groups" },
   ],

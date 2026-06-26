@@ -11,8 +11,13 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/arbeitsprotokol/:path*",
-        destination: "/arbeitsauftrag",
+        source: "/filialen",
+        destination: "/firma",
+        permanent: true,
+      },
+      {
+        source: "/filialen/:path*",
+        destination: "/firma",
         permanent: true,
       },
     ];
