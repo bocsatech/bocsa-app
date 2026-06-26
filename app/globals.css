@@ -4585,6 +4585,16 @@ body.lagerPickerOpen {
   max-width: 100%;
 }
 
+.usersPageContent .userCreateFormLabeled .userFormFieldControl > select,
+.usersPageContent .userCreateForm .userFilialeField select {
+  padding: 10px 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  box-sizing: border-box;
+}
+
 .usersPageContent .userCreateFormLabeled .userProfileFormFields input,
 .usersPageContent .userCreateFormLabeled .userProfileFormFields textarea,
 .usersPageContent .userCreateFormLabeled .userProfileFormFields select,

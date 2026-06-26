@@ -6,6 +6,33 @@
   margin-top: 0;
 }
 
+.persoenlicheSachePage .userCreateForm .userFormField,
+.persoenlicheSachePage .userCreateForm .userFilialeField {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.persoenlicheSachePage .userCreateForm .userFormFieldLabel,
+.persoenlicheSachePage .userCreateForm .userFilialeField > span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.persoenlicheSachePage .userCreateForm .userFormFieldControl > select,
+.persoenlicheSachePage .userCreateForm .userFilialeField select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  box-sizing: border-box;
+}
+
 .persoenlicheSachePage .groupCreateForm input,
 .persoenlicheSachePage .userCreateForm input,
 .persoenlicheSachePage .userCreateForm textarea,
@@ -44,7 +71,8 @@
 .persoenlicheSachePage .groupCreateForm input:focus,
 .persoenlicheSachePage .userCreateForm input:focus,
 .persoenlicheSachePage .userCreateForm textarea:focus,
-.persoenlicheSachePage .userFilialeField select:focus {
+.persoenlicheSachePage .userFilialeField select:focus,
+.persoenlicheSachePage .userCreateForm .userFormFieldControl > select:focus {
   outline: none;
   border-color: #f97316;
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);

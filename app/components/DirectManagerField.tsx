@@ -6,7 +6,7 @@ import {
   supervisorUserLabel,
 } from "../../lib/user-position";
 import { useIsLocalhost } from "../../lib/use-is-localhost";
-import UserFormField from "./UserFormField";
+import { UserFormSelect } from "./UserFormField";
 
 export type SupervisorOption = {
   id: string;
@@ -45,26 +45,20 @@ export default function DirectManagerField({
   }
 
   return (
-    <UserFormField label="Direkter Vorgesetzter">
-      <select
-        value={hasLegacyValue ? resolvedValue : resolvedValue || ""}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        <option value="">— kein Vorgesetzter —</option>
-        {hasLegacyValue ? (
-          <option value={resolvedValue}>{resolvedValue} (bisheriger Wert)</option>
-        ) : null}
-        {options.map((supervisor) => (
-          <option key={supervisor.id} value={directManagerSelectValue(supervisor)}>
-            {supervisorUserLabel(supervisor)}
-          </option>
-        ))}
-      </select>
-      {options.length === 0 ? (
-        <span className="documentEmptyHint">
-          Keine Vorgesetzten — Position „Vorgesetzter“ bei mindestens einem Benutzer setzen.
-        </span>
+    <UserFormSelect
+      label="Direkter Vorgesetzter"
+      value={hasLegacyValue ? resolvedValue : resolvedValue || ""}
+      onChange={onChange}
+    >
+      <option value="">— kein Vorgesetzter —</option>
+      {hasLegacyValue ? (
+        <option value={resolvedValue}>{resolvedValue} (bisheriger Wert)</option>
       ) : null}
-    </UserFormField>
+      {options.map((supervisor) => (
+        <option key={supervisor.id} value={directManagerSelectValue(supervisor)}>
+          {supervisorUserLabel(supervisor)}
+        </option>
+      ))}
+    </UserFormSelect>
   );
 }
