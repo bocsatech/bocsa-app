@@ -15,17 +15,21 @@ import {
 } from "../../lib/austria-holidays";
 import {
   applyVariantToDateKeys,
+  blockLayoutStyle,
   dateKeysForBlock,
   removeDateKeysFromBlocks,
   summarizeUrlaubQuotaInYear,
   variantForDate,
+  wouldExceedUrlaubQuotaAfterApply,
 } from "../../lib/urlaub-blocks";
 import {
   ANNUAL_URLAUB_DAYS,
   ABSENCE_VARIANT_LABELS,
   APPLY_VARIANTS,
+  formatUrlaubQuotaValue,
   type UrlaubBlock,
   type UrlaubBlockVariant,
+  type UrlaubPortion,
   type UrlaubTimelineUser,
 } from "../../lib/urlaub-timeline-users";
 
@@ -43,16 +47,6 @@ type VisibleMonthKey = {
   year: number;
   monthIndex: number;
 };
-
-function blockStyle(block: UrlaubBlock, days: { dateKey: string }[]) {
-  const start = days.findIndex((day) => day.dateKey === block.startKey);
-  const end = days.findIndex((day) => day.dateKey === block.endKey);
-  if (start < 0 || end < 0) return null;
-  return {
-    left: start * DAY_COLUMN_WIDTH + 4,
-    width: (end - start + 1) * DAY_COLUMN_WIDTH - 8,
-  };
-}
 
 export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -285,14 +279,34 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
   }, []);
 
   const applyVariantToSelection = useCallback(
-    (variant: UrlaubBlockVariant) => {
+    (variant: UrlaubBlockVariant, portion: UrlaubPortion = 1) => {
       if (selectedKeys.size === 0) return;
+      if (
+        wouldExceedUrlaubQuotaAfterApply(
+          currentUser?.blocks ?? [],
+          [...selectedKeys],
+          variant,
+          days,
+          calendarYear,
+          todayKey,
+          ANNUAL_URLAUB_DAYS,
+          portion
+        )
+      ) {
+        setSaveState("error");
+        setSaveError(
+          `Maximal ${formatUrlaubQuotaValue(ANNUAL_URLAUB_DAYS)} Urlaubstage pro Jahr — Kontingent überschritten.`
+        );
+        return;
+      }
       updateCurrentUserBlocks((blocks) =>
-        applyVariantToDateKeys(blocks, [...selectedKeys], variant, days)
+        applyVariantToDateKeys(blocks, [...selectedKeys], variant, days, portion)
       );
       clearSelection();
+      setSaveError("");
+      setSaveState("idle");
     },
-    [clearSelection, days, selectedKeys, updateCurrentUserBlocks]
+    [calendarYear, clearSelection, currentUser?.blocks, days, selectedKeys, todayKey, updateCurrentUserBlocks]
   );
 
   const deleteSelection = useCallback(() => {
@@ -419,8 +433,11 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
           {sessionUsername && urlaubQuota ? (
             <span className="urlaubQuota" aria-live="polite">
               Urlaub {urlaubQuota.year}:{" "}
-              <strong>{urlaubQuota.taken}</strong> genommen ·{" "}
-              <strong className="urlaubQuotaPlanned">{urlaubQuota.planned}</strong> geplant ·{" "}
+              <strong>{formatUrlaubQuotaValue(urlaubQuota.taken)}</strong> genommen ·{" "}
+              <strong className="urlaubQuotaPlanned">
+                {formatUrlaubQuotaValue(urlaubQuota.planned)}
+              </strong>{" "}
+              geplant ·{" "}
               <strong
                 className={
                   urlaubQuota.remaining <= 0 && urlaubQuota.total >= ANNUAL_URLAUB_DAYS
@@ -428,9 +445,9 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                     : ""
                 }
               >
-                {urlaubQuota.remaining}
+                {formatUrlaubQuotaValue(urlaubQuota.remaining)}
               </strong>{" "}
-              übrig / {ANNUAL_URLAUB_DAYS}
+              übrig / {formatUrlaubQuotaValue(ANNUAL_URLAUB_DAYS)}
             </span>
           ) : null}
           {saveState === "saving" ? (
@@ -474,11 +491,19 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                 type="button"
                 className={`urlaubTypeBtn urlaubTypeBtn--${variant}`}
                 disabled={!hasSelection}
-                onClick={() => applyVariantToSelection(variant)}
+                onClick={() => applyVariantToSelection(variant, 1)}
               >
                 {ABSENCE_VARIANT_LABELS[variant]}
               </button>
             ))}
+            <button
+              type="button"
+              className="urlaubTypeBtn urlaubTypeBtn--urlaub urlaubTypeBtn--half"
+              disabled={!hasSelection}
+              onClick={() => applyVariantToSelection("urlaub", 0.5)}
+            >
+              Urlaub ½
+            </button>
           </div>
         </div>
       ) : null}
@@ -630,16 +655,18 @@ export default function UrlaubHorizCalendar({ initialUsers = [], anchorDate }: P
                       );
                     })}
                     {user.blocks.map((block) => {
-                      const pos = blockStyle(block, days);
+                      const pos = blockLayoutStyle(block, days, DAY_COLUMN_WIDTH);
                       if (!pos) return null;
                       const blockDayKeys = isEditable ? dateKeysForBlock(block, days) : [];
                       const blockSelected =
                         isEditable && blockDayKeys.some((key) => selectedKeys.has(key));
+                      const isHalf = block.portion === 0.5;
                       return (
                         <div
-                          key={`${user.username}-${block.startKey}-${block.endKey}-${block.variant}`}
+                          key={`${user.username}-${block.startKey}-${block.endKey}-${block.variant}-${block.portion ?? 1}`}
                           className={[
                             `urlaubBlock urlaubBlock--${block.variant}`,
+                            isHalf ? "urlaubBlock--half" : "",
                             isEditable ? "urlaubBlock--editMode" : "",
                             blockSelected ? "urlaubBlock--selected" : "",
                           ]

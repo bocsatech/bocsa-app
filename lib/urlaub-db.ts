@@ -1,6 +1,8 @@
 import { dateForDatabaseStorage, formatGermanDate, germanDateComparable } from "./dates";
-import { blocksFromDateKeys } from "./urlaub-blocks";
+import { blocksFromDateKeys, expandBlockDateKeys } from "./urlaub-blocks";
 import {
+  ABSENCE_VARIANT_LABELS,
+  normalizeUrlaubPortion,
   type UrlaubBlock,
   type UrlaubBlockVariant,
   type UrlaubTimelineUser,
@@ -14,13 +16,6 @@ const VALID_VARIANTS = new Set<UrlaubBlockVariant>([
   "krankenstand",
   "pflegeurlaub",
 ]);
-
-function nextDateKey(dateKey: string) {
-  const [y, m, d] = dateKey.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  date.setDate(date.getDate() + 1);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
 
 export function isoKeyFromStoredDatum(datum: unknown) {
   const comparable = germanDateComparable(datum);
@@ -38,43 +33,51 @@ export function normalizeUrlaubVariant(value: unknown): UrlaubBlockVariant | nul
   return VALID_VARIANTS.has(variant) ? variant : null;
 }
 
-export function expandBlockToDateKeys(block: UrlaubBlock) {
-  const keys: string[] = [];
-  let current = block.startKey;
-  while (current <= block.endKey) {
-    keys.push(current);
-    if (current === block.endKey) break;
-    current = nextDateKey(current);
-  }
-  return keys;
-}
-
 export function blocksToDayEntries(blocks: UrlaubBlock[]) {
-  const byDate = new Map<string, UrlaubBlockVariant>();
+  const byDate = new Map<string, { variant: UrlaubBlockVariant; portion: 0.5 | 1 }>();
   for (const block of blocks) {
     const variant = normalizeUrlaubVariant(block.variant);
     if (!variant) continue;
-    for (const dateKey of expandBlockToDateKeys(block)) {
-      byDate.set(dateKey, variant);
+    const portion = normalizeUrlaubPortion(block.portion);
+    for (const dateKey of expandBlockDateKeys(block)) {
+      byDate.set(dateKey, { variant, portion });
     }
   }
-  return [...byDate.entries()].map(([dateKey, variant]) => ({ dateKey, variant }));
+  return [...byDate.entries()].map(([dateKey, entry]) => ({
+    dateKey,
+    variant: entry.variant,
+    portion: entry.portion,
+  }));
 }
 
-export function dbRowsToBlocks(rows: Array<{ datum?: unknown; variant?: unknown }>) {
-  const keysByVariant = new Map<UrlaubBlockVariant, Set<string>>();
+export function dbRowsToBlocks(rows: Array<{ datum?: unknown; variant?: unknown; portion?: unknown }>) {
+  const halfBlocks: UrlaubBlock[] = [];
+  const fullKeysByVariant = new Map<UrlaubBlockVariant, Set<string>>();
 
   for (const row of rows) {
     const dateKey = isoKeyFromStoredDatum(row.datum);
     const variant = normalizeUrlaubVariant(row.variant);
     if (!dateKey || !variant) continue;
-    const bucket = keysByVariant.get(variant) ?? new Set<string>();
+    const portion = normalizeUrlaubPortion(row.portion);
+
+    if (portion === 0.5) {
+      halfBlocks.push({
+        startKey: dateKey,
+        endKey: dateKey,
+        label: `${ABSENCE_VARIANT_LABELS[variant]} ½`,
+        variant,
+        portion: 0.5,
+      });
+      continue;
+    }
+
+    const bucket = fullKeysByVariant.get(variant) ?? new Set<string>();
     bucket.add(dateKey);
-    keysByVariant.set(variant, bucket);
+    fullKeysByVariant.set(variant, bucket);
   }
 
-  const blocks: UrlaubBlock[] = [];
-  for (const [variant, keys] of keysByVariant) {
+  const blocks: UrlaubBlock[] = [...halfBlocks];
+  for (const [variant, keys] of fullKeysByVariant) {
     blocks.push(...blocksFromDateKeys(keys, variant));
   }
   return blocks.sort((a, b) => a.startKey.localeCompare(b.startKey));
@@ -86,13 +89,14 @@ export function blocksToDbRows(username: string, blocks: UrlaubBlock[]) {
 
   const now = new Date().toISOString();
   return blocksToDayEntries(blocks)
-    .map(({ dateKey, variant }) => {
+    .map(({ dateKey, variant, portion }) => {
       const datum = storedDatumFromIsoKey(dateKey);
       if (!datum) return null;
       return {
         username: name,
         datum,
         variant,
+        portion,
         updated_at: now,
       };
     })
@@ -101,9 +105,12 @@ export function blocksToDbRows(username: string, blocks: UrlaubBlock[]) {
 
 export function attachBlocksToUrlaubUsers(
   users: UrlaubTimelineUser[],
-  rows: Array<{ username?: unknown; datum?: unknown; variant?: unknown }>
+  rows: Array<{ username?: unknown; datum?: unknown; variant?: unknown; portion?: unknown }>
 ) {
-  const rowsByUser = new Map<string, Array<{ datum?: unknown; variant?: unknown }>>();
+  const rowsByUser = new Map<
+    string,
+    Array<{ datum?: unknown; variant?: unknown; portion?: unknown }>
+  >();
 
   for (const row of rows) {
     const username = String(row.username ?? "").trim().toLowerCase();
@@ -128,4 +135,14 @@ export function isMissingUrlaubTablesError(error: unknown) {
     code === "PGRST205" ||
     message.includes("urlaub_tage")
   );
+}
+
+export function isMissingUrlaubPortionColumn(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const message = String((error as { message?: unknown }).message ?? "").toLowerCase();
+  return message.includes("portion") && message.includes("does not exist");
+}
+
+export function stripPortionFromRows(rows: Array<Record<string, unknown>>) {
+  return rows.map(({ portion: _portion, ...row }) => row);
 }

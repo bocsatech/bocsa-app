@@ -13,7 +13,22 @@ export type UrlaubBlock = {
   endKey: string;
   label: string;
   variant: UrlaubBlockVariant;
+  /** 0.5 = halber Tag, 1 = ganzer Tag (Standard) */
+  portion?: 0.5 | 1;
 };
+
+export type UrlaubPortion = 0.5 | 1;
+
+export function normalizeUrlaubPortion(value: unknown): UrlaubPortion {
+  const numeric = Number(value);
+  if (numeric === 0.5) return 0.5;
+  return 1;
+}
+
+export function formatUrlaubQuotaValue(value: number) {
+  if (Number.isInteger(value)) return String(value);
+  return value.toFixed(1).replace(/\.0$/, "");
+}
 
 export const ABSENCE_VARIANT_LABELS: Record<UrlaubBlockVariant, string> = {
   urlaub: "Urlaub",

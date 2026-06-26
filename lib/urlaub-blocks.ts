@@ -1,8 +1,11 @@
 import { spanDaysInclusive, type TimelineDay } from "./austria-holidays";
 import {
   ABSENCE_VARIANT_LABELS,
+  ANNUAL_URLAUB_DAYS,
+  normalizeUrlaubPortion,
   type UrlaubBlock,
   type UrlaubBlockVariant,
+  type UrlaubPortion,
 } from "./urlaub-timeline-users";
 
 function nextDateKey(dateKey: string) {
@@ -12,6 +15,20 @@ function nextDateKey(dateKey: string) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+export function expandBlockDateKeys(block: UrlaubBlock) {
+  const keys: string[] = [];
+  let current = block.startKey;
+  while (current <= block.endKey) {
+    keys.push(current);
+    if (current === block.endKey) break;
+    current = nextDateKey(current);
+  }
+  return keys;
+}
+
+export function blockPortion(block: UrlaubBlock): UrlaubPortion {
+  return normalizeUrlaubPortion(block.portion);
+}
 
 export function dateKeysForBlock(block: UrlaubBlock, days: TimelineDay[]) {
   const span = spanDaysInclusive(block.startKey, block.endKey, days);
@@ -64,6 +81,7 @@ export function blocksFromDateKeys(dateKeys: Iterable<string>, variant: UrlaubBl
       endKey,
       label: startKey === endKey ? label : `${label} ${startKey.slice(8)}.–${endKey.slice(8)}.`,
       variant,
+      portion: 1,
     });
     startKey = key;
     endKey = key;
@@ -74,26 +92,48 @@ export function blocksFromDateKeys(dateKeys: Iterable<string>, variant: UrlaubBl
     endKey,
     label: startKey === endKey ? label : `${label} ${startKey.slice(8)}.–${endKey.slice(8)}.`,
     variant,
+    portion: 1,
   });
 
   return blocks;
 }
 
+function halfDayBlocksFromDateKeys(dateKeys: Iterable<string>, variant: UrlaubBlockVariant) {
+  const label = `${ABSENCE_VARIANT_LABELS[variant]} ½`;
+  return [...dateKeys]
+    .sort()
+    .map((dateKey) => ({
+      startKey: dateKey,
+      endKey: dateKey,
+      label,
+      variant,
+      portion: 0.5 as const,
+    }));
+}
+
 export function removeDateKeysFromBlocks(blocks: UrlaubBlock[], removeKeys: Set<string>, days: TimelineDay[]) {
   if (removeKeys.size === 0) return blocks;
 
-  const keptKeysByVariant = new Map<UrlaubBlockVariant, Set<string>>();
+  const keptFullKeysByVariant = new Map<UrlaubBlockVariant, Set<string>>();
+  const keptHalfBlocks: UrlaubBlock[] = [];
 
   for (const block of blocks) {
-    const existing = keptKeysByVariant.get(block.variant) ?? new Set<string>();
+    if (blockPortion(block) === 0.5) {
+      if (!removeKeys.has(block.startKey)) {
+        keptHalfBlocks.push(block);
+      }
+      continue;
+    }
+
+    const existing = keptFullKeysByVariant.get(block.variant) ?? new Set<string>();
     for (const key of dateKeysForBlock(block, days)) {
       if (!removeKeys.has(key)) existing.add(key);
     }
-    keptKeysByVariant.set(block.variant, existing);
+    keptFullKeysByVariant.set(block.variant, existing);
   }
 
-  const next: UrlaubBlock[] = [];
-  for (const [variant, keys] of keptKeysByVariant) {
+  const next: UrlaubBlock[] = [...keptHalfBlocks];
+  for (const [variant, keys] of keptFullKeysByVariant) {
     next.push(...blocksFromDateKeys(keys, variant));
   }
   return next;
@@ -103,11 +143,15 @@ export function applyVariantToDateKeys(
   blocks: UrlaubBlock[],
   dateKeys: string[],
   variant: UrlaubBlockVariant,
-  days: TimelineDay[]
+  days: TimelineDay[],
+  portion: UrlaubPortion = 1
 ) {
   const target = new Set(dateKeys);
   if (target.size === 0) return blocks;
   const withoutOverlap = removeDateKeysFromBlocks(blocks, target, days);
+  if (portion === 0.5) {
+    return [...withoutOverlap, ...halfDayBlocksFromDateKeys(target, variant)];
+  }
   return [...withoutOverlap, ...blocksFromDateKeys(target, variant)];
 }
 
@@ -116,7 +160,7 @@ export function toggleUrlaubDay(blocks: UrlaubBlock[], dateKey: string, days: Ti
   if (urlaubKeys.has(dateKey)) {
     return removeDateKeysFromBlocks(blocks, new Set([dateKey]), days);
   }
-  return applyVariantToDateKeys(blocks, [dateKey], "urlaub", days);
+  return applyVariantToDateKeys(blocks, [dateKey], "urlaub", days, 1);
 }
 
 export function variantForDate(blocks: UrlaubBlock[], dateKey: string, days: TimelineDay[]) {
@@ -138,8 +182,9 @@ export function countUrlaubDaysInYear(blocks: UrlaubBlock[], days: TimelineDay[]
   let count = 0;
   for (const block of blocks) {
     if (block.variant !== "urlaub") continue;
+    const portion = blockPortion(block);
     for (const key of dateKeysForBlock(block, days)) {
-      if (Number(key.slice(0, 4)) === year) count += 1;
+      if (Number(key.slice(0, 4)) === year) count += portion;
     }
   }
   return count;
@@ -153,6 +198,49 @@ export type UrlaubQuotaSummary = {
   remaining: number;
 };
 
+function addUrlaubPortionForKey(
+  block: UrlaubBlock,
+  key: string,
+  year: number,
+  todayKey: string,
+  taken: { value: number },
+  planned: { value: number }
+) {
+  if (block.variant !== "urlaub" && block.variant !== "urlaub-plan") return;
+  if (Number(key.slice(0, 4)) !== year) return;
+  const portion = blockPortion(block);
+  if (block.variant === "urlaub-plan" || key > todayKey) {
+    planned.value += portion;
+  } else {
+    taken.value += portion;
+  }
+}
+
+export function summarizeUrlaubQuotaFromBlocks(
+  blocks: UrlaubBlock[],
+  year: number,
+  todayKey: string,
+  annualDays: number = ANNUAL_URLAUB_DAYS
+): UrlaubQuotaSummary {
+  const taken = { value: 0 };
+  const planned = { value: 0 };
+
+  for (const block of blocks) {
+    for (const key of expandBlockDateKeys(block)) {
+      addUrlaubPortionForKey(block, key, year, todayKey, taken, planned);
+    }
+  }
+
+  const total = taken.value + planned.value;
+  return {
+    year,
+    taken: taken.value,
+    planned: planned.value,
+    total,
+    remaining: Math.max(0, annualDays - total),
+  };
+}
+
 export function summarizeUrlaubQuotaInYear(
   blocks: UrlaubBlock[],
   days: TimelineDay[],
@@ -160,29 +248,47 @@ export function summarizeUrlaubQuotaInYear(
   todayKey: string,
   annualDays: number
 ): UrlaubQuotaSummary {
-  let taken = 0;
-  let planned = 0;
+  const taken = { value: 0 };
+  const planned = { value: 0 };
 
   for (const block of blocks) {
-    if (block.variant !== "urlaub" && block.variant !== "urlaub-plan") continue;
     for (const key of dateKeysForBlock(block, days)) {
-      if (Number(key.slice(0, 4)) !== year) continue;
-      if (block.variant === "urlaub-plan" || key > todayKey) {
-        planned += 1;
-      } else {
-        taken += 1;
-      }
+      addUrlaubPortionForKey(block, key, year, todayKey, taken, planned);
     }
   }
 
-  const total = taken + planned;
+  const total = taken.value + planned.value;
   return {
     year,
-    taken,
-    planned,
+    taken: taken.value,
+    planned: planned.value,
     total,
     remaining: Math.max(0, annualDays - total),
   };
+}
+
+export function exceedsAnnualUrlaubQuota(
+  blocks: UrlaubBlock[],
+  year: number,
+  todayKey: string,
+  annualDays: number = ANNUAL_URLAUB_DAYS
+) {
+  return summarizeUrlaubQuotaFromBlocks(blocks, year, todayKey, annualDays).total > annualDays;
+}
+
+export function wouldExceedUrlaubQuotaAfterApply(
+  blocks: UrlaubBlock[],
+  dateKeys: string[],
+  variant: UrlaubBlockVariant,
+  days: TimelineDay[],
+  year: number,
+  todayKey: string,
+  annualDays: number,
+  portion: UrlaubPortion = 1
+) {
+  if (variant !== "urlaub" && variant !== "urlaub-plan") return false;
+  const nextBlocks = applyVariantToDateKeys(blocks, dateKeys, variant, days, portion);
+  return exceedsAnnualUrlaubQuota(nextBlocks, year, todayKey, annualDays);
 }
 
 /** @deprecated use isDateMarked */
@@ -214,4 +320,23 @@ export function dateKeyAtIndex(days: TimelineDay[], index: number) {
 export function indexFromPointer(clientX: number, rowLeft: number, scrollLeft: number) {
   const x = clientX - rowLeft + scrollLeft;
   return Math.max(0, Math.floor(x / 40));
+}
+
+export function blockLayoutStyle(block: UrlaubBlock, days: { dateKey: string }[], columnWidth: number) {
+  const start = days.findIndex((day) => day.dateKey === block.startKey);
+  const end = days.findIndex((day) => day.dateKey === block.endKey);
+  if (start < 0 || end < 0) return null;
+
+  const portion = blockPortion(block);
+  if (portion === 0.5 && block.startKey === block.endKey) {
+    return {
+      left: start * columnWidth + 4,
+      width: columnWidth / 2 - 6,
+    };
+  }
+
+  return {
+    left: start * columnWidth + 4,
+    width: (end - start + 1) * columnWidth - 8,
+  };
 }

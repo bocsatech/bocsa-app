@@ -2,13 +2,19 @@ import { NextResponse } from "next/server";
 import { currentUserCanReadUrlaub } from "../../../../lib/auth/urlaub";
 import { getCurrentSession } from "../../../../lib/auth/permissions";
 import { listUsers } from "../../../../lib/auth/users";
-import { attachBlocksToUrlaubUsers, isMissingUrlaubTablesError } from "../../../../lib/urlaub-db";
+import {
+  attachBlocksToUrlaubUsers,
+  isMissingUrlaubPortionColumn,
+  isMissingUrlaubTablesError,
+} from "../../../../lib/urlaub-db";
 import { mapDbUsersToUrlaubTimelineUsers } from "../../../../lib/urlaub-timeline-users";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 
 const TABLE = "urlaub_tage";
+const SELECT_WITH_PORTION = "username, datum, variant, portion";
+const SELECT_LEGACY = "username, datum, variant";
 
 export async function GET() {
   const session = await getCurrentSession();
@@ -30,7 +36,10 @@ export async function GET() {
     return NextResponse.json({ users: baseUsers });
   }
 
-  const { data, error: urlaubError } = await db.from(TABLE).select("username, datum, variant");
+  let { data, error: urlaubError } = await db.from(TABLE).select(SELECT_WITH_PORTION);
+  if (urlaubError && isMissingUrlaubPortionColumn(urlaubError)) {
+    ({ data, error: urlaubError } = await db.from(TABLE).select(SELECT_LEGACY));
+  }
   if (urlaubError) {
     if (isMissingUrlaubTablesError(urlaubError)) {
       return NextResponse.json({

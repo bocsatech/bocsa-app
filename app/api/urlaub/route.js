@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
+import { dateKeyFromDate } from "../../../lib/austria-holidays";
 import { currentUserCanReadUrlaub, resolveUrlaubWriteUsername } from "../../../lib/auth/urlaub";
 import { getCurrentSession } from "../../../lib/auth/permissions";
+import { exceedsAnnualUrlaubQuota } from "../../../lib/urlaub-blocks";
+import {
+  ANNUAL_URLAUB_DAYS,
+  formatUrlaubQuotaValue,
+} from "../../../lib/urlaub-timeline-users";
 import {
   attachBlocksToUrlaubUsers,
   blocksToDbRows,
   dbRowsToBlocks,
+  isMissingUrlaubPortionColumn,
   isMissingUrlaubTablesError,
+  stripPortionFromRows,
 } from "../../../lib/urlaub-db";
 import { mapDbUsersToUrlaubTimelineUsers } from "../../../lib/urlaub-timeline-users";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
@@ -13,9 +21,23 @@ import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 export const runtime = "nodejs";
 
 const TABLE = "urlaub_tage";
+const SELECT_WITH_PORTION = "username, datum, variant, portion";
+const SELECT_LEGACY = "username, datum, variant";
 
 function migrationHint() {
   return "Bitte supabase/urlaub-abwesenheiten.sql in Supabase ausführen.";
+}
+
+function portionMigrationHint() {
+  return "Bitte supabase/urlaub-half-day.sql in Supabase ausführen.";
+}
+
+async function loadAllRows(db) {
+  let { data, error } = await db.from(TABLE).select(SELECT_WITH_PORTION);
+  if (error && isMissingUrlaubPortionColumn(error)) {
+    ({ data, error } = await db.from(TABLE).select(SELECT_LEGACY));
+  }
+  return { data, error };
 }
 
 export async function GET() {
@@ -32,7 +54,7 @@ export async function GET() {
     return NextResponse.json({ error: "Supabase nicht konfiguriert." }, { status: 500 });
   }
 
-  const { data, error } = await db.from(TABLE).select("username, datum, variant");
+  const { data, error } = await loadAllRows(db);
   if (error) {
     if (isMissingUrlaubTablesError(error)) {
       return NextResponse.json({ error: migrationHint(), rows: [] }, { status: 503 });
@@ -64,6 +86,17 @@ export async function PUT(request) {
     return NextResponse.json({ error: "Supabase nicht konfiguriert." }, { status: 500 });
   }
 
+  const calendarYear = new Date().getFullYear();
+  const todayKey = dateKeyFromDate(new Date());
+  if (exceedsAnnualUrlaubQuota(blocks, calendarYear, todayKey, ANNUAL_URLAUB_DAYS)) {
+    return NextResponse.json(
+      {
+        error: `Maximal ${formatUrlaubQuotaValue(ANNUAL_URLAUB_DAYS)} Urlaubstage pro Jahr — Kontingent überschritten.`,
+      },
+      { status: 400 }
+    );
+  }
+
   const rows = blocksToDbRows(username, blocks);
 
   const { error: deleteError } = await db.from(TABLE).delete().eq("username", username);
@@ -75,9 +108,23 @@ export async function PUT(request) {
   }
 
   if (rows.length > 0) {
-    const { error: insertError } = await db.from(TABLE).upsert(rows, {
+    let { error: insertError } = await db.from(TABLE).upsert(rows, {
       onConflict: "username,datum",
     });
+    if (insertError && isMissingUrlaubPortionColumn(insertError)) {
+      ({ error: insertError } = await db.from(TABLE).upsert(stripPortionFromRows(rows), {
+        onConflict: "username,datum",
+      }));
+      if (!insertError) {
+        return NextResponse.json({
+          ok: true,
+          username,
+          dayCount: rows.length,
+          blocks: dbRowsToBlocks(rows),
+          warning: portionMigrationHint(),
+        });
+      }
+    }
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }

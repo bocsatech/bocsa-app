@@ -556,6 +556,16 @@
   color: #14532d;
 }
 
+.urlaubBlock--half {
+  border-style: dashed;
+  padding: 0 4px;
+  font-size: 0.62rem;
+}
+
+.urlaubTypeBtn--half {
+  border-style: dashed;
+}
+
 .urlaubBlock--urlaub-plan {
   background: #fde68a;
   border: 2px dashed #d97706;
