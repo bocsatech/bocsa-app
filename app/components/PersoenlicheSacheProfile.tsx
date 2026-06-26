@@ -120,7 +120,21 @@ export default function PersoenlicheSacheProfile() {
       credentials: "include",
       cache: "no-store",
     });
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      setError("Sitzung abgelaufen. Bitte erneut anmelden.");
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     const result = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+      setError("Nicht angemeldet. Bitte erneut anmelden.");
+      setUser(null);
+      setLoading(false);
+      return;
+    }
 
     if (!response.ok) {
       setError(

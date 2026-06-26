@@ -25,12 +25,8 @@ const AUTH_USER_SELECT_NO_STAMMDATEN =
   "id, username, secret_pin, full_name, position, site, filiale_code, photo_url, signature_url, company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone, created_at";
 const AUTH_USER_SELECT_MINIMAL =
   "id, username, secret_pin, overtime_hours_balance, created_at";
-
-function isMissingColumn(error, columns) {
-  const msg = String(error?.message ?? "").toLowerCase();
-  if (!columns.some((column) => msg.includes(column))) return false;
-  return msg.includes("does not exist") || msg.includes("schema cache");
-}
+const AUTH_USER_SELECT_CORE =
+  "id, username, secret_pin, full_name, position, site, photo_url, signature_url, created_at";
 
 async function loadAuthUserRow(userId) {
   const db = getSupabaseAdmin();
@@ -38,24 +34,28 @@ async function loadAuthUserRow(userId) {
     return { row: null, error: "Supabase ist nicht konfiguriert." };
   }
 
-  let { data, error } = await db.from("users").select(AUTH_USER_SELECT).eq("id", userId).maybeSingle();
+  const selects = [
+    AUTH_USER_SELECT,
+    AUTH_USER_SELECT_NO_STAMMDATEN,
+    AUTH_USER_SELECT_MINIMAL,
+    AUTH_USER_SELECT_CORE,
+  ];
 
-  if (error && isMissingColumn(error, ["overtime_hours_balance", "bank_account", "direct_manager", "work_area"])) {
-    ({ data, error } = await db.from("users").select(AUTH_USER_SELECT_NO_STAMMDATEN).eq("id", userId).maybeSingle());
+  let lastError = null;
+  for (const select of selects) {
+    const { data, error } = await db.from("users").select(select).eq("id", userId).maybeSingle();
+    if (!error && data) {
+      return { row: data, error: null };
+    }
+    if (error) {
+      lastError = error.message;
+    }
   }
 
-  if (error && isMissingColumn(error, ["company_mobile", "filiale_code"])) {
-    ({ data, error } = await db.from("users").select(AUTH_USER_SELECT_MINIMAL).eq("id", userId).maybeSingle());
+  if (lastError) {
+    return { row: null, error: lastError };
   }
-
-  if (error) {
-    return { row: null, error: error.message };
-  }
-  if (!data) {
-    return { row: null, error: "Benutzer nicht gefunden." };
-  }
-
-  return { row: data, error: null };
+  return { row: null, error: "Benutzer nicht gefunden." };
 }
 
 function urlaubQuotaOptions(authRow) {
@@ -89,15 +89,17 @@ export async function GET() {
       return NextResponse.json({ error: authError }, { status: 500 });
     }
 
-    const personal = await loadPersonalProfile(session.userId);
-    const mergedProfile =
-      personal.error || personal.missingTable || personal.missingRow
-        ? profileFieldsFromRow(authRow)
-        : (personal.profile ?? profileFieldsFromRow(authRow));
-    const user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
-    if (await resolveLocalhostApiRequest()) {
-      user.position =
-        typeof authRow.position === "string" ? authRow.position : authRow.position ?? null;
+    const isLocalhost = await resolveLocalhostApiRequest();
+    let user;
+    if (isLocalhost) {
+      user = { ...authRow };
+    } else {
+      const personal = await loadPersonalProfile(session.userId);
+      const mergedProfile =
+        personal.error || personal.missingTable || personal.missingRow
+          ? profileFieldsFromRow(authRow)
+          : (personal.profile ?? profileFieldsFromRow(authRow));
+      user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
     }
     const urlaub = await loadUrlaubQuotaForUsername(
       db,
@@ -110,7 +112,6 @@ export async function GET() {
       user,
       urlaub,
       overtimeHours,
-      profileWarning: personal.error ?? null,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Profil konnte nicht geladen werden.";
@@ -177,9 +178,13 @@ export async function PATCH(request) {
       profilePatch
     );
     if (profileError) {
-      return NextResponse.json({ error: profileError }, { status: 400 });
+      const isLocalhost = await resolveLocalhostApiRequest();
+      if (!isLocalhost) {
+        return NextResponse.json({ error: profileError }, { status: 400 });
+      }
+    } else {
+      profile = updatedProfile;
     }
-    profile = updatedProfile;
   } else {
     const loaded = await loadPersonalProfile(session.userId);
     profile = loaded.profile;
@@ -196,10 +201,13 @@ export async function PATCH(request) {
     session.username,
     urlaubQuotaOptions(authRow)
   );
-  const user = mergeAuthUserWithPersonalProfile(authRow, profile ?? profileFieldsFromRow(authRow));
-  if (await resolveLocalhostApiRequest()) {
-    user.position =
-      typeof authRow.position === "string" ? authRow.position : authRow.position ?? null;
+
+  const isLocalhost = await resolveLocalhostApiRequest();
+  let user;
+  if (isLocalhost) {
+    user = { ...authRow };
+  } else {
+    user = mergeAuthUserWithPersonalProfile(authRow, profile ?? profileFieldsFromRow(authRow));
   }
 
   return NextResponse.json({
