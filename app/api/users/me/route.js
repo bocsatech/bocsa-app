@@ -65,11 +65,15 @@ function urlaubQuotaOptions(authRow) {
   };
 }
 
-function isLocalhostApiRequest() {
-  const headerStore = headers();
-  const host =
-    headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
-  return isLocalhostHost(host);
+async function resolveLocalhostApiRequest() {
+  try {
+    const headerStore = await headers();
+    const host =
+      headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
+    return isLocalhostHost(host);
+  } catch {
+    return false;
+  }
 }
 
 export async function GET() {
@@ -84,14 +88,16 @@ export async function GET() {
     return NextResponse.json({ error: authError }, { status: 500 });
   }
 
-  const { profile, error: profileError, missingTable } = await loadPersonalProfile(session.userId);
+  const { profile, error: profileError, missingTable, missingRow } =
+    await loadPersonalProfile(session.userId);
   if (profileError) {
     return NextResponse.json({ error: profileError }, { status: 500 });
   }
 
-  const mergedProfile = missingTable ? profileFieldsFromRow(authRow) : profile;
+  const mergedProfile =
+    missingTable || missingRow ? profileFieldsFromRow(authRow) : profile;
   const user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
-  if (isLocalhostApiRequest()) {
+  if (await resolveLocalhostApiRequest()) {
     user.position =
       typeof authRow.position === "string" ? authRow.position : authRow.position ?? null;
   }
@@ -137,7 +143,7 @@ export async function PATCH(request) {
     return NextResponse.json({ error: profileValidationError }, { status: 400 });
   }
 
-  if (isLocalhostApiRequest()) {
+  if (await resolveLocalhostApiRequest()) {
     delete profilePatch.position;
   }
 
@@ -188,7 +194,7 @@ export async function PATCH(request) {
     urlaubQuotaOptions(authRow)
   );
   const user = mergeAuthUserWithPersonalProfile(authRow, profile ?? profileFieldsFromRow(authRow));
-  if (isLocalhostApiRequest()) {
+  if (await resolveLocalhostApiRequest()) {
     user.position =
       typeof authRow.position === "string" ? authRow.position : authRow.position ?? null;
   }

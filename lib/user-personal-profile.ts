@@ -36,15 +36,25 @@ export async function loadPersonalProfile(userId: string) {
 
   if (error) {
     if (isMissingPersonalProfilesTable(error)) {
-      return { profile: emptyProfileFields(), error: null, missingTable: true };
+      return { profile: emptyProfileFields(), error: null, missingTable: true, missingRow: false };
     }
-    return { profile: null, error: error.message, missingTable: false };
+    return { profile: null, error: error.message, missingTable: false, missingRow: false };
+  }
+
+  if (!data) {
+    return {
+      profile: emptyProfileFields(),
+      error: null,
+      missingTable: false,
+      missingRow: true,
+    };
   }
 
   return {
     profile: profileFieldsFromRow(data),
     error: null,
     missingTable: false,
+    missingRow: false,
   };
 }
 

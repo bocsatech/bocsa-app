@@ -88,8 +88,13 @@ export async function PATCH(request, { params }) {
 
   if (error) return NextResponse.json({ error }, { status: 400 });
 
-  if (isLocalhostRequest(request) && profile.position !== undefined) {
-    await syncPersonalProfilePositionFromAdmin(id, profile.position);
+  if (
+    isLocalhostRequest(request) &&
+    (profile.position !== undefined || body.position !== undefined)
+  ) {
+    const nextPosition =
+      profile.position !== undefined ? profile.position : String(body.position ?? "");
+    await syncPersonalProfilePositionFromAdmin(id, nextPosition);
   }
 
   return NextResponse.json({ user });
