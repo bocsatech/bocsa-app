@@ -293,7 +293,10 @@ export default function PersoenlicheSacheProfile() {
           {saveMessage}
         </p>
       ) : null}
-      <form className="groupCreateForm userCreateForm" onSubmit={handleSaveProfile}>
+      <form
+        className={`groupCreateForm userCreateForm${isLocalhost ? " userCreateFormLabeled" : ""}`}
+        onSubmit={handleSaveProfile}
+      >
         <input
           value={editFullName}
           onChange={(event) => setEditFullName(event.target.value)}

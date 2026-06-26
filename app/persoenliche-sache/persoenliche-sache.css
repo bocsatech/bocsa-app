@@ -7,10 +7,20 @@
 }
 
 .persoenlicheSachePage .userCreateForm .userFormField,
-.persoenlicheSachePage .userCreateForm .userFilialeField {
+.persoenlicheSachePage .userCreateForm:not(.userCreateFormLabeled) .userFilialeField {
   display: grid;
   gap: 6px;
   width: 100%;
+}
+
+.persoenlicheSachePage .userCreateFormLabeled .userFormField,
+.persoenlicheSachePage .userCreateFormLabeled .userFilialeField,
+.persoenlicheSachePage .userCreateFormLabeled input,
+.persoenlicheSachePage .userCreateFormLabeled textarea,
+.persoenlicheSachePage .userCreateFormLabeled .dateFieldWithPicker {
+  width: 50%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .persoenlicheSachePage .userCreateForm .userFormFieldLabel,
@@ -33,10 +43,10 @@
   box-sizing: border-box;
 }
 
-.persoenlicheSachePage .groupCreateForm input,
-.persoenlicheSachePage .userCreateForm input,
-.persoenlicheSachePage .userCreateForm textarea,
-.persoenlicheSachePage .userCreateForm .dateFieldWithPicker .dateFieldText {
+.persoenlicheSachePage .groupCreateForm:not(.userCreateFormLabeled) input,
+.persoenlicheSachePage .userCreateForm:not(.userCreateFormLabeled) input,
+.persoenlicheSachePage .userCreateForm:not(.userCreateFormLabeled) textarea,
+.persoenlicheSachePage .userCreateForm:not(.userCreateFormLabeled) .dateFieldWithPicker .dateFieldText {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #dbe2ea;
@@ -46,7 +56,17 @@
   box-sizing: border-box;
 }
 
-.persoenlicheSachePage .userCreateForm .dateFieldWithPicker {
+.persoenlicheSachePage .userCreateFormLabeled input,
+.persoenlicheSachePage .userCreateFormLabeled textarea,
+.persoenlicheSachePage .userCreateFormLabeled .dateFieldWithPicker .dateFieldText {
+  padding: 10px 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.persoenlicheSachePage .userCreateForm:not(.userCreateFormLabeled) .dateFieldWithPicker {
   width: 100%;
 }
 

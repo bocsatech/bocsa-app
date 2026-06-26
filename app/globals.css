@@ -4553,14 +4553,15 @@ body.lagerPickerOpen {
 }
 
 .usersPageContent .userCreateForm .userProfileFormFields .userFilialeField {
-  width: 100%;
+  width: 50%;
   max-width: 100%;
 }
 
 .usersPageContent .userCreateFormLabeled .userFormField {
   display: grid;
   gap: 6px;
-  width: 100%;
+  width: 50%;
+  max-width: 100%;
 }
 
 .usersPageContent .userCreateFormLabeled .userFormFieldLabel {
@@ -4575,6 +4576,7 @@ body.lagerPickerOpen {
   display: grid;
   gap: 6px;
   width: 100%;
+  max-width: 100%;
 }
 
 .usersPageContent .userCreateFormLabeled .userFormFieldControl > input,
@@ -4595,13 +4597,8 @@ body.lagerPickerOpen {
   box-sizing: border-box;
 }
 
-.usersPageContent .userCreateFormLabeled .userProfileFormFields input,
-.usersPageContent .userCreateFormLabeled .userProfileFormFields textarea,
-.usersPageContent .userCreateFormLabeled .userProfileFormFields select,
-.usersPageContent .userCreateFormLabeled .userProfileFormFields .dateFieldWithPicker,
-.usersPageContent .userCreateFormLabeled .userProfileFormFields .dateFieldWithPicker .dateFieldText,
 .usersPageContent .userCreateFormLabeled .userProfileFormFields .userFilialeField {
-  width: 100%;
+  width: 50%;
   max-width: 100%;
 }
 
@@ -4723,7 +4720,9 @@ body.lagerPickerOpen {
   .usersPageContent .userCreateForm input,
   .usersPageContent .userCreateForm textarea,
   .usersPageContent .userCreateForm .dateFieldWithPicker,
-  .usersPageContent .userCreateForm .userFilialeField {
+  .usersPageContent .userCreateForm .userFilialeField,
+  .usersPageContent .userCreateFormLabeled .userFormField,
+  .usersPageContent .userCreateFormLabeled .userProfileFormFields .userFilialeField {
     width: 100%;
   }
 }
