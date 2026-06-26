@@ -123,7 +123,18 @@ export default function PersoenlicheSacheProfile() {
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      setError(result.error ?? "Profil konnte nicht geladen werden.");
+      setError(
+        typeof result.error === "string" && result.error.trim()
+          ? result.error
+          : `Profil konnte nicht geladen werden. (${response.status})`
+      );
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    if (!result.user || typeof result.user !== "object") {
+      setError("Profil konnte nicht geladen werden. (Ungültige Server-Antwort)");
       setUser(null);
       setLoading(false);
       return;

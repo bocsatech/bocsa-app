@@ -77,42 +77,45 @@ async function resolveLocalhostApiRequest() {
 }
 
 export async function GET() {
-  const session = await getCurrentSession();
-  if (!session) {
-    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
-  }
+  try {
+    const session = await getCurrentSession();
+    if (!session) {
+      return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
+    }
 
-  const db = getSupabaseAdmin();
-  const { row: authRow, error: authError } = await loadAuthUserRow(session.userId);
-  if (authError) {
-    return NextResponse.json({ error: authError }, { status: 500 });
-  }
+    const db = getSupabaseAdmin();
+    const { row: authRow, error: authError } = await loadAuthUserRow(session.userId);
+    if (authError) {
+      return NextResponse.json({ error: authError }, { status: 500 });
+    }
 
-  const { profile, error: profileError, missingTable, missingRow } =
-    await loadPersonalProfile(session.userId);
-  if (profileError) {
-    return NextResponse.json({ error: profileError }, { status: 500 });
-  }
+    const personal = await loadPersonalProfile(session.userId);
+    const mergedProfile =
+      personal.error || personal.missingTable || personal.missingRow
+        ? profileFieldsFromRow(authRow)
+        : (personal.profile ?? profileFieldsFromRow(authRow));
+    const user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
+    if (await resolveLocalhostApiRequest()) {
+      user.position =
+        typeof authRow.position === "string" ? authRow.position : authRow.position ?? null;
+    }
+    const urlaub = await loadUrlaubQuotaForUsername(
+      db,
+      session.username,
+      urlaubQuotaOptions(authRow)
+    );
+    const overtimeHours = normalizeOvertimeHours(authRow.overtime_hours_balance);
 
-  const mergedProfile =
-    missingTable || missingRow ? profileFieldsFromRow(authRow) : profile;
-  const user = mergeAuthUserWithPersonalProfile(authRow, mergedProfile);
-  if (await resolveLocalhostApiRequest()) {
-    user.position =
-      typeof authRow.position === "string" ? authRow.position : authRow.position ?? null;
+    return NextResponse.json({
+      user,
+      urlaub,
+      overtimeHours,
+      profileWarning: personal.error ?? null,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Profil konnte nicht geladen werden.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-  const urlaub = await loadUrlaubQuotaForUsername(
-    db,
-    session.username,
-    urlaubQuotaOptions(authRow)
-  );
-  const overtimeHours = normalizeOvertimeHours(authRow.overtime_hours_balance);
-
-  return NextResponse.json({
-    user,
-    urlaub,
-    overtimeHours,
-  });
 }
 
 export async function PATCH(request) {

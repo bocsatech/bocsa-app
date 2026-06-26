@@ -1,5 +1,4 @@
 import { getSupabaseAdmin } from "./supabaseAdmin";
-import { supabase } from "./supabase";
 import {
   PERSONAL_PROFILES_TABLE,
   USER_PROFILE_SELECT,
@@ -12,8 +11,18 @@ import {
 import { normalizeUserWorkArea } from "./user-stammdaten";
 
 function getDb() {
-  return getSupabaseAdmin() ?? supabase;
+  return getSupabaseAdmin();
 }
+
+function isMissingProfileColumn(error: unknown, columns: string[]) {
+  if (!error || typeof error !== "object") return false;
+  const msg = String((error as { message?: unknown }).message ?? "").toLowerCase();
+  if (!columns.some((column) => msg.includes(column))) return false;
+  return msg.includes("does not exist") || msg.includes("schema cache");
+}
+
+const USER_PROFILE_SELECT_NO_STAMMDATEN =
+  "full_name, position, site, filiale_code, photo_url, signature_url, company_mobile, private_mobile, company_email, private_email, birth_date, address, ecard_number, emergency_contact_name, emergency_contact_phone";
 
 export function isMissingPersonalProfilesTable(error: unknown) {
   if (!error || typeof error !== "object") return false;
@@ -28,11 +37,28 @@ export function isMissingPersonalProfilesTable(error: unknown) {
 
 export async function loadPersonalProfile(userId: string) {
   const db = getDb();
-  const { data, error } = await db
+  if (!db) {
+    return {
+      profile: emptyProfileFields(),
+      error: null,
+      missingTable: true,
+      missingRow: false,
+    };
+  }
+
+  let { data, error } = await db
     .from(PERSONAL_PROFILES_TABLE)
     .select(USER_PROFILE_SELECT)
     .eq("user_id", userId)
     .maybeSingle();
+
+  if (error && isMissingProfileColumn(error, ["bank_account", "direct_manager", "work_area"])) {
+    ({ data, error } = await db
+      .from(PERSONAL_PROFILES_TABLE)
+      .select(USER_PROFILE_SELECT_NO_STAMMDATEN)
+      .eq("user_id", userId)
+      .maybeSingle());
+  }
 
   if (error) {
     if (isMissingPersonalProfilesTable(error)) {
@@ -63,6 +89,9 @@ export async function seedPersonalProfileFromAdminRow(
   adminRow: Record<string, unknown>
 ) {
   const db = getDb();
+  if (!db) {
+    return { ok: false, error: "Supabase ist nicht konfiguriert." };
+  }
   const payload = {
     user_id: userId,
     ...profileFieldsFromRow(adminRow),
@@ -82,6 +111,12 @@ export async function seedPersonalProfileFromAdminRow(
 
 export async function updatePersonalProfile(userId: string, patch: UserProfilePatch) {
   const db = getDb();
+  if (!db) {
+    return {
+      profile: null,
+      error: "Supabase ist nicht konfiguriert.",
+    };
+  }
 
   if (patch.workArea !== undefined && patch.workArea !== null && patch.workArea !== "") {
     const area = normalizeUserWorkArea(patch.workArea);
@@ -122,6 +157,9 @@ export async function syncPersonalProfilePositionFromAdmin(
   position: string | null | undefined
 ) {
   const db = getDb();
+  if (!db) {
+    return { ok: false, error: null, missingTable: true };
+  }
   const { error } = await db.from(PERSONAL_PROFILES_TABLE).upsert(
     {
       user_id: userId,
@@ -145,10 +183,15 @@ export function mergeAuthUserWithPersonalProfile(
   authRow: Record<string, unknown>,
   profile: UserProfileFields
 ) {
-  return {
-    ...authRow,
-    ...profile,
-  };
+  const merged: Record<string, unknown> = { ...authRow };
+  for (const [key, value] of Object.entries(profile) as Array<
+    [keyof UserProfileFields, UserProfileFields[keyof UserProfileFields]]
+  >) {
+    if (value !== null && value !== undefined && value !== "") {
+      merged[key] = value;
+    }
+  }
+  return merged;
 }
 
 export type { UserProfileFields, UserProfilePatch };
