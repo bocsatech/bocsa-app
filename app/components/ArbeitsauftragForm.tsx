@@ -43,8 +43,9 @@ import {
 } from "../../lib/geraetgruppe-protokoll";
 import {
   ensureUniqueWorkOrderAuftragNrLocal,
-  isLegacyAuftragNr,
+  preferNewFormatAuftragNrOnClient,
   reserveWorkOrderAuftragNr,
+  shouldAssignEnvironmentAuftragNr,
 } from "../../lib/auftrag-nr";
 import { resolveOrderRepairStatus } from "../../lib/geraetstatus";
 import type { UserFilialeCode } from "../../lib/user-filiale";
@@ -61,6 +62,25 @@ import {
   type WorkOrder,
 } from "../../lib/work-orders";
 import type { Machine } from "../../lib/types/machine";
+
+function buildBauAuftragNrReserveParams(
+  order: Pick<WorkOrder, "type" | "depot" | "date">,
+  machine: Machine,
+  filiale: UserFilialeCode | "",
+  preferNewFormat: boolean
+) {
+  const base = {
+    type: order.type,
+    depot: order.depot || machine.depot || "",
+    date: order.date,
+  };
+  if (!preferNewFormat) return base;
+  return {
+    ...base,
+    geraetenummer: machine.geraetenummer ?? "",
+    filialeCode: filiale || undefined,
+  };
+}
 
 type Props = {
   machineId: string;
@@ -148,6 +168,9 @@ export default function ArbeitsauftragForm({
         isTechniker
     );
 
+    const preferNewFormat = preferNewFormatAuftragNrOnClient();
+    const userFiliale = normalizeUserFilialeCode(session.profile?.filialeCode) ?? "";
+
     const { data, error: loadError } = await fetchMachineById(machineId);
     if (loadError || !data) {
       setError(loadError?.message ?? "Maschine nicht gefunden.");
@@ -199,13 +222,11 @@ export default function ArbeitsauftragForm({
         normalized = { ...normalized, protocol: stripped };
       }
       const nr = normalized.auftragNr?.trim() ?? "";
-      if (!nr || !isLegacyAuftragNr(nr)) {
+      if (shouldAssignEnvironmentAuftragNr(nr, preferNewFormat)) {
         try {
-          const { auftragNr } = await reserveWorkOrderAuftragNr({
-            type: normalized.type,
-            depot: normalized.depot || data.depot || "",
-            date: normalized.date,
-          });
+          const { auftragNr } = await reserveWorkOrderAuftragNr(
+            buildBauAuftragNrReserveParams(normalized, data, userFiliale, preferNewFormat)
+          );
           normalized = { ...normalized, auftragNr };
         } catch {
           /* bestehende Nummer beibehalten */
@@ -223,11 +244,9 @@ export default function ArbeitsauftragForm({
         protocolSubgroup: resolved.subgroup,
       });
       try {
-        const { auftragNr } = await reserveWorkOrderAuftragNr({
-          type: empty.type,
-          depot: empty.depot || data.depot || "",
-          date: empty.date,
-        });
+        const { auftragNr } = await reserveWorkOrderAuftragNr(
+          buildBauAuftragNrReserveParams(empty, data, userFiliale, preferNewFormat)
+        );
         setOrder({ ...empty, auftragNr, repairStatus: resolveOrderRepairStatus(empty, data) });
       } catch {
         setOrder({ ...empty, repairStatus: resolveOrderRepairStatus(empty, data) });
@@ -428,14 +447,13 @@ export default function ArbeitsauftragForm({
       repairStatus: resolveOrderRepairStatus(normalized, baseMachine),
     };
 
+    const preferNewFormat = preferNewFormatAuftragNrOnClient();
     const existingNr = normalized.auftragNr?.trim() ?? "";
-    if (!existingNr || !isLegacyAuftragNr(existingNr)) {
+    if (shouldAssignEnvironmentAuftragNr(existingNr, preferNewFormat)) {
       try {
-        const { auftragNr } = await reserveWorkOrderAuftragNr({
-          type: normalized.type,
-          depot: normalized.depot || baseMachine.depot || "",
-          date: normalized.date,
-        });
+        const { auftragNr } = await reserveWorkOrderAuftragNr(
+          buildBauAuftragNrReserveParams(normalized, baseMachine, filialeCode, preferNewFormat)
+        );
         normalized = { ...normalized, auftragNr };
       } catch (reserveError) {
         setSaveError(
@@ -453,6 +471,8 @@ export default function ArbeitsauftragForm({
         order: normalized,
         machineId: baseMachine.id,
         reserveDepot: normalized.depot || baseMachine.depot || "",
+        geraetenummer: baseMachine.geraetenummer ?? "",
+        filialeCode: filialeCode || undefined,
       });
       normalized = unique.order;
       if (unique.reassigned && !options?.silentMessage) {

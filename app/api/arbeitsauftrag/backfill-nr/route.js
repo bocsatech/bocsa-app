@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { reserveLegacyAuftragNrWithFallback } from "../../../../lib/auftrag-nr-server";
+import {
+  reserveLegacyAuftragNrWithFallback,
+  reserveNewFormatAuftragNr,
+} from "../../../../lib/auftrag-nr-server";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
+import { isStructuredGeraetenummer } from "../../../../lib/geraetenummer";
 import { isLocalhostRequest } from "../../../../lib/localhost-request";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { normalizeUserFilialeCode } from "../../../../lib/user-filiale";
 
 const MACHINE_TABLE = "maschines";
 
@@ -34,7 +39,22 @@ function getWorkOrdersFromTabData(tabData) {
   return Array.isArray(orders) ? orders : [];
 }
 
-async function reserveNr(supabase, type, depot, date, extraAuftragNrs, options = {}) {
+async function reserveNr(
+  supabase,
+  { type, depot, date, geraetenummer, filialeCode },
+  extraAuftragNrs,
+  options = {}
+) {
+  if (geraetenummer && filialeCode) {
+    const { auftragNr } = await reserveNewFormatAuftragNr(
+      supabase,
+      { type, filialeCode, geraetenummer, dateDe: date || undefined },
+      extraAuftragNrs,
+      options
+    );
+    return auftragNr;
+  }
+
   const { auftragNr } = await reserveLegacyAuftragNrWithFallback(
     supabase,
     type,
@@ -44,6 +64,16 @@ async function reserveNr(supabase, type, depot, date, extraAuftragNrs, options =
     options
   );
   return auftragNr;
+}
+
+async function resolveUserFilialeCode(supabase, session) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("filiale_code")
+    .eq("id", session.userId)
+    .maybeSingle();
+  if (error) return null;
+  return normalizeUserFilialeCode(data?.filiale_code);
 }
 
 export async function POST(request) {
@@ -72,7 +102,7 @@ export async function POST(request) {
 
   const { data: row, error: loadError } = await supabase
     .from(MACHINE_TABLE)
-    .select("id, depot, machine_tab_data")
+    .select("id, depot, geraetenummer, machine_tab_data")
     .eq("id", machineId)
     .maybeSingle();
 
@@ -94,6 +124,12 @@ export async function POST(request) {
   }
 
   const machineDepot = String(row.depot ?? "").trim();
+  const useNewFormat = isLocalhostRequest(request);
+  const geraetenummer = String(row.geraetenummer ?? "").trim();
+  const filialeCode =
+    useNewFormat && isStructuredGeraetenummer(geraetenummer)
+      ? await resolveUserFilialeCode(supabase, auth.session)
+      : null;
   const ensureGlobalUnique = isLocalhostRequest(request);
   let assigned = 0;
   const nextOrders = [];
@@ -114,9 +150,13 @@ export async function POST(request) {
     try {
       const auftragNr = await reserveNr(
         supabase,
-        type,
-        depot,
-        date,
+        {
+          type,
+          depot,
+          date,
+          geraetenummer: filialeCode ? geraetenummer : "",
+          filialeCode,
+        },
         assignedInBatch,
         { ensureGlobalUnique }
       );

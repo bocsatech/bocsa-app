@@ -82,6 +82,24 @@ export function isValidAuftragNr(value: string) {
   return isLegacyAuftragNr(trimmed) || isNewFormatAuftragNr(trimmed);
 }
 
+/** Localhost: neues Format; Production: Legacy */
+export function hasEnvironmentAuftragNr(value: string, preferNewFormat: boolean) {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return preferNewFormat ? isNewFormatAuftragNr(trimmed) : isLegacyAuftragNr(trimmed);
+}
+
+export function shouldAssignEnvironmentAuftragNr(
+  existingNr: string,
+  preferNewFormat: boolean
+) {
+  return !hasEnvironmentAuftragNr(existingNr, preferNewFormat);
+}
+
+export function preferNewFormatAuftragNrOnClient() {
+  return isLocalHostEnvironment();
+}
+
 export function canAssignNewFormatAuftragNr(params: {
   geraetenummer?: string | null;
   filialeCode?: UserFilialeCode | null;
@@ -141,6 +159,8 @@ export async function ensureUniqueWorkOrderAuftragNrLocal(params: {
   machineId?: string;
   fahrzeugId?: string;
   reserveDepot?: string;
+  geraetenummer?: string;
+  filialeCode?: UserFilialeCode | string;
 }): Promise<{
   order: typeof params.order;
   reassigned: boolean;
@@ -172,6 +192,8 @@ export async function ensureUniqueWorkOrderAuftragNrLocal(params: {
       depot: params.reserveDepot || params.order.depot || "",
       date: params.order.date,
       legacy: Boolean(params.fahrzeugId),
+      geraetenummer: params.geraetenummer,
+      filialeCode: params.filialeCode,
     });
     return {
       order: { ...params.order, auftragNr },
