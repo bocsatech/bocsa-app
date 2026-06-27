@@ -11,7 +11,7 @@ import {
 } from "../../lib/arbeitsauftrag-routes";
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
-import { getBauArbeitsauftragMenuLabel } from "../../lib/local-host";
+import { getBauArbeitsauftragMenuLabel, getBaupruefprotokollMenuLabel } from "../../lib/local-host";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -172,6 +172,9 @@ type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number];
 function getBaumaschinenChildLabel(child: BauSubItem) {
   if (child.kind === "route" && child.href === ARBEITSAUFTRAG_LIST_PATH) {
     return getBauArbeitsauftragMenuLabel();
+  }
+  if (child.kind === "route" && child.href === "/pruefprotokoll") {
+    return getBaupruefprotokollMenuLabel();
   }
   return child.label;
 }

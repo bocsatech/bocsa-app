@@ -2,7 +2,7 @@ import AppPageShell from "./components/AppPageShell";
 import HomeMenuCard from "./components/HomeMenuCard";
 import HomeMenuIcon from "./components/HomeMenuIcons";
 import { HOME_PHOTO_ICON_NAMES } from "../lib/home-menu-icons";
-import { getBauArbeitsauftragMenuLabel } from "../lib/local-host";
+import { getBauArbeitsauftragMenuLabel, getBaupruefprotokollMenuLabel } from "../lib/local-host";
 import { maschinenListHref } from "../lib/maschinen-routes";
 
 type HomeMenuCardConfig = {
@@ -29,7 +29,7 @@ function buildHomeMenuCards(): HomeMenuCardConfig[] {
       icon: "arbeitsauftrag",
       href: "/arbeitsauftrag",
     },
-    { label: "Bauprüfprotokoll", icon: "pruefprotokoll", href: "/pruefprotokoll" },
+    { label: getBaupruefprotokollMenuLabel(), icon: "pruefprotokoll", href: "/pruefprotokoll" },
     { label: "PKW", icon: "pkw", href: "/pkw/fahrzeuge" },
     { label: "PKW-Service", icon: "pkw-service", href: "/pkw-service" },
     { label: "Kunden", icon: "kunden", href: "/kunden" },

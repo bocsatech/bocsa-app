@@ -31,6 +31,13 @@ export function getBauArbeitsauftragMenuLabel(): string {
   return "Bauarbeitsauftrag";
 }
 
+export function getBaupruefprotokollMenuLabel(): string {
+  if (isLocalDevEnvironment() || isLocalHostEnvironment()) {
+    return "Prüfprotokol";
+  }
+  return "Bauprüfprotokoll";
+}
+
 export function resolveLocalhostPickerVariant(
   explicit?: "native" | "calendar"
 ): "native" | "calendar" {
