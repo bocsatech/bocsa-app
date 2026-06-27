@@ -2130,6 +2130,24 @@ body > .qrModalBackdrop.machineAddModalBackdrop {
   }
 }
 
+/* Localhost/dev: Stammdaten-Eingabefelder halbe Breite */
+html.local-app .machineDetailPage .stammdatenStacked .fieldRow input,
+html.local-app .machineDetailPage .stammdatenStacked .fieldRow select,
+html.local-app .machineDetailPage .stammdatenStacked .fieldRow textarea,
+html.local-app .machineDetailPage .stammdatenStacked .fieldRow .germanDateField,
+html.local-app .machineDetailPage .stammdatenStacked .fieldRow .dateFieldWithPicker,
+html.local-app .machineDetailPage .stammdatenStacked .fieldRow .fieldRowDisplayValue,
+html.local-app .machineDetailPage .stammdatenStacked .fieldRow .fieldRowCombinedValue,
+html.local-app .machineDetailPage .stammdatenStacked .fieldRow strong.meldungStatusValue {
+  width: 50%;
+  max-width: 50%;
+}
+
+html.local-app .pkwModal .pkwFormGrid {
+  width: 50%;
+  max-width: 100%;
+}
+
 .machineHeroTitleLine {
   display: flex;
   flex-wrap: wrap;
