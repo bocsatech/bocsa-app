@@ -114,6 +114,11 @@ export const KUNDEN_LOCALHOST_NAV = {
   permission: "menu.kunden",
 } as const;
 
+export const RECHNUNGEN_LOCALHOST_NAV = {
+  label: "Rechnungen",
+  children: [],
+} as const;
+
 export const LAGER_NAV = {
   href: "/lager",
   label: "Lager",
@@ -644,7 +649,14 @@ function useSidebarAuth() {
   return auth;
 }
 
-type SidebarMenuId = "meine" | "baumaschinen" | "pkw" | "lager" | "einstellungen" | "admin";
+type SidebarMenuId =
+  | "meine"
+  | "baumaschinen"
+  | "pkw"
+  | "rechnungen"
+  | "lager"
+  | "einstellungen"
+  | "admin";
 
 type SidebarAccordionState = {
   openMenuId: SidebarMenuId | null;
@@ -692,6 +704,39 @@ function isBaumaschinenListRoot(
     !aktion &&
     !geraettyp?.trim() &&
     !geraetenummer?.trim()
+  );
+}
+
+function RechnungenLocalhostNavGroup({
+  accordion,
+}: {
+  accordion?: SidebarAccordionState;
+}) {
+  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
+  const [open, setOpen] = useState(false);
+
+  function handleParentClick() {
+    if (accordionOn && accordion) {
+      sidebarAccordionToggle(accordion, "rechnungen");
+      return;
+    }
+    setOpen((prev) => !prev);
+  }
+
+  const showSub = sidebarMenuIsExpanded("rechnungen", open, false, accordion);
+
+  return (
+    <div className="sidebarNavGroup">
+      <button
+        type="button"
+        className="sidebarNavParent"
+        aria-expanded={showSub}
+        onClick={handleParentClick}
+      >
+        {RECHNUNGEN_LOCALHOST_NAV.label}
+      </button>
+      {showSub ? <div className="sidebarNavSub" /> : null}
+    </div>
   );
 }
 
@@ -1467,6 +1512,10 @@ function SidebarNavItems({
         >
           {KUNDEN_LOCALHOST_NAV.label}
         </Link>
+      ) : null}
+
+      {isLocalAppEnvironment() ? (
+        <RechnungenLocalhostNavGroup accordion={accordion} />
       ) : null}
 
       {showLager ? (
