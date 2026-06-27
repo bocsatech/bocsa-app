@@ -228,12 +228,6 @@ button, input, select, textarea {
   font-weight: 600;
 }
 
-.sidebarNavSub .sidebarNavSubLabel {
-  padding: 8px 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
 .sidebarNavSubNested {
   display: flex;
   flex-direction: column;

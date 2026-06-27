@@ -174,6 +174,7 @@ export const ADMIN_LOCALHOST_BAUGERAET_NAV = {
 
 export const ADMIN_LOCALHOST_PKW_NAV = {
   label: "PKW",
+  href: PKW_NAV.href,
   children: [],
 } as const;
 
@@ -203,6 +204,7 @@ const ALL_MENU_HREFS = [
   ...ADMIN_LOCALHOST_NAV.children.map((item) => item.href),
   ADMIN_LOCALHOST_BAUGERAET_NAV.href,
   ...ADMIN_LOCALHOST_BAUGERAET_NAV.children.map((item) => item.href),
+  ADMIN_LOCALHOST_PKW_NAV.href,
 ] as const;
 
 type NavItem = (typeof APP_NAV_ITEMS)[number];
@@ -336,7 +338,16 @@ function isAdminLocalhostSectionActive(
     isAdminLocalhostChildActive(child, activeHref, pathname, aktion)
   ) || ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
     isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
-  ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion);
+  ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion)
+  || isAdminLocalhostPkwParentActive(activeHref, pathname);
+}
+
+function isAdminLocalhostPkwParentActive(activeHref: string | undefined, pathname: string) {
+  return (
+    activeHref === ADMIN_LOCALHOST_PKW_NAV.href ||
+    pathname === ADMIN_LOCALHOST_PKW_NAV.href ||
+    pathname.startsWith("/pkw/fahrzeuge/")
+  );
 }
 
 function isAdminLocalhostBaugeraetChildActive(
@@ -771,6 +782,7 @@ function AdminLocalhostNavGroup({
   );
   const sectionActive = isAdminLocalhostSectionActive(activeHref, pathname, aktion);
   const baugeraetParentActive = isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion);
+  const pkwParentActive = isAdminLocalhostPkwParentActive(activeHref, pathname);
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -852,7 +864,16 @@ function AdminLocalhostNavGroup({
               </div>
             </Fragment>
           ) : null}
-          <span className="sidebarNavSubLabel">{ADMIN_LOCALHOST_PKW_NAV.label}</span>
+          <Fragment>
+            <Link
+              href={ADMIN_LOCALHOST_PKW_NAV.href}
+              className={pkwParentActive ? "active" : undefined}
+              onClick={() => onMobileNavClose?.()}
+            >
+              {ADMIN_LOCALHOST_PKW_NAV.label}
+            </Link>
+            <div className="sidebarNavSubNested" />
+          </Fragment>
         </div>
       ) : null}
     </div>
