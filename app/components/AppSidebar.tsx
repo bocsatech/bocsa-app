@@ -153,12 +153,10 @@ export const EINSTELLUNGEN_NAV = {
   ],
 } as const;
 
-export const ADMIN_LOCALHOST_NAV = {
-  label: "Admin",
-  href: "/admin",
+export const ADMIN_LOCALHOST_BAUGERAET_NAV = {
+  label: "Baugerät",
+  href: MASCHINEN_LIST_PATH,
   children: [
-    { href: "/admin", label: "Übersicht" },
-    { href: MASCHINEN_LIST_PATH, label: "Baugerät" },
     {
       href: "/maschinen?aktion=hinzufuegen",
       label: "Maschine hinzufügen",
@@ -180,6 +178,13 @@ export const ADMIN_LOCALHOST_NAV = {
   ],
 } as const;
 
+export const ADMIN_LOCALHOST_NAV = {
+  label: "Admin",
+  href: "/admin",
+  children: [{ href: "/admin", label: "Übersicht" }],
+  baugeraet: ADMIN_LOCALHOST_BAUGERAET_NAV,
+} as const;
+
 /** @deprecated — use EINSTELLUNGEN_NAV.children */
 export const ADMIN_NAV_ITEMS = EINSTELLUNGEN_NAV.children;
 
@@ -196,12 +201,15 @@ const ALL_MENU_HREFS = [
   ...EINSTELLUNGEN_NAV.children.map((item) => item.href),
   ADMIN_LOCALHOST_NAV.href,
   ...ADMIN_LOCALHOST_NAV.children.map((item) => item.href),
+  ADMIN_LOCALHOST_BAUGERAET_NAV.href,
+  ...ADMIN_LOCALHOST_BAUGERAET_NAV.children.map((item) => item.href),
 ] as const;
 
 type NavItem = (typeof APP_NAV_ITEMS)[number];
 type MeineMenuSubItem = (typeof MEINE_MENU_NAV.children)[number];
 type EinstellungenNavItem = (typeof EINSTELLUNGEN_NAV.children)[number];
 type AdminLocalhostNavItem = (typeof ADMIN_LOCALHOST_NAV.children)[number];
+type AdminLocalhostBaugeraetNavItem = (typeof ADMIN_LOCALHOST_BAUGERAET_NAV.children)[number];
 type AdminNavItem = EinstellungenNavItem;
 type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number] | MaschinenSubRoute;
 
@@ -326,6 +334,37 @@ function isAdminLocalhostSectionActive(
 
   return ADMIN_LOCALHOST_NAV.children.some((child) =>
     isAdminLocalhostChildActive(child, activeHref, pathname, aktion)
+  ) || ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
+    isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
+  ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion);
+}
+
+function isAdminLocalhostBaugeraetChildActive(
+  child: AdminLocalhostBaugeraetNavItem,
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null
+) {
+  if ("aktion" in child && child.aktion) {
+    return pathname.startsWith("/maschinen") && aktion === child.aktion;
+  }
+  return isNavActive(child, activeHref, pathname);
+}
+
+function isAdminLocalhostBaugeraetParentActive(
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null
+) {
+  const anyNestedActive = ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
+    isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
+  );
+  if (anyNestedActive || aktion) return false;
+  if (pathname === "/maschinen/geraetgruppen") return false;
+  return (
+    activeHref === MASCHINEN_LIST_PATH ||
+    pathname === MASCHINEN_LIST_PATH ||
+    (pathname.startsWith("/maschinen/") && pathname !== "/maschinen/geraetgruppen")
   );
 }
 
@@ -335,9 +374,6 @@ function isAdminLocalhostChildActive(
   pathname: string,
   aktion: string | null
 ) {
-  if ("aktion" in child && child.aktion) {
-    return pathname.startsWith("/maschinen") && aktion === child.aktion;
-  }
   return isNavActive(child, activeHref, pathname);
 }
 
@@ -683,7 +719,11 @@ function AdminLocalhostNavGroup({
   const visibleChildren = ADMIN_LOCALHOST_NAV.children.filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
+  const visibleBaugeraetChildren = ADMIN_LOCALHOST_BAUGERAET_NAV.children.filter((child) =>
+    canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
+  );
   const sectionActive = isAdminLocalhostSectionActive(activeHref, pathname, aktion);
+  const baugeraetParentActive = isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion);
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -702,7 +742,7 @@ function AdminLocalhostNavGroup({
     setOpen(true);
   }
 
-  if (visibleChildren.length === 0) return null;
+  if (visibleChildren.length === 0 && visibleBaugeraetChildren.length === 0) return null;
 
   const showSub = submenuOpen || open;
 
@@ -730,6 +770,33 @@ function AdminLocalhostNavGroup({
               {child.label}
             </Link>
           ))}
+          {visibleBaugeraetChildren.length > 0 ? (
+            <Fragment>
+              <Link
+                href={ADMIN_LOCALHOST_BAUGERAET_NAV.href}
+                className={baugeraetParentActive ? "active" : undefined}
+                onClick={() => onMobileNavClose?.()}
+              >
+                {ADMIN_LOCALHOST_BAUGERAET_NAV.label}
+              </Link>
+              <div className="sidebarNavSubNested">
+                {visibleBaugeraetChildren.map((child) => (
+                  <Link
+                    key={child.href}
+                    href={child.href}
+                    className={
+                      isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
+                        ? "active"
+                        : undefined
+                    }
+                    onClick={() => onMobileNavClose?.()}
+                  >
+                    {child.label}
+                  </Link>
+                ))}
+              </div>
+            </Fragment>
+          ) : null}
         </div>
       ) : null}
     </div>
