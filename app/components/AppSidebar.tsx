@@ -536,6 +536,44 @@ function useSidebarAuth() {
   return auth;
 }
 
+type SidebarMenuId = "meine" | "baumaschinen" | "pkw" | "lager" | "einstellungen" | "admin";
+
+type SidebarAccordionState = {
+  openMenuId: SidebarMenuId | null;
+  setOpenMenuId: (id: SidebarMenuId | null) => void;
+};
+
+function sidebarMenuIsExpanded(
+  menuId: SidebarMenuId,
+  localOpen: boolean,
+  submenuOpen: boolean,
+  accordion?: SidebarAccordionState
+) {
+  if (accordion && isLocalAppEnvironment()) {
+    return accordion.openMenuId === menuId;
+  }
+  return submenuOpen || localOpen;
+}
+
+function sidebarAccordionToggle(accordion: SidebarAccordionState, menuId: SidebarMenuId) {
+  accordion.setOpenMenuId(accordion.openMenuId === menuId ? null : menuId);
+}
+
+function resolveOpenSidebarMenuId(
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null,
+  pkwTab: string | null
+): SidebarMenuId | null {
+  if (isAdminLocalhostSectionActive(activeHref, pathname, aktion)) return "admin";
+  if (isMeineMenuSectionActive(activeHref, pathname)) return "meine";
+  if (isBaumaschinenSectionActive(activeHref, pathname)) return "baumaschinen";
+  if (isPkwSectionActive(activeHref, pathname)) return "pkw";
+  if (isLagerSectionActive(activeHref, pathname)) return "lager";
+  if (isEinstellungenSectionActive(activeHref, pathname)) return "einstellungen";
+  return null;
+}
+
 function isBaumaschinenListRoot(
   pathname: string,
   aktion: string | null,
@@ -557,6 +595,7 @@ function MeineMenuNavGroup({
   permissions,
   groups,
   username,
+  accordion,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -565,8 +604,10 @@ function MeineMenuNavGroup({
   permissions: string[];
   groups: string[];
   username?: string;
+  accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
+  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
   const visibleChildren = MEINE_MENU_NAV.children.filter((child) =>
     canShowMenuItem(
       "permission" in child ? child.permission : undefined,
@@ -579,14 +620,20 @@ function MeineMenuNavGroup({
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (sectionActive) setOpen(true);
-  }, [sectionActive]);
+  }, [sectionActive, accordionOn]);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (!sectionActive) setOpen(false);
-  }, [pathname, activeHref, sectionActive]);
+  }, [pathname, activeHref, sectionActive, accordionOn]);
 
   function handleParentClick() {
+    if (accordionOn && accordion) {
+      sidebarAccordionToggle(accordion, "meine");
+      return;
+    }
     if (sectionActive && open) {
       setOpen(false);
       return;
@@ -596,7 +643,7 @@ function MeineMenuNavGroup({
 
   if (visibleChildren.length === 0) return null;
 
-  const showSub = submenuOpen || open;
+  const showSub = sidebarMenuIsExpanded("meine", open, submenuOpen, accordion);
 
   return (
     <div className="sidebarNavGroup sidebarMeineMenuGroup">
@@ -633,6 +680,7 @@ function EinstellungenNavGroup({
   permissions,
   groups,
   username,
+  accordion,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -641,8 +689,10 @@ function EinstellungenNavGroup({
   permissions: string[];
   groups: string[];
   username?: string;
+  accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
+  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
   const visibleChildren = EINSTELLUNGEN_NAV.children.filter((child) =>
     canShowMenuItem(child.permission, permissions, groups, username)
   );
@@ -650,14 +700,20 @@ function EinstellungenNavGroup({
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (sectionActive) setOpen(true);
-  }, [sectionActive]);
+  }, [sectionActive, accordionOn]);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (!sectionActive) setOpen(false);
-  }, [pathname, activeHref, sectionActive]);
+  }, [pathname, activeHref, sectionActive, accordionOn]);
 
   function handleParentClick() {
+    if (accordionOn && accordion) {
+      sidebarAccordionToggle(accordion, "einstellungen");
+      return;
+    }
     if (sectionActive && open) {
       setOpen(false);
       return;
@@ -667,7 +723,7 @@ function EinstellungenNavGroup({
 
   if (visibleChildren.length === 0) return null;
 
-  const showSub = submenuOpen || open;
+  const showSub = sidebarMenuIsExpanded("einstellungen", open, submenuOpen, accordion);
 
   return (
     <div className="sidebarNavGroup sidebarEinstellungenGroup">
@@ -705,6 +761,7 @@ function AdminLocalhostNavGroup({
   permissions,
   groups,
   username,
+  accordion,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -714,8 +771,10 @@ function AdminLocalhostNavGroup({
   permissions: string[];
   groups: string[];
   username?: string;
+  accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
+  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
   const visibleChildren = ADMIN_LOCALHOST_NAV.children.filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
@@ -727,14 +786,20 @@ function AdminLocalhostNavGroup({
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (sectionActive) setOpen(true);
-  }, [sectionActive]);
+  }, [sectionActive, accordionOn]);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (!sectionActive) setOpen(false);
-  }, [pathname, activeHref, sectionActive]);
+  }, [pathname, activeHref, sectionActive, accordionOn]);
 
   function handleParentClick() {
+    if (accordionOn && accordion) {
+      sidebarAccordionToggle(accordion, "admin");
+      return;
+    }
     if (sectionActive && open) {
       setOpen(false);
       return;
@@ -744,7 +809,7 @@ function AdminLocalhostNavGroup({
 
   if (visibleChildren.length === 0 && visibleBaugeraetChildren.length === 0) return null;
 
-  const showSub = submenuOpen || open;
+  const showSub = sidebarMenuIsExpanded("admin", open, submenuOpen, accordion);
 
   return (
     <div className="sidebarNavGroup sidebarEinstellungenGroup">
@@ -813,6 +878,7 @@ function BaumaschinenNavGroup({
   permissions,
   groups,
   username,
+  accordion,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -824,8 +890,10 @@ function BaumaschinenNavGroup({
   permissions: string[];
   groups: string[];
   username?: string;
+  accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
+  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
   const router = useRouter();
   const menuChildren = getBaumaschinenMenuChildren();
   const sectionActive = isBaumaschinenSectionActive(activeHref, pathname);
@@ -847,11 +915,22 @@ function BaumaschinenNavGroup({
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (sectionActive) setOpen(true);
-  }, [sectionActive]);
+  }, [sectionActive, accordionOn]);
 
   function handleParentClick(event: MouseEvent<HTMLAnchorElement>) {
     const mobile = isMobileSidebarViewport();
+    if (accordionOn && accordion) {
+      event.preventDefault();
+      const wasOpen = accordion.openMenuId === "baumaschinen";
+      sidebarAccordionToggle(accordion, "baumaschinen");
+      if (!wasOpen && !onListRoot) {
+        router.push(BAUMASCHINEN_NAV.href);
+      }
+      if (mobile) onMobileNavClose?.();
+      return;
+    }
     if (sectionActive && open && onListRoot) {
       event.preventDefault();
       setOpen(false);
@@ -867,7 +946,7 @@ function BaumaschinenNavGroup({
     onMobileNavClose?.();
   }
 
-  const showSub = submenuOpen || open;
+  const showSub = sidebarMenuIsExpanded("baumaschinen", open, submenuOpen, accordion);
 
   return (
     <div className="sidebarNavGroup">
@@ -912,14 +991,17 @@ function LagerNavGroup({
   pathname,
   submenuOpen,
   meldungenCount,
+  accordion,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
   pathname: string;
   submenuOpen: boolean;
   meldungenCount: number;
+  accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
+  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
   const router = useRouter();
   const sectionActive = isLagerSectionActive(activeHref, pathname);
   const anySubActive = LAGER_NAV.children.some((child) => isLagerSubActive(child, pathname));
@@ -927,11 +1009,22 @@ function LagerNavGroup({
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (sectionActive) setOpen(true);
-  }, [sectionActive]);
+  }, [sectionActive, accordionOn]);
 
   function handleParentClick(event: MouseEvent<HTMLAnchorElement>) {
     const mobile = isMobileSidebarViewport();
+    if (accordionOn && accordion) {
+      event.preventDefault();
+      const wasOpen = accordion.openMenuId === "lager";
+      sidebarAccordionToggle(accordion, "lager");
+      if (!wasOpen && pathname !== LAGER_NAV.href) {
+        router.push(LAGER_NAV.href);
+      }
+      if (mobile) onMobileNavClose?.();
+      return;
+    }
     if (sectionActive && open && pathname === LAGER_NAV.href) {
       event.preventDefault();
       setOpen(false);
@@ -953,7 +1046,7 @@ function LagerNavGroup({
       : child
   );
 
-  const showSub = submenuOpen || open;
+  const showSub = sidebarMenuIsExpanded("lager", open, submenuOpen, accordion);
 
   return (
     <div className="sidebarNavGroup">
@@ -994,6 +1087,7 @@ function PkwNavGroup({
   pkwTab,
   visibleChildren,
   submenuOpen,
+  accordion,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -1002,8 +1096,10 @@ function PkwNavGroup({
   pkwTab: string | null;
   visibleChildren: PkwSubItem[];
   submenuOpen: boolean;
+  accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
+  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
   const router = useRouter();
   const sectionActive = isPkwSectionActive(activeHref, pathname);
   const anySubActive = visibleChildren.some((child) =>
@@ -1021,11 +1117,22 @@ function PkwNavGroup({
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
+    if (accordionOn) return;
     if (sectionActive) setOpen(true);
-  }, [sectionActive]);
+  }, [sectionActive, accordionOn]);
 
   function handleParentClick(event: MouseEvent<HTMLAnchorElement>) {
     const mobile = isMobileSidebarViewport();
+    if (accordionOn && accordion) {
+      event.preventDefault();
+      const wasOpen = accordion.openMenuId === "pkw";
+      sidebarAccordionToggle(accordion, "pkw");
+      if (!wasOpen && (pathname !== PKW_NAV.href || aktion)) {
+        router.push(PKW_NAV.href);
+      }
+      if (mobile) onMobileNavClose?.();
+      return;
+    }
     if (sectionActive && open && pathname === PKW_NAV.href && !aktion) {
       event.preventDefault();
       setOpen(false);
@@ -1043,7 +1150,7 @@ function PkwNavGroup({
 
   if (visibleChildren.length === 0) return null;
 
-  const showSub = submenuOpen || open;
+  const showSub = sidebarMenuIsExpanded("pkw", open, submenuOpen, accordion);
 
   return (
     <div className="sidebarNavGroup">
@@ -1138,6 +1245,16 @@ function SidebarNavItems({
   const navItemsBeforeQr = navItems.filter((item) => item.href !== "/qr-code");
   const showQrCodeNav = navItems.some((item) => item.href === "/qr-code");
   const qrCodeNavItem = navItems.find((item) => item.href === "/qr-code");
+  const localhostAccordion = isLocalAppEnvironment();
+  const [openMenuId, setOpenMenuId] = useState<SidebarMenuId | null>(null);
+  const accordion: SidebarAccordionState | undefined = localhostAccordion
+    ? { openMenuId, setOpenMenuId }
+    : undefined;
+
+  useEffect(() => {
+    if (!localhostAccordion) return;
+    setOpenMenuId(resolveOpenSidebarMenuId(activeHref, pathname, aktion, pkwTab));
+  }, [localhostAccordion, activeHref, pathname, aktion, pkwTab]);
 
   return (
     <>
@@ -1160,6 +1277,7 @@ function SidebarNavItems({
         permissions={permissions}
         groups={groups}
         username={username}
+        accordion={accordion}
         onMobileNavClose={onMobileNavClose}
       />
 
@@ -1174,6 +1292,7 @@ function SidebarNavItems({
           permissions={permissions}
           groups={groups}
           username={username}
+          accordion={accordion}
           onMobileNavClose={onMobileNavClose}
         />
       ) : null}
@@ -1185,6 +1304,7 @@ function SidebarNavItems({
         pkwTab={pkwTab}
         visibleChildren={pkwChildren}
         submenuOpen={submenuOpen}
+        accordion={accordion}
         onMobileNavClose={onMobileNavClose}
       />
 
@@ -1194,6 +1314,7 @@ function SidebarNavItems({
           pathname={pathname}
           submenuOpen={submenuOpen}
           meldungenCount={meldungenCount}
+          accordion={accordion}
           onMobileNavClose={onMobileNavClose}
         />
       ) : null}
@@ -1228,6 +1349,7 @@ function SidebarNavItems({
         permissions={permissions}
         groups={groups}
         username={username}
+        accordion={accordion}
         onMobileNavClose={onMobileNavClose}
       />
 
@@ -1240,6 +1362,7 @@ function SidebarNavItems({
           permissions={permissions}
           groups={groups}
           username={username}
+          accordion={accordion}
           onMobileNavClose={onMobileNavClose}
         />
       ) : null}
