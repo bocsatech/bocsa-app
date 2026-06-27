@@ -361,7 +361,7 @@ function isAdminLocalhostSectionActive(
     isAdminLocalhostChildActive(child, activeHref, pathname, aktion)
   ) || ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
     isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
-  ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion)
+  )
   || ADMIN_LOCALHOST_PKW_NAV.children.some((child) =>
     isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
   );
@@ -400,20 +400,11 @@ function isAdminLocalhostBaugeraetChildActive(
 }
 
 function isAdminLocalhostBaugeraetParentActive(
-  activeHref: string | undefined,
-  pathname: string,
-  aktion: string | null
+  _activeHref: string | undefined,
+  _pathname: string,
+  _aktion: string | null
 ) {
-  const anyNestedActive = ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
-    isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
-  );
-  if (anyNestedActive || aktion) return false;
-  if (pathname === "/maschinen/geraetgruppen") return false;
-  return (
-    activeHref === MASCHINEN_LIST_PATH ||
-    pathname === MASCHINEN_LIST_PATH ||
-    (pathname.startsWith("/maschinen/") && pathname !== "/maschinen/geraetgruppen")
-  );
+  return false;
 }
 
 function isAdminLocalhostChildActive(
@@ -430,10 +421,8 @@ function isAdminLocalhostBaugeraetSectionActive(
   pathname: string,
   aktion: string | null
 ) {
-  return (
-    ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
-      isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
-    ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion)
+  return ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
+    isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
   );
 }
 
@@ -457,12 +446,28 @@ function resolveOpenAdminSubMenuId(
   return null;
 }
 
-function isBaumaschinenSectionActive(activeHref: string | undefined, pathname: string) {
+function isBaumaschinenSectionActive(
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null
+) {
+  const includeGeraetgruppen = !isLocalAppEnvironment();
+  if (
+    isLocalAppEnvironment() &&
+    pathname.startsWith("/maschinen") &&
+    aktion &&
+    BAUMASCHINEN_ADMIN_AKTIONS.has(aktion)
+  ) {
+    return false;
+  }
   return (
     activeHref === BAUMASCHINEN_NAV.href ||
     pathname === BAUMASCHINEN_NAV.href ||
-    pathname.startsWith("/maschinen/") ||
-    pathname === "/maschinen/geraetgruppen" ||
+    (pathname.startsWith("/maschinen/") &&
+      (!isLocalAppEnvironment() ||
+        (pathname !== "/maschinen/geraetgruppen" &&
+          !pathname.startsWith("/maschinen/geraetgruppen/")))) ||
+    (includeGeraetgruppen && pathname === "/maschinen/geraetgruppen") ||
     activeHref === ARBEITSAUFTRAG_LIST_PATH ||
     pathname === ARBEITSAUFTRAG_LIST_PATH ||
     pathname === ARBEITSAUFTRAG_DETAIL_PATH ||
@@ -684,9 +689,9 @@ function resolveOpenSidebarMenuId(
   pathname: string,
   aktion: string | null
 ): SidebarMenuId | null {
-  if (isAdminLocalhostSectionActive(activeHref, pathname, aktion)) return "admin";
   if (isMeineMenuSectionActive(activeHref, pathname)) return "meine";
-  if (isBaumaschinenSectionActive(activeHref, pathname)) return "baumaschinen";
+  if (isBaumaschinenSectionActive(activeHref, pathname, aktion)) return "baumaschinen";
+  if (isAdminLocalhostSectionActive(activeHref, pathname, aktion)) return "admin";
   if (isPkwSectionActive(activeHref, pathname, aktion)) return "pkw";
   if (isLagerSectionActive(activeHref, pathname)) return "lager";
   if (isEinstellungenSectionActive(activeHref, pathname)) return "einstellungen";
@@ -1118,7 +1123,7 @@ function BaumaschinenNavGroup({
   const accordionOn = Boolean(accordion && isLocalAppEnvironment());
   const router = useRouter();
   const menuChildren = getBaumaschinenMenuChildren();
-  const sectionActive = isBaumaschinenSectionActive(activeHref, pathname);
+  const sectionActive = isBaumaschinenSectionActive(activeHref, pathname, aktion);
   const onListRoot = isBaumaschinenListRoot(pathname, aktion, geraettyp, geraetenummer);
   const visibleChildren = menuChildren.filter((child) => {
     const childPermission =
