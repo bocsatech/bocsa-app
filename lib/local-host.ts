@@ -24,8 +24,11 @@ export function isLocalAppEnvironment() {
   return isLocalDevEnvironment() || isLocalHostEnvironment();
 }
 
-export function getBauArbeitsauftragMenuLabel(isLocalApp = isLocalAppEnvironment()) {
-  return isLocalApp ? "Arbeitsauftrag" : "Bauarbeitsauftrag";
+export function getBauArbeitsauftragMenuLabel(): string {
+  if (isLocalDevEnvironment() || isLocalHostEnvironment()) {
+    return "Arbeitsauftrag";
+  }
+  return "Bauarbeitsauftrag";
 }
 
 export function resolveLocalhostPickerVariant(
