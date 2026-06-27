@@ -221,9 +221,15 @@ function getBaumaschinenMenuChildren(): BauSubItem[] {
     return children;
   }
 
-  return children.filter(
-    (child) => !(child.kind === "aktion" && BAUMASCHINEN_ADMIN_AKTIONS.has(child.aktion))
-  );
+  return children.filter((child) => {
+    if (child.kind === "aktion" && BAUMASCHINEN_ADMIN_AKTIONS.has(child.aktion)) {
+      return false;
+    }
+    if (child.kind === "route" && child.href === "/maschinen/geraetgruppen") {
+      return false;
+    }
+    return true;
+  });
 }
 
 function getBaumaschinenChildLabel(child: BauSubItem) {
