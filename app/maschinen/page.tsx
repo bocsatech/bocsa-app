@@ -14,6 +14,12 @@ import QrScannerModal from "../components/QrScannerModal";
 import "./maschinen-kpi.css";
 import { isLocalAppEnvironment } from "../../lib/local-host";
 import {
+  fetchMachines,
+  GERAETTYP_OPTIONS,
+  resolveMachineFromScan,
+  searchMachines,
+} from "../../lib/machines";
+import {
   MASCHINEN_HINZUFUEGEN_PATH,
   MASCHINEN_LIST_PATH,
 } from "../../lib/maschinen-routes";
