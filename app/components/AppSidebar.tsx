@@ -158,6 +158,7 @@ export const ADMIN_LOCALHOST_NAV = {
   href: "/admin",
   children: [
     { href: "/admin", label: "Übersicht" },
+    { href: MASCHINEN_LIST_PATH, label: "Baugerät" },
     {
       href: "/maschinen?aktion=hinzufuegen",
       label: "Maschine hinzufügen",
