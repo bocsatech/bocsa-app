@@ -520,6 +520,9 @@ function getPkwMenuChildren(): PkwSubItem[] {
     if (child.kind === "route" && child.href === "/pkw/gruppen") {
       return false;
     }
+    if (child.kind === "route" && child.href === "/kunden") {
+      return false;
+    }
     return true;
   });
 }
