@@ -4,6 +4,7 @@ import { reserveLegacyAuftragNrWithFallback } from "../../../../lib/auftrag-nr-s
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
+import { isLocalhostRequest } from "../../../../lib/localhost-request";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 const MACHINE_TABLE = "maschines";
@@ -33,13 +34,14 @@ function getWorkOrdersFromTabData(tabData) {
   return Array.isArray(orders) ? orders : [];
 }
 
-async function reserveNr(supabase, type, depot, date, extraAuftragNrs) {
+async function reserveNr(supabase, type, depot, date, extraAuftragNrs, options = {}) {
   const { auftragNr } = await reserveLegacyAuftragNrWithFallback(
     supabase,
     type,
     depot,
     date,
-    extraAuftragNrs
+    extraAuftragNrs,
+    options
   );
   return auftragNr;
 }
@@ -92,6 +94,7 @@ export async function POST(request) {
   }
 
   const machineDepot = String(row.depot ?? "").trim();
+  const ensureGlobalUnique = isLocalhostRequest(request);
   let assigned = 0;
   const nextOrders = [];
   const assignedInBatch = [];
@@ -114,7 +117,8 @@ export async function POST(request) {
         type,
         depot,
         date,
-        assignedInBatch
+        assignedInBatch,
+        { ensureGlobalUnique }
       );
       assignedInBatch.push(auftragNr);
       nextOrders.push({ ...raw, auftragNr });

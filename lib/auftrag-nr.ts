@@ -1,4 +1,5 @@
 import { parseGermanDate } from "./dates";
+import { isLocalHostEnvironment } from "./local-host";
 import {
   geraetenummerMachineSegment,
   isStructuredGeraetenummer,
@@ -101,6 +102,85 @@ export function canAssignNewFormatAuftragNr(params: {
     };
   }
   return { ok: true as const, filialeCode };
+}
+
+export async function validateWorkOrderAuftragNrLocal(params: {
+  auftragNr: string;
+  machineId?: string;
+  fahrzeugId?: string;
+  orderId?: string;
+}): Promise<{ ok: boolean; duplicate?: boolean; error?: string }> {
+  const response = await fetch("/api/arbeitsauftrag/validate-nr", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(params),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (response.ok) {
+    return { ok: true };
+  }
+  return {
+    ok: false,
+    duplicate: Boolean(result?.duplicate),
+    error:
+      typeof result?.error === "string"
+        ? result.error
+        : "Auftrag-Nr. konnte nicht geprüft werden.",
+  };
+}
+
+export async function ensureUniqueWorkOrderAuftragNrLocal(params: {
+  order: {
+    id: string;
+    type: string;
+    depot?: string;
+    date?: string;
+    auftragNr?: string;
+  };
+  machineId?: string;
+  fahrzeugId?: string;
+  reserveDepot?: string;
+}): Promise<{
+  order: typeof params.order;
+  reassigned: boolean;
+  previousNr?: string;
+}> {
+  if (typeof window === "undefined" || !isLocalHostEnvironment()) {
+    return { order: params.order, reassigned: false };
+  }
+
+  const nr = params.order.auftragNr?.trim() ?? "";
+  if (!nr) {
+    return { order: params.order, reassigned: false };
+  }
+
+  const validation = await validateWorkOrderAuftragNrLocal({
+    auftragNr: nr,
+    machineId: params.machineId,
+    fahrzeugId: params.fahrzeugId,
+    orderId: params.order.id,
+  });
+
+  if (validation.ok) {
+    return { order: params.order, reassigned: false };
+  }
+
+  if (validation.duplicate) {
+    const { auftragNr } = await reserveWorkOrderAuftragNr({
+      type: params.order.type,
+      depot: params.reserveDepot || params.order.depot || "",
+      date: params.order.date,
+      legacy: Boolean(params.fahrzeugId),
+    });
+    return {
+      order: { ...params.order, auftragNr },
+      reassigned: true,
+      previousNr: nr,
+    };
+  }
+
+  throw new Error(validation.error ?? "Auftrag-Nr. konnte nicht geprüft werden.");
 }
 
 export async function reserveWorkOrderAuftragNr(params: {

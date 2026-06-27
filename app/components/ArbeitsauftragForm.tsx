@@ -41,7 +41,11 @@ import {
   saveMachineProtokollVorlage,
   clearMachineProtokollVorlageApi,
 } from "../../lib/geraetgruppe-protokoll";
-import { isLegacyAuftragNr, reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
+import {
+  ensureUniqueWorkOrderAuftragNrLocal,
+  isLegacyAuftragNr,
+  reserveWorkOrderAuftragNr,
+} from "../../lib/auftrag-nr";
 import { resolveOrderRepairStatus } from "../../lib/geraetstatus";
 import type { UserFilialeCode } from "../../lib/user-filiale";
 import { normalizeUserFilialeCode } from "../../lib/user-filiale";
@@ -442,6 +446,28 @@ export default function ArbeitsauftragForm({
         setSaving(false);
         return false;
       }
+    }
+
+    try {
+      const unique = await ensureUniqueWorkOrderAuftragNrLocal({
+        order: normalized,
+        machineId: baseMachine.id,
+        reserveDepot: normalized.depot || baseMachine.depot || "",
+      });
+      normalized = unique.order;
+      if (unique.reassigned && !options?.silentMessage) {
+        setMessage(
+          `Auftrag-Nr. ${unique.previousNr} war bereits vergeben — neue Nr.: ${unique.order.auftragNr}`
+        );
+      }
+    } catch (uniqueError) {
+      setSaveError(
+        uniqueError instanceof Error
+          ? uniqueError.message
+          : "Auftrag-Nr. konnte nicht geprüft werden."
+      );
+      setSaving(false);
+      return false;
     }
 
     if (!options?.skipLagerProcessing) {

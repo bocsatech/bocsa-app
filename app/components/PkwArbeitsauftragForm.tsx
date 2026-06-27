@@ -7,7 +7,10 @@ import "../arbeitsauftrag-form.css";
 import AppPageShell from "./AppPageShell";
 import ArbeitsauftragProtokollSection from "./ArbeitsauftragProtokollSection";
 import PkwArbeitsauftragWorksheetBlock from "./PkwArbeitsauftragWorksheetBlock";
-import { reserveWorkOrderAuftragNr } from "../../lib/auftrag-nr";
+import {
+  ensureUniqueWorkOrderAuftragNrLocal,
+  reserveWorkOrderAuftragNr,
+} from "../../lib/auftrag-nr";
 import {
   collectBemerkungLines,
   issueProtocolStockDelta,
@@ -209,6 +212,28 @@ export default function PkwArbeitsauftragForm({
     setMessage(null);
 
     let normalized = normalizeWorkOrder(orderToSave);
+
+    try {
+      const unique = await ensureUniqueWorkOrderAuftragNrLocal({
+        order: normalized,
+        fahrzeugId,
+        reserveDepot: normalized.depot || fahrzeug.kunde?.firma?.trim() || fahrzeug.kennzeichen || "PKW",
+      });
+      normalized = unique.order;
+      if (unique.reassigned) {
+        setMessage(
+          `Auftrag-Nr. ${unique.previousNr} war bereits vergeben — neue Nr.: ${unique.order.auftragNr}`
+        );
+      }
+    } catch (uniqueError) {
+      setSaveError(
+        uniqueError instanceof Error
+          ? uniqueError.message
+          : "Auftrag-Nr. konnte nicht geprüft werden."
+      );
+      setSaving(false);
+      return false;
+    }
 
     const { data: lagerTeile } = await fetchLagerTeile();
     if (lagerTeile?.length) {
