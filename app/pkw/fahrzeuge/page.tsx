@@ -96,10 +96,20 @@ function PkwFahrzeugePageContent() {
   }, [canRead, load]);
 
   useEffect(() => {
-    if (searchParams.get("aktion") === "hinzufuegen" && canWrite) {
+    if (!authChecked) return;
+
+    const aktion = searchParams.get("aktion");
+    if (aktion === "hinzufuegen") {
+      if (!canWrite) {
+        clearAktion();
+        return;
+      }
       setModalOpen(true);
+      return;
     }
-  }, [searchParams, canWrite]);
+
+    setModalOpen(false);
+  }, [searchParams, authChecked, canWrite]);
 
   function clearAktion() {
     const params = new URLSearchParams(searchParams.toString());
