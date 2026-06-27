@@ -817,9 +817,8 @@ function AdminLocalhostNavGroup({
   const visibleBaugeraetChildren = ADMIN_LOCALHOST_BAUGERAET_NAV.children.filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
-  const visiblePkwChildren = ADMIN_LOCALHOST_PKW_NAV.children.filter((child) =>
-    canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
-  );
+  // Localhost Admin: PKW mindig látható (fejlesztői menü), jogosultság-szűrés nélkül.
+  const visiblePkwChildren = [...ADMIN_LOCALHOST_PKW_NAV.children];
   const sectionActive = isAdminLocalhostSectionActive(activeHref, pathname, aktion);
   const baugeraetParentActive = isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion);
   const pkwParentActive = isAdminLocalhostPkwParentActive(activeHref, pathname, aktion);
@@ -904,33 +903,31 @@ function AdminLocalhostNavGroup({
               </div>
             </Fragment>
           ) : null}
-          {visiblePkwChildren.length > 0 ? (
-            <Fragment>
-              <Link
-                href={ADMIN_LOCALHOST_PKW_NAV.href}
-                className={pkwParentActive ? "active" : undefined}
-                onClick={() => onMobileNavClose?.()}
-              >
-                {ADMIN_LOCALHOST_PKW_NAV.label}
-              </Link>
-              <div className="sidebarNavSubNested">
-                {visiblePkwChildren.map((child) => (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    className={
-                      isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
-                        ? "active"
-                        : undefined
-                    }
-                    onClick={() => onMobileNavClose?.()}
-                  >
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
-            </Fragment>
-          ) : null}
+          <Fragment>
+            <Link
+              href={ADMIN_LOCALHOST_PKW_NAV.href}
+              className={pkwParentActive ? "active" : undefined}
+              onClick={() => onMobileNavClose?.()}
+            >
+              {ADMIN_LOCALHOST_PKW_NAV.label}
+            </Link>
+            <div className="sidebarNavSubNested">
+              {visiblePkwChildren.map((child) => (
+                <Link
+                  key={child.href}
+                  href={child.href}
+                  className={
+                    isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
+                      ? "active"
+                      : undefined
+                  }
+                  onClick={() => onMobileNavClose?.()}
+                >
+                  {child.label}
+                </Link>
+              ))}
+            </div>
+          </Fragment>
         </div>
       ) : null}
     </div>
