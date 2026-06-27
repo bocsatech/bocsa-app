@@ -12,12 +12,6 @@ import {
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
 import { getBauArbeitsauftragMenuLabel, getBaupruefprotokollMenuLabel, isLocalAppEnvironment } from "../../lib/local-host";
-import {
-  buildPkwFahrzeugTabHref,
-  isPkwFahrzeugLocalhostSection,
-  PKW_FAHRZEUG_LOCALHOST_SECTIONS,
-  readPkwFahrzeugTabParam,
-} from "../../lib/pkw-fahrzeug-tabs";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -488,25 +482,14 @@ function isLagerSubActive(child: LagerSubItem, pathname: string) {
   return pathname === child.href || pathname.startsWith(`${child.href}/`);
 }
 
-function isPkwSubActive(
-  child: PkwSubItem,
-  pathname: string,
-  aktion: string | null,
-  pkwTab: string | null
-) {
+function isPkwSubActive(child: PkwSubItem, pathname: string, aktion: string | null) {
   if (child.kind === "aktion") {
     return pathname.startsWith("/pkw/fahrzeuge") && aktion === child.aktion;
   }
   if (child.href === "/pkw/fahrzeuge") {
-    const onFahrzeugRoute =
-      pathname === "/pkw/fahrzeuge" || /^\/pkw\/fahrzeuge\/[^/]+$/.test(pathname);
-    return onFahrzeugRoute && aktion !== "hinzufuegen" && !pkwTab;
+    return pathname.startsWith("/pkw/fahrzeuge") && aktion !== "hinzufuegen";
   }
   return pathname === child.href || pathname.startsWith(`${child.href}/`);
-}
-
-function isPkwFahrzeugSectionActive(section: string, pkwTab: string | null) {
-  return pkwTab === section;
 }
 
 function useSidebarAuth() {
@@ -562,8 +545,7 @@ function sidebarAccordionToggle(accordion: SidebarAccordionState, menuId: Sideba
 function resolveOpenSidebarMenuId(
   activeHref: string | undefined,
   pathname: string,
-  aktion: string | null,
-  pkwTab: string | null
+  aktion: string | null
 ): SidebarMenuId | null {
   if (isAdminLocalhostSectionActive(activeHref, pathname, aktion)) return "admin";
   if (isMeineMenuSectionActive(activeHref, pathname)) return "meine";
@@ -1084,7 +1066,6 @@ function PkwNavGroup({
   activeHref,
   pathname,
   aktion,
-  pkwTab,
   visibleChildren,
   submenuOpen,
   accordion,
@@ -1093,7 +1074,6 @@ function PkwNavGroup({
   activeHref: string | undefined;
   pathname: string;
   aktion: string | null;
-  pkwTab: string | null;
   visibleChildren: PkwSubItem[];
   submenuOpen: boolean;
   accordion?: SidebarAccordionState;
@@ -1103,17 +1083,9 @@ function PkwNavGroup({
   const router = useRouter();
   const sectionActive = isPkwSectionActive(activeHref, pathname);
   const anySubActive = visibleChildren.some((child) =>
-    isPkwSubActive(child, pathname, aktion, pkwTab)
+    isPkwSubActive(child, pathname, aktion)
   );
-  const anyFahrzeugSectionActive =
-    isLocalAppEnvironment() &&
-    isPkwFahrzeugLocalhostSection(pkwTab) &&
-    (pathname === "/pkw/fahrzeuge" || /^\/pkw\/fahrzeuge\/[^/]+$/.test(pathname));
-  const parentActive =
-    !anySubActive &&
-    !anyFahrzeugSectionActive &&
-    pathname === PKW_NAV.href &&
-    !aktion;
+  const parentActive = !anySubActive && pathname === PKW_NAV.href && !aktion;
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -1165,34 +1137,16 @@ function PkwNavGroup({
       {showSub ? (
         <div className="sidebarNavSub">
           {visibleChildren.map((child) => {
-            const isFahrzeugItem = child.kind === "route" && child.href === "/pkw/fahrzeuge";
-            const active = isPkwSubActive(child, pathname, aktion, pkwTab);
+            const active = isPkwSubActive(child, pathname, aktion);
             return (
-              <Fragment key={child.href}>
-                <Link
-                  href={child.href}
-                  className={active ? "active" : undefined}
-                  onClick={() => onMobileNavClose?.()}
-                >
-                  {child.label}
-                </Link>
-                {isFahrzeugItem && isLocalAppEnvironment() ? (
-                  <div className="sidebarNavSubNested">
-                    {PKW_FAHRZEUG_LOCALHOST_SECTIONS.map((section) => (
-                      <Link
-                        key={section}
-                        href={buildPkwFahrzeugTabHref(pathname, section)}
-                        className={
-                          isPkwFahrzeugSectionActive(section, pkwTab) ? "active" : undefined
-                        }
-                        onClick={() => onMobileNavClose?.()}
-                      >
-                        {section}
-                      </Link>
-                    ))}
-                  </div>
-                ) : null}
-              </Fragment>
+              <Link
+                key={child.href}
+                href={child.href}
+                className={active ? "active" : undefined}
+                onClick={() => onMobileNavClose?.()}
+              >
+                {child.label}
+              </Link>
             );
           })}
         </div>
@@ -1211,7 +1165,6 @@ function SidebarNavItems({
   submenuOpen,
   meldungenCount,
   mobileMenuOpen,
-  pkwTab,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -1223,7 +1176,6 @@ function SidebarNavItems({
   submenuOpen: boolean;
   meldungenCount: number;
   mobileMenuOpen: boolean;
-  pkwTab: string | null;
   onMobileNavClose?: () => void;
 }) {
   const { permissions, groups, username } = auth;
@@ -1253,8 +1205,8 @@ function SidebarNavItems({
 
   useEffect(() => {
     if (!localhostAccordion) return;
-    setOpenMenuId(resolveOpenSidebarMenuId(activeHref, pathname, aktion, pkwTab));
-  }, [localhostAccordion, activeHref, pathname, aktion, pkwTab]);
+    setOpenMenuId(resolveOpenSidebarMenuId(activeHref, pathname, aktion));
+  }, [localhostAccordion, activeHref, pathname, aktion]);
 
   return (
     <>
@@ -1301,7 +1253,6 @@ function SidebarNavItems({
         activeHref={activeHref}
         pathname={pathname}
         aktion={aktion}
-        pkwTab={pkwTab}
         visibleChildren={pkwChildren}
         submenuOpen={submenuOpen}
         accordion={accordion}
@@ -1389,7 +1340,6 @@ function SidebarNavWithSearchParams({
   const aktion = searchParams.get("aktion");
   const geraettyp = searchParams.get("geraettyp");
   const geraetenummer = searchParams.get("geraetenummer");
-  const pkwTab = readPkwFahrzeugTabParam(searchParams);
 
   return (
     <SidebarNavItems
@@ -1402,7 +1352,6 @@ function SidebarNavWithSearchParams({
       submenuOpen={false}
       meldungenCount={meldungenCount}
       mobileMenuOpen={mobileMenuOpen}
-      pkwTab={pkwTab}
       onMobileNavClose={onMobileNavClose}
     />
   );
@@ -1434,7 +1383,6 @@ function SidebarNavFallback({
       submenuOpen
       meldungenCount={meldungenCount}
       mobileMenuOpen={mobileMenuOpen}
-      pkwTab={null}
       onMobileNavClose={onMobileNavClose}
     />
   );
