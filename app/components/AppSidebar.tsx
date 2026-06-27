@@ -175,6 +175,7 @@ export const ADMIN_LOCALHOST_NAV = {
       label: "QR-Code scannen",
       aktion: "qr",
     },
+    { href: "/maschinen/geraetgruppen", label: "Gerätegruppen – Protokoll" },
   ],
 } as const;
 
