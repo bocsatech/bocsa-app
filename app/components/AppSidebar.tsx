@@ -183,6 +183,7 @@ export const ADMIN_LOCALHOST_PKW_NAV = {
       aktion: "hinzufuegen",
     },
     { href: "/pkw/gruppen", label: "PKW-Gruppen", permission: "menu.kunden" },
+    { href: "/kunden", label: "Kunden", permission: "menu.kunden" },
   ],
 } as const;
 
@@ -378,6 +379,7 @@ function isAdminLocalhostPkwParentActive(
   if (anyNestedActive) return false;
   if (pathname.startsWith("/pkw/fahrzeuge") && aktion === "hinzufuegen") return false;
   if (pathname === "/pkw/gruppen" || pathname.startsWith("/pkw/gruppen/")) return false;
+  if (pathname === "/kunden" || pathname.startsWith("/kunden/")) return false;
   return (
     activeHref === ADMIN_LOCALHOST_PKW_NAV.href ||
     pathname === ADMIN_LOCALHOST_PKW_NAV.href ||
