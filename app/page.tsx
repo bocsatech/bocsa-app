@@ -2,6 +2,7 @@ import AppPageShell from "./components/AppPageShell";
 import HomeMenuCard from "./components/HomeMenuCard";
 import HomeMenuIcon from "./components/HomeMenuIcons";
 import { HOME_PHOTO_ICON_NAMES } from "../lib/home-menu-icons";
+import { getBauArbeitsauftragMenuLabel } from "../lib/local-host";
 import { maschinenListHref } from "../lib/maschinen-routes";
 
 /** Home-Kacheln — Menünamen aus der Sidebar (Demo-Icons) */
@@ -17,7 +18,11 @@ const homeMenuCards = [
     href: maschinenListHref({ geraettyp: "Elektrogerät" }),
   },
   { label: "Baumaschinen", icon: "grossgeraet", href: maschinenListHref() },
-  { label: "Bauarbeitsauftrag", icon: "arbeitsauftrag", href: "/arbeitsauftrag" },
+  {
+    label: getBauArbeitsauftragMenuLabel(),
+    icon: "arbeitsauftrag",
+    href: "/arbeitsauftrag",
+  },
   { label: "Bauprüfprotokoll", icon: "pruefprotokoll", href: "/pruefprotokoll" },
   { label: "PKW", icon: "pkw", href: "/pkw/fahrzeuge" },
   { label: "PKW-Service", icon: "pkw-service", href: "/pkw-service" },

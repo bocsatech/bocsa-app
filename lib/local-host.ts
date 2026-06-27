@@ -20,6 +20,14 @@ export function isLocalHostEnvironment() {
   return false;
 }
 
+export function isLocalAppEnvironment() {
+  return isLocalDevEnvironment() || isLocalHostEnvironment();
+}
+
+export function getBauArbeitsauftragMenuLabel(isLocalApp = isLocalAppEnvironment()) {
+  return isLocalApp ? "Arbeitsauftrag" : "Bauarbeitsauftrag";
+}
+
 export function resolveLocalhostPickerVariant(
   explicit?: "native" | "calendar"
 ): "native" | "calendar" {

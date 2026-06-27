@@ -11,6 +11,8 @@ import {
 } from "../../lib/arbeitsauftrag-routes";
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
+import { getBauArbeitsauftragMenuLabel } from "../../lib/local-host";
+import { useIsLocalhost } from "../../lib/use-is-localhost";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -167,6 +169,13 @@ type MeineMenuSubItem = (typeof MEINE_MENU_NAV.children)[number];
 type EinstellungenNavItem = (typeof EINSTELLUNGEN_NAV.children)[number];
 type AdminNavItem = EinstellungenNavItem;
 type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number];
+
+function getBaumaschinenChildLabel(child: BauSubItem, isLocalhost: boolean) {
+  if (isLocalhost && child.kind === "route" && child.href === ARBEITSAUFTRAG_LIST_PATH) {
+    return getBauArbeitsauftragMenuLabel(true);
+  }
+  return child.label;
+}
 
 type SidebarAuth = {
   permissions: string[];
@@ -539,6 +548,7 @@ function BaumaschinenNavGroup({
   permissions,
   groups,
   username,
+  isLocalhost,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -550,6 +560,7 @@ function BaumaschinenNavGroup({
   permissions: string[];
   groups: string[];
   username?: string;
+  isLocalhost: boolean;
   onMobileNavClose?: () => void;
 }) {
   const router = useRouter();
@@ -622,7 +633,7 @@ function BaumaschinenNavGroup({
                 className={active ? "active" : undefined}
                 onClick={() => onMobileNavClose?.()}
               >
-                {child.label}
+                {getBaumaschinenChildLabel(child, isLocalhost)}
               </Link>
             );
           })}
@@ -800,6 +811,7 @@ function SidebarNavItems({
   submenuOpen,
   meldungenCount,
   mobileMenuOpen,
+  isLocalhost,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -811,6 +823,7 @@ function SidebarNavItems({
   submenuOpen: boolean;
   meldungenCount: number;
   mobileMenuOpen: boolean;
+  isLocalhost: boolean;
   onMobileNavClose?: () => void;
 }) {
   const { permissions, groups, username } = auth;
@@ -868,6 +881,7 @@ function SidebarNavItems({
           permissions={permissions}
           groups={groups}
           username={username}
+          isLocalhost={isLocalhost}
           onMobileNavClose={onMobileNavClose}
         />
       ) : null}
@@ -933,6 +947,7 @@ function SidebarNavWithSearchParams({
   auth,
   meldungenCount,
   mobileMenuOpen,
+  isLocalhost,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -940,6 +955,7 @@ function SidebarNavWithSearchParams({
   auth: SidebarAuth;
   meldungenCount: number;
   mobileMenuOpen: boolean;
+  isLocalhost: boolean;
   onMobileNavClose?: () => void;
 }) {
   const searchParams = useSearchParams();
@@ -958,6 +974,7 @@ function SidebarNavWithSearchParams({
       submenuOpen={false}
       meldungenCount={meldungenCount}
       mobileMenuOpen={mobileMenuOpen}
+      isLocalhost={isLocalhost}
       onMobileNavClose={onMobileNavClose}
     />
   );
@@ -969,6 +986,7 @@ function SidebarNavFallback({
   auth,
   meldungenCount,
   mobileMenuOpen,
+  isLocalhost,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -976,6 +994,7 @@ function SidebarNavFallback({
   auth: SidebarAuth;
   meldungenCount: number;
   mobileMenuOpen: boolean;
+  isLocalhost: boolean;
   onMobileNavClose?: () => void;
 }) {
   return (
@@ -989,6 +1008,7 @@ function SidebarNavFallback({
       submenuOpen
       meldungenCount={meldungenCount}
       mobileMenuOpen={mobileMenuOpen}
+      isLocalhost={isLocalhost}
       onMobileNavClose={onMobileNavClose}
     />
   );
@@ -1019,6 +1039,7 @@ function useLagerMeldungenCount(canLoad: boolean) {
 
 export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) {
   const pathname = usePathname();
+  const isLocalhost = useIsLocalhost();
   const auth = useSidebarAuth();
   const { permissions, groups, username } = auth;
   const showLager = canShowMenuItem(LAGER_NAV.permission, permissions, groups, username);
@@ -1088,6 +1109,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
               auth={auth}
               meldungenCount={meldungenCount}
               mobileMenuOpen={mobileMenuOpen}
+              isLocalhost={isLocalhost}
               onMobileNavClose={closeMobileMenu}
             />
           }
@@ -1098,6 +1120,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
             auth={auth}
             meldungenCount={meldungenCount}
             mobileMenuOpen={mobileMenuOpen}
+            isLocalhost={isLocalhost}
             onMobileNavClose={closeMobileMenu}
           />
         </Suspense>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { isLocalHostEnvironment } from "./local-host";
+import { isLocalAppEnvironment, isLocalDevEnvironment } from "./local-host";
 
 export function useIsLocalhost() {
   return useSyncExternalStore(
@@ -10,7 +10,7 @@ export function useIsLocalhost() {
       window.addEventListener("popstate", onStoreChange);
       return () => window.removeEventListener("popstate", onStoreChange);
     },
-    isLocalHostEnvironment,
-    () => false
+    isLocalAppEnvironment,
+    isLocalDevEnvironment
   );
 }
