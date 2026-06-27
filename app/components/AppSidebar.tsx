@@ -11,7 +11,12 @@ import {
 } from "../../lib/arbeitsauftrag-routes";
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
-import { getBauArbeitsauftragMenuLabel, getBaupruefprotokollMenuLabel, hasExtendedAppFeatures } from "../../lib/local-host";
+import {
+  getBauArbeitsauftragMenuLabel,
+  getBaupruefprotokollMenuLabel,
+  hasExtendedAppFeatures,
+  isLocalAppEnvironment,
+} from "../../lib/local-host";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -1007,6 +1012,8 @@ function AdminLocalhostNavGroup({
   onMobileNavClose?: () => void;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
+  const router = useRouter();
+  const localhostAdminSubNav = isLocalAppEnvironment();
   const visibleChildren = ADMIN_LOCALHOST_NAV.children.filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
@@ -1060,15 +1067,20 @@ function AdminLocalhostNavGroup({
 
   useEffect(() => {
     if (!accordionOn) return;
-    setOpenAdminSubId(
-      resolveOpenAdminSubMenuId(
-        activeHref,
-        pathname,
-        aktion,
-        accordion?.maschinenMenuOwner,
-        accordion?.pkwMenuOwner
-      )
+    const resolved = resolveOpenAdminSubMenuId(
+      activeHref,
+      pathname,
+      aktion,
+      accordion?.maschinenMenuOwner,
+      accordion?.pkwMenuOwner
     );
+    if (localhostAdminSubNav) {
+      if (resolved !== null) {
+        setOpenAdminSubId(resolved);
+      }
+      return;
+    }
+    setOpenAdminSubId(resolved);
   }, [
     accordionOn,
     activeHref,
@@ -1076,6 +1088,7 @@ function AdminLocalhostNavGroup({
     aktion,
     accordion?.maschinenMenuOwner,
     accordion?.pkwMenuOwner,
+    localhostAdminSubNav,
   ]);
 
   function handleParentClick() {
@@ -1111,6 +1124,27 @@ function AdminLocalhostNavGroup({
             accordion?.pkwMenuOwner
           );
     if (openAdminSubId === subMenuId && keepsOpen) return;
+
+    if (localhostAdminSubNav) {
+      if (subMenuId === "baugeraet") {
+        accordion?.setPkwMenuOwner("pkw");
+        accordion?.setMaschinenMenuOwner("admin");
+        setOpenAdminSubId("baugeraet");
+        if (pathname !== MASCHINEN_LIST_PATH || aktion) {
+          router.push(ADMIN_LOCALHOST_BAUGERAET_NAV.href);
+        }
+      } else {
+        accordion?.setMaschinenMenuOwner("baumaschinen");
+        accordion?.setPkwMenuOwner("admin");
+        setOpenAdminSubId("pkw");
+        if (pathname !== PKW_NAV.href || aktion) {
+          router.push(ADMIN_LOCALHOST_PKW_NAV.href);
+        }
+      }
+      onMobileNavClose?.();
+      return;
+    }
+
     if (subMenuId === "baugeraet") {
       accordion?.setMaschinenMenuOwner("admin");
     }
