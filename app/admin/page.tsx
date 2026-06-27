@@ -23,7 +23,7 @@ export default function AdminPage() {
     <AppPageShell activeHref="/admin" subtitle="Admin" title="Admin">
       <div className="welcomeCard">
         <h1>Admin</h1>
-        <p className="subtitle">Verwaltung und Entwickler-Tools — nur localhost.</p>
+        <p className="subtitle">Baumaschinen-Verwaltung — nur localhost.</p>
         <div className="detailTopActions" style={{ marginTop: 16 }}>
           {links.map((item) => (
             <Link key={item.href} className="pillButton outline" href={item.href}>
