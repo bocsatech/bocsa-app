@@ -174,20 +174,7 @@ export const ADMIN_LOCALHOST_BAUGERAET_NAV = {
 
 export const ADMIN_LOCALHOST_PKW_NAV = {
   label: "PKW",
-  href: PKW_NAV.href,
-  children: [
-    { href: "/pkw/fahrzeuge", label: "Fahrzeug", permission: "menu.kunden" },
-    { href: "/pkw/arbeitsauftrag", label: "Arbeitsauftrag", permission: "menu.kunden" },
-    {
-      href: "/pkw/fahrzeuge?aktion=hinzufuegen",
-      label: "Fahrzeug hinzufügen",
-      permission: "menu.kunden",
-      aktion: "hinzufuegen",
-    },
-    { href: "/kunden", label: "Kunden", permission: "menu.kunden" },
-    { href: "/pkw/gruppen", label: "PKW-Gruppen", permission: "menu.kunden" },
-    { href: "/pkw-service", label: "PKW-Service", permission: "menu.pkw_service" },
-  ],
+  children: [],
 } as const;
 
 export const ADMIN_LOCALHOST_NAV = {
@@ -216,8 +203,6 @@ const ALL_MENU_HREFS = [
   ...ADMIN_LOCALHOST_NAV.children.map((item) => item.href),
   ADMIN_LOCALHOST_BAUGERAET_NAV.href,
   ...ADMIN_LOCALHOST_BAUGERAET_NAV.children.map((item) => item.href),
-  ADMIN_LOCALHOST_PKW_NAV.href,
-  ...ADMIN_LOCALHOST_PKW_NAV.children.map((item) => item.href),
 ] as const;
 
 type NavItem = (typeof APP_NAV_ITEMS)[number];
@@ -225,7 +210,6 @@ type MeineMenuSubItem = (typeof MEINE_MENU_NAV.children)[number];
 type EinstellungenNavItem = (typeof EINSTELLUNGEN_NAV.children)[number];
 type AdminLocalhostNavItem = (typeof ADMIN_LOCALHOST_NAV.children)[number];
 type AdminLocalhostBaugeraetNavItem = (typeof ADMIN_LOCALHOST_BAUGERAET_NAV.children)[number];
-type AdminLocalhostPkwNavItem = (typeof ADMIN_LOCALHOST_PKW_NAV.children)[number];
 type AdminNavItem = EinstellungenNavItem;
 type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number] | MaschinenSubRoute;
 
@@ -352,39 +336,7 @@ function isAdminLocalhostSectionActive(
     isAdminLocalhostChildActive(child, activeHref, pathname, aktion)
   ) || ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
     isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
-  ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion)
-  || ADMIN_LOCALHOST_PKW_NAV.children.some((child) =>
-    isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
-  ) || isAdminLocalhostPkwParentActive(activeHref, pathname, aktion);
-}
-
-function isAdminLocalhostPkwChildActive(
-  child: AdminLocalhostPkwNavItem,
-  activeHref: string | undefined,
-  pathname: string,
-  aktion: string | null
-) {
-  if ("aktion" in child && child.aktion) {
-    return pathname.startsWith("/pkw/fahrzeuge") && aktion === child.aktion;
-  }
-  return isNavActive(child, activeHref, pathname);
-}
-
-function isAdminLocalhostPkwParentActive(
-  activeHref: string | undefined,
-  pathname: string,
-  aktion: string | null
-) {
-  const anyNestedActive = ADMIN_LOCALHOST_PKW_NAV.children.some((child) =>
-    isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
-  );
-  if (anyNestedActive) return false;
-  if (pathname.startsWith("/pkw/fahrzeuge") && aktion) return false;
-  return (
-    activeHref === PKW_NAV.href ||
-    pathname === PKW_NAV.href ||
-    pathname.startsWith("/pkw/fahrzeuge/")
-  );
+  ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion);
 }
 
 function isAdminLocalhostBaugeraetChildActive(
@@ -817,11 +769,8 @@ function AdminLocalhostNavGroup({
   const visibleBaugeraetChildren = ADMIN_LOCALHOST_BAUGERAET_NAV.children.filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
-  // Localhost Admin: PKW mindig látható (fejlesztői menü), jogosultság-szűrés nélkül.
-  const visiblePkwChildren = [...ADMIN_LOCALHOST_PKW_NAV.children];
   const sectionActive = isAdminLocalhostSectionActive(activeHref, pathname, aktion);
   const baugeraetParentActive = isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion);
-  const pkwParentActive = isAdminLocalhostPkwParentActive(activeHref, pathname, aktion);
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -846,7 +795,7 @@ function AdminLocalhostNavGroup({
     setOpen(true);
   }
 
-  if (visibleChildren.length === 0 && visibleBaugeraetChildren.length === 0 && visiblePkwChildren.length === 0) {
+  if (visibleChildren.length === 0 && visibleBaugeraetChildren.length === 0) {
     return null;
   }
 
@@ -903,31 +852,7 @@ function AdminLocalhostNavGroup({
               </div>
             </Fragment>
           ) : null}
-          <Fragment>
-            <Link
-              href={ADMIN_LOCALHOST_PKW_NAV.href}
-              className={pkwParentActive ? "active" : undefined}
-              onClick={() => onMobileNavClose?.()}
-            >
-              {ADMIN_LOCALHOST_PKW_NAV.label}
-            </Link>
-            <div className="sidebarNavSubNested">
-              {visiblePkwChildren.map((child) => (
-                <Link
-                  key={child.href}
-                  href={child.href}
-                  className={
-                    isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
-                      ? "active"
-                      : undefined
-                  }
-                  onClick={() => onMobileNavClose?.()}
-                >
-                  {child.label}
-                </Link>
-              ))}
-            </div>
-          </Fragment>
+          <span className="sidebarNavSubLabel">{ADMIN_LOCALHOST_PKW_NAV.label}</span>
         </div>
       ) : null}
     </div>
