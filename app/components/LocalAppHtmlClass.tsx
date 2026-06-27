@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { isLocalAppEnvironment } from "../../lib/local-host";
+import { hasExtendedAppFeatures } from "../../lib/local-host";
 
-/** Setzt `local-app` auf `<html>` — nur localhost/dev (CSS-Gates). */
+/** Setzt `local-app` auf `<html>` — extended UI (CSS-Gates). */
 export default function LocalAppHtmlClass() {
   useEffect(() => {
-    if (!isLocalAppEnvironment()) return;
+    if (!hasExtendedAppFeatures()) return;
     document.documentElement.classList.add("local-app");
     return () => {
       document.documentElement.classList.remove("local-app");

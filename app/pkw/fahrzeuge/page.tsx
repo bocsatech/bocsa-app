@@ -15,7 +15,7 @@ import {
 } from "../../../lib/pkw";
 import { hasPkwKundenRead, hasPkwKundenWrite, hasPkwServiceRead } from "../../../lib/pkw-permissions";
 import type { Kunde, PkwBuchung, PkwFahrzeug } from "../../../lib/types/pkw";
-import { isLocalAppEnvironment } from "../../../lib/local-host";
+import { hasExtendedAppFeatures } from "../../../lib/local-host";
 import { isPkwFahrzeugLocalhostSection, readPkwFahrzeugTabParam } from "../../../lib/pkw-fahrzeug-tabs";
 
 type FahrzeugFilters = {
@@ -48,7 +48,7 @@ function PkwFahrzeugePageContent() {
   const [canReadService, setCanReadService] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const isLocalhost = isLocalAppEnvironment();
+  const isLocalhost = hasExtendedAppFeatures();
   const urlTab = isLocalhost ? readPkwFahrzeugTabParam(searchParams) : null;
   const localhostSection = isPkwFahrzeugLocalhostSection(urlTab) ? urlTab : null;
 

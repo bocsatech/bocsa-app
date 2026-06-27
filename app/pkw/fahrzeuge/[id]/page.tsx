@@ -34,7 +34,7 @@ import { getPkwWorkOrders } from "../../../../lib/pkw-work-orders";
 import type { Kunde, PkwBuchung, PkwFahrzeug, PkwReifenSatz } from "../../../../lib/types/pkw";
 import { hasPkwKundenRead, hasPkwKundenWrite } from "../../../../lib/pkw-permissions";
 import type { MaintenanceLagerLink } from "../../../../lib/types/maintenance";
-import { isLocalAppEnvironment } from "../../../../lib/local-host";
+import { hasExtendedAppFeatures } from "../../../../lib/local-host";
 import {
   buildPkwFahrzeugTabHref,
   isPkwFahrzeugLocalhostSection,
@@ -75,7 +75,7 @@ function PkwFahrzeugDetailPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fahrzeugId = params.id as string;
-  const isLocalhost = isLocalAppEnvironment();
+  const isLocalhost = hasExtendedAppFeatures();
   const urlTab = isLocalhost ? readPkwFahrzeugTabParam(searchParams) : null;
   const localhostSection = isPkwFahrzeugLocalhostSection(urlTab) ? urlTab : null;
   const tabs = isLocalhost ? LOCALHOST_BASE_TABS : BASE_TABS;

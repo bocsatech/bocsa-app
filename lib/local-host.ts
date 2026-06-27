@@ -20,19 +20,24 @@ export function isLocalHostEnvironment() {
   return false;
 }
 
+/** Localhost-first UI (sidebar, Admin, PKW tabs) — also enabled on production. */
+export function hasExtendedAppFeatures() {
+  return true;
+}
+
 export function isLocalAppEnvironment() {
   return isLocalDevEnvironment() || isLocalHostEnvironment();
 }
 
 export function getBauArbeitsauftragMenuLabel(): string {
-  if (isLocalDevEnvironment() || isLocalHostEnvironment()) {
+  if (hasExtendedAppFeatures()) {
     return "Arbeitsauftrag";
   }
   return "Bauarbeitsauftrag";
 }
 
 export function getBaupruefprotokollMenuLabel(): string {
-  if (isLocalDevEnvironment() || isLocalHostEnvironment()) {
+  if (hasExtendedAppFeatures()) {
     return "Prüfprotokol";
   }
   return "Bauprüfprotokoll";

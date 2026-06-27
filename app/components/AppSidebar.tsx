@@ -11,7 +11,7 @@ import {
 } from "../../lib/arbeitsauftrag-routes";
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
-import { getBauArbeitsauftragMenuLabel, getBaupruefprotokollMenuLabel, isLocalAppEnvironment } from "../../lib/local-host";
+import { getBauArbeitsauftragMenuLabel, getBaupruefprotokollMenuLabel, hasExtendedAppFeatures } from "../../lib/local-host";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -247,11 +247,11 @@ const BAUMASCHINEN_ADMIN_AKTIONS = new Set(["hinzufuegen", "geraetenummer-codes"
 const PKW_ADMIN_LOCALHOST_AKTIONS = new Set(["hinzufuegen"]);
 
 function getBaumaschinenMenuChildren(): BauSubItem[] {
-  const children: BauSubItem[] = isLocalAppEnvironment()
+  const children: BauSubItem[] = hasExtendedAppFeatures()
     ? [BAUGERAETE_NAV_ITEM, ...BAUMASCHINEN_NAV.children]
     : [...BAUMASCHINEN_NAV.children];
 
-  if (!isLocalAppEnvironment()) {
+  if (!hasExtendedAppFeatures()) {
     return children;
   }
 
@@ -429,7 +429,7 @@ function isAdminLocalhostBaugeraetSectionActive(
   }
 
   return (
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     maschinenMenuOwner === "admin" &&
     pathname === MASCHINEN_LIST_PATH &&
     !aktion
@@ -451,7 +451,7 @@ function isAdminLocalhostPkwSectionActive(
   }
 
   return (
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     pkwMenuOwner === "admin" &&
     pathname === PKW_NAV.href &&
     !aktion
@@ -478,9 +478,9 @@ function isBaumaschinenSectionActive(
   aktion: string | null,
   maschinenMenuOwner: LocalhostMaschinenMenuOwner = "baumaschinen"
 ) {
-  const includeGeraetgruppen = !isLocalAppEnvironment();
+  const includeGeraetgruppen = !hasExtendedAppFeatures();
   if (
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     pathname.startsWith("/maschinen") &&
     aktion &&
     BAUMASCHINEN_ADMIN_AKTIONS.has(aktion)
@@ -488,7 +488,7 @@ function isBaumaschinenSectionActive(
     return false;
   }
   if (
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     maschinenMenuOwner === "admin" &&
     pathname === MASCHINEN_LIST_PATH &&
     !aktion
@@ -499,7 +499,7 @@ function isBaumaschinenSectionActive(
     activeHref === BAUMASCHINEN_NAV.href ||
     pathname === BAUMASCHINEN_NAV.href ||
     (pathname.startsWith("/maschinen/") &&
-      (!isLocalAppEnvironment() ||
+      (!hasExtendedAppFeatures() ||
         (pathname !== "/maschinen/geraetgruppen" &&
           !pathname.startsWith("/maschinen/geraetgruppen/")))) ||
     (includeGeraetgruppen && pathname === "/maschinen/geraetgruppen") ||
@@ -556,17 +556,17 @@ function isPkwSectionActive(
   aktion: string | null,
   pkwMenuOwner: LocalhostPkwMenuOwner = "pkw"
 ) {
-  const includeKunden = !isLocalAppEnvironment();
-  const includeGruppen = !isLocalAppEnvironment();
+  const includeKunden = !hasExtendedAppFeatures();
+  const includeGruppen = !hasExtendedAppFeatures();
   if (
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     pathname.startsWith("/pkw/fahrzeuge") &&
     aktion === "hinzufuegen"
   ) {
     return false;
   }
   if (
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     pkwMenuOwner === "admin" &&
     pathname === PKW_NAV.href &&
     !aktion
@@ -615,7 +615,7 @@ type PkwSubItem = PkwSubAktion | PkwSubRoute;
 function getPkwMenuChildren(): PkwSubItem[] {
   const children: PkwSubItem[] = [...PKW_NAV.children];
 
-  if (!isLocalAppEnvironment()) {
+  if (!hasExtendedAppFeatures()) {
     return children;
   }
 
@@ -725,7 +725,7 @@ function sidebarMenuIsExpanded(
   submenuOpen: boolean,
   accordion?: SidebarAccordionState
 ) {
-  if (accordion && isLocalAppEnvironment()) {
+  if (accordion && hasExtendedAppFeatures()) {
     return accordion.openMenuId === menuId;
   }
   return submenuOpen || localOpen;
@@ -744,13 +744,13 @@ function resolveOpenSidebarMenuId(
 ): SidebarMenuId | null {
   if (isMeineMenuSectionActive(activeHref, pathname)) return "meine";
   if (
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     pathname === MASCHINEN_LIST_PATH &&
     !aktion
   ) {
     return maschinenMenuOwner === "admin" ? "admin" : "baumaschinen";
   }
-  if (isLocalAppEnvironment() && pathname === PKW_NAV.href && !aktion) {
+  if (hasExtendedAppFeatures() && pathname === PKW_NAV.href && !aktion) {
     return pkwMenuOwner === "admin" ? "admin" : "pkw";
   }
   if (isBaumaschinenSectionActive(activeHref, pathname, aktion, maschinenMenuOwner)) {
@@ -792,7 +792,7 @@ function RechnungenLocalhostNavGroup({
 }: {
   accordion?: SidebarAccordionState;
 }) {
-  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
+  const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const [open, setOpen] = useState(false);
 
   function handleParentClick() {
@@ -839,7 +839,7 @@ function MeineMenuNavGroup({
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
-  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
+  const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const visibleChildren = MEINE_MENU_NAV.children.filter((child) =>
     canShowMenuItem(
       "permission" in child ? child.permission : undefined,
@@ -924,7 +924,7 @@ function EinstellungenNavGroup({
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
-  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
+  const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const visibleChildren = EINSTELLUNGEN_NAV.children.filter((child) =>
     canShowMenuItem(child.permission, permissions, groups, username)
   );
@@ -1006,7 +1006,7 @@ function AdminLocalhostNavGroup({
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
-  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
+  const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const visibleChildren = ADMIN_LOCALHOST_NAV.children.filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
@@ -1260,7 +1260,7 @@ function BaumaschinenNavGroup({
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
-  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
+  const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const router = useRouter();
   const menuChildren = getBaumaschinenMenuChildren();
   const sectionActive = isBaumaschinenSectionActive(
@@ -1379,7 +1379,7 @@ function LagerNavGroup({
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
-  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
+  const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const router = useRouter();
   const sectionActive = isLagerSectionActive(activeHref, pathname);
   const anySubActive = LAGER_NAV.children.some((child) => isLagerSubActive(child, pathname));
@@ -1475,7 +1475,7 @@ function PkwNavGroup({
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
 }) {
-  const accordionOn = Boolean(accordion && isLocalAppEnvironment());
+  const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const router = useRouter();
   const sectionActive = isPkwSectionActive(
     activeHref,
@@ -1598,7 +1598,7 @@ function SidebarNavItems({
     canShowMenuItem(child.permission, permissions, groups, username)
   );
   const showKundenLocalhost =
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     canShowMenuItem(KUNDEN_LOCALHOST_NAV.permission, permissions, groups, username);
   const showLager = canShowMenuItem(LAGER_NAV.permission, permissions, groups, username);
   const navItems = APP_NAV_ITEMS.filter((item) =>
@@ -1607,7 +1607,7 @@ function SidebarNavItems({
   const navItemsBeforeQr = navItems.filter((item) => item.href !== "/qr-code");
   const showQrCodeNav = navItems.some((item) => item.href === "/qr-code");
   const qrCodeNavItem = navItems.find((item) => item.href === "/qr-code");
-  const localhostAccordion = isLocalAppEnvironment();
+  const localhostAccordion = hasExtendedAppFeatures();
   const [openMenuId, setOpenMenuId] = useState<SidebarMenuId | null>(null);
   const [maschinenMenuOwner, setMaschinenMenuOwner] =
     useState<LocalhostMaschinenMenuOwner>("baumaschinen");
@@ -1664,19 +1664,6 @@ function SidebarNavItems({
         </Link>
       ) : null}
 
-      {!isLocalAppEnvironment() ? (
-        <MeineMenuNavGroup
-          activeHref={activeHref}
-          pathname={pathname}
-          submenuOpen={submenuOpen}
-          permissions={permissions}
-          groups={groups}
-          username={username}
-          accordion={accordion}
-          onMobileNavClose={onMobileNavClose}
-        />
-      ) : null}
-
       {showBaumaschinen ? (
         <BaumaschinenNavGroup
           activeHref={activeHref}
@@ -1715,7 +1702,7 @@ function SidebarNavItems({
         </Link>
       ) : null}
 
-      {isLocalAppEnvironment() ? (
+      {hasExtendedAppFeatures() ? (
         <RechnungenLocalhostNavGroup accordion={accordion} />
       ) : null}
 
@@ -1753,7 +1740,7 @@ function SidebarNavItems({
         </Link>
       ) : null}
 
-      {isLocalAppEnvironment() ? (
+      {hasExtendedAppFeatures() ? (
         <MeineMenuNavGroup
           activeHref={activeHref}
           pathname={pathname}
@@ -1777,7 +1764,7 @@ function SidebarNavItems({
         onMobileNavClose={onMobileNavClose}
       />
 
-      {isLocalAppEnvironment() ? (
+      {hasExtendedAppFeatures() ? (
         <AdminLocalhostNavGroup
           activeHref={activeHref}
           pathname={pathname}
