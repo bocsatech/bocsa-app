@@ -11,6 +11,7 @@ import {
 } from "../../lib/arbeitsauftrag-routes";
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
+import { useIsLocalhost } from "../../lib/use-is-localhost";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -77,6 +78,28 @@ export const BAUMASCHINEN_NAV = {
     },
   ] as const satisfies readonly MaschinenSubItem[],
 };
+
+const BAUMASCHINEN_NAV_LOCALHOST = {
+  href: MASCHINEN_LIST_PATH,
+  label: "Baumaschinen",
+  permission: "menu.machines",
+  children: [
+    {
+      kind: "route",
+      href: MASCHINEN_LIST_PATH,
+      label: "Baugerät",
+    },
+    {
+      kind: "route",
+      href: "/pruefprotokoll",
+      label: "Prüfprotokol",
+    },
+  ] as const satisfies readonly MaschinenSubItem[],
+};
+
+function getBaumaschinenNavConfig(isLocalhost: boolean) {
+  return isLocalhost ? BAUMASCHINEN_NAV_LOCALHOST : BAUMASCHINEN_NAV;
+}
 
 /** @deprecated Alias — Baumaschinen */
 export const MASCHINEN_NAV = BAUMASCHINEN_NAV;
@@ -251,8 +274,17 @@ function isBaumaschinenSubActive(
   child: BauSubItem,
   activeHref: string | undefined,
   pathname: string,
-  aktion: string | null
+  aktion: string | null,
+  isLocalhost = false
 ) {
+  if (isLocalhost && child.kind === "route" && child.href === MASCHINEN_LIST_PATH) {
+    if (pathname.startsWith("/pruefprotokoll")) return false;
+    return (
+      pathname === MASCHINEN_LIST_PATH ||
+      (pathname.startsWith("/maschinen/") && pathname !== "/maschinen/geraetgruppen") ||
+      (pathname.startsWith("/maschinen") && !aktion)
+    );
+  }
   if (child.kind === "aktion") {
     return pathname.startsWith("/maschinen") && aktion === child.aktion;
   }
@@ -539,6 +571,7 @@ function BaumaschinenNavGroup({
   permissions,
   groups,
   username,
+  isLocalhost,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -550,22 +583,24 @@ function BaumaschinenNavGroup({
   permissions: string[];
   groups: string[];
   username?: string;
+  isLocalhost: boolean;
   onMobileNavClose?: () => void;
 }) {
   const router = useRouter();
+  const navConfig = getBaumaschinenNavConfig(isLocalhost);
   const sectionActive = isBaumaschinenSectionActive(activeHref, pathname);
   const onListRoot = isBaumaschinenListRoot(pathname, aktion, geraettyp, geraetenummer);
-  const visibleChildren = BAUMASCHINEN_NAV.children.filter((child) => {
+  const visibleChildren = navConfig.children.filter((child) => {
     const childPermission =
-      "permission" in child && child.permission ? child.permission : BAUMASCHINEN_NAV.permission;
+      "permission" in child && child.permission ? child.permission : navConfig.permission;
     return canShowMenuItem(childPermission, permissions, groups, username);
   });
   const anySubActive = visibleChildren.some((child) =>
-    isBaumaschinenSubActive(child, activeHref, pathname, aktion)
+    isBaumaschinenSubActive(child, activeHref, pathname, aktion, isLocalhost)
   );
   const parentActive =
     !anySubActive &&
-    (activeHref === BAUMASCHINEN_NAV.href ||
+    (activeHref === navConfig.href ||
       onListRoot ||
       (pathname.startsWith("/maschinen/") && pathname !== "/maschinen/geraetgruppen") ||
       isArbeitsauftragDetailPath(pathname));
@@ -586,8 +621,8 @@ function BaumaschinenNavGroup({
     event.preventDefault();
     setOpen(true);
     if (mobile) return;
-    if (!onListRoot) {
-      router.push(BAUMASCHINEN_NAV.href);
+    if (isLocalhost || !onListRoot) {
+      router.push(navConfig.href);
     }
     onMobileNavClose?.();
   }
@@ -597,24 +632,30 @@ function BaumaschinenNavGroup({
   return (
     <div className="sidebarNavGroup">
       <Link
-        href={BAUMASCHINEN_NAV.href}
+        href={navConfig.href}
         className={`sidebarNavParent${parentActive ? " active" : ""}`}
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        {BAUMASCHINEN_NAV.label}
+        {navConfig.label}
       </Link>
       {showSub ? (
         <div className="sidebarNavSub">
-          {BAUMASCHINEN_NAV.children.map((child) => {
+          {navConfig.children.map((child) => {
             const childPermission =
               "permission" in child && child.permission
                 ? child.permission
-                : BAUMASCHINEN_NAV.permission;
+                : navConfig.permission;
             if (!canShowMenuItem(childPermission, permissions, groups, username)) {
               return null;
             }
-            const active = isBaumaschinenSubActive(child, activeHref, pathname, aktion);
+            const active = isBaumaschinenSubActive(
+              child,
+              activeHref,
+              pathname,
+              aktion,
+              isLocalhost
+            );
             return (
               <Link
                 key={child.href}
@@ -800,6 +841,7 @@ function SidebarNavItems({
   submenuOpen,
   meldungenCount,
   mobileMenuOpen,
+  isLocalhost,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -811,6 +853,7 @@ function SidebarNavItems({
   submenuOpen: boolean;
   meldungenCount: number;
   mobileMenuOpen: boolean;
+  isLocalhost: boolean;
   onMobileNavClose?: () => void;
 }) {
   const { permissions, groups, username } = auth;
@@ -868,6 +911,7 @@ function SidebarNavItems({
           permissions={permissions}
           groups={groups}
           username={username}
+          isLocalhost={isLocalhost}
           onMobileNavClose={onMobileNavClose}
         />
       ) : null}
@@ -933,6 +977,7 @@ function SidebarNavWithSearchParams({
   auth,
   meldungenCount,
   mobileMenuOpen,
+  isLocalhost,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -940,6 +985,7 @@ function SidebarNavWithSearchParams({
   auth: SidebarAuth;
   meldungenCount: number;
   mobileMenuOpen: boolean;
+  isLocalhost: boolean;
   onMobileNavClose?: () => void;
 }) {
   const searchParams = useSearchParams();
@@ -958,6 +1004,7 @@ function SidebarNavWithSearchParams({
       submenuOpen={false}
       meldungenCount={meldungenCount}
       mobileMenuOpen={mobileMenuOpen}
+      isLocalhost={isLocalhost}
       onMobileNavClose={onMobileNavClose}
     />
   );
@@ -969,6 +1016,7 @@ function SidebarNavFallback({
   auth,
   meldungenCount,
   mobileMenuOpen,
+  isLocalhost,
   onMobileNavClose,
 }: {
   activeHref: string | undefined;
@@ -976,6 +1024,7 @@ function SidebarNavFallback({
   auth: SidebarAuth;
   meldungenCount: number;
   mobileMenuOpen: boolean;
+  isLocalhost: boolean;
   onMobileNavClose?: () => void;
 }) {
   return (
@@ -1019,6 +1068,7 @@ function useLagerMeldungenCount(canLoad: boolean) {
 
 export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) {
   const pathname = usePathname();
+  const isLocalhost = useIsLocalhost();
   const auth = useSidebarAuth();
   const { permissions, groups, username } = auth;
   const showLager = canShowMenuItem(LAGER_NAV.permission, permissions, groups, username);
@@ -1088,6 +1138,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
               auth={auth}
               meldungenCount={meldungenCount}
               mobileMenuOpen={mobileMenuOpen}
+              isLocalhost={isLocalhost}
               onMobileNavClose={closeMobileMenu}
             />
           }
@@ -1098,6 +1149,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
             auth={auth}
             meldungenCount={meldungenCount}
             mobileMenuOpen={mobileMenuOpen}
+            isLocalhost={isLocalhost}
             onMobileNavClose={closeMobileMenu}
           />
         </Suspense>
