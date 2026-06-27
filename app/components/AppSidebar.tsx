@@ -1465,16 +1465,18 @@ function SidebarNavItems({
         </Link>
       ) : null}
 
-      <MeineMenuNavGroup
-        activeHref={activeHref}
-        pathname={pathname}
-        submenuOpen={submenuOpen}
-        permissions={permissions}
-        groups={groups}
-        username={username}
-        accordion={accordion}
-        onMobileNavClose={onMobileNavClose}
-      />
+      {!isLocalAppEnvironment() ? (
+        <MeineMenuNavGroup
+          activeHref={activeHref}
+          pathname={pathname}
+          submenuOpen={submenuOpen}
+          permissions={permissions}
+          groups={groups}
+          username={username}
+          accordion={accordion}
+          onMobileNavClose={onMobileNavClose}
+        />
+      ) : null}
 
       {showBaumaschinen ? (
         <BaumaschinenNavGroup
@@ -1550,6 +1552,19 @@ function SidebarNavItems({
         >
           {qrCodeNavItem.label}
         </Link>
+      ) : null}
+
+      {isLocalAppEnvironment() ? (
+        <MeineMenuNavGroup
+          activeHref={activeHref}
+          pathname={pathname}
+          submenuOpen={submenuOpen}
+          permissions={permissions}
+          groups={groups}
+          username={username}
+          accordion={accordion}
+          onMobileNavClose={onMobileNavClose}
+        />
       ) : null}
 
       <EinstellungenNavGroup
