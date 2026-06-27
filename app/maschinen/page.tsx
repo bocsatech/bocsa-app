@@ -12,12 +12,11 @@ import MachineKpiRow from "../components/MachineKpiRow";
 import MachineList from "../components/MachineList";
 import QrScannerModal from "../components/QrScannerModal";
 import "./maschinen-kpi.css";
+import { isLocalAppEnvironment } from "../../lib/local-host";
 import {
-  fetchMachines,
-  GERAETTYP_OPTIONS,
-  resolveMachineFromScan,
-  searchMachines,
-} from "../../lib/machines";
+  MASCHINEN_HINZUFUEGEN_PATH,
+  MASCHINEN_LIST_PATH,
+} from "../../lib/maschinen-routes";
 import { supabase } from "../../lib/supabase";
 import {
   canMachineCreate,
@@ -119,6 +118,10 @@ function MaschinenPageContent() {
     if (!authLoaded) return;
 
     const aktion = searchParams.get("aktion");
+    if (aktion === "hinzufuegen" && isLocalAppEnvironment()) {
+      router.replace(MASCHINEN_HINZUFUEGEN_PATH);
+      return;
+    }
     if (aktion === "hinzufuegen") {
       if (!canCreateMachine) {
         clearMaschinenAktion();

@@ -1,4 +1,5 @@
 export const MASCHINEN_LIST_PATH = "/maschinen";
+export const MASCHINEN_HINZUFUEGEN_PATH = "/maschinen/hinzufuegen";
 
 export function maschinenListHref(params?: {
   geraettyp?: string;

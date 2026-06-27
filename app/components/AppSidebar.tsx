@@ -10,7 +10,7 @@ import {
   isArbeitsauftragDetailPath,
 } from "../../lib/arbeitsauftrag-routes";
 import { MACHINE_PERM } from "../../lib/machine-permissions";
-import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
+import { MASCHINEN_HINZUFUEGEN_PATH, MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
 import {
   getBauArbeitsauftragMenuLabel,
   getBaupruefprotokollMenuLabel,
@@ -228,6 +228,7 @@ const ALL_MENU_HREFS = [
   ...ADMIN_LOCALHOST_NAV.children.map((item) => item.href),
   ADMIN_LOCALHOST_BAUGERAET_NAV.href,
   ...ADMIN_LOCALHOST_BAUGERAET_NAV.children.map((item) => item.href),
+  MASCHINEN_HINZUFUEGEN_PATH,
   ADMIN_LOCALHOST_PKW_NAV.href,
   ...ADMIN_LOCALHOST_PKW_NAV.children.map((item) => item.href),
 ] as const;
@@ -250,6 +251,23 @@ const BAUGERAETE_NAV_ITEM = {
 
 const BAUMASCHINEN_ADMIN_AKTIONS = new Set(["hinzufuegen", "geraetenummer-codes", "qr"]);
 const PKW_ADMIN_LOCALHOST_AKTIONS = new Set(["hinzufuegen"]);
+
+function getAdminLocalhostBaugeraetNavItems(): readonly AdminLocalhostBaugeraetNavItem[] {
+  if (!isLocalAppEnvironment()) {
+    return ADMIN_LOCALHOST_BAUGERAET_NAV.children;
+  }
+
+  return ADMIN_LOCALHOST_BAUGERAET_NAV.children.map((child) => {
+    if ("aktion" in child && child.aktion === "hinzufuegen") {
+      return {
+        href: MASCHINEN_HINZUFUEGEN_PATH,
+        label: child.label,
+        permission: child.permission,
+      };
+    }
+    return child;
+  });
+}
 
 function getBaumaschinenMenuChildren(): BauSubItem[] {
   const children: BauSubItem[] = hasExtendedAppFeatures()
@@ -426,7 +444,7 @@ function isAdminLocalhostBaugeraetSectionActive(
   maschinenMenuOwner: LocalhostMaschinenMenuOwner = "baumaschinen"
 ) {
   if (
-    ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
+    getAdminLocalhostBaugeraetNavItems().some((child) =>
       isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
     )
   ) {
@@ -495,8 +513,7 @@ function isBaumaschinenSectionActive(
   if (
     hasExtendedAppFeatures() &&
     maschinenMenuOwner === "admin" &&
-    pathname === MASCHINEN_LIST_PATH &&
-    !aktion
+    pathname.startsWith("/maschinen")
   ) {
     return false;
   }
@@ -528,6 +545,7 @@ function isBaumaschinenSubActive(
     isLocalAppEnvironment() &&
     maschinenMenuOwner === "admin" &&
     ((child.kind === "route" && child.href === MASCHINEN_LIST_PATH) ||
+      (child.kind === "route" && child.href === MASCHINEN_HINZUFUEGEN_PATH) ||
       (child.kind === "aktion" && BAUMASCHINEN_ADMIN_AKTIONS.has(child.aktion)))
   ) {
     return false;
@@ -1086,7 +1104,7 @@ function AdminLocalhostNavGroup({
   const visibleChildren = ADMIN_LOCALHOST_NAV.children.filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
-  const visibleBaugeraetChildren = ADMIN_LOCALHOST_BAUGERAET_NAV.children.filter((child) =>
+  const visibleBaugeraetChildren = getAdminLocalhostBaugeraetNavItems().filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
   const visiblePkwChildren = ADMIN_LOCALHOST_PKW_NAV.children.filter((child) =>
@@ -1161,17 +1179,13 @@ function AdminLocalhostNavGroup({
           maschinenMenuOwner: "admin",
           pkwMenuOwner: "pkw",
         });
-        if (pathname !== MASCHINEN_LIST_PATH || aktion) {
-          router.push(ADMIN_LOCALHOST_BAUGERAET_NAV.href);
-        }
+        router.push(MASCHINEN_LIST_PATH);
       } else {
         localhostAdminSubSelect(accordion, "pkw", {
           maschinenMenuOwner: "baumaschinen",
           pkwMenuOwner: "admin",
         });
-        if (pathname !== PKW_NAV.href || aktion) {
-          router.push(ADMIN_LOCALHOST_PKW_NAV.href);
-        }
+        router.push(ADMIN_LOCALHOST_PKW_NAV.href);
       }
       onMobileNavClose?.();
       return;
