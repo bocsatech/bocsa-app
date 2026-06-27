@@ -11,7 +11,7 @@ import {
 } from "../../lib/arbeitsauftrag-routes";
 import { MACHINE_PERM } from "../../lib/machine-permissions";
 import { MASCHINEN_LIST_PATH } from "../../lib/maschinen-routes";
-import { getBauArbeitsauftragMenuLabel, getBaupruefprotokollMenuLabel } from "../../lib/local-host";
+import { getBauArbeitsauftragMenuLabel, getBaupruefprotokollMenuLabel, isLocalAppEnvironment } from "../../lib/local-host";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -167,7 +167,20 @@ type NavItem = (typeof APP_NAV_ITEMS)[number];
 type MeineMenuSubItem = (typeof MEINE_MENU_NAV.children)[number];
 type EinstellungenNavItem = (typeof EINSTELLUNGEN_NAV.children)[number];
 type AdminNavItem = EinstellungenNavItem;
-type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number];
+type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number] | MaschinenSubRoute;
+
+const BAUGERAETE_NAV_ITEM = {
+  kind: "route",
+  href: MASCHINEN_LIST_PATH,
+  label: "Baugeräte",
+} as const satisfies MaschinenSubRoute;
+
+function getBaumaschinenMenuChildren(): BauSubItem[] {
+  if (isLocalAppEnvironment()) {
+    return [BAUGERAETE_NAV_ITEM, ...BAUMASCHINEN_NAV.children];
+  }
+  return [...BAUMASCHINEN_NAV.children];
+}
 
 function getBaumaschinenChildLabel(child: BauSubItem) {
   if (child.kind === "route" && child.href === ARBEITSAUFTRAG_LIST_PATH) {
@@ -266,6 +279,18 @@ function isBaumaschinenSubActive(
 ) {
   if (child.kind === "aktion") {
     return pathname.startsWith("/maschinen") && aktion === child.aktion;
+  }
+  if (child.kind === "route" && child.href === MASCHINEN_LIST_PATH) {
+    if (pathname.startsWith("/pruefprotokoll")) return false;
+    if (pathname === "/maschinen/geraetgruppen" || pathname.startsWith("/maschinen/geraetgruppen/")) {
+      return false;
+    }
+    if (aktion) return false;
+    return (
+      activeHref === MASCHINEN_LIST_PATH ||
+      pathname === MASCHINEN_LIST_PATH ||
+      (pathname.startsWith("/maschinen/") && pathname !== "/maschinen/geraetgruppen")
+    );
   }
   if (child.href === ARBEITSAUFTRAG_LIST_PATH) {
     if (isArbeitsauftragDetailPath(pathname)) {
@@ -564,9 +589,10 @@ function BaumaschinenNavGroup({
   onMobileNavClose?: () => void;
 }) {
   const router = useRouter();
+  const menuChildren = getBaumaschinenMenuChildren();
   const sectionActive = isBaumaschinenSectionActive(activeHref, pathname);
   const onListRoot = isBaumaschinenListRoot(pathname, aktion, geraettyp, geraetenummer);
-  const visibleChildren = BAUMASCHINEN_NAV.children.filter((child) => {
+  const visibleChildren = menuChildren.filter((child) => {
     const childPermission =
       "permission" in child && child.permission ? child.permission : BAUMASCHINEN_NAV.permission;
     return canShowMenuItem(childPermission, permissions, groups, username);
@@ -617,7 +643,7 @@ function BaumaschinenNavGroup({
       </Link>
       {showSub ? (
         <div className="sidebarNavSub">
-          {BAUMASCHINEN_NAV.children.map((child) => {
+          {menuChildren.map((child) => {
             const childPermission =
               "permission" in child && child.permission
                 ? child.permission
@@ -628,7 +654,7 @@ function BaumaschinenNavGroup({
             const active = isBaumaschinenSubActive(child, activeHref, pathname, aktion);
             return (
               <Link
-                key={child.href}
+                key={`${child.kind}-${child.href}-${"label" in child ? child.label : ""}`}
                 href={child.href}
                 className={active ? "active" : undefined}
                 onClick={() => onMobileNavClose?.()}
