@@ -751,6 +751,7 @@ type SidebarAccordionState = {
   adminSubMenuId: AdminLocalhostSubMenuId | null;
   setAdminSubMenuId: (id: AdminLocalhostSubMenuId | null) => void;
   pendingMenuIdRef: { current: SidebarMenuId | null };
+  pendingAdminSubMenuIdRef: { current: AdminLocalhostSubMenuId | null };
 };
 
 function sidebarMenuIsExpanded(
@@ -1120,6 +1121,7 @@ function AdminLocalhostNavGroup({
 
     if (localhostAdminSubNav && accordion) {
       accordion.pendingMenuIdRef.current = "admin";
+      accordion.pendingAdminSubMenuIdRef.current = subMenuId;
       accordion.setOpenMenuId("admin");
       if (subMenuId === "baugeraet") {
         accordion.setPkwMenuOwner("pkw");
@@ -1662,6 +1664,7 @@ function SidebarNavItems({
   const [pkwMenuOwner, setPkwMenuOwner] = useState<LocalhostPkwMenuOwner>("pkw");
   const [adminSubMenuId, setAdminSubMenuId] = useState<AdminLocalhostSubMenuId | null>(null);
   const pendingMenuIdRef = useRef<SidebarMenuId | null>(null);
+  const pendingAdminSubMenuIdRef = useRef<AdminLocalhostSubMenuId | null>(null);
   const accordion: SidebarAccordionState | undefined = localhostAccordion
     ? {
         openMenuId,
@@ -1673,6 +1676,7 @@ function SidebarNavItems({
         adminSubMenuId,
         setAdminSubMenuId,
         pendingMenuIdRef,
+        pendingAdminSubMenuIdRef,
       }
     : undefined;
 
@@ -1722,6 +1726,13 @@ function SidebarNavItems({
       pkwMenuOwner
     );
     if (localhostMenuNav) {
+      if (pendingAdminSubMenuIdRef.current) {
+        setAdminSubMenuId(pendingAdminSubMenuIdRef.current);
+        if (resolved === pendingAdminSubMenuIdRef.current) {
+          pendingAdminSubMenuIdRef.current = null;
+        }
+        return;
+      }
       if (resolved !== null) {
         setAdminSubMenuId(resolved);
       }
