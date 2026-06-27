@@ -12,6 +12,7 @@ import PkwStatusIndicators from "./PkwStatusIndicators";
 type Props = {
   fahrzeuge: PkwFahrzeug[];
   buchungen?: PkwBuchung[];
+  detailTab?: string | null;
 };
 
 function Field({
@@ -35,7 +36,7 @@ function Field({
   );
 }
 
-export default function PkwFahrzeugList({ fahrzeuge, buchungen = [] }: Props) {
+export default function PkwFahrzeugList({ fahrzeuge, buchungen = [], detailTab = null }: Props) {
   const router = useRouter();
   const buchungenByFahrzeug = useMemo(() => buildPkwBuchungenByFahrzeug(buchungen), [buchungen]);
 
@@ -69,7 +70,10 @@ export default function PkwFahrzeugList({ fahrzeuge, buchungen = [] }: Props) {
               key={fz.id}
               type="button"
               className="machineResultRow"
-              onClick={() => router.push(`/pkw/fahrzeuge/${fz.id}`)}
+              onClick={() => {
+                const query = detailTab ? `?tab=${encodeURIComponent(detailTab)}` : "";
+                router.push(`/pkw/fahrzeuge/${fz.id}${query}`);
+              }}
             >
               <PkwStatusIndicators
                 fahrzeug={fz}

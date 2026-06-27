@@ -40,6 +40,12 @@ export type PkwFahrzeug = {
   notizen: string | null;
   qr_token: string;
   aktiv: boolean;
+  gruppe?: string | null;
+  bild?: string | null;
+  paragraf_57a_gultig_bis?: string | null;
+  reifen?: unknown;
+  ersatzteile?: import("./maintenance").MaintenanceLagerLink[] | unknown;
+  tab_data?: Record<string, unknown> | null;
   kunde?: Kunde | null;
 };
 

@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import AppPageShell from "../../../components/AppPageShell";
 import MaintenanceLagerParts from "../../../components/MaintenanceLagerParts";
 import PkwBuchungenTable from "../../../components/PkwBuchungenTable";
+import PkwFahrzeugLocalhostSectionPanels, {
+  createEmptyPkwDocumentationData,
+} from "../../../components/PkwFahrzeugLocalhostSectionPanels";
 import PkwReifenEditor from "../../../components/PkwReifenEditor";
 import PkwStammdatenPanelContent from "../../../components/PkwStammdatenPanelContent";
 import { PKW_STAMMDATEN_STATUS_KEY } from "../../../../lib/pkw-stammdaten";
@@ -31,10 +34,26 @@ import { getPkwWorkOrders } from "../../../../lib/pkw-work-orders";
 import type { Kunde, PkwBuchung, PkwFahrzeug, PkwReifenSatz } from "../../../../lib/types/pkw";
 import { hasPkwKundenRead, hasPkwKundenWrite } from "../../../../lib/pkw-permissions";
 import type { MaintenanceLagerLink } from "../../../../lib/types/maintenance";
+import { isLocalAppEnvironment } from "../../../../lib/local-host";
+import {
+  buildPkwFahrzeugTabHref,
+  isPkwFahrzeugLocalhostSection,
+  PKW_FAHRZEUG_LOCALHOST_SECTIONS,
+  readPkwFahrzeugTabParam,
+  type PkwFahrzeugLocalhostSection,
+} from "../../../../lib/pkw-fahrzeug-tabs";
+import {
+  INITIAL_MOTOR_DATA,
+  INITIAL_TECHNICAL_DATA,
+  objectFromTabData,
+  type DocumentationFormData,
+  type MotorFormData,
+  type TechnicalFormData,
+} from "../../../../lib/machine-tab-forms";
 
 const ARBEITSAUFTRAG_TYPES = ["Service", "Check", "Reparatur"] as const;
 
-const TABS = [
+const BASE_TABS = [
   "Stammdaten",
   "Bild & QR",
   "Ersatzteile",
@@ -42,12 +61,24 @@ const TABS = [
   "Sonstiges",
 ] as const;
 
-type Tab = (typeof TABS)[number];
+const LOCALHOST_BASE_TABS = [
+  "Stammdaten",
+  "Bild & QR",
+  "Reifen & Einlagerung",
+  "Sonstiges",
+] as const;
 
-export default function PkwFahrzeugDetailPage() {
+type BaseTab = (typeof BASE_TABS)[number];
+
+function PkwFahrzeugDetailPageContent() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const fahrzeugId = params.id as string;
+  const isLocalhost = isLocalAppEnvironment();
+  const urlTab = isLocalhost ? readPkwFahrzeugTabParam(searchParams) : null;
+  const localhostSection = isPkwFahrzeugLocalhostSection(urlTab) ? urlTab : null;
+  const tabs = isLocalhost ? LOCALHOST_BASE_TABS : BASE_TABS;
 
   const [fahrzeug, setFahrzeug] = useState<PkwFahrzeug | null>(null);
   const [kunden, setKunden] = useState<Kunde[]>([]);
@@ -56,8 +87,13 @@ export default function PkwFahrzeugDetailPage() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [reifenSaetze, setReifenSaetze] = useState<PkwReifenSatz[]>([]);
   const [ersatzteile, setErsatzteile] = useState<MaintenanceLagerLink[]>([]);
+  const [motorData, setMotorData] = useState<MotorFormData>({ ...INITIAL_MOTOR_DATA });
+  const [technicalData, setTechnicalData] = useState<TechnicalFormData>({ ...INITIAL_TECHNICAL_DATA });
+  const [documentationData, setDocumentationData] = useState<DocumentationFormData>(
+    createEmptyPkwDocumentationData()
+  );
   const [kundeId, setKundeId] = useState("");
-  const [activeTab, setActiveTab] = useState<Tab>("Stammdaten");
+  const [activeTab, setActiveTab] = useState<BaseTab>("Stammdaten");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,6 +105,14 @@ export default function PkwFahrzeugDetailPage() {
   const [copyHint, setCopyHint] = useState<string | null>(null);
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
+  const sessionAuth = useMemo(
+    () => ({
+      permissions: canWrite ? ["pkw.kunden.write"] : canRead ? ["pkw.kunden.read"] : [],
+      groups: [] as string[],
+      username: undefined as string | undefined,
+    }),
+    [canRead, canWrite]
+  );
 
   const fahrzeugFields =
     FAHRZEUG_FORM_SECTIONS.find((s) => s.title === "Fahrzeugdaten")?.fields ?? [];
@@ -108,6 +152,11 @@ export default function PkwFahrzeugDetailPage() {
     setReifenSaetze(getPkwReifenSaetze(source));
     setErsatzteile(getPkwErsatzteile(source));
     setKundeId(source.kunde_id ?? "");
+    const tabData =
+      source.tab_data && typeof source.tab_data === "object" ? source.tab_data : undefined;
+    setMotorData(objectFromTabData(tabData, "motor", INITIAL_MOTOR_DATA));
+    setTechnicalData(objectFromTabData(tabData, "technical", INITIAL_TECHNICAL_DATA));
+    setDocumentationData(objectFromTabData(tabData, "documentation", createEmptyPkwDocumentationData()));
   }, []);
 
   const load = useCallback(async () => {
@@ -158,6 +207,31 @@ export default function PkwFahrzeugDetailPage() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  function buildTabDataPatch() {
+    const existing =
+      fahrzeug?.tab_data && typeof fahrzeug.tab_data === "object" ? fahrzeug.tab_data : {};
+    return {
+      ...existing,
+      motor: motorData,
+      technical: technicalData,
+      documentation: documentationData,
+    };
+  }
+
+  function selectBaseTab(tab: BaseTab) {
+    setActiveTab(tab);
+    if (isLocalhost && urlTab) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("tab");
+      const query = params.toString();
+      router.replace(query ? `/pkw/fahrzeuge/${fahrzeugId}?${query}` : `/pkw/fahrzeuge/${fahrzeugId}`);
+    }
+  }
+
+  function selectLocalhostSection(section: PkwFahrzeugLocalhostSection) {
+    router.replace(buildPkwFahrzeugTabHref(`/pkw/fahrzeuge/${fahrzeugId}`, section));
+  }
+
   async function handleSave() {
     if (!canWrite) {
       setSaveError("Keine Berechtigung: pkw.kunden.write");
@@ -177,6 +251,7 @@ export default function PkwFahrzeugDetailPage() {
       leistung_kw: form.leistung_kw ? Number(form.leistung_kw) : null,
       reifen: serializePkwReifenSaetze(reifenSaetze),
       ersatzteile: serializePkwErsatzteile(ersatzteile),
+      tab_data: buildTabDataPatch(),
     };
 
     const { data, error } = await savePkwFahrzeug(payload, fahrzeugId);
@@ -354,20 +429,62 @@ export default function PkwFahrzeugDetailPage() {
         </div>
       ) : (
         <div className="machineDetailBody" data-pkw-detail-layout="maschinen-stammdaten">
+          {isLocalhost && localhostSection ? (
+            <div className="tabSection">
+              <div className="pkwFahrzeugTabLayout">
+                <nav className="pkwFahrzeugSideNav" aria-label="Fahrzeug-Bereiche">
+                  {PKW_FAHRZEUG_LOCALHOST_SECTIONS.map((section) => (
+                    <Link
+                      key={section}
+                      href={buildPkwFahrzeugTabHref(`/pkw/fahrzeuge/${fahrzeugId}`, section)}
+                      className={localhostSection === section ? "active" : undefined}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        selectLocalhostSection(section);
+                      }}
+                    >
+                      {section}
+                    </Link>
+                  ))}
+                </nav>
+                <div className={`pkwFahrzeugTabContent tabPanel ${isEditing ? "" : "readOnlyPanel"}`}>
+                  <h2>{localhostSection}</h2>
+                  <PkwFahrzeugLocalhostSectionPanels
+                    section={localhostSection}
+                    isEditing={isEditing}
+                    canWrite={canWrite}
+                    sessionAuth={sessionAuth}
+                    motorData={motorData}
+                    setMotorData={setMotorData}
+                    technicalData={technicalData}
+                    setTechnicalData={setTechnicalData}
+                    documentationData={documentationData}
+                    setDocumentationData={setDocumentationData}
+                    ersatzteile={ersatzteile}
+                    setErsatzteile={setErsatzteile}
+                    onLoadGruppenVorlage={() => void loadGruppenVorlage()}
+                    gruppenHref="/pkw/gruppen"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="tabSection">
             <div className="tabList">
-              {TABS.map((tab) => (
+              {tabs.map((tab) => (
                 <button
                   key={tab}
                   type="button"
-                  className={`tabButton ${activeTab === tab ? "active" : ""}`}
-                  onClick={() => setActiveTab(tab)}
+                  className={`tabButton ${!localhostSection && activeTab === tab ? "active" : ""}`}
+                  onClick={() => selectBaseTab(tab)}
                 >
                   {tab}
                 </button>
               ))}
             </div>
 
+            {!localhostSection ? (
             <div className={`tabPanel ${isEditing ? "" : "readOnlyPanel"}`}>
               {activeTab !== "Stammdaten" ? <h2>{activeTab}</h2> : null}
               {activeTab === "Stammdaten" ? (
@@ -456,7 +573,7 @@ export default function PkwFahrzeugDetailPage() {
                 </section>
               ) : null}
 
-              {activeTab === "Ersatzteile" ? (
+              {activeTab === "Ersatzteile" && !isLocalhost ? (
                 <>
                   <div className="detailTopActions" style={{ marginBottom: 12 }}>
                     <button type="button" className="pillButton outline" onClick={() => void loadGruppenVorlage()}>
@@ -499,6 +616,7 @@ export default function PkwFahrzeugDetailPage() {
                 </div>
               ) : null}
             </div>
+            ) : null}
           </div>
 
           {saveError ? <p className="errorText">{saveError}</p> : null}
@@ -540,5 +658,21 @@ export default function PkwFahrzeugDetailPage() {
         </div>
       )}
     </AppPageShell>
+  );
+}
+
+export default function PkwFahrzeugDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppPageShell activeHref="/pkw/fahrzeuge" subtitle="PKW">
+          <div className="welcomeCard">
+            <h1>Fahrzeug wird geladen…</h1>
+          </div>
+        </AppPageShell>
+      }
+    >
+      <PkwFahrzeugDetailPageContent />
+    </Suspense>
   );
 }

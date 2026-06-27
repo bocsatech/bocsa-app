@@ -228,6 +228,78 @@ button, input, select, textarea {
   font-weight: 600;
 }
 
+.sidebarNavSubNested {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 4px 8px;
+  padding: 2px 0 4px 10px;
+  border-left: 2px solid rgba(255, 255, 255, 0.14);
+}
+
+.sidebarNavSubNested a {
+  padding: 6px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+.sidebarNavSubNested a.active {
+  opacity: 1;
+}
+
+.pkwFahrzeugTabLayout {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.pkwFahrzeugSideNav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.pkwFahrzeugSideNav a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pkwFahrzeugSideNav a:hover {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.pkwFahrzeugSideNav a.active {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.pkwFahrzeugTabContent {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .pkwFahrzeugTabLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .pkwFahrzeugSideNav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
 .sidebarNavDivider {
   height: 1px;
   margin: 10px 6px;

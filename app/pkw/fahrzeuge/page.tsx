@@ -15,6 +15,8 @@ import {
 } from "../../../lib/pkw";
 import { hasPkwKundenRead, hasPkwKundenWrite, hasPkwServiceRead } from "../../../lib/pkw-permissions";
 import type { Kunde, PkwBuchung, PkwFahrzeug } from "../../../lib/types/pkw";
+import { isLocalAppEnvironment } from "../../../lib/local-host";
+import { isPkwFahrzeugLocalhostSection, readPkwFahrzeugTabParam } from "../../../lib/pkw-fahrzeug-tabs";
 
 type FahrzeugFilters = {
   kennzeichen: string;
@@ -46,6 +48,9 @@ function PkwFahrzeugePageContent() {
   const [canReadService, setCanReadService] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const isLocalhost = isLocalAppEnvironment();
+  const urlTab = isLocalhost ? readPkwFahrzeugTabParam(searchParams) : null;
+  const localhostSection = isPkwFahrzeugLocalhostSection(urlTab) ? urlTab : null;
 
   const load = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) setLoading(true);
@@ -242,7 +247,17 @@ function PkwFahrzeugePageContent() {
             </button>
           </div>
 
-          <PkwFahrzeugList fahrzeuge={filtered} buchungen={buchungen} />
+          {localhostSection ? (
+            <p className="subtitle" style={{ margin: "0 0 12px" }}>
+              Bereich „{localhostSection}" — Fahrzeug aus der Liste wählen.
+            </p>
+          ) : null}
+
+          <PkwFahrzeugList
+            fahrzeuge={filtered}
+            buchungen={buchungen}
+            detailTab={localhostSection}
+          />
         </>
       )}
 
