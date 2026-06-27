@@ -228,6 +228,7 @@ type EinstellungenNavItem = (typeof EINSTELLUNGEN_NAV.children)[number];
 type AdminLocalhostNavItem = (typeof ADMIN_LOCALHOST_NAV.children)[number];
 type AdminLocalhostBaugeraetNavItem = (typeof ADMIN_LOCALHOST_BAUGERAET_NAV.children)[number];
 type AdminLocalhostPkwNavItem = (typeof ADMIN_LOCALHOST_PKW_NAV.children)[number];
+type AdminLocalhostSubMenuId = "baugeraet" | "pkw";
 type AdminNavItem = EinstellungenNavItem;
 type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number] | MaschinenSubRoute;
 
@@ -428,6 +429,40 @@ function isAdminLocalhostChildActive(
   aktion: string | null
 ) {
   return isNavActive(child, activeHref, pathname);
+}
+
+function isAdminLocalhostBaugeraetSectionActive(
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null
+) {
+  return (
+    ADMIN_LOCALHOST_BAUGERAET_NAV.children.some((child) =>
+      isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
+    ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion)
+  );
+}
+
+function isAdminLocalhostPkwSectionActive(
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null
+) {
+  return (
+    ADMIN_LOCALHOST_PKW_NAV.children.some((child) =>
+      isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
+    ) || isAdminLocalhostPkwParentActive(activeHref, pathname, aktion)
+  );
+}
+
+function resolveOpenAdminSubMenuId(
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null
+): AdminLocalhostSubMenuId | null {
+  if (isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion)) return "baugeraet";
+  if (isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion)) return "pkw";
+  return null;
 }
 
 function isBaumaschinenSectionActive(activeHref: string | undefined, pathname: string) {
@@ -860,6 +895,9 @@ function AdminLocalhostNavGroup({
   const baugeraetParentActive = isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion);
   const pkwParentActive = isAdminLocalhostPkwParentActive(activeHref, pathname, aktion);
   const [open, setOpen] = useState(submenuOpen || sectionActive);
+  const [openAdminSubId, setOpenAdminSubId] = useState<AdminLocalhostSubMenuId | null>(() =>
+    accordionOn ? resolveOpenAdminSubMenuId(activeHref, pathname, aktion) : null
+  );
 
   useEffect(() => {
     if (accordionOn) return;
@@ -871,6 +909,12 @@ function AdminLocalhostNavGroup({
     if (!sectionActive) setOpen(false);
   }, [pathname, activeHref, sectionActive, accordionOn]);
 
+  useEffect(() => {
+    if (!accordionOn) return;
+    const resolved = resolveOpenAdminSubMenuId(activeHref, pathname, aktion);
+    if (resolved) setOpenAdminSubId(resolved);
+  }, [accordionOn, activeHref, pathname, aktion]);
+
   function handleParentClick() {
     if (accordionOn && accordion) {
       sidebarAccordionToggle(accordion, "admin");
@@ -881,6 +925,16 @@ function AdminLocalhostNavGroup({
       return;
     }
     setOpen(true);
+  }
+
+  function handleAdminSubParentClick(
+    event: MouseEvent<HTMLAnchorElement>,
+    subMenuId: AdminLocalhostSubMenuId
+  ) {
+    if (!accordionOn) return;
+    event.preventDefault();
+    setOpenAdminSubId((prev) => (prev === subMenuId ? null : subMenuId));
+    onMobileNavClose?.();
   }
 
   if (visibleChildren.length === 0 && visibleBaugeraetChildren.length === 0 && visiblePkwChildren.length === 0) {
@@ -918,26 +972,35 @@ function AdminLocalhostNavGroup({
               <Link
                 href={ADMIN_LOCALHOST_BAUGERAET_NAV.href}
                 className={baugeraetParentActive ? "active" : undefined}
-                onClick={() => onMobileNavClose?.()}
+                aria-expanded={openAdminSubId === "baugeraet"}
+                onClick={(event) => {
+                  if (accordionOn) {
+                    handleAdminSubParentClick(event, "baugeraet");
+                    return;
+                  }
+                  onMobileNavClose?.();
+                }}
               >
                 {ADMIN_LOCALHOST_BAUGERAET_NAV.label}
               </Link>
-              <div className="sidebarNavSubNested">
-                {visibleBaugeraetChildren.map((child) => (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    className={
-                      isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
-                        ? "active"
-                        : undefined
-                    }
-                    onClick={() => onMobileNavClose?.()}
-                  >
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
+              {openAdminSubId === "baugeraet" ? (
+                <div className="sidebarNavSubNested">
+                  {visibleBaugeraetChildren.map((child) => (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className={
+                        isAdminLocalhostBaugeraetChildActive(child, activeHref, pathname, aktion)
+                          ? "active"
+                          : undefined
+                      }
+                      onClick={() => onMobileNavClose?.()}
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
             </Fragment>
           ) : null}
           {visiblePkwChildren.length > 0 ? (
@@ -945,26 +1008,35 @@ function AdminLocalhostNavGroup({
               <Link
                 href={ADMIN_LOCALHOST_PKW_NAV.href}
                 className={pkwParentActive ? "active" : undefined}
-                onClick={() => onMobileNavClose?.()}
+                aria-expanded={openAdminSubId === "pkw"}
+                onClick={(event) => {
+                  if (accordionOn) {
+                    handleAdminSubParentClick(event, "pkw");
+                    return;
+                  }
+                  onMobileNavClose?.();
+                }}
               >
                 {ADMIN_LOCALHOST_PKW_NAV.label}
               </Link>
-              <div className="sidebarNavSubNested">
-                {visiblePkwChildren.map((child) => (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    className={
-                      isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
-                        ? "active"
-                        : undefined
-                    }
-                    onClick={() => onMobileNavClose?.()}
-                  >
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
+              {openAdminSubId === "pkw" ? (
+                <div className="sidebarNavSubNested">
+                  {visiblePkwChildren.map((child) => (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className={
+                        isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
+                          ? "active"
+                          : undefined
+                      }
+                      onClick={() => onMobileNavClose?.()}
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
             </Fragment>
           ) : null}
         </div>
