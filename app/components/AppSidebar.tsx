@@ -364,7 +364,7 @@ function isAdminLocalhostSectionActive(
   ) || isAdminLocalhostBaugeraetParentActive(activeHref, pathname, aktion)
   || ADMIN_LOCALHOST_PKW_NAV.children.some((child) =>
     isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
-  ) || isAdminLocalhostPkwParentActive(activeHref, pathname, aktion);
+  );
 }
 
 function isAdminLocalhostPkwChildActive(
@@ -380,22 +380,11 @@ function isAdminLocalhostPkwChildActive(
 }
 
 function isAdminLocalhostPkwParentActive(
-  activeHref: string | undefined,
-  pathname: string,
-  aktion: string | null
+  _activeHref: string | undefined,
+  _pathname: string,
+  _aktion: string | null
 ) {
-  const anyNestedActive = ADMIN_LOCALHOST_PKW_NAV.children.some((child) =>
-    isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
-  );
-  if (anyNestedActive) return false;
-  if (pathname.startsWith("/pkw/fahrzeuge") && aktion === "hinzufuegen") return false;
-  if (pathname === "/pkw/gruppen" || pathname.startsWith("/pkw/gruppen/")) return false;
-  if (pathname === "/kunden" || pathname.startsWith("/kunden/")) return false;
-  return (
-    activeHref === ADMIN_LOCALHOST_PKW_NAV.href ||
-    pathname === ADMIN_LOCALHOST_PKW_NAV.href ||
-    (pathname.startsWith("/pkw/fahrzeuge/") && aktion !== "hinzufuegen")
-  );
+  return false;
 }
 
 function isAdminLocalhostBaugeraetChildActive(
@@ -453,10 +442,8 @@ function isAdminLocalhostPkwSectionActive(
   pathname: string,
   aktion: string | null
 ) {
-  return (
-    ADMIN_LOCALHOST_PKW_NAV.children.some((child) =>
-      isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
-    ) || isAdminLocalhostPkwParentActive(activeHref, pathname, aktion)
+  return ADMIN_LOCALHOST_PKW_NAV.children.some((child) =>
+    isAdminLocalhostPkwChildActive(child, activeHref, pathname, aktion)
   );
 }
 
@@ -523,16 +510,29 @@ function isKundenSectionActive(activeHref: string | undefined, pathname: string)
   );
 }
 
-function isPkwSectionActive(activeHref: string | undefined, pathname: string) {
+function isPkwSectionActive(
+  activeHref: string | undefined,
+  pathname: string,
+  aktion: string | null
+) {
   const includeKunden = !isLocalAppEnvironment();
+  const includeGruppen = !isLocalAppEnvironment();
+  if (
+    isLocalAppEnvironment() &&
+    pathname.startsWith("/pkw/fahrzeuge") &&
+    aktion === "hinzufuegen"
+  ) {
+    return false;
+  }
   return (
     activeHref === "/pkw/arbeitsauftrag" ||
     pathname === "/pkw/arbeitsauftrag" ||
     pathname.startsWith("/pkw/arbeitsauftrag/") ||
     activeHref === "/pkw/fahrzeuge" ||
-    activeHref === "/pkw/gruppen" ||
-    pathname === "/pkw/gruppen" ||
-    pathname.startsWith("/pkw/gruppen/") ||
+    (includeGruppen &&
+      (activeHref === "/pkw/gruppen" ||
+        pathname === "/pkw/gruppen" ||
+        pathname.startsWith("/pkw/gruppen/"))) ||
     (includeKunden &&
       (activeHref === "/kunden" ||
         pathname === "/kunden" ||
@@ -687,7 +687,7 @@ function resolveOpenSidebarMenuId(
   if (isAdminLocalhostSectionActive(activeHref, pathname, aktion)) return "admin";
   if (isMeineMenuSectionActive(activeHref, pathname)) return "meine";
   if (isBaumaschinenSectionActive(activeHref, pathname)) return "baumaschinen";
-  if (isPkwSectionActive(activeHref, pathname)) return "pkw";
+  if (isPkwSectionActive(activeHref, pathname, aktion)) return "pkw";
   if (isLagerSectionActive(activeHref, pathname)) return "lager";
   if (isEinstellungenSectionActive(activeHref, pathname)) return "einstellungen";
   return null;
@@ -1321,7 +1321,7 @@ function PkwNavGroup({
 }) {
   const accordionOn = Boolean(accordion && isLocalAppEnvironment());
   const router = useRouter();
-  const sectionActive = isPkwSectionActive(activeHref, pathname);
+  const sectionActive = isPkwSectionActive(activeHref, pathname, aktion);
   const anySubActive = visibleChildren.some((child) =>
     isPkwSubActive(child, pathname, aktion)
   );
