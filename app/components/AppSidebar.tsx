@@ -746,8 +746,6 @@ type SidebarAccordionState = {
   setPkwMenuOwner: (owner: LocalhostPkwMenuOwner) => void;
   adminSubMenuId: AdminLocalhostSubMenuId | null;
   setAdminSubMenuId: (id: AdminLocalhostSubMenuId | null) => void;
-  pendingMenuIdRef: { current: SidebarMenuId | null };
-  pendingAdminSubMenuIdRef: { current: AdminLocalhostSubMenuId | null };
 };
 
 function sidebarMenuIsExpanded(
@@ -767,16 +765,13 @@ function sidebarAccordionToggle(accordion: SidebarAccordionState, menuId: Sideba
 }
 
 function localhostAccordionSelectMenu(accordion: SidebarAccordionState, menuId: SidebarMenuId) {
-  accordion.pendingMenuIdRef.current = menuId;
-  if (menuId !== "admin") {
-    accordion.pendingAdminSubMenuIdRef.current = null;
-  }
   accordion.setOpenMenuId(menuId);
+  if (menuId !== "admin") {
+    accordion.setAdminSubMenuId(null);
+  }
 }
 
 function localhostAccordionCloseMenu(accordion: SidebarAccordionState) {
-  accordion.pendingMenuIdRef.current = null;
-  accordion.pendingAdminSubMenuIdRef.current = null;
   accordion.setOpenMenuId(null);
 }
 
@@ -796,8 +791,6 @@ function localhostAdminSubSelect(
     pkwMenuOwner: LocalhostPkwMenuOwner;
   }
 ) {
-  accordion.pendingMenuIdRef.current = "admin";
-  accordion.pendingAdminSubMenuIdRef.current = subMenuId;
   accordion.setOpenMenuId("admin");
   accordion.setMaschinenMenuOwner(owners.maschinenMenuOwner);
   accordion.setPkwMenuOwner(owners.pkwMenuOwner);
@@ -1119,10 +1112,14 @@ function AdminLocalhostNavGroup({
     accordion?.pkwMenuOwner
   );
   const openAdminSubId = accordion?.adminSubMenuId ?? null;
+  const adminMenuOpen = accordion?.openMenuId === "admin";
   const baugeraetLinkActive = localhostAdminSubNav
     ? openAdminSubId === "baugeraet"
     : baugeraetParentActive;
   const pkwLinkActive = localhostAdminSubNav ? openAdminSubId === "pkw" : pkwParentActive;
+  const adminParentActive = localhostAdminSubNav
+    ? adminMenuOpen || openAdminSubId !== null || sectionActive
+    : sectionActive;
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -1216,7 +1213,7 @@ function AdminLocalhostNavGroup({
     <div className="sidebarNavGroup sidebarEinstellungenGroup">
       <button
         type="button"
-        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        className={`sidebarNavParent${adminParentActive ? " active" : ""}`}
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
@@ -1379,10 +1376,13 @@ function BaumaschinenNavGroup({
   );
   const adminMaschinenContext =
     isLocalAppEnvironment() && accordion?.maschinenMenuOwner === "admin";
+  const baumaschinenMenuSelected =
+    isLocalAppEnvironment() && accordion?.openMenuId === "baumaschinen";
   const parentActive =
     !adminMaschinenContext &&
     !anySubActive &&
-    (activeHref === BAUMASCHINEN_NAV.href ||
+    (baumaschinenMenuSelected ||
+      activeHref === BAUMASCHINEN_NAV.href ||
       onListRoot ||
       (pathname.startsWith("/maschinen/") && pathname !== "/maschinen/geraetgruppen") ||
       isArbeitsauftragDetailPath(pathname));
@@ -1614,8 +1614,11 @@ function PkwNavGroup({
     isPkwSubActive(child, pathname, aktion, accordion?.pkwMenuOwner)
   );
   const adminPkwContext = isLocalAppEnvironment() && accordion?.pkwMenuOwner === "admin";
+  const pkwMenuSelected = isLocalAppEnvironment() && accordion?.openMenuId === "pkw";
   const parentActive =
-    !adminPkwContext && !anySubActive && pathname === PKW_NAV.href && !aktion;
+    !adminPkwContext &&
+    !anySubActive &&
+    (pkwMenuSelected || (pathname === PKW_NAV.href && !aktion));
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -1754,8 +1757,7 @@ function SidebarNavItems({
     useState<LocalhostMaschinenMenuOwner>("baumaschinen");
   const [pkwMenuOwner, setPkwMenuOwner] = useState<LocalhostPkwMenuOwner>("pkw");
   const [adminSubMenuId, setAdminSubMenuId] = useState<AdminLocalhostSubMenuId | null>(null);
-  const pendingMenuIdRef = useRef<SidebarMenuId | null>(null);
-  const pendingAdminSubMenuIdRef = useRef<AdminLocalhostSubMenuId | null>(null);
+  const localhostMenuInitializedRef = useRef(false);
   const accordion: SidebarAccordionState | undefined = localhostAccordion
     ? {
         openMenuId,
@@ -1766,31 +1768,63 @@ function SidebarNavItems({
         setPkwMenuOwner,
         adminSubMenuId,
         setAdminSubMenuId,
-        pendingMenuIdRef,
-        pendingAdminSubMenuIdRef,
       }
     : undefined;
 
   useEffect(() => {
-    if (!localhostAccordion) return;
-    const resolved = resolveOpenSidebarMenuId(
+    if (!localhostAccordion || !localhostMenuNav) return;
+    if (localhostMenuInitializedRef.current) return;
+    localhostMenuInitializedRef.current = true;
+
+    let nextMaschinenOwner: LocalhostMaschinenMenuOwner = "baumaschinen";
+    let nextPkwOwner: LocalhostPkwMenuOwner = "pkw";
+    if (
+      isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion, "baumaschinen") ||
+      isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion, "admin")
+    ) {
+      nextMaschinenOwner = "admin";
+    }
+    if (
+      isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion, "pkw") ||
+      isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion, "admin")
+    ) {
+      nextPkwOwner = "admin";
+    }
+
+    setMaschinenMenuOwner(nextMaschinenOwner);
+    setPkwMenuOwner(nextPkwOwner);
+    setOpenMenuId(
+      resolveOpenSidebarMenuId(
+        activeHref,
+        pathname,
+        aktion,
+        nextMaschinenOwner,
+        nextPkwOwner
+      )
+    );
+    const resolvedAdminSub = resolveOpenAdminSubMenuId(
       activeHref,
       pathname,
       aktion,
-      maschinenMenuOwner,
-      pkwMenuOwner
+      nextMaschinenOwner,
+      nextPkwOwner
     );
-    if (localhostMenuNav) {
-      if (pendingAdminSubMenuIdRef.current) {
-        setOpenMenuId("admin");
-        return;
-      }
-      if (pendingMenuIdRef.current) {
-        setOpenMenuId(pendingMenuIdRef.current);
-        return;
-      }
+    if (resolvedAdminSub) {
+      setAdminSubMenuId(resolvedAdminSub);
     }
-    setOpenMenuId(resolved);
+  }, [localhostAccordion, localhostMenuNav, activeHref, pathname, aktion]);
+
+  useEffect(() => {
+    if (!localhostAccordion || localhostMenuNav) return;
+    setOpenMenuId(
+      resolveOpenSidebarMenuId(
+        activeHref,
+        pathname,
+        aktion,
+        maschinenMenuOwner,
+        pkwMenuOwner
+      )
+    );
   }, [
     localhostAccordion,
     localhostMenuNav,
@@ -1802,25 +1836,16 @@ function SidebarNavItems({
   ]);
 
   useEffect(() => {
-    if (!localhostAccordion) return;
-    const resolved = resolveOpenAdminSubMenuId(
-      activeHref,
-      pathname,
-      aktion,
-      maschinenMenuOwner,
-      pkwMenuOwner
+    if (!localhostAccordion || localhostMenuNav) return;
+    setAdminSubMenuId(
+      resolveOpenAdminSubMenuId(
+        activeHref,
+        pathname,
+        aktion,
+        maschinenMenuOwner,
+        pkwMenuOwner
+      )
     );
-    if (localhostMenuNav) {
-      if (pendingAdminSubMenuIdRef.current) {
-        setAdminSubMenuId(pendingAdminSubMenuIdRef.current);
-        return;
-      }
-      if (resolved !== null) {
-        setAdminSubMenuId(resolved);
-      }
-      return;
-    }
-    setAdminSubMenuId(resolved);
   }, [
     localhostAccordion,
     localhostMenuNav,
@@ -1832,16 +1857,14 @@ function SidebarNavItems({
   ]);
 
   useEffect(() => {
-    if (!localhostAccordion) return;
-    if (localhostMenuNav && pendingAdminSubMenuIdRef.current) return;
+    if (!localhostAccordion || localhostMenuNav) return;
     if (isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion, maschinenMenuOwner)) {
       setMaschinenMenuOwner("admin");
     }
   }, [localhostAccordion, localhostMenuNav, activeHref, pathname, aktion, maschinenMenuOwner]);
 
   useEffect(() => {
-    if (!localhostAccordion) return;
-    if (localhostMenuNav && pendingAdminSubMenuIdRef.current) return;
+    if (!localhostAccordion || localhostMenuNav) return;
     if (isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion, pkwMenuOwner)) {
       setPkwMenuOwner("admin");
     }
