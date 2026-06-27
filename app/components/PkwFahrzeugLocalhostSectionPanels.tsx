@@ -147,6 +147,16 @@ export default function PkwFahrzeugLocalhostSectionPanels({
     );
   }
 
+  if (section === "Rechnungen") {
+    return (
+      <div className="welcomeCard">
+        <p className="subtitle" style={{ margin: 0 }}>
+          Rechnungen zu diesem Fahrzeug — demnächst verfügbar (nur localhost).
+        </p>
+      </div>
+    );
+  }
+
   const machineTab = section === "Motor" ? "Motor" : "Technische Daten";
 
   return (

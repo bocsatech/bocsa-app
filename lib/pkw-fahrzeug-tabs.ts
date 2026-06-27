@@ -3,6 +3,7 @@ export const PKW_FAHRZEUG_LOCALHOST_SECTIONS = [
   "Motor",
   "Technische Daten",
   "Dokumentation",
+  "Rechnungen",
 ] as const;
 
 export type PkwFahrzeugLocalhostSection = (typeof PKW_FAHRZEUG_LOCALHOST_SECTIONS)[number];
