@@ -1,5 +1,4 @@
 import { parseGermanDate } from "./dates";
-import { isLocalHostEnvironment } from "./local-host";
 import {
   geraetenummerMachineSegment,
   isStructuredGeraetenummer,
@@ -82,7 +81,7 @@ export function isValidAuftragNr(value: string) {
   return isLegacyAuftragNr(trimmed) || isNewFormatAuftragNr(trimmed);
 }
 
-/** Localhost: neues Format; Production: Legacy */
+/** Bau-Arbeitsauftrag: neues Format; PKW/Legacy-Flag: altes Format */
 export function hasEnvironmentAuftragNr(value: string, preferNewFormat: boolean) {
   const trimmed = value.trim();
   if (!trimmed) return false;
@@ -97,7 +96,7 @@ export function shouldAssignEnvironmentAuftragNr(
 }
 
 export function preferNewFormatAuftragNrOnClient() {
-  return isLocalHostEnvironment();
+  return true;
 }
 
 export function canAssignNewFormatAuftragNr(params: {
@@ -166,7 +165,7 @@ export async function ensureUniqueWorkOrderAuftragNrLocal(params: {
   reassigned: boolean;
   previousNr?: string;
 }> {
-  if (typeof window === "undefined" || !isLocalHostEnvironment()) {
+  if (typeof window === "undefined") {
     return { order: params.order, reassigned: false };
   }
 

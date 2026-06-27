@@ -9,7 +9,6 @@ import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
 import { normalizeGermanDate } from "../../../../lib/dates";
 import { isStructuredGeraetenummer } from "../../../../lib/geraetenummer";
-import { isLocalhostRequest } from "../../../../lib/localhost-request";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { normalizeUserFilialeCode } from "../../../../lib/user-filiale";
 
@@ -61,10 +60,7 @@ export async function POST(request) {
   const depot = String(body?.depot ?? "").trim();
   const dateRaw = String(body?.date ?? "").trim();
   const dateDe = dateRaw ? normalizeGermanDate(dateRaw) ?? dateRaw : "";
-  const useLegacy =
-    !isLocalhostRequest(request) ||
-    body?.legacy === true ||
-    body?.pkw === true;
+  const useLegacy = body?.legacy === true || body?.pkw === true;
 
   if (!type) {
     return NextResponse.json({ error: "Auftragstyp fehlt." }, { status: 400 });
@@ -78,7 +74,7 @@ export async function POST(request) {
     );
   }
 
-  const ensureGlobalUnique = isLocalhostRequest(request);
+  const ensureGlobalUnique = true;
 
   try {
     if (!useLegacy) {

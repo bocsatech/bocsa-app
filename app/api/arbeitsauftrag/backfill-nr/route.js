@@ -8,7 +8,6 @@ import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
 import { isStructuredGeraetenummer } from "../../../../lib/geraetenummer";
-import { isLocalhostRequest } from "../../../../lib/localhost-request";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 import { normalizeUserFilialeCode } from "../../../../lib/user-filiale";
 
@@ -124,13 +123,11 @@ export async function POST(request) {
   }
 
   const machineDepot = String(row.depot ?? "").trim();
-  const useNewFormat = isLocalhostRequest(request);
   const geraetenummer = String(row.geraetenummer ?? "").trim();
-  const filialeCode =
-    useNewFormat && isStructuredGeraetenummer(geraetenummer)
-      ? await resolveUserFilialeCode(supabase, auth.session)
-      : null;
-  const ensureGlobalUnique = isLocalhostRequest(request);
+  const filialeCode = isStructuredGeraetenummer(geraetenummer)
+    ? await resolveUserFilialeCode(supabase, auth.session)
+    : null;
+  const ensureGlobalUnique = true;
   let assigned = 0;
   const nextOrders = [];
   const assignedInBatch = [];

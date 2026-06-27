@@ -4,7 +4,6 @@ import { validateAuftragNrGlobally } from "../../../../lib/auftrag-nr-server";
 import { currentUserHasPermission } from "../../../../lib/auth/permissions";
 import { SESSION_COOKIE } from "../../../../lib/auth/constants";
 import { verifySessionToken } from "../../../../lib/auth/session";
-import { isLocalhostRequest } from "../../../../lib/localhost-request";
 import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 async function requireWrite() {
@@ -27,10 +26,6 @@ async function requireWrite() {
 }
 
 export async function POST(request) {
-  if (!isLocalhostRequest(request)) {
-    return NextResponse.json({ error: "Nur auf localhost verfügbar." }, { status: 404 });
-  }
-
   const auth = await requireWrite();
   if (auth.error) return auth.error;
 
