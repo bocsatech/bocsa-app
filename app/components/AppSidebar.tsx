@@ -108,6 +108,12 @@ export const PKW_NAV = {
 
 export const HOME_NAV = { href: "/", label: "Home", permission: "menu.dashboard" } as const;
 
+export const KUNDEN_LOCALHOST_NAV = {
+  href: "/kunden",
+  label: "Kunden",
+  permission: "menu.kunden",
+} as const;
+
 export const LAGER_NAV = {
   href: "/lager",
   label: "Lager",
@@ -183,7 +189,6 @@ export const ADMIN_LOCALHOST_PKW_NAV = {
       aktion: "hinzufuegen",
     },
     { href: "/pkw/gruppen", label: "PKW-Gruppen", permission: "menu.kunden" },
-    { href: "/kunden", label: "Kunden", permission: "menu.kunden" },
   ],
 } as const;
 
@@ -470,7 +475,16 @@ function isBaumaschinenSubActive(
   return pathname === child.href || pathname.startsWith(`${child.href}/`);
 }
 
+function isKundenSectionActive(activeHref: string | undefined, pathname: string) {
+  return (
+    activeHref === KUNDEN_LOCALHOST_NAV.href ||
+    pathname === KUNDEN_LOCALHOST_NAV.href ||
+    pathname.startsWith(`${KUNDEN_LOCALHOST_NAV.href}/`)
+  );
+}
+
 function isPkwSectionActive(activeHref: string | undefined, pathname: string) {
+  const includeKunden = !isLocalAppEnvironment();
   return (
     activeHref === "/pkw/arbeitsauftrag" ||
     pathname === "/pkw/arbeitsauftrag" ||
@@ -479,12 +493,13 @@ function isPkwSectionActive(activeHref: string | undefined, pathname: string) {
     activeHref === "/pkw/gruppen" ||
     pathname === "/pkw/gruppen" ||
     pathname.startsWith("/pkw/gruppen/") ||
-    activeHref === "/kunden" ||
+    (includeKunden &&
+      (activeHref === "/kunden" ||
+        pathname === "/kunden" ||
+        pathname.startsWith("/kunden/"))) ||
     activeHref === "/pkw-service" ||
     pathname === "/pkw/fahrzeuge" ||
     pathname.startsWith("/pkw/fahrzeuge/") ||
-    pathname === "/kunden" ||
-    pathname.startsWith("/kunden/") ||
     pathname === "/pkw-service" ||
     pathname.startsWith("/pkw-service/") ||
     pathname === "/pkw/buchen"
@@ -1298,6 +1313,9 @@ function SidebarNavItems({
   const pkwChildren: PkwSubItem[] = getPkwMenuChildren().filter((child) =>
     canShowMenuItem(child.permission, permissions, groups, username)
   );
+  const showKundenLocalhost =
+    isLocalAppEnvironment() &&
+    canShowMenuItem(KUNDEN_LOCALHOST_NAV.permission, permissions, groups, username);
   const showLager = canShowMenuItem(LAGER_NAV.permission, permissions, groups, username);
   const navItems = APP_NAV_ITEMS.filter((item) =>
     canShowMenuItem(item.permission, permissions, groups, username)
@@ -1366,6 +1384,18 @@ function SidebarNavItems({
         accordion={accordion}
         onMobileNavClose={onMobileNavClose}
       />
+
+      {showKundenLocalhost ? (
+        <Link
+          href={KUNDEN_LOCALHOST_NAV.href}
+          className={
+            isKundenSectionActive(activeHref, pathname) ? "active" : undefined
+          }
+          onClick={() => onMobileNavClose?.()}
+        >
+          {KUNDEN_LOCALHOST_NAV.label}
+        </Link>
+      ) : null}
 
       {showLager ? (
         <LagerNavGroup
