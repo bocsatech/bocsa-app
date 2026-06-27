@@ -153,6 +153,18 @@ export const EINSTELLUNGEN_NAV = {
   ],
 } as const;
 
+export const ADMIN_LOCALHOST_NAV = {
+  label: "Admin",
+  href: "/admin",
+  children: [
+    { href: "/admin", label: "Übersicht" },
+    { href: "/firma", label: "Firma", permission: "menu.branches" },
+    { href: "/users", label: "Benutzer", permission: "menu.users" },
+    { href: "/groups", label: "Gruppen", permission: "menu.groups" },
+    { href: "/home-icons", label: "Home-Icons" },
+  ],
+} as const;
+
 /** @deprecated — use EINSTELLUNGEN_NAV.children */
 export const ADMIN_NAV_ITEMS = EINSTELLUNGEN_NAV.children;
 
@@ -167,11 +179,14 @@ const ALL_MENU_HREFS = [
   ...LAGER_NAV.children.map((child) => child.href),
   ...APP_NAV_ITEMS.map((item) => item.href),
   ...EINSTELLUNGEN_NAV.children.map((item) => item.href),
+  ADMIN_LOCALHOST_NAV.href,
+  ...ADMIN_LOCALHOST_NAV.children.map((item) => item.href),
 ] as const;
 
 type NavItem = (typeof APP_NAV_ITEMS)[number];
 type MeineMenuSubItem = (typeof MEINE_MENU_NAV.children)[number];
 type EinstellungenNavItem = (typeof EINSTELLUNGEN_NAV.children)[number];
+type AdminLocalhostNavItem = (typeof ADMIN_LOCALHOST_NAV.children)[number];
 type AdminNavItem = EinstellungenNavItem;
 type BauSubItem = (typeof BAUMASCHINEN_NAV.children)[number] | MaschinenSubRoute;
 
@@ -231,7 +246,12 @@ function navHrefBase(href: string) {
 }
 
 function isNavActive(
-  item: NavItem | AdminNavItem | MeineMenuSubItem | EinstellungenNavItem,
+  item:
+    | NavItem
+    | AdminNavItem
+    | AdminLocalhostNavItem
+    | MeineMenuSubItem
+    | EinstellungenNavItem,
   activeHref: string | undefined,
   pathname: string
 ) {
@@ -260,6 +280,14 @@ function isMeineMenuSectionActive(activeHref: string | undefined, pathname: stri
 
 function isEinstellungenSectionActive(activeHref: string | undefined, pathname: string) {
   return EINSTELLUNGEN_NAV.children.some((child) => isNavActive(child, activeHref, pathname));
+}
+
+function isAdminLocalhostSectionActive(activeHref: string | undefined, pathname: string) {
+  return (
+    activeHref === ADMIN_LOCALHOST_NAV.href ||
+    pathname === ADMIN_LOCALHOST_NAV.href ||
+    ADMIN_LOCALHOST_NAV.children.some((child) => isNavActive(child, activeHref, pathname))
+  );
 }
 
 function isBaumaschinenSectionActive(activeHref: string | undefined, pathname: string) {
@@ -563,6 +591,77 @@ function EinstellungenNavGroup({
         onClick={handleParentClick}
       >
         {EINSTELLUNGEN_NAV.label}
+      </button>
+      {showSub ? (
+        <div className="sidebarNavSub">
+          {visibleChildren.map((child) => (
+            <Link
+              key={child.href}
+              href={child.href}
+              className={isNavActive(child, activeHref, pathname) ? "active" : undefined}
+              onClick={() => onMobileNavClose?.()}
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function AdminLocalhostNavGroup({
+  activeHref,
+  pathname,
+  submenuOpen,
+  permissions,
+  groups,
+  username,
+  onMobileNavClose,
+}: {
+  activeHref: string | undefined;
+  pathname: string;
+  submenuOpen: boolean;
+  permissions: string[];
+  groups: string[];
+  username?: string;
+  onMobileNavClose?: () => void;
+}) {
+  const visibleChildren = ADMIN_LOCALHOST_NAV.children.filter((child) =>
+    canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
+  );
+  const sectionActive = isAdminLocalhostSectionActive(activeHref, pathname);
+  const [open, setOpen] = useState(submenuOpen || sectionActive);
+
+  useEffect(() => {
+    if (sectionActive) setOpen(true);
+  }, [sectionActive]);
+
+  useEffect(() => {
+    if (!sectionActive) setOpen(false);
+  }, [pathname, activeHref, sectionActive]);
+
+  function handleParentClick() {
+    if (sectionActive && open) {
+      setOpen(false);
+      return;
+    }
+    setOpen(true);
+  }
+
+  if (visibleChildren.length === 0) return null;
+
+  const showSub = submenuOpen || open;
+
+  return (
+    <div className="sidebarNavGroup sidebarEinstellungenGroup">
+      <button
+        type="button"
+        className={`sidebarNavParent${sectionActive ? " active" : ""}`}
+        aria-expanded={showSub}
+        onClick={handleParentClick}
+      >
+        {ADMIN_LOCALHOST_NAV.label}
       </button>
       {showSub ? (
         <div className="sidebarNavSub">
@@ -1000,15 +1099,27 @@ function SidebarNavItems({
         </Link>
       ) : null}
 
-      <EinstellungenNavGroup
-        activeHref={activeHref}
-        pathname={pathname}
-        submenuOpen={submenuOpen}
-        permissions={permissions}
-        groups={groups}
-        username={username}
-        onMobileNavClose={onMobileNavClose}
-      />
+      {isLocalAppEnvironment() ? (
+        <AdminLocalhostNavGroup
+          activeHref={activeHref}
+          pathname={pathname}
+          submenuOpen={submenuOpen}
+          permissions={permissions}
+          groups={groups}
+          username={username}
+          onMobileNavClose={onMobileNavClose}
+        />
+      ) : (
+        <EinstellungenNavGroup
+          activeHref={activeHref}
+          pathname={pathname}
+          submenuOpen={submenuOpen}
+          permissions={permissions}
+          groups={groups}
+          username={username}
+          onMobileNavClose={onMobileNavClose}
+        />
+      )}
     </>
   );
 }
