@@ -20,6 +20,8 @@ export default function HomeIconsGalleryPage() {
           <Link href="/">← Zurück zur App (Home)</Link>
           {" · "}
           <Link href="/start">Start (PWA)</Link>
+          {" · "}
+          <Link href="/sidebar-icons">Sidebar-Icons (Demo)</Link>
         </p>
       </header>
 

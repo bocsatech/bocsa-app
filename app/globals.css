@@ -600,6 +600,248 @@ body.app-shell-route .appPageScroll > .welcomeCard {
   color: #ea580c;
 }
 
+.sidebarIconsDemoPage {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+.sidebarIconsDemoHeader h1 {
+  margin: 0 0 0.5rem;
+}
+
+.sidebarIconsDemoHeader code {
+  font-size: 0.85em;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.sidebarIconsDemoLayout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  align-items: start;
+}
+
+.sidebarIconsDemoPreview h2,
+.sidebarIconsDemoCatalog h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.sidebarIconsDemoHint {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.sidebarIconsDemoMock {
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%);
+  box-shadow: 0 16px 40px rgba(234, 88, 12, 0.28);
+}
+
+.sidebarIconsDemoMockHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 10px;
+  color: #fff;
+}
+
+.sidebarIconsDemoMockHeader strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.sidebarIconsDemoMockHeader span {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.82;
+}
+
+.sidebarIconsDemoMark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.sidebarIconsDemoMockNav {
+  padding: 0 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 72vh;
+  overflow: auto;
+}
+
+.sidebarIconsDemoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebarIconsDemoSection + .sidebarIconsDemoSection {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.sidebarIconsDemoSectionLabel {
+  margin: 0 0 2px;
+  padding: 0 8px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.sidebarIconsDemoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.96);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.sidebarIconsDemoRow--sub {
+  margin-left: 6px;
+  padding-left: 8px;
+  font-size: 0.74rem;
+}
+
+.sidebarIconsDemoRow--nested {
+  margin-left: 14px;
+  padding-left: 10px;
+  font-size: 0.7rem;
+  opacity: 0.92;
+  border-left: 2px solid rgba(255, 255, 255, 0.14);
+}
+
+.sidebarIconsDemoRow--parent {
+  position: relative;
+  padding-right: 28px;
+  cursor: default;
+}
+
+.sidebarIconsDemoChevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid rgba(255, 255, 255, 0.85);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.85);
+  transform: translateY(-65%) rotate(45deg);
+}
+
+.sidebarIconsDemoRow--active {
+  background: #fff;
+  color: #ea580c;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebarIconsDemoGrid {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.sidebarIconsDemoCard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebarIconsDemoCard:hover {
+  border-color: #fdba74;
+}
+
+.sidebarIconsDemoCard--picked {
+  border-color: #ea580c;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.15);
+}
+
+.sidebarIconsDemoCard strong {
+  font-size: 0.82rem;
+}
+
+.sidebarIconsDemoCard code {
+  font-size: 0.68rem;
+  color: #6b7280;
+}
+
+.sidebarIconsDemoCardStates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.sidebarIconsDemoState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sidebarIconsDemoState--idle {
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%);
+  color: #fff;
+}
+
+.sidebarIconsDemoState--active {
+  background: #fff;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+
+@media (max-width: 900px) {
+  .sidebarIconsDemoLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebarIconsDemoMockNav {
+    max-height: none;
+  }
+}
+
 .iconOrange { fill: #f97316; }
 .iconBlack { fill: #111827; }
 .iconWhite { fill: #ffffff; }
