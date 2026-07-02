@@ -617,6 +617,34 @@ body.app-shell-route .appPageScroll > .welcomeCard {
   border-radius: 4px;
 }
 
+.sidebarIconsDemoPreviewImage {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  background: #fff;
+}
+
+.sidebarIconsDemoPreviewImage img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sidebarIconsDemoPreviewImage figcaption {
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+  color: #6b7280;
+  border-top: 1px solid #f3f4f6;
+}
+
+.sidebarIconsDemoPreviewImage a {
+  color: #ea580c;
+  font-weight: 600;
+}
+
 .sidebarIconsDemoLayout {
   display: grid;
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);

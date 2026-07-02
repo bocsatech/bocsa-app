@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -104,6 +105,23 @@ export default function SidebarIconsDemoPage() {
           <Link href="/home-icons">Home-Icons (PNG/SVG)</Link>
         </p>
       </header>
+
+      <figure className="sidebarIconsDemoPreviewImage">
+        <Image
+          src="/icons/sidebar/demo-preview.png"
+          alt="Sidebar Icon Demo — Vorschau mit orangem Menü und Icon-Galerie"
+          width={1280}
+          height={720}
+          priority
+          unoptimized
+        />
+        <figcaption>
+          Statische Vorschau — interaktive Demo unten. PNG:{" "}
+          <a href="/icons/sidebar/demo-preview.png" download>
+            demo-preview.png
+          </a>
+        </figcaption>
+      </figure>
 
       <div className="sidebarIconsDemoLayout">
         <section className="sidebarIconsDemoPreview" aria-label="Sidebar-Vorschau">

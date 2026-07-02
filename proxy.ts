@@ -6,6 +6,7 @@ const PUBLIC_PATHS = [
   "/login",
   "/start",
   "/home-icons",
+  "/sidebar-icons",
   "/pkw/buchen",
   "/images",
   "/qr-codes",
