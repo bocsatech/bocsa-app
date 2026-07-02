@@ -11,6 +11,7 @@ import {
   formatEuro,
   formatKundeLabel,
   formatRechnungDate,
+  formatRechnungObjektLabel,
 } from "../../lib/rechnung";
 import type { RechnungListItem } from "../../lib/types/rechnung";
 
@@ -82,8 +83,9 @@ export default function RechnungenPage() {
                 <tr>
                   <th>Re-Nr.</th>
                   <th>Datum</th>
+                  <th>Bereich</th>
                   <th>Kunde</th>
-                  <th>Kennzeichen</th>
+                  <th>Objekt</th>
                   <th>Betrag</th>
                   <th>Status</th>
                   <th />
@@ -96,8 +98,9 @@ export default function RechnungenPage() {
                       <Link href={`/rechnungen/${row.id}`}>{row.rechnungs_nr}</Link>
                     </td>
                     <td>{formatRechnungDate(row.belegdatum)}</td>
+                    <td>{row.kunde_bereich === "bau" ? "Baugerät" : "PKW"}</td>
                     <td>{formatKundeLabel(row.kunde_snapshot)}</td>
-                    <td>{row.fahrzeug_snapshot?.kennzeichen ?? "—"}</td>
+                    <td>{formatRechnungObjektLabel(row)}</td>
                     <td>{formatEuro(row.rechnungsbetrag)}</td>
                     <td>{row.status}</td>
                     <td className="rechnungListActions">

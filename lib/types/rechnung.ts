@@ -1,5 +1,8 @@
 import type { Kunde } from "./pkw";
 import type { PkwFahrzeug } from "./pkw";
+import type { Machine } from "./machine";
+
+export type RechnungKundeBereich = "pkw" | "bau";
 
 export type RechnungStatus = "entwurf" | "offen" | "bezahlt" | "storniert";
 
@@ -36,6 +39,8 @@ export type KundeSnapshot = {
   ort?: string | null;
   land?: string | null;
   uid_nr?: string | null;
+  /** PKW | Bau — nur Anzeige im Snapshot */
+  bereich?: RechnungKundeBereich | null;
 };
 
 export type FahrzeugSnapshot = {
@@ -46,6 +51,17 @@ export type FahrzeugSnapshot = {
   baujahr?: string | null;
   km_stand?: number | null;
   paragraf_57a_gultig_bis?: string | null;
+};
+
+export type MachineSnapshot = {
+  geraetenummer?: string | null;
+  bezeichnung?: string | null;
+  depot?: string | null;
+  kennzeichen?: string | null;
+  serial_number?: string | null;
+  baujahr?: string | null;
+  hour_meter_reading?: number | null;
+  subgroup?: string | null;
 };
 
 export type RechnungSourceRef = {
@@ -83,10 +99,13 @@ export type Rechnung = {
   belegdatum: string;
   faelligkeitsdatum: string | null;
   status: RechnungStatus;
+  kunde_bereich: RechnungKundeBereich;
   kunde_id: string | null;
   kunde_snapshot: KundeSnapshot;
   pkw_fahrzeug_id: string | null;
   fahrzeug_snapshot: FahrzeugSnapshot | null;
+  machine_id: string | null;
+  machine_snapshot: MachineSnapshot | null;
   source_type: RechnungSourceType;
   source_ref: RechnungSourceRef | null;
   mwst_modus: RechnungMwstModus;
@@ -115,7 +134,9 @@ export type RechnungListItem = Pick<
   | "faelligkeitsdatum"
   | "status"
   | "kunde_snapshot"
+  | "kunde_bereich"
   | "fahrzeug_snapshot"
+  | "machine_snapshot"
   | "rechnungsbetrag"
   | "bearbeiter"
   | "updated_at"
@@ -128,8 +149,11 @@ export type RechnungDraft = Omit<
   positionen: RechnungPosition[];
 };
 
-export function kundeToSnapshot(kunde: Kunde | null | undefined): KundeSnapshot {
-  if (!kunde) return {};
+export function kundeToSnapshot(
+  kunde: Kunde | null | undefined,
+  bereich?: RechnungKundeBereich
+): KundeSnapshot {
+  if (!kunde) return bereich ? { bereich } : {};
   return {
     kundennummer: kunde.kundennummer,
     anrede: kunde.anrede,
@@ -144,6 +168,7 @@ export function kundeToSnapshot(kunde: Kunde | null | undefined): KundeSnapshot 
     ort: kunde.ort,
     land: kunde.land,
     uid_nr: kunde.uid_nr,
+    bereich: bereich ?? null,
   };
 }
 
@@ -157,5 +182,19 @@ export function fahrzeugToSnapshot(fahrzeug: PkwFahrzeug | null | undefined): Fa
     baujahr: fahrzeug.baujahr,
     km_stand: fahrzeug.km_stand,
     paragraf_57a_gultig_bis: fahrzeug.paragraf_57a_gultig_bis,
+  };
+}
+
+export function machineToSnapshot(machine: Machine | null | undefined): MachineSnapshot | null {
+  if (!machine) return null;
+  return {
+    geraetenummer: machine.geraetenummer,
+    bezeichnung: machine.bezeichnung ?? null,
+    depot: machine.depot,
+    kennzeichen: machine.license_plate ?? null,
+    serial_number: machine.serial_number,
+    baujahr: machine.baujahr,
+    hour_meter_reading: machine.hour_meter_reading ?? null,
+    subgroup: machine.subgroup,
   };
 }

@@ -10,10 +10,14 @@ create table if not exists public.rechnungen (
   faelligkeitsdatum date,
   status text not null default 'entwurf'
     check (status in ('entwurf', 'offen', 'bezahlt', 'storniert')),
+  kunde_bereich text not null default 'pkw'
+    check (kunde_bereich in ('pkw', 'bau')),
   kunde_id uuid references public.kunden (id) on delete set null,
   kunde_snapshot jsonb not null default '{}'::jsonb,
   pkw_fahrzeug_id uuid references public.pkw_fahrzeuge (id) on delete set null,
   fahrzeug_snapshot jsonb,
+  machine_id uuid references public.maschines (id) on delete set null,
+  machine_snapshot jsonb,
   source_type text not null default 'manual'
     check (source_type in ('manual', 'pkw_arbeitsauftrag', 'bau_arbeitsauftrag', 'lager', 'gemischt')),
   source_ref jsonb,
@@ -37,6 +41,7 @@ create table if not exists public.rechnungen (
 
 create index if not exists rechnungen_belegdatum_idx on public.rechnungen (belegdatum desc);
 create index if not exists rechnungen_kunde_id_idx on public.rechnungen (kunde_id);
+create index if not exists rechnungen_machine_id_idx on public.rechnungen (machine_id);
 create index if not exists rechnungen_status_idx on public.rechnungen (status);
 
 create table if not exists public.rechnung_positionen (

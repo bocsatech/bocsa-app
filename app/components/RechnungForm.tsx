@@ -20,6 +20,7 @@ import {
   renumberPositions,
   RECHNUNG_EINHEIT_OPTIONS,
   RECHNUNG_KOSTENART_OPTIONS,
+  RECHNUNG_KUNDE_BEREICH_OPTIONS,
   RECHNUNG_MWST_OPTIONS,
   RECHNUNG_STATUS_OPTIONS,
   saveRechnung,
@@ -28,7 +29,8 @@ import {
   positionsFromBauArbeitsauftrag,
   positionsFromPkwArbeitsauftrag,
 } from "../../lib/rechnung-import";
-import { kundeToSnapshot, fahrzeugToSnapshot } from "../../lib/types/rechnung";
+import { kundeToSnapshot, fahrzeugToSnapshot, machineToSnapshot } from "../../lib/types/rechnung";
+import type { RechnungKundeBereich } from "../../lib/types/rechnung";
 
 type Props = {
   initial?: Rechnung | null;
@@ -46,6 +48,8 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
     initial
       ? {
           ...initial,
+          kunde_bereich:
+            initial.kunde_bereich ?? (initial.machine_id || initial.machine_snapshot ? "bau" : "pkw"),
           positionen: initial.positionen ?? [],
         }
       : createEmptyRechnungDraft()
@@ -58,8 +62,10 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [lagerOpen, setLagerOpen] = useState(false);
   const [selectedPkwAuftrag, setSelectedPkwAuftrag] = useState("");
-  const [selectedBauMachine, setSelectedBauMachine] = useState("");
   const [selectedBauAuftrag, setSelectedBauAuftrag] = useState("");
+
+  const isPkwBereich = draft.kunde_bereich !== "bau";
+  const isBauBereich = draft.kunde_bereich === "bau";
 
   useEffect(() => {
     void fetchKunden().then(({ data }) => setKunden(data ?? []));
@@ -77,14 +83,14 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
   }, [initial, draft.belegdatum]);
 
   useEffect(() => {
-    if (!draft.kunde_id) {
-      setFahrzeuge([]);
+    if (!isPkwBereich || !draft.kunde_id) {
+      if (!isPkwBereich) setFahrzeuge([]);
       return;
     }
     void fetchPkwFahrzeuge(draft.kunde_id).then(({ data }) => {
       setFahrzeuge(data ?? []);
     });
-  }, [draft.kunde_id]);
+  }, [draft.kunde_id, isPkwBereich]);
 
   const selectedFahrzeug = useMemo(
     () => fahrzeuge.find((item) => item.id === draft.pkw_fahrzeug_id) ?? null,
@@ -97,8 +103,8 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
   );
 
   const selectedMachine = useMemo(
-    () => machines.find((item) => item.id === selectedBauMachine) ?? null,
-    [machines, selectedBauMachine]
+    () => machines.find((item) => item.id === draft.machine_id) ?? null,
+    [machines, draft.machine_id]
   );
 
   const bauAuftraege = useMemo(
@@ -118,10 +124,13 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
         const imported = positionsFromPkwArbeitsauftrag(order, fahrzeugId, 0);
         setDraft((current) => ({
           ...current,
+          kunde_bereich: "pkw",
           kunde_id: fahrzeug.kunde_id,
-          kunde_snapshot: kundeToSnapshot(fahrzeug.kunde ?? null),
+          kunde_snapshot: kundeToSnapshot(fahrzeug.kunde ?? null, "pkw"),
           pkw_fahrzeug_id: fahrzeug.id,
           fahrzeug_snapshot: fahrzeugToSnapshot(fahrzeug),
+          machine_id: null,
+          machine_snapshot: null,
           source_type: "pkw_arbeitsauftrag",
           source_ref: imported.sourceRef,
           leistungsdatum: order.date || current.leistungsdatum,
@@ -139,12 +148,16 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
         const imported = positionsFromBauArbeitsauftrag(order, machineId, label, 0);
         setDraft((current) => ({
           ...current,
+          kunde_bereich: "bau",
+          machine_id: machine.id,
+          machine_snapshot: machineToSnapshot(machine),
+          pkw_fahrzeug_id: null,
+          fahrzeug_snapshot: null,
           source_type: "bau_arbeitsauftrag",
           source_ref: imported.sourceRef,
           leistungsdatum: order.date || current.leistungsdatum,
           positionen: imported.positionen,
         }));
-        setSelectedBauMachine(machineId);
         setSelectedBauAuftrag(auftragId);
       });
     }
@@ -210,6 +223,11 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
     );
     setDraft((current) => ({
       ...current,
+      kunde_bereich: "bau",
+      machine_id: selectedMachine.id,
+      machine_snapshot: machineToSnapshot(selectedMachine),
+      pkw_fahrzeug_id: null,
+      fahrzeug_snapshot: null,
       source_type: current.source_type === "manual" ? "bau_arbeitsauftrag" : "gemischt",
       source_ref: { ...(current.source_ref ?? {}), ...imported.sourceRef },
       leistungsdatum: order.date || current.leistungsdatum,
@@ -334,8 +352,33 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
       </section>
 
       <section className="rechnungFormSection">
-        <h2>Kunde & Fahrzeug</h2>
+        <h2>Kunde & Objekt</h2>
         <div className="rechnungFormGrid">
+          <label>
+            Bereich
+            <select
+              value={draft.kunde_bereich}
+              onChange={(event) => {
+                const bereich = event.target.value as RechnungKundeBereich;
+                setDraft((current) => ({
+                  ...current,
+                  kunde_bereich: bereich,
+                  kunde_snapshot: { ...current.kunde_snapshot, bereich },
+                  ...(bereich === "pkw"
+                    ? { machine_id: null, machine_snapshot: null }
+                    : { pkw_fahrzeug_id: null, fahrzeug_snapshot: null }),
+                }));
+                setSelectedPkwAuftrag("");
+                setSelectedBauAuftrag("");
+              }}
+            >
+              {RECHNUNG_KUNDE_BEREICH_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <label>
             Kunde
             <select
@@ -345,9 +388,10 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
                 setDraft((current) => ({
                   ...current,
                   kunde_id: kunde?.id ?? null,
-                  kunde_snapshot: kundeToSnapshot(kunde),
-                  pkw_fahrzeug_id: null,
-                  fahrzeug_snapshot: null,
+                  kunde_snapshot: kundeToSnapshot(kunde, current.kunde_bereich),
+                  ...(current.kunde_bereich === "pkw"
+                    ? { pkw_fahrzeug_id: null, fahrzeug_snapshot: null }
+                    : {}),
                 }));
               }}
             >
@@ -359,80 +403,98 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
               ))}
             </select>
           </label>
-          <label>
-            Fahrzeug (PKW)
-            <select
-              value={draft.pkw_fahrzeug_id ?? ""}
-              onChange={(event) => {
-                const fahrzeug = fahrzeuge.find((item) => item.id === event.target.value) ?? null;
-                setDraft((current) => ({
-                  ...current,
-                  pkw_fahrzeug_id: fahrzeug?.id ?? null,
-                  fahrzeug_snapshot: fahrzeugToSnapshot(fahrzeug),
-                }));
-              }}
-            >
-              <option value="">—</option>
-              {fahrzeuge.map((fahrzeug) => (
-                <option key={fahrzeug.id} value={fahrzeug.id}>
-                  {fahrzeug.kennzeichen} · {[fahrzeug.marke, fahrzeug.modell].filter(Boolean).join(" ")}
-                </option>
-              ))}
-            </select>
-          </label>
+          {isPkwBereich ? (
+            <label>
+              Fahrzeug (PKW)
+              <select
+                value={draft.pkw_fahrzeug_id ?? ""}
+                onChange={(event) => {
+                  const fahrzeug = fahrzeuge.find((item) => item.id === event.target.value) ?? null;
+                  setDraft((current) => ({
+                    ...current,
+                    pkw_fahrzeug_id: fahrzeug?.id ?? null,
+                    fahrzeug_snapshot: fahrzeugToSnapshot(fahrzeug),
+                  }));
+                  setSelectedPkwAuftrag("");
+                }}
+              >
+                <option value="">—</option>
+                {fahrzeuge.map((fahrzeug) => (
+                  <option key={fahrzeug.id} value={fahrzeug.id}>
+                    {fahrzeug.kennzeichen} · {[fahrzeug.marke, fahrzeug.modell].filter(Boolean).join(" ")}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <label>
+              Baugerät
+              <select
+                value={draft.machine_id ?? ""}
+                onChange={(event) => {
+                  const machine = machines.find((item) => item.id === event.target.value) ?? null;
+                  setDraft((current) => ({
+                    ...current,
+                    machine_id: machine?.id ?? null,
+                    machine_snapshot: machineToSnapshot(machine),
+                  }));
+                  setSelectedBauAuftrag("");
+                }}
+              >
+                <option value="">—</option>
+                {machines.map((machine) => (
+                  <option key={machine.id} value={machine.id}>
+                    {machine.geraetenummer || machine.bezeichnung || machine.id}
+                    {machine.depot ? ` · ${machine.depot}` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
       </section>
 
       <section className="rechnungFormSection">
         <h2>Daten übernehmen</h2>
         <div className="rechnungImportRow">
-          <label>
-            PKW-Arbeitsauftrag
-            <select value={selectedPkwAuftrag} onChange={(e) => setSelectedPkwAuftrag(e.target.value)}>
-              <option value="">—</option>
-              {pkwAuftraege.map((order) => (
-                <option key={order.id} value={order.id}>
-                  {order.auftragNr || order.id} · {order.date} · {order.repairDescription?.slice(0, 40)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="button" className="pillButton outline" onClick={importPkwAuftrag}>
-            Übernehmen
-          </button>
-        </div>
-        <div className="rechnungImportRow">
-          <label>
-            Baugerät
-            <select
-              value={selectedBauMachine}
-              onChange={(event) => {
-                setSelectedBauMachine(event.target.value);
-                setSelectedBauAuftrag("");
-              }}
-            >
-              <option value="">—</option>
-              {machines.map((machine) => (
-                <option key={machine.id} value={machine.id}>
-                  {machine.geraetenummer || machine.bezeichnung || machine.id}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Bau-Arbeitsauftrag
-            <select value={selectedBauAuftrag} onChange={(e) => setSelectedBauAuftrag(e.target.value)}>
-              <option value="">—</option>
-              {bauAuftraege.map((order) => (
-                <option key={order.id} value={order.id}>
-                  {order.auftragNr || order.id} · {order.date}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="button" className="pillButton outline" onClick={importBauAuftrag}>
-            Übernehmen
-          </button>
+          {isPkwBereich ? (
+            <>
+              <label>
+                PKW-Arbeitsauftrag
+                <select
+                  value={selectedPkwAuftrag}
+                  onChange={(e) => setSelectedPkwAuftrag(e.target.value)}
+                >
+                  <option value="">—</option>
+                  {pkwAuftraege.map((order) => (
+                    <option key={order.id} value={order.id}>
+                      {order.auftragNr || order.id} · {order.date} · {order.repairDescription?.slice(0, 40)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="button" className="pillButton outline" onClick={importPkwAuftrag}>
+                Übernehmen
+              </button>
+            </>
+          ) : (
+            <>
+              <label>
+                Bau-Arbeitsauftrag
+                <select value={selectedBauAuftrag} onChange={(e) => setSelectedBauAuftrag(e.target.value)}>
+                  <option value="">—</option>
+                  {bauAuftraege.map((order) => (
+                    <option key={order.id} value={order.id}>
+                      {order.auftragNr || order.id} · {order.date}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="button" className="pillButton outline" onClick={importBauAuftrag}>
+                Übernehmen
+              </button>
+            </>
+          )}
         </div>
         <div className="rechnungImportRow">
           <button type="button" className="pillButton outline" onClick={() => setLagerOpen(true)}>

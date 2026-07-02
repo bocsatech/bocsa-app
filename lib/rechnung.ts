@@ -10,7 +10,7 @@ import type {
 import { germanToday } from "./dates";
 
 export type { Rechnung, RechnungDraft, RechnungListItem, RechnungPosition } from "./types/rechnung";
-export { kundeToSnapshot, fahrzeugToSnapshot } from "./types/rechnung";
+export { kundeToSnapshot, fahrzeugToSnapshot, machineToSnapshot } from "./types/rechnung";
 
 export function formatEuro(value: number) {
   return new Intl.NumberFormat("de-AT", {
@@ -164,10 +164,13 @@ export function createEmptyRechnungDraft(bearbeiter?: string): RechnungDraft {
     belegdatum: today,
     faelligkeitsdatum: today,
     status: "entwurf",
+    kunde_bereich: "pkw",
     kunde_id: null,
     kunde_snapshot: {},
     pkw_fahrzeug_id: null,
     fahrzeug_snapshot: null,
+    machine_id: null,
+    machine_snapshot: null,
     source_type: "manual",
     source_ref: null,
     mwst_modus: "zuzueglich",
@@ -186,6 +189,24 @@ export function createEmptyRechnungDraft(bearbeiter?: string): RechnungDraft {
     bearbeiter: bearbeiter ?? null,
     positionen: [],
   };
+}
+
+export const RECHNUNG_KUNDE_BEREICH_OPTIONS = [
+  { value: "pkw", label: "PKW" },
+  { value: "bau", label: "Baugerät" },
+] as const;
+
+export function formatRechnungObjektLabel(rechnung: {
+  kunde_bereich?: string | null;
+  fahrzeug_snapshot?: { kennzeichen?: string | null } | null;
+  machine_snapshot?: { geraetenummer?: string | null; bezeichnung?: string | null } | null;
+}) {
+  if (rechnung.kunde_bereich === "bau") {
+    const machine = rechnung.machine_snapshot;
+    if (!machine) return "—";
+    return machine.geraetenummer || machine.bezeichnung || "—";
+  }
+  return rechnung.fahrzeug_snapshot?.kennzeichen ?? "—";
 }
 
 export const RECHNUNG_STATUS_OPTIONS = [

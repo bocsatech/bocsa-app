@@ -47,7 +47,8 @@ function PositionRow({ row }: { row: RechnungPosition }) {
 
 export default function RechnungPrintDocument({ rechnung, firma }: Props) {
   const kundeLines = formatKundeAddress(rechnung.kunde_snapshot);
-  const fahrzeug = rechnung.fahrzeug_snapshot;
+  const fahrzeug = rechnung.kunde_bereich !== "bau" ? rechnung.fahrzeug_snapshot : null;
+  const machine = rechnung.kunde_bereich === "bau" ? rechnung.machine_snapshot : null;
 
   return (
     <article className="rechnungPrintDocument">
@@ -109,6 +110,31 @@ export default function RechnungPrintDocument({ rechnung, firma }: Props) {
           <div>
             <span>HU</span>
             <strong>{fahrzeug.paragraf_57a_gultig_bis || "—"}</strong>
+          </div>
+        </section>
+      ) : null}
+
+      {machine ? (
+        <section className="rechnungPrintVehicle rechnungPrintMachine">
+          <div>
+            <span>Gerätenummer</span>
+            <strong>{machine.geraetenummer || "—"}</strong>
+          </div>
+          <div>
+            <span>Bezeichnung</span>
+            <strong>{machine.bezeichnung || "—"}</strong>
+          </div>
+          <div>
+            <span>Depot</span>
+            <strong>{machine.depot || "—"}</strong>
+          </div>
+          <div>
+            <span>Stundenzähler</span>
+            <strong>{machine.hour_meter_reading ?? "—"}</strong>
+          </div>
+          <div>
+            <span>FG-Nr.</span>
+            <strong>{machine.serial_number || "—"}</strong>
           </div>
         </section>
       ) : null}
