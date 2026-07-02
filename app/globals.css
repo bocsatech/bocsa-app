@@ -7169,13 +7169,31 @@ body.pkw-portal-body {
 }
 
 .rechnungFormGrid label,
-.rechnungFormSection > label {
+.rechnungFormSection > label,
+.rechnungSearchSelect {
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-size: 0.85rem;
   font-weight: 600;
   color: #374151;
+}
+
+.rechnungSearchSelectInput {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.rechnungSearchSelectHint {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #6b7280;
 }
 
 .rechnungFormGrid input,

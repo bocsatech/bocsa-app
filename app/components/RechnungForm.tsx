@@ -6,7 +6,7 @@ import type { LagerTeil } from "../../lib/types/lager";
 import type { Kunde, PkwFahrzeug } from "../../lib/types/pkw";
 import type { Rechnung, RechnungDraft, RechnungPosition } from "../../lib/types/rechnung";
 import { fetchMachines } from "../../lib/machines";
-import { fetchKunden, fetchPkwFahrzeuge, formatKundeName } from "../../lib/pkw";
+import { fetchKunden, fetchPkwFahrzeuge } from "../../lib/pkw";
 import { fetchLagerTeile } from "../../lib/lager";
 import { getPkwWorkOrders } from "../../lib/pkw-work-orders";
 import { getWorkOrders } from "../../lib/work-orders";
@@ -29,6 +29,19 @@ import {
   positionsFromBauArbeitsauftrag,
   positionsFromPkwArbeitsauftrag,
 } from "../../lib/rechnung-import";
+import RechnungSearchSelect from "./RechnungSearchSelect";
+import {
+  kundeOptionLabel,
+  kundeSearchText,
+  fahrzeugOptionLabel,
+  fahrzeugSearchText,
+  machineOptionLabel,
+  machineSearchText,
+  workOrderOptionLabel,
+  workOrderSearchText,
+  lagerTeilSearchText,
+  matchesRechnungSearch,
+} from "../../lib/rechnung-search";
 import { kundeToSnapshot, fahrzeugToSnapshot, machineToSnapshot } from "../../lib/types/rechnung";
 import type { RechnungKundeBereich } from "../../lib/types/rechnung";
 
@@ -61,16 +74,17 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lagerOpen, setLagerOpen] = useState(false);
+  const [lagerSearch, setLagerSearch] = useState("");
   const [selectedPkwAuftrag, setSelectedPkwAuftrag] = useState("");
   const [selectedBauAuftrag, setSelectedBauAuftrag] = useState("");
 
   const isPkwBereich = draft.kunde_bereich !== "bau";
-  const isBauBereich = draft.kunde_bereich === "bau";
 
   useEffect(() => {
     void fetchKunden().then(({ data }) => setKunden(data ?? []));
     void fetchMachines().then(({ data }) => setMachines((data ?? []) as Machine[]));
     void fetchLagerTeile().then(({ data }) => setLagerTeile(data ?? []));
+    void fetchPkwFahrzeuge().then(({ data }) => setFahrzeuge(data ?? []));
   }, []);
 
   useEffect(() => {
@@ -82,15 +96,10 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
     });
   }, [initial, draft.belegdatum]);
 
-  useEffect(() => {
-    if (!isPkwBereich || !draft.kunde_id) {
-      if (!isPkwBereich) setFahrzeuge([]);
-      return;
-    }
-    void fetchPkwFahrzeuge(draft.kunde_id).then(({ data }) => {
-      setFahrzeuge(data ?? []);
-    });
-  }, [draft.kunde_id, isPkwBereich]);
+  const filteredLagerTeile = useMemo(
+    () => lagerTeile.filter((teil) => matchesRechnungSearch(lagerTeilSearchText(teil), lagerSearch)),
+    [lagerTeile, lagerSearch]
+  );
 
   const selectedFahrzeug = useMemo(
     () => fahrzeuge.find((item) => item.id === draft.pkw_fahrzeug_id) ?? null,
@@ -379,77 +388,69 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
               ))}
             </select>
           </label>
-          <label>
-            Kunde
-            <select
-              value={draft.kunde_id ?? ""}
-              onChange={(event) => {
-                const kunde = kunden.find((item) => item.id === event.target.value) ?? null;
+          <RechnungSearchSelect
+            label="Kunde"
+            value={draft.kunde_id ?? ""}
+            options={kunden}
+            getOptionValue={(kunde) => kunde.id}
+            getOptionLabel={kundeOptionLabel}
+            getSearchText={kundeSearchText}
+            searchPlaceholder="Kunde suchen (Name, Firma, Ort, Nr.…)"
+            onChange={(_, kunde) => {
+              setDraft((current) => ({
+                ...current,
+                kunde_id: kunde?.id ?? null,
+                kunde_snapshot: kundeToSnapshot(kunde, current.kunde_bereich),
+                ...(current.kunde_bereich === "pkw"
+                  ? { pkw_fahrzeug_id: null, fahrzeug_snapshot: null }
+                  : {}),
+              }));
+            }}
+          />
+          {isPkwBereich ? (
+            <RechnungSearchSelect
+              label="Fahrzeug (PKW)"
+              value={draft.pkw_fahrzeug_id ?? ""}
+              options={fahrzeuge}
+              getOptionValue={(fahrzeug) => fahrzeug.id}
+              getOptionLabel={fahrzeugOptionLabel}
+              getSearchText={fahrzeugSearchText}
+              searchPlaceholder="Fahrzeug suchen (Kennzeichen, Marke, Kunde…)"
+              onChange={(_, fahrzeug) => {
+                const kunde =
+                  fahrzeug?.kunde ?? kunden.find((item) => item.id === fahrzeug?.kunde_id) ?? null;
                 setDraft((current) => ({
                   ...current,
-                  kunde_id: kunde?.id ?? null,
-                  kunde_snapshot: kundeToSnapshot(kunde, current.kunde_bereich),
-                  ...(current.kunde_bereich === "pkw"
-                    ? { pkw_fahrzeug_id: null, fahrzeug_snapshot: null }
+                  pkw_fahrzeug_id: fahrzeug?.id ?? null,
+                  fahrzeug_snapshot: fahrzeugToSnapshot(fahrzeug),
+                  ...(kunde
+                    ? {
+                        kunde_id: kunde.id,
+                        kunde_snapshot: kundeToSnapshot(kunde, current.kunde_bereich),
+                      }
                     : {}),
                 }));
+                setSelectedPkwAuftrag("");
               }}
-            >
-              <option value="">—</option>
-              {kunden.map((kunde) => (
-                <option key={kunde.id} value={kunde.id}>
-                  {formatKundeName(kunde)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {isPkwBereich ? (
-            <label>
-              Fahrzeug (PKW)
-              <select
-                value={draft.pkw_fahrzeug_id ?? ""}
-                onChange={(event) => {
-                  const fahrzeug = fahrzeuge.find((item) => item.id === event.target.value) ?? null;
-                  setDraft((current) => ({
-                    ...current,
-                    pkw_fahrzeug_id: fahrzeug?.id ?? null,
-                    fahrzeug_snapshot: fahrzeugToSnapshot(fahrzeug),
-                  }));
-                  setSelectedPkwAuftrag("");
-                }}
-              >
-                <option value="">—</option>
-                {fahrzeuge.map((fahrzeug) => (
-                  <option key={fahrzeug.id} value={fahrzeug.id}>
-                    {fahrzeug.kennzeichen} · {[fahrzeug.marke, fahrzeug.modell].filter(Boolean).join(" ")}
-                  </option>
-                ))}
-              </select>
-            </label>
+            />
           ) : (
-            <label>
-              Baugerät
-              <select
-                value={draft.machine_id ?? ""}
-                onChange={(event) => {
-                  const machine = machines.find((item) => item.id === event.target.value) ?? null;
-                  setDraft((current) => ({
-                    ...current,
-                    machine_id: machine?.id ?? null,
-                    machine_snapshot: machineToSnapshot(machine),
-                  }));
-                  setSelectedBauAuftrag("");
-                }}
-              >
-                <option value="">—</option>
-                {machines.map((machine) => (
-                  <option key={machine.id} value={machine.id}>
-                    {machine.geraetenummer || machine.bezeichnung || machine.id}
-                    {machine.depot ? ` · ${machine.depot}` : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <RechnungSearchSelect
+              label="Baugerät"
+              value={draft.machine_id ?? ""}
+              options={machines}
+              getOptionValue={(machine) => machine.id}
+              getOptionLabel={machineOptionLabel}
+              getSearchText={machineSearchText}
+              searchPlaceholder="Baugerät suchen (Nr., Bezeichnung, Depot…)"
+              onChange={(_, machine) => {
+                setDraft((current) => ({
+                  ...current,
+                  machine_id: machine?.id ?? null,
+                  machine_snapshot: machineToSnapshot(machine),
+                }));
+                setSelectedBauAuftrag("");
+              }}
+            />
           )}
         </div>
       </section>
@@ -459,37 +460,34 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
         <div className="rechnungImportRow">
           {isPkwBereich ? (
             <>
-              <label>
-                PKW-Arbeitsauftrag
-                <select
-                  value={selectedPkwAuftrag}
-                  onChange={(e) => setSelectedPkwAuftrag(e.target.value)}
-                >
-                  <option value="">—</option>
-                  {pkwAuftraege.map((order) => (
-                    <option key={order.id} value={order.id}>
-                      {order.auftragNr || order.id} · {order.date} · {order.repairDescription?.slice(0, 40)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <RechnungSearchSelect
+                label="PKW-Arbeitsauftrag"
+                value={selectedPkwAuftrag}
+                options={pkwAuftraege}
+                getOptionValue={(order) => order.id}
+                getOptionLabel={workOrderOptionLabel}
+                getSearchText={workOrderSearchText}
+                searchPlaceholder="Auftrag suchen (Nr., Datum, Text…)"
+                disabled={!selectedFahrzeug}
+                onChange={(value) => setSelectedPkwAuftrag(value)}
+              />
               <button type="button" className="pillButton outline" onClick={importPkwAuftrag}>
                 Übernehmen
               </button>
             </>
           ) : (
             <>
-              <label>
-                Bau-Arbeitsauftrag
-                <select value={selectedBauAuftrag} onChange={(e) => setSelectedBauAuftrag(e.target.value)}>
-                  <option value="">—</option>
-                  {bauAuftraege.map((order) => (
-                    <option key={order.id} value={order.id}>
-                      {order.auftragNr || order.id} · {order.date}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <RechnungSearchSelect
+                label="Bau-Arbeitsauftrag"
+                value={selectedBauAuftrag}
+                options={bauAuftraege}
+                getOptionValue={(order) => order.id}
+                getOptionLabel={workOrderOptionLabel}
+                getSearchText={workOrderSearchText}
+                searchPlaceholder="Auftrag suchen (Nr., Datum, Text…)"
+                disabled={!selectedMachine}
+                onChange={(value) => setSelectedBauAuftrag(value)}
+              />
               <button type="button" className="pillButton outline" onClick={importBauAuftrag}>
                 Übernehmen
               </button>
@@ -701,8 +699,18 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
         <div className="modalBackdrop" onClick={() => setLagerOpen(false)}>
           <div className="modalCard rechnungLagerModal" onClick={(event) => event.stopPropagation()}>
             <h3>Teil aus Lager</h3>
+            <input
+              type="search"
+              className="rechnungSearchSelectInput"
+              placeholder="Teil suchen (Bezeichnung, Hersteller-Nr., Lagerort…)"
+              value={lagerSearch}
+              onChange={(event) => setLagerSearch(event.target.value)}
+            />
+            <p className="rechnungSearchSelectHint">
+              {filteredLagerTeile.length} von {lagerTeile.length} Teilen
+            </p>
             <ul className="rechnungLagerList">
-              {lagerTeile.slice(0, 200).map((teil) => (
+              {filteredLagerTeile.slice(0, 200).map((teil) => (
                 <li key={teil.id}>
                   <button type="button" onClick={() => importLagerTeil(teil)}>
                     <strong>{teil.bezeichnung || teil.herstellernummer}</strong>
@@ -712,7 +720,14 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
                 </li>
               ))}
             </ul>
-            <button type="button" className="pillButton outline" onClick={() => setLagerOpen(false)}>
+            <button
+              type="button"
+              className="pillButton outline"
+              onClick={() => {
+                setLagerOpen(false);
+                setLagerSearch("");
+              }}
+            >
               Schließen
             </button>
           </div>
