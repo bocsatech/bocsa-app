@@ -14,6 +14,7 @@ type Props = {
   open: boolean;
   teil: LagerTeil | null;
   canWrite: boolean;
+  readOnly?: boolean;
   onClose: () => void;
   onSaved: (teil: LagerTeil) => void;
 };
@@ -52,13 +53,21 @@ function teilToForm(teil: LagerTeil) {
   };
 }
 
-export default function LagerTeilModal({ open, teil, canWrite, onClose, onSaved }: Props) {
+export default function LagerTeilModal({
+  open,
+  teil,
+  canWrite,
+  readOnly = false,
+  onClose,
+  onSaved,
+}: Props) {
   const [form, setForm] = useState(emptyForm());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedTeil, setSavedTeil] = useState<LagerTeil | null>(null);
 
   const activeTeil = teil ?? savedTeil;
+  const editable = canWrite && !readOnly;
 
   useEffect(() => {
     if (!open) return;
@@ -80,7 +89,7 @@ export default function LagerTeilModal({ open, teil, canWrite, onClose, onSaved 
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!canWrite) return;
+    if (!editable) return;
 
     setSaving(true);
     setError(null);
@@ -117,7 +126,13 @@ export default function LagerTeilModal({ open, teil, canWrite, onClose, onSaved 
       <form className="card lagerModal" onSubmit={handleSubmit}>
         <div className="cardHeader">
           <div>
-            <p className="cardTitle">{activeTeil ? "Ersatzteil bearbeiten" : "Ersatzteil anlegen"}</p>
+            <p className="cardTitle">
+              {activeTeil
+                ? readOnly
+                  ? "Ersatzteil anzeigen"
+                  : "Ersatzteil bearbeiten"
+                : "Ersatzteil anlegen"}
+            </p>
             <p className="subtitle">Lager / Ersatzteile</p>
           </div>
           <button type="button" className="pillButton outline" onClick={onClose}>
@@ -128,7 +143,7 @@ export default function LagerTeilModal({ open, teil, canWrite, onClose, onSaved 
         <div className="lagerModalBildRow">
           <span className="lagerModalBildLabel">Bild</span>
           {activeTeil ? (
-            <LagerTeilBild teil={activeTeil} canWrite={canWrite} onUpdated={handleTeilUpdated} />
+            <LagerTeilBild teil={activeTeil} canWrite={editable} onUpdated={handleTeilUpdated} />
           ) : (
             <div className="lagerBildCell lagerBildCellPending">
               <span className="lagerThumbPlaceholder">+</span>
@@ -146,7 +161,7 @@ export default function LagerTeilModal({ open, teil, canWrite, onClose, onSaved 
               {field.key === "bestellstatus" ? (
                 <select
                   value={form.bestellstatus}
-                  disabled={!canWrite}
+                  disabled={!editable}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, bestellstatus: event.target.value }))
                   }
@@ -162,7 +177,7 @@ export default function LagerTeilModal({ open, teil, canWrite, onClose, onSaved 
                   type={field.type ?? "text"}
                   required={field.required}
                   value={form[field.key]}
-                  disabled={!canWrite}
+                  disabled={!editable}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, [field.key]: event.target.value }))
                   }
@@ -175,14 +190,22 @@ export default function LagerTeilModal({ open, teil, canWrite, onClose, onSaved 
         {error ? <p className="protocolNotice">{error}</p> : null}
 
         <div className="actionButtons">
-          <button type="button" className="pillButton outline" onClick={onClose}>
-            Abbrechen
-          </button>
-          {canWrite ? (
-            <button type="submit" className="pillButton primary" disabled={saving}>
-              {saving ? "Speichern..." : "Speichern"}
+          {readOnly ? (
+            <button type="button" className="pillButton primary" onClick={onClose}>
+              Schließen
             </button>
-          ) : null}
+          ) : (
+            <>
+              <button type="button" className="pillButton outline" onClick={onClose}>
+                Abbrechen
+              </button>
+              {editable ? (
+                <button type="submit" className="pillButton primary" disabled={saving}>
+                  {saving ? "Speichern..." : "Speichern"}
+                </button>
+              ) : null}
+            </>
+          )}
         </div>
       </form>
     </div>

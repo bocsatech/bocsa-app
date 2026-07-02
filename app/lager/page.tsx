@@ -22,9 +22,11 @@ import {
   type LagerListFilters,
 } from "../../lib/lager";
 import type { LagerTeil } from "../../lib/types/lager";
+import { useIsLocalhost } from "../../lib/use-is-localhost";
 
 function LagerPageContent() {
   const searchParams = useSearchParams();
+  const isLocalhost = useIsLocalhost();
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -33,6 +35,7 @@ function LagerPageContent() {
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalReadOnly, setModalReadOnly] = useState(false);
   const [selectedTeil, setSelectedTeil] = useState<LagerTeil | null>(null);
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -97,18 +100,34 @@ function LagerPageContent() {
     const hit = teile.find((t) => t.id === teilId);
     if (hit) {
       setSelectedTeil(hit);
+      setModalReadOnly(isLocalhost && searchParams.get("edit") !== "1");
       setModalOpen(true);
     }
-  }, [searchParams, teile, loading]);
+  }, [searchParams, teile, loading, isLocalhost]);
 
   function openCreate() {
     setSelectedTeil(null);
+    setModalReadOnly(false);
+    setModalOpen(true);
+  }
+
+  function openView(teil: LagerTeil) {
+    setSelectedTeil(teil);
+    setModalReadOnly(true);
     setModalOpen(true);
   }
 
   function openEdit(teil: LagerTeil) {
     setSelectedTeil(teil);
+    setModalReadOnly(false);
     setModalOpen(true);
+  }
+
+  function handleRowClick(event: React.MouseEvent<HTMLTableRowElement>, teil: LagerTeil) {
+    if (!isLocalhost) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("a, button, input, label")) return;
+    openView(teil);
   }
 
   function handleSaved(teil: LagerTeil) {
@@ -366,13 +385,17 @@ function LagerPageContent() {
                         return (
                         <tr
                           key={teil.id}
-                          className={
+                          className={[
                             alert === "below_min"
                               ? "lagerMeldungRowBelow"
                               : alert === "above_max"
                                 ? "lagerMeldungRowAbove"
-                                : undefined
-                          }
+                                : undefined,
+                            isLocalhost ? "lagerRowClickable" : undefined,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          onClick={(event) => handleRowClick(event, teil)}
                         >
                           <td>
                             <LagerTeilBild
@@ -412,7 +435,10 @@ function LagerPageContent() {
                               <button
                                 type="button"
                                 className="pillButton outline"
-                                onClick={() => openEdit(teil)}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openEdit(teil);
+                                }}
                               >
                                 Bearbeiten
                               </button>
@@ -420,7 +446,10 @@ function LagerPageContent() {
                                 <button
                                   type="button"
                                   className="pillButton outline"
-                                  onClick={() => handleDelete(teil)}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    void handleDelete(teil);
+                                  }}
                                 >
                                   Löschen
                                 </button>
@@ -442,8 +471,10 @@ function LagerPageContent() {
         open={modalOpen}
         teil={selectedTeil}
         canWrite={canWrite}
+        readOnly={modalReadOnly}
         onClose={() => {
           setModalOpen(false);
+          setModalReadOnly(false);
           setSelectedTeil(null);
         }}
         onSaved={(teil) => {
