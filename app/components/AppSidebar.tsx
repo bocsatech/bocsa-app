@@ -121,8 +121,12 @@ export const KUNDEN_LOCALHOST_NAV = {
 } as const;
 
 export const RECHNUNGEN_LOCALHOST_NAV = {
+  href: "/rechnungen",
   label: "Rechnungen",
-  children: [],
+  children: [
+    { href: "/rechnungen/neu", label: "Neu" },
+    { href: "/rechnungen", label: "Rechnungen" },
+  ],
 } as const;
 
 export const LAGER_NAV = {
@@ -232,6 +236,8 @@ const ALL_MENU_HREFS = [
   MASCHINEN_HINZUFUEGEN_PATH,
   ADMIN_LOCALHOST_PKW_NAV.href,
   ...ADMIN_LOCALHOST_PKW_NAV.children.map((item) => item.href),
+  RECHNUNGEN_LOCALHOST_NAV.href,
+  ...RECHNUNGEN_LOCALHOST_NAV.children.map((item) => item.href),
 ] as const;
 
 type NavItem = (typeof APP_NAV_ITEMS)[number];
@@ -692,6 +698,23 @@ type LagerSubRoute = {
 };
 
 type LagerSubItem = LagerSubRoute;
+type RechnungenSubItem = (typeof RECHNUNGEN_LOCALHOST_NAV.children)[number];
+
+function isRechnungenSectionActive(activeHref: string | undefined, pathname: string) {
+  return (
+    activeHref === RECHNUNGEN_LOCALHOST_NAV.href ||
+    RECHNUNGEN_LOCALHOST_NAV.children.some((child) => activeHref === child.href) ||
+    pathname === RECHNUNGEN_LOCALHOST_NAV.href ||
+    pathname.startsWith("/rechnungen/")
+  );
+}
+
+function isRechnungenSubActive(child: RechnungenSubItem, pathname: string) {
+  if (child.href === RECHNUNGEN_LOCALHOST_NAV.href) {
+    return pathname === RECHNUNGEN_LOCALHOST_NAV.href;
+  }
+  return pathname === child.href || pathname.startsWith(`${child.href}/`);
+}
 
 function isLagerSectionActive(activeHref: string | undefined, pathname: string) {
   return (
@@ -1025,6 +1048,7 @@ function resolveOpenSidebarMenuId(
   }
   if (isPkwSectionActive(activeHref, pathname, aktion, pkwMenuOwner)) return "pkw";
   if (isLagerSectionActive(activeHref, pathname)) return "lager";
+  if (isRechnungenSectionActive(activeHref, pathname)) return "rechnungen";
   if (isEinstellungenSectionActive(activeHref, pathname)) return "einstellungen";
   return null;
 }
@@ -1044,38 +1068,96 @@ function isBaumaschinenListRoot(
 }
 
 function RechnungenLocalhostNavGroup({
+  activeHref,
+  pathname,
+  submenuOpen,
   accordion,
+  onMobileNavClose,
 }: {
+  activeHref: string | undefined;
+  pathname: string;
+  submenuOpen: boolean;
   accordion?: SidebarAccordionState;
+  onMobileNavClose?: () => void;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const sectionActive = isRechnungenSectionActive(activeHref, pathname);
+  const anySubActive = RECHNUNGEN_LOCALHOST_NAV.children.some((child) =>
+    isRechnungenSubActive(child, pathname)
+  );
+  const parentActive = !anySubActive && pathname === RECHNUNGEN_LOCALHOST_NAV.href;
+  const [open, setOpen] = useState(submenuOpen || sectionActive);
 
-  function handleParentClick() {
+  useEffect(() => {
+    if (accordionOn) return;
+    if (sectionActive) setOpen(true);
+  }, [sectionActive, accordionOn]);
+
+  function handleParentClick(event: MouseEvent<HTMLAnchorElement>) {
+    const mobile = isMobileSidebarViewport();
     if (accordionOn && accordion) {
+      event.preventDefault();
+      const wasOpen = accordion.openMenuId === "rechnungen";
       if (isLocalAppEnvironment()) {
-        localhostAccordionToggleMenu(accordion, "rechnungen");
+        if (wasOpen) {
+          localhostAccordionCloseMenu(accordion);
+        } else {
+          localhostAccordionSelectMenu(accordion, "rechnungen");
+        }
       } else {
         sidebarAccordionToggle(accordion, "rechnungen");
       }
+      if (!wasOpen && pathname !== RECHNUNGEN_LOCALHOST_NAV.href) {
+        router.push(RECHNUNGEN_LOCALHOST_NAV.href);
+      }
+      if (mobile) onMobileNavClose?.();
       return;
     }
-    setOpen((prev) => !prev);
+    if (sectionActive && open && pathname === RECHNUNGEN_LOCALHOST_NAV.href) {
+      event.preventDefault();
+      setOpen(false);
+      if (mobile) onMobileNavClose?.();
+      return;
+    }
+    event.preventDefault();
+    setOpen(true);
+    if (mobile) return;
+    if (!sectionActive || pathname !== RECHNUNGEN_LOCALHOST_NAV.href) {
+      router.push(RECHNUNGEN_LOCALHOST_NAV.href);
+    }
+    onMobileNavClose?.();
   }
 
-  const showSub = sidebarMenuIsExpanded("rechnungen", open, false, accordion);
+  const showSub = sidebarMenuIsExpanded("rechnungen", open, submenuOpen, accordion);
 
   return (
     <div className="sidebarNavGroup">
-      <button
-        type="button"
-        className="sidebarNavParent"
+      <Link
+        href={RECHNUNGEN_LOCALHOST_NAV.href}
+        className={`sidebarNavParent${parentActive ? " active" : ""}`}
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
         {RECHNUNGEN_LOCALHOST_NAV.label}
-      </button>
-      {showSub ? <div className="sidebarNavSub" /> : null}
+      </Link>
+      {showSub ? (
+        <div className="sidebarNavSub">
+          {RECHNUNGEN_LOCALHOST_NAV.children.map((child) => {
+            const active = isRechnungenSubActive(child, pathname);
+            return (
+              <Link
+                key={child.href}
+                href={child.href}
+                className={active ? "active" : undefined}
+                onClick={() => onMobileNavClose?.()}
+              >
+                {child.label}
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1974,7 +2056,7 @@ function SidebarNavItems({
     showPkwNav ||
     showKundenLocalhost ||
     showLager ||
-    hasExtendedAppFeatures();
+    (localhostGroupedMainMenu && hasExtendedAppFeatures());
   const showMeldungenSection = navItemsBeforeQr.length > 0 || showQrCodeNav;
   const localhostAccordion = hasExtendedAppFeatures();
   const localhostMenuNav = localhostGroupedMainMenu;
@@ -2123,8 +2205,14 @@ function SidebarNavItems({
           />
         ) : null}
 
-        {hasExtendedAppFeatures() ? (
-          <RechnungenLocalhostNavGroup accordion={accordion} />
+        {localhostGroupedMainMenu && hasExtendedAppFeatures() ? (
+          <RechnungenLocalhostNavGroup
+            activeHref={activeHref}
+            pathname={pathname}
+            submenuOpen={submenuOpen}
+            accordion={accordion}
+            onMobileNavClose={onMobileNavClose}
+          />
         ) : null}
       </SidebarMainMenuSection>
 
