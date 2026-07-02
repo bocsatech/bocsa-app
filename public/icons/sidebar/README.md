@@ -1,8 +1,22 @@
-# Sidebar Menü — Demo-Icons
+# Sidebar Menü — Demo-PNGs
 
-| Datei | Beschreibung |
-|-------|--------------|
-| [demo-preview.png](./demo-preview.png) | Statische Vorschau der Icon-Demo |
-| Interaktiv | [/sidebar-icons](/sidebar-icons) (ohne Login) |
+Solid weiße Icons auf orangem Hintergrund (wie App-Sidebar).
 
-SVG-Glyphen im Code: `lib/sidebar-menu-icon-demo.tsx`
+## Generieren
+
+```bash
+node scripts/generate-sidebar-menu-demo-images.mjs
+```
+
+## Dateien
+
+| Pfad | Inhalt |
+|------|--------|
+| [full-sidebar.png](./full-sidebar.png) | Gesamte Sidebar-Vorschau |
+| [rows/](./rows/) | Einzelne Menüzeilen (320×44 px) |
+| [icons/](./icons/) | Icon-only Kacheln (96×96 px) |
+| [manifest.json](./manifest.json) | Metadaten für die Galerie |
+
+## Galerie
+
+[/sidebar-icons](/sidebar-icons) — ohne Login

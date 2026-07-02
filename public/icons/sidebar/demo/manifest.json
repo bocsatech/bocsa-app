@@ -1,0 +1,425 @@
+[
+  {
+    "slug": "home",
+    "label": "Home",
+    "section": "Start",
+    "icon": "home",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/home.png",
+    "iconPng": "/icons/sidebar/demo/icons/home.png"
+  },
+  {
+    "slug": "baumaschinen",
+    "label": "Baumaschinen",
+    "section": "Betrieb",
+    "icon": "baumaschinen",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/baumaschinen.png",
+    "iconPng": "/icons/sidebar/demo/icons/baumaschinen.png"
+  },
+  {
+    "slug": "baugeraete",
+    "label": "Baugeräte",
+    "section": "Betrieb",
+    "icon": "baugeraete",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/baugeraete.png",
+    "iconPng": "/icons/sidebar/demo/icons/baugeraete.png"
+  },
+  {
+    "slug": "arbeitsauftrag-bau",
+    "label": "Arbeitsauftrag",
+    "section": "Betrieb",
+    "icon": "arbeitsauftrag",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/arbeitsauftrag-bau.png",
+    "iconPng": "/icons/sidebar/demo/icons/arbeitsauftrag.png"
+  },
+  {
+    "slug": "pruefprotokoll",
+    "label": "Prüfprotokol",
+    "section": "Betrieb",
+    "icon": "pruefprotokoll",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/pruefprotokoll.png",
+    "iconPng": "/icons/sidebar/demo/icons/pruefprotokoll.png"
+  },
+  {
+    "slug": "maschine-hinzufuegen",
+    "label": "Maschine hinzufügen",
+    "section": "Betrieb",
+    "icon": "maschine-hinzufuegen",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/maschine-hinzufuegen.png",
+    "iconPng": "/icons/sidebar/demo/icons/maschine-hinzufuegen.png"
+  },
+  {
+    "slug": "nummern-codes",
+    "label": "Nummern-Codes",
+    "section": "Betrieb",
+    "icon": "nummern-codes",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/nummern-codes.png",
+    "iconPng": "/icons/sidebar/demo/icons/nummern-codes.png"
+  },
+  {
+    "slug": "qr-scan",
+    "label": "QR-Code scannen",
+    "section": "Betrieb",
+    "icon": "qr",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/qr-scan.png",
+    "iconPng": "/icons/sidebar/demo/icons/qr.png"
+  },
+  {
+    "slug": "geraetgruppen",
+    "label": "Gerätegruppen – Protokoll",
+    "section": "Betrieb",
+    "icon": "geraetgruppen",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/geraetgruppen.png",
+    "iconPng": "/icons/sidebar/demo/icons/geraetgruppen.png"
+  },
+  {
+    "slug": "pkw",
+    "label": "PKW",
+    "section": "Betrieb",
+    "icon": "pkw",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/pkw.png",
+    "iconPng": "/icons/sidebar/demo/icons/pkw.png"
+  },
+  {
+    "slug": "fahrzeug",
+    "label": "Fahrzeug",
+    "section": "Betrieb",
+    "icon": "fahrzeug",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/fahrzeug.png",
+    "iconPng": "/icons/sidebar/demo/icons/fahrzeug.png"
+  },
+  {
+    "slug": "arbeitsauftrag-pkw",
+    "label": "Arbeitsauftrag",
+    "section": "Betrieb",
+    "icon": "arbeitsauftrag",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/arbeitsauftrag-pkw.png",
+    "iconPng": "/icons/sidebar/demo/icons/arbeitsauftrag.png"
+  },
+  {
+    "slug": "fahrzeug-hinzufuegen",
+    "label": "Fahrzeug hinzufügen",
+    "section": "Betrieb",
+    "icon": "fahrzeug-hinzufuegen",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/fahrzeug-hinzufuegen.png",
+    "iconPng": "/icons/sidebar/demo/icons/fahrzeug-hinzufuegen.png"
+  },
+  {
+    "slug": "kunden-pkw",
+    "label": "Kunden",
+    "section": "Betrieb",
+    "icon": "kunden",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/kunden-pkw.png",
+    "iconPng": "/icons/sidebar/demo/icons/kunden.png"
+  },
+  {
+    "slug": "pkw-gruppen",
+    "label": "PKW-Gruppen",
+    "section": "Betrieb",
+    "icon": "pkw-gruppen",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/pkw-gruppen.png",
+    "iconPng": "/icons/sidebar/demo/icons/pkw-gruppen.png"
+  },
+  {
+    "slug": "pkw-service",
+    "label": "PKW-Service",
+    "section": "Betrieb",
+    "icon": "pkw-service",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/pkw-service.png",
+    "iconPng": "/icons/sidebar/demo/icons/pkw-service.png"
+  },
+  {
+    "slug": "kunden",
+    "label": "Kunden",
+    "section": "Betrieb",
+    "icon": "kunden",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/kunden.png",
+    "iconPng": "/icons/sidebar/demo/icons/kunden.png"
+  },
+  {
+    "slug": "lager",
+    "label": "Lager",
+    "section": "Betrieb",
+    "icon": "lager",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/lager.png",
+    "iconPng": "/icons/sidebar/demo/icons/lager.png"
+  },
+  {
+    "slug": "ersatzteile",
+    "label": "Ersatzteile",
+    "section": "Betrieb",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/ersatzteile.png",
+    "iconPng": null
+  },
+  {
+    "slug": "reservierungen",
+    "label": "Reservierungen",
+    "section": "Betrieb",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/reservierungen.png",
+    "iconPng": null
+  },
+  {
+    "slug": "lager-meldungen",
+    "label": "Meldungen",
+    "section": "Betrieb",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/lager-meldungen.png",
+    "iconPng": null
+  },
+  {
+    "slug": "bewegungen",
+    "label": "Bewegungen",
+    "section": "Betrieb",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/bewegungen.png",
+    "iconPng": null
+  },
+  {
+    "slug": "inventur",
+    "label": "Inventur",
+    "section": "Betrieb",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/inventur.png",
+    "iconPng": null
+  },
+  {
+    "slug": "rechnungen",
+    "label": "Rechnungen",
+    "section": "Betrieb",
+    "icon": "rechnungen",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/rechnungen.png",
+    "iconPng": "/icons/sidebar/demo/icons/rechnungen.png"
+  },
+  {
+    "slug": "meldungen",
+    "label": "Meldungen",
+    "section": "Meldungen & Zeit",
+    "icon": "meldungen",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/meldungen.png",
+    "iconPng": "/icons/sidebar/demo/icons/meldungen.png"
+  },
+  {
+    "slug": "arbeitsstunden",
+    "label": "Arbeitsstunden",
+    "section": "Meldungen & Zeit",
+    "icon": "arbeitsstunden",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/arbeitsstunden.png",
+    "iconPng": "/icons/sidebar/demo/icons/arbeitsstunden.png"
+  },
+  {
+    "slug": "qr-code",
+    "label": "QR-Code",
+    "section": "Meldungen & Zeit",
+    "icon": "qr",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/qr-code.png",
+    "iconPng": "/icons/sidebar/demo/icons/qr.png"
+  },
+  {
+    "slug": "meine-menu",
+    "label": "Persönliche Menu",
+    "section": "Personal",
+    "icon": "meine-menu",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/meine-menu.png",
+    "iconPng": "/icons/sidebar/demo/icons/meine-menu.png"
+  },
+  {
+    "slug": "aufgaben",
+    "label": "Aufgaben",
+    "section": "Personal",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/aufgaben.png",
+    "iconPng": null
+  },
+  {
+    "slug": "nachrichten",
+    "label": "Nachrichten",
+    "section": "Personal",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/nachrichten.png",
+    "iconPng": null
+  },
+  {
+    "slug": "arbeitsstunden-meine",
+    "label": "Arbeitsstunden",
+    "section": "Personal",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/arbeitsstunden-meine.png",
+    "iconPng": null
+  },
+  {
+    "slug": "urlaub",
+    "label": "Urlaub",
+    "section": "Personal",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/urlaub.png",
+    "iconPng": null
+  },
+  {
+    "slug": "stammdaten",
+    "label": "Stammdaten",
+    "section": "Personal",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/stammdaten.png",
+    "iconPng": null
+  },
+  {
+    "slug": "einstellungen",
+    "label": "Einstellungen",
+    "section": "System",
+    "icon": "einstellungen",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/einstellungen.png",
+    "iconPng": "/icons/sidebar/demo/icons/einstellungen.png"
+  },
+  {
+    "slug": "firma",
+    "label": "Firma",
+    "section": "System",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/firma.png",
+    "iconPng": null
+  },
+  {
+    "slug": "users",
+    "label": "Benutzer",
+    "section": "System",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/users.png",
+    "iconPng": null
+  },
+  {
+    "slug": "groups",
+    "label": "Gruppen",
+    "section": "System",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/groups.png",
+    "iconPng": null
+  },
+  {
+    "slug": "admin",
+    "label": "Admin",
+    "section": "System",
+    "icon": "admin",
+    "level": 0,
+    "rowPng": "/icons/sidebar/demo/rows/admin.png",
+    "iconPng": "/icons/sidebar/demo/icons/admin.png"
+  },
+  {
+    "slug": "admin-uebersicht",
+    "label": "Übersicht",
+    "section": "System",
+    "icon": null,
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/admin-uebersicht.png",
+    "iconPng": null
+  },
+  {
+    "slug": "baugeraet",
+    "label": "Baugerät",
+    "section": "System",
+    "icon": "baugeraet",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/baugeraet.png",
+    "iconPng": "/icons/sidebar/demo/icons/baugeraet.png"
+  },
+  {
+    "slug": "maschine-hinzufuegen-admin",
+    "label": "Maschine hinzufügen",
+    "section": "System",
+    "icon": null,
+    "level": 2,
+    "rowPng": "/icons/sidebar/demo/rows/maschine-hinzufuegen-admin.png",
+    "iconPng": null
+  },
+  {
+    "slug": "nummern-codes-admin",
+    "label": "Nummern-Codes",
+    "section": "System",
+    "icon": null,
+    "level": 2,
+    "rowPng": "/icons/sidebar/demo/rows/nummern-codes-admin.png",
+    "iconPng": null
+  },
+  {
+    "slug": "qr-admin",
+    "label": "QR-Code scannen",
+    "section": "System",
+    "icon": null,
+    "level": 2,
+    "rowPng": "/icons/sidebar/demo/rows/qr-admin.png",
+    "iconPng": null
+  },
+  {
+    "slug": "geraetgruppen-admin",
+    "label": "Gerätegruppen – Protokoll",
+    "section": "System",
+    "icon": null,
+    "level": 2,
+    "rowPng": "/icons/sidebar/demo/rows/geraetgruppen-admin.png",
+    "iconPng": null
+  },
+  {
+    "slug": "pkw-admin",
+    "label": "PKW",
+    "section": "System",
+    "icon": "pkw",
+    "level": 1,
+    "rowPng": "/icons/sidebar/demo/rows/pkw-admin.png",
+    "iconPng": "/icons/sidebar/demo/icons/pkw.png"
+  },
+  {
+    "slug": "fahrzeug-hinzufuegen-admin",
+    "label": "Fahrzeug hinzufügen",
+    "section": "System",
+    "icon": null,
+    "level": 2,
+    "rowPng": "/icons/sidebar/demo/rows/fahrzeug-hinzufuegen-admin.png",
+    "iconPng": null
+  },
+  {
+    "slug": "pkw-gruppen-admin",
+    "label": "PKW-Gruppen",
+    "section": "System",
+    "icon": null,
+    "level": 2,
+    "rowPng": "/icons/sidebar/demo/rows/pkw-gruppen-admin.png",
+    "iconPng": null
+  }
+]

@@ -645,6 +645,78 @@ body.app-shell-route .appPageScroll > .welcomeCard {
   font-weight: 600;
 }
 
+.sidebarIconsDemoPreviewImage img.sidebarIconsDemoFullSidebar {
+  width: auto;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.sidebarIconsDemoSectionBlock {
+  margin-top: 2rem;
+}
+
+.sidebarIconsDemoSectionBlock h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.sidebarIconsDemoRowGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.sidebarIconsDemoRowCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.sidebarIconsDemoRowCard > img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.sidebarIconsDemoRowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.sidebarIconsDemoRowMeta strong {
+  flex: 1 1 100%;
+}
+
+.sidebarIconsDemoRowIconOnly img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.sidebarIconsDemoRowNoIcon {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.sidebarIconsDemoRowMeta a {
+  color: #ea580c;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
 .sidebarIconsDemoLayout {
   display: grid;
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
