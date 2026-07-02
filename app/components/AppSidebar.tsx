@@ -616,20 +616,15 @@ function isPkwSectionActive(
   aktion: string | null,
   pkwMenuOwner: LocalhostPkwMenuOwner = "pkw"
 ) {
+  if (hasExtendedAppFeatures() && pkwMenuOwner === "admin") {
+    return false;
+  }
   const includeKunden = !hasExtendedAppFeatures();
   const includeGruppen = !hasExtendedAppFeatures();
   if (
     hasExtendedAppFeatures() &&
     pathname.startsWith("/pkw/fahrzeuge") &&
     aktion === "hinzufuegen"
-  ) {
-    return false;
-  }
-  if (
-    hasExtendedAppFeatures() &&
-    pkwMenuOwner === "admin" &&
-    pathname === PKW_NAV.href &&
-    !aktion
   ) {
     return false;
   }
@@ -864,7 +859,6 @@ function resolveOpenSidebarMenuId(
   if (isBaumaschinenSectionActive(activeHref, pathname, aktion, maschinenMenuOwner)) {
     return "baumaschinen";
   }
-  if (isPkwSectionActive(activeHref, pathname, aktion, pkwMenuOwner)) return "pkw";
   if (
     isAdminLocalhostSectionActive(
       activeHref,
@@ -876,6 +870,7 @@ function resolveOpenSidebarMenuId(
   ) {
     return "admin";
   }
+  if (isPkwSectionActive(activeHref, pathname, aktion, pkwMenuOwner)) return "pkw";
   if (isLagerSectionActive(activeHref, pathname)) return "lager";
   if (isEinstellungenSectionActive(activeHref, pathname)) return "einstellungen";
   return null;
@@ -1201,7 +1196,7 @@ function AdminLocalhostNavGroup({
     if (!accordionOn) return;
     event.preventDefault();
 
-    if (localhostAdminSubNav && accordion) {
+    if (accordion) {
       if (subMenuId === "baugeraet") {
         localhostAdminSubSelect(accordion, "baugeraet", {
           maschinenMenuOwner: "admin",
@@ -1655,8 +1650,8 @@ function PkwNavGroup({
   const anySubActive = visibleChildren.some((child) =>
     isPkwSubActive(child, pathname, aktion, accordion?.pkwMenuOwner)
   );
-  const adminPkwContext = isLocalAppEnvironment() && accordion?.pkwMenuOwner === "admin";
-  const pkwMenuSelected = isLocalAppEnvironment() && accordion?.openMenuId === "pkw";
+  const adminPkwContext = localhostGroupedMainMenu && accordion?.pkwMenuOwner === "admin";
+  const pkwMenuSelected = localhostGroupedMainMenu && accordion?.openMenuId === "pkw";
   const parentActive =
     !adminPkwContext &&
     !anySubActive &&
@@ -1829,7 +1824,7 @@ function SidebarNavItems({
     hasExtendedAppFeatures();
   const showMeldungenSection = navItemsBeforeQr.length > 0 || showQrCodeNav;
   const localhostAccordion = hasExtendedAppFeatures();
-  const localhostMenuNav = isLocalAppEnvironment();
+  const localhostMenuNav = localhostGroupedMainMenu;
   const [openMenuId, setOpenMenuId] = useState<SidebarMenuId | null>(null);
   const [maschinenMenuOwner, setMaschinenMenuOwner] =
     useState<LocalhostMaschinenMenuOwner>("baumaschinen");
