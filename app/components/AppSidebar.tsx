@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState, type MouseEvent, Fragment } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode, Fragment } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import LogoutButton from "./LogoutButton";
@@ -1720,6 +1720,27 @@ function PkwNavGroup({
   );
 }
 
+function SidebarMainMenuSection({
+  label,
+  grouped,
+  children,
+}: {
+  label: string;
+  grouped: boolean;
+  children: ReactNode;
+}) {
+  if (!grouped) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="sidebarNavMainSection">
+      <p className="sidebarNavMainSectionLabel">{label}</p>
+      <div className="sidebarNavMainSectionItems">{children}</div>
+    </div>
+  );
+}
+
 function SidebarNavItems({
   activeHref,
   pathname,
@@ -1744,6 +1765,11 @@ function SidebarNavItems({
   onMobileNavClose?: () => void;
 }) {
   const { permissions, groups, username } = auth;
+  const [localhostGroupedMainMenu, setLocalhostGroupedMainMenu] = useState(false);
+
+  useEffect(() => {
+    setLocalhostGroupedMainMenu(isLocalHostEnvironment());
+  }, []);
 
   const showHome = canShowMenuItem(HOME_NAV.permission, permissions, groups, username);
   const showBaumaschinen = canShowMenuItem(
@@ -1763,8 +1789,17 @@ function SidebarNavItems({
     canShowMenuItem(item.permission, permissions, groups, username)
   );
   const navItemsBeforeQr = navItems.filter((item) => item.href !== "/qr-code");
-  const showQrCodeNav = navItems.some((item) => item.href === "/qr-code");
+  const showQrCodeNav =
+    !localhostGroupedMainMenu && navItems.some((item) => item.href === "/qr-code");
   const qrCodeNavItem = navItems.find((item) => item.href === "/qr-code");
+  const showPkwNav = pkwChildren.length > 0;
+  const showBetriebSection =
+    showBaumaschinen ||
+    showPkwNav ||
+    showKundenLocalhost ||
+    showLager ||
+    hasExtendedAppFeatures();
+  const showMeldungenSection = navItemsBeforeQr.length > 0 || showQrCodeNav;
   const localhostAccordion = hasExtendedAppFeatures();
   const localhostMenuNav = isLocalAppEnvironment();
   const [openMenuId, setOpenMenuId] = useState<SidebarMenuId | null>(null);
@@ -1894,25 +1929,130 @@ function SidebarNavItems({
 
   return (
     <>
-      {showHome ? (
-        <Link
-          href={HOME_NAV.href}
-          className={
-            activeHref === HOME_NAV.href || pathname === HOME_NAV.href ? "active" : undefined
-          }
-          onClick={localhostTopLinkClick}
-        >
-          {HOME_NAV.label}
-        </Link>
-      ) : null}
+      <SidebarMainMenuSection label="Start" grouped={localhostGroupedMainMenu && showHome}>
+        {showHome ? (
+          <Link
+            href={HOME_NAV.href}
+            className={
+              activeHref === HOME_NAV.href || pathname === HOME_NAV.href ? "active" : undefined
+            }
+            onClick={localhostTopLinkClick}
+          >
+            {HOME_NAV.label}
+          </Link>
+        ) : null}
+      </SidebarMainMenuSection>
 
-      {showBaumaschinen ? (
-        <BaumaschinenNavGroup
+      <SidebarMainMenuSection
+        label="Betrieb"
+        grouped={localhostGroupedMainMenu && showBetriebSection}
+      >
+        {showBaumaschinen ? (
+          <BaumaschinenNavGroup
+            activeHref={activeHref}
+            pathname={pathname}
+            aktion={aktion}
+            geraettyp={geraettyp}
+            geraetenummer={geraetenummer}
+            submenuOpen={submenuOpen}
+            permissions={permissions}
+            groups={groups}
+            username={username}
+            accordion={accordion}
+            onMobileNavClose={onMobileNavClose}
+          />
+        ) : null}
+
+        {showPkwNav ? (
+          <PkwNavGroup
+            activeHref={activeHref}
+            pathname={pathname}
+            aktion={aktion}
+            visibleChildren={pkwChildren}
+            submenuOpen={submenuOpen}
+            accordion={accordion}
+            onMobileNavClose={onMobileNavClose}
+          />
+        ) : null}
+
+        {showKundenLocalhost ? (
+          <Link
+            href={KUNDEN_LOCALHOST_NAV.href}
+            className={
+              isKundenSectionActive(activeHref, pathname) ? "active" : undefined
+            }
+            onClick={localhostTopLinkClick}
+          >
+            {KUNDEN_LOCALHOST_NAV.label}
+          </Link>
+        ) : null}
+
+        {showLager ? (
+          <LagerNavGroup
+            activeHref={activeHref}
+            pathname={pathname}
+            submenuOpen={submenuOpen}
+            meldungenCount={meldungenCount}
+            accordion={accordion}
+            onMobileNavClose={onMobileNavClose}
+          />
+        ) : null}
+
+        {hasExtendedAppFeatures() ? (
+          <RechnungenLocalhostNavGroup accordion={accordion} />
+        ) : null}
+      </SidebarMainMenuSection>
+
+      <SidebarMainMenuSection
+        label="Meldungen & Zeit"
+        grouped={localhostGroupedMainMenu && showMeldungenSection}
+      >
+        {navItemsBeforeQr.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={isNavActive(item, activeHref, pathname) ? "active" : undefined}
+            onClick={localhostTopLinkClick}
+          >
+            {item.label}
+          </Link>
+        ))}
+
+        {showQrCodeNav && qrCodeNavItem ? (
+          <Link
+            href={qrCodeNavItem.href}
+            className={
+              isNavActive(qrCodeNavItem, activeHref, pathname) ? "active" : undefined
+            }
+            onClick={localhostTopLinkClick}
+          >
+            {qrCodeNavItem.label}
+          </Link>
+        ) : null}
+      </SidebarMainMenuSection>
+
+      <SidebarMainMenuSection
+        label="Personal"
+        grouped={localhostGroupedMainMenu && hasExtendedAppFeatures()}
+      >
+        {hasExtendedAppFeatures() ? (
+          <MeineMenuNavGroup
+            activeHref={activeHref}
+            pathname={pathname}
+            submenuOpen={submenuOpen}
+            permissions={permissions}
+            groups={groups}
+            username={username}
+            accordion={accordion}
+            onMobileNavClose={onMobileNavClose}
+          />
+        ) : null}
+      </SidebarMainMenuSection>
+
+      <SidebarMainMenuSection label="System" grouped={localhostGroupedMainMenu}>
+        <EinstellungenNavGroup
           activeHref={activeHref}
           pathname={pathname}
-          aktion={aktion}
-          geraettyp={geraettyp}
-          geraetenummer={geraetenummer}
           submenuOpen={submenuOpen}
           permissions={permissions}
           groups={groups}
@@ -1920,105 +2060,21 @@ function SidebarNavItems({
           accordion={accordion}
           onMobileNavClose={onMobileNavClose}
         />
-      ) : null}
 
-      <PkwNavGroup
-        activeHref={activeHref}
-        pathname={pathname}
-        aktion={aktion}
-        visibleChildren={pkwChildren}
-        submenuOpen={submenuOpen}
-        accordion={accordion}
-        onMobileNavClose={onMobileNavClose}
-      />
-
-      {showKundenLocalhost ? (
-        <Link
-          href={KUNDEN_LOCALHOST_NAV.href}
-          className={
-            isKundenSectionActive(activeHref, pathname) ? "active" : undefined
-          }
-          onClick={localhostTopLinkClick}
-        >
-          {KUNDEN_LOCALHOST_NAV.label}
-        </Link>
-      ) : null}
-
-      {hasExtendedAppFeatures() ? (
-        <RechnungenLocalhostNavGroup accordion={accordion} />
-      ) : null}
-
-      {showLager ? (
-        <LagerNavGroup
-          activeHref={activeHref}
-          pathname={pathname}
-          submenuOpen={submenuOpen}
-          meldungenCount={meldungenCount}
-          accordion={accordion}
-          onMobileNavClose={onMobileNavClose}
-        />
-      ) : null}
-
-      {navItemsBeforeQr.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={isNavActive(item, activeHref, pathname) ? "active" : undefined}
-          onClick={localhostTopLinkClick}
-        >
-          {item.label}
-        </Link>
-      ))}
-
-      {showQrCodeNav && qrCodeNavItem ? (
-        <Link
-          href={qrCodeNavItem.href}
-          className={
-            isNavActive(qrCodeNavItem, activeHref, pathname) ? "active" : undefined
-          }
-          onClick={localhostTopLinkClick}
-        >
-          {qrCodeNavItem.label}
-        </Link>
-      ) : null}
-
-      {hasExtendedAppFeatures() ? (
-        <MeineMenuNavGroup
-          activeHref={activeHref}
-          pathname={pathname}
-          submenuOpen={submenuOpen}
-          permissions={permissions}
-          groups={groups}
-          username={username}
-          accordion={accordion}
-          onMobileNavClose={onMobileNavClose}
-        />
-      ) : null}
-
-      <EinstellungenNavGroup
-        activeHref={activeHref}
-        pathname={pathname}
-        submenuOpen={submenuOpen}
-        permissions={permissions}
-        groups={groups}
-        username={username}
-        accordion={accordion}
-        onMobileNavClose={onMobileNavClose}
-      />
-
-      {hasExtendedAppFeatures() ? (
-        <AdminLocalhostNavGroup
-          activeHref={activeHref}
-          pathname={pathname}
-          aktion={aktion}
-          submenuOpen={submenuOpen}
-          permissions={permissions}
-          groups={groups}
-          username={username}
-          accordion={accordion}
-          onMobileNavClose={onMobileNavClose}
-        />
-      ) : null}
+        {hasExtendedAppFeatures() ? (
+          <AdminLocalhostNavGroup
+            activeHref={activeHref}
+            pathname={pathname}
+            aktion={aktion}
+            submenuOpen={submenuOpen}
+            permissions={permissions}
+            groups={groups}
+            username={username}
+            accordion={accordion}
+            onMobileNavClose={onMobileNavClose}
+          />
+        ) : null}
+      </SidebarMainMenuSection>
     </>
   );
 }
