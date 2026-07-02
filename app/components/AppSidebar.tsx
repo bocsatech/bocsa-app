@@ -16,6 +16,7 @@ import {
   getBaupruefprotokollMenuLabel,
   hasExtendedAppFeatures,
   isLocalAppEnvironment,
+  isLocalHostEnvironment,
 } from "../../lib/local-host";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
