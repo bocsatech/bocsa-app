@@ -4,11 +4,6 @@ import { Suspense, useCallback, useEffect, useRef, useState, type MouseEvent, ty
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import LogoutButton from "./LogoutButton";
-import { SidebarNavLabel } from "./SidebarMenuIcon";
-import {
-  getSidebarMenuIconForBaumaschinenChild,
-  getSidebarMenuIconForHref,
-} from "../../lib/sidebar-menu-icons";
 import {
   ARBEITSAUFTRAG_DETAIL_PATH,
   ARBEITSAUFTRAG_LIST_PATH,
@@ -23,7 +18,6 @@ import {
   isLocalAppEnvironment,
   isLocalHostEnvironment,
 } from "../../lib/local-host";
-import { useLocalHostEnvironment } from "../../lib/use-local-host-ui";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -1051,10 +1045,8 @@ function isBaumaschinenListRoot(
 
 function RechnungenLocalhostNavGroup({
   accordion,
-  showMenuIcons,
 }: {
   accordion?: SidebarAccordionState;
-  showMenuIcons: boolean;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const [open, setOpen] = useState(false);
@@ -1081,9 +1073,7 @@ function RechnungenLocalhostNavGroup({
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        <SidebarNavLabel icon="rechnungen" showIcons={showMenuIcons}>
-          {RECHNUNGEN_LOCALHOST_NAV.label}
-        </SidebarNavLabel>
+        {RECHNUNGEN_LOCALHOST_NAV.label}
       </button>
       {showSub ? <div className="sidebarNavSub" /> : null}
     </div>
@@ -1099,7 +1089,6 @@ function MeineMenuNavGroup({
   username,
   accordion,
   onMobileNavClose,
-  showMenuIcons,
 }: {
   activeHref: string | undefined;
   pathname: string;
@@ -1109,7 +1098,6 @@ function MeineMenuNavGroup({
   username?: string;
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
-  showMenuIcons: boolean;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const visibleChildren = MEINE_MENU_NAV.children.filter((child) =>
@@ -1161,9 +1149,7 @@ function MeineMenuNavGroup({
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        <SidebarNavLabel icon="meine-menu" showIcons={showMenuIcons}>
-          {MEINE_MENU_NAV.label}
-        </SidebarNavLabel>
+        {MEINE_MENU_NAV.label}
       </button>
       {showSub ? (
         <div className="sidebarNavSub">
@@ -1174,13 +1160,7 @@ function MeineMenuNavGroup({
               className={isNavActive(child, activeHref, pathname) ? "active" : undefined}
               onClick={() => onMobileNavClose?.()}
             >
-              <SidebarNavLabel
-                icon={getSidebarMenuIconForHref(child.href)}
-                showIcons={showMenuIcons}
-                size="sub"
-              >
-                {child.label}
-              </SidebarNavLabel>
+              {child.label}
             </Link>
           ))}
         </div>
@@ -1198,7 +1178,6 @@ function EinstellungenNavGroup({
   username,
   accordion,
   onMobileNavClose,
-  showMenuIcons,
 }: {
   activeHref: string | undefined;
   pathname: string;
@@ -1208,7 +1187,6 @@ function EinstellungenNavGroup({
   username?: string;
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
-  showMenuIcons: boolean;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const visibleChildren = EINSTELLUNGEN_NAV.children.filter((child) =>
@@ -1255,9 +1233,7 @@ function EinstellungenNavGroup({
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        <SidebarNavLabel icon="einstellungen" showIcons={showMenuIcons}>
-          {EINSTELLUNGEN_NAV.label}
-        </SidebarNavLabel>
+        {EINSTELLUNGEN_NAV.label}
       </button>
       {showSub ? (
         <div className="sidebarNavSub">
@@ -1268,13 +1244,7 @@ function EinstellungenNavGroup({
               className={isNavActive(child, activeHref, pathname) ? "active" : undefined}
               onClick={() => onMobileNavClose?.()}
             >
-              <SidebarNavLabel
-                icon={getSidebarMenuIconForHref(child.href)}
-                showIcons={showMenuIcons}
-                size="sub"
-              >
-                {child.label}
-              </SidebarNavLabel>
+              {child.label}
             </Link>
           ))}
         </div>
@@ -1293,7 +1263,6 @@ function AdminLocalhostNavGroup({
   username,
   accordion,
   onMobileNavClose,
-  showMenuIcons,
 }: {
   activeHref: string | undefined;
   pathname: string;
@@ -1304,7 +1273,6 @@ function AdminLocalhostNavGroup({
   username?: string;
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
-  showMenuIcons: boolean;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const router = useRouter();
@@ -1439,9 +1407,7 @@ function AdminLocalhostNavGroup({
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        <SidebarNavLabel icon="admin" showIcons={showMenuIcons}>
-          {ADMIN_LOCALHOST_NAV.label}
-        </SidebarNavLabel>
+        {ADMIN_LOCALHOST_NAV.label}
       </button>
       {showSub ? (
         <div className="sidebarNavSub">
@@ -1454,13 +1420,7 @@ function AdminLocalhostNavGroup({
               }
               onClick={() => onMobileNavClose?.()}
             >
-              <SidebarNavLabel
-                icon={getSidebarMenuIconForHref(child.href)}
-                showIcons={showMenuIcons}
-                size="sub"
-              >
-                {child.label}
-              </SidebarNavLabel>
+              {child.label}
             </Link>
           ))}
           {visibleBaugeraetChildren.length > 0 ? (
@@ -1477,9 +1437,7 @@ function AdminLocalhostNavGroup({
                   onMobileNavClose?.();
                 }}
               >
-                <SidebarNavLabel icon="baugeraet" showIcons={showMenuIcons} size="sub">
-                  {ADMIN_LOCALHOST_BAUGERAET_NAV.label}
-                </SidebarNavLabel>
+                {ADMIN_LOCALHOST_BAUGERAET_NAV.label}
               </Link>
               {openAdminSubId === "baugeraet" ? (
                 <div className="sidebarNavSubNested">
@@ -1502,16 +1460,7 @@ function AdminLocalhostNavGroup({
                         onMobileNavClose?.();
                       }}
                     >
-                      <SidebarNavLabel
-                        icon={getSidebarMenuIconForHref(
-                          child.href,
-                          "aktion" in child ? child.aktion : null
-                        )}
-                        showIcons={showMenuIcons}
-                        size="nested"
-                      >
-                        {child.label}
-                      </SidebarNavLabel>
+                      {child.label}
                     </Link>
                   ))}
                 </div>
@@ -1532,9 +1481,7 @@ function AdminLocalhostNavGroup({
                   onMobileNavClose?.();
                 }}
               >
-                <SidebarNavLabel icon="pkw" showIcons={showMenuIcons} size="sub">
-                  {ADMIN_LOCALHOST_PKW_NAV.label}
-                </SidebarNavLabel>
+                {ADMIN_LOCALHOST_PKW_NAV.label}
               </Link>
               {openAdminSubId === "pkw" ? (
                 <div className="sidebarNavSubNested">
@@ -1557,16 +1504,7 @@ function AdminLocalhostNavGroup({
                         onMobileNavClose?.();
                       }}
                     >
-                      <SidebarNavLabel
-                        icon={getSidebarMenuIconForHref(
-                          child.href,
-                          "aktion" in child ? child.aktion : null
-                        )}
-                        showIcons={showMenuIcons}
-                        size="nested"
-                      >
-                        {child.label}
-                      </SidebarNavLabel>
+                      {child.label}
                     </Link>
                   ))}
                 </div>
@@ -1591,7 +1529,6 @@ function BaumaschinenNavGroup({
   username,
   accordion,
   onMobileNavClose,
-  showMenuIcons,
 }: {
   activeHref: string | undefined;
   pathname: string;
@@ -1604,7 +1541,6 @@ function BaumaschinenNavGroup({
   username?: string;
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
-  showMenuIcons: boolean;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const router = useRouter();
@@ -1688,9 +1624,7 @@ function BaumaschinenNavGroup({
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        <SidebarNavLabel icon="baumaschinen" showIcons={showMenuIcons}>
-          {BAUMASCHINEN_NAV.label}
-        </SidebarNavLabel>
+        {BAUMASCHINEN_NAV.label}
       </Link>
       {showSub ? (
         <div className="sidebarNavSub">
@@ -1709,7 +1643,6 @@ function BaumaschinenNavGroup({
               aktion,
               accordion?.maschinenMenuOwner
             );
-            const childAktion = child.kind === "aktion" ? child.aktion : undefined;
             return (
               <Link
                 key={`${child.kind}-${child.href}-${"label" in child ? child.label : ""}`}
@@ -1723,13 +1656,7 @@ function BaumaschinenNavGroup({
                   onMobileNavClose?.();
                 }}
               >
-                <SidebarNavLabel
-                  icon={getSidebarMenuIconForBaumaschinenChild(child.href, childAktion)}
-                  showIcons={showMenuIcons}
-                  size="sub"
-                >
-                  {getBaumaschinenChildLabel(child)}
-                </SidebarNavLabel>
+                {getBaumaschinenChildLabel(child)}
               </Link>
             );
           })}
@@ -1746,7 +1673,6 @@ function LagerNavGroup({
   meldungenCount,
   accordion,
   onMobileNavClose,
-  showMenuIcons,
 }: {
   activeHref: string | undefined;
   pathname: string;
@@ -1754,7 +1680,6 @@ function LagerNavGroup({
   meldungenCount: number;
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
-  showMenuIcons: boolean;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const router = useRouter();
@@ -1819,9 +1744,7 @@ function LagerNavGroup({
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        <SidebarNavLabel icon="lager" showIcons={showMenuIcons}>
-          {LAGER_NAV.label}
-        </SidebarNavLabel>
+        {LAGER_NAV.label}
       </Link>
       {showSub ? (
         <div className="sidebarNavSub">
@@ -1834,14 +1757,8 @@ function LagerNavGroup({
                 className={active ? "active" : undefined}
                 onClick={() => onMobileNavClose?.()}
               >
-                <SidebarNavLabel
-                  icon={getSidebarMenuIconForHref(child.href)}
-                  showIcons={showMenuIcons}
-                  size="sub"
-                >
-                  {child.label}
-                  {child.badge ? ` (${child.badge})` : ""}
-                </SidebarNavLabel>
+                {child.label}
+                {child.badge ? ` (${child.badge})` : ""}
               </Link>
             );
           })}
@@ -1859,7 +1776,6 @@ function PkwNavGroup({
   submenuOpen,
   accordion,
   onMobileNavClose,
-  showMenuIcons,
 }: {
   activeHref: string | undefined;
   pathname: string;
@@ -1868,7 +1784,6 @@ function PkwNavGroup({
   submenuOpen: boolean;
   accordion?: SidebarAccordionState;
   onMobileNavClose?: () => void;
-  showMenuIcons: boolean;
 }) {
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const router = useRouter();
@@ -1943,15 +1858,12 @@ function PkwNavGroup({
         aria-expanded={showSub}
         onClick={handleParentClick}
       >
-        <SidebarNavLabel icon="pkw" showIcons={showMenuIcons}>
-          {PKW_NAV.label}
-        </SidebarNavLabel>
+        {PKW_NAV.label}
       </Link>
       {showSub ? (
         <div className="sidebarNavSub">
           {visibleChildren.map((child) => {
             const active = isPkwSubActive(child, pathname, aktion, accordion?.pkwMenuOwner);
-            const childAktion = child.kind === "aktion" ? child.aktion : undefined;
             return (
               <Link
                 key={child.href}
@@ -1965,13 +1877,7 @@ function PkwNavGroup({
                   onMobileNavClose?.();
                 }}
               >
-                <SidebarNavLabel
-                  icon={getSidebarMenuIconForHref(child.href, childAktion)}
-                  showIcons={showMenuIcons}
-                  size="sub"
-                >
-                  {child.label}
-                </SidebarNavLabel>
+                {child.label}
               </Link>
             );
           })}
@@ -2026,8 +1932,11 @@ function SidebarNavItems({
   onMobileNavClose?: () => void;
 }) {
   const { permissions, groups, username } = auth;
-  const localhostGroupedMainMenu = useLocalHostEnvironment();
-  const showMenuIcons = localhostGroupedMainMenu;
+  const [localhostGroupedMainMenu, setLocalhostGroupedMainMenu] = useState(false);
+
+  useEffect(() => {
+    setLocalhostGroupedMainMenu(isLocalHostEnvironment());
+  }, []);
 
   const showHome = canShowMenuItem(HOME_NAV.permission, permissions, groups, username);
   const showBaumaschinen = canShowMenuItem(
@@ -2145,9 +2054,7 @@ function SidebarNavItems({
             }
             onClick={localhostTopLinkClick}
           >
-            <SidebarNavLabel icon="home" showIcons={showMenuIcons}>
-              {HOME_NAV.label}
-            </SidebarNavLabel>
+            {HOME_NAV.label}
           </Link>
         ) : null}
       </SidebarMainMenuSection>
@@ -2169,7 +2076,6 @@ function SidebarNavItems({
             username={username}
             accordion={accordion}
             onMobileNavClose={onMobileNavClose}
-            showMenuIcons={showMenuIcons}
           />
         ) : null}
 
@@ -2182,7 +2088,6 @@ function SidebarNavItems({
             submenuOpen={submenuOpen}
             accordion={accordion}
             onMobileNavClose={onMobileNavClose}
-            showMenuIcons={showMenuIcons}
           />
         ) : null}
 
@@ -2194,9 +2099,7 @@ function SidebarNavItems({
             }
             onClick={localhostTopLinkClick}
           >
-            <SidebarNavLabel icon="kunden" showIcons={showMenuIcons}>
-              {KUNDEN_LOCALHOST_NAV.label}
-            </SidebarNavLabel>
+            {KUNDEN_LOCALHOST_NAV.label}
           </Link>
         ) : null}
 
@@ -2208,12 +2111,11 @@ function SidebarNavItems({
             meldungenCount={meldungenCount}
             accordion={accordion}
             onMobileNavClose={onMobileNavClose}
-            showMenuIcons={showMenuIcons}
           />
         ) : null}
 
         {hasExtendedAppFeatures() ? (
-          <RechnungenLocalhostNavGroup accordion={accordion} showMenuIcons={showMenuIcons} />
+          <RechnungenLocalhostNavGroup accordion={accordion} />
         ) : null}
       </SidebarMainMenuSection>
 
@@ -2228,12 +2130,7 @@ function SidebarNavItems({
             className={isNavActive(item, activeHref, pathname) ? "active" : undefined}
             onClick={localhostTopLinkClick}
           >
-            <SidebarNavLabel
-              icon={getSidebarMenuIconForHref(item.href)}
-              showIcons={showMenuIcons}
-            >
-              {item.label}
-            </SidebarNavLabel>
+            {item.label}
           </Link>
         ))}
 
@@ -2245,9 +2142,7 @@ function SidebarNavItems({
             }
             onClick={localhostTopLinkClick}
           >
-            <SidebarNavLabel icon="qr" showIcons={showMenuIcons}>
-              {qrCodeNavItem.label}
-            </SidebarNavLabel>
+            {qrCodeNavItem.label}
           </Link>
         ) : null}
       </SidebarMainMenuSection>
@@ -2266,7 +2161,6 @@ function SidebarNavItems({
             username={username}
             accordion={accordion}
             onMobileNavClose={onMobileNavClose}
-            showMenuIcons={showMenuIcons}
           />
         ) : null}
       </SidebarMainMenuSection>
@@ -2281,7 +2175,6 @@ function SidebarNavItems({
           username={username}
           accordion={accordion}
           onMobileNavClose={onMobileNavClose}
-          showMenuIcons={showMenuIcons}
         />
 
         {hasExtendedAppFeatures() ? (
@@ -2295,7 +2188,6 @@ function SidebarNavItems({
             username={username}
             accordion={accordion}
             onMobileNavClose={onMobileNavClose}
-            showMenuIcons={showMenuIcons}
           />
         ) : null}
       </SidebarMainMenuSection>
@@ -2396,7 +2288,6 @@ function useLagerMeldungenCount(canLoad: boolean) {
 export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) {
   const pathname = usePathname();
   const auth = useSidebarAuth();
-  const localhostSidebarUi = useLocalHostEnvironment();
   const { permissions, groups, username } = auth;
   const showLager = canShowMenuItem(LAGER_NAV.permission, permissions, groups, username);
   const meldungenCount = useLagerMeldungenCount(showLager);
@@ -2456,10 +2347,7 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
           {mobileMenuOpen ? "Schließen" : MEINE_MENU_NAV.label}
         </button>
       </div>
-      <nav
-        id="sidebar-main-nav"
-        className={`sidebarNav${localhostSidebarUi ? " sidebarNav--icons" : ""}`}
-      >
+      <nav id="sidebar-main-nav" className="sidebarNav">
         <Suspense
           fallback={
             <SidebarNavFallback
