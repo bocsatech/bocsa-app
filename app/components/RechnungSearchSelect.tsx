@@ -35,10 +35,7 @@ export default function RechnungSearchSelect<T>({
     [options, search, getSearchText]
   );
 
-  const emptyLabel =
-    search.trim() && filtered.length !== options.length
-      ? `${emptyOptionLabel} (${filtered.length}/${options.length})`
-      : emptyOptionLabel;
+  const searchActive = search.trim().length > 0;
 
   return (
     <label className="rechnungSearchSelect">
@@ -60,13 +57,16 @@ export default function RechnungSearchSelect<T>({
           onChange(nextValue, item);
         }}
       >
-        <option value="">{emptyLabel}</option>
+        <option value="">{emptyOptionLabel}</option>
         {filtered.map((item) => (
           <option key={getOptionValue(item)} value={getOptionValue(item)}>
             {getOptionLabel(item)}
           </option>
         ))}
       </select>
+      {searchActive && filtered.length === 0 ? (
+        <span className="rechnungSearchSelectHint">Keine Treffer</span>
+      ) : null}
     </label>
   );
 }
