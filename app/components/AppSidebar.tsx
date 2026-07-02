@@ -529,19 +529,15 @@ function isBaumaschinenSectionActive(
   aktion: string | null,
   maschinenMenuOwner: LocalhostMaschinenMenuOwner = "baumaschinen"
 ) {
+  if (hasExtendedAppFeatures() && maschinenMenuOwner === "admin") {
+    return false;
+  }
   const includeGeraetgruppen = !hasExtendedAppFeatures();
   if (
     hasExtendedAppFeatures() &&
     pathname.startsWith("/maschinen") &&
     aktion &&
     BAUMASCHINEN_ADMIN_AKTIONS.has(aktion)
-  ) {
-    return false;
-  }
-  if (
-    hasExtendedAppFeatures() &&
-    maschinenMenuOwner === "admin" &&
-    pathname.startsWith("/maschinen")
   ) {
     return false;
   }
@@ -570,7 +566,7 @@ function isBaumaschinenSubActive(
   maschinenMenuOwner: LocalhostMaschinenMenuOwner = "baumaschinen"
 ) {
   if (
-    isLocalAppEnvironment() &&
+    hasExtendedAppFeatures() &&
     maschinenMenuOwner === "admin" &&
     ((child.kind === "route" && child.href === MASCHINEN_LIST_PATH) ||
       (child.kind === "route" && child.href === MASCHINEN_HINZUFUEGEN_PATH) ||
@@ -856,9 +852,6 @@ function resolveOpenSidebarMenuId(
   if (hasExtendedAppFeatures() && pathname === PKW_NAV.href && !aktion) {
     return pkwMenuOwner === "admin" ? "admin" : "pkw";
   }
-  if (isBaumaschinenSectionActive(activeHref, pathname, aktion, maschinenMenuOwner)) {
-    return "baumaschinen";
-  }
   if (
     isAdminLocalhostSectionActive(
       activeHref,
@@ -869,6 +862,9 @@ function resolveOpenSidebarMenuId(
     )
   ) {
     return "admin";
+  }
+  if (isBaumaschinenSectionActive(activeHref, pathname, aktion, maschinenMenuOwner)) {
+    return "baumaschinen";
   }
   if (isPkwSectionActive(activeHref, pathname, aktion, pkwMenuOwner)) return "pkw";
   if (isLagerSectionActive(activeHref, pathname)) return "lager";
@@ -1411,10 +1407,8 @@ function BaumaschinenNavGroup({
   const anySubActive = visibleChildren.some((child) =>
     isBaumaschinenSubActive(child, activeHref, pathname, aktion, accordion?.maschinenMenuOwner)
   );
-  const adminMaschinenContext =
-    isLocalAppEnvironment() && accordion?.maschinenMenuOwner === "admin";
-  const baumaschinenMenuSelected =
-    isLocalAppEnvironment() && accordion?.openMenuId === "baumaschinen";
+  const adminMaschinenContext = accordionOn && accordion?.maschinenMenuOwner === "admin";
+  const baumaschinenMenuSelected = accordionOn && accordion?.openMenuId === "baumaschinen";
   const parentActive =
     !adminMaschinenContext &&
     !anySubActive &&
@@ -1650,8 +1644,8 @@ function PkwNavGroup({
   const anySubActive = visibleChildren.some((child) =>
     isPkwSubActive(child, pathname, aktion, accordion?.pkwMenuOwner)
   );
-  const adminPkwContext = localhostGroupedMainMenu && accordion?.pkwMenuOwner === "admin";
-  const pkwMenuSelected = localhostGroupedMainMenu && accordion?.openMenuId === "pkw";
+  const adminPkwContext = accordionOn && accordion?.pkwMenuOwner === "admin";
+  const pkwMenuSelected = accordionOn && accordion?.openMenuId === "pkw";
   const parentActive =
     !adminPkwContext &&
     !anySubActive &&
