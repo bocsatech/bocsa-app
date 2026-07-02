@@ -10,7 +10,7 @@ import { fetchRechnung } from "../../../../lib/rechnung";
 import type { Rechnung } from "../../../../lib/types/rechnung";
 
 export default function RechnungPrintPage() {
-  const ready = useLocalhostOnly();
+  const state = useLocalhostOnly();
   const params = useParams();
   const id = String(params.id ?? "");
   const [rechnung, setRechnung] = useState<Rechnung | null>(null);
@@ -18,7 +18,7 @@ export default function RechnungPrintPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!ready || !id) return;
+    if (state !== "ready" || !id) return;
     void fetchRechnung(id).then(({ data, error: loadError }) => {
       if (loadError) setError(loadError);
       else setRechnung(data?.rechnung ?? null);
@@ -27,9 +27,15 @@ export default function RechnungPrintPage() {
       .then((r) => r.json())
       .then((payload) => setFirma(normalizeFirmaData(payload?.firma)))
       .catch(() => setFirma(EMPTY_FIRMA));
-  }, [ready, id]);
+  }, [state, id]);
 
-  if (!ready) return null;
+  if (state === "pending" || state === "blocked") {
+    return (
+      <div className="rechnungPrintPage">
+        <p>{state === "pending" ? "Laden…" : "Nur localhost verfügbar."}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rechnungPrintPage">

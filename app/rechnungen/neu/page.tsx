@@ -7,11 +7,19 @@ import RechnungForm from "../../components/RechnungForm";
 import { useLocalhostOnly } from "../../hooks/useLocalhostOnly";
 
 function RechnungNeuContent() {
-  const ready = useLocalhostOnly();
+  const state = useLocalhostOnly();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  if (!ready) return null;
+  if (state === "pending" || state === "blocked") {
+    return (
+      <AppPageShell activeHref="/rechnungen/neu" subtitle="Rechnungen" title="Neue Rechnung">
+        <div className="welcomeCard">
+          <p>{state === "pending" ? "Laden…" : "Nur localhost verfügbar."}</p>
+        </div>
+      </AppPageShell>
+    );
+  }
 
   return (
     <AppPageShell activeHref="/rechnungen/neu" subtitle="Rechnungen" title="Neue Rechnung">

@@ -15,7 +15,7 @@ import {
 import type { RechnungListItem } from "../../lib/types/rechnung";
 
 export default function RechnungenPage() {
-  const ready = useLocalhostOnly();
+  const state = useLocalhostOnly();
   const router = useRouter();
   const [rows, setRows] = useState<RechnungListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,9 +35,9 @@ export default function RechnungenPage() {
   }
 
   useEffect(() => {
-    if (!ready) return;
+    if (state !== "ready") return;
     void load();
-  }, [ready]);
+  }, [state]);
 
   async function handleDelete(id: string, nr: string) {
     if (!window.confirm(`Rechnung ${nr} löschen?`)) return;
@@ -49,7 +49,15 @@ export default function RechnungenPage() {
     void load();
   }
 
-  if (!ready) return null;
+  if (state === "pending" || state === "blocked") {
+    return (
+      <AppPageShell activeHref="/rechnungen" subtitle="Rechnungen" title="Rechnungen">
+        <div className="welcomeCard">
+          <p>{state === "pending" ? "Laden…" : "Nur localhost verfügbar."}</p>
+        </div>
+      </AppPageShell>
+    );
+  }
 
   return (
     <AppPageShell activeHref="/rechnungen" subtitle="Rechnungen" title="Rechnungen">

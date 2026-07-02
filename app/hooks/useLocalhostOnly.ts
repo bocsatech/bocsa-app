@@ -2,19 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { isLocalHostEnvironment } from "../../lib/local-host";
+import { isLocalAppEnvironment } from "../../lib/local-host";
+
+type State = "pending" | "ready" | "blocked";
 
 export function useLocalhostOnly(fallbackHref = "/") {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const [state, setState] = useState<State>("pending");
 
   useEffect(() => {
-    if (!isLocalHostEnvironment()) {
+    if (!isLocalAppEnvironment()) {
+      setState("blocked");
       router.replace(fallbackHref);
       return;
     }
-    setReady(true);
+    setState("ready");
   }, [fallbackHref, router]);
 
-  return ready;
+  return state;
 }

@@ -2026,7 +2026,7 @@ function SidebarNavItems({
   const [localhostGroupedMainMenu, setLocalhostGroupedMainMenu] = useState(false);
 
   useEffect(() => {
-    setLocalhostGroupedMainMenu(isLocalHostEnvironment());
+    setLocalhostGroupedMainMenu(isLocalAppEnvironment());
   }, []);
 
   const showHome = canShowMenuItem(HOME_NAV.permission, permissions, groups, username);

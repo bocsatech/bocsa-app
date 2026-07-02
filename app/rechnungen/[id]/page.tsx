@@ -10,14 +10,14 @@ import { fetchRechnung } from "../../../lib/rechnung";
 import type { Rechnung } from "../../../lib/types/rechnung";
 
 export default function RechnungDetailPage() {
-  const ready = useLocalhostOnly();
+  const state = useLocalhostOnly();
   const params = useParams();
   const id = String(params.id ?? "");
   const [rechnung, setRechnung] = useState<Rechnung | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!ready || !id) return;
+    if (state !== "ready" || !id) return;
     void fetchRechnung(id).then(({ data, error: loadError }) => {
       if (loadError) {
         setError(loadError);
@@ -25,9 +25,17 @@ export default function RechnungDetailPage() {
       }
       setRechnung(data?.rechnung ?? null);
     });
-  }, [ready, id]);
+  }, [state, id]);
 
-  if (!ready) return null;
+  if (state === "pending" || state === "blocked") {
+    return (
+      <AppPageShell activeHref="/rechnungen" subtitle="Rechnungen" title="Rechnung">
+        <div className="welcomeCard">
+          <p>{state === "pending" ? "Laden…" : "Nur localhost verfügbar."}</p>
+        </div>
+      </AppPageShell>
+    );
+  }
 
   return (
     <AppPageShell activeHref="/rechnungen" subtitle="Rechnungen" title="Rechnung">
