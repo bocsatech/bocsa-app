@@ -722,6 +722,7 @@ function isPkwSubActive(
     hasExtendedAppFeatures() &&
     pkwMenuOwner === "admin" &&
     ((child.kind === "route" && child.href === "/pkw/fahrzeuge") ||
+      (child.kind === "route" && child.href === "/pkw/gruppen") ||
       (child.kind === "aktion" && child.aktion === "hinzufuegen"))
   ) {
     return false;
@@ -788,15 +789,46 @@ const defaultSidebarMenuContext: SidebarMenuContextState = {
   adminSubMenuId: null,
 };
 
+const SIDEBAR_MENU_CONTEXT_STORAGE_KEY = "bocsa.sidebarMenuContext";
+
 /** Megmarad oldalváltáskor — AppSidebar minden AppPageShell-ben újramountolódik. */
 let cachedSidebarMenuContext: SidebarMenuContextState = { ...defaultSidebarMenuContext };
 
+function hydrateSidebarMenuContextFromSession() {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = sessionStorage.getItem(SIDEBAR_MENU_CONTEXT_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Partial<SidebarMenuContextState>;
+    cachedSidebarMenuContext = { ...defaultSidebarMenuContext, ...parsed };
+  } catch {
+    // ignore corrupt session data
+  }
+}
+
 function readSidebarMenuContext(): SidebarMenuContextState {
+  hydrateSidebarMenuContextFromSession();
   return { ...cachedSidebarMenuContext };
 }
 
 function writeSidebarMenuContext(partial: Partial<SidebarMenuContextState>) {
   cachedSidebarMenuContext = { ...cachedSidebarMenuContext, ...partial };
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      SIDEBAR_MENU_CONTEXT_STORAGE_KEY,
+      JSON.stringify(cachedSidebarMenuContext)
+    );
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+function isSharedSidebarMenuPath(pathname: string, aktion: string | null) {
+  return (
+    (pathname === MASCHINEN_LIST_PATH && !aktion) ||
+    (pathname === PKW_NAV.href && !aktion)
+  );
 }
 
 function resolveMaschinenMenuOwner(pathname: string, aktion: string | null): LocalhostMaschinenMenuOwner {
@@ -822,8 +854,11 @@ function resolvePkwMenuOwner(pathname: string, aktion: string | null): Localhost
   if (pathname === PKW_NAV.href || pathname.startsWith("/pkw/fahrzeuge")) {
     return cachedSidebarMenuContext.pkwMenuOwner;
   }
-  if (pathname.startsWith("/pkw/") || pathname.startsWith("/pkw-service")) {
-    return "pkw";
+  if (
+    pathname.startsWith("/pkw/") ||
+    pathname.startsWith("/pkw-service")
+  ) {
+    return cachedSidebarMenuContext.pkwMenuOwner === "admin" ? "admin" : "pkw";
   }
   return cachedSidebarMenuContext.pkwMenuOwner;
 }
@@ -834,6 +869,7 @@ function syncSidebarMenuContextForMount(
   aktion: string | null,
   clickDriven: boolean
 ) {
+  hydrateSidebarMenuContextFromSession();
   const maschinenMenuOwner = resolveMaschinenMenuOwner(pathname, aktion);
   const pkwMenuOwner = resolvePkwMenuOwner(pathname, aktion);
   const routeOpenMenuId = resolveOpenSidebarMenuId(
@@ -854,14 +890,20 @@ function syncSidebarMenuContextForMount(
   let openMenuId = routeOpenMenuId;
   let adminSubMenuId = routeAdminSubMenuId;
 
-  if (clickDriven) {
-    if (maschinenMenuOwner === "admin" || pkwMenuOwner === "admin") {
-      openMenuId = "admin";
-      adminSubMenuId = cachedSidebarMenuContext.adminSubMenuId ?? routeAdminSubMenuId;
-    } else if (cachedSidebarMenuContext.openMenuId !== null) {
-      openMenuId = cachedSidebarMenuContext.openMenuId;
-      adminSubMenuId = cachedSidebarMenuContext.adminSubMenuId;
-    }
+  const adminContextActive = maschinenMenuOwner === "admin" || pkwMenuOwner === "admin";
+
+  if (adminContextActive) {
+    openMenuId = "admin";
+    adminSubMenuId = cachedSidebarMenuContext.adminSubMenuId ?? routeAdminSubMenuId;
+  } else if (clickDriven && cachedSidebarMenuContext.openMenuId !== null) {
+    openMenuId = cachedSidebarMenuContext.openMenuId;
+    adminSubMenuId = cachedSidebarMenuContext.adminSubMenuId;
+  } else if (
+    isSharedSidebarMenuPath(pathname, aktion) &&
+    cachedSidebarMenuContext.openMenuId === "admin"
+  ) {
+    openMenuId = "admin";
+    adminSubMenuId = cachedSidebarMenuContext.adminSubMenuId;
   }
 
   writeSidebarMenuContext({
@@ -1409,13 +1451,11 @@ function AdminLocalhostNavGroup({
                           : undefined
                       }
                       onClick={() => {
-                        if (localhostAdminSubNav && accordion) {
+                        if (accordionOn && accordion) {
                           localhostAdminSubSelect(accordion, "baugeraet", {
                             maschinenMenuOwner: "admin",
                             pkwMenuOwner: "pkw",
                           });
-                        } else {
-                          accordion?.setMaschinenMenuOwner("admin");
                         }
                         onMobileNavClose?.();
                       }}
@@ -1455,13 +1495,11 @@ function AdminLocalhostNavGroup({
                           : undefined
                       }
                       onClick={() => {
-                        if (localhostAdminSubNav && accordion) {
+                        if (accordionOn && accordion) {
                           localhostAdminSubSelect(accordion, "pkw", {
                             maschinenMenuOwner: "baumaschinen",
                             pkwMenuOwner: "admin",
                           });
-                        } else {
-                          accordion?.setPkwMenuOwner("admin");
                         }
                         onMobileNavClose?.();
                       }}
