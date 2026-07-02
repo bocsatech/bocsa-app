@@ -96,7 +96,7 @@ function MaschinenPageContent() {
 
   useEffect(() => {
     if (!isLocalHostEnvironment()) return;
-    if (aktion) return;
+    if (searchParams.get("aktion")) return;
     if (searchParams.get("geraettyp")?.trim() || searchParams.get("geraetenummer")?.trim()) return;
 
     try {
@@ -109,7 +109,7 @@ function MaschinenPageContent() {
     } catch {
       // ignore corrupt session data
     }
-  }, [aktion, router, searchParams]);
+  }, [router, searchParams]);
 
   useEffect(() => {
     loadMachines();
