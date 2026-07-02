@@ -7127,3 +7127,418 @@ body.pkw-portal-body {
     padding-right: max(12px, env(safe-area-inset-right, 0px));
   }
 }
+
+/* —— Rechnungen (localhost) —— */
+.rechnungEditorPage,
+.rechnungListPage {
+  display: grid;
+  gap: 16px;
+}
+
+.rechnungForm {
+  display: grid;
+  gap: 24px;
+}
+
+.rechnungFormSection {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.rechnungFormSection h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.rechnungFormSectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rechnungFormGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.rechnungFormGrid label,
+.rechnungFormSection > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.rechnungFormGrid input,
+.rechnungFormGrid select,
+.rechnungFormSection textarea,
+.rechnungPositionsTable input,
+.rechnungPositionsTable select {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.rechnungFormSection textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.rechnungImportRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+
+.rechnungImportRow label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+  flex: 1;
+}
+
+.rechnungFormActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rechnungPositionsWrap {
+  overflow-x: auto;
+}
+
+.rechnungPositionsTable {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.rechnungPositionsTable th,
+.rechnungPositionsTable td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+}
+
+.rechnungPositionsTable th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  text-align: left;
+}
+
+.rechnungFormTotals {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.rechnungTotalsBox {
+  display: grid;
+  gap: 8px;
+  max-width: 320px;
+  margin-left: auto;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.rechnungTotalsBox > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rechnungTotalsFinal {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 1.05rem;
+}
+
+.rechnungFormFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rechnungListWrap {
+  overflow-x: auto;
+}
+
+.rechnungListTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.rechnungListTable th,
+.rechnungListTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.rechnungListActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modalCard.rechnungLagerModal {
+  width: min(640px, 100%);
+  max-height: min(80vh, 720px);
+  overflow: auto;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.rechnungLagerList {
+  list-style: none;
+  margin: 12px 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.rechnungLagerList li button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.rechnungLagerList li button:hover {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+.rechnungPrintPage {
+  min-height: 100vh;
+  padding: 16px;
+  background: #64748b;
+}
+
+.rechnungPrintToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.rechnungPrintDocument {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 14mm 16mm;
+  background: #fff;
+  color: #111827;
+  font-size: 10pt;
+  line-height: 1.35;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.2);
+}
+
+.rechnungPrintHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.rechnungPrintHeader h1 {
+  margin: 0 0 6px;
+  font-size: 14pt;
+}
+
+.rechnungPrintHeader p {
+  margin: 0 0 4px;
+  font-size: 9pt;
+  color: #4b5563;
+}
+
+.rechnungPrintMetaBox {
+  min-width: 180px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 9pt;
+}
+
+.rechnungPrintMetaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.rechnungPrintAddresses {
+  margin-bottom: 16px;
+}
+
+.rechnungPrintLabel {
+  margin: 0 0 4px;
+  font-size: 8pt;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+}
+
+.rechnungPrintTitle {
+  margin: 0 0 6px;
+  font-size: 13pt;
+}
+
+.rechnungPrintLead {
+  margin: 0 0 14px;
+}
+
+.rechnungPrintVehicle {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 9pt;
+}
+
+.rechnungPrintVehicle span {
+  display: block;
+  color: #6b7280;
+  font-size: 8pt;
+}
+
+.rechnungPrintTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 9pt;
+}
+
+.rechnungPrintTable th,
+.rechnungPrintTable td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.rechnungPrintTable th {
+  font-size: 8pt;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.rechnungPrintNum {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rechnungPrintRowTitle td {
+  font-weight: 700;
+  background: #f9fafb;
+}
+
+.rechnungPrintTotals {
+  margin-left: auto;
+  width: min(280px, 100%);
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.rechnungPrintTotals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rechnungPrintTotalFinal {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #111827;
+  font-weight: 700;
+}
+
+.rechnungPrintNote {
+  margin: 0 0 8px;
+  font-size: 9pt;
+  color: #374151;
+}
+
+.rechnungPrintNoteStrong {
+  font-weight: 700;
+}
+
+.rechnungPrintClosing {
+  margin: 18px 0 4px;
+}
+
+.rechnungPrintFooter {
+  margin-top: 24px;
+  padding-top: 10px;
+  border-top: 1px solid #d1d5db;
+  display: grid;
+  gap: 4px;
+  font-size: 8pt;
+  color: #6b7280;
+}
+
+@media print {
+  .rechnungPrintPage {
+    padding: 0;
+    background: #fff;
+  }
+
+  .rechnungPrintDocument {
+    width: auto;
+    min-height: auto;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .rechnungPrintToolbar,
+  .noPrint {
+    display: none !important;
+  }
+}
