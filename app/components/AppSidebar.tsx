@@ -1315,14 +1315,11 @@ function AdminLocalhostNavGroup({
     accordion?.pkwMenuOwner
   );
   const openAdminSubId = accordion?.adminSubMenuId ?? null;
-  const adminMenuOpen = accordion?.openMenuId === "admin";
   const baugeraetLinkActive = localhostAdminSubNav
     ? openAdminSubId === "baugeraet"
     : baugeraetParentActive;
   const pkwLinkActive = localhostAdminSubNav ? openAdminSubId === "pkw" : pkwParentActive;
-  const adminParentActive = localhostAdminSubNav
-    ? adminMenuOpen || openAdminSubId !== null || sectionActive
-    : sectionActive;
+  const adminParentActive = localhostAdminSubNav ? false : sectionActive;
   const [open, setOpen] = useState(submenuOpen || sectionActive);
 
   useEffect(() => {
@@ -1425,7 +1422,10 @@ function AdminLocalhostNavGroup({
               key={child.href}
               href={child.href}
               className={
-                isAdminLocalhostChildActive(child, activeHref, pathname, aktion) ? "active" : undefined
+                isAdminLocalhostChildActive(child, activeHref, pathname, aktion) &&
+                (!localhostAdminSubNav || openAdminSubId === null)
+                  ? "active"
+                  : undefined
               }
               onClick={() => onMobileNavClose?.()}
             >
