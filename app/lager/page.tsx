@@ -257,15 +257,17 @@ function LagerPageContent() {
                   />
                   {importing ? "Import…" : "Excel importieren"}
                 </label>
-                <button
-                  type="button"
-                  className="pillButton outline"
-                  onClick={() => handleBulkDelete("catalog-prefix")}
-                  disabled={!teile.length}
-                  title="SP, SA, SO, SL, SK, SN …"
-                >
-                  Standard-Nummern löschen
-                </button>
+                {!isLocalLagerView ? (
+                  <button
+                    type="button"
+                    className="pillButton outline"
+                    onClick={() => handleBulkDelete("catalog-prefix")}
+                    disabled={!teile.length}
+                    title="SP, SA, SO, SL, SK, SN …"
+                  >
+                    Standard-Nummern löschen
+                  </button>
+                ) : null}
                 {!isLocalLagerView ? (
                   <button
                     type="button"
