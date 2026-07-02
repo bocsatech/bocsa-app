@@ -253,6 +253,25 @@ const BAUGERAETE_NAV_ITEM = {
 const BAUMASCHINEN_ADMIN_AKTIONS = new Set(["hinzufuegen", "geraetenummer-codes", "qr"]);
 const PKW_ADMIN_LOCALHOST_AKTIONS = new Set(["hinzufuegen"]);
 
+function isAdminLocalhostPkwAdminRoute(pathname: string, aktion: string | null) {
+  if (!hasExtendedAppFeatures()) return false;
+  if (pathname.startsWith("/pkw/fahrzeuge") && aktion === "hinzufuegen") return true;
+  if (pathname === "/pkw/gruppen" || pathname.startsWith("/pkw/gruppen/")) return true;
+  return false;
+}
+
+function isAdminLocalhostBaugeraetAdminRoute(pathname: string, aktion: string | null) {
+  if (!hasExtendedAppFeatures()) return false;
+  if (pathname === MASCHINEN_HINZUFUEGEN_PATH) return true;
+  if (pathname.startsWith("/maschinen") && aktion && BAUMASCHINEN_ADMIN_AKTIONS.has(aktion)) {
+    return true;
+  }
+  if (pathname === "/maschinen/geraetgruppen" || pathname.startsWith("/maschinen/geraetgruppen/")) {
+    return true;
+  }
+  return false;
+}
+
 function getAdminLocalhostBaugeraetNavItems(): readonly AdminLocalhostBaugeraetNavItem[] {
   if (!isLocalAppEnvironment()) {
     return ADMIN_LOCALHOST_BAUGERAET_NAV.children;
@@ -489,10 +508,18 @@ function resolveOpenAdminSubMenuId(
   maschinenMenuOwner: LocalhostMaschinenMenuOwner = "baumaschinen",
   pkwMenuOwner: LocalhostPkwMenuOwner = "pkw"
 ): AdminLocalhostSubMenuId | null {
-  if (isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion, maschinenMenuOwner)) {
+  if (
+    maschinenMenuOwner === "admin" &&
+    isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion, "admin")
+  ) {
     return "baugeraet";
   }
-  if (isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion, pkwMenuOwner)) return "pkw";
+  if (
+    pkwMenuOwner === "admin" &&
+    isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion, "admin")
+  ) {
+    return "pkw";
+  }
   return null;
 }
 
@@ -1647,6 +1674,7 @@ function PkwNavGroup({
       event.preventDefault();
       const wasOpen = accordion.openMenuId === "pkw";
       accordion.setPkwMenuOwner("pkw");
+      accordion.setAdminSubMenuId(null);
       if (isLocalAppEnvironment()) {
         if (wasOpen) {
           localhostAccordionCloseMenu(accordion);
@@ -1828,16 +1856,10 @@ function SidebarNavItems({
 
     let nextMaschinenOwner: LocalhostMaschinenMenuOwner = "baumaschinen";
     let nextPkwOwner: LocalhostPkwMenuOwner = "pkw";
-    if (
-      isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion, "baumaschinen") ||
-      isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion, "admin")
-    ) {
+    if (isAdminLocalhostBaugeraetAdminRoute(pathname, aktion)) {
       nextMaschinenOwner = "admin";
     }
-    if (
-      isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion, "pkw") ||
-      isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion, "admin")
-    ) {
+    if (isAdminLocalhostPkwAdminRoute(pathname, aktion)) {
       nextPkwOwner = "admin";
     }
 
@@ -1908,17 +1930,17 @@ function SidebarNavItems({
 
   useEffect(() => {
     if (!localhostAccordion || localhostMenuNav) return;
-    if (isAdminLocalhostBaugeraetSectionActive(activeHref, pathname, aktion, maschinenMenuOwner)) {
+    if (isAdminLocalhostBaugeraetAdminRoute(pathname, aktion)) {
       setMaschinenMenuOwner("admin");
     }
-  }, [localhostAccordion, localhostMenuNav, activeHref, pathname, aktion, maschinenMenuOwner]);
+  }, [localhostAccordion, localhostMenuNav, pathname, aktion]);
 
   useEffect(() => {
     if (!localhostAccordion || localhostMenuNav) return;
-    if (isAdminLocalhostPkwSectionActive(activeHref, pathname, aktion, pkwMenuOwner)) {
+    if (isAdminLocalhostPkwAdminRoute(pathname, aktion)) {
       setPkwMenuOwner("admin");
     }
-  }, [localhostAccordion, localhostMenuNav, activeHref, pathname, aktion, pkwMenuOwner]);
+  }, [localhostAccordion, localhostMenuNav, pathname, aktion]);
 
   const localhostTopLinkClick = () => {
     if (localhostMenuNav && accordion) {
