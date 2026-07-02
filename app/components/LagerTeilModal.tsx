@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import {
   BESTELLSTATUS_OPTIONS,
   LAGER_FORM_FIELDS,
+  LAGER_LOCALHOST_FIELDS,
   createLagerTeil,
   updateLagerTeil,
 } from "../../lib/lager";
+import { formatGermanDate } from "../../lib/dates";
+import GermanDateField from "./GermanDateField";
 import LagerTeilBild from "./LagerTeilBild";
 import type { LagerTeil } from "../../lib/types/lager";
 
@@ -15,11 +18,14 @@ type Props = {
   teil: LagerTeil | null;
   canWrite: boolean;
   readOnly?: boolean;
+  showLocalhostFields?: boolean;
   onClose: () => void;
   onSaved: (teil: LagerTeil) => void;
 };
 
-function emptyForm() {
+type LagerFormState = Record<string, string>;
+
+function emptyForm(): LagerFormState {
   return {
     artikelnummer: "",
     herstellernummer: "",
@@ -33,10 +39,15 @@ function emptyForm() {
     listenpreis_brutto: "",
     verkaufspreis: "",
     bestellstatus: "",
+    wareneingangsdatum: "",
+    herstellungsdatum: "",
+    verfallsdatum: "",
+    bestellender_benutzer: "",
+    bestellender_kunde: "",
   };
 }
 
-function teilToForm(teil: LagerTeil) {
+function teilToForm(teil: LagerTeil): LagerFormState {
   return {
     artikelnummer: teil.artikelnummer ?? "",
     herstellernummer: teil.herstellernummer ?? "",
@@ -50,6 +61,11 @@ function teilToForm(teil: LagerTeil) {
     listenpreis_brutto: teil.listenpreis_brutto != null ? String(teil.listenpreis_brutto) : "",
     verkaufspreis: teil.verkaufspreis != null ? String(teil.verkaufspreis) : "",
     bestellstatus: teil.bestellstatus ?? "",
+    wareneingangsdatum: formatGermanDate(teil.wareneingangsdatum),
+    herstellungsdatum: formatGermanDate(teil.herstellungsdatum),
+    verfallsdatum: formatGermanDate(teil.verfallsdatum),
+    bestellender_benutzer: teil.bestellender_benutzer ?? "",
+    bestellender_kunde: teil.bestellender_kunde ?? "",
   };
 }
 
@@ -58,10 +74,11 @@ export default function LagerTeilModal({
   teil,
   canWrite,
   readOnly = false,
+  showLocalhostFields = false,
   onClose,
   onSaved,
 }: Props) {
-  const [form, setForm] = useState(emptyForm());
+  const [form, setForm] = useState<LagerFormState>(emptyForm());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedTeil, setSavedTeil] = useState<LagerTeil | null>(null);
@@ -100,6 +117,13 @@ export default function LagerTeilModal({
       if (field.type === "number") {
         payload[field.key] = raw === "" ? (field.key === "lagerstand" ? 0 : null) : Number(raw);
       } else {
+        payload[field.key] = raw || null;
+      }
+    }
+
+    if (showLocalhostFields) {
+      for (const field of LAGER_LOCALHOST_FIELDS) {
+        const raw = form[field.key]?.trim() ?? "";
         payload[field.key] = raw || null;
       }
     }
@@ -186,6 +210,35 @@ export default function LagerTeilModal({
             </label>
           ))}
         </div>
+
+        {showLocalhostFields ? (
+          <div className="protocolGrid lagerFormGrid lagerLocalhostFieldsGrid">
+            {LAGER_LOCALHOST_FIELDS.map((field) => (
+              <label key={field.key} className="protocolField">
+                <span>{field.label}</span>
+                {field.type === "date" ? (
+                  <GermanDateField
+                    value={form[field.key]}
+                    onChange={(value) =>
+                      setForm((current) => ({ ...current, [field.key]: value }))
+                    }
+                    disabled={!editable}
+                    readOnly={!editable}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={form[field.key]}
+                    disabled={!editable}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, [field.key]: event.target.value }))
+                    }
+                  />
+                )}
+              </label>
+            ))}
+          </div>
+        ) : null}
 
         {error ? <p className="protocolNotice">{error}</p> : null}
 

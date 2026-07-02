@@ -16,9 +16,11 @@ import {
   fetchLagerTeile,
   filterLagerTeileByFields,
   formatLagerCurrency,
+  formatLagerDate,
   formatLagerNumber,
   formatLagerValue,
   getLagerBestandAlert,
+  LAGER_LOCALHOST_FIELDS,
   type LagerListFilters,
 } from "../../lib/lager";
 import type { LagerTeil } from "../../lib/types/lager";
@@ -88,6 +90,8 @@ function LagerPageContent() {
     () => filterLagerTeileByFields(teile, filters),
     [teile, filters]
   );
+
+  const tableColumnCount = 16 + (isLocalLagerView ? LAGER_LOCALHOST_FIELDS.length : 0);
 
   const [meldungenCount, setMeldungenCount] = useState(0);
 
@@ -325,8 +329,15 @@ function LagerPageContent() {
               </li>
               <li>SQL → New query</li>
               <li>
-                Inhalt von <code>supabase/lager-setup.sql</code> und{" "}
-                <code>supabase/lager-menge-grenzen.sql</code> einfügen → Run
+                Inhalt von <code>supabase/lager-setup.sql</code>,{" "}
+                <code>supabase/lager-menge-grenzen.sql</code>
+                {isLocalLagerView ? (
+                  <>
+                    {" "}
+                    und <code>supabase/lager-localhost-felder.sql</code>
+                  </>
+                ) : null}{" "}
+                einfügen → Run
               </li>
               <li>Diese Seite neu laden</li>
             </ol>
@@ -375,13 +386,18 @@ function LagerPageContent() {
                       <th>Listen brutto</th>
                       <th>Verkauf</th>
                       <th>Bestellstatus</th>
+                      {isLocalLagerView
+                        ? LAGER_LOCALHOST_FIELDS.map((field) => (
+                            <th key={field.key}>{field.label}</th>
+                          ))
+                        : null}
                       <th />
                     </tr>
                   </thead>
                   <tbody>
                     {filteredTeile.length === 0 ? (
                       <tr>
-                        <td colSpan={16}>Keine Teile gefunden.</td>
+                        <td colSpan={tableColumnCount}>Keine Teile gefunden.</td>
                       </tr>
                     ) : (
                       filteredTeile.map((teil) => {
@@ -434,6 +450,15 @@ function LagerPageContent() {
                           <td>{formatLagerCurrency(teil.listenpreis_brutto)}</td>
                           <td>{formatLagerCurrency(teil.verkaufspreis)}</td>
                           <td>{formatLagerValue(teil.bestellstatus)}</td>
+                          {isLocalLagerView
+                            ? LAGER_LOCALHOST_FIELDS.map((field) => (
+                                <td key={field.key}>
+                                  {field.type === "date"
+                                    ? formatLagerDate(teil[field.key])
+                                    : formatLagerValue(teil[field.key])}
+                                </td>
+                              ))
+                            : null}
                           <td>
                             <div className="lagerRowActions">
                               <button
@@ -476,6 +501,7 @@ function LagerPageContent() {
         teil={selectedTeil}
         canWrite={canWrite}
         readOnly={modalReadOnly}
+        showLocalhostFields={isLocalLagerView}
         onClose={() => {
           setModalOpen(false);
           setModalReadOnly(false);

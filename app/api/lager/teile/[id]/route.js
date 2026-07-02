@@ -22,6 +22,11 @@ const EDITABLE_FIELDS = [
   "inventur_entwurf",
   "inventur_entwurf_at",
   "inventur_entwurf_by",
+  "wareneingangsdatum",
+  "herstellungsdatum",
+  "verfallsdatum",
+  "bestellender_benutzer",
+  "bestellender_kunde",
 ];
 
 const NUMERIC_FIELDS = new Set([
@@ -42,6 +47,11 @@ function normalizeTeil(row) {
     inventur_entwurf: row.inventur_entwurf ?? null,
     inventur_entwurf_at: row.inventur_entwurf_at ?? null,
     inventur_entwurf_by: row.inventur_entwurf_by ?? null,
+    wareneingangsdatum: row.wareneingangsdatum ?? null,
+    herstellungsdatum: row.herstellungsdatum ?? null,
+    verfallsdatum: row.verfallsdatum ?? null,
+    bestellender_benutzer: row.bestellender_benutzer ?? null,
+    bestellender_kunde: row.bestellender_kunde ?? null,
   };
 }
 

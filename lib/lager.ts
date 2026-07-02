@@ -1,4 +1,5 @@
 import type { LagerTeil } from "./types/lager";
+import { formatGermanDate } from "./dates";
 
 export {
   countLagerBestandMeldungen,
@@ -70,6 +71,27 @@ export const LAGER_FORM_FIELDS: Array<{
 ];
 
 export const BESTELLSTATUS_OPTIONS = ["", "Offen", "Bestellt", "Geliefert", "Gesperrt"];
+
+export type LagerLocalhostFieldKey =
+  | "wareneingangsdatum"
+  | "herstellungsdatum"
+  | "verfallsdatum"
+  | "bestellender_benutzer"
+  | "bestellender_kunde";
+
+export const LAGER_LOCALHOST_FIELDS: Array<{
+  key: LagerLocalhostFieldKey;
+  label: string;
+  type?: "text" | "date";
+}> = [
+  { key: "wareneingangsdatum", label: "Wareneingangsdatum", type: "date" },
+  { key: "herstellungsdatum", label: "Herstellungsdatum", type: "date" },
+  { key: "verfallsdatum", label: "Verfallsdatum", type: "date" },
+  { key: "bestellender_benutzer", label: "Bestellender Benutzer" },
+  { key: "bestellender_kunde", label: "Bestellender Kunde" },
+];
+
+export const LAGER_LOCALHOST_FIELD_KEYS = LAGER_LOCALHOST_FIELDS.map((field) => field.key);
 
 /** Inventur-QR (Inhalt = Herstellernummer), on-demand generiert. */
 export function getLagerTeilQrUrl(teil: { id: string; updated_at?: string | null }) {
@@ -228,6 +250,11 @@ export function formatLagerValue(value: unknown) {
   if (value === null || value === undefined) return "—";
   const text = String(value).trim();
   return text || "—";
+}
+
+export function formatLagerDate(value: unknown) {
+  const formatted = formatGermanDate(value);
+  return formatted || "—";
 }
 
 export function formatLagerNumber(value: unknown) {

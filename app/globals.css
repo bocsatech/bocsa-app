@@ -3586,6 +3586,16 @@ html.local-app .pkwModal .pkwFormGrid {
   gap: 8px;
 }
 
+.lagerLocalhostFieldsGrid {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.lagerModal .lagerLocalhostFieldsGrid {
+  grid-column: 1 / -1;
+}
+
 .lagerRowClickable {
   cursor: pointer;
 }

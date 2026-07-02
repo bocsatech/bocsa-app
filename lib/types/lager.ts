@@ -21,4 +21,9 @@ export type LagerTeil = {
   inventur_entwurf?: number | null;
   inventur_entwurf_at?: string | null;
   inventur_entwurf_by?: string | null;
+  wareneingangsdatum?: string | null;
+  herstellungsdatum?: string | null;
+  verfallsdatum?: string | null;
+  bestellender_benutzer?: string | null;
+  bestellender_kunde?: string | null;
 };
