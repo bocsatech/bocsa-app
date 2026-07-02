@@ -12,10 +12,11 @@ type IconProps = {
 };
 
 export function SidebarMenuIcon({ icon, size = "main" }: IconProps) {
+  const src = getSidebarMenuIconSrc(icon);
   return (
     <span className={`sidebarNavIconWrap sidebarNavIconWrap--${size}`} aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={getSidebarMenuIconSrc(icon)} alt="" className="sidebarNavIcon" />
+      <img src={src} alt="" className="sidebarNavIcon" width={size === "nested" ? 18 : size === "sub" ? 20 : 22} height={size === "nested" ? 18 : size === "sub" ? 20 : 22} />
     </span>
   );
 }

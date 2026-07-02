@@ -23,6 +23,7 @@ import {
   isLocalAppEnvironment,
   isLocalHostEnvironment,
 } from "../../lib/local-host";
+import { useLocalHostEnvironment } from "../../lib/use-local-host-ui";
 
 const MOBILE_SIDEBAR_MQ = "(max-width: 760px)";
 
@@ -2025,11 +2026,8 @@ function SidebarNavItems({
   onMobileNavClose?: () => void;
 }) {
   const { permissions, groups, username } = auth;
-  const [localhostGroupedMainMenu, setLocalhostGroupedMainMenu] = useState(false);
-
-  useEffect(() => {
-    setLocalhostGroupedMainMenu(isLocalHostEnvironment());
-  }, []);
+  const localhostGroupedMainMenu = useLocalHostEnvironment();
+  const showMenuIcons = localhostGroupedMainMenu;
 
   const showHome = canShowMenuItem(HOME_NAV.permission, permissions, groups, username);
   const showBaumaschinen = canShowMenuItem(
@@ -2062,7 +2060,6 @@ function SidebarNavItems({
   const showMeldungenSection = navItemsBeforeQr.length > 0 || showQrCodeNav;
   const localhostAccordion = hasExtendedAppFeatures();
   const localhostMenuNav = localhostGroupedMainMenu;
-  const showMenuIcons = localhostGroupedMainMenu;
   const bootContext = readSidebarMenuContext();
   const [openMenuId, setOpenMenuIdState] = useState<SidebarMenuId | null>(bootContext.openMenuId);
   const [maschinenMenuOwner, setMaschinenMenuOwnerState] =
@@ -2399,6 +2396,7 @@ function useLagerMeldungenCount(canLoad: boolean) {
 export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) {
   const pathname = usePathname();
   const auth = useSidebarAuth();
+  const localhostSidebarUi = useLocalHostEnvironment();
   const { permissions, groups, username } = auth;
   const showLager = canShowMenuItem(LAGER_NAV.permission, permissions, groups, username);
   const meldungenCount = useLagerMeldungenCount(showLager);
@@ -2458,7 +2456,10 @@ export default function AppSidebar({ activeHref, subtitle = "Betrieb" }: Props) 
           {mobileMenuOpen ? "Schließen" : MEINE_MENU_NAV.label}
         </button>
       </div>
-      <nav id="sidebar-main-nav" className="sidebarNav">
+      <nav
+        id="sidebar-main-nav"
+        className={`sidebarNav${localhostSidebarUi ? " sidebarNav--icons" : ""}`}
+      >
         <Suspense
           fallback={
             <SidebarNavFallback

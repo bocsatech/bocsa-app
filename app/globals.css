@@ -169,25 +169,38 @@ button, input, select, textarea {
 }
 
 .sidebarNavIconWrap--main {
+  width: 24px;
+  height: 24px;
+}
+
+.sidebarNavIconWrap--sub {
   width: 22px;
   height: 22px;
 }
 
-.sidebarNavIconWrap--sub {
+.sidebarNavIconWrap--nested {
   width: 20px;
   height: 20px;
-}
-
-.sidebarNavIconWrap--nested {
-  width: 18px;
-  height: 18px;
 }
 
 .sidebarNavIcon {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+}
+
+html.local-host .sidebarNavParent,
+html.local-host .sidebarNav a,
+.sidebarNav--icons .sidebarNavParent,
+.sidebarNav--icons .sidebarNav a {
+  display: flex;
+  align-items: center;
+}
+
+html.local-host .sidebarNavParent,
+.sidebarNav--icons .sidebarNavParent {
+  gap: 0;
 }
 
 .sidebarNav a.active .sidebarNavIconWrap,
