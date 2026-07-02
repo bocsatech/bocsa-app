@@ -12,7 +12,7 @@ import MachineKpiRow from "../components/MachineKpiRow";
 import MachineList from "../components/MachineList";
 import QrScannerModal from "../components/QrScannerModal";
 import "./maschinen-kpi.css";
-import { isLocalAppEnvironment } from "../../lib/local-host";
+import { isLocalAppEnvironment, isLocalHostEnvironment } from "../../lib/local-host";
 import {
   fetchMachines,
   GERAETTYP_OPTIONS,
@@ -93,6 +93,23 @@ function MaschinenPageContent() {
 
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (!isLocalHostEnvironment()) return;
+    if (aktion) return;
+    if (searchParams.get("geraettyp")?.trim() || searchParams.get("geraetenummer")?.trim()) return;
+
+    try {
+      const raw = sessionStorage.getItem("bocsa.sidebarMenuContext");
+      if (!raw) return;
+      const ctx = JSON.parse(raw) as { maschinenMenuOwner?: string };
+      if (ctx.maschinenMenuOwner === "admin") {
+        router.replace("/admin");
+      }
+    } catch {
+      // ignore corrupt session data
+    }
+  }, [aktion, router, searchParams]);
 
   useEffect(() => {
     loadMachines();

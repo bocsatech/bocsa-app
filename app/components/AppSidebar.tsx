@@ -474,8 +474,8 @@ function isAdminLocalhostBaugeraetSectionActive(
   return (
     hasExtendedAppFeatures() &&
     maschinenMenuOwner === "admin" &&
-    pathname === MASCHINEN_LIST_PATH &&
-    !aktion
+    !aktion &&
+    (pathname === MASCHINEN_LIST_PATH || pathname === ADMIN_LOCALHOST_NAV.href)
   );
 }
 
@@ -1277,6 +1277,15 @@ function AdminLocalhostNavGroup({
   const accordionOn = Boolean(accordion && hasExtendedAppFeatures());
   const router = useRouter();
   const localhostAdminSubNav = accordionOn;
+  const [localhostAdminBaugeraetHub, setLocalhostAdminBaugeraetHub] = useState(false);
+
+  useEffect(() => {
+    setLocalhostAdminBaugeraetHub(isLocalHostEnvironment());
+  }, []);
+
+  const adminBaugeraetHubHref = localhostAdminBaugeraetHub
+    ? ADMIN_LOCALHOST_NAV.href
+    : ADMIN_LOCALHOST_BAUGERAET_NAV.href;
   const visibleChildren = ADMIN_LOCALHOST_NAV.children.filter((child) =>
     canShowMenuItem("permission" in child ? child.permission : undefined, permissions, groups, username)
   );
@@ -1355,7 +1364,7 @@ function AdminLocalhostNavGroup({
           maschinenMenuOwner: "admin",
           pkwMenuOwner: "pkw",
         });
-        router.push(MASCHINEN_LIST_PATH);
+        router.push(adminBaugeraetHubHref);
       } else {
         localhostAdminSubSelect(accordion, "pkw", {
           maschinenMenuOwner: "baumaschinen",
@@ -1426,7 +1435,7 @@ function AdminLocalhostNavGroup({
           {visibleBaugeraetChildren.length > 0 ? (
             <Fragment>
               <Link
-                href={ADMIN_LOCALHOST_BAUGERAET_NAV.href}
+                href={adminBaugeraetHubHref}
                 className={baugeraetLinkActive ? "active" : undefined}
                 aria-expanded={openAdminSubId === "baugeraet"}
                 onClick={(event) => {
