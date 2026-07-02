@@ -1,92 +1,118 @@
 import type { Machine } from "./types/machine";
 import type { Kunde, PkwFahrzeug } from "./types/pkw";
 import { formatKundeName } from "./pkw";
+import { getPkwWorkOrders } from "./pkw-work-orders";
 import type { WorkOrder } from "./work-orders";
 import { formatWorkOrderAuftragNr } from "./work-orders";
 import type { LagerTeil } from "./types/lager";
 
-export function matchesRechnungSearch(haystack: string, query: string) {
-  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  if (tokens.length === 0) return true;
-  const normalized = haystack.toLowerCase();
-  return tokens.every((token) => normalized.includes(token));
+const SEARCH_SKIP_KEYS = new Set([
+  "portal_pin_hash",
+  "password_hash",
+  "bild",
+  "image",
+]);
+
+export function normalizeRechnungSearchText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-export function kundeSearchText(kunde: Kunde) {
-  return [
-    kunde.kundennummer,
-    kunde.anrede,
-    kunde.titel,
-    kunde.vorname,
-    kunde.nachname,
-    kunde.firma,
-    kunde.email,
-    kunde.telefon,
-    kunde.mobil,
-    kunde.strasse,
-    kunde.plz,
-    kunde.ort,
-    kunde.land,
-    kunde.uid_nr,
-    kunde.notizen,
+export function matchesRechnungSearch(haystack: string, query: string) {
+  const normalizedHaystack = normalizeRechnungSearchText(haystack);
+  const tokens = normalizeRechnungSearchText(query).split(" ").filter(Boolean);
+  if (tokens.length === 0) return true;
+  return tokens.every((token) => normalizedHaystack.includes(token));
+}
+
+export function collectSearchValues(value: unknown, depth = 0, key?: string): string[] {
+  if (key && SEARCH_SKIP_KEYS.has(key)) return [];
+  if (depth > 4 || value == null) return [];
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : [];
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return [String(value)];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) => collectSearchValues(item, depth + 1, String(index)));
+  }
+
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).flatMap(([entryKey, entryValue]) =>
+      collectSearchValues(entryValue, depth + 1, entryKey)
+    );
+  }
+
+  return [];
+}
+
+export function kundeSearchText(kunde: Kunde, fahrzeuge: PkwFahrzeug[] = []) {
+  const relatedFahrzeuge = fahrzeuge.filter((fahrzeug) => fahrzeug.kunde_id === kunde.id);
+  const parts = [
+    ...collectSearchValues(kunde),
     formatKundeName(kunde),
-  ]
-    .filter(Boolean)
-    .join(" ");
+    kundeOptionLabel(kunde),
+  ];
+
+  for (const fahrzeug of relatedFahrzeuge) {
+    parts.push(...collectSearchValues(fahrzeug));
+    parts.push(fahrzeugOptionLabel(fahrzeug));
+    for (const order of getPkwWorkOrders(fahrzeug)) {
+      parts.push(workOrderSearchText(order));
+    }
+  }
+
+  return parts.filter(Boolean).join(" ");
 }
 
 export function kundeOptionLabel(kunde: Kunde) {
   const parts = [formatKundeName(kunde)];
   if (kunde.kundennummer?.trim()) parts.push(`#${kunde.kundennummer.trim()}`);
+  if (kunde.email?.trim()) parts.push(kunde.email.trim());
+  if (kunde.telefon?.trim()) parts.push(kunde.telefon.trim());
+  if (kunde.mobil?.trim()) parts.push(kunde.mobil.trim());
   if (kunde.ort?.trim()) parts.push(kunde.ort.trim());
+  if (kunde.strasse?.trim()) parts.push(kunde.strasse.trim());
   return parts.join(" · ");
 }
 
 export function fahrzeugSearchText(fahrzeug: PkwFahrzeug) {
-  return [
-    fahrzeug.kennzeichen,
-    fahrzeug.marke,
-    fahrzeug.modell,
-    fahrzeug.fin,
-    fahrzeug.baujahr,
-    fahrzeug.farbe,
-    fahrzeug.kraftstoff,
-    fahrzeug.km_stand,
-    fahrzeug.notizen,
-    fahrzeug.kunde?.firma,
-    fahrzeug.kunde?.vorname,
-    fahrzeug.kunde?.nachname,
-    fahrzeug.kunde?.kundennummer,
+  const parts = [
+    ...collectSearchValues(fahrzeug),
     formatKundeName(fahrzeug.kunde ?? null),
-  ]
-    .filter((value) => value != null && String(value).trim())
-    .join(" ");
+    fahrzeugOptionLabel(fahrzeug),
+  ];
+
+  for (const order of getPkwWorkOrders(fahrzeug)) {
+    parts.push(workOrderSearchText(order));
+  }
+
+  return parts.filter(Boolean).join(" ");
 }
 
 export function fahrzeugOptionLabel(fahrzeug: PkwFahrzeug) {
-  const vehicle = [fahrzeug.kennzeichen, fahrzeug.marke, fahrzeug.modell].filter(Boolean).join(" · ");
+  const vehicle = [fahrzeug.kennzeichen, fahrzeug.marke, fahrzeug.modell, fahrzeug.fin]
+    .filter(Boolean)
+    .join(" · ");
   const kunde = fahrzeug.kunde ? formatKundeName(fahrzeug.kunde) : null;
   return kunde ? `${vehicle} (${kunde})` : vehicle;
 }
 
 export function machineSearchText(machine: Machine) {
   return [
-    machine.geraetenummer,
-    machine.bezeichnung,
-    machine.depot,
-    machine.subgroup,
-    machine.license_plate,
-    machine.serial_number,
-    machine.baujahr,
-    machine.status,
-    machine.description,
-    machine.geraettyp,
-    machine.km_stand,
-    machine.hour_meter_reading,
-    machine.engine_type,
-    machine.engine_number,
+    ...collectSearchValues(machine),
+    machineOptionLabel(machine),
   ]
-    .filter((value) => value != null && String(value).trim())
+    .filter(Boolean)
     .join(" ");
 }
 
@@ -95,31 +121,17 @@ export function machineOptionLabel(machine: Machine) {
   const parts = [main];
   if (machine.bezeichnung && machine.geraetenummer) parts.push(machine.bezeichnung);
   if (machine.depot?.trim()) parts.push(machine.depot.trim());
+  if (machine.subgroup?.trim()) parts.push(machine.subgroup.trim());
   return parts.join(" · ");
 }
 
 export function workOrderSearchText(order: WorkOrder) {
   return [
-    order.id,
+    ...collectSearchValues(order),
     formatWorkOrderAuftragNr(order),
-    order.auftragNr,
-    order.date,
-    order.time,
-    order.type,
-    order.repairDescription,
-    order.notes,
-    order.repairStatus,
-    order.workHours,
-    order.createdBy,
-    order.updatedBy,
-    ...(order.serviceParts ?? []).flatMap((part) => [
-      part.serviceMaterial,
-      part.juraHifi,
-      part.sfFilter,
-      part.lagerTeilId,
-    ]),
+    workOrderOptionLabel(order),
   ]
-    .filter((value) => value != null && String(value).trim())
+    .filter(Boolean)
     .join(" ");
 }
 
@@ -131,28 +143,15 @@ export function workOrderOptionLabel(order: WorkOrder) {
 
 export function lagerTeilSearchText(teil: LagerTeil) {
   return [
-    teil.bezeichnung,
-    teil.herstellernummer,
-    teil.artikelnummer,
-    teil.lagerort,
-    teil.lagerplatz,
-    teil.produktgruppe,
-    teil.lieferant,
-    teil.bestellender_kunde,
-    teil.bestellender_benutzer,
-    teil.bestellstatus,
-    teil.verkaufspreis,
-    teil.listenpreis_netto,
-    teil.lagerstand,
-    teil.menge_min,
-    teil.menge_max,
+    ...collectSearchValues(teil),
+    lagerTeilOptionLabel(teil),
   ]
-    .filter((value) => value != null && String(value).trim())
+    .filter(Boolean)
     .join(" ");
 }
 
 export function lagerTeilOptionLabel(teil: LagerTeil) {
-  return [teil.bezeichnung || teil.herstellernummer, teil.herstellernummer]
+  return [teil.bezeichnung || teil.herstellernummer, teil.herstellernummer, teil.lagerort, teil.lieferant]
     .filter(Boolean)
     .join(" — ");
 }

@@ -394,8 +394,8 @@ export default function RechnungForm({ initial, onSaved, importQuery }: Props) {
             options={kunden}
             getOptionValue={(kunde) => kunde.id}
             getOptionLabel={kundeOptionLabel}
-            getSearchText={kundeSearchText}
-            searchPlaceholder="Kunde suchen (Name, Firma, Ort, Nr.…)"
+            getSearchText={(kunde) => kundeSearchText(kunde, fahrzeuge)}
+            searchPlaceholder="Kunde suchen (Stammdaten, Fahrzeug, Auftrag…)"
             onChange={(_, kunde) => {
               setDraft((current) => ({
                 ...current,
