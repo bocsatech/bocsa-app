@@ -266,14 +266,16 @@ function LagerPageContent() {
                 >
                   Standard-Nummern löschen
                 </button>
-                <button
-                  type="button"
-                  className="pillButton outline"
-                  onClick={() => handleBulkDelete("all")}
-                  disabled={!teile.length}
-                >
-                  Alles löschen
-                </button>
+                {!isLocalLagerView ? (
+                  <button
+                    type="button"
+                    className="pillButton outline"
+                    onClick={() => handleBulkDelete("all")}
+                    disabled={!teile.length}
+                  >
+                    Alles löschen
+                  </button>
+                ) : null}
               </>
             ) : null}
             <Link
