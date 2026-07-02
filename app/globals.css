@@ -3586,6 +3586,12 @@ html.local-app .pkwModal .pkwFormGrid {
   gap: 8px;
 }
 
+.lagerModalStatusValue {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
 .lagerLocalhostFieldsGrid {
   margin-top: 12px;
   padding-top: 12px;

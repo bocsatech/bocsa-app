@@ -16,11 +16,9 @@ import {
   fetchLagerTeile,
   filterLagerTeileByFields,
   formatLagerCurrency,
-  formatLagerDate,
   formatLagerNumber,
   formatLagerValue,
   getLagerBestandAlert,
-  LAGER_LOCALHOST_FIELDS,
   type LagerListFilters,
 } from "../../lib/lager";
 import type { LagerTeil } from "../../lib/types/lager";
@@ -91,7 +89,7 @@ function LagerPageContent() {
     [teile, filters]
   );
 
-  const tableColumnCount = 16 + (isLocalLagerView ? LAGER_LOCALHOST_FIELDS.length : 0);
+  const tableColumnCount = isLocalLagerView ? 12 : 16;
 
   const [meldungenCount, setMeldungenCount] = useState(0);
 
@@ -374,23 +372,18 @@ function LagerPageContent() {
                       <th>Bild</th>
                       <th>Herstellernummer</th>
                       <th>Ersatzteil</th>
-                      <th>Produktgruppe</th>
-                      <th>Lieferant</th>
+                      {!isLocalLagerView ? <th>Produktgruppe</th> : null}
+                      {!isLocalLagerView ? <th>Lieferant</th> : null}
                       <th>Lagerort</th>
                       <th>Lagerplatz</th>
                       <th>Lagerstand</th>
                       <th>Min.</th>
                       <th>Max.</th>
-                      <th>Status</th>
+                      {!isLocalLagerView ? <th>Status</th> : null}
                       <th>Listen netto</th>
                       <th>Listen brutto</th>
                       <th>Verkauf</th>
-                      <th>Bestellstatus</th>
-                      {isLocalLagerView
-                        ? LAGER_LOCALHOST_FIELDS.map((field) => (
-                            <th key={field.key}>{field.label}</th>
-                          ))
-                        : null}
+                      {!isLocalLagerView ? <th>Bestellstatus</th> : null}
                       <th />
                     </tr>
                   </thead>
@@ -434,8 +427,12 @@ function LagerPageContent() {
                           <td className="lagerBezeichnungCell">
                             {teil.bezeichnung?.trim() ?? ""}
                           </td>
-                          <td>{formatLagerValue(teil.produktgruppe)}</td>
-                          <td>{formatLagerValue(teil.lieferant)}</td>
+                          {!isLocalLagerView ? (
+                            <td>{formatLagerValue(teil.produktgruppe)}</td>
+                          ) : null}
+                          {!isLocalLagerView ? (
+                            <td>{formatLagerValue(teil.lieferant)}</td>
+                          ) : null}
                           <td>{formatLagerValue(teil.lagerort)}</td>
                           <td>{formatLagerValue(teil.lagerplatz)}</td>
                           <td>{formatLagerNumber(teil.lagerstand)}</td>
@@ -443,22 +440,17 @@ function LagerPageContent() {
                             <LagerMengeMinCell teil={teil} />
                           </td>
                           <td>{formatLagerNumber(teil.menge_max)}</td>
-                          <td>
-                            <LagerBestandBadge teil={teil} linkToMeldungen />
-                          </td>
+                          {!isLocalLagerView ? (
+                            <td>
+                              <LagerBestandBadge teil={teil} linkToMeldungen />
+                            </td>
+                          ) : null}
                           <td>{formatLagerCurrency(teil.listenpreis_netto)}</td>
                           <td>{formatLagerCurrency(teil.listenpreis_brutto)}</td>
                           <td>{formatLagerCurrency(teil.verkaufspreis)}</td>
-                          <td>{formatLagerValue(teil.bestellstatus)}</td>
-                          {isLocalLagerView
-                            ? LAGER_LOCALHOST_FIELDS.map((field) => (
-                                <td key={field.key}>
-                                  {field.type === "date"
-                                    ? formatLagerDate(teil[field.key])
-                                    : formatLagerValue(teil[field.key])}
-                                </td>
-                              ))
-                            : null}
+                          {!isLocalLagerView ? (
+                            <td>{formatLagerValue(teil.bestellstatus)}</td>
+                          ) : null}
                           <td>
                             <div className="lagerRowActions">
                               <button

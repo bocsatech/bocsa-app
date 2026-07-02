@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import {
   BESTELLSTATUS_OPTIONS,
   LAGER_FORM_FIELDS,
+  LAGER_LOCALHOST_DETAIL_FORM_KEYS,
   LAGER_LOCALHOST_FIELDS,
   createLagerTeil,
   updateLagerTeil,
 } from "../../lib/lager";
 import { formatGermanDate } from "../../lib/dates";
 import GermanDateField from "./GermanDateField";
+import LagerBestandBadge from "./LagerBestandBadge";
 import LagerTeilBild from "./LagerTeilBild";
 import type { LagerTeil } from "../../lib/types/lager";
 
@@ -85,6 +87,12 @@ export default function LagerTeilModal({
 
   const activeTeil = teil ?? savedTeil;
   const editable = canWrite && !readOnly;
+  const mainFormFields = showLocalhostFields
+    ? LAGER_FORM_FIELDS.filter((field) => !LAGER_LOCALHOST_DETAIL_FORM_KEYS.has(field.key))
+    : LAGER_FORM_FIELDS;
+  const detailFormFields = showLocalhostFields
+    ? LAGER_FORM_FIELDS.filter((field) => LAGER_LOCALHOST_DETAIL_FORM_KEYS.has(field.key))
+    : [];
 
   useEffect(() => {
     if (!open) return;
@@ -179,7 +187,7 @@ export default function LagerTeilModal({
         </div>
 
         <div className="protocolGrid lagerFormGrid">
-          {LAGER_FORM_FIELDS.map((field) => (
+          {mainFormFields.map((field) => (
             <label key={field.key} className="protocolField">
               <span>{field.label}</span>
               {field.key === "bestellstatus" ? (
@@ -213,6 +221,36 @@ export default function LagerTeilModal({
 
         {showLocalhostFields ? (
           <div className="protocolGrid lagerFormGrid lagerLocalhostFieldsGrid">
+            {detailFormFields.map((field) => (
+              <label key={field.key} className="protocolField">
+                <span>{field.label}</span>
+                {field.key === "bestellstatus" ? (
+                  <select
+                    value={form.bestellstatus}
+                    disabled={!editable}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, bestellstatus: event.target.value }))
+                    }
+                  >
+                    {BESTELLSTATUS_OPTIONS.map((option) => (
+                      <option key={option || "empty"} value={option}>
+                        {option || "—"}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={field.type ?? "text"}
+                    required={field.required}
+                    value={form[field.key]}
+                    disabled={!editable}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, [field.key]: event.target.value }))
+                    }
+                  />
+                )}
+              </label>
+            ))}
             {LAGER_LOCALHOST_FIELDS.map((field) => (
               <label key={field.key} className="protocolField">
                 <span>{field.label}</span>
@@ -237,6 +275,14 @@ export default function LagerTeilModal({
                 )}
               </label>
             ))}
+            {activeTeil ? (
+              <div className="protocolField">
+                <span>Status</span>
+                <div className="lagerModalStatusValue">
+                  <LagerBestandBadge teil={activeTeil} linkToMeldungen={readOnly} />
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

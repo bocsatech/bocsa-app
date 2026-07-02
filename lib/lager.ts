@@ -93,6 +93,14 @@ export const LAGER_LOCALHOST_FIELDS: Array<{
 
 export const LAGER_LOCALHOST_FIELD_KEYS = LAGER_LOCALHOST_FIELDS.map((field) => field.key);
 
+/** Localhost: in der Liste ausgeblendet, im Teil-Modal sichtbar. */
+export const LAGER_LOCALHOST_DETAIL_FORM_KEYS = new Set([
+  "produktgruppe",
+  "lieferant",
+  "bestellstatus",
+  ...LAGER_LOCALHOST_FIELD_KEYS,
+]);
+
 /** Inventur-QR (Inhalt = Herstellernummer), on-demand generiert. */
 export function getLagerTeilQrUrl(teil: { id: string; updated_at?: string | null }) {
   const ts = teil.updated_at ? encodeURIComponent(teil.updated_at) : String(Date.now());
