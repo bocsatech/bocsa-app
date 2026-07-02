@@ -4040,6 +4040,11 @@ html.local-app .pkwModal .pkwFormGrid {
   cursor: pointer;
 }
 
+.lagerBildButton:disabled {
+  pointer-events: none;
+  cursor: default;
+}
+
 .lagerQrLink {
   display: inline-flex;
   align-items: center;

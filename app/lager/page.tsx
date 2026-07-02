@@ -22,11 +22,11 @@ import {
   type LagerListFilters,
 } from "../../lib/lager";
 import type { LagerTeil } from "../../lib/types/lager";
-import { useIsLocalhost } from "../../lib/use-is-localhost";
+import { isLocalHostEnvironment } from "../../lib/local-host";
 
 function LagerPageContent() {
   const searchParams = useSearchParams();
-  const isLocalhost = useIsLocalhost();
+  const [isLocalLagerView, setIsLocalLagerView] = useState(false);
   const [teile, setTeile] = useState<LagerTeil[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -39,6 +39,10 @@ function LagerPageContent() {
   const [selectedTeil, setSelectedTeil] = useState<LagerTeil | null>(null);
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsLocalLagerView(isLocalHostEnvironment());
+  }, []);
 
   const loadTeile = useCallback(async () => {
     setLoading(true);
@@ -100,10 +104,10 @@ function LagerPageContent() {
     const hit = teile.find((t) => t.id === teilId);
     if (hit) {
       setSelectedTeil(hit);
-      setModalReadOnly(isLocalhost && searchParams.get("edit") !== "1");
+      setModalReadOnly(isLocalLagerView && searchParams.get("edit") !== "1");
       setModalOpen(true);
     }
-  }, [searchParams, teile, loading, isLocalhost]);
+  }, [searchParams, teile, loading, isLocalLagerView]);
 
   function openCreate() {
     setSelectedTeil(null);
@@ -124,9 +128,9 @@ function LagerPageContent() {
   }
 
   function handleRowClick(event: React.MouseEvent<HTMLTableRowElement>, teil: LagerTeil) {
-    if (!isLocalhost) return;
+    if (!isLocalLagerView) return;
     const target = event.target as HTMLElement;
-    if (target.closest("a, button, input, label")) return;
+    if (target.closest(".lagerRowActions, a[href]")) return;
     openView(teil);
   }
 
@@ -391,7 +395,7 @@ function LagerPageContent() {
                               : alert === "above_max"
                                 ? "lagerMeldungRowAbove"
                                 : undefined,
-                            isLocalhost ? "lagerRowClickable" : undefined,
+                            isLocalLagerView ? "lagerRowClickable" : undefined,
                           ]
                             .filter(Boolean)
                             .join(" ")}
