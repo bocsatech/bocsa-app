@@ -1,18 +1,20 @@
 // ==UserScript==
 // @name         Willhaben Új Hirdetés Figyelő + Automatikus Üzenet
 // @namespace    https://github.com/local/willhaben-watcher
-// @version      1.0.0
+// @version      1.1.0
 // @description  10 mp-enként figyeli a keresési oldalt; csak az új hirdetésekre küld sablon üzenetet. Egy referencia-ID (legfelső hirdetés) alapján dolgozik.
 // @author       local
 // @match        https://www.willhaben.at/iad/*
+// @match        https://willhaben.at/iad/*
+// @match        *://www.willhaben.at/iad/*
 // @exclude      https://www.willhaben.at/iad/myprofile/*
 // @exclude      https://www.willhaben.at/iad/nachrichten*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_registerMenuCommand
 // @grant        GM_notification
-// @grant        none
-// @run-at       document-idle
+// @grant        GM_addStyle
+// @run-at       document-end
 // @supportURL   https://www.tampermonkey.net/
 // ==/UserScript==
 
@@ -40,7 +42,9 @@
 
   let pollTimer = null;
   let panelEl = null;
+  let launcherEl = null;
   let iframeEl = null;
+  let started = false;
 
   // ——— storage (Tampermonkey + fallback localStorage) ———
 
@@ -478,8 +482,33 @@
     if (enabledToggle) enabledToggle.checked = cfg.enabled;
   }
 
+  function buildLauncher() {
+    if (launcherEl) return;
+    launcherEl = document.createElement('button');
+    launcherEl.id = 'wh-watcher-launcher';
+    launcherEl.type = 'button';
+    launcherEl.title = 'Willhaben Watcher panel';
+    launcherEl.textContent = 'WH';
+    launcherEl.style.cssText =
+      'position:fixed!important;bottom:20px!important;right:20px!important;z-index:2147483647!important;' +
+      'width:52px!important;height:52px!important;border-radius:50%!important;border:2px solid #086!important;' +
+      'background:#0a7!important;color:#fff!important;font:700 16px/1 system-ui,sans-serif!important;' +
+      'cursor:pointer!important;box-shadow:0 4px 16px rgba(0,0,0,.35)!important;padding:0!important;';
+    launcherEl.addEventListener('click', () => {
+      if (!panelEl) buildPanel();
+      else {
+        const hidden = panelEl.style.display === 'none';
+        panelEl.style.display = hidden ? '' : 'none';
+      }
+    });
+    document.documentElement.appendChild(launcherEl);
+  }
+
   function buildPanel() {
-    if (panelEl) return;
+    if (panelEl) {
+      panelEl.style.display = '';
+      return;
+    }
 
     const style = document.createElement('style');
     style.textContent = `
@@ -625,16 +654,44 @@
 
   // ——— init ———
 
+  function ensureUi() {
+    try {
+      buildLauncher();
+      buildPanel();
+    } catch (err) {
+      console.error('[WH-Watcher] UI hiba:', err);
+      if (launcherEl) launcherEl.style.background = '#c00';
+    }
+  }
+
   function init() {
-    buildPanel();
+    ensureUi();
     if (state.config.enabled) startPolling();
     if (state.queue.length) processQueue();
-    log('Willhaben Watcher betöltve');
+    if (!init.done) {
+      init.done = true;
+      log('Willhaben Watcher betöltve v1.1');
+      console.info('[WH-Watcher] Aktív:', location.href);
+    }
+  }
+  init.done = false;
+
+  function boot() {
+    init();
+    window.addEventListener('popstate', () => setTimeout(ensureUi, 500));
+    const push = history.pushState;
+    history.pushState = function (...args) {
+      push.apply(this, args);
+      setTimeout(ensureUi, 500);
+    };
+    setInterval(() => {
+      if (!launcherEl && document.documentElement) ensureUi();
+    }, 3000);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', boot);
   } else {
-    init();
+    boot();
   }
 })();
