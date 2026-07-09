@@ -692,23 +692,30 @@
     if (state.queue.length) processQueue();
     if (!init.done) {
       init.done = true;
-      log('Willhaben Watcher betöltve v1.1.1');
-      console.info('[WH-Watcher] Aktív:', location.href);
+      log('Willhaben Watcher betöltve v1.2.0');
+      console.info('[WH-Watcher] v1.2 AKTÍV — keresd a zöld WH gombot jobb alul:', location.href);
     }
   }
   init.done = false;
 
   function boot() {
-    init();
+    const tryBoot = () => {
+      if (!mountRoot()) return;
+      init();
+    };
+    tryBoot();
+    let n = 0;
+    const iv = setInterval(() => {
+      n += 1;
+      if (!launcherEl || !document.contains(launcherEl)) ensureUi();
+      if (n >= 60) clearInterval(iv);
+    }, 1000);
     window.addEventListener('popstate', () => setTimeout(ensureUi, 500));
     const push = history.pushState;
     history.pushState = function (...args) {
       push.apply(this, args);
       setTimeout(ensureUi, 500);
     };
-    setInterval(() => {
-      if (!launcherEl && document.documentElement) ensureUi();
-    }, 3000);
   }
 
   if (document.readyState === 'loading') {

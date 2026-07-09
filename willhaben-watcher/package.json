@@ -1,0 +1,12 @@
+{
+  "name": "willhaben-watcher",
+  "version": "1.0.0",
+  "description": "**Nincs köze a Bocsa App-hoz.** Önálló Tampermonkey userscript a [willhaben.at](https://www.willhaben.at) keresési oldalakhoz.",
+  "main": "wh-test.user.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
