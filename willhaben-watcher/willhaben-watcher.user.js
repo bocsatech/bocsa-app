@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Willhaben Új Hirdetés Figyelő + Automatikus Üzenet
 // @namespace    https://github.com/local/willhaben-watcher
-// @version      1.2.0
+// @version      1.3.0
 // @description  10 mp-enként figyeli a keresési oldalt; csak az új hirdetésekre küld sablon üzenetet.
 // @author       local
 // @match        *://www.willhaben.at/iad/*
@@ -19,20 +19,21 @@
   if (window.__WH_WATCHER__) return;
   window.__WH_WATCHER__ = true;
 
-  const STORAGE_KEY = 'wh-watcher-v1';
+  const STORAGE_KEY = 'wh-watcher-v2';
   const DEFAULT_INTERVAL_MS = 10_000;
 
   const DEFAULT_CONFIG = {
-    enabled: false,
+    enabled: true,
     intervalSec: 10,
     messageTemplate:
-      'Hallo! Ich interessiere mich für Ihr Angebot „{title}“ ({price}). Ist es noch verfügbar?',
+      'Guten Tag! Ich interessiere mich für Ihr Fahrzeug „{title}“ ({price}, {location}). Ist es noch verfügbar? Vielen Dank!',
     maxTotal: 30,
     maxPerDay: 10,
     maxDays: 7,
     startedAt: null,
-    sendDelayMs: 2500,
+    sendDelayMs: 3000,
     playSound: true,
+    panelOpen: true,
   };
 
   /** @type {{ markerAdId: string|null, totalSent: number, sentToday: number, sentDate: string, sentAdIds: string[], queue: object[], processing: boolean, lastCheck: string|null, lastError: string|null }} */
@@ -579,7 +580,7 @@
           <button type="button" class="wh-reset">Stat reset</button>
         </div>
         <div class="wh-log"></div>
-        <p class="wh-mini">Tipp: nyisd meg a <b>szűrt keresési listát</b>, jelentkezz be, majd indítsd. Első körben csak referenciát állít — nem küld.</p>
+        <p class="wh-mini">Gebrauchtwagen: lista oldal kell (autók sorban). Első körben kalibrál — nem küld. Bejelentkezés kötelező!</p>
       </div>
     `;
     document.body.appendChild(panelEl);
@@ -688,12 +689,15 @@
 
   function init() {
     ensureUi();
+    if (state.config.panelOpen !== false && panelEl) {
+      panelEl.style.display = '';
+    }
     if (state.config.enabled) startPolling();
     if (state.queue.length) processQueue();
     if (!init.done) {
       init.done = true;
-      log('Willhaben Watcher betöltve v1.2.0');
-      console.info('[WH-Watcher] v1.2 AKTÍV — keresd a zöld WH gombot jobb alul:', location.href);
+      log('Willhaben Watcher v1.3 — automatikus figyelés BE');
+      console.info('[WH-Watcher] v1.3 AKTÍV:', location.href);
     }
   }
   init.done = false;
