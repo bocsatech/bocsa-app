@@ -1,25 +1,23 @@
 // ==UserScript==
 // @name         Willhaben Új Hirdetés Figyelő + Automatikus Üzenet
 // @namespace    https://github.com/local/willhaben-watcher
-// @version      1.1.0
-// @description  10 mp-enként figyeli a keresési oldalt; csak az új hirdetésekre küld sablon üzenetet. Egy referencia-ID (legfelső hirdetés) alapján dolgozik.
+// @version      1.2.0
+// @description  10 mp-enként figyeli a keresési oldalt; csak az új hirdetésekre küld sablon üzenetet.
 // @author       local
-// @match        https://www.willhaben.at/iad/*
-// @match        https://willhaben.at/iad/*
 // @match        *://www.willhaben.at/iad/*
-// @exclude      https://www.willhaben.at/iad/myprofile/*
-// @exclude      https://www.willhaben.at/iad/nachrichten*
-// @grant        GM_getValue
-// @grant        GM_setValue
-// @grant        GM_registerMenuCommand
-// @grant        GM_notification
-// @grant        GM_addStyle
+// @match        *://willhaben.at/iad/*
+// @exclude      *://www.willhaben.at/iad/myprofile/*
+// @exclude      *://www.willhaben.at/iad/nachrichten*
+// @grant        none
 // @run-at       document-end
 // @supportURL   https://www.tampermonkey.net/
 // ==/UserScript==
 
 (function () {
   'use strict';
+
+  if (window.__WH_WATCHER__) return;
+  window.__WH_WATCHER__ = true;
 
   const STORAGE_KEY = 'wh-watcher-v1';
   const DEFAULT_INTERVAL_MS = 10_000;
@@ -362,14 +360,25 @@
   }
 
   function isSearchResultsPage() {
-    if (parseAdsFromLivePage()?.length) return true;
-    return /\/iad\//.test(location.pathname) && !/\/d\//.test(location.pathname);
+    const ads = parseAdsFromLivePage();
+    if (ads?.length) return true;
+    return false;
+  }
+
+  function getPageHint() {
+    if (/\/iad\/gebrauchtwagen\/?$/.test(location.pathname)) {
+      return 'Ez a gépkocsi főoldal — kattints a keresésre / szűrőre, hogy megjelenjenek az autók listája (pl. …/gebrauchtwagenboerse)';
+    }
+    if (/\/iad\//.test(location.pathname) && !/\/d\//.test(location.pathname)) {
+      return 'Nincs hirdetéslista ezen az oldalon — nyisd meg a találati listát (ahol az autók sorban látszanak)';
+    }
+    return 'Nyisd meg a willhaben keresési találati listát (/iad/…)';
   }
 
   async function tick() {
     if (!state.config.enabled) return;
     if (!isSearchResultsPage()) {
-      state.lastError = 'Nem keresési lista oldal — nyisd meg a szűrt találati listát';
+      state.lastError = getPageHint();
       saveState();
       return;
     }
@@ -489,26 +498,32 @@
     if (enabledToggle) enabledToggle.checked = cfg.enabled;
   }
 
+  function mountRoot() {
+    return document.body || document.documentElement;
+  }
+
   function buildLauncher() {
-    if (launcherEl) return;
+    if (launcherEl && document.contains(launcherEl)) return;
+    if (launcherEl) launcherEl.remove();
+
     launcherEl = document.createElement('button');
     launcherEl.id = 'wh-watcher-launcher';
     launcherEl.type = 'button';
-    launcherEl.title = 'Willhaben Watcher panel';
+    launcherEl.title = 'Willhaben Watcher — kattints a panelhez';
     launcherEl.textContent = 'WH';
+    launcherEl.setAttribute('data-wh-watcher', '1');
     launcherEl.style.cssText =
-      'position:fixed!important;bottom:20px!important;right:20px!important;z-index:2147483647!important;' +
-      'width:52px!important;height:52px!important;border-radius:50%!important;border:2px solid #086!important;' +
-      'background:#0a7!important;color:#fff!important;font:700 16px/1 system-ui,sans-serif!important;' +
-      'cursor:pointer!important;box-shadow:0 4px 16px rgba(0,0,0,.35)!important;padding:0!important;';
-    launcherEl.addEventListener('click', () => {
+      'position:fixed!important;bottom:24px!important;right:24px!important;z-index:2147483647!important;' +
+      'width:56px!important;height:56px!important;border-radius:50%!important;border:3px solid #fff!important;' +
+      'background:#0a7!important;color:#fff!important;font:700 18px/56px system-ui,sans-serif!important;' +
+      'cursor:pointer!important;box-shadow:0 6px 24px rgba(0,0,0,.45)!important;padding:0!important;' +
+      'margin:0!important;display:block!important;visibility:visible!important;opacity:1!important;';
+    launcherEl.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (!panelEl) buildPanel();
-      else {
-        const hidden = panelEl.style.display === 'none';
-        panelEl.style.display = hidden ? '' : 'none';
-      }
+      else panelEl.style.display = panelEl.style.display === 'none' ? '' : 'none';
     });
-    document.documentElement.appendChild(launcherEl);
+    mountRoot().appendChild(launcherEl);
   }
 
   function buildPanel() {
@@ -677,7 +692,7 @@
     if (state.queue.length) processQueue();
     if (!init.done) {
       init.done = true;
-      log('Willhaben Watcher betöltve v1.1');
+      log('Willhaben Watcher betöltve v1.1.1');
       console.info('[WH-Watcher] Aktív:', location.href);
     }
   }
