@@ -44,7 +44,6 @@
   let panelEl = null;
   let launcherEl = null;
   let iframeEl = null;
-  let started = false;
 
   // ——— storage (Tampermonkey + fallback localStorage) ———
 
@@ -120,14 +119,22 @@
 
   // ——— ad detection ———
 
+  function extractAdList(data) {
+    const pp = data?.props?.pageProps;
+    if (!pp) return null;
+    const sr = pp.searchResult || pp.initialSearchResult;
+    const list = sr?.advertSummaryList?.advertSummary;
+    if (!Array.isArray(list)) return null;
+    return list;
+  }
+
   function parseAdsFromHtml(html) {
     const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
     if (!m) return null;
     try {
       const data = JSON.parse(m[1]);
-      const list =
-        data?.props?.pageProps?.searchResult?.advertSummaryList?.advertSummary;
-      if (!Array.isArray(list) || list.length === 0) return [];
+      const list = extractAdList(data);
+      if (!list || list.length === 0) return [];
       return list.map((ad) => {
         const attrs = {};
         for (const a of ad.attributes?.attribute || []) {
