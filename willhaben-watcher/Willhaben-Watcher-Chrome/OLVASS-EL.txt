@@ -1,0 +1,16 @@
+TELEPÍTÉS (3 kattintás)
+=====================
+
+1. Dupla kattintás: TELEPITES.command  (Mac)
+   vagy: TELEPITES.bat  (Windows)
+
+2. Chrome-ban: Fejlesztői mód BE
+   → „Kicsomagolt elemek betöltése”
+   → válaszd ki EZT a mappát
+
+3. Willhaben autólista megnyitása, Ctrl+Shift+R
+   → jobb alul zöld WH gomb
+
+Ebben a mappában kell lennie:
+  manifest.json
+  content.js

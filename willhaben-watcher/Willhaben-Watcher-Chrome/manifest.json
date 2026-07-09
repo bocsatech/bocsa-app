@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Willhaben Watcher",
+  "version": "1.2.0",
+  "description": "Új willhaben hirdetések figyelése.",
+  "permissions": ["storage", "notifications"],
+  "host_permissions": ["https://*.willhaben.at/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://*.willhaben.at/iad/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
