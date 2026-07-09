@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Willhaben Watcher — hogyan működik?</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font: 15px/1.5 system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px; color: #111; background: #f8f8f8; }
+    h1 { font-size: 1.4rem; }
+    .panel { background: #fff; border: 1px solid #ccc; border-radius: 10px; padding: 14px; margin: 16px 0; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .panel header { display: flex; justify-content: space-between; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
+    .status.run { color: #080; }
+    .status.pause { color: #666; }
+    label { display: block; margin-top: 8px; font-weight: 600; font-size: 13px; }
+    input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; margin-top: 4px; }
+    textarea { min-height: 70px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    button { margin-top: 10px; margin-right: 6px; padding: 8px 14px; border-radius: 6px; border: 1px solid #bbb; background: #fafafa; cursor: pointer; }
+    button.primary { background: #0a7; color: #fff; border-color: #086; }
+    .log { margin-top: 12px; background: #f4f4f4; border-radius: 6px; padding: 10px; font-size: 12px; max-height: 200px; overflow: auto; }
+    .log div { margin: 2px 0; }
+    .step { counter-increment: step; padding-left: 2rem; position: relative; margin: 12px 0; }
+    .steps { counter-reset: step; }
+    .step::before { content: counter(step); position: absolute; left: 0; width: 1.5rem; height: 1.5rem; background: #0a7; color: #fff; border-radius: 50%; text-align: center; line-height: 1.5rem; font-size: 12px; font-weight: 700; }
+    code { background: #eee; padding: 2px 5px; border-radius: 4px; font-size: 13px; }
+    .demo-ads { font-family: monospace; font-size: 13px; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .new { color: #4ec9b0; font-weight: bold; }
+    .ref { color: #dcdcaa; }
+  </style>
+</head>
+<body>
+  <h1>Willhaben Watcher — így működik</h1>
+  <p>Ez egy <strong>demó panel</strong> (nem a valódi willhaben). A böngésződben ugyanez jelenik meg jobb alul, ha telepíted a Tampermonkey scriptet.</p>
+
+  <div class="panel" id="demo-panel">
+    <header>
+      <span>Willhaben Watcher</span>
+      <span class="status pause" id="st">○ Szünet</span>
+    </header>
+    <label><input type="checkbox" id="enabled" /> Automatikus figyelés (10 mp)</label>
+    <p id="stats" style="font-size:12px;color:#555;margin:8px 0"></p>
+    <label>Sablon üzenet</label>
+    <textarea id="tpl">Hallo! Ich interessiere mich für Ihr Angebot „{title}“ ({price}). Ist es noch verfügbar?</textarea>
+    <div class="row">
+      <div><label>Össz. max</label><input type="number" id="maxT" value="30" /></div>
+      <div><label>Napi max</label><input type="number" id="maxD" value="10" /></div>
+      <div><label>Max nap</label><input type="number" id="maxDays" value="7" /></div>
+    </div>
+    <button class="primary" id="save">Mentés</button>
+    <button id="cal">Újrakalibrálás</button>
+    <button id="sim">Szimulálj 2 új hirdetést</button>
+    <div class="log" id="log"></div>
+  </div>
+
+  <h2>Lépések a valódi használathoz</h2>
+  <div class="steps">
+    <div class="step">Telepíts <a href="https://www.tampermonkey.net/">Tampermonkey</a>-t (Chrome / Firefox / Edge).</div>
+    <div class="step">Új script → másold be a <code>willhaben-watcher.user.js</code> fájlt.</div>
+    <div class="step">Nyisd meg a <a href="https://www.willhaben.at/iad/kaufen-und-verkaufen/marktplatz-angebote" target="_blank">willhaben keresési listát</a> és jelentkezz be.</div>
+    <div class="step">Kapcsold be az „Automatikus figyelés”-t. Első körben <strong>kalibrál</strong> — nem küld.</div>
+    <div class="step">10 mp-enként háttérben lekéri a listát; új hirdetésnél iframe-ben kitölti a Nachricht mezőt.</div>
+  </div>
+
+  <h2>Referencia logika (1 ID, nem 50)</h2>
+  <pre class="demo-ads" id="viz"></pre>
+
+  <script>
+    const sampleAds = [
+      { id: '105', title: 'Új hirdetés A', price: '€ 50' },
+      { id: '104', title: 'Új hirdetés B', price: '€ 30' },
+      { id: '103', title: 'Régi felül', price: '€ 20' },
+      { id: '100', title: '← REFERENCIA (utolsó látott legfelső)', price: '€ 15' },
+      { id: '99', title: 'Régebbi', price: '€ 10' },
+    ];
+
+    let marker = null;
+    let calibrated = false;
+    let sent = 0;
+    let timer = null;
+
+    function log(msg) {
+      const el = document.getElementById('log');
+      const d = document.createElement('div');
+      d.textContent = new Date().toLocaleTimeString('hu-HU') + ' ' + msg;
+      el.prepend(d);
+    }
+
+    function renderViz(ads, ref) {
+      const lines = ads.map(a => {
+        const cls = a.id === '105' || a.id === '104' ? 'new' : a.id === ref ? 'ref' : '';
+        const tag = (a.id === '105' || a.id === '104') ? ' ← ÚJ, üzenet megy' : a.id === ref ? ' ← referencia' : '';
+        return `<span class="${cls}">[${a.id}] ${a.title}${tag}</span>`;
+      });
+      document.getElementById('viz').innerHTML = lines.join('\n');
+    }
+
+    function check(ads) {
+      if (!calibrated || !marker) {
+        marker = ads[0].id;
+        calibrated = true;
+        log('Kalibrálás: referencia = ' + marker + ' (nincs küldés)');
+        renderViz(ads, marker);
+        return;
+      }
+      const idx = ads.findIndex(a => a.id === marker);
+      if (idx <= 0) {
+        log('Nincs új hirdetés');
+        renderViz(ads, marker);
+        return;
+      }
+      const news = ads.slice(0, idx);
+      news.forEach(ad => {
+        const tpl = document.getElementById('tpl').value;
+        const msg = tpl.replace('{title}', ad.title).replace('{price}', ad.price);
+        sent++;
+        log('✓ Üzenet elküldve: ' + ad.title + ' — „' + msg.slice(0, 50) + '…“');
+      });
+      marker = ads[0].id;
+      document.getElementById('stats').textContent = 'Referencia: ' + marker + ' | Elküldve: ' + sent;
+      renderViz(ads, marker);
+    }
+
+    document.getElementById('enabled').onchange = e => {
+      const on = e.target.checked;
+      document.getElementById('st').textContent = on ? '● Fut' : '○ Szünet';
+      document.getElementById('st').className = 'status ' + (on ? 'run' : 'pause');
+      clearInterval(timer);
+      if (on) {
+        check(sampleAds);
+        timer = setInterval(() => check(sampleAds), 10000);
+        log('Figyelés elindítva (10 mp)');
+      }
+    };
+
+    document.getElementById('cal').onclick = () => {
+      calibrated = false; marker = null;
+      log('Kalibrálás törölve');
+    };
+
+    document.getElementById('sim').onclick = () => {
+      sampleAds.unshift(
+        { id: '106', title: 'Frissen felkerült #1', price: '€ 99' },
+        { id: '107', title: 'Frissen felkerült #2', price: '€ 88' }
+      );
+      log('--- 2 új hirdetés a lista tetejére ---');
+      check(sampleAds);
+    };
+
+    document.getElementById('save').onclick = () => log('Beállítások mentve');
+
+    renderViz(sampleAds, '100');
+    document.getElementById('stats').textContent = 'Demó — kattints „Szimulálj 2 új hirdetést”';
+  </script>
+</body>
+</html>
