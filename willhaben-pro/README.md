@@ -137,6 +137,25 @@ Kézzel: `npm run stop` — vagy nyisd meg: http://127.0.0.1:3847
 
 Node **18+** szükséges (`node -v`). A 14-es verzió nem támogatott.
 
+### Nincs üzenet a willhaben-en
+
+Ha a naplóban **piros hibák** vannak, az üzenet **nem ment ki** — ezért nem látod a willhaben fiókodban sem.
+
+1. **Bejelentkezés** (egyszer, süti elfogadással):
+   ```bash
+   npm run login
+   ```
+   Fogadd el az „Akzeptieren” süti ablakot, jelentkezz be, zárd be a böngészőt.
+
+2. **Újraindítás:**
+   ```bash
+   npm start
+   ```
+
+3. Admin panel **Napló** — sikeres küldésnél **zöld** sor jelenik meg.
+
+4. Willhaben-en: **Mein willhaben → Nachrichten** (bejelentkezve).
+
 ---
 
 *Nincs köze a Bocsa App-hoz — önálló projekt.*

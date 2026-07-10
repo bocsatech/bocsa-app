@@ -6,6 +6,7 @@ import { parseAdsFromHtml, findNewAds } from './parse.mjs';
 import { sendMessage } from './message.mjs';
 import { startAdminServer, setMonitorControl } from './admin-server.mjs';
 import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
+import { setupConsentHandler } from './consent.mjs';
 
 const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
 
@@ -31,6 +32,7 @@ class Monitor {
       locale: 'de-AT',
     });
     this.page = this.context.pages()[0] || (await this.context.newPage());
+    setupConsentHandler(this.page);
     appendLog(loadState(), 'info', 'Böngésző profil betöltve (bejelentkezés megmarad)');
   }
 
@@ -119,7 +121,7 @@ class Monitor {
             state.sentToday += 1;
             state.sentAdIds.push(ad.id);
             state.urlMarkers[watch.id] = result.newMarker;
-            appendLog(state, 'ok', `[${watch.label}] Üzenet: ${ad.title} (${ad.id})`);
+            appendLog(state, 'ok', `[${watch.label}] Üzenet elküldve: ${ad.title} → ${ad.url}`);
           } catch (err) {
             appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${err.message}`);
             break;
