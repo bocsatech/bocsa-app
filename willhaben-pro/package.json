@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.mjs",
+    "stop": "pkill -f 'node src/index.mjs' 2>/dev/null || true",
     "admin": "node src/index.mjs --admin-only",
     "login": "node src/login.mjs"
   },

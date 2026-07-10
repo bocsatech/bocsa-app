@@ -35,7 +35,8 @@ function serveFile(res, filePath) {
 }
 
 export function startAdminServer(port = 3847) {
-  const server = http.createServer(async (req, res) => {
+  return new Promise((resolve, reject) => {
+    const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://127.0.0.1:${port}`);
 
     if (req.method === 'GET' && url.pathname === '/') {
@@ -86,11 +87,25 @@ export function startAdminServer(port = 3847) {
     }
 
     json(res, 404, { error: 'Not found' });
-  });
+    });
 
-  server.listen(port, '127.0.0.1', () => {
-    console.log(`\n  Admin panel: http://127.0.0.1:${port}\n`);
-  });
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        reject(
+          new Error(
+            `A ${port} port már foglalt — valószínűleg már fut egy Willhaben Pro példány.\n` +
+              `  → Nyisd meg: http://127.0.0.1:${port}\n` +
+              `  → Ha nem kell: npm run stop   (vagy: pkill -f "node src/index.mjs")`
+          )
+        );
+        return;
+      }
+      reject(err);
+    });
 
-  return server;
+    server.listen(port, '127.0.0.1', () => {
+      console.log(`\n  Admin panel: http://127.0.0.1:${port}\n`);
+      resolve(server);
+    });
+  });
 }

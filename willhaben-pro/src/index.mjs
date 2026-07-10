@@ -5,6 +5,7 @@ import { loadState, saveState, appendLog, todayKey } from './state.mjs';
 import { parseAdsFromHtml, findNewAds } from './parse.mjs';
 import { sendMessage } from './message.mjs';
 import { startAdminServer, setMonitorControl } from './admin-server.mjs';
+import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
 
 const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
 
@@ -184,10 +185,37 @@ class Monitor {
 const monitor = new Monitor();
 setMonitorControl(monitor);
 
-startAdminServer(3847);
-monitor.start();
+const lock = acquireInstanceLock();
+if (!lock.ok) {
+  const config = loadConfig();
+  const port = config.adminPort ?? 3847;
+  console.error(
+    `\n  Willhaben Pro már fut (PID ${lock.existingPid}).\n` +
+      `  Admin panel: http://127.0.0.1:${port}\n` +
+      `  Leállítás: npm run stop\n`
+  );
+  process.exit(1);
+}
 
-process.on('SIGINT', async () => {
+const config = loadConfig();
+const adminPort = config.adminPort ?? 3847;
+
+startAdminServer(adminPort)
+  .then(() => {
+    monitor.start();
+  })
+  .catch((err) => {
+    console.error(`\n  Hiba: ${err.message}\n`);
+    releaseInstanceLock();
+    process.exit(1);
+  });
+
+async function shutdown() {
   await monitor.close();
+  releaseInstanceLock();
   process.exit(0);
-});
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+process.on('exit', releaseInstanceLock);

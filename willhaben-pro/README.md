@@ -114,7 +114,27 @@ Alapból beállítva:
 |---------|------------|
 | `npm run login` | Egyszeri willhaben bejelentkezés |
 | `npm start` | Figyelés + admin panel |
+| `npm run stop` | Futó példány leállítása |
 | Ctrl+C | Leállítás |
+
+---
+
+## Hibaelhárítás
+
+### `EADDRINUSE` — port már foglalt (3847)
+
+Valószínűleg **már fut** egy példány a háttérben.
+
+```bash
+npm run stop
+npm start
+```
+
+Vagy nyisd meg közvetlenül: http://127.0.0.1:3847
+
+### Node.js verzió
+
+Node **18+** szükséges (`node -v`). A 14-es verzió nem támogatott.
 
 ---
 

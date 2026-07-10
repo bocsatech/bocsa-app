@@ -1,4 +1,5 @@
 {
+  "adminPort": 3847,
   "pollIntervalSeconds": 10,
   "sendDelayMs": 3000,
   "headless": false,
