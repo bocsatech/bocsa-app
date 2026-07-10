@@ -88,8 +88,32 @@ export function startAdminServer(port = 3847) {
         return json(res, 200, { ok: true });
       }
 
+      if (req.method === 'POST' && url.pathname === '/api/config/password') {
+        const body = JSON.parse(await readBody(req));
+        const newPassword = String(body.password || '').trim();
+        if (newPassword.length < 4) {
+          return json(res, 400, { error: 'A jelszó legalább 4 karakter legyen' });
+        }
+        const config = loadConfig();
+        if (isAuthEnabled()) {
+          if (!requireAuth(req, res)) return;
+        }
+        config.adminPanel = { ...(config.adminPanel || {}), password: newPassword };
+        saveConfig(config);
+        const state = loadState();
+        appendLog(state, 'info', 'Admin: limitek jelszava beállítva');
+        saveState(state);
+        return json(res, 200, { ok: true });
+      }
+
       if (req.method === 'POST' && url.pathname === '/api/config') {
         const body = JSON.parse(await readBody(req));
+        if (body.admin != null && isAuthEnabled()) {
+          return json(res, 403, {
+            error: 'Limitek csak jelszóval módosíthatók — használd a Limitek mentése gombot',
+            authRequired: true,
+          });
+        }
         const config = loadConfig();
         if (body.messageTemplate != null) config.messageTemplate = body.messageTemplate;
         if (body.pollIntervalSeconds != null) config.pollIntervalSeconds = Number(body.pollIntervalSeconds);

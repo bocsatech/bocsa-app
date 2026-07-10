@@ -1,6 +1,6 @@
 {
   "adminPanel": {
-    "password": ""
+    "password": "test1234"
   },
   "adminPort": 3847,
   "pollIntervalSeconds": 10,
@@ -8,7 +8,7 @@
   "headless": false,
   "messageTemplate": "Guten Tag! Ich interessiere mich für Ihr Fahrzeug „{title}“ ({price}, {location}). Ist es noch verfügbar? Vielen Dank!",
   "admin": {
-    "maxPerDay": 10,
+    "maxPerDay": 99,
     "maxTotal": 50,
     "maxDays": 14,
     "enabled": true

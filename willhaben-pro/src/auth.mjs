@@ -4,13 +4,19 @@ import { loadConfig } from './config.mjs';
 const sessions = new Map();
 const SESSION_MS = 8 * 60 * 60 * 1000;
 
+export function getLimitsPassword() {
+  const fromEnv = process.env.WH_LIMITS_PASSWORD;
+  if (typeof fromEnv === 'string' && fromEnv.length > 0) return fromEnv;
+  return loadConfig().adminPanel?.password || '';
+}
+
 export function isAuthEnabled() {
-  const pw = loadConfig().adminPanel?.password;
-  return typeof pw === 'string' && pw.length > 0;
+  const pw = getLimitsPassword();
+  return pw.length > 0;
 }
 
 export function verifyPassword(password) {
-  const expected = loadConfig().adminPanel?.password || '';
+  const expected = getLimitsPassword();
   if (!expected) return true;
   if (typeof password !== 'string') return false;
   const a = Buffer.from(password);
@@ -63,7 +69,9 @@ function jsonAuthError(res) {
 export function publicConfig(config) {
   const c = structuredClone(config);
   if (c.adminPanel?.password) {
-    c.adminPanel = { ...c.adminPanel, password: '***' };
+    c.adminPanel = { ...c.adminPanel, password: '***', hasPassword: true };
+  } else {
+    c.adminPanel = { ...(c.adminPanel || {}), password: '', hasPassword: false };
   }
   return c;
 }

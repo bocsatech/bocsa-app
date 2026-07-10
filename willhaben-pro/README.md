@@ -85,9 +85,11 @@ Alapból beállítva:
 - **Újrakalibrálás** — első körben nem küld, új referencia
 - **Stat törlés**
 
-### Jelszóvédelem (opcionális)
+### Jelszóvédelem — admin limitek
 
-A `config.json`-ban állíts be jelszót:
+**1. Admin panelen** (Ajánlott): Nyisd meg http://127.0.0.1:3847 → **Admin — limitek** szekció → **Jelszó beállítása**.
+
+**2. Kézzel** a `config.json`-ban:
 
 ```json
 "adminPanel": {
@@ -95,10 +97,11 @@ A `config.json`-ban állíts be jelszót:
 }
 ```
 
-- **Üres jelszó** = minden szerkeszthető (alapértelmezés)
-- **Jelszó beállítva** = csak az **Admin limitek** (napi max, összes max, napok, engedélyezve) védettek
-- Sablon, URL-ek, indítás, STOP → **jelszó nélkül** is módosítható
-- Limitek mentése → **🔒 Bejelentkezés** szükséges
+Utána indítsd újra: `npm start` (Ctrl+C majd npm start, vagy STOP gomb).
+
+- **Jelszó nélkül** = limitek bárki által módosíthatók (sárga figyelmeztetés)
+- **Jelszóval** = limitek csak bejelentkezés után
+- Sablon, URL-ek, indítás, STOP → mindig szabad
 
 ---
 

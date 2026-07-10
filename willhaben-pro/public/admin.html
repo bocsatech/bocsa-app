@@ -35,8 +35,9 @@
     .stat { background: #121a24; padding: 12px; border-radius: 8px; text-align: center; }
     .stat b { display: block; font-size: 1.4rem; color: var(--accent); }
     .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
-    .locked section[data-protected] input,
-    .locked section[data-protected] button { opacity: 0.45; pointer-events: none; }
+    .locked section[data-protected] input { opacity: 0.45; pointer-events: none; }
+    .locked section[data-protected] .limit-check { opacity: 0.45; pointer-events: none; }
+    .pw-setup { margin-bottom: 12px; padding: 12px; background: #121a24; border-radius: 8px; border: 1px solid var(--border); }
     .auth-bar { display: flex; gap: 8px; align-items: center; }
     .auth-badge { font-size: 12px; color: var(--muted); }
     .modal-backdrop { position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 100; }
@@ -84,19 +85,28 @@
       </div>
     </section>
 
-    <section data-protected>
+    <section data-protected id="limits-section">
       <h2>Admin — limitek 🔒</h2>
-      <p class="hint">Csak jelszóval módosítható (ha be van állítva a config.json-ban).</p>
+      <div id="pw-setup" class="pw-setup" style="display:none">
+        <strong>Nincs jelszó beállítva</strong> — bárki módosíthatja a limiteket.
+        <label style="margin-top:10px">Új jelszó (min. 4 karakter)</label>
+        <input type="password" id="setup-password" placeholder="Pl. bocsa2024" />
+        <div class="btns">
+          <button class="primary" onclick="setupPassword()">Jelszó beállítása</button>
+        </div>
+      </div>
+      <p id="limits-hint" class="hint">Limitek módosításához jelszó szükséges. Kattints: 🔒 Bejelentkezés (jobb fent).</p>
       <div class="row">
         <div><label>Napi max üzenet</label><input type="number" id="maxPerDay" min="1" /></div>
         <div><label>Összes max</label><input type="number" id="maxTotal" min="1" /></div>
         <div><label>Használati napok</label><input type="number" id="maxDays" min="1" /></div>
       </div>
-      <div style="margin-top:12px">
+      <div style="margin-top:12px" class="limit-check">
         <label><input type="checkbox" id="adminEnabled" /> Küldés engedélyezve</label>
       </div>
       <div class="btns">
         <button class="primary" onclick="saveLimits()">💾 Limitek mentése</button>
+        <button id="btn-limits-login" onclick="showLogin()" style="display:none">🔒 Bejelentkezés limitekhez</button>
       </div>
     </section>
 
@@ -171,13 +181,39 @@
       document.body.classList.toggle('locked', needAuth && !unlocked);
       document.getElementById('btn-login').style.display = needAuth && !unlocked ? 'inline-block' : 'none';
       document.getElementById('btn-logout').style.display = needAuth && unlocked ? 'inline-block' : 'none';
+      document.getElementById('btn-limits-login').style.display = needAuth && !unlocked ? 'inline-block' : 'none';
+      document.getElementById('pw-setup').style.display = needAuth ? 'none' : 'block';
+      document.getElementById('limits-hint').style.display = needAuth ? 'block' : 'none';
       const badge = document.getElementById('auth-badge');
       if (needAuth) {
         badge.style.display = 'inline';
         badge.textContent = unlocked ? '🔓 Limitek szerkeszthető' : '🔒 Limitek védettek';
       } else {
-        badge.style.display = 'none';
+        badge.style.display = 'inline';
+        badge.textContent = '⚠ Limitek nincsenek védve';
       }
+    }
+
+    async function setupPassword() {
+      const password = document.getElementById('setup-password').value.trim();
+      if (password.length < 4) {
+        alert('A jelszó legalább 4 karakter legyen.');
+        return;
+      }
+      const res = await fetch('/api/config/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        alert(body.error || 'Jelszó beállítás sikertelen');
+        return;
+      }
+      document.getElementById('setup-password').value = '';
+      await refresh();
+      alert('Jelszó aktív! Mostantól a limitek védettek — jelentkezz be a módosításhoz.');
+      showLogin();
     }
 
     function showLogin() {
