@@ -89,15 +89,11 @@ export function startAdminServer(port = 3847) {
       }
 
       if (req.method === 'POST' && url.pathname === '/api/config') {
-        if (!requireAuth(req, res)) return;
         const body = JSON.parse(await readBody(req));
         const config = loadConfig();
         if (body.messageTemplate != null) config.messageTemplate = body.messageTemplate;
         if (body.pollIntervalSeconds != null) config.pollIntervalSeconds = Number(body.pollIntervalSeconds);
         if (body.sendDelayMs != null) config.sendDelayMs = Number(body.sendDelayMs);
-        if (body.admin) {
-          config.admin = { ...config.admin, ...body.admin };
-        }
         if (Array.isArray(body.watchUrls)) {
           config.watchUrls = body.watchUrls.map((u, i) => ({
             id: u.id || `url-${i + 1}`,
@@ -113,8 +109,21 @@ export function startAdminServer(port = 3847) {
         return json(res, 200, { ok: true });
       }
 
-      if (req.method === 'POST' && url.pathname === '/api/control') {
+      if (req.method === 'POST' && url.pathname === '/api/config/limits') {
         if (!requireAuth(req, res)) return;
+        const body = JSON.parse(await readBody(req));
+        const config = loadConfig();
+        if (body.admin) {
+          config.admin = { ...config.admin, ...body.admin };
+        }
+        saveConfig(config);
+        const state = loadState();
+        appendLog(state, 'info', 'Admin: limitek mentve');
+        saveState(state);
+        return json(res, 200, { ok: true });
+      }
+
+      if (req.method === 'POST' && url.pathname === '/api/control') {
         const body = JSON.parse(await readBody(req));
         if (body.action === 'start') monitorControl?.start?.();
         if (body.action === 'stop') monitorControl?.stop?.();

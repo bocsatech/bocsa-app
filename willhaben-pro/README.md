@@ -96,9 +96,9 @@ A `config.json`-ban állíts be jelszót:
 ```
 
 - **Üres jelszó** = minden szerkeszthető (alapértelmezés)
-- **Jelszó beállítva** = csak olvasás (állapot, napló) jelszó nélkül
-- Módosítás, mentés, indítás, STOP → **🔒 Bejelentkezés** szükséges
-- A jelszót csak a `config.json` fájlban lehet megváltoztatni
+- **Jelszó beállítva** = csak az **Admin limitek** (napi max, összes max, napok, engedélyezve) védettek
+- Sablon, URL-ek, indítás, STOP → **jelszó nélkül** is módosítható
+- Limitek mentése → **🔒 Bejelentkezés** szükséges
 
 ---
 
