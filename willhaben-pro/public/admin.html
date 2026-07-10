@@ -35,12 +35,26 @@
     .stat { background: #121a24; padding: 12px; border-radius: 8px; text-align: center; }
     .stat b { display: block; font-size: 1.4rem; color: var(--accent); }
     .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .locked section[data-protected] input,
+    .locked section[data-protected] textarea,
+    .locked section[data-protected] button { opacity: 0.45; pointer-events: none; }
+    .locked .protected-btns button { opacity: 0.45; pointer-events: none; }
+    .auth-bar { display: flex; gap: 8px; align-items: center; }
+    .auth-badge { font-size: 12px; color: var(--muted); }
+    .modal-backdrop { position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 100; }
+    .modal-backdrop.show { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: min(360px, 92vw); }
   </style>
 </head>
 <body>
   <header>
     <h1>Willhaben Pro</h1>
-    <span id="status" class="badge stop">…</span>
+    <div class="auth-bar">
+      <span id="auth-badge" class="auth-badge" style="display:none"></span>
+      <button id="btn-login" onclick="showLogin()" style="display:none">🔒 Bejelentkezés</button>
+      <button id="btn-logout" onclick="logout()" style="display:none">Kijelentkezés</button>
+      <span id="status" class="badge stop">…</span>
+    </div>
   </header>
   <main>
     <section>
@@ -51,7 +65,7 @@
         <div class="stat"><b id="st-daylim">10</b>Napi limit</div>
         <div class="stat"><b id="st-days">14</b>Max nap</div>
       </div>
-      <div class="btns">
+      <div class="btns protected-btns">
         <button class="primary" onclick="control('start')">▶ Indítás</button>
         <button onclick="control('stop')">⏸ Szünet</button>
         <button class="danger solid" onclick="shutdownApp()">■ STOP</button>
@@ -61,14 +75,14 @@
       <p class="hint">Szünet = figyelés megáll, böngésző nyitva marad. STOP = teljes leállítás (böngésző + program).</p>
     </section>
 
-    <section>
+    <section data-protected>
       <h2>Sablon üzenet</h2>
       <p id="dirty-hint" class="hint" style="display:none;color:#ffb347">⚠ Nem mentett változások — kattints a Mentés gombra!</p>
       <textarea id="template"></textarea>
       <p class="hint">Változók: {title} {price} {location} {url} {id}</p>
     </section>
 
-    <section>
+    <section data-protected>
       <h2>Admin — limitek</h2>
       <div class="row">
         <div><label>Napi max üzenet</label><input type="number" id="maxPerDay" min="1" /></div>
@@ -84,14 +98,14 @@
       </div>
     </section>
 
-    <section>
+    <section data-protected>
       <h2>Figyelt URL-ek</h2>
       <div id="urls"></div>
       <button onclick="addUrl()">+ URL hozzáadása</button>
       <p class="hint">Jelenleg 2 link előre beállítva. Bármikor bővíthető vagy módosítható.</p>
     </section>
 
-    <section>
+    <section data-protected>
       <div class="btns"><button class="primary" onclick="save()">💾 Mentés</button></div>
     </section>
 
@@ -101,10 +115,109 @@
     </section>
   </main>
 
+  <div id="login-modal" class="modal-backdrop" onclick="if(event.target===this)hideLogin()">
+    <div class="modal">
+      <h2 style="margin:0 0 12px;color:var(--accent)">Admin jelszó</h2>
+      <p class="hint">A módosításokhoz jelszó szükséges.</p>
+      <input type="password" id="login-password" placeholder="Jelszó" onkeydown="if(event.key==='Enter')submitLogin()" />
+      <div class="btns" style="margin-top:12px">
+        <button class="primary" onclick="submitLogin()">Belépés</button>
+        <button onclick="hideLogin()">Mégse</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    const AUTH_KEY = 'wh-admin-token';
     let data = null;
     let formLoaded = false;
     let formDirty = false;
+    let unlocked = true;
+
+    function getToken() {
+      return sessionStorage.getItem(AUTH_KEY) || '';
+    }
+
+    function setToken(token) {
+      if (token) sessionStorage.setItem(AUTH_KEY, token);
+      else sessionStorage.removeItem(AUTH_KEY);
+    }
+
+    function authHeaders() {
+      const token = getToken();
+      const h = { 'Content-Type': 'application/json' };
+      if (token) h.Authorization = `Bearer ${token}`;
+      return h;
+    }
+
+    async function api(url, opts = {}) {
+      const res = await fetch(url, { ...opts, headers: { ...authHeaders(), ...opts.headers } });
+      if (res.status === 401) {
+        setToken('');
+        unlocked = false;
+        applyAuthUi();
+        showLogin();
+        throw new Error('auth');
+      }
+      return res;
+    }
+
+    function applyAuthUi() {
+      const needAuth = data?.authRequired;
+      unlocked = !needAuth || data?.unlocked;
+      document.body.classList.toggle('locked', needAuth && !unlocked);
+      document.getElementById('btn-login').style.display = needAuth && !unlocked ? 'inline-block' : 'none';
+      document.getElementById('btn-logout').style.display = needAuth && unlocked ? 'inline-block' : 'none';
+      const badge = document.getElementById('auth-badge');
+      if (needAuth) {
+        badge.style.display = 'inline';
+        badge.textContent = unlocked ? '🔓 Szerkeszthető' : '🔒 Csak olvasás';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('login-modal').classList.add('show');
+      document.getElementById('login-password').focus();
+    }
+
+    function hideLogin() {
+      document.getElementById('login-modal').classList.remove('show');
+      document.getElementById('login-password').value = '';
+    }
+
+    async function submitLogin() {
+      const password = document.getElementById('login-password').value;
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        alert(body.error || 'Hibás jelszó');
+        return;
+      }
+      if (body.token) setToken(body.token);
+      hideLogin();
+      await refresh();
+    }
+
+    async function logout() {
+      try {
+        await api('/api/auth/logout', { method: 'POST', body: '{}' });
+      } catch (_) {}
+      setToken('');
+      await refresh();
+    }
+
+    async function ensureUnlocked(actionLabel) {
+      if (!data?.authRequired || unlocked) return true;
+      alert(`${actionLabel} — előbb jelentkezz be (🔒 Bejelentkezés).`);
+      showLogin();
+      return false;
+    }
 
     function markDirty() {
       formDirty = true;
@@ -159,6 +272,10 @@
     }
 
     function addUrl() {
+      if (!unlocked && data?.authRequired) {
+        showLogin();
+        return;
+      }
       const urls = collectUrls();
       urls.push({ id: `url-${urls.length+1}`, label: 'Új URL', url: '', enabled: true });
       renderUrls(urls);
@@ -201,12 +318,14 @@
     }
 
     async function refresh() {
-      const res = await fetch('/api/status');
+      const res = await fetch('/api/status', { headers: authHeaders() });
       data = await res.json();
+      applyAuthUi();
       applyData();
     }
 
     async function save() {
+      if (!(await ensureUnlocked('Mentés'))) return;
       const body = {
         messageTemplate: document.getElementById('template').value,
         pollIntervalSeconds: Number(document.getElementById('pollInterval').value),
@@ -219,7 +338,7 @@
         },
         watchUrls: collectUrls(),
       };
-      const res = await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const res = await api('/api/config', { method: 'POST', body: JSON.stringify(body) });
       if (!res.ok) {
         alert('Mentés sikertelen!');
         return;
@@ -230,13 +349,15 @@
     }
 
     async function control(action) {
-      await fetch('/api/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) });
+      if (!(await ensureUnlocked('Vezérlés'))) return;
+      await api('/api/control', { method: 'POST', body: JSON.stringify({ action }) });
       await refresh();
     }
 
     async function shutdownApp() {
+      if (!(await ensureUnlocked('STOP'))) return;
       if (!confirm('Teljes leállítás? A böngésző és a program is bezáródik.')) return;
-      await fetch('/api/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'shutdown' }) });
+      await api('/api/control', { method: 'POST', body: JSON.stringify({ action: 'shutdown' }) });
       document.getElementById('status').textContent = '■ Leállítva';
       document.getElementById('status').className = 'badge stop';
       alert('Program leállítva. Újraindítás: npm start');

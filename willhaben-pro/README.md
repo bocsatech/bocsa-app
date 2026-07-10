@@ -81,9 +81,24 @@ Alapból beállítva:
 Új URL: **„+ URL hozzáadása”** → név + link → **Mentés**.
 
 ### Vezérlés
-- **Indítás / Szünet**
+- **Indítás / Szünet / STOP**
 - **Újrakalibrálás** — első körben nem küld, új referencia
 - **Stat törlés**
+
+### Jelszóvédelem (opcionális)
+
+A `config.json`-ban állíts be jelszót:
+
+```json
+"adminPanel": {
+  "password": "titkos-jelszo"
+}
+```
+
+- **Üres jelszó** = minden szerkeszthető (alapértelmezés)
+- **Jelszó beállítva** = csak olvasás (állapot, napló) jelszó nélkül
+- Módosítás, mentés, indítás, STOP → **🔒 Bejelentkezés** szükséges
+- A jelszót csak a `config.json` fájlban lehet megváltoztatni
 
 ---
 
