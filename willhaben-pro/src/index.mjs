@@ -17,23 +17,70 @@ class Monitor {
     this.context = null;
     this.page = null;
     this.processing = false;
+    this.lastBrowserWarnAt = 0;
   }
 
   isRunning() {
     return this.running;
   }
 
-  async ensureBrowser() {
-    if (this.context) return;
+  isBrowserClosedError(err) {
+    const msg = err?.message || '';
+    return /has been closed|target.*closed|context.*closed/i.test(msg);
+  }
+
+  async resetBrowser(state, message) {
+    if (this.context) {
+      try {
+        await this.context.close();
+      } catch {
+        /* already closed */
+      }
+    }
+    this.context = null;
+    this.page = null;
+    const now = Date.now();
+    if (message && now - this.lastBrowserWarnAt > 60000) {
+      this.lastBrowserWarnAt = now;
+      appendLog(state, 'error', message);
+      saveState(state);
+    }
+  }
+
+  isBrowserAlive() {
+    if (!this.context || !this.page) return false;
+    try {
+      return !this.page.isClosed() && this.context.browser()?.isConnected();
+    } catch {
+      return false;
+    }
+  }
+
+  async ensureBrowser(state) {
+    if (this.isBrowserAlive()) return;
+
+    if (this.context) {
+      await this.resetBrowser(state, null);
+    }
+
     const config = loadConfig();
     this.context = await chromium.launchPersistentContext(PROFILE_DIR, {
       headless: config.headless === true,
       viewport: { width: 1280, height: 900 },
       locale: 'de-AT',
     });
+    this.context.on('close', () => {
+      this.context = null;
+      this.page = null;
+    });
     this.page = this.context.pages()[0] || (await this.context.newPage());
     setupConsentHandler(this.page);
-    appendLog(loadState(), 'info', 'Böngésző profil betöltve (bejelentkezés megmarad)');
+    appendLog(
+      state,
+      'info',
+      'Böngésző megnyitva — futás közben NE zárd be a Chrome ablakot!'
+    );
+    saveState(state);
   }
 
   getLimitStatus(config, state) {
@@ -86,7 +133,7 @@ class Monitor {
       return;
     }
 
-    await this.ensureBrowser();
+    await this.ensureBrowser(state);
 
     for (const watch of config.watchUrls.filter((w) => w.enabled && w.url)) {
       try {
@@ -123,7 +170,14 @@ class Monitor {
             state.urlMarkers[watch.id] = result.newMarker;
             appendLog(state, 'ok', `[${watch.label}] Üzenet elküldve: ${ad.title} → ${ad.url}`);
           } catch (err) {
-            appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${err.message}`);
+            if (this.isBrowserClosedError(err)) {
+              await this.resetBrowser(
+                state,
+                'Böngésző bezárva — üzenetküldés szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
+              );
+            } else {
+              appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${err.message}`);
+            }
             break;
           } finally {
             this.processing = false;
@@ -131,7 +185,14 @@ class Monitor {
           }
         }
       } catch (err) {
-        appendLog(state, 'error', `[${watch.label}] ${err.message}`);
+        if (this.isBrowserClosedError(err)) {
+          await this.resetBrowser(
+            state,
+            'Böngésző bezárva — figyelés folytatódik, de üzenet csak nyitott böngészővel megy ki'
+          );
+        } else {
+          appendLog(state, 'error', `[${watch.label}] ${err.message}`);
+        }
         saveState(state);
       }
     }
@@ -180,7 +241,15 @@ class Monitor {
 
   async close() {
     this.stop();
-    if (this.context) await this.context.close();
+    if (this.context) {
+      try {
+        await this.context.close();
+      } catch {
+        /* already closed */
+      }
+    }
+    this.context = null;
+    this.page = null;
   }
 }
 

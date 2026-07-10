@@ -137,7 +137,15 @@ Kézzel: `npm run stop` — vagy nyisd meg: http://127.0.0.1:3847
 
 Node **18+** szükséges (`node -v`). A 14-es verzió nem támogatott.
 
-### Nincs üzenet a willhaben-en
+### Böngésző bezárva (`Target page, context or browser has been closed`)
+
+A Chrome ablakot **bezártad**, de a program a terminálban tovább futott.
+
+- **Ne zárd be** a Playwright által megnyitott Chrome-ot futás közben.
+- Ha bezártad: `npm start` újra — a böngésző újranyílik.
+- A naplóban piros hiba = **nem ment ki üzenet**.
+
+---
 
 Ha a naplóban **piros hibák** vannak, az üzenet **nem ment ki** — ezért nem látod a willhaben fiókodban sem.
 
