@@ -139,8 +139,9 @@
   <div id="login-modal" class="modal-backdrop" onclick="if(event.target===this)hideLogin()">
     <div class="modal">
       <h2 style="margin:0 0 12px;color:var(--accent)">Admin jelszó</h2>
-      <p class="hint">Admin limitek módosításához jelszó szükséges.</p>
-      <input type="password" id="login-password" placeholder="Jelszó" onkeydown="if(event.key==='Enter')submitLogin()" />
+      <p class="hint">A terminálban állítottad be: <code>npm run set-password -- jelszo</code></p>
+      <p id="login-error" class="hint" style="display:none;color:#ff7b7b;margin-top:8px"></p>
+      <input type="password" id="login-password" placeholder="Jelszó" onkeydown="if(event.key==='Enter')submitLogin()" autocomplete="current-password" />
       <div class="btns" style="margin-top:12px">
         <button class="primary" onclick="submitLogin()">Belépés</button>
         <button onclick="hideLogin()">Mégse</button>
@@ -150,6 +151,7 @@
 
   <script>
     const AUTH_KEY = 'wh-admin-token';
+    let memoryToken = '';
     let data = null;
     let formLoaded = false;
     let formDirty = false;
@@ -157,12 +159,21 @@
     let unlocked = true;
 
     function getToken() {
-      return sessionStorage.getItem(AUTH_KEY) || '';
+      try {
+        return memoryToken || localStorage.getItem(AUTH_KEY) || '';
+      } catch {
+        return memoryToken || '';
+      }
     }
 
     function setToken(token) {
-      if (token) sessionStorage.setItem(AUTH_KEY, token);
-      else sessionStorage.removeItem(AUTH_KEY);
+      memoryToken = token || '';
+      try {
+        if (token) localStorage.setItem(AUTH_KEY, token);
+        else localStorage.removeItem(AUTH_KEY);
+      } catch {
+        /* privát mód — memoryToken marad */
+      }
     }
 
     function authHeaders() {
@@ -230,6 +241,7 @@
     }
 
     function showLogin() {
+      document.getElementById('login-error').style.display = 'none';
       document.getElementById('login-modal').classList.add('show');
       document.getElementById('login-password').focus();
     }
@@ -240,7 +252,14 @@
     }
 
     async function submitLogin() {
-      const password = document.getElementById('login-password').value;
+      const password = document.getElementById('login-password').value.trim();
+      const errEl = document.getElementById('login-error');
+      errEl.style.display = 'none';
+      if (!password) {
+        errEl.textContent = 'Írd be a jelszót.';
+        errEl.style.display = 'block';
+        return;
+      }
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -248,12 +267,21 @@
       });
       const body = await res.json();
       if (!res.ok) {
-        alert(body.error || 'Hibás jelszó');
+        errEl.textContent =
+          (body.error || 'Hibás jelszó') +
+          ' — Állítsd újra terminálban: npm run set-password -- ujjelszo';
+        errEl.style.display = 'block';
         return;
       }
       if (body.token) setToken(body.token);
       hideLogin();
       await refresh();
+      if (!data?.unlocked) {
+        errEl.textContent = 'Bejelentkezés sikertelen — indítsd újra: npm start';
+        errEl.style.display = 'block';
+        showLogin();
+        return;
+      }
     }
 
     async function logout() {

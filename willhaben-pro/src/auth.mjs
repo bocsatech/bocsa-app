@@ -19,8 +19,8 @@ export function verifyPassword(password) {
   const expected = getLimitsPassword();
   if (!expected) return true;
   if (typeof password !== 'string') return false;
-  const a = Buffer.from(password);
-  const b = Buffer.from(expected);
+  const a = Buffer.from(password.trim());
+  const b = Buffer.from(String(expected).trim());
   if (a.length !== b.length) return false;
   return crypto.timingSafeEqual(a, b);
 }

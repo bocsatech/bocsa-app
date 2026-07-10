@@ -13,5 +13,6 @@ config.adminPanel = { ...(config.adminPanel || {}), password };
 saveConfig(config);
 
 console.log('\n  ✓ Limitek jelszava beállítva.');
+console.log(`  Bejelentkezési jelszó: ${password}`);
 console.log('  Indítsd újra: npm start');
 console.log('  Admin: http://127.0.0.1:3847 → 🔒 Bejelentkezés\n');
