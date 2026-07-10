@@ -1,0 +1,26 @@
+{
+  "pollIntervalSeconds": 10,
+  "sendDelayMs": 3000,
+  "headless": false,
+  "messageTemplate": "Guten Tag! Ich interessiere mich für Ihr Fahrzeug „{title}“ ({price}, {location}). Ist es noch verfügbar? Vielen Dank!",
+  "admin": {
+    "maxPerDay": 10,
+    "maxTotal": 50,
+    "maxDays": 14,
+    "enabled": true
+  },
+  "watchUrls": [
+    {
+      "id": "skoda-superb-filter",
+      "label": "Skoda Superb — szűrt lista",
+      "url": "https://www.willhaben.at/iad/gebrauchtwagen/auto/gebrauchtwagenboerse?sfId=225ee205-5cbb-4685-8174-a3034a6bd9e9&isNavigation=true&CAR_MODEL/MAKE=1057&CAR_MODEL/MODEL=1600&CAR_MODEL/MODEL=1605&YEAR_MODEL_FROM=2021",
+      "enabled": true
+    },
+    {
+      "id": "suchagent-71403162",
+      "label": "Suchagent riasztás",
+      "url": "https://www.willhaben.at/iad/searchagent/alert?verticalId=3&searchId=2&alertId=71403162",
+      "enabled": true
+    }
+  ]
+}

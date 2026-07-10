@@ -1,0 +1,96 @@
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { loadConfig, saveConfig } from './config.mjs';
+import { loadState, saveState, appendLog } from './state.mjs';
+
+const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
+
+let monitorControl = null;
+
+export function setMonitorControl(ctrl) {
+  monitorControl = ctrl;
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', (c) => (data += c));
+    req.on('end', () => resolve(data));
+    req.on('error', reject);
+  });
+}
+
+function json(res, status, obj) {
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify(obj, null, 2));
+}
+
+function serveFile(res, filePath) {
+  const ext = path.extname(filePath);
+  const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript' };
+  res.writeHead(200, { 'Content-Type': `${types[ext] || 'text/plain'}; charset=utf-8` });
+  res.end(fs.readFileSync(filePath));
+}
+
+export function startAdminServer(port = 3847) {
+  const server = http.createServer(async (req, res) => {
+    const url = new URL(req.url, `http://127.0.0.1:${port}`);
+
+    if (req.method === 'GET' && url.pathname === '/') {
+      return serveFile(res, path.join(PUBLIC, 'admin.html'));
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/status') {
+      const config = loadConfig();
+      const state = loadState();
+      return json(res, 200, {
+        config,
+        state,
+        running: monitorControl?.isRunning?.() ?? false,
+      });
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/config') {
+      const body = JSON.parse(await readBody(req));
+      const config = loadConfig();
+      if (body.messageTemplate != null) config.messageTemplate = body.messageTemplate;
+      if (body.pollIntervalSeconds != null) config.pollIntervalSeconds = Number(body.pollIntervalSeconds);
+      if (body.sendDelayMs != null) config.sendDelayMs = Number(body.sendDelayMs);
+      if (body.admin) {
+        config.admin = { ...config.admin, ...body.admin };
+      }
+      if (Array.isArray(body.watchUrls)) {
+        config.watchUrls = body.watchUrls.map((u, i) => ({
+          id: u.id || `url-${i + 1}`,
+          label: u.label || `URL ${i + 1}`,
+          url: u.url,
+          enabled: u.enabled !== false,
+        }));
+      }
+      saveConfig(config);
+      const state = loadState();
+      appendLog(state, 'info', 'Admin: konfiguráció mentve');
+      saveState(state);
+      return json(res, 200, { ok: true });
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/control') {
+      const body = JSON.parse(await readBody(req));
+      if (body.action === 'start') monitorControl?.start?.();
+      if (body.action === 'stop') monitorControl?.stop?.();
+      if (body.action === 'recalibrate') monitorControl?.recalibrate?.();
+      if (body.action === 'reset-stats') monitorControl?.resetStats?.();
+      return json(res, 200, { ok: true });
+    }
+
+    json(res, 404, { error: 'Not found' });
+  });
+
+  server.listen(port, '127.0.0.1', () => {
+    console.log(`\n  Admin panel: http://127.0.0.1:${port}\n`);
+  });
+
+  return server;
+}

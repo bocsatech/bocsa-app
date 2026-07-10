@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Willhaben Pro — Admin</title>
+  <style>
+    :root { --bg: #0f1419; --card: #1a2332; --border: #2d3a4f; --text: #e7ecf3; --muted: #8b9cb3; --accent: #1db954; --danger: #e74c3c; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; font-size: 1.25rem; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge.run { background: #1db95433; color: var(--accent); }
+    .badge.stop { background: #8b9cb333; color: var(--muted); }
+    main { max-width: 960px; margin: 0 auto; padding: 24px; display: grid; gap: 20px; }
+    section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    h2 { margin: 0 0 14px; font-size: 1rem; color: var(--accent); }
+    label { display: block; margin: 10px 0 4px; font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    input, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #0f1419; color: var(--text); font: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    button { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border); background: #243044; color: var(--text); cursor: pointer; font-weight: 600; }
+    button.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+    button.danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+    .url-item { border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #121a24; }
+    .url-item header { padding: 0; border: 0; margin-bottom: 8px; }
+    .log { max-height: 220px; overflow: auto; font: 12px/1.5 monospace; background: #0a0f14; padding: 10px; border-radius: 8px; }
+    .log div { margin: 2px 0; }
+    .log .error { color: #ff7b7b; }
+    .log .ok { color: #7dffb2; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .stat { background: #121a24; padding: 12px; border-radius: 8px; text-align: center; }
+    .stat b { display: block; font-size: 1.4rem; color: var(--accent); }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Willhaben Pro</h1>
+    <span id="status" class="badge stop">…</span>
+  </header>
+  <main>
+    <section>
+      <h2>Állapot</h2>
+      <div class="stats">
+        <div class="stat"><b id="st-today">0</b>Ma elküldve</div>
+        <div class="stat"><b id="st-total">0</b>Összesen</div>
+        <div class="stat"><b id="st-daylim">10</b>Napi limit</div>
+        <div class="stat"><b id="st-days">14</b>Max nap</div>
+      </div>
+      <div class="btns">
+        <button class="primary" onclick="control('start')">▶ Indítás</button>
+        <button onclick="control('stop')">⏸ Szünet</button>
+        <button onclick="control('recalibrate')">↺ Újrakalibrálás</button>
+        <button class="danger" onclick="control('reset-stats')">Stat törlés</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Sablon üzenet</h2>
+      <textarea id="template"></textarea>
+      <p class="hint">Változók: {title} {price} {location} {url} {id}</p>
+    </section>
+
+    <section>
+      <h2>Admin — limitek</h2>
+      <div class="row">
+        <div><label>Napi max üzenet</label><input type="number" id="maxPerDay" min="1" /></div>
+        <div><label>Összes max</label><input type="number" id="maxTotal" min="1" /></div>
+        <div><label>Használati napok</label><input type="number" id="maxDays" min="1" /></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div><label>Ellenőrzés (mp)</label><input type="number" id="pollInterval" min="5" /></div>
+        <div><label>Küldés késleltetés (ms)</label><input type="number" id="sendDelay" min="1000" /></div>
+        <div style="display:flex;align-items:end;padding-bottom:8px">
+          <label><input type="checkbox" id="adminEnabled" /> Engedélyezve</label>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Figyelt URL-ek</h2>
+      <div id="urls"></div>
+      <button onclick="addUrl()">+ URL hozzáadása</button>
+      <p class="hint">Jelenleg 2 link előre beállítva. Bármikor bővíthető vagy módosítható.</p>
+    </section>
+
+    <section>
+      <div class="btns"><button class="primary" onclick="save()">💾 Mentés</button></div>
+    </section>
+
+    <section>
+      <h2>Napló</h2>
+      <div class="log" id="log"></div>
+    </section>
+  </main>
+
+  <script>
+    let data = null;
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    }
+
+    function renderUrls(urls) {
+      const el = document.getElementById('urls');
+      el.innerHTML = urls.map((u, i) => `
+        <div class="url-item">
+          <header><strong>URL #${i + 1}</strong>
+            <label style="display:inline;margin-left:12px"><input type="checkbox" data-i="${i}" class="url-enabled" ${u.enabled ? 'checked' : ''}/> Aktív</label>
+          </header>
+          <label>Név</label><input class="url-label" data-i="${i}" value="${esc(u.label)}" />
+          <label>Link</label><input class="url-url" data-i="${i}" value="${esc(u.url)}" />
+          <label>ID (belső)</label><input class="url-id" data-i="${i}" value="${esc(u.id)}" />
+        </div>
+      `).join('');
+    }
+
+    function collectUrls() {
+      const items = [...document.querySelectorAll('.url-item')];
+      return items.map((_, i) => ({
+        id: document.querySelector(`.url-id[data-i="${i}"]`).value.trim() || `url-${i+1}`,
+        label: document.querySelector(`.url-label[data-i="${i}"]`).value.trim() || `URL ${i+1}`,
+        url: document.querySelector(`.url-url[data-i="${i}"]`).value.trim(),
+        enabled: document.querySelector(`.url-enabled[data-i="${i}"]`).checked,
+      })).filter(u => u.url);
+    }
+
+    function addUrl() {
+      const urls = collectUrls();
+      urls.push({ id: `url-${urls.length+1}`, label: 'Új URL', url: '', enabled: true });
+      renderUrls(urls);
+    }
+
+    function applyData() {
+      const c = data.config;
+      const s = data.state;
+      document.getElementById('status').textContent = data.running ? '● Fut' : '○ Szünet';
+      document.getElementById('status').className = 'badge ' + (data.running ? 'run' : 'stop');
+      document.getElementById('template').value = c.messageTemplate;
+      document.getElementById('maxPerDay').value = c.admin.maxPerDay;
+      document.getElementById('maxTotal').value = c.admin.maxTotal;
+      document.getElementById('maxDays').value = c.admin.maxDays;
+      document.getElementById('pollInterval').value = c.pollIntervalSeconds;
+      document.getElementById('sendDelay').value = c.sendDelayMs;
+      document.getElementById('adminEnabled').checked = c.admin.enabled;
+      document.getElementById('st-today').textContent = `${s.sentToday}/${c.admin.maxPerDay}`;
+      document.getElementById('st-total').textContent = `${s.totalSent}/${c.admin.maxTotal}`;
+      document.getElementById('st-daylim').textContent = c.admin.maxPerDay;
+      document.getElementById('st-days').textContent = c.admin.maxDays;
+      renderUrls(c.watchUrls);
+      document.getElementById('log').innerHTML = (s.log || []).map(l =>
+        `<div class="${l.level}">[${l.at.slice(11,19)}] ${esc(l.message)}</div>`
+      ).join('') || '<div>—</div>';
+    }
+
+    async function refresh() {
+      const res = await fetch('/api/status');
+      data = await res.json();
+      applyData();
+    }
+
+    async function save() {
+      const body = {
+        messageTemplate: document.getElementById('template').value,
+        pollIntervalSeconds: Number(document.getElementById('pollInterval').value),
+        sendDelayMs: Number(document.getElementById('sendDelay').value),
+        admin: {
+          maxPerDay: Number(document.getElementById('maxPerDay').value),
+          maxTotal: Number(document.getElementById('maxTotal').value),
+          maxDays: Number(document.getElementById('maxDays').value),
+          enabled: document.getElementById('adminEnabled').checked,
+        },
+        watchUrls: collectUrls(),
+      };
+      await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      await refresh();
+      alert('Mentve!');
+    }
+
+    async function control(action) {
+      await fetch('/api/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) });
+      await refresh();
+    }
+
+    refresh();
+    setInterval(refresh, 3000);
+  </script>
+</body>
+</html>

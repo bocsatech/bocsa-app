@@ -1,0 +1,28 @@
+{
+  "sentToday": 0,
+  "sentDate": "2026-07-10",
+  "totalSent": 0,
+  "startedAt": 1783708443131,
+  "urlMarkers": {
+    "skoda-superb-filter": "2002231984",
+    "suchagent-71403162": "1227681078"
+  },
+  "urlCalibrated": {
+    "skoda-superb-filter": true,
+    "suchagent-71403162": true
+  },
+  "sentAdIds": [],
+  "queue": [],
+  "log": [
+    {
+      "at": "2026-07-10T18:34:04.877Z",
+      "level": "info",
+      "message": "[Suchagent riasztás] Kalibrálás → referencia 1227681078"
+    },
+    {
+      "at": "2026-07-10T18:34:04.421Z",
+      "level": "info",
+      "message": "[Skoda Superb — szűrt lista] Kalibrálás → referencia 2002231984"
+    }
+  ]
+}
