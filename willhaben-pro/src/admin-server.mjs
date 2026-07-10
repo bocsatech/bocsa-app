@@ -8,9 +8,14 @@ import { loadState, saveState, appendLog } from './state.mjs';
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
 let monitorControl = null;
+let appShutdown = null;
 
 export function setMonitorControl(ctrl) {
   monitorControl = ctrl;
+}
+
+export function setAppShutdown(fn) {
+  appShutdown = fn;
 }
 
 function readBody(req) {
@@ -83,6 +88,11 @@ export function startAdminServer(port = 3847) {
       if (body.action === 'stop') monitorControl?.stop?.();
       if (body.action === 'recalibrate') monitorControl?.recalibrate?.();
       if (body.action === 'reset-stats') monitorControl?.resetStats?.();
+      if (body.action === 'shutdown') {
+        json(res, 200, { ok: true });
+        setTimeout(() => appShutdown?.(), 200);
+        return;
+      }
       return json(res, 200, { ok: true });
     }
 

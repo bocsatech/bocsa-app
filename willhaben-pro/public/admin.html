@@ -23,7 +23,8 @@
     .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
     button { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border); background: #243044; color: var(--text); cursor: pointer; font-weight: 600; }
     button.primary { background: var(--accent); color: #000; border-color: var(--accent); }
-    button.danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+    button.danger { background: #e74c3c22; color: var(--danger); border-color: var(--danger); }
+    button.danger.solid { background: var(--danger); color: #fff; border-color: var(--danger); }
     .url-item { border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #121a24; }
     .url-item header { padding: 0; border: 0; margin-bottom: 8px; }
     .log { max-height: 220px; overflow: auto; font: 12px/1.5 monospace; background: #0a0f14; padding: 10px; border-radius: 8px; }
@@ -53,9 +54,11 @@
       <div class="btns">
         <button class="primary" onclick="control('start')">▶ Indítás</button>
         <button onclick="control('stop')">⏸ Szünet</button>
+        <button class="danger solid" onclick="shutdownApp()">■ STOP</button>
         <button onclick="control('recalibrate')">↺ Újrakalibrálás</button>
         <button class="danger" onclick="control('reset-stats')">Stat törlés</button>
       </div>
+      <p class="hint">Szünet = figyelés megáll, böngésző nyitva marad. STOP = teljes leállítás (böngésző + program).</p>
     </section>
 
     <section>
@@ -229,6 +232,14 @@
     async function control(action) {
       await fetch('/api/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) });
       await refresh();
+    }
+
+    async function shutdownApp() {
+      if (!confirm('Teljes leállítás? A böngésző és a program is bezáródik.')) return;
+      await fetch('/api/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'shutdown' }) });
+      document.getElementById('status').textContent = '■ Leállítva';
+      document.getElementById('status').className = 'badge stop';
+      alert('Program leállítva. Újraindítás: npm start');
     }
 
     bindDirtyInputs();

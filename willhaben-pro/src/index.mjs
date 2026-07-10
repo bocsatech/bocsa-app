@@ -3,7 +3,7 @@ import { getRoot, loadConfig } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
 import { parseAdsFromHtml, findNewAds } from './parse.mjs';
 import { sendMessage } from './message.mjs';
-import { startAdminServer, setMonitorControl } from './admin-server.mjs';
+import { startAdminServer, setMonitorControl, setAppShutdown } from './admin-server.mjs';
 import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
 import { setupConsentHandler } from './consent.mjs';
 import { launchBrowser } from './browser.mjs';
@@ -255,6 +255,17 @@ class Monitor {
 const monitor = new Monitor();
 setMonitorControl(monitor);
 
+async function shutdown() {
+  const state = loadState();
+  appendLog(state, 'info', 'Admin: program leállítva (STOP)');
+  saveState(state);
+  await monitor.close();
+  releaseInstanceLock();
+  process.exit(0);
+}
+
+setAppShutdown(shutdown);
+
 const lock = acquireInstanceLock();
 if (!lock.ok) {
   const config = loadConfig();
@@ -279,12 +290,6 @@ startAdminServer(adminPort)
     releaseInstanceLock();
     process.exit(1);
   });
-
-async function shutdown() {
-  await monitor.close();
-  releaseInstanceLock();
-  process.exit(0);
-}
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
