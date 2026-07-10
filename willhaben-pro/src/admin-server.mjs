@@ -14,6 +14,7 @@ import {
   publicConfig,
   isValidToken,
 } from './auth.mjs';
+import { APP_VERSION } from './version.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -45,7 +46,12 @@ function json(res, status, obj) {
 function serveFile(res, filePath) {
   const ext = path.extname(filePath);
   const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript' };
-  res.writeHead(200, { 'Content-Type': `${types[ext] || 'text/plain'}; charset=utf-8` });
+  const headers = { 'Content-Type': `${types[ext] || 'text/plain'}; charset=utf-8` };
+  if (ext === '.html') {
+    headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+    headers.Pragma = 'no-cache';
+  }
+  res.writeHead(200, headers);
   res.end(fs.readFileSync(filePath));
 }
 
@@ -67,7 +73,10 @@ export function startAdminServer(port = 3847) {
           state,
           running: monitorControl?.isRunning?.() ?? false,
           authRequired: isAuthEnabled(),
+          passwordActive: isAuthEnabled(),
           unlocked: !isAuthEnabled() || isValidToken(token),
+          version: APP_VERSION,
+          features: { limitsPassword: true },
         });
       }
 
@@ -179,7 +188,14 @@ export function startAdminServer(port = 3847) {
     });
 
     server.listen(port, '127.0.0.1', () => {
-      console.log(`\n  Admin panel: http://127.0.0.1:${port}\n`);
+      const pw = isAuthEnabled();
+      console.log(`\n  Admin panel: http://127.0.0.1:${port}  (v${APP_VERSION})`);
+      console.log(
+        pw
+          ? '  Limitek jelszó: AKTÍV — bejelentkezés kell a módosításhoz'
+          : '  Limitek jelszó: NINCS — állíts be: npm run set-password -- jelszo'
+      );
+      console.log('');
       resolve(server);
     });
   });

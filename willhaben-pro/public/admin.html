@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Willhaben Pro — Admin</title>
   <style>
     :root { --bg: #0f1419; --card: #1a2332; --border: #2d3a4f; --text: #e7ecf3; --muted: #8b9cb3; --accent: #1db954; --danger: #e74c3c; }
@@ -37,7 +37,9 @@
     .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
     .locked section[data-protected] input { opacity: 0.45; pointer-events: none; }
     .locked section[data-protected] .limit-check { opacity: 0.45; pointer-events: none; }
-    .pw-setup { margin-bottom: 12px; padding: 12px; background: #121a24; border-radius: 8px; border: 1px solid var(--border); }
+    .pw-setup { margin-bottom: 12px; padding: 12px; background: #121a24; border-radius: 8px; border: 1px solid #ffb347; }
+    .warn-banner { background: #ffb34722; border: 1px solid #ffb347; color: #ffb347; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+    .version-tag { font-size: 11px; color: var(--muted); margin-left: 8px; }
     .auth-bar { display: flex; gap: 8px; align-items: center; }
     .auth-badge { font-size: 12px; color: var(--muted); }
     .modal-backdrop { position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 100; }
@@ -47,7 +49,7 @@
 </head>
 <body>
   <header>
-    <h1>Willhaben Pro</h1>
+    <h1>Willhaben Pro <span id="version-tag" class="version-tag"></span></h1>
     <div class="auth-bar">
       <span id="auth-badge" class="auth-badge" style="display:none"></span>
       <button id="btn-login" onclick="showLogin()" style="display:none">🔒 Bejelentkezés</button>
@@ -56,6 +58,13 @@
     </div>
   </header>
   <main>
+    <div id="old-version-warn" class="warn-banner" style="display:none">
+      ⚠ <strong>Régi verzió fut!</strong> Terminálban: <code>git pull</code> majd <code>npm start</code>
+    </div>
+    <div id="no-password-warn" class="warn-banner" style="display:none">
+      ⚠ <strong>Limitek nincsenek védve!</strong> Állíts be jelszót lent, vagy terminálban:
+      <code>npm run set-password -- jelszavad</code>
+    </div>
     <section>
       <h2>Állapot</h2>
       <div class="stats">
@@ -184,13 +193,17 @@
       document.getElementById('btn-limits-login').style.display = needAuth && !unlocked ? 'inline-block' : 'none';
       document.getElementById('pw-setup').style.display = needAuth ? 'none' : 'block';
       document.getElementById('limits-hint').style.display = needAuth ? 'block' : 'none';
+      document.getElementById('no-password-warn').style.display = needAuth ? 'none' : 'block';
+      document.getElementById('old-version-warn').style.display =
+        data?.features?.limitsPassword ? 'none' : 'block';
+      document.getElementById('version-tag').textContent = data?.version ? `v${data.version}` : '';
       const badge = document.getElementById('auth-badge');
       if (needAuth) {
         badge.style.display = 'inline';
         badge.textContent = unlocked ? '🔓 Limitek szerkeszthető' : '🔒 Limitek védettek';
       } else {
         badge.style.display = 'inline';
-        badge.textContent = '⚠ Limitek nincsenek védve';
+        badge.textContent = '⚠ Nincs jelszó';
       }
     }
 

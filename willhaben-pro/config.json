@@ -1,6 +1,6 @@
 {
   "adminPanel": {
-    "password": "test1234"
+    "password": ""
   },
   "adminPort": 3847,
   "pollIntervalSeconds": 10,

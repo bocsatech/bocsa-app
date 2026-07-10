@@ -85,23 +85,23 @@ Alapból beállítva:
 - **Újrakalibrálás** — első körben nem küld, új referencia
 - **Stat törlés**
 
-### Jelszóvédelem — admin limitek
+### Jelszó — admin limitek (v1.2+)
 
-**1. Admin panelen** (Ajánlott): Nyisd meg http://127.0.0.1:3847 → **Admin — limitek** szekció → **Jelszó beállítása**.
+**Terminálból** (legegyszerűbb):
 
-**2. Kézzel** a `config.json`-ban:
-
-```json
-"adminPanel": {
-  "password": "titkos-jelszo"
-}
+```bash
+cd willhaben-pro
+npm run set-password -- bocsa2024
+npm start
 ```
 
-Utána indítsd újra: `npm start` (Ctrl+C majd npm start, vagy STOP gomb).
+A terminálban látod: `Limitek jelszó: AKTÍV` vagy `NINCS`.
 
-- **Jelszó nélkül** = limitek bárki által módosíthatók (sárga figyelmeztetés)
-- **Jelszóval** = limitek csak bejelentkezés után
-- Sablon, URL-ek, indítás, STOP → mindig szabad
+**Admin panelen:** http://127.0.0.1:3847 → sárga figyelmeztetés → **Jelszó beállítása**.
+
+Ellenőrzés: jobb fent **v1.2.0** és **🔒 Limitek védettek** kell legyen.
+
+Ha **„Régi verzió fut!”** jelenik meg: `git pull` majd `npm start`.
 
 ---
 
