@@ -36,9 +36,7 @@
     .stat b { display: block; font-size: 1.4rem; color: var(--accent); }
     .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
     .locked section[data-protected] input,
-    .locked section[data-protected] textarea,
     .locked section[data-protected] button { opacity: 0.45; pointer-events: none; }
-    .locked .protected-btns button { opacity: 0.45; pointer-events: none; }
     .auth-bar { display: flex; gap: 8px; align-items: center; }
     .auth-badge { font-size: 12px; color: var(--muted); }
     .modal-backdrop { position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 100; }
@@ -75,37 +73,41 @@
       <p class="hint">Szünet = figyelés megáll, böngésző nyitva marad. STOP = teljes leállítás (böngésző + program).</p>
     </section>
 
-    <section data-protected>
+    <section>
       <h2>Sablon üzenet</h2>
       <p id="dirty-hint" class="hint" style="display:none;color:#ffb347">⚠ Nem mentett változások — kattints a Mentés gombra!</p>
       <textarea id="template"></textarea>
       <p class="hint">Változók: {title} {price} {location} {url} {id}</p>
+      <div class="row" style="margin-top:12px">
+        <div><label>Ellenőrzés (mp)</label><input type="number" id="pollInterval" min="5" /></div>
+        <div><label>Küldés késleltetés (ms)</label><input type="number" id="sendDelay" min="1000" /></div>
+      </div>
     </section>
 
     <section data-protected>
-      <h2>Admin — limitek</h2>
+      <h2>Admin — limitek 🔒</h2>
+      <p class="hint">Csak jelszóval módosítható (ha be van állítva a config.json-ban).</p>
       <div class="row">
         <div><label>Napi max üzenet</label><input type="number" id="maxPerDay" min="1" /></div>
         <div><label>Összes max</label><input type="number" id="maxTotal" min="1" /></div>
         <div><label>Használati napok</label><input type="number" id="maxDays" min="1" /></div>
       </div>
-      <div class="row" style="margin-top:12px">
-        <div><label>Ellenőrzés (mp)</label><input type="number" id="pollInterval" min="5" /></div>
-        <div><label>Küldés késleltetés (ms)</label><input type="number" id="sendDelay" min="1000" /></div>
-        <div style="display:flex;align-items:end;padding-bottom:8px">
-          <label><input type="checkbox" id="adminEnabled" /> Engedélyezve</label>
-        </div>
+      <div style="margin-top:12px">
+        <label><input type="checkbox" id="adminEnabled" /> Küldés engedélyezve</label>
+      </div>
+      <div class="btns">
+        <button class="primary" onclick="saveLimits()">💾 Limitek mentése</button>
       </div>
     </section>
 
-    <section data-protected>
+    <section>
       <h2>Figyelt URL-ek</h2>
       <div id="urls"></div>
       <button onclick="addUrl()">+ URL hozzáadása</button>
       <p class="hint">Jelenleg 2 link előre beállítva. Bármikor bővíthető vagy módosítható.</p>
     </section>
 
-    <section data-protected>
+    <section>
       <div class="btns"><button class="primary" onclick="save()">💾 Mentés</button></div>
     </section>
 
@@ -118,7 +120,7 @@
   <div id="login-modal" class="modal-backdrop" onclick="if(event.target===this)hideLogin()">
     <div class="modal">
       <h2 style="margin:0 0 12px;color:var(--accent)">Admin jelszó</h2>
-      <p class="hint">A módosításokhoz jelszó szükséges.</p>
+      <p class="hint">Admin limitek módosításához jelszó szükséges.</p>
       <input type="password" id="login-password" placeholder="Jelszó" onkeydown="if(event.key==='Enter')submitLogin()" />
       <div class="btns" style="margin-top:12px">
         <button class="primary" onclick="submitLogin()">Belépés</button>
@@ -132,6 +134,7 @@
     let data = null;
     let formLoaded = false;
     let formDirty = false;
+    let limitsDirty = false;
     let unlocked = true;
 
     function getToken() {
@@ -171,7 +174,7 @@
       const badge = document.getElementById('auth-badge');
       if (needAuth) {
         badge.style.display = 'inline';
-        badge.textContent = unlocked ? '🔓 Szerkeszthető' : '🔒 Csak olvasás';
+        badge.textContent = unlocked ? '🔓 Limitek szerkeszthető' : '🔒 Limitek védettek';
       } else {
         badge.style.display = 'none';
       }
@@ -219,6 +222,14 @@
       return false;
     }
 
+    function markLimitsDirty() {
+      limitsDirty = true;
+    }
+
+    function clearLimitsDirty() {
+      limitsDirty = false;
+    }
+
     function markDirty() {
       formDirty = true;
       const hint = document.getElementById('dirty-hint');
@@ -232,10 +243,15 @@
     }
 
     function bindDirtyInputs() {
-      ['template', 'maxPerDay', 'maxTotal', 'maxDays', 'pollInterval', 'sendDelay', 'adminEnabled'].forEach((id) => {
+      ['template', 'pollInterval', 'sendDelay'].forEach((id) => {
         const el = document.getElementById(id);
         el.addEventListener('input', markDirty);
         el.addEventListener('change', markDirty);
+      });
+      ['maxPerDay', 'maxTotal', 'maxDays', 'adminEnabled'].forEach((id) => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', markLimitsDirty);
+        el.addEventListener('change', markLimitsDirty);
       });
     }
 
@@ -272,10 +288,6 @@
     }
 
     function addUrl() {
-      if (!unlocked && data?.authRequired) {
-        showLogin();
-        return;
-      }
       const urls = collectUrls();
       urls.push({ id: `url-${urls.length+1}`, label: 'Új URL', url: '', enabled: true });
       renderUrls(urls);
@@ -299,14 +311,19 @@
     function applyFormFromConfig() {
       const c = data.config;
       document.getElementById('template').value = c.messageTemplate;
+      document.getElementById('pollInterval').value = c.pollIntervalSeconds;
+      document.getElementById('sendDelay').value = c.sendDelayMs;
+      renderUrls(c.watchUrls);
+      clearDirty();
+    }
+
+    function applyLimitsFromConfig() {
+      const c = data.config;
       document.getElementById('maxPerDay').value = c.admin.maxPerDay;
       document.getElementById('maxTotal').value = c.admin.maxTotal;
       document.getElementById('maxDays').value = c.admin.maxDays;
-      document.getElementById('pollInterval').value = c.pollIntervalSeconds;
-      document.getElementById('sendDelay').value = c.sendDelayMs;
       document.getElementById('adminEnabled').checked = c.admin.enabled;
-      renderUrls(c.watchUrls);
-      clearDirty();
+      clearLimitsDirty();
     }
 
     function applyData() {
@@ -314,6 +331,9 @@
       if (!formLoaded || !formDirty) {
         applyFormFromConfig();
         formLoaded = true;
+      }
+      if (!limitsDirty) {
+        applyLimitsFromConfig();
       }
     }
 
@@ -325,39 +345,62 @@
     }
 
     async function save() {
-      if (!(await ensureUnlocked('Mentés'))) return;
       const body = {
         messageTemplate: document.getElementById('template').value,
         pollIntervalSeconds: Number(document.getElementById('pollInterval').value),
         sendDelayMs: Number(document.getElementById('sendDelay').value),
-        admin: {
-          maxPerDay: Number(document.getElementById('maxPerDay').value),
-          maxTotal: Number(document.getElementById('maxTotal').value),
-          maxDays: Number(document.getElementById('maxDays').value),
-          enabled: document.getElementById('adminEnabled').checked,
-        },
         watchUrls: collectUrls(),
       };
-      const res = await api('/api/config', { method: 'POST', body: JSON.stringify(body) });
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
       if (!res.ok) {
         alert('Mentés sikertelen!');
         return;
       }
       clearDirty();
       await refresh();
-      alert('Mentve! A sablon szöveg elmentve a config.json-ba.');
+      alert('Mentve!');
+    }
+
+    async function saveLimits() {
+      if (!(await ensureUnlocked('Limitek mentése'))) return;
+      const body = {
+        admin: {
+          maxPerDay: Number(document.getElementById('maxPerDay').value),
+          maxTotal: Number(document.getElementById('maxTotal').value),
+          maxDays: Number(document.getElementById('maxDays').value),
+          enabled: document.getElementById('adminEnabled').checked,
+        },
+      };
+      const res = await api('/api/config/limits', { method: 'POST', body: JSON.stringify(body) });
+      if (!res.ok) {
+        alert('Limitek mentése sikertelen!');
+        return;
+      }
+      clearLimitsDirty();
+      await refresh();
+      alert('Limitek mentve!');
     }
 
     async function control(action) {
-      if (!(await ensureUnlocked('Vezérlés'))) return;
-      await api('/api/control', { method: 'POST', body: JSON.stringify({ action }) });
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
       await refresh();
     }
 
     async function shutdownApp() {
-      if (!(await ensureUnlocked('STOP'))) return;
       if (!confirm('Teljes leállítás? A böngésző és a program is bezáródik.')) return;
-      await api('/api/control', { method: 'POST', body: JSON.stringify({ action: 'shutdown' }) });
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'shutdown' }),
+      });
       document.getElementById('status').textContent = '■ Leállítva';
       document.getElementById('status').className = 'badge stop';
       alert('Program leállítva. Újraindítás: npm start');
