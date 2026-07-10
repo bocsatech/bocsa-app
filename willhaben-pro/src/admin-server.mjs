@@ -143,6 +143,7 @@ export function startAdminServer(port = 3847) {
       }
 
       if (req.method === 'POST' && url.pathname === '/api/config/limits') {
+        const token = getTokenFromRequest(req);
         if (!requireAuth(req, res)) return;
         const body = JSON.parse(await readBody(req));
         const config = loadConfig();
@@ -153,7 +154,8 @@ export function startAdminServer(port = 3847) {
         const state = loadState();
         appendLog(state, 'info', 'Admin: limitek mentve');
         saveState(state);
-        return json(res, 200, { ok: true });
+        revokeToken(token);
+        return json(res, 200, { ok: true, locked: true });
       }
 
       if (req.method === 'POST' && url.pathname === '/api/control') {

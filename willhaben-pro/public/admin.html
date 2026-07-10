@@ -195,10 +195,19 @@
       return res;
     }
 
+    function setLimitsInputsDisabled(disabled) {
+      ['maxPerDay', 'maxTotal', 'maxDays', 'adminEnabled'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = disabled;
+      });
+    }
+
     function applyAuthUi() {
       const needAuth = data?.authRequired;
       unlocked = !needAuth || data?.unlocked;
-      document.body.classList.toggle('locked', needAuth && !unlocked);
+      const isLocked = needAuth && !unlocked;
+      document.body.classList.toggle('locked', isLocked);
+      setLimitsInputsDisabled(isLocked);
       document.getElementById('btn-login').style.display = needAuth && !unlocked ? 'inline-block' : 'none';
       document.getElementById('btn-logout').style.display = needAuth && unlocked ? 'inline-block' : 'none';
       document.getElementById('btn-limits-login').style.display = needAuth && !unlocked ? 'inline-block' : 'none';
@@ -467,8 +476,8 @@
         return;
       }
       clearLimitsDirty();
-      await refresh();
-      alert('Limitek mentve!');
+      alert('Limitek mentve! Szerkesztés zárolva — újra: 🔒 Bejelentkezés');
+      await lockLimits();
     }
 
     async function control(action) {

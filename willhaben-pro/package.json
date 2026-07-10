@@ -1,6 +1,6 @@
 {
   "name": "willhaben-pro",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "private": true,
   "description": "Willhaben autó figyelő — több URL, admin panel, sablon üzenetek",
   "type": "module",
