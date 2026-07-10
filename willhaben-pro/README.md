@@ -126,11 +126,12 @@ Alapból beállítva:
 Valószínűleg **már fut** egy példány a háttérben.
 
 ```bash
-npm run stop
 npm start
 ```
 
-Vagy nyisd meg közvetlenül: http://127.0.0.1:3847
+Az `npm start` automatikusan leállítja a korábbi példányt indulás előtt.
+
+Kézzel: `npm run stop` — vagy nyisd meg: http://127.0.0.1:3847
 
 ### Node.js verzió
 

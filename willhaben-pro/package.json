@@ -5,8 +5,9 @@
   "description": "Willhaben autó figyelő — több URL, admin panel, sablon üzenetek",
   "type": "module",
   "scripts": {
+    "prestart": "node src/stop.mjs",
     "start": "node src/index.mjs",
-    "stop": "pkill -f 'node src/index.mjs' 2>/dev/null || true",
+    "stop": "node src/stop.mjs",
     "admin": "node src/index.mjs --admin-only",
     "login": "node src/login.mjs"
   },

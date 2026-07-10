@@ -95,7 +95,7 @@ export function startAdminServer(port = 3847) {
           new Error(
             `A ${port} port már foglalt — valószínűleg már fut egy Willhaben Pro példány.\n` +
               `  → Nyisd meg: http://127.0.0.1:${port}\n` +
-              `  → Ha nem kell: npm run stop   (vagy: pkill -f "node src/index.mjs")`
+              `  → Leállítás: npm run stop — majd npm start (npm start egyébként automatikusan leállítja a régit)`
           )
         );
         return;
