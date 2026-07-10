@@ -60,6 +60,7 @@
 
     <section>
       <h2>Sablon üzenet</h2>
+      <p id="dirty-hint" class="hint" style="display:none;color:#ffb347">⚠ Nem mentett változások — kattints a Mentés gombra!</p>
       <textarea id="template"></textarea>
       <p class="hint">Változók: {title} {price} {location} {url} {id}</p>
     </section>
@@ -99,6 +100,28 @@
 
   <script>
     let data = null;
+    let formLoaded = false;
+    let formDirty = false;
+
+    function markDirty() {
+      formDirty = true;
+      const hint = document.getElementById('dirty-hint');
+      if (hint) hint.style.display = 'block';
+    }
+
+    function clearDirty() {
+      formDirty = false;
+      const hint = document.getElementById('dirty-hint');
+      if (hint) hint.style.display = 'none';
+    }
+
+    function bindDirtyInputs() {
+      ['template', 'maxPerDay', 'maxTotal', 'maxDays', 'pollInterval', 'sendDelay', 'adminEnabled'].forEach((id) => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', markDirty);
+        el.addEventListener('change', markDirty);
+      });
+    }
 
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -116,6 +139,10 @@
           <label>ID (belső)</label><input class="url-id" data-i="${i}" value="${esc(u.id)}" />
         </div>
       `).join('');
+      el.querySelectorAll('input').forEach((inp) => {
+        inp.addEventListener('input', markDirty);
+        inp.addEventListener('change', markDirty);
+      });
     }
 
     function collectUrls() {
@@ -134,11 +161,22 @@
       renderUrls(urls);
     }
 
-    function applyData() {
+    function applyLiveStats() {
       const c = data.config;
       const s = data.state;
       document.getElementById('status').textContent = data.running ? '● Fut' : '○ Szünet';
       document.getElementById('status').className = 'badge ' + (data.running ? 'run' : 'stop');
+      document.getElementById('st-today').textContent = `${s.sentToday}/${c.admin.maxPerDay}`;
+      document.getElementById('st-total').textContent = `${s.totalSent}/${c.admin.maxTotal}`;
+      document.getElementById('st-daylim').textContent = c.admin.maxPerDay;
+      document.getElementById('st-days').textContent = c.admin.maxDays;
+      document.getElementById('log').innerHTML = (s.log || []).map(l =>
+        `<div class="${l.level}">[${l.at.slice(11,19)}] ${esc(l.message)}</div>`
+      ).join('') || '<div>—</div>';
+    }
+
+    function applyFormFromConfig() {
+      const c = data.config;
       document.getElementById('template').value = c.messageTemplate;
       document.getElementById('maxPerDay').value = c.admin.maxPerDay;
       document.getElementById('maxTotal').value = c.admin.maxTotal;
@@ -146,14 +184,16 @@
       document.getElementById('pollInterval').value = c.pollIntervalSeconds;
       document.getElementById('sendDelay').value = c.sendDelayMs;
       document.getElementById('adminEnabled').checked = c.admin.enabled;
-      document.getElementById('st-today').textContent = `${s.sentToday}/${c.admin.maxPerDay}`;
-      document.getElementById('st-total').textContent = `${s.totalSent}/${c.admin.maxTotal}`;
-      document.getElementById('st-daylim').textContent = c.admin.maxPerDay;
-      document.getElementById('st-days').textContent = c.admin.maxDays;
       renderUrls(c.watchUrls);
-      document.getElementById('log').innerHTML = (s.log || []).map(l =>
-        `<div class="${l.level}">[${l.at.slice(11,19)}] ${esc(l.message)}</div>`
-      ).join('') || '<div>—</div>';
+      clearDirty();
+    }
+
+    function applyData() {
+      applyLiveStats();
+      if (!formLoaded || !formDirty) {
+        applyFormFromConfig();
+        formLoaded = true;
+      }
     }
 
     async function refresh() {
@@ -175,9 +215,14 @@
         },
         watchUrls: collectUrls(),
       };
-      await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const res = await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!res.ok) {
+        alert('Mentés sikertelen!');
+        return;
+      }
+      clearDirty();
       await refresh();
-      alert('Mentve!');
+      alert('Mentve! A sablon szöveg elmentve a config.json-ba.');
     }
 
     async function control(action) {
