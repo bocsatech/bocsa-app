@@ -284,12 +284,21 @@
       }
     }
 
-    async function logout() {
+    async function lockLimits() {
       try {
-        await api('/api/auth/logout', { method: 'POST', body: '{}' });
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: '{}',
+        });
       } catch (_) {}
       setToken('');
+      clearLimitsDirty();
       await refresh();
+    }
+
+    async function logout() {
+      await lockLimits();
     }
 
     async function ensureUnlocked(actionLabel) {
