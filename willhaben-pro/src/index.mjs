@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import path from 'path';
 import { getRoot, loadConfig } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
@@ -7,6 +6,7 @@ import { sendMessage } from './message.mjs';
 import { startAdminServer, setMonitorControl } from './admin-server.mjs';
 import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
 import { setupConsentHandler } from './consent.mjs';
+import { launchBrowser } from './browser.mjs';
 
 const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
 
@@ -64,11 +64,10 @@ class Monitor {
     }
 
     const config = loadConfig();
-    this.context = await chromium.launchPersistentContext(PROFILE_DIR, {
+    const { context, browserName } = await launchBrowser(PROFILE_DIR, {
       headless: config.headless === true,
-      viewport: { width: 1280, height: 900 },
-      locale: 'de-AT',
     });
+    this.context = context;
     this.context.on('close', () => {
       this.context = null;
       this.page = null;
@@ -78,7 +77,7 @@ class Monitor {
     appendLog(
       state,
       'info',
-      'Böngésző megnyitva — futás közben NE zárd be a Chrome ablakot!'
+      `${browserName} megnyitva — futás közben NE zárd be a böngészőablakot!`
     );
     saveState(state);
   }

@@ -35,6 +35,8 @@ npm install
 npx playwright install chromium
 ```
 
+> **Böngésző:** Ha a gépen van **Google Chrome**, azt használja. Ha nincs, a Playwright saját **Chromium** ablakát nyitja meg (más ikon, de ugyanúgy működik).
+
 ---
 
 ## 1. Bejelentkezés willhaben-re (egyszer)
@@ -43,7 +45,7 @@ npx playwright install chromium
 npm run login
 ```
 
-- Megnyílik a Chrome
+- Megnyílik a böngésző (először **Google Chrome**-ot próbál; ha nincs telepítve → **Chromium**)
 - Jelentkezz be a willhaben fiókodba
 - Zárd be a böngészőt → a session mentve marad
 
@@ -136,6 +138,16 @@ Kézzel: `npm run stop` — vagy nyisd meg: http://127.0.0.1:3847
 ### Node.js verzió
 
 Node **18+** szükséges (`node -v`). A 14-es verzió nem támogatott.
+
+### Nem a Chrome nyílik meg?
+
+Normális, ha **Chromium** (kék/spinning ikon) jelenik meg — ez a Playwright böngészője, **ugyanúgy használható**.
+
+Ha a **Google Chrome**-ot szeretnéd:
+1. Telepítsd: https://www.google.com/chrome/
+2. Futtasd újra: `npm run login`
+
+A terminálban látod: `Böngésző: Google Chrome` vagy `Böngésző: Chromium (Playwright)`.
 
 ### Böngésző bezárva (`Target page, context or browser has been closed`)
 
