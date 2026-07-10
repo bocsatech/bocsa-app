@@ -159,6 +159,7 @@
       const urls = collectUrls();
       urls.push({ id: `url-${urls.length+1}`, label: 'Új URL', url: '', enabled: true });
       renderUrls(urls);
+      markDirty();
     }
 
     function applyLiveStats() {
@@ -230,6 +231,7 @@
       await refresh();
     }
 
+    bindDirtyInputs();
     refresh();
     setInterval(refresh, 3000);
   </script>
