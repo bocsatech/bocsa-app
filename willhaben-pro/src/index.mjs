@@ -108,15 +108,41 @@ class Monitor {
     return { ok: true };
   }
 
+  formatError(err) {
+    let msg = err?.message || String(err);
+    if (msg.includes('Call log')) msg = msg.split('Call log')[0].trim();
+    if (/ETIMEDOUT|ECONNRESET|ENOTFOUND/i.test(msg)) {
+      return 'Hálózati timeout — willhaben nem válaszolt (később újra próbálja)';
+    }
+    if (msg.length > 200) return `${msg.slice(0, 200)}…`;
+    return msg;
+  }
+
   async fetchAds(page, url) {
-    const res = await page.request.get(url, {
-      headers: { Accept: 'text/html', 'User-Agent': 'Mozilla/5.0' },
-    });
-    if (!res.ok()) throw new Error(`HTTP ${res.status()}`);
-    const html = await res.text();
-    const ads = parseAdsFromHtml(html);
-    if (!ads) throw new Error('Nincs hirdetéslista (__NEXT_DATA__)');
-    return ads;
+    const maxAttempts = 3;
+    let lastErr;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await page.request.get(url, {
+          headers: { Accept: 'text/html', 'User-Agent': 'Mozilla/5.0' },
+          timeout: 45000,
+        });
+        if (!res.ok()) throw new Error(`HTTP ${res.status()}`);
+        const html = await res.text();
+        const ads = parseAdsFromHtml(html);
+        if (!ads) throw new Error('Nincs hirdetéslista (__NEXT_DATA__)');
+        return ads;
+      } catch (err) {
+        lastErr = err;
+        const retryable = /ETIMEDOUT|ECONNRESET|timeout|Timeout/i.test(err?.message || '');
+        if (attempt < maxAttempts && retryable) {
+          await new Promise((r) => setTimeout(r, 4000 * attempt));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr;
   }
 
   async tick() {
@@ -175,7 +201,7 @@ class Monitor {
                 'Böngésző bezárva — üzenetküldés szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
               );
             } else {
-              appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${err.message}`);
+              appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${this.formatError(err)}`);
             }
             break;
           } finally {
@@ -190,7 +216,7 @@ class Monitor {
             'Böngésző bezárva — figyelés folytatódik, de üzenet csak nyitott böngészővel megy ki'
           );
         } else {
-          appendLog(state, 'error', `[${watch.label}] ${err.message}`);
+          appendLog(state, 'error', `[${watch.label}] ${this.formatError(err)}`);
         }
         saveState(state);
       }
