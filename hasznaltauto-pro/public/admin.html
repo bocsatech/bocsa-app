@@ -110,6 +110,20 @@
           <label><input type="checkbox" id="smsDryRun" /> Dry-run (teszt mód — nem küld tényleges SMS-t)</label>
         </div>
       </div>
+      <div class="row2" style="margin-top:12px">
+        <div>
+          <label>Teszt SMS címzett (+36 70/20/30)</label>
+          <input id="testSmsTo" placeholder="+36 30 123 4567" />
+        </div>
+        <div>
+          <label>Teszt üzenet (opcionális)</label>
+          <input id="testSmsBody" placeholder="Hasznaltauto Pro teszt SMS" />
+        </div>
+      </div>
+      <div class="btns">
+        <button class="primary" onclick="sendTestSms()">📱 Teszt SMS küldése (éles)</button>
+      </div>
+      <p class="hint">A teszt SMS <strong>ténylegesen kimegy</strong> (dry-run-t felülírja). Előbb mentsd a Twilio adatokat!</p>
     </section>
 
     <section data-protected id="limits-section">
@@ -402,6 +416,29 @@
       setToken('');
       await refresh();
       alert('Limitek mentve és zárolva.');
+    }
+
+    async function sendTestSms() {
+      const to = document.getElementById('testSmsTo').value.trim();
+      if (!to) return alert('Add meg a teszt telefonszámot (+36 70/20/30)');
+      if (!confirm(`Tényleges SMS megy erre a számra?\n${to}`)) return;
+
+      const res = await fetch('/api/sms/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to,
+          message: document.getElementById('testSmsBody').value.trim(),
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert('Teszt SMS sikertelen:\n' + (result.error || res.status));
+        await refresh();
+        return;
+      }
+      await refresh();
+      alert(`Teszt SMS elküldve!\nCímzett: ${result.to}\nTwilio SID: ${result.sid || '—'}`);
     }
 
     async function control(action) {
