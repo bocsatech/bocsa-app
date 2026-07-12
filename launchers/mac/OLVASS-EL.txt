@@ -1,16 +1,21 @@
 BOCSA Pro — Asztali indító
 ==========================
 
-Egy kattintással mindkét program indul:
-  • Willhaben Pro   (admin :3847)
-  • Hasznaltauto Pro (admin :3848)
-
 Telepítés (egyszer):
-  1. Dupla kattintás: bocsa-app/Asztalra telepites.command
-  2. Megjelenik az Asztalon: „BOCSA Pro Indítás.app”
+  Dupla kattintás: bocsa-app / Asztalra telepites.command
 
-Használat (minden nap):
-  Dupla kattintás az Asztalon → 2 Terminal ablak + caffeinate (gép ébren marad)
+Az Asztalon megjelenik:
+  BOCSA Pro Inditas.command  ← EZT használd (legbiztosabb)
+  BOCSA Pro Inditas.app      ← ikonos (ha nem megy: jobb klikk → Nyisd meg)
+
+Indítás:
+  Dupla kattintás → 2 Terminal ablak (Willhaben + Hasznaltauto)
+
+Ha nem indul:
+  1. Futtasd újra: Asztalra telepites.command
+  2. Első alkalommal .app-nál: jobb klikk → Nyisd meg
+  3. Nézd: ~/Desktop/BOCSA-Pro-inditas.log
+  4. Rendszerbeállítások → Adatvédelem → Automatizálás → Terminal engedély
 
 Ha áthelyezed a bocsa-app mappát:
-  Futtasd újra az „Asztalra telepites.command”-ot.
+  Futtasd újra az Asztalra telepites.command-ot.
