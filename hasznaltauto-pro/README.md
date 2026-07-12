@@ -25,6 +25,11 @@ npm run set-password -- jelszo
 npm start
 ```
 
+Macen **dupla kattintás** (Terminal + gép ébren tartása):
+
+- `mac-launcher/Inditas.command`
+- `Hasznaltauto Pro.app` (színes ikon: `./scripts/build-mac-launcher-app.sh hasznaltauto-pro`)
+
 **Admin panel:** http://127.0.0.1:3848
 
 ---

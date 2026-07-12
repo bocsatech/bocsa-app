@@ -7,6 +7,7 @@
   "scripts": {
     "prestart": "node src/stop.mjs",
     "start": "node src/index.mjs",
+    "start-awake": "node src/stop.mjs && caffeinate -dims node src/index.mjs",
     "stop": "node src/stop.mjs",
     "set-password": "node src/set-password.mjs",
     "login": "node src/login.mjs"
