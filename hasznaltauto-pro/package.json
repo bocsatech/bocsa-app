@@ -1,0 +1,20 @@
+{
+  "name": "hasznaltauto-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hasznaltauto.hu magán hirdetés figyelő — SMS sablon, admin limitek",
+  "type": "module",
+  "scripts": {
+    "prestart": "node src/stop.mjs",
+    "start": "node src/index.mjs",
+    "stop": "node src/stop.mjs",
+    "set-password": "node src/set-password.mjs",
+    "login": "node src/login.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "playwright": "^1.52.0"
+  }
+}
