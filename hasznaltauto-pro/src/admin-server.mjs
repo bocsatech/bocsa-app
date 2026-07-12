@@ -15,6 +15,8 @@ import {
   isValidToken,
 } from './auth.mjs';
 import { APP_VERSION } from './version.mjs';
+import { sendTestSms } from './sms.mjs';
+import { normalizePhone, isAllowedMobile } from './phone.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -172,6 +174,35 @@ export function startAdminServer(port = 3848) {
         saveState(state);
         revokeToken(token);
         return json(res, 200, { ok: true, locked: true });
+      }
+
+      if (req.method === 'POST' && url.pathname === '/api/sms/test') {
+        const body = JSON.parse(await readBody(req));
+        const config = loadConfig();
+        const prefixes = config.allowedPrefixes || ['70', '20', '30'];
+        const to = normalizePhone(String(body.to || '').trim());
+
+        if (!to || !isAllowedMobile(to, prefixes)) {
+          return json(res, 400, {
+            error: 'Érvénytelen szám — csak +36 70 / 20 / 30 mobil',
+          });
+        }
+
+        try {
+          const result = await sendTestSms(config, {
+            to,
+            message: body.message,
+          });
+          const state = loadState();
+          appendLog(state, 'ok', `Teszt SMS elküldve → ${result.to} (SID: ${result.sid || '—'})`);
+          saveState(state);
+          return json(res, 200, { ok: true, ...result });
+        } catch (err) {
+          const state = loadState();
+          appendLog(state, 'error', `Teszt SMS hiba: ${err.message}`);
+          saveState(state);
+          return json(res, 500, { error: err.message });
+        }
       }
 
       if (req.method === 'POST' && url.pathname === '/api/control') {
