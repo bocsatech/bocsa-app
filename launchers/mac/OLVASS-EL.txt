@@ -1,0 +1,16 @@
+BOCSA Pro — Asztali indító
+==========================
+
+Egy kattintással mindkét program indul:
+  • Willhaben Pro   (admin :3847)
+  • Hasznaltauto Pro (admin :3848)
+
+Telepítés (egyszer):
+  1. Dupla kattintás: bocsa-app/Asztalra telepites.command
+  2. Megjelenik az Asztalon: „BOCSA Pro Indítás.app”
+
+Használat (minden nap):
+  Dupla kattintás az Asztalon → 2 Terminal ablak + caffeinate (gép ébren marad)
+
+Ha áthelyezed a bocsa-app mappát:
+  Futtasd újra az „Asztalra telepites.command”-ot.
