@@ -44,43 +44,58 @@ export async function isDealerDetailPage(page) {
   });
 }
 
-export async function revealPhones(page) {
-  const buttons = [
-    page.getByRole('button', { name: /elsődleges telefonszám felfedése/i }),
-    page.getByRole('button', { name: /másodlagos telefonszám felfedése/i }),
-    page.getByRole('link', { name: /telefonszám felfedése/i }),
-    page.locator('a, button').filter({ hasText: /telefonszám felfedése/i }),
-  ];
+const PHONE_TEXT_RE =
+  /(?:\(\+36\)|\+36|06)[\s\-/)]*(20|30|70)[\s\-/]*?\d{3}[\s\-/]*?\d{4}/g;
 
-  for (const locator of buttons) {
-    try {
-      const el = locator.first();
-      if (await el.isVisible({ timeout: 1200 })) {
-        await el.click({ timeout: 5000 });
-        await page.waitForTimeout(900);
+export async function revealPhones(page) {
+  const revealLocator = page.locator('a, button').filter({
+    hasText: /telefonszám felfedése/i,
+  });
+
+  try {
+    const count = await revealLocator.count();
+    for (let i = 0; i < count; i += 1) {
+      try {
+        const el = revealLocator.nth(i);
+        if (await el.isVisible({ timeout: 800 })) {
+          await el.click({ timeout: 5000 });
+          await page.waitForTimeout(700);
+        }
+      } catch {
+        /* try next button */
       }
-    } catch {
-      /* try next */
     }
+  } catch {
+    /* no reveal buttons */
   }
 
-  return page.evaluate(() => {
+  return page.evaluate((patternSource) => {
     const found = new Set();
+    const re = new RegExp(patternSource, 'g');
 
     document.querySelectorAll('a[href^="tel:"]').forEach((a) => {
       const v = (a.getAttribute('href') || '').replace(/^tel:/i, '').trim();
       if (v) found.add(v);
     });
 
-    const text = document.body?.innerText || '';
-    const re = /(?:\+36|06)[\s\-/]*?(20|30|70)[\s\-/]*?\d{3}[\s\-/]*?\d{4}/g;
-    let m;
-    while ((m = re.exec(text)) !== null) {
-      found.add(m[0]);
+    const sellerBlocks = [
+      ...document.querySelectorAll(
+        '#seller, .seller-info, .elado-adatai, [class*="seller"], [id*="seller"]'
+      ),
+    ];
+    const texts = sellerBlocks.length
+      ? sellerBlocks.map((el) => el.innerText || '')
+      : [document.body?.innerText || ''];
+
+    for (const text of texts) {
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        found.add(m[0]);
+      }
     }
 
     return [...found];
-  });
+  }, PHONE_TEXT_RE.source);
 }
 
 export async function getPhoneForAd(page, adUrl, allowedPrefixes) {
