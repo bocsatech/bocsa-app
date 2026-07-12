@@ -139,11 +139,6 @@ class Monitor {
     for (const watch of config.watchUrls.filter((w) => w.enabled && w.url)) {
       try {
         const ads = await fetchListings(this.page, watch.url);
-        if (!ads?.length) {
-          appendLog(state, 'error', `[${watch.label}] Üres találati lista`);
-          saveState(state);
-          continue;
-        }
 
         const marker = state.urlMarkers[watch.id];
         const calibrated = state.urlCalibrated[watch.id];
