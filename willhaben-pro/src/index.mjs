@@ -8,6 +8,8 @@ import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
 import { setupConsentHandler } from './consent.mjs';
 import { launchBrowser } from './browser.mjs';
 
+process.title = 'willhaben-pro';
+
 const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
 
 class Monitor {

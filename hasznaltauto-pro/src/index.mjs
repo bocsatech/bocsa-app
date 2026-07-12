@@ -9,6 +9,8 @@ import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
 import { setupConsentHandler, dismissConsent } from './consent.mjs';
 import { launchBrowser } from './browser.mjs';
 
+process.title = 'hasznaltauto-pro';
+
 const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
 
 class Monitor {
