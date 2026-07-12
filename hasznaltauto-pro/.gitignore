@@ -1,0 +1,6 @@
+node_modules/
+data/browser-profile/
+data/state.json
+data/state.json.bak
+data/.instance.lock
+.DS_Store
