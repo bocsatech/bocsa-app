@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>Pro Orchestrator</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #151d30;
+      --border: #2a3550;
+      --text: #e8edf7;
+      --muted: #8b9cb3;
+      --wh: #1db954;
+      --ha: #ff6b35;
+      --accent: #5b8cff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 14px/1.5 system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    h1 { margin: 0; font-size: 1.2rem; }
+    .version { color: var(--muted); font-size: 12px; }
+    .banner {
+      margin: 16px 24px 0;
+      padding: 12px 16px;
+      border: 1px solid #5b8cff55;
+      background: #5b8cff18;
+      border-radius: 10px;
+      color: #b8ccff;
+    }
+    main {
+      padding: 20px 24px 32px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 1100px) {
+      main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      main { grid-template-columns: 1fr; }
+    }
+    .slot {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+    .slot header {
+      padding: 0;
+      border: 0;
+      margin: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slot h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+    .pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .pill.wh { background: #1db95433; color: var(--wh); }
+    .pill.ha { background: #ff6b3533; color: var(--ha); }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 4px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0b1020;
+      color: var(--text);
+      font: inherit;
+    }
+    .log {
+      min-height: 88px;
+      background: #080d18;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font: 12px/1.45 ui-monospace, monospace;
+      color: var(--muted);
+    }
+    .btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #24304a;
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+    footer {
+      padding: 0 24px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .dirty {
+      color: #ffb347;
+      font-size: 12px;
+      display: none;
+    }
+    .dirty.show { display: inline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Pro Orchestrator</h1>
+      <div class="version" id="version"></div>
+    </div>
+    <div>http://127.0.0.1:<span id="port">3850</span></div>
+  </header>
+
+  <div class="banner">
+    1. lépés kész: 6 slot szerkesztése. <strong>Indítás / Leállítás</strong> a következő lépésben jön.
+    Felhasználónév = willhaben bejelentkezési név (Hasznaltauto slotnál később is azonosítóként használjuk).
+  </div>
+
+  <main id="slots"></main>
+
+  <footer>
+    <span class="dirty" id="dirty">⚠ Nem mentett változások</span>
+    <button class="primary" onclick="saveAll()">💾 Összes slot mentése</button>
+  </footer>
+
+  <script>
+    let data = null;
+    let dirty = false;
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+
+    function markDirty() {
+      dirty = true;
+      document.getElementById('dirty').classList.add('show');
+    }
+
+    function renderSlots(slots) {
+      const root = document.getElementById('slots');
+      root.innerHTML = slots.map((slot, i) => {
+        const pillClass = slot.program === 'hasznaltauto' ? 'ha' : 'wh';
+        const pillText = slot.program === 'hasznaltauto' ? 'Hasznaltauto' : 'Willhaben';
+        return `
+          <section class="slot" data-slot="${i}">
+            <header>
+              <h2>${esc(slot.label || `Slot ${i + 1}`)}</h2>
+              <span class="pill ${pillClass}" id="pill-${i}">${pillText}</span>
+            </header>
+
+            <div>
+              <label>Program</label>
+              <select class="program" data-i="${i}" onchange="onProgramChange(${i})">
+                <option value="willhaben" ${slot.program === 'willhaben' ? 'selected' : ''}>Willhaben Pro</option>
+                <option value="hasznaltauto" ${slot.program === 'hasznaltauto' ? 'selected' : ''}>Hasznaltauto Pro</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Felhasználónév (willhaben login)</label>
+              <input class="username" data-i="${i}" value="${esc(slot.username)}" placeholder="pl. pelda.felhasznalo" oninput="markDirty()" />
+            </div>
+
+            <div>
+              <label>Napló</label>
+              <div class="log" id="log-${i}">— Még nem indult (következő lépés) —</div>
+            </div>
+
+            <div class="btns">
+              <button disabled title="Következő lépés">▶ Indítás</button>
+              <button disabled title="Következő lépés">■ Leállítás</button>
+            </div>
+          </section>
+        `;
+      }).join('');
+    }
+
+    function onProgramChange(i) {
+      const sel = document.querySelector(`.program[data-i="${i}"]`);
+      const pill = document.getElementById(`pill-${i}`);
+      const isHa = sel.value === 'hasznaltauto';
+      pill.textContent = isHa ? 'Hasznaltauto' : 'Willhaben';
+      pill.className = 'pill ' + (isHa ? 'ha' : 'wh');
+      markDirty();
+    }
+
+    function collectSlots() {
+      return [...document.querySelectorAll('.slot')].map((el, i) => ({
+        id: data.slots[i]?.id || `slot-${i + 1}`,
+        label: `Slot ${i + 1}`,
+        program: document.querySelector(`.program[data-i="${i}"]`).value,
+        username: document.querySelector(`.username[data-i="${i}"]`).value.trim(),
+      }));
+    }
+
+    async function refresh() {
+      const res = await fetch('/api/status');
+      data = await res.json();
+      document.getElementById('version').textContent = `v${data.version}`;
+      document.getElementById('port').textContent = data.port;
+      if (!dirty) renderSlots(data.slots);
+    }
+
+    async function saveAll() {
+      const res = await fetch('/api/slots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots: collectSlots() }),
+      });
+      if (!res.ok) {
+        alert('Mentés sikertelen');
+        return;
+      }
+      dirty = false;
+      document.getElementById('dirty').classList.remove('show');
+      await refresh();
+      alert('Mentve! A felhasználónevek később is módosíthatók.');
+    }
+
+    refresh();
+  </script>
+</body>
+</html>

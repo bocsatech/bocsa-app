@@ -1,0 +1,11 @@
+{
+  "adminPort": 3850,
+  "slots": [
+    { "id": "slot-1", "label": "Slot 1", "program": "willhaben", "username": "" },
+    { "id": "slot-2", "label": "Slot 2", "program": "willhaben", "username": "" },
+    { "id": "slot-3", "label": "Slot 3", "program": "willhaben", "username": "" },
+    { "id": "slot-4", "label": "Slot 4", "program": "hasznaltauto", "username": "" },
+    { "id": "slot-5", "label": "Slot 5", "program": "hasznaltauto", "username": "" },
+    { "id": "slot-6", "label": "Slot 6", "program": "hasznaltauto", "username": "" }
+  ]
+}
