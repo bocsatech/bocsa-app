@@ -1,6 +1,6 @@
 {
   "name": "pro-orchestrator",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "description": "6 slotos helyi vezérlő — Willhaben / Hasznaltauto Pro",
   "type": "module",

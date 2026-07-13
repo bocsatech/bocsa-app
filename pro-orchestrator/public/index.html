@@ -79,6 +79,15 @@
       padding: 10px; font: 11px/1.45 ui-monospace, monospace; color: #b8c4d9;
     }
     .log div { margin: 1px 0; }
+    .log-warn {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #ffb34755;
+      background: #ffb34718;
+      color: #ffd89a;
+      font-size: 12px;
+      line-height: 1.4;
+    }
     .btns { display: flex; gap: 8px; flex-wrap: wrap; }
     button {
       padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
@@ -334,7 +343,10 @@
             ${renderSmsSection(slot, i)}
 
             <div>
-              <label>Napló</label>
+              <label>Napló ${running ? '(aktuális futás)' : ''}</label>
+              ${slot.program === 'willhaben' ? `<div class="log-warn" id="login-warn-${slot.id}" style="display:none;margin-bottom:8px">
+                ⚠ <strong>Nincs bejelentkezve!</strong> Állítsd le a slotot → <strong>🔑 Bejelentkezés</strong> → Chrome-ban jelentkezz be willhaben.at-ra → zárd be a böngészőt → <strong>▶ Indítás</strong>
+              </div>` : ''}
               <div class="log" id="log-${slot.id}">Betöltés…</div>
             </div>
 
@@ -458,7 +470,14 @@
       try {
         const res = await fetch(`/api/slots/${slotId}/logs`);
         const body = await res.json();
-        el.innerHTML = (body.logs || []).map((l) => `<div>${esc(l)}</div>`).join('') || '—';
+        const logs = body.logs || [];
+        el.innerHTML = logs.map((l) => `<div>${esc(l)}</div>`).join('') || '—';
+        el.scrollTop = el.scrollHeight;
+        const warn = document.getElementById(`login-warn-${slotId}`);
+        if (warn) {
+          const show = !!body.needsLogin && body.running;
+          warn.style.display = show ? 'block' : 'none';
+        }
       } catch {
         el.textContent = '— napló hiba —';
       }
@@ -510,6 +529,9 @@
 
     refresh();
     setInterval(() => refresh({ keepForm: true }), 4000);
+    setInterval(() => {
+      if (data?.slots) data.slots.forEach((s) => refreshLogs(s.id));
+    }, 2000);
   </script>
 </body>
 </html>

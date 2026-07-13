@@ -15,7 +15,7 @@ import {
 } from './slots.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.6.2';
+const VERSION = '0.6.3';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -160,7 +160,7 @@ const server = http.createServer(async (req, res) => {
 
   const logMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/logs$/);
   if (req.method === 'GET' && logMatch) {
-    return json(res, 200, { logs: getSlotLogs(logMatch[1]) });
+    return json(res, 200, getSlotLogs(logMatch[1]));
   }
 
   json(res, 404, { error: 'Not found' });

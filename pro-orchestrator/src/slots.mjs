@@ -354,16 +354,31 @@ export function startLogin(slot) {
   return { ok: true, pid: child.pid, message: 'Bejelentkezés Chrome megnyílt — zárd be ha kész' };
 }
 
-export function getSlotLogs(slotId, limit = 40) {
+export function getSlotLogs(slotId, limit = 50) {
   const dir = instanceDir(slotId);
+  const rt = readRuntime(slotId);
+  const running = !!(rt?.pid && isAlive(rt.pid));
+  const sinceMs = rt?.startedAt ? new Date(rt.startedAt).getTime() : null;
   const lines = [];
+  let needsLogin = false;
 
   const stateFile = path.join(dir, 'state.json');
   if (fs.existsSync(stateFile)) {
     try {
       const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
-      for (const entry of (state.log || []).slice(0, limit)) {
-        lines.push(`[${entry.at?.slice(11, 19) || '?'}] ${entry.message}`);
+      let entries = Array.isArray(state.log) ? state.log : [];
+      if (running && sinceMs) {
+        entries = entries.filter((e) => new Date(e.at).getTime() >= sinceMs - 3000);
+      }
+      entries = entries.slice(0, limit);
+      entries.reverse();
+      for (const entry of entries) {
+        const line = `[${entry.at?.slice(11, 19) || '?'}] ${entry.message}`;
+        lines.push(line);
+        const msg = entry.message || '';
+        if (msg.includes('Nincs üzenetmező') || msg.includes('nincs bejelentkezve')) {
+          needsLogin = true;
+        }
       }
     } catch {
       /* ignore */
@@ -373,7 +388,7 @@ export function getSlotLogs(slotId, limit = 40) {
   const procFile = path.join(dir, 'process.log');
   if (fs.existsSync(procFile)) {
     try {
-      const tail = fs.readFileSync(procFile, 'utf8').split('\n').filter(Boolean).slice(-15);
+      const tail = fs.readFileSync(procFile, 'utf8').split('\n').filter(Boolean).slice(-10);
       for (const line of tail) {
         lines.push(`[proc] ${line}`);
       }
@@ -383,8 +398,12 @@ export function getSlotLogs(slotId, limit = 40) {
   }
 
   if (!lines.length) {
-    return ['— Még nincs napló —'];
+    return {
+      logs: running ? ['— Várakozás az első naplóbejegyzésre… —'] : ['— Még nincs napló —'],
+      needsLogin: false,
+      running,
+    };
   }
 
-  return lines.slice(0, limit);
+  return { logs: lines.slice(-limit), needsLogin, running };
 }
