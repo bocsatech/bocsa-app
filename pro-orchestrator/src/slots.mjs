@@ -42,25 +42,6 @@ function isAlive(pid) {
   }
 }
 
-function killPort(port) {
-  try {
-    const pids = execSync(`lsof -ti :${port}`, { encoding: 'utf8' })
-      .trim()
-      .split('\n')
-      .filter(Boolean);
-    for (const pid of pids) {
-      try {
-        process.kill(Number(pid), 'SIGTERM');
-      } catch {
-        /* gone */
-      }
-    }
-    return pids.length > 0;
-  } catch {
-    return false;
-  }
-}
-
 function readRuntime(slotId) {
   const file = runtimePath(slotId);
   if (!fs.existsSync(file)) return null;
@@ -236,11 +217,14 @@ export function ensureInstance(slot) {
 export function getSlotStatus(slot) {
   const rt = readRuntime(slot.id);
   const port = slotPort(slot.id);
-  const running = !!(rt?.pid && isAlive(rt.pid));
+  const pidAlive = !!(rt?.pid && isAlive(rt.pid));
+  if (rt?.pid && !pidAlive) {
+    clearRuntime(slot.id);
+  }
   return {
     id: slot.id,
-    running,
-    pid: running ? rt.pid : null,
+    running: pidAlive,
+    pid: pidAlive ? rt.pid : null,
     port,
     adminUrl: port ? `http://127.0.0.1:${port}` : null,
     username: slot.username,
@@ -272,11 +256,18 @@ export function startSlot(slot) {
       PRO_INSTANCE_DIR: dir,
       PRO_ADMIN_PORT: String(port),
     },
-    detached: false,
+    detached: true,
     stdio: ['ignore', out, out],
   });
-
+  fs.closeSync(out);
   child.unref();
+
+  child.on('exit', () => {
+    const current = readRuntime(slot.id);
+    if (current?.pid === child.pid) {
+      clearRuntime(slot.id);
+    }
+  });
 
   writeRuntime(slot.id, {
     pid: child.pid,
@@ -294,29 +285,58 @@ export function startSlot(slot) {
   };
 }
 
-export function stopSlot(slotId) {
+function killPid(pid) {
+  if (!pid || pid <= 0 || !isAlive(pid)) return false;
+  try {
+    process.kill(pid, 'SIGTERM');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function killSlotProcesses(slotId) {
   const rt = readRuntime(slotId);
   let stopped = false;
 
-  if (rt?.pid && isAlive(rt.pid)) {
+  if (killPid(rt?.pid)) stopped = true;
+
+  const lock = path.join(instanceDir(slotId), '.instance.lock');
+  if (fs.existsSync(lock)) {
     try {
-      process.kill(rt.pid, 'SIGTERM');
-      stopped = true;
+      const lockPid = Number.parseInt(fs.readFileSync(lock, 'utf8'), 10);
+      if (killPid(lockPid)) stopped = true;
+    } catch {
+      /* ignore */
+    }
+    try {
+      fs.unlinkSync(lock);
     } catch {
       /* ignore */
     }
   }
 
   const port = slotPort(slotId);
-  if (port && killPort(port)) stopped = true;
-
-  const lock = path.join(instanceDir(slotId), '.instance.lock');
-  try {
-    fs.unlinkSync(lock);
-  } catch {
-    /* ignore */
+  if (port) {
+    try {
+      const pids = execSync(`lsof -ti :${port}`, { encoding: 'utf8' })
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((p) => Number(p));
+      for (const pid of pids) {
+        if (killPid(pid)) stopped = true;
+      }
+    } catch {
+      /* port free */
+    }
   }
 
+  return stopped;
+}
+
+export function stopSlot(slotId) {
+  const stopped = killSlotProcesses(slotId);
   clearRuntime(slotId);
   return { ok: true, stopped };
 }

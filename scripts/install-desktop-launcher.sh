@@ -46,8 +46,8 @@ fail() {
   exit 1
 }
 
-if [ ! -d "$ROOT/willhaben-pro" ] || [ ! -d "$ROOT/hasznaltauto-pro" ]; then
-  fail "Nem a bocsa-app mappából fut. Keresd meg a bocsa-app könyvtárat, és onnan futtasd az Asztalra telepites.command fájlt."
+if [ ! -d "$ROOT/willhaben-pro" ] || [ ! -d "$ROOT/hasznaltauto-pro" ] || [ ! -d "$ROOT/pro-orchestrator" ]; then
+  fail "Nem a bocsa-app mappából fut, vagy hiányzik a pro-orchestrator. Keresd meg a bocsa-app könyvtárat, és onnan futtasd az Asztalra telepites.command fájlt."
 fi
 
 if [ ! -f "$COMMAND_SRC" ] || [ ! -f "$RUN_SRC" ]; then

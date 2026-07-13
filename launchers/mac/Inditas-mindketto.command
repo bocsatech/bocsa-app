@@ -1,5 +1,5 @@
 #!/bin/bash
-# BOCSA Pro — mindkét program egyszerre (Asztalról, Terminalban)
+# BOCSA Pro — Pro Orchestrator (Asztalról, Terminalban)
 set -u
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 [ -f "${HOME}/.zprofile" ] && source "${HOME}/.zprofile" 2>/dev/null || true
@@ -12,10 +12,11 @@ elif [ -f "${HOME}/.bocsa-pro/repo-path" ]; then
   REPO="$(tr -d '\r' < "${HOME}/.bocsa-pro/repo-path" | head -n 1)"
 fi
 
-if [ -z "$REPO" ] || [ ! -d "$REPO/willhaben-pro" ] || [ ! -d "$REPO/hasznaltauto-pro" ]; then
+if [ -z "$REPO" ] || [ ! -d "$REPO/pro-orchestrator" ]; then
   echo ""
-  echo "HIBA: Nem találom a bocsa-app mappát."
+  echo "HIBA: Nem találom a bocsa-app / pro-orchestrator mappát."
   echo "Futtasd egyszer: bocsa-app / Asztalra telepites.command"
+  echo "Majd: git pull (cursor/pro-orchestrator-1db0 ág)"
   echo ""
   read -r -p "Enter..."
   exit 1
@@ -28,23 +29,18 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 echo ""
-echo "BOCSA Pro indul..."
-echo "  Willhaben Pro   → http://127.0.0.1:3847"
-echo "  Hasznaltauto Pro → http://127.0.0.1:3848"
+echo "Pro Orchestrator indul..."
+echo "  Vezérlő → http://127.0.0.1:3850"
+echo "  Slotok indítása: böngészőben ▶ Indítás gomb"
 echo "  (caffeinate — gép nem alszik el)"
 echo ""
 
-WH_DIR="$REPO/willhaben-pro"
-HA_DIR="$REPO/hasznaltauto-pro"
+ORCH_DIR="$REPO/pro-orchestrator"
 
 /usr/bin/osascript -e 'tell application "Terminal" to activate' \
-  -e "tell application \"Terminal\" to do script \"cd \" & quoted form of \"$WH_DIR\" & \" && echo '=== Willhaben Pro ===' && exec caffeinate -dims npm start\""
-
-sleep 1
-
-/usr/bin/osascript -e "tell application \"Terminal\" to do script \"cd \" & quoted form of \"$HA_DIR\" & \" && echo '=== Hasznaltauto Pro ===' && exec caffeinate -dims npm start\""
+  -e "tell application \"Terminal\" to do script \"cd \" & quoted form of \"$ORCH_DIR\" & \" && echo '=== Pro Orchestrator ===' && exec caffeinate -dims npm start\""
 
 echo ""
-echo "Kész — 2 Terminal ablak nyílt."
+echo "Kész — Terminal ablak nyílt. Nyisd meg: http://127.0.0.1:3850"
 echo ""
 read -r -p "Enter bezáráshoz..."

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Mindkét program: Willhaben Pro + Hasznaltauto Pro
+# Pro Orchestrator — 6 slotos vezérlő (caffeinate: gép nem alszik)
 # Napló: ~/Desktop/BOCSA-Pro-inditas.log
 
 LOG="${HOME}/Desktop/BOCSA-Pro-inditas.log"
@@ -23,7 +23,7 @@ find_repo() {
     "$(dirname "$0")/../../.bocsa-pro-repo"; do
     if [ -f "$f" ]; then
       repo="$(tr -d '\r' < "$f" | head -n 1)"
-      if [ -n "$repo" ] && [ -d "$repo/willhaben-pro" ] && [ -d "$repo/hasznaltauto-pro" ]; then
+      if [ -n "$repo" ] && [ -d "$repo/pro-orchestrator" ]; then
         echo "$repo"
         return 0
       fi
@@ -34,42 +34,28 @@ find_repo() {
 
 REPO="$(find_repo || true)"
 if [ -z "$REPO" ]; then
-  alert "Nem találom a bocsa-app mappát. Futtasd újra: Asztalra telepites.command"
+  alert "Nem találom a bocsa-app mappát (pro-orchestrator). Futtasd újra: Asztalra telepites.command"
   exit 1
 fi
 
 echo "REPO=$REPO"
 
 if ! command -v npm >/dev/null 2>&1; then
-  alert "npm nincs telepítve. Telepítsd: https://nodejs.org/ majd futtasd újra az Asztalra telepites.command-ot."
+  alert "npm nincs telepítve. Telepítsd: https://nodejs.org/"
   exit 1
 fi
 
-WH_DIR="${REPO}/willhaben-pro"
-HA_DIR="${REPO}/hasznaltauto-pro"
+ORCH_DIR="${REPO}/pro-orchestrator"
 
-launch_terminal() {
-  local dir="$1"
-  local title="$2"
-  /usr/bin/osascript <<APPLESCRIPT
+if ! /usr/bin/osascript <<APPLESCRIPT; then
 tell application "Terminal"
   activate
-  do script "cd " & quoted form of "$dir" & " && clear && echo '$title' && echo 'Leállítás: npm run stop vagy zárd be az ablakot.' && exec caffeinate -dims npm start"
+  do script "cd " & quoted form of "$ORCH_DIR" & " && clear && echo '=== Pro Orchestrator — http://127.0.0.1:3850 ===' && echo 'Slotok: Indítás gomb a böngészőben. Leállítás: npm run stop' && exec caffeinate -dims npm start"
 end tell
 APPLESCRIPT
-}
-
-if ! launch_terminal "$WH_DIR" "=== Willhaben Pro — http://127.0.0.1:3847 ==="; then
-  alert "Terminal indítás sikertelen (Willhaben). Nézd: ~/Desktop/BOCSA-Pro-inditas.log"
+  alert "Terminal indítás sikertelen. Nézd: ~/Desktop/BOCSA-Pro-inditas.log"
   exit 1
 fi
 
-sleep 1
-
-if ! launch_terminal "$HA_DIR" "=== Hasznaltauto Pro — http://127.0.0.1:3848 ==="; then
-  alert "Terminal indítás sikertelen (Hasznaltauto). Nézd: ~/Desktop/BOCSA-Pro-inditas.log"
-  exit 1
-fi
-
-echo "OK — mindkét Terminal elindítva"
+echo "OK — Pro Orchestrator Terminal elindítva"
 exit 0
