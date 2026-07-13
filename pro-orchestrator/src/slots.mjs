@@ -415,24 +415,13 @@ export function getSlotLogs(slotId, limit = 50) {
       entries = entries.slice(0, limit);
       entries.reverse();
       for (const entry of entries) {
-        const line = `[${entry.at?.slice(11, 19) || '?'}] ${entry.message}`;
+        const prefix = entry.level === 'error' ? '✗' : entry.level === 'ok' ? '✓' : '·';
+        const line = `[${entry.at?.slice(11, 19) || '?'}] ${prefix} ${entry.message}`;
         lines.push(line);
         const msg = entry.message || '';
         if (msg.includes('Nincs üzenetmező') || msg.includes('nincs bejelentkezve')) {
           needsLogin = true;
         }
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-
-  const procFile = path.join(dir, 'process.log');
-  if (fs.existsSync(procFile)) {
-    try {
-      const tail = fs.readFileSync(procFile, 'utf8').split('\n').filter(Boolean).slice(-10);
-      for (const line of tail) {
-        lines.push(`[proc] ${line}`);
       }
     } catch {
       /* ignore */
