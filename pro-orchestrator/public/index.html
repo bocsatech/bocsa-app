@@ -111,7 +111,7 @@
       color: var(--muted);
     }
     .url-item input[type="text"] { font-size: 12px; padding: 8px 10px; }
-    .url-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .url-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
     textarea.msg-template {
       width: 100%;
       min-height: 88px;
@@ -303,7 +303,10 @@
                 ${renderUrlItems(slot, i, running)}
               </div>
               <div class="url-hint">${slot.program === 'hasznaltauto' ? 'talalatilista/... link (nem egy hirdetés URL)' : 'willhaben keresés vagy Suchagent link'}</div>
-              <button type="button" style="margin-top:8px" onclick="addUrl(${i})" ${running ? 'disabled' : ''}>+ URL hozzáadása</button>
+              <div class="url-actions">
+                <button type="button" onclick="addUrl(${i})" ${running ? 'disabled' : ''}>+ URL hozzáadása</button>
+                <button type="button" class="primary" onclick="saveSlot('${slot.id}', ${i + 1})">💾 Mentés</button>
+              </div>
             </div>
 
             <div>
@@ -335,6 +338,7 @@
             </div>
 
             <div class="btns">
+              <button class="primary" onclick="saveSlot('${slot.id}', ${i + 1})">💾 Mentés</button>
               <button class="primary" onclick="startSlot('${slot.id}')" ${running ? 'disabled' : ''}>▶ Indítás</button>
               <button class="danger" onclick="stopSlot('${slot.id}')" ${running ? '' : 'disabled'}>■ Leállítás</button>
               <button onclick="loginSlot('${slot.id}')" ${running ? 'disabled' : ''}>🔑 Bejelentkezés</button>
@@ -459,7 +463,7 @@
       }
     }
 
-    async function saveAll() {
+    async function saveSlots({ slotLabel } = {}) {
       const res = await fetch('/api/slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -469,13 +473,22 @@
       dirty = false;
       document.getElementById('dirty').classList.remove('show');
       await refresh();
-      alert('Mentve! URL és intervallum változáshoz: leállítás → mentés → újraindítás. Sablon, késleltetés és SMS futó slotnál is érvényes.');
+      const prefix = slotLabel ? `${slotLabel} mentve! ` : 'Mentve! ';
+      alert(prefix + 'URL és intervallum változáshoz: leállítás → mentés → újraindítás. Sablon, késleltetés és SMS futó slotnál is érvényes.');
+    }
+
+    async function saveAll() {
+      await saveSlots();
+    }
+
+    async function saveSlot(slotId, slotNum) {
+      await saveSlots({ slotLabel: `Slot ${slotNum}` });
     }
 
     async function startSlot(id) {
       if (dirty) {
         if (!confirm('Nem mentett változások vannak. Mentsem előbb?')) return;
-        await saveAll();
+        await saveSlots();
       }
       const res = await fetch(`/api/slots/${id}/start`, { method: 'POST' });
       const body = await res.json();
