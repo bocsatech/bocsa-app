@@ -1,5 +1,6 @@
 {
   "adminPort": 3850,
+  "autoStartOnLaunch": true,
   "slots": [
     { "id": "slot-1", "label": "Slot 1", "program": "willhaben", "username": "" },
     { "id": "slot-2", "label": "Slot 2", "program": "willhaben", "username": "" },

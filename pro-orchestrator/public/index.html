@@ -180,16 +180,15 @@
 
   <div class="banner">
     Slotonként külön port (3851–3856) és <strong>külön Chrome profil</strong>.
-    <strong>Figyelt URL-ek</strong>, <strong>üzenet sablon</strong> és <strong>Hasznaltauto SMS/Twilio</strong> itt szerkeszthetők.
-    URL változáshoz futó slotnál: állítsd le, ments, indítsd újra.
-    Ellenőrzési intervallum változáshoz is újraindítás kell. Késleltetés mentése futó slotnál is érvényes.
-    <strong>Fontos:</strong> az orchestrator Terminal ablakát tartsd nyitva (vagy <code>npm run start:awake</code>). A slotok a háttérben futnak tovább, ha bezárod a vezérlőt.
+    <strong>Egy kattintás:</strong> asztali <em>BOCSA Pro Inditas</em> → orchestrator + böngésző + URL-lel rendelkező slotok automatikusan indulnak.
+    Willhaben slotoknál egyszer kell <strong>🔑 Bejelentkezés</strong> (utána automatikus).
   </div>
 
   <main id="slots"></main>
 
   <footer>
     <span class="dirty" id="dirty">⚠ Nem mentett változások</span>
+    <button onclick="startAllSlots()">▶ Minden slot indítása</button>
     <button class="primary" onclick="saveAll()">💾 Összes slot mentése</button>
   </footer>
 
@@ -318,6 +317,10 @@
                 <button type="button" onclick="addUrl(${i})" ${running ? 'disabled' : ''}>+ URL hozzáadása</button>
                 <button type="button" class="primary" onclick="saveSlot('${slot.id}', ${i + 1})">💾 Mentés</button>
               </div>
+              <label class="inline-check" style="margin-top:8px">
+                <input type="checkbox" class="auto-start" data-i="${i}" ${slot.autoStart !== false ? 'checked' : ''} onchange="markDirty()" ${running ? 'disabled' : ''}/>
+                Automatikus indítás (egy kattintásos launchernél)
+              </label>
             </div>
 
             <div>
@@ -432,6 +435,7 @@
           messageTemplate: document.querySelector(`.msg-template[data-i="${i}"]`)?.value.trim() || '',
           pollIntervalSeconds: Number(document.querySelector(`.poll-interval[data-i="${i}"]`)?.value) || undefined,
           sendDelayMs: Number(document.querySelector(`.send-delay[data-i="${i}"]`)?.value) || undefined,
+          autoStart: document.querySelector(`.auto-start[data-i="${i}"]`)?.checked !== false,
         };
         if (program === 'hasznaltauto') {
           slot.allowedPrefixes = document.querySelector(`.sms-prefixes[data-i="${i}"]`)?.value.trim() || '70, 20, 30';
@@ -539,6 +543,19 @@
       const res = await fetch(`/api/slots/${id}/start`, { method: 'POST' });
       const body = await res.json();
       if (!res.ok || !body.ok) return alert(body.error || 'Indítás sikertelen');
+      await refresh();
+    }
+
+    async function startAllSlots() {
+      if (dirty) {
+        if (!confirm('Nem mentett változások vannak. Mentsem előbb?')) return;
+        await saveSlots();
+      }
+      const res = await fetch('/api/start-all', { method: 'POST' });
+      const body = await res.json();
+      const ok = (body.started || []).filter((s) => s.ok).length;
+      const skip = (body.skipped || []).length;
+      alert(`Indítás kész: ${ok} slot fut, ${skip} kihagyva (nincs URL vagy autoStart ki).`);
       await refresh();
     }
 

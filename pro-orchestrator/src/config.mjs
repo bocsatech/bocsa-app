@@ -35,6 +35,7 @@ const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => {
     sendDelayMs: timing.sendDelayMs,
     allowedPrefixes: [...DEFAULT_PREFIXES],
     sms: { ...DEFAULT_SMS },
+    autoStart: true,
   };
 });
 
@@ -120,11 +121,13 @@ export function getRoot() {
 
 export function loadConfig() {
   if (!fs.existsSync(CONFIG_PATH)) {
-    const cfg = { adminPort: 3850, slots: DEFAULT_SLOTS };
+    const cfg = { adminPort: 3850, autoStartOnLaunch: true, slots: DEFAULT_SLOTS };
     saveConfig(cfg);
     return cfg;
   }
   const cfg = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+  cfg.adminPort = cfg.adminPort ?? 3850;
+  cfg.autoStartOnLaunch = cfg.autoStartOnLaunch !== false;
   cfg.slots = normalizeSlots(cfg.slots);
   return cfg;
 }
@@ -132,6 +135,7 @@ export function loadConfig() {
 export function saveConfig(config) {
   const next = {
     adminPort: config.adminPort ?? 3850,
+    autoStartOnLaunch: config.autoStartOnLaunch !== false,
     slots: normalizeSlots(config.slots),
   };
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(next, null, 2));
@@ -153,6 +157,7 @@ function normalizeSlots(slots) {
       sendDelayMs: normalizeSendDelay(incoming.sendDelayMs, program),
       allowedPrefixes: normalizeAllowedPrefixes(incoming.allowedPrefixes),
       sms: normalizeSms(incoming.sms || def.sms),
+      autoStart: incoming.autoStart !== false,
     };
   });
 }

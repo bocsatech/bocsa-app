@@ -65,6 +65,7 @@ echo ""
 
 cp "$COMMAND_SRC" "$COMMAND_PATH" || fail "Nem sikerült másolni: $COMMAND_PATH"
 chmod +x "$COMMAND_PATH"
+chmod +x "${ROOT}/launchers/mac/start-all.sh"
 xattr -cr "$COMMAND_PATH" 2>/dev/null || true
 
 rm -rf "$APP_PATH"
@@ -135,7 +136,7 @@ tell application "Finder"
 end tell
 APPLESCRIPT
 
-/usr/bin/osascript -e "display dialog \"Kész! Az Asztalon:\n\n• BOCSA Pro Inditas.command\n• BOCSA Pro Inditas.app\n\nDupla kattintás a .command fájlra!\" buttons {\"OK\"} default button \"OK\" with title \"BOCSA Pro telepítve\"" 2>/dev/null || true
+/usr/bin/osascript -e "display dialog \"Kész! Az Asztalon:\n\n• BOCSA Pro Inditas.command\n• BOCSA Pro Inditas.app\n\nDupla kattintás = minden indul automatikusan.\nElső alkalommal: slot URL-ek + Willhaben bejelentkezés.\" buttons {\"OK\"} default button \"OK\" with title \"BOCSA Pro telepítve\"" 2>/dev/null || true
 
-echo "Dupla kattintás → BOCSA Pro Inditas.command"
+echo "Dupla kattintás → BOCSA Pro Inditas (egy kattintás, minden indul)"
 read -r -p "Enter bezáráshoz..."

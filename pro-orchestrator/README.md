@@ -2,36 +2,42 @@
 
 6 slotos helyi vezérlő Willhaben Pro + Hasznaltauto Pro programokhoz.
 
-**Jelenlegi állapot (0.6.0):** + ellenőrzési intervallum és késleltetés slotonként.
+**Jelenlegi állapot (0.7.0):** egy kattintásos indítás + automatikus slot start.
 
-Slot portok: 3851–3856. Slotonként külön Chrome profil (`data/instances/slot-N/`).
+## Egy kattintásos indítás (Mac)
 
-## Indítás
+1. Egyszer: futtasd `Asztalra telepites.command` a repo-ból
+2. Asztalon: dupla kattintás **BOCSA Pro Inditas.command** (vagy `.app`)
+3. Megnyílik a böngésző → a **URL-lel rendelkező slotok automatikusan indulnak**
+
+Napló: `~/Desktop/BOCSA-Pro.log`
+
+## Kézi indítás
 
 ```bash
 cd pro-orchestrator
-npm run start:awake   # ajánlott Macen — nem alszik el a gép
-# vagy: npm start
+npm run launch      # egy kattintás script (Mac)
+# vagy:
+npm run start:awake
 ```
 
 Vezérlő: http://127.0.0.1:3850
 
-## Ha „nem indul”
+## Első beállítás (egyszer)
 
-1. **Orchestrator** — Terminalban:
-   ```bash
-   cd pro-orchestrator
-   npm run stop
-   npm run start:awake
-   ```
-2. Böngészőben slotnál: **↻ Újraindítás** (vagy ■ Leállítás → ▶ Indítás)
-3. Ha hibaüzenet jön: olvasd el — gyakori: port foglalt, már fut, nincs Chrome
-4. Willhaben: **🔑 Bejelentkezés** slot leállítva, majd ▶ Indítás
+1. Slotonként: URL + sablon → **💾 Mentés**
+2. **Automatikus indítás** pipa bekapcsolva (alapból igen)
+3. Willhaben slotoknál egyszer: **🔑 Bejelentkezés** → willhaben login → Chrome bezárása
+4. Utána elég az asztali ikon
 
 ## Slotok
 
 - Slotonként választható: **Willhaben** vagy **Hasznaltauto**
-- **Felhasználónév** = willhaben bejelentkezési név (menthető, később módosítható)
-- Indítás / Leállítás / Bejelentkezés gomb slotonként
 - Figyelt URL-ek, üzenet sablon, időzítés és Hasznaltauto SMS/Twilio szerkesztése slotonként
-- Napló stream a slot admin programjából
+- **Automatikus indítás**: csak ha van legalább egy aktív URL
+
+## Ha „nem indul”
+
+1. `~/Desktop/BOCSA-Pro.log` ellenőrzése
+2. Asztali ikon újra — vagy: `cd pro-orchestrator && npm run launch`
+3. Böngészőben **▶ Minden slot indítása**

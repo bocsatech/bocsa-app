@@ -14,9 +14,10 @@ import {
   syncSlotToInstance,
   readInstanceConfig,
 } from './slots.mjs';
+import { startAutoSlots } from './auto-start.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.6.6';
+const VERSION = '0.7.0';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -59,6 +60,7 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, {
       version: VERSION,
       port: config.adminPort ?? 3850,
+      autoStartOnLaunch: config.autoStartOnLaunch !== false,
       slots,
       runtime: statuses,
       features: {
@@ -68,6 +70,7 @@ const server = http.createServer(async (req, res) => {
         messageTemplate: true,
         smsSettings: true,
         timing: true,
+        autoStart: true,
       },
     });
   }
@@ -114,6 +117,7 @@ const server = http.createServer(async (req, res) => {
           ? prefixes
           : previous.allowedPrefixes || instance?.allowedPrefixes || ['70', '20', '30'],
         sms: mergeSmsSettings(s, previous, instance),
+        autoStart: s.autoStart !== false,
       };
     });
     saveConfig(config);
@@ -159,6 +163,16 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  const startAllMatch = url.pathname === '/api/start-all';
+  if (req.method === 'POST' && startAllMatch) {
+    try {
+      const result = await startAutoSlots();
+      return json(res, 200, result);
+    } catch (err) {
+      return json(res, 500, { error: err.message });
+    }
+  }
+
   const restartMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/restart$/);
   if (req.method === 'POST' && restartMatch) {
     const config = loadConfig();
@@ -185,5 +199,17 @@ const port = config.adminPort ?? 3850;
 
 server.listen(port, '127.0.0.1', () => {
   console.log(`\n  Pro Orchestrator: http://127.0.0.1:${port}  (v${VERSION})`);
-  console.log('  6 slot — indítás / leállítás / napló\n');
+  console.log('  6 slot — automatikus indítás URL-lel rendelkező slotoknál\n');
+  const cfg = loadConfig();
+  if (cfg.autoStartOnLaunch !== false) {
+    setTimeout(() => {
+      startAutoSlots()
+        .then((r) => {
+          const ok = r.started?.filter((s) => s.ok).length ?? 0;
+          const skip = r.skipped?.length ?? 0;
+          console.log(`  Auto-start: ${ok} slot elindítva, ${skip} kihagyva`);
+        })
+        .catch((err) => console.error('  Auto-start hiba:', err.message));
+    }, 2000);
+  }
 });
