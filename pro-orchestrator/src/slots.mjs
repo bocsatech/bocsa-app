@@ -137,6 +137,16 @@ export function enrichSlot(slot) {
     ...slot,
     watchUrls: inst?.watchUrls?.length ? inst.watchUrls : slot.watchUrls || [],
     messageTemplate: slot.messageTemplate || inst?.messageTemplate || fallbackTemplate,
+    pollIntervalSeconds:
+      slot.pollIntervalSeconds ??
+      inst?.pollIntervalSeconds ??
+      defaults.pollIntervalSeconds ??
+      (slot.program === 'hasznaltauto' ? 30 : 10),
+    sendDelayMs:
+      slot.sendDelayMs ??
+      inst?.sendDelayMs ??
+      defaults.sendDelayMs ??
+      (slot.program === 'hasznaltauto' ? 5000 : 3000),
     allowedPrefixes: prefixes,
     sms: publicSmsForApi(smsSource),
   };
@@ -161,6 +171,14 @@ function applySlotFieldsToConfig(slot, cfg) {
   }
   const template = String(slot.messageTemplate || '').trim();
   cfg.messageTemplate = template || readProgramDefaultTemplate(slot.program);
+  cfg.pollIntervalSeconds =
+    slot.pollIntervalSeconds ??
+    readProgramDefaults(slot.program).pollIntervalSeconds ??
+    (slot.program === 'hasznaltauto' ? 30 : 10);
+  cfg.sendDelayMs =
+    slot.sendDelayMs ??
+    readProgramDefaults(slot.program).sendDelayMs ??
+    (slot.program === 'hasznaltauto' ? 5000 : 3000);
   if (slot.program === 'hasznaltauto') {
     const prefixes = Array.isArray(slot.allowedPrefixes) ? slot.allowedPrefixes : [];
     cfg.allowedPrefixes = prefixes.length ? prefixes : ['70', '20', '30'];

@@ -136,6 +136,11 @@
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
+    .timing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
     @media (max-width: 720px) { .sms-grid { grid-template-columns: 1fr; } }
     label.sub {
       font-size: 10px;
@@ -166,7 +171,8 @@
   <div class="banner">
     Slotonként külön port (3851–3856) és <strong>külön Chrome profil</strong>.
     <strong>Figyelt URL-ek</strong>, <strong>üzenet sablon</strong> és <strong>Hasznaltauto SMS/Twilio</strong> itt szerkeszthetők.
-    URL változáshoz futó slotnál: állítsd le, ments, indítsd újra. Sablon mentése futó slotnál is érvényes (következő üzenetnél).
+    URL változáshoz futó slotnál: állítsd le, ments, indítsd újra.
+    Ellenőrzési intervallum változáshoz is újraindítás kell. Késleltetés mentése futó slotnál is érvényes.
   </div>
 
   <main id="slots"></main>
@@ -199,6 +205,14 @@
       return program === 'hasznaltauto'
         ? 'https://www.hasznaltauto.hu/talalatilista/...'
         : 'https://www.willhaben.at/iad/...';
+    }
+
+    function pollMin(program) {
+      return program === 'hasznaltauto' ? 10 : 5;
+    }
+
+    function delayLabel(program) {
+      return program === 'hasznaltauto' ? 'SMS késleltetés (ms)' : 'Üzenet késleltetés (ms)';
     }
 
     function renderSmsSection(slot, i) {
@@ -298,6 +312,21 @@
               <div class="url-hint">Változók: {title} {price} {location} {url} {id}</div>
             </div>
 
+            <div>
+              <label>Időzítés</label>
+              <div class="timing-grid">
+                <div>
+                  <label class="sub">Ellenőrzés (mp)</label>
+                  <input type="number" class="poll-interval" data-i="${i}" min="${pollMin(slot.program)}" value="${slot.pollIntervalSeconds ?? pollMin(slot.program)}" oninput="markDirty()" />
+                </div>
+                <div>
+                  <label class="sub">${delayLabel(slot.program)}</label>
+                  <input type="number" class="send-delay" data-i="${i}" min="2000" step="500" value="${slot.sendDelayMs ?? 3000}" oninput="markDirty()" />
+                </div>
+              </div>
+              <div class="url-hint">Intervallum min. ${pollMin(slot.program)} mp. Intervallum változás: leállítás → mentés → újraindítás.</div>
+            </div>
+
             ${renderSmsSection(slot, i)}
 
             <div>
@@ -327,6 +356,10 @@
       });
       const panel = document.querySelector(`.sms-panel[data-i="${i}"]`);
       if (panel) panel.style.display = isHa ? '' : 'none';
+      const poll = document.querySelector(`.poll-interval[data-i="${i}"]`);
+      if (poll) poll.min = pollMin(sel.value);
+      const delayLabelEl = document.querySelector(`.timing-grid .send-delay[data-i="${i}"]`)?.closest('div')?.querySelector('.sub');
+      if (delayLabelEl) delayLabelEl.textContent = delayLabel(sel.value);
       markDirty();
     }
 
@@ -377,6 +410,8 @@
           username: document.querySelector(`.username[data-i="${i}"]`).value.trim(),
           watchUrls: collectUrlsForSlot(i),
           messageTemplate: document.querySelector(`.msg-template[data-i="${i}"]`)?.value.trim() || '',
+          pollIntervalSeconds: Number(document.querySelector(`.poll-interval[data-i="${i}"]`)?.value) || undefined,
+          sendDelayMs: Number(document.querySelector(`.send-delay[data-i="${i}"]`)?.value) || undefined,
         };
         if (program === 'hasznaltauto') {
           slot.allowedPrefixes = document.querySelector(`.sms-prefixes[data-i="${i}"]`)?.value.trim() || '70, 20, 30';
@@ -434,7 +469,7 @@
       dirty = false;
       document.getElementById('dirty').classList.remove('show');
       await refresh();
-      alert('Mentve! URL változáshoz futó slotnál: leállítás → mentés → újraindítás. Sablon és SMS beállítás futó slotnál is érvényes.');
+      alert('Mentve! URL és intervallum változáshoz: leállítás → mentés → újraindítás. Sablon, késleltetés és SMS futó slotnál is érvényes.');
     }
 
     async function startSlot(id) {

@@ -15,16 +15,28 @@ const DEFAULT_SMS = {
   dryRun: true,
 };
 
-const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => ({
-  id: `slot-${i + 1}`,
-  label: `Slot ${i + 1}`,
-  program: i < 3 ? 'willhaben' : 'hasznaltauto',
-  username: '',
-  watchUrls: [],
-  messageTemplate: '',
-  allowedPrefixes: [...DEFAULT_PREFIXES],
-  sms: { ...DEFAULT_SMS },
-}));
+function defaultTiming(program) {
+  return program === 'hasznaltauto'
+    ? { pollIntervalSeconds: 30, sendDelayMs: 5000 }
+    : { pollIntervalSeconds: 10, sendDelayMs: 3000 };
+}
+
+const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => {
+  const program = i < 3 ? 'willhaben' : 'hasznaltauto';
+  const timing = defaultTiming(program);
+  return {
+    id: `slot-${i + 1}`,
+    label: `Slot ${i + 1}`,
+    program,
+    username: '',
+    watchUrls: [],
+    messageTemplate: '',
+    pollIntervalSeconds: timing.pollIntervalSeconds,
+    sendDelayMs: timing.sendDelayMs,
+    allowedPrefixes: [...DEFAULT_PREFIXES],
+    sms: { ...DEFAULT_SMS },
+  };
+});
 
 function normalizeAllowedPrefixes(value) {
   if (Array.isArray(value)) {
@@ -45,6 +57,19 @@ function normalizeSms(sms) {
     fromNumber: String(incoming.fromNumber || '').trim(),
     dryRun: incoming.dryRun !== false,
   };
+}
+
+export function normalizePollInterval(value, program) {
+  const n = Number(value);
+  const min = program === 'hasznaltauto' ? 10 : 5;
+  const fallback = defaultTiming(program).pollIntervalSeconds;
+  return Number.isFinite(n) && n >= min ? Math.round(n) : fallback;
+}
+
+export function normalizeSendDelay(value, program) {
+  const n = Number(value);
+  const fallback = defaultTiming(program).sendDelayMs;
+  return Number.isFinite(n) && n >= 2000 ? Math.round(n) : fallback;
 }
 
 export function mergeSmsSettings(incoming, previous, instance) {
@@ -78,6 +103,7 @@ export function publicSmsForApi(sms) {
     hasAuthToken: !!s.authToken,
   };
 }
+
 function normalizeWatchUrls(urls) {
   if (!Array.isArray(urls)) return [];
   return urls.map((u, i) => ({
@@ -123,6 +149,8 @@ function normalizeSlots(slots) {
       username: String(incoming.username || '').trim(),
       watchUrls: normalizeWatchUrls(incoming.watchUrls),
       messageTemplate: String(incoming.messageTemplate || '').trim(),
+      pollIntervalSeconds: normalizePollInterval(incoming.pollIntervalSeconds, program),
+      sendDelayMs: normalizeSendDelay(incoming.sendDelayMs, program),
       allowedPrefixes: normalizeAllowedPrefixes(incoming.allowedPrefixes),
       sms: normalizeSms(incoming.sms || def.sms),
     };
