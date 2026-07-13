@@ -79,6 +79,7 @@
       padding: 10px; font: 11px/1.45 ui-monospace, monospace; color: #b8c4d9;
     }
     .log div { margin: 1px 0; }
+    .log-meta { font-size: 10px; color: var(--muted); margin-top: 4px; }
     .log-warn {
       padding: 8px 10px;
       border-radius: 8px;
@@ -348,6 +349,7 @@
                 ⚠ <strong>Nincs bejelentkezve!</strong> Állítsd le a slotot → <strong>🔑 Bejelentkezés</strong> → Chrome-ban jelentkezz be willhaben.at-ra → zárd be a böngészőt → <strong>▶ Indítás</strong>
               </div>` : ''}
               <div class="log" id="log-${slot.id}">Betöltés…</div>
+              <div class="log-meta" id="log-meta-${slot.id}"></div>
             </div>
 
             <div class="btns">
@@ -465,15 +467,38 @@
       }
     }
 
+    function formatViennaTime(iso) {
+      if (!iso) return '—';
+      try {
+        return new Date(iso).toLocaleTimeString('hu-HU', {
+          timeZone: 'Europe/Vienna',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        });
+      } catch {
+        return '—';
+      }
+    }
+
     async function refreshLogs(slotId) {
       const el = document.getElementById(`log-${slotId}`);
       if (!el) return;
       try {
-        const res = await fetch(`/api/slots/${slotId}/logs`);
+        const res = await fetch(`/api/slots/${slotId}/logs?_=${Date.now()}`);
         const body = await res.json();
         const logs = body.logs || [];
         el.innerHTML = logs.map((l) => `<div>${esc(l)}</div>`).join('') || '—';
         el.scrollTop = el.scrollHeight;
+        const meta = document.getElementById(`log-meta-${slotId}`);
+        if (meta) {
+          const refreshed = formatViennaTime(body.refreshedAt);
+          const last = formatViennaTime(body.lastLogAt);
+          meta.textContent = body.running
+            ? `Frissítve: ${refreshed} · utolsó esemény: ${last}`
+            : `Frissítve: ${refreshed}`;
+        }
         const warn = document.getElementById(`login-warn-${slotId}`);
         if (warn) {
           const show = !!body.needsLogin && body.running;
@@ -543,7 +568,7 @@
     setInterval(() => refresh({ keepForm: true }), 4000);
     setInterval(() => {
       if (data?.slots) data.slots.forEach((s) => refreshLogs(s.id));
-    }, 2000);
+    }, 1000);
   </script>
 </body>
 </html>

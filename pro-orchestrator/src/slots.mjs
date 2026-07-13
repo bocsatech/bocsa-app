@@ -396,6 +396,21 @@ export function startLogin(slot) {
   return { ok: true, pid: child.pid, message: 'Bejelentkezés Chrome megnyílt — zárd be ha kész' };
 }
 
+function formatLogTime(iso) {
+  if (!iso) return '?';
+  try {
+    return new Date(iso).toLocaleTimeString('hu-HU', {
+      timeZone: 'Europe/Vienna',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+  } catch {
+    return String(iso).slice(11, 19) || '?';
+  }
+}
+
 export function getSlotLogs(slotId, limit = 50) {
   const dir = instanceDir(slotId);
   const rt = readRuntime(slotId);
@@ -403,6 +418,7 @@ export function getSlotLogs(slotId, limit = 50) {
   const sinceMs = rt?.startedAt ? new Date(rt.startedAt).getTime() : null;
   const lines = [];
   let needsLogin = false;
+  let lastEntryAt = null;
 
   const stateFile = path.join(dir, 'state.json');
   if (fs.existsSync(stateFile)) {
@@ -413,10 +429,11 @@ export function getSlotLogs(slotId, limit = 50) {
         entries = entries.filter((e) => new Date(e.at).getTime() >= sinceMs - 3000);
       }
       entries = entries.slice(0, limit);
+      if (entries.length) lastEntryAt = entries[0].at;
       entries.reverse();
       for (const entry of entries) {
         const prefix = entry.level === 'error' ? '✗' : entry.level === 'ok' ? '✓' : '·';
-        const line = `[${entry.at?.slice(11, 19) || '?'}] ${prefix} ${entry.message}`;
+        const line = `[${formatLogTime(entry.at)}] ${prefix} ${entry.message}`;
         lines.push(line);
         const msg = entry.message || '';
         if (msg.includes('Nincs üzenetmező') || msg.includes('nincs bejelentkezve')) {
@@ -433,8 +450,16 @@ export function getSlotLogs(slotId, limit = 50) {
       logs: running ? ['— Várakozás az első naplóbejegyzésre… —'] : ['— Még nincs napló —'],
       needsLogin: false,
       running,
+      refreshedAt: new Date().toISOString(),
+      lastLogAt: null,
     };
   }
 
-  return { logs: lines.slice(-limit), needsLogin, running };
+  return {
+    logs: lines.slice(-limit),
+    needsLogin,
+    running,
+    refreshedAt: new Date().toISOString(),
+    lastLogAt: lastEntryAt,
+  };
 }

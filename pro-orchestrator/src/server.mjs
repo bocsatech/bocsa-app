@@ -16,7 +16,7 @@ import {
 } from './slots.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.6.5';
+const VERSION = '0.6.6';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {

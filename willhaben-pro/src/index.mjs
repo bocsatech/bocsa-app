@@ -162,6 +162,8 @@ class Monitor {
 
     await this.ensureBrowser(state);
 
+    let tickHadActivity = false;
+
     for (const watch of config.watchUrls.filter((w) => w.enabled && w.url)) {
       try {
         const ads = await this.fetchAds(this.page, watch.url);
@@ -178,11 +180,13 @@ class Monitor {
             `[${watch.label}] Kalibrálás → referencia ${result.newMarker}`
           );
           saveState(state);
+          tickHadActivity = true;
           continue;
         }
 
         const fresh = result.newAds.filter((a) => !state.sentAdIds.includes(a.id));
         if (!fresh.length) continue;
+        tickHadActivity = true;
 
         for (const ad of fresh) {
           const lim = this.getLimitStatus(config, state);
@@ -237,6 +241,17 @@ class Monitor {
         }
         saveState(state);
       }
+    }
+
+    if (!tickHadActivity) {
+      const now = new Date().toLocaleTimeString('hu-HU', {
+        timeZone: 'Europe/Vienna',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
+      appendLog(state, 'info', `Ellenőrzés — nincs új hirdetés (${now})`);
     }
     saveState(state);
   }
