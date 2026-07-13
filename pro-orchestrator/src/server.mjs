@@ -9,10 +9,12 @@ import {
   stopSlot,
   startLogin,
   getSlotLogs,
+  enrichSlot,
+  syncWatchUrlsToInstance,
 } from './slots.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -51,12 +53,13 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/status') {
     const config = loadConfig();
     const statuses = getAllSlotStatus();
+    const slots = config.slots.map(enrichSlot);
     return json(res, 200, {
       version: VERSION,
       port: config.adminPort ?? 3850,
-      slots: config.slots,
+      slots,
       runtime: statuses,
-      features: { startStop: true, login: true },
+      features: { startStop: true, login: true, watchUrls: true },
     });
   }
 
@@ -71,9 +74,22 @@ const server = http.createServer(async (req, res) => {
       label: String(s.label || `Slot ${i + 1}`).trim(),
       program: s.program === 'hasznaltauto' ? 'hasznaltauto' : 'willhaben',
       username: String(s.username || '').trim(),
+      watchUrls: (s.watchUrls || []).map((u, j) => ({
+        id: u.id || `url-${j + 1}`,
+        label: String(u.label || `URL ${j + 1}`).trim(),
+        url: String(u.url || '').trim(),
+        enabled: u.enabled !== false,
+      })),
     }));
     saveConfig(config);
-    return json(res, 200, { ok: true, slots: config.slots });
+    for (const slot of config.slots) {
+      try {
+        syncWatchUrlsToInstance(slot);
+      } catch {
+        /* instance sync optional before first start */
+      }
+    }
+    return json(res, 200, { ok: true, slots: config.slots.map(enrichSlot) });
   }
 
   const startMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/start$/);

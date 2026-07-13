@@ -94,6 +94,24 @@
     .dirty { color: #ffb347; font-size: 12px; display: none; }
     .dirty.show { display: inline; }
     .admin-link { font-size: 12px; color: #8ecfff; }
+    .url-list { display: grid; gap: 8px; }
+    .url-item {
+      background: #0b1020;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+    }
+    .url-item header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .url-item input[type="text"] { font-size: 12px; padding: 8px 10px; }
+    .url-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -106,8 +124,8 @@
   </header>
 
   <div class="banner">
-    Slotonként külön port (3851–3856) és <strong>külön Chrome profil</strong> (külön bejelentkezés).
-    Felhasználónév = willhaben login (Hasznaltauto slotnál azonosító). Először: <strong>Bejelentkezés</strong>, majd <strong>Indítás</strong>.
+    Slotonként külön port (3851–3856) és <strong>külön Chrome profil</strong>.
+    <strong>Figyelt URL-ek</strong> itt szerkeszthetők — mentés után érvényes (futó slotnál: állítsd le, ments, indítsd újra).
   </div>
 
   <main id="slots"></main>
@@ -134,6 +152,27 @@
 
     function runtimeFor(id) {
       return (data?.runtime || []).find((r) => r.id === id) || {};
+    }
+
+    function urlPlaceholder(program) {
+      return program === 'hasznaltauto'
+        ? 'https://www.hasznaltauto.hu/talalatilista/...'
+        : 'https://www.willhaben.at/iad/...';
+    }
+
+    function renderUrlItems(slot, i, running) {
+      const urls = slot.watchUrls?.length ? slot.watchUrls : [];
+      const items = urls.length ? urls : [{ id: 'url-1', label: 'Keresés 1', url: '', enabled: true }];
+      return items.map((u, j) => `
+        <div class="url-item" data-slot-i="${i}" data-url-i="${j}">
+          <header>
+            <label><input type="checkbox" class="url-enabled" data-slot-i="${i}" data-url-i="${j}" ${u.enabled !== false ? 'checked' : ''} onchange="markDirty()" ${running ? 'disabled' : ''}/> Aktív</label>
+            <button type="button" onclick="removeUrl(${i}, ${j})" ${running ? 'disabled' : ''}>✕</button>
+          </header>
+          <input class="url-label" data-slot-i="${i}" data-url-i="${j}" value="${esc(u.label)}" placeholder="Név" oninput="markDirty()" ${running ? 'disabled' : ''} />
+          <input class="url-url" data-slot-i="${i}" data-url-i="${j}" value="${esc(u.url)}" placeholder="${urlPlaceholder(slot.program)}" oninput="markDirty()" ${running ? 'disabled' : ''} />
+        </div>
+      `).join('');
     }
 
     function renderSlots(slots) {
@@ -169,6 +208,15 @@
             </div>
 
             <div>
+              <label>Figyelt URL-ek</label>
+              <div class="url-list" id="urls-${slot.id}">
+                ${renderUrlItems(slot, i, running)}
+              </div>
+              <div class="url-hint">${slot.program === 'hasznaltauto' ? 'talalatilista/... link (nem egy hirdetés URL)' : 'willhaben keresés vagy Suchagent link'}</div>
+              <button type="button" style="margin-top:8px" onclick="addUrl(${i})" ${running ? 'disabled' : ''}>+ URL hozzáadása</button>
+            </div>
+
+            <div>
               <label>Napló</label>
               <div class="log" id="log-${slot.id}">Betöltés…</div>
             </div>
@@ -190,6 +238,46 @@
       const isHa = sel.value === 'hasznaltauto';
       pill.textContent = isHa ? 'Hasznaltauto' : 'Willhaben';
       pill.className = 'pill ' + (isHa ? 'ha' : 'wh');
+      document.querySelectorAll(`.url-url[data-slot-i="${i}"]`).forEach((inp) => {
+        inp.placeholder = urlPlaceholder(sel.value);
+      });
+      markDirty();
+    }
+
+    function collectUrlsForSlot(i) {
+      const items = [...document.querySelectorAll(`.url-item[data-slot-i="${i}"]`)];
+      return items.map((_, j) => ({
+        id: `url-${j + 1}`,
+        label: document.querySelector(`.url-label[data-slot-i="${i}"][data-url-i="${j}"]`)?.value.trim() || `URL ${j + 1}`,
+        url: document.querySelector(`.url-url[data-slot-i="${i}"][data-url-i="${j}"]`)?.value.trim() || '',
+        enabled: document.querySelector(`.url-enabled[data-slot-i="${i}"][data-url-i="${j}"]`)?.checked !== false,
+      })).filter((u) => u.url || u.label);
+    }
+
+    function addUrl(i) {
+      const slotId = data.slots[i]?.id;
+      const box = document.getElementById(`urls-${slotId}`);
+      const count = box.querySelectorAll('.url-item').length;
+      const program = document.querySelector(`.program[data-i="${i}"]`).value;
+      const div = document.createElement('div');
+      div.className = 'url-item';
+      div.dataset.slotI = String(i);
+      div.dataset.urlI = String(count);
+      div.innerHTML = `
+        <header>
+          <label><input type="checkbox" class="url-enabled" data-slot-i="${i}" data-url-i="${count}" checked onchange="markDirty()"/> Aktív</label>
+          <button type="button" onclick="removeUrl(${i}, ${count})">✕</button>
+        </header>
+        <input class="url-label" data-slot-i="${i}" data-url-i="${count}" value="Keresés ${count + 1}" placeholder="Név" oninput="markDirty()" />
+        <input class="url-url" data-slot-i="${i}" data-url-i="${count}" value="" placeholder="${urlPlaceholder(program)}" oninput="markDirty()" />
+      `;
+      box.appendChild(div);
+      markDirty();
+    }
+
+    function removeUrl(slotI, urlI) {
+      const item = document.querySelector(`.url-item[data-slot-i="${slotI}"][data-url-i="${urlI}"]`);
+      if (item) item.remove();
       markDirty();
     }
 
@@ -199,6 +287,7 @@
         label: `Slot ${i + 1}`,
         program: document.querySelector(`.program[data-i="${i}"]`).value,
         username: document.querySelector(`.username[data-i="${i}"]`).value.trim(),
+        watchUrls: collectUrlsForSlot(i),
       }));
     }
 
@@ -245,7 +334,7 @@
       dirty = false;
       document.getElementById('dirty').classList.remove('show');
       await refresh();
-      alert('Mentve!');
+      alert('Mentve! URL változáshoz futó slotnál: leállítás → mentés → újraindítás.');
     }
 
     async function startSlot(id) {

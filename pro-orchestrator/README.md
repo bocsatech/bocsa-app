@@ -2,7 +2,7 @@
 
 6 slotos helyi vezérlő Willhaben Pro + Hasznaltauto Pro programokhoz.
 
-**Jelenlegi állapot (0.2.0):** slot szerkesztés + indítás/leállítás + napló + bejelentkezés gomb.
+**Jelenlegi állapot (0.3.0):** + figyelt URL-ek szerkesztése slotonként a vezérlőben.
 
 Slot portok: 3851–3856. Slotonként külön Chrome profil (`data/instances/slot-N/`).
 

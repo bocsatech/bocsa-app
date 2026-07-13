@@ -88,21 +88,71 @@ export function slotPort(slotId) {
   return SLOT_PORTS[slotId] ?? null;
 }
 
+function instanceConfigPath(slotId) {
+  return path.join(instanceDir(slotId), 'config.json');
+}
+
+export function readInstanceConfig(slotId) {
+  const file = instanceConfigPath(slotId);
+  if (!fs.existsSync(file)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+export function enrichSlot(slot) {
+  const inst = readInstanceConfig(slot.id);
+  if (inst?.watchUrls) {
+    return { ...slot, watchUrls: inst.watchUrls };
+  }
+  return { ...slot, watchUrls: slot.watchUrls || [] };
+}
+
+function writeInstanceConfig(slot, cfg) {
+  const dir = instanceDir(slot.id);
+  fs.mkdirSync(dir, { recursive: true });
+  const dest = instanceConfigPath(slot.id);
+  fs.writeFileSync(dest, JSON.stringify(cfg, null, 2));
+}
+
+export function syncWatchUrlsToInstance(slot) {
+  const { dir, port, root } = ensureInstance(slot);
+  const dest = instanceConfigPath(slot.id);
+  const cfg = fs.existsSync(dest)
+    ? JSON.parse(fs.readFileSync(dest, 'utf8'))
+    : JSON.parse(fs.readFileSync(path.join(root, 'config.json'), 'utf8'));
+  cfg.adminPort = port;
+  cfg.watchUrls = (slot.watchUrls || []).filter((u) => u.url);
+  writeInstanceConfig(slot, cfg);
+  return { ok: true, dir };
+}
+
 export function ensureInstance(slot) {
   const dir = instanceDir(slot.id);
   fs.mkdirSync(dir, { recursive: true });
   const port = slotPort(slot.id);
   const root = programRoot(slot.program);
   const template = path.join(root, 'config.json');
-  const dest = path.join(dir, 'config.json');
+  const dest = instanceConfigPath(slot.id);
 
   if (!fs.existsSync(template)) {
     throw new Error(`Nincs config sablon: ${template}`);
   }
 
-  const cfg = JSON.parse(fs.readFileSync(template, 'utf8'));
+  let cfg;
+  if (fs.existsSync(dest)) {
+    cfg = JSON.parse(fs.readFileSync(dest, 'utf8'));
+  } else {
+    cfg = JSON.parse(fs.readFileSync(template, 'utf8'));
+  }
+
   cfg.adminPort = port;
-  fs.writeFileSync(dest, JSON.stringify(cfg, null, 2));
+  if (Array.isArray(slot.watchUrls)) {
+    cfg.watchUrls = slot.watchUrls.filter((u) => u.url);
+  }
+  writeInstanceConfig(slot, cfg);
   return { dir, port, root };
 }
 

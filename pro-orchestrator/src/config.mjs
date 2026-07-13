@@ -10,7 +10,18 @@ const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => ({
   label: `Slot ${i + 1}`,
   program: i < 3 ? 'willhaben' : 'hasznaltauto',
   username: '',
+  watchUrls: [],
 }));
+
+function normalizeWatchUrls(urls) {
+  if (!Array.isArray(urls)) return [];
+  return urls.map((u, i) => ({
+    id: String(u.id || `url-${i + 1}`).trim(),
+    label: String(u.label || `URL ${i + 1}`).trim(),
+    url: String(u.url || '').trim(),
+    enabled: u.enabled !== false,
+  }));
+}
 
 export function getRoot() {
   return ROOT;
@@ -45,6 +56,7 @@ function normalizeSlots(slots) {
       label: String(incoming.label || def.label).trim() || def.label,
       program,
       username: String(incoming.username || '').trim(),
+      watchUrls: normalizeWatchUrls(incoming.watchUrls),
     };
   });
 }
