@@ -238,11 +238,33 @@ export function getAllSlotStatus() {
   return config.slots.map(getSlotStatus);
 }
 
-export function startSlot(slot) {
-  const existing = readRuntime(slot.id);
-  if (existing?.pid && isAlive(existing.pid)) {
-    return { ok: false, error: 'A slot már fut' };
+function readLastProcessError(dir) {
+  const procFile = path.join(dir, 'process.log');
+  if (!fs.existsSync(procFile)) return '';
+  try {
+    const lines = fs.readFileSync(procFile, 'utf8').split('\n').filter(Boolean).slice(-12);
+    const hit = lines.find((l) =>
+      /hiba|error|már fut|EADDRINUSE|foglalt|listen|exited/i.test(l)
+    );
+    return hit || lines[lines.length - 1] || '';
+  } catch {
+    return '';
   }
+}
+
+function prepareSlotStart(slotId) {
+  const rt = readRuntime(slotId);
+  if (rt?.pid && isAlive(rt.pid)) {
+    return { ok: false, error: 'A slot már fut — előbb ■ Leállítás' };
+  }
+  killSlotProcesses(slotId);
+  clearRuntime(slotId);
+  return { ok: true };
+}
+
+export async function startSlot(slot) {
+  const prep = prepareSlotStart(slot.id);
+  if (!prep.ok) return prep;
 
   const { dir, port, root } = ensureInstance(slot);
   const entry = path.join(root, 'src', 'index.mjs');
@@ -277,12 +299,32 @@ export function startSlot(slot) {
     startedAt: new Date().toISOString(),
   });
 
+  await new Promise((r) => setTimeout(r, 2000));
+
+  if (!isAlive(child.pid)) {
+    clearRuntime(slot.id);
+    killSlotProcesses(slot.id);
+    const errMsg = readLastProcessError(dir);
+    return {
+      ok: false,
+      error:
+        errMsg ||
+        'A program azonnal leállt. Lehetséges ok: port foglalt, beragadt lock, vagy hiányzó Chrome.',
+    };
+  }
+
   return {
     ok: true,
     pid: child.pid,
     port,
     adminUrl: `http://127.0.0.1:${port}`,
   };
+}
+
+export async function restartSlot(slot) {
+  stopSlot(slot.id);
+  await new Promise((r) => setTimeout(r, 800));
+  return startSlot(slot);
 }
 
 function killPid(pid) {

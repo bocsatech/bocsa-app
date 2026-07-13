@@ -353,6 +353,7 @@
             <div class="btns">
               <button class="primary" onclick="saveSlot('${slot.id}', ${i + 1})">💾 Mentés</button>
               <button class="primary" onclick="startSlot('${slot.id}')" ${running ? 'disabled' : ''}>▶ Indítás</button>
+              <button onclick="restartSlot('${slot.id}')">↻ Újraindítás</button>
               <button class="danger" onclick="stopSlot('${slot.id}')" ${running ? '' : 'disabled'}>■ Leállítás</button>
               <button onclick="loginSlot('${slot.id}')" ${running ? 'disabled' : ''}>🔑 Bejelentkezés</button>
             </div>
@@ -512,7 +513,18 @@
       }
       const res = await fetch(`/api/slots/${id}/start`, { method: 'POST' });
       const body = await res.json();
-      if (!res.ok) return alert(body.error || 'Indítás sikertelen');
+      if (!res.ok || !body.ok) return alert(body.error || 'Indítás sikertelen');
+      await refresh();
+    }
+
+    async function restartSlot(id) {
+      if (dirty) {
+        if (!confirm('Nem mentett változások vannak. Mentsem előbb?')) return;
+        await saveSlots();
+      }
+      const res = await fetch(`/api/slots/${id}/restart`, { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok || !body.ok) return alert(body.error || 'Újraindítás sikertelen');
       await refresh();
     }
 

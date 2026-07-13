@@ -6,6 +6,7 @@ import { loadConfig, saveConfig, mergeSmsSettings, normalizePollInterval, normal
 import {
   getAllSlotStatus,
   startSlot,
+  restartSlot,
   stopSlot,
   startLogin,
   getSlotLogs,
@@ -15,7 +16,7 @@ import {
 } from './slots.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.6.3';
+const VERSION = '0.6.4';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -132,7 +133,7 @@ const server = http.createServer(async (req, res) => {
     const slot = findSlot(config, startMatch[1]);
     if (!slot) return json(res, 404, { error: 'Ismeretlen slot' });
     try {
-      const result = startSlot(slot);
+      const result = await startSlot(slot);
       return json(res, result.ok ? 200 : 409, result);
     } catch (err) {
       return json(res, 500, { error: err.message });
@@ -153,6 +154,19 @@ const server = http.createServer(async (req, res) => {
     try {
       const result = startLogin(slot);
       return json(res, 200, result);
+    } catch (err) {
+      return json(res, 500, { error: err.message });
+    }
+  }
+
+  const restartMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/restart$/);
+  if (req.method === 'POST' && restartMatch) {
+    const config = loadConfig();
+    const slot = findSlot(config, restartMatch[1]);
+    if (!slot) return json(res, 404, { error: 'Ismeretlen slot' });
+    try {
+      const result = await restartSlot(slot);
+      return json(res, result.ok ? 200 : 409, result);
     } catch (err) {
       return json(res, 500, { error: err.message });
     }

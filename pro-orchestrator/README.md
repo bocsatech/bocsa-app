@@ -16,12 +16,17 @@ npm run start:awake   # ajánlott Macen — nem alszik el a gép
 
 Vezérlő: http://127.0.0.1:3850
 
-## Ha „minden leállt”
+## Ha „nem indul”
 
-1. **Orchestrator Terminal** — fut-e? Ha bezártad: `cd pro-orchestrator && npm run start:awake`
-2. Böngésző: http://127.0.0.1:3850 → slotoknál **▶ Indítás** (a slotok nem indulnak maguktól)
-3. Asztali ikon: most a **Pro Orchestrator**-t indítja (nem a régi 3847/3848 párost)
-4. `git pull` — legyen **v0.6.2** a fejlécben
+1. **Orchestrator** — Terminalban:
+   ```bash
+   cd pro-orchestrator
+   npm run stop
+   npm run start:awake
+   ```
+2. Böngészőben slotnál: **↻ Újraindítás** (vagy ■ Leállítás → ▶ Indítás)
+3. Ha hibaüzenet jön: olvasd el — gyakori: port foglalt, már fut, nincs Chrome
+4. Willhaben: **🔑 Bejelentkezés** slot leállítva, majd ▶ Indítás
 
 ## Slotok
 
