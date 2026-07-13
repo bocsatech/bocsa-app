@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { getRoot, loadConfig } from './config.mjs';
+import { getRoot, loadConfig, publicSmsForApi } from './config.mjs';
 
 const ORCH_ROOT = getRoot();
 const REPO_ROOT = path.dirname(ORCH_ROOT);
@@ -102,15 +102,18 @@ export function readInstanceConfig(slotId) {
   }
 }
 
-function readProgramDefaultTemplate(program) {
+function readProgramDefaults(program) {
   const root = programRoot(program);
   const file = path.join(root, 'config.json');
   try {
-    const cfg = JSON.parse(fs.readFileSync(file, 'utf8'));
-    return String(cfg.messageTemplate || '').trim();
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch {
-    return '';
+    return {};
   }
+}
+
+function readProgramDefaultTemplate(program) {
+  return String(readProgramDefaults(program).messageTemplate || '').trim();
 }
 
 export function getDefaultMessageTemplate(program) {
@@ -119,13 +122,29 @@ export function getDefaultMessageTemplate(program) {
 
 export function enrichSlot(slot) {
   const inst = readInstanceConfig(slot.id);
-  const fallbackTemplate = readProgramDefaultTemplate(slot.program);
-  return {
+  const defaults = readProgramDefaults(slot.program);
+  const fallbackTemplate = String(defaults.messageTemplate || '').trim();
+  const prefixes =
+    slot.allowedPrefixes?.length
+      ? slot.allowedPrefixes
+      : inst?.allowedPrefixes?.length
+        ? inst.allowedPrefixes
+        : defaults.allowedPrefixes || ['70', '20', '30'];
+  const smsSource = slot.sms?.accountSid || slot.sms?.fromNumber || slot.sms?.authToken
+    ? slot.sms
+    : inst?.sms || defaults.sms || {};
+  const enriched = {
     ...slot,
     watchUrls: inst?.watchUrls?.length ? inst.watchUrls : slot.watchUrls || [],
-    messageTemplate:
-      slot.messageTemplate || inst?.messageTemplate || fallbackTemplate,
+    messageTemplate: slot.messageTemplate || inst?.messageTemplate || fallbackTemplate,
+    allowedPrefixes: prefixes,
+    sms: publicSmsForApi(smsSource),
   };
+  if (slot.program !== 'hasznaltauto') {
+    delete enriched.allowedPrefixes;
+    delete enriched.sms;
+  }
+  return enriched;
 }
 
 function writeInstanceConfig(slot, cfg) {
@@ -142,6 +161,17 @@ function applySlotFieldsToConfig(slot, cfg) {
   }
   const template = String(slot.messageTemplate || '').trim();
   cfg.messageTemplate = template || readProgramDefaultTemplate(slot.program);
+  if (slot.program === 'hasznaltauto') {
+    const prefixes = Array.isArray(slot.allowedPrefixes) ? slot.allowedPrefixes : [];
+    cfg.allowedPrefixes = prefixes.length ? prefixes : ['70', '20', '30'];
+    cfg.sms = {
+      provider: 'twilio',
+      accountSid: String(slot.sms?.accountSid || '').trim(),
+      authToken: String(slot.sms?.authToken || '').trim(),
+      fromNumber: String(slot.sms?.fromNumber || '').trim(),
+      dryRun: slot.sms?.dryRun !== false,
+    };
+  }
   return cfg;
 }
 

@@ -5,6 +5,16 @@ import { fileURLToPath } from 'url';
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CONFIG_PATH = path.join(ROOT, 'config.json');
 
+const DEFAULT_PREFIXES = ['70', '20', '30'];
+
+const DEFAULT_SMS = {
+  provider: 'twilio',
+  accountSid: '',
+  authToken: '',
+  fromNumber: '',
+  dryRun: true,
+};
+
 const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => ({
   id: `slot-${i + 1}`,
   label: `Slot ${i + 1}`,
@@ -12,8 +22,62 @@ const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => ({
   username: '',
   watchUrls: [],
   messageTemplate: '',
+  allowedPrefixes: [...DEFAULT_PREFIXES],
+  sms: { ...DEFAULT_SMS },
 }));
 
+function normalizeAllowedPrefixes(value) {
+  if (Array.isArray(value)) {
+    return value.map((p) => String(p).trim()).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value.split(/[,;\s]+/).map((p) => p.trim()).filter(Boolean);
+  }
+  return [...DEFAULT_PREFIXES];
+}
+
+function normalizeSms(sms) {
+  const incoming = sms && typeof sms === 'object' ? sms : {};
+  return {
+    provider: 'twilio',
+    accountSid: String(incoming.accountSid || '').trim(),
+    authToken: String(incoming.authToken || '').trim(),
+    fromNumber: String(incoming.fromNumber || '').trim(),
+    dryRun: incoming.dryRun !== false,
+  };
+}
+
+export function mergeSmsSettings(incoming, previous, instance) {
+  const prevSms = previous?.sms || {};
+  const instSms = instance?.sms || {};
+  const inc = incoming?.sms || {};
+  const token = String(inc.authToken || '').trim();
+  return {
+    provider: 'twilio',
+    accountSid: String(inc.accountSid ?? prevSms.accountSid ?? instSms.accountSid ?? '').trim(),
+    authToken:
+      token && token !== '***'
+        ? token
+        : String(prevSms.authToken || instSms.authToken || '').trim(),
+    fromNumber: String(inc.fromNumber ?? prevSms.fromNumber ?? instSms.fromNumber ?? '').trim(),
+    dryRun:
+      inc.dryRun !== undefined
+        ? inc.dryRun !== false
+        : (prevSms.dryRun ?? instSms.dryRun ?? true) !== false,
+  };
+}
+
+export function publicSmsForApi(sms) {
+  const s = normalizeSms(sms);
+  return {
+    provider: s.provider,
+    accountSid: s.accountSid,
+    authToken: s.authToken ? '***' : '',
+    fromNumber: s.fromNumber,
+    dryRun: s.dryRun,
+    hasAuthToken: !!s.authToken,
+  };
+}
 function normalizeWatchUrls(urls) {
   if (!Array.isArray(urls)) return [];
   return urls.map((u, i) => ({
@@ -59,6 +123,8 @@ function normalizeSlots(slots) {
       username: String(incoming.username || '').trim(),
       watchUrls: normalizeWatchUrls(incoming.watchUrls),
       messageTemplate: String(incoming.messageTemplate || '').trim(),
+      allowedPrefixes: normalizeAllowedPrefixes(incoming.allowedPrefixes),
+      sms: normalizeSms(incoming.sms || def.sms),
     };
   });
 }

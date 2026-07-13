@@ -2,7 +2,7 @@
 
 6 slotos helyi vezérlő Willhaben Pro + Hasznaltauto Pro programokhoz.
 
-**Jelenlegi állapot (0.4.0):** + üzenet sablon szerkesztése slotonként a vezérlőben.
+**Jelenlegi állapot (0.5.0):** + Hasznaltauto SMS/Twilio beállítások slotonként a vezérlőben.
 
 Slot portok: 3851–3856. Slotonként külön Chrome profil (`data/instances/slot-N/`).
 
@@ -20,5 +20,5 @@ Vezérlő: http://127.0.0.1:3850
 - Slotonként választható: **Willhaben** vagy **Hasznaltauto**
 - **Felhasználónév** = willhaben bejelentkezési név (menthető, később módosítható)
 - Indítás / Leállítás / Bejelentkezés gomb slotonként
-- Figyelt URL-ek és üzenet sablon szerkesztése slotonként
+- Figyelt URL-ek, üzenet sablon és Hasznaltauto SMS/Twilio szerkesztése slotonként
 - Napló stream a slot admin programjából

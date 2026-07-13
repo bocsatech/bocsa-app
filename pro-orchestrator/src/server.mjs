@@ -2,7 +2,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { loadConfig, saveConfig } from './config.mjs';
+import { loadConfig, saveConfig, mergeSmsSettings } from './config.mjs';
 import {
   getAllSlotStatus,
   startSlot,
@@ -11,10 +11,11 @@ import {
   getSlotLogs,
   enrichSlot,
   syncSlotToInstance,
+  readInstanceConfig,
 } from './slots.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -59,7 +60,13 @@ const server = http.createServer(async (req, res) => {
       port: config.adminPort ?? 3850,
       slots,
       runtime: statuses,
-      features: { startStop: true, login: true, watchUrls: true, messageTemplate: true },
+      features: {
+        startStop: true,
+        login: true,
+        watchUrls: true,
+        messageTemplate: true,
+        smsSettings: true,
+      },
     });
   }
 
@@ -69,19 +76,36 @@ const server = http.createServer(async (req, res) => {
     if (!Array.isArray(body.slots)) {
       return json(res, 400, { error: 'slots tömb kell' });
     }
-    config.slots = body.slots.map((s, i) => ({
-      id: s.id || `slot-${i + 1}`,
-      label: String(s.label || `Slot ${i + 1}`).trim(),
-      program: s.program === 'hasznaltauto' ? 'hasznaltauto' : 'willhaben',
-      username: String(s.username || '').trim(),
-      watchUrls: (s.watchUrls || []).map((u, j) => ({
-        id: u.id || `url-${j + 1}`,
-        label: String(u.label || `URL ${j + 1}`).trim(),
-        url: String(u.url || '').trim(),
-        enabled: u.enabled !== false,
-      })),
-      messageTemplate: String(s.messageTemplate || '').trim(),
-    }));
+    const prevSlots = config.slots;
+    config.slots = body.slots.map((s, i) => {
+      const id = s.id || `slot-${i + 1}`;
+      const previous = prevSlots.find((p) => p.id === id) || prevSlots[i] || {};
+      const instance = readInstanceConfig(id);
+      const program = s.program === 'hasznaltauto' ? 'hasznaltauto' : 'willhaben';
+      const prefixes = Array.isArray(s.allowedPrefixes)
+        ? s.allowedPrefixes.map((p) => String(p).trim()).filter(Boolean)
+        : String(s.allowedPrefixes || '')
+            .split(/[,;\s]+/)
+            .map((p) => p.trim())
+            .filter(Boolean);
+      return {
+        id,
+        label: String(s.label || `Slot ${i + 1}`).trim(),
+        program,
+        username: String(s.username || '').trim(),
+        watchUrls: (s.watchUrls || []).map((u, j) => ({
+          id: u.id || `url-${j + 1}`,
+          label: String(u.label || `URL ${j + 1}`).trim(),
+          url: String(u.url || '').trim(),
+          enabled: u.enabled !== false,
+        })),
+        messageTemplate: String(s.messageTemplate || '').trim(),
+        allowedPrefixes: prefixes.length
+          ? prefixes
+          : previous.allowedPrefixes || instance?.allowedPrefixes || ['70', '20', '30'],
+        sms: mergeSmsSettings(s, previous, instance),
+      };
+    });
     saveConfig(config);
     for (const slot of config.slots) {
       try {
