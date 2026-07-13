@@ -2,7 +2,7 @@ import path from 'path';
 import { getRoot, loadConfig, getInstanceDir, resolveAdminPort } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
 import { parseAdsFromHtml, findNewAds } from './parse.mjs';
-import { sendMessage } from './message.mjs';
+import { sendMessage, isDealerSkipError } from './message.mjs';
 import { startAdminServer, setMonitorControl, setAppShutdown } from './admin-server.mjs';
 import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
 import { setupConsentHandler } from './consent.mjs';
@@ -190,6 +190,11 @@ class Monitor {
 
           this.processing = true;
           try {
+            if (ad.isDealer) {
+              state.sentAdIds.push(ad.id);
+              appendLog(state, 'info', `[${watch.label}] Händler kihagyva (lista): ${ad.title}`);
+              continue;
+            }
             await sendMessage(this.page, ad, config.messageTemplate, config.sendDelayMs);
             state.totalSent += 1;
             state.sentToday += 1;
@@ -202,8 +207,18 @@ class Monitor {
                 state,
                 'Böngésző bezárva — üzenetküldés szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
               );
-            } else {
-              appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${this.formatError(err)}`);
+              break;
+            }
+            if (isDealerSkipError(err)) {
+              state.sentAdIds.push(ad.id);
+              appendLog(state, 'info', `[${watch.label}] Händler kihagyva: ${ad.title}`);
+              continue;
+            }
+            const errText = this.formatError(err);
+            appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${errText}`);
+            if (/üzenetmező|bejelentkezve/i.test(errText)) {
+              state.sentAdIds.push(ad.id);
+              continue;
             }
             break;
           } finally {

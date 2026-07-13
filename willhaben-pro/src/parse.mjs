@@ -11,6 +11,8 @@ export function mapAd(ad) {
   for (const a of ad.attributes?.attribute || []) {
     if (a.name && a.values?.[0] != null) attrs[a.name] = a.values[0];
   }
+  const orgId = attrs.ORGID || attrs.ORG_ID || attrs.orgId || '';
+  const orgName = attrs.ORGNAME || attrs.ORG_NAME || attrs.organisationName || '';
   const seo = attrs.SEO_URL || '';
   const url = seo.startsWith('http')
     ? seo
@@ -21,6 +23,7 @@ export function mapAd(ad) {
     price: attrs['PRICE_FOR_DISPLAY'] || attrs.PRICE || '',
     location: attrs.LOCATION || '',
     url,
+    isDealer: !!(String(orgId).trim() || String(orgName).trim()),
   };
 }
 
