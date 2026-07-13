@@ -1,8 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { getRoot } from './config.mjs';
+import { getInstanceDir } from './config.mjs';
 
-const LOCK_PATH = path.join(getRoot(), 'data', '.instance.lock');
+function lockPath() {
+  return path.join(getInstanceDir(), '.instance.lock');
+}
 
 function isProcessAlive(pid) {
   if (!pid || pid <= 0) return false;
@@ -15,6 +17,7 @@ function isProcessAlive(pid) {
 }
 
 export function acquireInstanceLock() {
+  const LOCK_PATH = lockPath();
   fs.mkdirSync(path.dirname(LOCK_PATH), { recursive: true });
 
   if (fs.existsSync(LOCK_PATH)) {
@@ -31,6 +34,7 @@ export function acquireInstanceLock() {
 }
 
 export function releaseInstanceLock() {
+  const LOCK_PATH = lockPath();
   if (!fs.existsSync(LOCK_PATH)) return;
   const raw = fs.readFileSync(LOCK_PATH, 'utf8').trim();
   if (Number.parseInt(raw, 10) === process.pid) {

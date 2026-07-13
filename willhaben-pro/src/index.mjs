@@ -1,5 +1,5 @@
 import path from 'path';
-import { getRoot, loadConfig } from './config.mjs';
+import { getRoot, loadConfig, getInstanceDir, resolveAdminPort } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
 import { parseAdsFromHtml, findNewAds } from './parse.mjs';
 import { sendMessage } from './message.mjs';
@@ -10,7 +10,7 @@ import { launchBrowser } from './browser.mjs';
 
 process.title = 'willhaben-pro';
 
-const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
+const PROFILE_DIR = path.join(getInstanceDir(), 'browser-profile');
 
 class Monitor {
   constructor() {
@@ -297,7 +297,7 @@ setAppShutdown(shutdown);
 const lock = acquireInstanceLock();
 if (!lock.ok) {
   const config = loadConfig();
-  const port = config.adminPort ?? 3847;
+  const port = resolveAdminPort(config, 3847);
   console.error(
     `\n  Willhaben Pro már fut (PID ${lock.existingPid}).\n` +
       `  Admin panel: http://127.0.0.1:${port}\n` +
@@ -307,7 +307,7 @@ if (!lock.ok) {
 }
 
 const config = loadConfig();
-const adminPort = config.adminPort ?? 3847;
+const adminPort = resolveAdminPort(config, 3847);
 
 startAdminServer(adminPort)
   .then(() => {

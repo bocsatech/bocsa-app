@@ -3,9 +3,16 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { loadConfig, saveConfig } from './config.mjs';
+import {
+  getAllSlotStatus,
+  startSlot,
+  stopSlot,
+  startLogin,
+  getSlotLogs,
+} from './slots.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -22,14 +29,16 @@ function json(res, status, obj) {
 }
 
 function serveFile(res, filePath) {
-  const ext = path.extname(filePath);
-  const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript' };
   res.writeHead(200, {
-    'Content-Type': `${types[ext] || 'text/plain'}; charset=utf-8`,
+    'Content-Type': 'text/html; charset=utf-8',
     'Cache-Control': 'no-store, no-cache, must-revalidate',
     Pragma: 'no-cache',
   });
   res.end(fs.readFileSync(filePath));
+}
+
+function findSlot(config, slotId) {
+  return config.slots.find((s) => s.id === slotId);
 }
 
 const server = http.createServer(async (req, res) => {
@@ -41,11 +50,13 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'GET' && url.pathname === '/api/status') {
     const config = loadConfig();
+    const statuses = getAllSlotStatus();
     return json(res, 200, {
       version: VERSION,
       port: config.adminPort ?? 3850,
       slots: config.slots,
-      features: { startStop: false },
+      runtime: statuses,
+      features: { startStop: true, login: true },
     });
   }
 
@@ -65,6 +76,43 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, { ok: true, slots: config.slots });
   }
 
+  const startMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/start$/);
+  if (req.method === 'POST' && startMatch) {
+    const config = loadConfig();
+    const slot = findSlot(config, startMatch[1]);
+    if (!slot) return json(res, 404, { error: 'Ismeretlen slot' });
+    try {
+      const result = startSlot(slot);
+      return json(res, result.ok ? 200 : 409, result);
+    } catch (err) {
+      return json(res, 500, { error: err.message });
+    }
+  }
+
+  const stopMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/stop$/);
+  if (req.method === 'POST' && stopMatch) {
+    const result = stopSlot(stopMatch[1]);
+    return json(res, 200, result);
+  }
+
+  const loginMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/login$/);
+  if (req.method === 'POST' && loginMatch) {
+    const config = loadConfig();
+    const slot = findSlot(config, loginMatch[1]);
+    if (!slot) return json(res, 404, { error: 'Ismeretlen slot' });
+    try {
+      const result = startLogin(slot);
+      return json(res, 200, result);
+    } catch (err) {
+      return json(res, 500, { error: err.message });
+    }
+  }
+
+  const logMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/logs$/);
+  if (req.method === 'GET' && logMatch) {
+    return json(res, 200, { logs: getSlotLogs(logMatch[1]) });
+  }
+
   json(res, 404, { error: 'Not found' });
 });
 
@@ -73,5 +121,5 @@ const port = config.adminPort ?? 3850;
 
 server.listen(port, '127.0.0.1', () => {
   console.log(`\n  Pro Orchestrator: http://127.0.0.1:${port}  (v${VERSION})`);
-  console.log('  6 slot — szerkesztés kész, indítás még nincs (következő lépés)\n');
+  console.log('  6 slot — indítás / leállítás / napló\n');
 });

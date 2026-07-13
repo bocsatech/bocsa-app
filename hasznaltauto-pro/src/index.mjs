@@ -1,5 +1,5 @@
 import path from 'path';
-import { getRoot, loadConfig } from './config.mjs';
+import { getRoot, loadConfig, getInstanceDir, resolveAdminPort } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
 import { fetchListings, findNewAds } from './parse.mjs';
 import { getPhoneForAd } from './phone.mjs';
@@ -11,7 +11,7 @@ import { launchBrowser } from './browser.mjs';
 
 process.title = 'hasznaltauto-pro';
 
-const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
+const PROFILE_DIR = path.join(getInstanceDir(), 'browser-profile');
 
 class Monitor {
   constructor() {
@@ -304,7 +304,7 @@ setAppShutdown(shutdown);
 const lock = acquireInstanceLock();
 if (!lock.ok) {
   const config = loadConfig();
-  const port = config.adminPort ?? 3848;
+  const port = resolveAdminPort(loadConfig(), 3848);
   console.error(
     `\n  Hasznaltauto Pro már fut (PID ${lock.existingPid}).\n` +
       `  Admin panel: http://127.0.0.1:${port}\n` +
@@ -314,7 +314,7 @@ if (!lock.ok) {
 }
 
 const config = loadConfig();
-const adminPort = config.adminPort ?? 3848;
+const adminPort = resolveAdminPort(config, 3848);
 
 startAdminServer(adminPort)
   .then(() => {

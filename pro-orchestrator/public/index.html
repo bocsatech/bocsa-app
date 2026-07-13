@@ -16,12 +16,7 @@
       --accent: #5b8cff;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font: 14px/1.5 system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
+    body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--text); }
     header {
       padding: 20px 24px;
       border-bottom: 1px solid var(--border);
@@ -46,12 +41,8 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
     }
-    @media (max-width: 1100px) {
-      main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 720px) {
-      main { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 1100px) { main { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
     .slot {
       background: var(--card);
       border: 1px solid var(--border);
@@ -60,87 +51,49 @@
       display: grid;
       gap: 10px;
     }
+    .slot.running { border-color: #1db95466; }
     .slot header {
-      padding: 0;
-      border: 0;
-      margin: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 0; border: 0; margin: 0;
+      display: flex; justify-content: space-between; align-items: center;
     }
-    .slot h2 {
-      margin: 0;
-      font-size: 1rem;
-    }
+    .slot h2 { margin: 0; font-size: 1rem; }
     .pill {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 999px;
-      text-transform: uppercase;
+      font-size: 11px; font-weight: 700; padding: 3px 8px;
+      border-radius: 999px; text-transform: uppercase;
     }
     .pill.wh { background: #1db95433; color: var(--wh); }
     .pill.ha { background: #ff6b3533; color: var(--ha); }
+    .status { font-size: 12px; color: var(--muted); }
+    .status.run { color: var(--wh); }
     label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: 4px;
+      display: block; font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px;
     }
     input, select {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: #0b1020;
-      color: var(--text);
-      font: inherit;
+      width: 100%; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: #0b1020; color: var(--text); font: inherit;
     }
     .log {
-      min-height: 88px;
-      background: #080d18;
-      border: 1px dashed var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      font: 12px/1.45 ui-monospace, monospace;
-      color: var(--muted);
+      min-height: 120px; max-height: 160px; overflow: auto;
+      background: #080d18; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px; font: 11px/1.45 ui-monospace, monospace; color: #b8c4d9;
     }
-    .btns {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .log div { margin: 1px 0; }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; }
     button {
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: #24304a;
-      color: var(--text);
-      font-weight: 600;
-      cursor: pointer;
+      padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: #24304a; color: var(--text); font-weight: 600; cursor: pointer;
     }
     button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-    button:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-    }
+    button.danger { background: #e74c3c33; color: #ff9f9f; border-color: #e74c3c55; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
     footer {
       padding: 0 24px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
     }
-    .dirty {
-      color: #ffb347;
-      font-size: 12px;
-      display: none;
-    }
+    .dirty { color: #ffb347; font-size: 12px; display: none; }
     .dirty.show { display: inline; }
+    .admin-link { font-size: 12px; color: #8ecfff; }
   </style>
 </head>
 <body>
@@ -153,8 +106,8 @@
   </header>
 
   <div class="banner">
-    1. lépés kész: 6 slot szerkesztése. <strong>Indítás / Leállítás</strong> a következő lépésben jön.
-    Felhasználónév = willhaben bejelentkezési név (Hasznaltauto slotnál később is azonosítóként használjuk).
+    Slotonként külön port (3851–3856) és <strong>külön Chrome profil</strong> (külön bejelentkezés).
+    Felhasználónév = willhaben login (Hasznaltauto slotnál azonosító). Először: <strong>Bejelentkezés</strong>, majd <strong>Indítás</strong>.
   </div>
 
   <main id="slots"></main>
@@ -179,21 +132,32 @@
       document.getElementById('dirty').classList.add('show');
     }
 
+    function runtimeFor(id) {
+      return (data?.runtime || []).find((r) => r.id === id) || {};
+    }
+
     function renderSlots(slots) {
       const root = document.getElementById('slots');
       root.innerHTML = slots.map((slot, i) => {
+        const rt = runtimeFor(slot.id);
         const pillClass = slot.program === 'hasznaltauto' ? 'ha' : 'wh';
         const pillText = slot.program === 'hasznaltauto' ? 'Hasznaltauto' : 'Willhaben';
+        const running = !!rt.running;
         return `
-          <section class="slot" data-slot="${i}">
+          <section class="slot ${running ? 'running' : ''}" data-slot="${i}" id="card-${slot.id}">
             <header>
               <h2>${esc(slot.label || `Slot ${i + 1}`)}</h2>
               <span class="pill ${pillClass}" id="pill-${i}">${pillText}</span>
             </header>
 
+            <div class="status ${running ? 'run' : ''}" id="status-${slot.id}">
+              ${running ? `● Fut — :${rt.port}` : '○ Leállítva'}
+              ${rt.adminUrl ? ` — <a class="admin-link" href="${rt.adminUrl}" target="_blank">admin</a>` : ''}
+            </div>
+
             <div>
               <label>Program</label>
-              <select class="program" data-i="${i}" onchange="onProgramChange(${i})">
+              <select class="program" data-i="${i}" onchange="onProgramChange(${i})" ${running ? 'disabled' : ''}>
                 <option value="willhaben" ${slot.program === 'willhaben' ? 'selected' : ''}>Willhaben Pro</option>
                 <option value="hasznaltauto" ${slot.program === 'hasznaltauto' ? 'selected' : ''}>Hasznaltauto Pro</option>
               </select>
@@ -201,21 +165,23 @@
 
             <div>
               <label>Felhasználónév (willhaben login)</label>
-              <input class="username" data-i="${i}" value="${esc(slot.username)}" placeholder="pl. pelda.felhasznalo" oninput="markDirty()" />
+              <input class="username" data-i="${i}" value="${esc(slot.username)}" placeholder="pl. pelda.felhasznalo" oninput="markDirty()" ${running ? 'disabled' : ''} />
             </div>
 
             <div>
               <label>Napló</label>
-              <div class="log" id="log-${i}">— Még nem indult (következő lépés) —</div>
+              <div class="log" id="log-${slot.id}">Betöltés…</div>
             </div>
 
             <div class="btns">
-              <button disabled title="Következő lépés">▶ Indítás</button>
-              <button disabled title="Következő lépés">■ Leállítás</button>
+              <button class="primary" onclick="startSlot('${slot.id}')" ${running ? 'disabled' : ''}>▶ Indítás</button>
+              <button class="danger" onclick="stopSlot('${slot.id}')" ${running ? '' : 'disabled'}>■ Leállítás</button>
+              <button onclick="loginSlot('${slot.id}')" ${running ? 'disabled' : ''}>🔑 Bejelentkezés</button>
             </div>
           </section>
         `;
       }).join('');
+      slots.forEach((s) => refreshLogs(s.id));
     }
 
     function onProgramChange(i) {
@@ -236,12 +202,37 @@
       }));
     }
 
-    async function refresh() {
+    async function refresh({ keepForm = false } = {}) {
       const res = await fetch('/api/status');
       data = await res.json();
       document.getElementById('version').textContent = `v${data.version}`;
       document.getElementById('port').textContent = data.port;
-      if (!dirty) renderSlots(data.slots);
+      if (!dirty || !keepForm) renderSlots(data.slots);
+      else {
+        for (const slot of data.slots) {
+          const rt = runtimeFor(slot.id);
+          const st = document.getElementById(`status-${slot.id}`);
+          if (st) {
+            st.className = 'status ' + (rt.running ? 'run' : '');
+            st.innerHTML = rt.running
+              ? `● Fut — :${rt.port} — <a class="admin-link" href="${rt.adminUrl}" target="_blank">admin</a>`
+              : '○ Leállítva';
+          }
+          refreshLogs(slot.id);
+        }
+      }
+    }
+
+    async function refreshLogs(slotId) {
+      const el = document.getElementById(`log-${slotId}`);
+      if (!el) return;
+      try {
+        const res = await fetch(`/api/slots/${slotId}/logs`);
+        const body = await res.json();
+        el.innerHTML = (body.logs || []).map((l) => `<div>${esc(l)}</div>`).join('') || '—';
+      } catch {
+        el.textContent = '— napló hiba —';
+      }
     }
 
     async function saveAll() {
@@ -250,17 +241,37 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slots: collectSlots() }),
       });
-      if (!res.ok) {
-        alert('Mentés sikertelen');
-        return;
-      }
+      if (!res.ok) return alert('Mentés sikertelen');
       dirty = false;
       document.getElementById('dirty').classList.remove('show');
       await refresh();
-      alert('Mentve! A felhasználónevek később is módosíthatók.');
+      alert('Mentve!');
+    }
+
+    async function startSlot(id) {
+      if (dirty) {
+        if (!confirm('Nem mentett változások vannak. Mentsem előbb?')) return;
+        await saveAll();
+      }
+      const res = await fetch(`/api/slots/${id}/start`, { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok) return alert(body.error || 'Indítás sikertelen');
+      await refresh();
+    }
+
+    async function stopSlot(id) {
+      await fetch(`/api/slots/${id}/stop`, { method: 'POST' });
+      await refresh();
+    }
+
+    async function loginSlot(id) {
+      const res = await fetch(`/api/slots/${id}/login`, { method: 'POST' });
+      const body = await res.json();
+      alert(body.message || body.error || 'Bejelentkezés');
     }
 
     refresh();
+    setInterval(() => refresh({ keepForm: true }), 4000);
   </script>
 </body>
 </html>
