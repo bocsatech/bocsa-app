@@ -102,12 +102,30 @@ export function readInstanceConfig(slotId) {
   }
 }
 
+function readProgramDefaultTemplate(program) {
+  const root = programRoot(program);
+  const file = path.join(root, 'config.json');
+  try {
+    const cfg = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return String(cfg.messageTemplate || '').trim();
+  } catch {
+    return '';
+  }
+}
+
+export function getDefaultMessageTemplate(program) {
+  return readProgramDefaultTemplate(program);
+}
+
 export function enrichSlot(slot) {
   const inst = readInstanceConfig(slot.id);
-  if (inst?.watchUrls) {
-    return { ...slot, watchUrls: inst.watchUrls };
-  }
-  return { ...slot, watchUrls: slot.watchUrls || [] };
+  const fallbackTemplate = readProgramDefaultTemplate(slot.program);
+  return {
+    ...slot,
+    watchUrls: inst?.watchUrls?.length ? inst.watchUrls : slot.watchUrls || [],
+    messageTemplate:
+      slot.messageTemplate || inst?.messageTemplate || fallbackTemplate,
+  };
 }
 
 function writeInstanceConfig(slot, cfg) {
@@ -117,16 +135,30 @@ function writeInstanceConfig(slot, cfg) {
   fs.writeFileSync(dest, JSON.stringify(cfg, null, 2));
 }
 
-export function syncWatchUrlsToInstance(slot) {
-  const { dir, port, root } = ensureInstance(slot);
+function applySlotFieldsToConfig(slot, cfg) {
+  cfg.adminPort = slotPort(slot.id);
+  if (Array.isArray(slot.watchUrls)) {
+    cfg.watchUrls = slot.watchUrls.filter((u) => u.url);
+  }
+  const template = String(slot.messageTemplate || '').trim();
+  cfg.messageTemplate = template || readProgramDefaultTemplate(slot.program);
+  return cfg;
+}
+
+export function syncSlotToInstance(slot) {
+  const { dir, root } = ensureInstance(slot);
   const dest = instanceConfigPath(slot.id);
   const cfg = fs.existsSync(dest)
     ? JSON.parse(fs.readFileSync(dest, 'utf8'))
     : JSON.parse(fs.readFileSync(path.join(root, 'config.json'), 'utf8'));
-  cfg.adminPort = port;
-  cfg.watchUrls = (slot.watchUrls || []).filter((u) => u.url);
+  applySlotFieldsToConfig(slot, cfg);
   writeInstanceConfig(slot, cfg);
   return { ok: true, dir };
+}
+
+/** @deprecated use syncSlotToInstance */
+export function syncWatchUrlsToInstance(slot) {
+  return syncSlotToInstance(slot);
 }
 
 export function ensureInstance(slot) {
@@ -148,10 +180,7 @@ export function ensureInstance(slot) {
     cfg = JSON.parse(fs.readFileSync(template, 'utf8'));
   }
 
-  cfg.adminPort = port;
-  if (Array.isArray(slot.watchUrls)) {
-    cfg.watchUrls = slot.watchUrls.filter((u) => u.url);
-  }
+  applySlotFieldsToConfig(slot, cfg);
   writeInstanceConfig(slot, cfg);
   return { dir, port, root };
 }

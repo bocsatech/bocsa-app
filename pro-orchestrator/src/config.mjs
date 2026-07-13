@@ -11,6 +11,7 @@ const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => ({
   program: i < 3 ? 'willhaben' : 'hasznaltauto',
   username: '',
   watchUrls: [],
+  messageTemplate: '',
 }));
 
 function normalizeWatchUrls(urls) {
@@ -57,6 +58,7 @@ function normalizeSlots(slots) {
       program,
       username: String(incoming.username || '').trim(),
       watchUrls: normalizeWatchUrls(incoming.watchUrls),
+      messageTemplate: String(incoming.messageTemplate || '').trim(),
     };
   });
 }

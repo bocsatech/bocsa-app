@@ -10,11 +10,11 @@ import {
   startLogin,
   getSlotLogs,
   enrichSlot,
-  syncWatchUrlsToInstance,
+  syncSlotToInstance,
 } from './slots.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -59,7 +59,7 @@ const server = http.createServer(async (req, res) => {
       port: config.adminPort ?? 3850,
       slots,
       runtime: statuses,
-      features: { startStop: true, login: true, watchUrls: true },
+      features: { startStop: true, login: true, watchUrls: true, messageTemplate: true },
     });
   }
 
@@ -80,11 +80,12 @@ const server = http.createServer(async (req, res) => {
         url: String(u.url || '').trim(),
         enabled: u.enabled !== false,
       })),
+      messageTemplate: String(s.messageTemplate || '').trim(),
     }));
     saveConfig(config);
     for (const slot of config.slots) {
       try {
-        syncWatchUrlsToInstance(slot);
+        syncSlotToInstance(slot);
       } catch {
         /* instance sync optional before first start */
       }

@@ -112,6 +112,17 @@
     }
     .url-item input[type="text"] { font-size: 12px; padding: 8px 10px; }
     .url-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    textarea.msg-template {
+      width: 100%;
+      min-height: 88px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0b1020;
+      color: var(--text);
+      font: 12px/1.45 ui-monospace, monospace;
+      resize: vertical;
+    }
   </style>
 </head>
 <body>
@@ -125,7 +136,8 @@
 
   <div class="banner">
     Slotonként külön port (3851–3856) és <strong>külön Chrome profil</strong>.
-    <strong>Figyelt URL-ek</strong> itt szerkeszthetők — mentés után érvényes (futó slotnál: állítsd le, ments, indítsd újra).
+    <strong>Figyelt URL-ek</strong> és <strong>üzenet sablon</strong> itt szerkeszthetők.
+    URL változáshoz futó slotnál: állítsd le, ments, indítsd újra. Sablon mentése futó slotnál is érvényes (következő üzenetnél).
   </div>
 
   <main id="slots"></main>
@@ -217,6 +229,12 @@
             </div>
 
             <div>
+              <label>Üzenet sablon</label>
+              <textarea class="msg-template" data-i="${i}" oninput="markDirty()">${esc(slot.messageTemplate || '')}</textarea>
+              <div class="url-hint">Változók: {title} {price} {location} {url} {id}</div>
+            </div>
+
+            <div>
               <label>Napló</label>
               <div class="log" id="log-${slot.id}">Betöltés…</div>
             </div>
@@ -288,6 +306,7 @@
         program: document.querySelector(`.program[data-i="${i}"]`).value,
         username: document.querySelector(`.username[data-i="${i}"]`).value.trim(),
         watchUrls: collectUrlsForSlot(i),
+        messageTemplate: document.querySelector(`.msg-template[data-i="${i}"]`)?.value.trim() || '',
       }));
     }
 
@@ -334,7 +353,7 @@
       dirty = false;
       document.getElementById('dirty').classList.remove('show');
       await refresh();
-      alert('Mentve! URL változáshoz futó slotnál: leállítás → mentés → újraindítás.');
+      alert('Mentve! URL változáshoz futó slotnál: leállítás → mentés → újraindítás. Sablon azonnal érvényes.');
     }
 
     async function startSlot(id) {
