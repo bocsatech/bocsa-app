@@ -66,7 +66,8 @@
                   </select>
                 </div>
 
-                <div class="inline-2-labeled inline-3 full">
+                <label class="vehicle-row-empty" aria-hidden="true"></label>
+                <div class="inline-2-labeled vehicle-row">
                   <div class="labeled-field">
                     <label for="gyartmany">Gyártmány: <span class="req">*</span></label>
                     <select id="gyartmany" name="gyartmany" required>
@@ -87,13 +88,15 @@
                       <option value="SKODA">SKODA</option>
                     </select>
                   </div>
-                  <div class="labeled-field">
-                    <label for="modell">Modell: <span class="req">*</span></label>
-                    <input id="modell" name="modell" type="text" required />
-                  </div>
-                  <div class="labeled-field">
-                    <label for="tipus">Típus: <span class="req">*</span></label>
-                    <input id="tipus" name="tipus" type="text" class="auto-filled" required />
+                  <div class="inline-2 vehicle-row-right">
+                    <div class="labeled-field">
+                      <label for="modell">Modell: <span class="req">*</span></label>
+                      <input id="modell" name="modell" type="text" required />
+                    </div>
+                    <div class="labeled-field">
+                      <label for="tipus">Típus: <span class="req">*</span></label>
+                      <input id="tipus" name="tipus" type="text" class="auto-filled" required />
+                    </div>
                   </div>
                 </div>
 
