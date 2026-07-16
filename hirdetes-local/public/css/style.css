@@ -210,6 +210,26 @@ a:hover {
   min-height: 18px;
 }
 
+.autofelvitele-title {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.autofelvitele-title label {
+  font-weight: 600;
+}
+
+.autofelvitele-title input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 9px 11px;
+  font: inherit;
+}
+
 .help-link {
   font-size: 12px;
   font-weight: 400;
