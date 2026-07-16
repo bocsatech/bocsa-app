@@ -2,6 +2,7 @@ import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "./browser.
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs";
+import { waitForUserReady } from "./ready.mjs";
 
 const DEFAULT_OUTPUT = join(process.cwd(), "data", "jarmu-katalogus-A.json");
 
@@ -162,6 +163,87 @@ function loadCatalog(path, letter) {
   }
 }
 
+function listOpenPages(session) {
+  const pages = [];
+  if (session.browser) {
+    for (const context of session.browser.contexts()) {
+      for (const page of context.pages()) {
+        if (!page.isClosed()) pages.push(page);
+      }
+    }
+  } else if (session.context) {
+    for (const page of session.context.pages()) {
+      if (!page.isClosed()) pages.push(page);
+    }
+  }
+  return pages;
+}
+
+async function findPageByUrl(session, pattern) {
+  for (const page of listOpenPages(session)) {
+    if (pattern.test(page.url())) return page;
+  }
+  return null;
+}
+
+async function findFormPageWithBrandSelect(session) {
+  const pages = listOpenPages(session);
+  const ranked = [
+    ...pages.filter((page) => /hirdetesfeladas/i.test(page.url())),
+    ...pages.filter((page) => /hasznaltauto\.hu/i.test(page.url()) && !/hirdetesfeladas/i.test(page.url())),
+    ...pages.filter((page) => !/hasznaltauto\.hu/i.test(page.url())),
+  ];
+
+  for (const page of ranked) {
+    if (await pageHasBrandSelect(page)) return page;
+  }
+  return null;
+}
+
+async function pageHasBrandSelect(page) {
+  const brandSelect =
+    (await findSelectByLabel(page, ["Gyártmány", "Gyartmany"])) ??
+    page.locator('select[name*="gyart" i], select[id*="gyart" i]').first();
+  return (await brandSelect.count()) > 0;
+}
+
+async function resolveFormPage(session, onProgress) {
+  let page = await findFormPageWithBrandSelect(session);
+
+  if (page) {
+    await page.bringToFront();
+    onProgress(`Meglévő űrlap lap használata: ${page.url()}`);
+    return page;
+  }
+
+  const openTabs = listOpenPages(session).map((tab) => tab.url()).filter(Boolean);
+  if (openTabs.length) {
+    onProgress(`Nyitott Chrome lapok (${openTabs.length}):`);
+    for (const url of openTabs) onProgress(`  - ${url}`);
+  }
+
+  await waitForUserReady(
+    [
+      "Chrome-ban legyen nyitva a hirdetésfeladás űrlap (bejelentkezve).",
+      "Látnod kell a Gyártmány legördülő mezőt.",
+      "Ha másik lapon van, kattints rá, hogy aktív legyen.",
+      "A program NEM navigál el — a meglévő lapot használja.",
+    ].join("\n")
+  );
+
+  page = await findFormPageWithBrandSelect(session);
+
+  if (!page) {
+    throw new Error(
+      "Gyártmány legördülő nem található. Nyisd meg: https://www.hasznaltauto.hu/hirdetesfeladas/szemelyauto"
+    );
+  }
+
+  await page.bringToFront();
+  onProgress(`Űrlap kész: ${page.url()}`);
+  return page;
+}
+
 async function openPageSession(options, onProgress) {
   if (options.connect) {
     try {
@@ -169,46 +251,32 @@ async function openPageSession(options, onProgress) {
         autoStart: false,
         onProgress,
       });
-      const context = session.browser.contexts()[0] ?? (await session.browser.newContext());
-      const page = context.pages()[0] ?? (await context.newPage());
-      return { page, close: async () => session.browser.close() };
+      return {
+        session,
+        page: null,
+        close: async () => session.browser?.close().catch(() => {}),
+      };
     } catch {
       onProgress?.("Chrome CDP nem elérhető — automatikus indítás...");
       startChromeWithDebugging(FORM_URL);
       const ready = await waitForCdpReady(DEFAULT_CDP_URL, { onProgress });
       if (!ready) throw new Error("Chrome nem indult el. Futtasd: npm run chrome");
       const session = await connectToOpenBrowser(DEFAULT_CDP_URL, { autoStart: false, onProgress });
-      const context = session.browser.contexts()[0] ?? (await session.browser.newContext());
-      const page = context.pages()[0] ?? (await context.newPage());
-      return { page, close: async () => session.browser.close() };
+      return {
+        session,
+        page: null,
+        close: async () => session.browser?.close().catch(() => {}),
+      };
     }
   }
 
   const session = await launchBrowser({ headless: !options.headed });
   const page = session.context.pages()[0] ?? (await session.context.newPage());
   return {
+    session,
     page,
     close: async () => session.context.close(),
   };
-}
-
-async function waitForHumanIfBlocked(page, onProgress) {
-  const title = await page.title();
-  const body = await page.locator("body").innerText().catch(() => "");
-  if (!/cloudflare|attention required|just a moment|ellenőrzés/i.test(`${title}\n${body}`)) {
-    return;
-  }
-  onProgress?.("Cloudflare védelem — oldd meg a böngészőben, majd várunk...");
-  for (let i = 0; i < 120; i += 1) {
-    await sleep(1000);
-    const nextTitle = await page.title();
-    const nextBody = await page.locator("body").innerText().catch(() => "");
-    if (!/cloudflare|attention required|just a moment|ellenőrzés/i.test(`${nextTitle}\n${nextBody}`)) {
-      onProgress?.("Cloudflare átlépve.");
-      return;
-    }
-  }
-  throw new Error("Cloudflare továbbra is blokkol. Futtasd: npm run chrome");
 }
 
 function attachNetworkCollector(page, catalog) {
@@ -281,10 +349,13 @@ async function readFieldValues(page) {
   return Object.fromEntries(Object.entries(values).filter(([, value]) => String(value ?? "").trim()));
 }
 
-async function scrapeFormCatalog(page, options, catalog, onProgress) {
-  await page.goto(FORM_URL, { waitUntil: "domcontentloaded", timeout: 120000 });
-  await waitForHumanIfBlocked(page, onProgress);
-  await sleep(1500);
+async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
+  if (options.connect && !(await pageHasBrandSelect(page))) {
+    page = await resolveFormPage(session, onProgress);
+  } else if (!options.connect) {
+    await page.goto(FORM_URL, { waitUntil: "domcontentloaded", timeout: 120000 });
+    await sleep(1500);
+  }
 
   const brandSelect =
     (await findSelectByLabel(page, ["Gyártmány", "Gyartmany"])) ??
@@ -382,9 +453,11 @@ async function scrapeFormCatalog(page, options, catalog, onProgress) {
 }
 
 async function scrapeKatalogusCatalog(page, options, catalog, onProgress) {
-  await page.goto(KATALOGUS_URL, { waitUntil: "domcontentloaded", timeout: 120000 });
-  await waitForHumanIfBlocked(page, onProgress);
-  await sleep(1500);
+  if (!/katalogus\.hasznaltauto\.hu/i.test(page.url())) {
+    await waitForUserReady("Chrome-ban nyisd meg: https://katalogus.hasznaltauto.hu/");
+    await page.goto(KATALOGUS_URL, { waitUntil: "domcontentloaded", timeout: 120000 }).catch(() => {});
+    await sleep(1500);
+  }
 
   const brandSelect = page.locator("select").first();
   if (!(await brandSelect.count())) {
@@ -451,14 +524,23 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
   catalog.meta.source = options.source === "katalogus" ? "katalogus.hasznaltauto.hu" : "hasznaltauto.hu/hirdetesfeladas";
 
   const onProgress = (message) => console.log(`[mentesmarka] ${message}`);
-  const { page, close } = await openPageSession(options, onProgress);
+  const { session, page: initialPage, close } = await openPageSession(options, onProgress);
+  let page = initialPage;
+
+  if (options.connect && options.source === "form") {
+    page = await resolveFormPage(session, onProgress);
+  } else if (!page) {
+    const context = session.browser?.contexts()[0] ?? session.context;
+    page = context.pages()[0] ?? (await context.newPage());
+  }
+
   attachNetworkCollector(page, catalog);
 
   try {
     if (options.source === "katalogus") {
       await scrapeKatalogusCatalog(page, options, catalog, onProgress);
     } else {
-      await scrapeFormCatalog(page, options, catalog, onProgress);
+      await scrapeFormCatalog(session, page, options, catalog, onProgress);
     }
   } finally {
     await close().catch(() => {});

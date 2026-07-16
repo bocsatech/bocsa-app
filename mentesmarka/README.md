@@ -32,6 +32,11 @@ cd ~/bocsa-app/mentesmarka
 npm run mentesmarka
 ```
 
+A program **nem navigál el** — a Chrome-ban már nyitott hirdetésfeladás lapot használja.
+Ha kész az űrlap (Gyártmány mező látszik), nyomj **ENTER**-t a terminálban.
+
+Fontos: a Chrome-ot a `npm run chrome` paranccsal indítsd (9222-es port), ne sima Chrome ablakkal.
+
 ## Kimenet
 
 ```
