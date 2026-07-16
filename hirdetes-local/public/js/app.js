@@ -231,7 +231,7 @@ function showStep(step) {
   backBtn.classList.toggle("hidden", step <= 1);
   footerActions.classList.toggle("hidden", step === 4);
   if (step === 1) nextBtn.textContent = "Hirdetésfeladás folytatása";
-  if (step === 2) nextBtn.textContent = "Tovább a csomagválasztáshoz";
+  if (step === 2) nextBtn.textContent = "Tovább az extrákhoz";
   if (step === 3) nextBtn.textContent = "Hirdetés feladása kiemelés nélkül";
 }
 
