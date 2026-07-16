@@ -285,7 +285,7 @@ function wrapMdOutlinedFields() {
     block.classList.add("md-outlined");
   });
 
-  document.querySelectorAll(".md-outlined").forEach((wrap) => {
+  document.querySelectorAll(".md-outlined, .labeled-field").forEach((wrap) => {
     if (wrap.querySelector("#gyartasi_ev, #muszaki_ev")) {
       wrap.classList.add("md-has-calendar");
     }

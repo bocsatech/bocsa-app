@@ -1141,6 +1141,58 @@ body.theme-m7::after {
   flex-flow: unset;
 }
 
+.theme-m7 .field-row--dates {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.theme-m7 .labeled-field.md-outlined > .inline-2 {
+  width: 100%;
+  min-height: var(--m7-field-height);
+  border: 1px solid var(--m7-field-border);
+  border-radius: var(--m7-field-radius);
+  background: #ffffff;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  align-items: stretch;
+  padding: 8px 36px 8px 0;
+  position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.theme-m7 .labeled-field.md-outlined:focus-within > .inline-2 {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.theme-m7 .labeled-field.md-outlined > .inline-2 select {
+  height: 38px;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  padding: 0 12px;
+  background: transparent;
+  background-image: none;
+  width: 100% !important;
+}
+
+.theme-m7 .labeled-field.md-outlined > .inline-2 select:first-child {
+  border-right: 1px solid #eceff1 !important;
+}
+
+.theme-m7 .labeled-field.md-has-calendar > .inline-2::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  background: var(--m7-calendar-icon) center / contain no-repeat;
+  pointer-events: none;
+}
+
 .theme-m7 .field-row.full .labeled-field {
   width: 100%;
   min-width: 0;
