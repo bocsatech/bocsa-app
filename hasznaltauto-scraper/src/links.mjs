@@ -35,14 +35,42 @@ export function normalizeListingHref(href, baseUrl) {
 
 export function extractListingLinksFromHtml(html, baseUrl) {
   const found = new Set();
-  const hrefMatches = html.matchAll(/href="([^"]+)"/gi);
+  const patterns = [/href="([^"]+)"/gi, /href='([^']+)'/gi];
 
-  for (const match of hrefMatches) {
-    const normalized = normalizeListingHref(match[1], baseUrl);
-    if (normalized) found.add(normalized);
+  for (const pattern of patterns) {
+    for (const match of html.matchAll(pattern)) {
+      const normalized = normalizeListingHref(match[1], baseUrl);
+      if (normalized) found.add(normalized);
+    }
   }
 
   return [...found].sort((a, b) => a.localeCompare(b, "hu"));
+}
+
+export async function collectListingLinksFromPage(page, baseUrl) {
+  const hrefs = await page.evaluate(() => {
+    const found = new Set();
+
+    const add = (value) => {
+      if (value) found.add(value);
+    };
+
+    document.querySelectorAll("a[href]").forEach((anchor) => add(anchor.href));
+    document.querySelectorAll("[data-href], [data-url]").forEach((node) => {
+      add(node.getAttribute("data-href"));
+      add(node.getAttribute("data-url"));
+    });
+
+    return [...found];
+  });
+
+  const unique = new Set();
+  for (const href of hrefs) {
+    const normalized = normalizeListingHref(href, baseUrl);
+    if (normalized) unique.add(normalized);
+  }
+
+  return [...unique].sort((a, b) => a.localeCompare(b, "hu"));
 }
 
 export function slugFromListUrl(url) {

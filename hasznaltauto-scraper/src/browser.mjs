@@ -1,9 +1,10 @@
 import { chromium } from "playwright";
 import { mkdirSync } from "fs";
 import { join } from "path";
+import { collectListingLinksFromPage } from "./links.mjs";
 
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 export async function launchBrowser({ profileDir, headless = true } = {}) {
   const resolvedProfile = profileDir ?? join(process.cwd(), ".browser-profile");
@@ -29,7 +30,7 @@ export async function launchBrowser({ profileDir, headless = true } = {}) {
   }
 }
 
-function isBlockedPage(title, html) {
+export function isBlockedContent(title, html) {
   return (
     /cloudflare|pillanat|attention required|biztonsági ellenőrzés/i.test(title) ||
     /cf-challenge|cf-turnstile/i.test(html)
@@ -42,7 +43,7 @@ async function waitForPage(page, isReady, timeoutMs = 120000) {
   while (Date.now() - started < timeoutMs) {
     const title = await page.title();
     const html = await page.content();
-    if (!isBlockedPage(title, html) && isReady(html, title)) {
+    if (!isBlockedContent(title, html) && isReady(html, title)) {
       return html;
     }
     await page.waitForTimeout(1500);
@@ -53,6 +54,31 @@ async function waitForPage(page, isReady, timeoutMs = 120000) {
   );
 }
 
+export async function isPageBlocked(page) {
+  const title = await page.title();
+  const html = await page.content();
+  return isBlockedContent(title, html);
+}
+
+export async function dismissCookieBanner(page) {
+  const candidates = [
+    page.getByRole("button", { name: /elfogad|hozzájárul|összes.*elfogad|accept/i }),
+    page.locator("button, a").filter({ hasText: /elfogad|hozzájárul/i }),
+  ];
+
+  for (const locator of candidates) {
+    try {
+      const target = locator.first();
+      if ((await target.count()) === 0 || !(await target.isVisible())) continue;
+      await target.click({ timeout: 3000 });
+      await page.waitForTimeout(800);
+      return;
+    } catch {
+      /* next */
+    }
+  }
+}
+
 export async function waitForListingPage(page, timeoutMs = 120000) {
   return waitForPage(
     page,
@@ -61,15 +87,32 @@ export async function waitForListingPage(page, timeoutMs = 120000) {
   );
 }
 
-export async function waitForListPage(page, timeoutMs = 120000) {
-  return waitForPage(
-    page,
-    (html) =>
-      /szemelyauto\/[^"'\s]+-\d{5,}/i.test(html) ||
-      /találati lista|hirdetés találat/i.test(html) ||
-      /class="[^"]*talalat/i.test(html),
-    timeoutMs
-  );
+export async function collectListingLinksWithRetry(page, baseUrl, { timeoutMs = 90000 } = {}) {
+  const started = Date.now();
+  let best = [];
+
+  while (Date.now() - started < timeoutMs) {
+    if (await isPageBlocked(page)) {
+      throw new Error(
+        "Cloudflare védelem blokkolja az oldalt. Futtasd így: npm start -- \"LINK\" --headed"
+      );
+    }
+
+    await dismissCookieBanner(page);
+
+    for (let step = 0; step < 4; step += 1) {
+      await page.evaluate((offset) => window.scrollTo(0, offset), step * 900);
+      await page.waitForTimeout(1200);
+    }
+
+    const links = await collectListingLinksFromPage(page, baseUrl);
+    if (links.length > best.length) best = links;
+    if (links.length > 0) return links;
+
+    await page.waitForTimeout(2000);
+  }
+
+  return best;
 }
 
 export async function revealPhoneNumber(page) {

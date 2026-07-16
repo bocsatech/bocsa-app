@@ -1,11 +1,11 @@
 import {
+  collectListingLinksWithRetry,
   launchBrowser,
   revealPhoneNumber,
   waitForListingPage,
-  waitForListPage,
 } from "./browser.mjs";
-import { extractListingLinksFromHtml, isListPageUrl, slugFromListUrl } from "./links.mjs";
-import { formatListResultText, formatResultText, formatSingleResultText, parseListingHtml } from "./parse.mjs";
+import { isListPageUrl } from "./links.mjs";
+import { formatListResultText, formatSingleResultText, parseListingHtml } from "./parse.mjs";
 
 const HASZNALTAUTO_RE = /^https?:\/\/(www\.)?hasznaltauto\.hu\//i;
 
@@ -49,22 +49,23 @@ export async function scrapeListing(url, { headless = true, profileDir } = {}) {
   }
 }
 
-export async function scrapeListPage(url, { headless = true, profileDir, onProgress } = {}) {
+async function scrapeListPageOnce(url, { headless = true, profileDir, onProgress } = {}) {
   const listUrl = normalizeInputUrl(url);
-  if (!isListPageUrl(listUrl)) {
-    throw new Error("A megadott link nem lista oldal, hanem egy konkrét hirdetés.");
-  }
-
   const { context } = await launchBrowser({ profileDir, headless });
   const page = await preparePage(context);
 
   try {
+    onProgress?.(headless ? "Oldal betöltése (háttérben)..." : "Oldal betöltése (látható böngésző)...");
+
     await page.goto(listUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
-    const listHtml = await waitForListPage(page);
-    const listingLinks = extractListingLinksFromHtml(listHtml, listUrl);
+    await page.waitForTimeout(3000);
+
+    const listingLinks = await collectListingLinksWithRetry(page, listUrl);
 
     if (listingLinks.length === 0) {
-      throw new Error("Nem találtunk hirdetés linket ezen az oldalon. Próbáld --headed módban.");
+      throw new Error(
+        "Nem találtunk hirdetés linket. Futtasd így: npm start -- \"LINK\" --headed"
+      );
     }
 
     onProgress?.(`Talált hirdetések: ${listingLinks.length}`);
@@ -104,6 +105,22 @@ export async function scrapeListPage(url, { headless = true, profileDir, onProgr
     };
   } finally {
     await context.close();
+  }
+}
+
+export async function scrapeListPage(url, options = {}) {
+  const listUrl = normalizeInputUrl(url);
+  if (!isListPageUrl(listUrl)) {
+    throw new Error("A megadott link nem lista oldal, hanem egy konkrét hirdetés.");
+  }
+
+  try {
+    return await scrapeListPageOnce(listUrl, options);
+  } catch (error) {
+    if (options.headless === false) throw error;
+
+    options.onProgress?.("Nem sikerült háttérben. Újrapróbálás látható böngészővel...");
+    return scrapeListPageOnce(listUrl, { ...options, headless: false });
   }
 }
 

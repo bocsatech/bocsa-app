@@ -42,8 +42,10 @@ npx playwright install chromium
 ### Tesla lista (ajánlott)
 
 ```bash
-npm start -- "https://www.hasznaltauto.hu/szemelyauto/tesla"
+npm start -- "https://www.hasznaltauto.hu/szemelyauto/tesla" --headed
 ```
+
+Az első futtatáskor a `--headed` kapcsoló ajánlott (látható böngésző). Ha a háttérben nem talál linket, a program automatikusan újrapróbálja látható módban is.
 
 ### Link fájlba (`link.txt`)
 
