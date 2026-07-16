@@ -5,11 +5,12 @@ import {
   collectListingLinksFromPage,
   collectSubListLinksFromPage,
 } from "./links.mjs";
+import { sleep, startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs";
 
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-const DEFAULT_CDP_URL = "http://127.0.0.1:9222";
+export const DEFAULT_CDP_URL = "http://127.0.0.1:9222";
 const MAX_SUB_LISTS = 20;
 
 export async function launchBrowser({ profileDir, headless = true } = {}) {
@@ -36,18 +37,42 @@ export async function launchBrowser({ profileDir, headless = true } = {}) {
   }
 }
 
-export async function connectToOpenBrowser(cdpUrl = DEFAULT_CDP_URL) {
+async function tryConnectCdp(cdpUrl) {
+  const browser = await chromium.connectOverCDP(cdpUrl);
+  return { browser, browserName: "Megnyitott Chrome", external: true };
+}
+
+export async function connectToOpenBrowser(
+  cdpUrl = DEFAULT_CDP_URL,
+  { autoStart = true, startUrl, onProgress } = {}
+) {
   try {
-    const browser = await chromium.connectOverCDP(cdpUrl);
-    return { browser, browserName: "Megnyitott Chrome", external: true };
+    return await tryConnectCdp(cdpUrl);
+  } catch {
+    if (!autoStart) {
+      throw new Error(
+        [
+          "Nem sikerült csatlakozni a Chrome-hoz.",
+          "Futtasd: npm run chrome",
+          "Majd: npm start -- --connect",
+        ].join("\n")
+      );
+    }
+  }
+
+  onProgress?.("Chrome automatikus indítása (debug port 9222)...");
+  startChromeWithDebugging(startUrl);
+
+  const ready = await waitForCdpReady(cdpUrl, { onProgress });
+  if (!ready) {
+    throw new Error("Chrome nem indult el időben. Próbáld: npm run chrome");
+  }
+
+  try {
+    return await tryConnectCdp(cdpUrl);
   } catch (error) {
     throw new Error(
-      [
-        "Nem sikerült csatlakozni a megnyitott Chrome-hoz.",
-        "Indítsd Chrome-ot így (külön terminál):",
-        '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222',
-        "Majd nyisd meg a hasznaltauto.hu oldalt, és futtasd: npm start -- --connect",
-      ].join("\n")
+      `Chrome elindult, de a csatlakozás nem sikerült: ${error.message ?? error}`
     );
   }
 }
@@ -80,14 +105,34 @@ export async function findHasznaltautoPage(context) {
   return pages.at(-1) ?? null;
 }
 
-export async function resolveWorkingPage(context, { connect = false } = {}) {
+export async function waitForHasznaltautoPage(context, { onProgress, timeoutMs = 180000 } = {}) {
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const page = await findHasznaltautoPage(context);
+    if (page) {
+      const blocked = await isPageBlocked(page);
+      if (!blocked) return page;
+      onProgress?.("Cloudflare ellenőrzés: végezd el Chrome-ban, majd várunk...");
+    } else {
+      onProgress?.("Nyisd meg a hasznaltauto.hu Tesla oldalt a Chrome-ban...");
+    }
+    await sleep(3000);
+  }
+
+  throw new Error(
+    "Nem találtunk betöltött hasznaltauto.hu lapot. Nyisd meg Chrome-ban, várd meg a listát, majd futtasd újra."
+  );
+}
+
+export async function resolveWorkingPage(context, { connect = false, onProgress } = {}) {
+  if (connect) {
+    return waitForHasznaltautoPage(context, { onProgress });
+  }
+
   const page = await findHasznaltautoPage(context);
   if (!page) {
-    throw new Error(
-      connect
-        ? "Nincs megnyitott lap. Nyisd meg a hasznaltauto.hu Tesla oldalt Chrome-ban."
-        : "Nincs használható böngésző lap."
-    );
+    throw new Error("Nincs használható böngésző lap.");
   }
   return page;
 }

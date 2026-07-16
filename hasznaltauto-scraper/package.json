@@ -1,12 +1,13 @@
 {
   "name": "hasznaltauto-scraper",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "Hasznaltauto.hu hirdetés adatainak kinyerése link alapján",
   "type": "module",
   "scripts": {
     "start": "node src/index.mjs",
     "scrape": "node src/index.mjs",
+    "chrome": "node src/start-chrome.mjs",
     "test:parse": "node src/test-parse.mjs",
     "test:links": "node src/test-links.mjs"
   },

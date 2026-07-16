@@ -22,9 +22,9 @@ export function normalizeInputUrl(input) {
   return url;
 }
 
-async function openSession({ connect = false, headless = true, profileDir } = {}) {
+async function openSession({ connect = false, headless = true, profileDir, startUrl, onProgress } = {}) {
   if (connect) {
-    return connectToOpenBrowser();
+    return connectToOpenBrowser(DEFAULT_CDP_URL, { autoStart: true, startUrl, onProgress });
   }
   return launchBrowser({ profileDir, headless });
 }
@@ -86,9 +86,9 @@ async function scrapeListPageOnce(url, options = {}) {
     throw new Error("A megadott link nem lista oldal, hanem egy konkrét hirdetés.");
   }
 
-  const session = await openSession({ connect, headless, profileDir });
+  const session = await openSession({ connect, headless, profileDir, startUrl: listUrl, onProgress });
   const { context, external } = getContextFromSession(session);
-  const page = await resolveWorkingPage(context, { connect });
+  const page = await resolveWorkingPage(context, { connect, onProgress });
 
   try {
     if (connect) {

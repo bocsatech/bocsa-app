@@ -1,5 +1,6 @@
 node_modules/
 .browser-profile/
+.chrome-connect-profile/
 output/*.txt
 probe.html
 probe-*.html

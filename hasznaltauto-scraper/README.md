@@ -1,24 +1,8 @@
 # Hasznaltauto.hu scraper
 
-Teljesen önálló program. A **megnyitott hasznaltauto.hu oldalról** olvassa ki az autó adatokat, és **txt fájlba** menti.
+A **megnyitott Chrome lapot** használja — nem nyit új oldalakat.
 
-## Ajánlott használat: megnyitott Chrome lap
-
-A program **nem nyit új oldalt**, hanem a már megnyitott böngésző lapot használja.
-
-### 1. Chrome indítása (egyszer, külön terminál)
-
-```bash
-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-```
-
-### 2. Nyisd meg kézzel a Tesla oldalt Chrome-ban
-
-https://www.hasznaltauto.hu/szemelyauto/tesla
-
-Várd meg, amíg betölt a lista (Cloudflare ellenőrzés ha kell). Görgess le, ha kell.
-
-### 3. Futtatás (másik terminál)
+## Gyors használat (2 lépés)
 
 ```bash
 cd ~/bocsa-app/hasznaltauto-scraper
@@ -26,20 +10,26 @@ git pull origin main
 npm start -- --connect
 ```
 
-A program:
-- csatlakozik a megnyitott Chrome-hoz
-- **ugyanazt a lapot** használja (nem navigál el máshova)
-- a lista **kártyáiból** olvassa ki az adatokat (típus, ár, év, km)
-- **nem nyit külön hirdetés lapokat**
-- a Chrome **nyitva marad**
+A program **magától elindítja a Chrome-ot**, ha még nem fut debug módban.  
+Ha Cloudflare ablak jön, végezd el **a Chrome-ban**, majd várj — a program folytatja.
 
-Induláskor: `hasznaltauto-scraper v1.2.0`
+Induláskor: `hasznaltauto-scraper v1.2.1`
+
+## Kézi Chrome indítás (ha kell)
+
+```bash
+npm run chrome
+```
+
+Majd másik terminálban:
+
+```bash
+npm start -- --connect
+```
 
 ## Kimenet
 
-```
-hasznaltauto-scraper/output/lista-megnyitott-2026-07-16.txt
-```
+`hasznaltauto-scraper/output/lista-megnyitott-2026-07-16.txt`
 
 ## Mit ment ki?
 
