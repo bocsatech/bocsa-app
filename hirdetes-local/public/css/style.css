@@ -428,11 +428,15 @@ select.auto-filled {
   grid-column: 1 / -1;
 }
 
-label.vehicle-row-empty {
-  visibility: hidden;
-  padding: 0;
-  margin: 0;
-  min-height: 0;
+.vehicle-row.full {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: var(--field-block-width);
+  max-width: var(--field-block-width);
+  min-width: 0;
+  justify-self: start;
+  align-items: end;
 }
 
 input[type="text"],
@@ -483,36 +487,6 @@ textarea {
   min-width: 0;
 }
 
-.vehicle-row {
-  align-items: end;
-}
-
-.vehicle-row-right {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 10px;
-  min-width: 0;
-}
-
-.form-grid select,
-.vehicle-row .labeled-field select {
-  height: 40px;
-  box-sizing: border-box;
-  padding: 8px 11px;
-  line-height: 1.2;
-}
-
-.form-grid input[type="text"],
-.form-grid input[type="number"],
-.form-grid input[type="tel"],
-.form-grid input[type="email"],
-.vehicle-row .labeled-field input {
-  height: 40px;
-  box-sizing: border-box;
-  padding: 8px 11px;
-  line-height: 1.2;
-}
-
 .labeled-field {
   display: grid;
   gap: 8px;
@@ -524,8 +498,27 @@ textarea {
   color: #374151;
 }
 
-.vehicle-row .labeled-field input,
-.vehicle-row .labeled-field select {
+.form-grid select,
+.vehicle-row.full .labeled-field select {
+  height: 40px;
+  box-sizing: border-box;
+  padding: 8px 11px;
+  line-height: 1.2;
+}
+
+.form-grid input[type="text"],
+.form-grid input[type="number"],
+.form-grid input[type="tel"],
+.form-grid input[type="email"],
+.vehicle-row.full .labeled-field input {
+  height: 40px;
+  box-sizing: border-box;
+  padding: 8px 11px;
+  line-height: 1.2;
+}
+
+.vehicle-row.full .labeled-field input,
+.vehicle-row.full .labeled-field select {
   width: 100%;
 }
 
@@ -663,8 +656,7 @@ textarea {
     max-width: 100%;
   }
 
-  .vehicle-row,
-  .vehicle-row-right {
+  .vehicle-row.full {
     grid-template-columns: 1fr;
   }
 
@@ -676,9 +668,7 @@ textarea {
     width: 100%;
   }
 
-  label.vehicle-row-empty {
-    display: none;
-  }
+  .steps {
     flex-direction: column;
   }
 
