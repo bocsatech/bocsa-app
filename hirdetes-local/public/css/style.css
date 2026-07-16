@@ -142,37 +142,40 @@ a:hover {
   line-height: 1.5;
 }
 
-.popular-brands {
+.autofelvitele {
   margin-bottom: 18px;
-}
-
-.popular-label {
-  display: block;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.brand-chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 8px;
 }
 
-.brand-chip {
-  border: 1px solid var(--border);
-  background: white;
-  border-radius: 4px;
-  padding: 6px 10px;
-  cursor: pointer;
-  text-transform: capitalize;
-  font-size: 13px;
+.autofelvitele-label {
+  font-weight: 700;
+  font-size: 15px;
 }
 
-.brand-chip:hover,
-.brand-chip.active {
+.autofelvitele select {
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 9px 11px;
+  font: inherit;
+  background: white;
+}
+
+.autofelvitele select:focus {
+  outline: 2px solid rgba(245, 124, 0, 0.25);
   border-color: var(--orange);
-  background: var(--orange-light);
-  color: var(--orange-dark);
+}
+
+.autofelvitele select optgroup {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.autofelvitele select option {
+  font-weight: 400;
+  padding: 4px 0;
 }
 
 .help-link {

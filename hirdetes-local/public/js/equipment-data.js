@@ -1,16 +1,31 @@
-export const POPULAR_BRANDS = [
-  "volkswagen",
-  "opel",
-  "suzuki",
-  "audi",
-  "toyota",
-  "kia",
-  "hyundai",
-  "renault",
-  "peugeot",
-  "ford",
-  "bmw",
-  "fiat",
+export const UZEMANYAG_OPTIONS = [
+  { label: "Benzin", value: "Benzin" },
+  { label: "Dízel", value: "Dízel" },
+  {
+    label: "Hibrid",
+    children: [
+      { label: "Benzin/elektromos", value: "Benzin/elektromos" },
+      { label: "Dízel/elektromos", value: "Dízel/elektromos" },
+    ],
+  },
+  {
+    label: "Benzin/Gáz",
+    children: [
+      { label: "LPG/benzin", value: "LPG/benzin" },
+      { label: "CNG/benzin", value: "CNG/benzin" },
+    ],
+  },
+  {
+    label: "Dízel/Gáz",
+    children: [
+      { label: "LPG/dízel", value: "LPG/dízel" },
+      { label: "CNG/dízel", value: "CNG/dízel" },
+    ],
+  },
+  { label: "Elektromos", value: "Elektromos" },
+  { label: "Etanol", value: "Etanol" },
+  { label: "Biodízel", value: "Biodízel" },
+  { label: "Hidrogén/elektromos", value: "Hidrogén/elektromos" },
 ];
 
 export const EQUIPMENT_SECTIONS = {

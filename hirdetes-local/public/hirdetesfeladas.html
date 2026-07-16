@@ -47,9 +47,11 @@
           <div class="card">
             <div class="card-head">Alapadatok</div>
             <div class="card-body">
-              <div class="popular-brands">
-                <span class="popular-label">Népszerű márkák:</span>
-                <div id="brand-chips" class="brand-chips"></div>
+              <div class="autofelvitele">
+                <label for="uzemanyag" class="autofelvitele-label">Autofelvitele:</label>
+                <select id="uzemanyag" name="uzemanyag" required>
+                  <option value="">Válasszon</option>
+                </select>
               </div>
 
               <div class="form-grid">
@@ -174,16 +176,6 @@
                   <span>kW</span>
                   <span id="le-display" class="hint-inline">(= 0 LE)</span>
                 </div>
-
-                <label for="uzemanyag">Üzemanyag:</label>
-                <select id="uzemanyag" name="uzemanyag" class="auto-filled">
-                  <option value="">—</option>
-                  <option>Benzin</option>
-                  <option>Dízel</option>
-                  <option>Hibrid (Benzin)</option>
-                  <option>Elektromos</option>
-                  <option>LPG</option>
-                </select>
 
                 <label for="kornyezetvedelmi">Környezetvédelmi oszt.: <a href="#" class="help-link">Segítség</a></label>
                 <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" />

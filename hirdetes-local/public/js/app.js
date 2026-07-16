@@ -1,4 +1,4 @@
-import { POPULAR_BRANDS, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
+import { UZEMANYAG_OPTIONS, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
 
 const STORAGE_KEY = "hirdetes-local-draft";
 const form = document.getElementById("ad-form");
@@ -22,14 +22,14 @@ const teljesitmenyKw = document.getElementById("teljesitmeny_kw");
 const leDisplay = document.getElementById("le-display");
 const klima = document.getElementById("klima");
 const equipmentRoot = document.getElementById("equipment-sections");
-const brandChips = document.getElementById("brand-chips");
+const uzemanyag = document.getElementById("uzemanyag");
 
 let currentStep = 1;
 
 const AUTO_FILL_PRESETS = {
   TESLA: { tipus: "Long Range AWD", hengerurtartalom: "", uzemanyag: "Elektromos", sebessegvalto: "Automata", hajtas: "Összkerék", teljesitmeny_kw: "258" },
   VOLKSWAGEN: { tipus: "1.6 TDI", hengerurtartalom: "1598", uzemanyag: "Dízel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
-  TOYOTA: { tipus: "1.8 Hybrid", hengerurtartalom: "1798", uzemanyag: "Hibrid (Benzin)", sebessegvalto: "Fokozatmentes automata", hajtas: "Első kerék", teljesitmeny_kw: "72" },
+  TOYOTA: { tipus: "1.8 Hybrid", hengerurtartalom: "1798", uzemanyag: "Benzin/elektromos", sebessegvalto: "Fokozatmentes automata", hajtas: "Első kerék", teljesitmeny_kw: "72" },
 };
 
 function fillYearSelect(select) {
@@ -47,26 +47,25 @@ function fillYearSelect(select) {
   }
 }
 
-function renderBrandChips() {
-  brandChips.innerHTML = "";
-  for (const brand of POPULAR_BRANDS) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "brand-chip";
-    btn.textContent = brand;
-    btn.addEventListener("click", () => {
-      const value = brand.toUpperCase();
-      gyartmany.value = [...gyartmany.options].some((o) => o.value === value)
-        ? value
-        : gyartmany.value;
-      if ([...gyartmany.options].some((o) => o.value === value)) gyartmany.value = value;
-      document.querySelectorAll(".brand-chip").forEach((chip) => chip.classList.remove("active"));
-      btn.classList.add("active");
-      applyAutoFill();
-      updateTitle();
-      saveDraft();
-    });
-    brandChips.appendChild(btn);
+function renderUzemanyagOptions() {
+  if (!uzemanyag) return;
+  for (const entry of UZEMANYAG_OPTIONS) {
+    if (entry.children) {
+      const group = document.createElement("optgroup");
+      group.label = entry.label;
+      for (const child of entry.children) {
+        const option = document.createElement("option");
+        option.value = child.value;
+        option.textContent = child.label;
+        group.appendChild(option);
+      }
+      uzemanyag.appendChild(group);
+      continue;
+    }
+    const option = document.createElement("option");
+    option.value = entry.value;
+    option.textContent = entry.label;
+    uzemanyag.appendChild(option);
   }
 }
 
@@ -112,7 +111,7 @@ function applyAutoFill() {
     const field = form.elements.namedItem(name);
     if (!field || field.dataset.userEdited === "1") continue;
     field.value = value;
-    field.classList.add("auto-filled");
+    if (name !== "uzemanyag") field.classList.add("auto-filled");
   }
   updateLeDisplay();
 }
@@ -192,6 +191,7 @@ function restoreDraft() {
 function validateStep(step) {
   if (step !== 1) return true;
   const required = [
+    "uzemanyag",
     "gyartasi_ev",
     "gyartmany",
     "modell",
@@ -260,7 +260,7 @@ function renderPhotoPreview(files) {
   });
 }
 
-form.querySelectorAll(".auto-filled, #tipus, #hengerurtartalom, #uzemanyag, #sebessegvalto, #hajtas, #teljesitmeny_kw").forEach((field) => {
+form.querySelectorAll(".auto-filled, #tipus, #hengerurtartalom, #sebessegvalto, #hajtas, #teljesitmeny_kw").forEach((field) => {
   field?.addEventListener("input", () => {
     field.dataset.userEdited = "1";
     field.classList.remove("auto-filled");
@@ -330,7 +330,7 @@ photoInput.addEventListener("change", () => {
 
 fillYearSelect(gyartasiEv);
 fillYearSelect(muszakiEv);
-renderBrandChips();
+renderUzemanyagOptions();
 renderKlimaOptions();
 renderEquipment();
 restoreDraft();
