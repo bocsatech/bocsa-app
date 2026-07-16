@@ -1,16 +1,32 @@
 :root {
-  --orange: #f57c00;
-  --orange-dark: #e65100;
-  --orange-light: #fff3e0;
+  /* M3 — brand orange primary */
+  --orange: #e65100;
+  --orange-dark: #bf360c;
+  --orange-light: #ffcc80;
+  --primary: #e65100;
+  --primary-container: #ffdcc2;
+  --on-primary: #ffffff;
+  --on-primary-container: #2b1700;
   --blue: #1565c0;
-  --blue-link: #0d47a1;
-  --border: #d5dce5;
-  --bg: #eef1f5;
-  --text: #1f2937;
-  --muted: #6b7280;
+  --blue-link: #1a5fb4;
+  --border: #cac4d0;
+  --outline-variant: #e7e0ec;
+  --bg: #f3edf7;
+  --surface: #fffbfe;
+  --surface-container: #ffffff;
+  --surface-container-low: #f7f2fa;
+  --text: #1d1b20;
+  --muted: #49454f;
   --white: #ffffff;
-  --success: #2e7d32;
-  --step-inactive: #b0bec5;
+  --success: #386a20;
+  --success-container: #c8ef9a;
+  --step-inactive: #79747e;
+  --elevation-1: 0 1px 2px rgba(29, 27, 32, 0.08), 0 1px 3px rgba(29, 27, 32, 0.12);
+  --elevation-2: 0 2px 6px rgba(29, 27, 32, 0.1), 0 1px 2px rgba(29, 27, 32, 0.08);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 28px;
 }
 
 * {
@@ -19,10 +35,12 @@
 
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 14px;
+  line-height: 1.5;
   color: var(--text);
   background: var(--bg);
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -35,15 +53,15 @@ a:hover {
 }
 
 .site-header {
-  background: var(--white);
-  border-bottom: 3px solid var(--orange);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  background: var(--surface-container);
+  border-bottom: none;
+  box-shadow: var(--elevation-1);
 }
 
 .header-top {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 12px 20px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -53,104 +71,115 @@ a:hover {
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 22px;
-  color: var(--orange-dark);
+  gap: 12px;
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: 0.01em;
+  color: var(--primary);
 }
 
 .logo-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--primary);
   display: grid;
   place-items: center;
-  color: white;
-  font-size: 18px;
-  font-weight: 800;
+  color: var(--on-primary);
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: var(--elevation-1);
 }
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .btn {
   border: 0;
-  border-radius: 4px;
-  padding: 10px 18px;
+  border-radius: var(--radius-xl);
+  padding: 10px 24px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .btn-primary {
-  background: var(--orange);
-  color: white;
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--elevation-1);
 }
 
 .btn-primary:hover {
   background: var(--orange-dark);
+  box-shadow: var(--elevation-2);
 }
 
 .btn-secondary {
-  background: #eceff1;
+  background: var(--surface-container-low);
   color: var(--text);
 }
 
 .btn-outline {
-  background: white;
+  background: transparent;
   border: 1px solid var(--border);
-  color: var(--blue-link);
+  color: var(--primary);
 }
 
 .page-wide {
   max-width: 980px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px 20px;
 }
 
 .category-bar {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 16px;
-  margin-bottom: 10px;
-  font-size: 15px;
+  background: var(--surface-container);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  box-shadow: var(--elevation-1);
 }
 
 .required-note {
-  margin: 0 0 12px;
-  color: #c62828;
-  font-weight: 600;
+  margin: 0 0 14px;
+  color: #b3261e;
+  font-weight: 500;
+  font-size: 13px;
 }
 
 .req {
-  color: #c62828;
+  color: #b3261e;
 }
 
 .info-box {
-  border-radius: 6px;
-  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
   margin-bottom: 16px;
-  border: 1px solid #c8e6c9;
-  background: #e8f5e9;
+  border: none;
+  background: var(--success-container);
   color: #1b5e20;
   line-height: 1.5;
 }
 
 .autofelvitele {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .autofelvitele-label {
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: var(--text);
 }
 
 .fuel-buttons {
@@ -161,40 +190,41 @@ a:hover {
 
 .fuel-btn {
   border: 1px solid var(--border);
-  background: white;
-  border-radius: 4px;
+  background: var(--surface-container);
+  border-radius: var(--radius-sm);
   padding: 10px 16px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   color: var(--text);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .fuel-btn:hover {
-  border-color: var(--orange);
-  background: var(--orange-light);
+  border-color: var(--primary);
+  background: var(--primary-container);
 }
 
 .fuel-btn.active {
-  border-color: var(--orange);
-  background: var(--orange);
-  color: white;
+  border-color: transparent;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
 }
 
 .fuel-btn.parent-open {
-  border-color: var(--orange-dark);
-  background: var(--orange-light);
-  color: var(--orange-dark);
+  border-color: var(--primary);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
 }
 
 .fuel-subpanel {
   display: none;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 12px;
-  border: 1px dashed var(--border);
-  border-radius: 6px;
-  background: #fafbfc;
+  padding: 12px 14px;
+  border: 1px dashed var(--outline-variant);
+  border-radius: var(--radius-md);
+  background: var(--surface-container-low);
 }
 
 .fuel-subpanel.open {
@@ -202,7 +232,7 @@ a:hover {
 }
 
 .fuel-subpanel .fuel-btn {
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .fuel-selected {
@@ -214,22 +244,26 @@ a:hover {
   display: grid;
   gap: 8px;
   margin-top: 4px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  border-top: 1px solid var(--outline-variant);
 }
 
 .autofelvitele-title label {
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 .autofelvitele-title input {
   width: auto;
   max-width: 100%;
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
   font: inherit;
   field-sizing: content;
+  background: var(--surface-container);
 }
 
 .help-link {
@@ -255,6 +289,7 @@ a:hover {
 .suffix-field span {
   color: var(--muted);
   white-space: nowrap;
+  font-size: 13px;
 }
 
 .hint-inline {
@@ -269,7 +304,7 @@ a:hover {
 input.auto-filled,
 select.auto-filled {
   background: #e8f5e9;
-  border-color: #a5d6a7;
+  border-color: #81c784;
 }
 
 .legal-text {
@@ -303,23 +338,24 @@ select.auto-filled {
 
 .equipment-block {
   margin-top: 16px;
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
+  border-top: 1px solid var(--outline-variant);
+  padding-top: 14px;
 }
 
 .equipment-block h3 {
   margin: 0 0 10px;
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .equipment-block .equipment-grid {
   margin-bottom: 4px;
 }
 
-
 .page-title {
   margin: 0 0 6px;
-  font-size: 26px;
+  font-size: 24px;
+  font-weight: 400;
 }
 
 .page-sub {
@@ -327,30 +363,35 @@ select.auto-filled {
   color: var(--muted);
 }
 
+/* Menü — elrendezés változatlan, csak M3 kinézet */
 .steps {
   display: flex;
   gap: 0;
   margin-bottom: 24px;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
   overflow: hidden;
+  box-shadow: var(--elevation-1);
 }
 
 .step {
   flex: 1;
   padding: 14px 12px;
   text-align: center;
-  border-right: 1px solid var(--border);
-  background: #fafbfc;
-  color: var(--muted);
-  font-weight: 600;
+  border-right: 1px solid var(--outline-variant);
+  background: var(--surface-container-low);
+  color: var(--step-inactive);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.02em;
   cursor: pointer;
   user-select: none;
+  transition: background 0.15s, color 0.15s;
 }
 
 .step:hover:not(.active) {
-  background: #f0f4f8;
+  background: #ece6f0;
   color: var(--text);
 }
 
@@ -359,9 +400,9 @@ select.auto-filled {
 }
 
 .step.active {
-  background: var(--orange-light);
-  color: var(--orange-dark);
-  box-shadow: inset 0 -3px 0 var(--orange);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  box-shadow: inset 0 -3px 0 var(--primary);
 }
 
 .step.done {
@@ -369,34 +410,38 @@ select.auto-filled {
 }
 
 .card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  background: var(--surface-container);
+  border: none;
+  border-radius: var(--radius-lg);
   margin-bottom: 16px;
+  box-shadow: var(--elevation-1);
 }
 
 .card-head {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-  background: #f8fafc;
-  font-size: 16px;
-  font-weight: 700;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .card-body {
-  padding: 18px;
+  padding: 20px;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
-  gap: 12px 16px;
+  gap: 14px 20px;
   align-items: center;
 }
 
 .form-grid label {
-  font-weight: 600;
-  color: #374151;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
 }
 
 .form-grid > :not(label):not(.full):not(textarea) {
@@ -443,9 +488,17 @@ select.auto-filled {
 
 .labeled-field {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   width: fit-content;
   max-width: 100%;
+  min-width: 0;
+}
+
+.labeled-field label {
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 input[type="text"],
@@ -456,21 +509,26 @@ select,
 textarea {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
   font: inherit;
+  background: var(--surface-container);
+  color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid rgba(245, 124, 0, 0.25);
-  border-color: var(--orange);
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 textarea {
   min-height: 120px;
   resize: vertical;
+  border-radius: var(--radius-md);
 }
 
 .hint {
@@ -496,22 +554,11 @@ textarea {
   min-width: 0;
 }
 
-.labeled-field {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.labeled-field label {
-  font-weight: 600;
-  color: #374151;
-}
-
 .form-grid select,
 .field-row.full .labeled-field select {
-  height: 40px;
+  height: 48px;
   box-sizing: border-box;
-  padding: 8px 11px;
+  padding: 12px 16px;
   line-height: 1.2;
 }
 
@@ -520,9 +567,9 @@ textarea {
 .form-grid input[type="tel"],
 .form-grid input[type="email"],
 .field-row.full .labeled-field input {
-  height: 40px;
+  height: 48px;
   box-sizing: border-box;
-  padding: 8px 11px;
+  padding: 12px 16px;
   line-height: 1.2;
 }
 
@@ -544,37 +591,46 @@ textarea {
 .check {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-weight: 400;
+}
+
+.check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
 }
 
 .upload-zone {
   border: 2px dashed var(--border);
-  border-radius: 8px;
-  padding: 40px 20px;
+  border-radius: var(--radius-lg);
+  padding: 48px 24px;
   text-align: center;
-  background: #fafbfc;
+  background: var(--surface-container-low);
   color: var(--muted);
+  transition: border-color 0.15s, background 0.15s;
 }
 
 .upload-zone strong {
   display: block;
   color: var(--text);
   margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .photo-slot {
   aspect-ratio: 4/3;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #f3f4f6;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--surface-container-low);
+  box-shadow: inset 0 0 0 1px var(--outline-variant);
   display: grid;
   place-items: center;
   color: var(--muted);
@@ -588,26 +644,30 @@ textarea {
 }
 
 .package {
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
+  border: 2px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  padding: 18px;
   cursor: pointer;
+  background: var(--surface-container);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
 .package.selected {
-  border-color: var(--orange);
-  background: var(--orange-light);
+  border-color: var(--primary);
+  background: var(--primary-container);
+  box-shadow: var(--elevation-1);
 }
 
 .package h3 {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .package .price {
   font-size: 22px;
-  font-weight: 800;
-  color: var(--orange-dark);
+  font-weight: 700;
+  color: var(--primary);
   margin-bottom: 10px;
 }
 
@@ -633,14 +693,17 @@ textarea {
 .success-box h2 {
   color: var(--success);
   font-size: 28px;
+  font-weight: 400;
 }
 
 .local-banner {
-  background: #1e293b;
-  color: #e2e8f0;
+  background: #1d1b20;
+  color: #e6e0e9;
   text-align: center;
   padding: 6px;
   font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
 }
 
 .hidden {
@@ -658,6 +721,7 @@ textarea {
   .field-row.full {
     width: 100%;
     max-width: 100%;
+    flex-wrap: wrap;
   }
 
   .inline-2-labeled {
@@ -674,7 +738,7 @@ textarea {
 
   .step {
     border-right: 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--outline-variant);
   }
 
   .footer-actions {
