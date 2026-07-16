@@ -223,24 +223,6 @@ function updateTitle() {
     : "";
 }
 
-function fitSelectWidth(select) {
-  if (!select) return;
-  const style = getComputedStyle(select);
-  const measure = document.createElement("span");
-  measure.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;";
-  measure.style.font = style.font;
-  document.body.appendChild(measure);
-
-  let width = 0;
-  for (const option of select.options) {
-    measure.textContent = option.text;
-    width = Math.max(width, measure.offsetWidth);
-  }
-
-  measure.remove();
-  select.style.width = `${Math.ceil(width) + 34}px`;
-}
-
 function showSuccess() {
   adPanel?.classList.add("hidden");
   successPanel?.classList.remove("hidden");
@@ -440,7 +422,6 @@ hirdetesCime?.addEventListener("input", () => {
 });
 
 gyartmany?.addEventListener("change", applyAutoFill);
-gyartmany?.addEventListener("change", () => fitSelectWidth(gyartmany));
 teljesitmenyKw?.addEventListener("input", updateLeDisplay);
 
 backBtn.addEventListener("click", () => {
@@ -477,7 +458,6 @@ newAdBtn.addEventListener("click", () => {
   renderPhotoPreview([]);
   resetSuccess();
   updateTitle();
-  fitSelectWidth(gyartmany);
   showStep(1);
 });
 
@@ -520,5 +500,4 @@ renderKlimaOptions();
 renderEquipment();
 restoreDraft();
 renderPhotoPreview([]);
-fitSelectWidth(gyartmany);
 showStep(1);
