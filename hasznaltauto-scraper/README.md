@@ -13,7 +13,9 @@ npm start -- --connect
 A program **magától elindítja a Chrome-ot**, ha még nem fut debug módban.  
 Ha Cloudflare ablak jön, végezd el **a Chrome-ban**, majd várj — a program folytatja.
 
-Induláskor: `hasznaltauto-scraper v1.2.1`
+Induláskor: `hasznaltauto-scraper v1.2.2`
+
+Cloudflare esetén a program **20 másodpercet vár** minden körben, hogy Chrome-ban igazold, hogy ember vagy — nem kell újraindítani.
 
 ## Kézi Chrome indítás (ha kell)
 

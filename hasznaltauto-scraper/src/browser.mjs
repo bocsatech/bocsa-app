@@ -12,6 +12,8 @@ const USER_AGENT =
 
 export const DEFAULT_CDP_URL = "http://127.0.0.1:9222";
 const MAX_SUB_LISTS = 20;
+const CLOUDFLARE_WAIT_SECONDS = 20;
+const CLOUDFLARE_MAX_ROUNDS = 15;
 
 export async function launchBrowser({ profileDir, headless = true } = {}) {
   const resolvedProfile = profileDir ?? join(process.cwd(), ".browser-profile");
@@ -113,7 +115,8 @@ export async function waitForHasznaltautoPage(context, { onProgress, timeoutMs =
     if (page) {
       const blocked = await isPageBlocked(page);
       if (!blocked) return page;
-      onProgress?.("Cloudflare ellenőrzés: végezd el Chrome-ban, majd várunk...");
+      await waitForHumanVerification(page, { onProgress, waitSeconds: CLOUDFLARE_WAIT_SECONDS, maxRounds: 1 });
+      if (!(await isPageBlocked(page))) return page;
     } else {
       onProgress?.("Nyisd meg a hasznaltauto.hu Tesla oldalt a Chrome-ban...");
     }
@@ -148,6 +151,34 @@ export async function isPageBlocked(page) {
   const title = await page.title();
   const html = await page.content();
   return isBlockedContent(title, html);
+}
+
+export async function waitForHumanVerification(
+  page,
+  { onProgress, waitSeconds = CLOUDFLARE_WAIT_SECONDS, maxRounds = CLOUDFLARE_MAX_ROUNDS } = {}
+) {
+  for (let round = 1; round <= maxRounds; round += 1) {
+    if (!(await isPageBlocked(page))) return;
+
+    if (round === 1) {
+      onProgress?.(
+        `Cloudflare: igazold Chrome-ban, hogy ember vagy. Várakozás ${waitSeconds} másodperc...`
+      );
+    } else {
+      onProgress?.(`Még Cloudflare van. Újabb ${waitSeconds} mp várakozás (${round}. kör)...`);
+    }
+
+    await sleep(waitSeconds * 1000);
+
+    if (!(await isPageBlocked(page))) {
+      onProgress?.("Cloudflare ellenőrzés kész, folytatás...");
+      return;
+    }
+  }
+
+  throw new Error(
+    "Cloudflare ellenőrzés nem készült el időben. Végezd el Chrome-ban, majd futtasd újra: npm start -- --connect"
+  );
 }
 
 export async function dismissCookieBanner(page) {
@@ -191,13 +222,14 @@ export async function waitForListingPage(page, timeoutMs = 120000) {
   throw new Error("A hirdetés oldal nem töltődött be időben.");
 }
 
-export async function collectListingLinksWithRetry(page, baseUrl, { timeoutMs = 60000 } = {}) {
+export async function collectListingLinksWithRetry(page, baseUrl, { timeoutMs = 60000, onProgress } = {}) {
   const started = Date.now();
   let best = [];
 
   while (Date.now() - started < timeoutMs) {
     if (await isPageBlocked(page)) {
-      throw new Error("Cloudflare blokkolja az oldalt. Használd a --connect módot a megnyitott Chrome-mal.");
+      await waitForHumanVerification(page, { onProgress });
+      if (await isPageBlocked(page)) continue;
     }
 
     await dismissCookieBanner(page);
@@ -230,13 +262,13 @@ export async function collectListingLinksFromCurrentPage(page, listUrl, { onProg
   }
 
   if (await isPageBlocked(page)) {
-    throw new Error("Cloudflare blokkolja az oldalt. Végezd el az ellenőrzést a megnyitott Chrome-ban, majd futtasd újra.");
+    await waitForHumanVerification(page, { onProgress });
   }
 
   await page.waitForTimeout(2000);
 
   const baseUrl = listUrl || currentUrl;
-  let listings = await collectListingLinksWithRetry(page, baseUrl, { timeoutMs: 60000 });
+  let listings = await collectListingLinksWithRetry(page, baseUrl, { timeoutMs: 60000, onProgress });
 
   if (listings.length > 0) {
     onProgress?.(`Hirdetések a megnyitott oldalon: ${listings.length}`);
@@ -264,7 +296,7 @@ export async function collectListingLinksFromCurrentPage(page, listUrl, { onProg
     onProgress?.(`[${i + 1}/${subLists.length}] ${subUrl}`);
     await page.goto(subUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
     await page.waitForTimeout(3000);
-    const found = await collectListingLinksWithRetry(page, subUrl, { timeoutMs: 45000 });
+    const found = await collectListingLinksWithRetry(page, subUrl, { timeoutMs: 45000, onProgress });
     found.forEach((link) => all.add(link));
     onProgress?.(`  → ${found.length} hirdetés`);
   }
