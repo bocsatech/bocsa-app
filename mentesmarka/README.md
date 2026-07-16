@@ -40,10 +40,18 @@ A program **nem navigál el** — a meglévő lapot használja.
 ## Kimenet
 
 ```
-mentesmarka/data/jarmu-katalogus-A.json
+mentesmarka/data/jarmu-katalogus.json
 ```
 
-Csak **A** betűvel kezdődő márkák (ABARTH, AUDI, ALFA ROMEO, …).
+Alapértelmezett márkák (csak ezek mentődnek):
+
+Audi, BMW, Mercedes, Ford, KIA, Toyota, Mazda, OPEL, Alfa, Suzuki, Skoda, Volkswagen
+
+Más lista:
+
+```bash
+node src/mentesmarka.mjs --connect --brands "Audi,BMW,Ford"
+```
 
 ## Opciók
 

@@ -22,4 +22,4 @@ Megnyílik: **http://127.0.0.1:3456**
 
 - Egyedi design / márkanév
 - Backend, aktiválás, import
-- Járműkatalógus: külön `mentesmarka` projekt → `data/jarmu-katalogus-A.json`
+- Járműkatalógus: külön `mentesmarka` projekt → `data/jarmu-katalogus.json`

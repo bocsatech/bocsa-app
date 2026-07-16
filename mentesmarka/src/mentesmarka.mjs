@@ -8,7 +8,38 @@ const PKG = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8")
 );
 
-const DEFAULT_OUTPUT = join(process.cwd(), "data", "jarmu-katalogus-A.json");
+const DEFAULT_OUTPUT = join(process.cwd(), "data", "jarmu-katalogus.json");
+
+const DEFAULT_BRANDS = [
+  "Audi",
+  "BMW",
+  "Mercedes",
+  "Ford",
+  "KIA",
+  "Toyota",
+  "Mazda",
+  "OPEL",
+  "Alfa",
+  "Suzuki",
+  "Skoda",
+  "Volkswagen",
+];
+
+/** Normalizált aliasok — egyezés a hasznaltauto.hu legördülő szövegeivel (pl. MERCEDES-BENZ, ALFA ROMEO). */
+const BRAND_MATCH_ALIASES = {
+  audi: ["audi"],
+  bmw: ["bmw"],
+  mercedes: ["mercedes", "mercedes-benz"],
+  ford: ["ford"],
+  kia: ["kia"],
+  toyota: ["toyota"],
+  mazda: ["mazda"],
+  opel: ["opel"],
+  alfa: ["alfa", "alfa romeo"],
+  suzuki: ["suzuki"],
+  skoda: ["skoda"],
+  volkswagen: ["volkswagen", "vw"],
+};
 
 const FORM_URL = "https://www.hasznaltauto.hu/hirdetesfeladas/szemelyauto";
 const KATALOGUS_URL = "https://katalogus.hasznaltauto.hu/";
@@ -33,7 +64,7 @@ const PROFILE_FIELD_MAP = {
 
 function parseArgs(argv) {
   const options = {
-    letter: "A",
+    brands: [...DEFAULT_BRANDS],
     output: DEFAULT_OUTPUT,
     connect: true,
     headed: false,
@@ -46,8 +77,16 @@ function parseArgs(argv) {
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
+    if (arg === "--brands") {
+      options.brands = String(argv[i + 1] ?? "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      i += 1;
+      continue;
+    }
     if (arg === "--letter") {
-      options.letter = (argv[i + 1] ?? "A").toUpperCase();
+      console.warn("[mentesmarka] --letter elavult — használd a --brands opciót.");
       i += 1;
       continue;
     }
@@ -109,9 +148,43 @@ function slugify(value) {
     .replace(/^_+|_+$/g, "");
 }
 
-function startsWithLetter(text, letter) {
-  const first = String(text ?? "").trim().charAt(0).toUpperCase();
-  return first === letter.toUpperCase();
+function normalizeBrandName(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function brandAllowKey(name) {
+  return normalizeBrandName(name).replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+function brandMatchesAllowlist(brandText, allowedBrand) {
+  const norm = normalizeBrandName(brandText);
+  const key = brandAllowKey(allowedBrand);
+  const aliases = BRAND_MATCH_ALIASES[key] ?? [normalizeBrandName(allowedBrand)];
+  return aliases.some((alias) => {
+    const pattern = normalizeBrandName(alias);
+    return norm === pattern || norm.startsWith(`${pattern} `) || norm.startsWith(`${pattern}-`);
+  });
+}
+
+function filterAllowedBrands(allBrands, allowedBrands) {
+  const matched = allBrands.filter((brand) =>
+    allowedBrands.some((allowed) => brandMatchesAllowlist(brand.text, allowed))
+  );
+
+  matched.sort((a, b) => {
+    const indexFor = (text) => {
+      const idx = allowedBrands.findIndex((allowed) => brandMatchesAllowlist(text, allowed));
+      return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
+    };
+    return indexFor(a.text) - indexFor(b.text);
+  });
+
+  return matched;
 }
 
 function normalizeOption(option) {
@@ -140,10 +213,10 @@ function uniqueOptions(items) {
   return out;
 }
 
-function createEmptyCatalog(letter) {
+function createEmptyCatalog(brands) {
   return {
     meta: {
-      letter,
+      brands: [...brands],
       source: "hasznaltauto.hu",
       scrapedAt: null,
       brandCount: 0,
@@ -159,11 +232,15 @@ function saveCatalog(path, catalog) {
   writeFileSync(path, `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
 }
 
-function loadCatalog(path, letter) {
+function loadCatalog(path, brands) {
   try {
-    return JSON.parse(readFileSync(path, "utf8"));
+    const catalog = JSON.parse(readFileSync(path, "utf8"));
+    if (!catalog.meta?.brands?.length) {
+      catalog.meta = { ...catalog.meta, brands: [...brands] };
+    }
+    return catalog;
   } catch {
-    return createEmptyCatalog(letter);
+    return createEmptyCatalog(brands);
   }
 }
 
@@ -409,9 +486,14 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     throw new Error("Gyártmány legördülő nem található. Lehet, hogy be kell jelentkezni a hirdetésfeladáshoz.");
   }
 
-  const allBrands = (await readSelectOptions(brandSelect)).filter((brand) => startsWithLetter(brand.text, options.letter));
+  const allBrands = filterAllowedBrands(await readSelectOptions(brandSelect), options.brands);
   const brands = options.maxBrands ? allBrands.slice(0, options.maxBrands) : allBrands;
-  onProgress?.(`${options.letter} betűs márkák: ${brands.length}`);
+  onProgress?.(`Kiválasztott márkák (${brands.length}): ${brands.map((b) => b.text).join(", ") || "—"}`);
+  if (!brands.length) {
+    throw new Error(
+      `Egyetlen márka sem található a listából: ${options.brands.join(", ")}. Ellenőrizd a legördülő szövegeit.`
+    );
+  }
 
   for (const brand of brands) {
     const brandKey = slugify(brand.text);
@@ -499,9 +581,14 @@ async function scrapeKatalogusCatalog(page, options, catalog, onProgress) {
     throw new Error("Katalógus gyártmány lista nem található.");
   }
 
-  const brands = (await readSelectOptions(brandSelect)).filter((brand) => startsWithLetter(brand.text, options.letter));
+  const brands = filterAllowedBrands(await readSelectOptions(brandSelect), options.brands);
   const limitedBrands = options.maxBrands ? brands.slice(0, options.maxBrands) : brands;
-  onProgress?.(`Katalógus — ${options.letter} betűs márkák: ${limitedBrands.length}`);
+  onProgress?.(`Katalógus — kiválasztott márkák (${limitedBrands.length}): ${limitedBrands.map((b) => b.text).join(", ") || "—"}`);
+  if (!limitedBrands.length) {
+    throw new Error(
+      `Egyetlen márka sem található a listából: ${options.brands.join(", ")}. Ellenőrizd a legördülő szövegeit.`
+    );
+  }
 
   for (const brand of limitedBrands) {
     const brandKey = slugify(brand.text);
@@ -554,8 +641,8 @@ async function scrapeKatalogusCatalog(page, options, catalog, onProgress) {
 
 export async function runMentesmarka(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
-  const catalog = loadCatalog(options.output, options.letter);
-  catalog.meta.letter = options.letter;
+  const catalog = loadCatalog(options.output, options.brands);
+  catalog.meta.brands = [...options.brands];
   catalog.meta.source = options.source === "katalogus" ? "katalogus.hasznaltauto.hu" : "hasznaltauto.hu/hirdetesfeladas";
 
   const onProgress = (message) => console.log(`[mentesmarka] ${message}`);
