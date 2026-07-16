@@ -14,6 +14,8 @@ function parseArgs(argv) {
     url: null,
     output: null,
     headed: false,
+    connect: false,
+    deep: false,
     debug: false,
     linkFile: join(process.cwd(), "link.txt"),
   };
@@ -22,6 +24,14 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === "--headed") {
       options.headed = true;
+      continue;
+    }
+    if (arg === "--connect") {
+      options.connect = true;
+      continue;
+    }
+    if (arg === "--deep") {
+      options.deep = true;
       continue;
     }
     if (arg === "--debug") {
@@ -62,20 +72,19 @@ function readLinkFromFile(path) {
 function buildOutputPath(url, customOutput) {
   if (customOutput) return customOutput;
 
-  if (isListPageUrl(url)) {
+  if (url && isListPageUrl(url)) {
     const slug = slugFromListUrl(url);
     const stamp = new Date().toISOString().slice(0, 10);
     return join(process.cwd(), "output", `lista-${slug}-${stamp}.txt`);
   }
 
-  const idMatch = url.match(/-(\d{5,})(?:[/?#]|$)/);
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const fileName = idMatch ? `hirdetes-${idMatch[1]}.txt` : `hirdetes-${stamp}.txt`;
-  return join(process.cwd(), "output", fileName);
+  const stamp = new Date().toISOString().slice(0, 10);
+  return join(process.cwd(), "output", `lista-megnyitott-${stamp}.txt`);
 }
 
 async function resolveUrl(options) {
   if (options.url) return options.url;
+  if (options.connect) return null;
 
   const fromFile = readLinkFromFile(options.linkFile);
   if (fromFile) return fromFile;
@@ -89,18 +98,24 @@ async function resolveUrl(options) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const url = await resolveUrl(options);
-  const listMode = isListPageUrl(url);
 
   console.log(`hasznaltauto-scraper v${pkg.version}`);
-  console.log(listMode ? "Lista oldal feldolgozása:" : "Hirdetés feldolgozása:", url);
+
+  if (options.connect) {
+    console.log("Mód: megnyitott Chrome lap használata (--connect)");
+  } else if (url) {
+    console.log(isListPageUrl(url) ? "Lista oldal feldolgozása:" : "Hirdetés feldolgozása:", url);
+  }
 
   const result = await scrapeUrl(url, {
+    connect: options.connect,
+    deep: options.deep,
     headless: !options.headed,
     debug: options.debug,
     onProgress: (message) => console.log(message),
   });
 
-  const outputPath = buildOutputPath(url, options.output);
+  const outputPath = buildOutputPath(url ?? result.listUrl, options.output);
   mkdirSync(join(process.cwd(), "output"), { recursive: true });
   writeFileSync(outputPath, `${result.text}\n`, "utf8");
 

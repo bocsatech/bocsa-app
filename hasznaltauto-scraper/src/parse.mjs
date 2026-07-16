@@ -178,6 +178,30 @@ function parseVehicleType(title, map) {
   return null;
 }
 
+export function parseListingCard({ url, text, title }) {
+  const source = cleanText(`${title}\n${text}`);
+  const arMatch = source.match(/([\d\s.]+)\s*Ft/i);
+  const kmMatch = source.match(/([\d\s.]+)\s*km/i);
+  const yearMatch = source.match(/\b(19|20)\d{2}\b/);
+  const phoneMatch = source.match(/(?:\+36|06)[\s\d/-]{7,16}\d/);
+
+  const jarmuTipus = cleanText(title)
+    .replace(/^eladó\s+/i, "")
+    .replace(/\s*\((19|20)\d{2}.*\)\s*$/, "")
+    .trim();
+
+  return {
+    url: cleanText(url),
+    jarmuTipus: jarmuTipus || null,
+    ar: arMatch ? extractPrice(`${arMatch[1]} Ft`) : null,
+    evjarat: yearMatch ? yearMatch[0] : null,
+    km: kmMatch ? extractKm(`${kmMatch[1]} km`) : null,
+    telefonszam: phoneMatch ? cleanText(phoneMatch[0]) : null,
+    cim: cleanText(title) || null,
+    forras: "megnyitott lista oldal",
+  };
+}
+
 export function parseListingHtml(html, { url = "", phone = null } = {}) {
   const attributeMap = {
     ...parseJsonLd(html),
