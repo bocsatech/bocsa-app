@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hasznaltauto Scraper</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">BOCSA</p>
+          <h1>Hasznaltauto Scraper</h1>
+          <p class="subtitle">Lista beolvasás Chrome-ból, telefonszámokkal és lapozással.</p>
+        </div>
+        <span class="badge" id="version">v…</span>
+      </header>
+
+      <section class="card">
+        <label class="field">
+          <span>Lista URL</span>
+          <input
+            id="url"
+            type="url"
+            placeholder="https://www.hasznaltauto.hu/szemelyauto/tesla"
+            spellcheck="false"
+          />
+        </label>
+        <p class="hint">Illeszd be a keresési listát vagy a `talalatilista/...` linket. Mentés automatikus.</p>
+
+        <div class="options">
+          <label class="check">
+            <input id="fetchPhones" type="checkbox" checked />
+            <span>Telefonszámok (felfedés gomb)</span>
+          </label>
+          <label class="check">
+            <input id="paginate" type="checkbox" checked />
+            <span>Összes oldal (1 → utolsó)</span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="chromeBtn" class="btn secondary" type="button">Chrome megnyitása</button>
+          <button id="scrapeBtn" class="btn primary" type="button">Beolvasás indítása</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="log-head">
+          <h2>Napló</h2>
+          <span id="status" class="status idle">Kész</span>
+        </div>
+        <pre id="log" class="log"></pre>
+        <p id="result" class="result"></p>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

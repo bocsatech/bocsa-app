@@ -5,3 +5,4 @@ output/*.txt
 probe.html
 probe-*.html
 link.txt
+desktop-config.json

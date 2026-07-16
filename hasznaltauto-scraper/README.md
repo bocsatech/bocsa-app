@@ -1,6 +1,30 @@
 # Hasznaltauto.hu scraper — egyszerű mód
 
-## 3 lépés
+## Asztali indító (ajánlott)
+
+```bash
+cd ~/bocsa-app/hasznaltauto-scraper
+git pull origin main
+npm run install:desktop
+```
+
+Ez létrehozza az asztalon: **Hasznaltauto Scraper.app**
+
+Dupla kattintás → megnyílik a beállító felület:
+1. **URL mező** — ide illeszd a listát (`talalatilista/...` is jó)
+2. **Chrome megnyitása** — elindítja a böngészőt a megadott URL-lel
+3. Cloudflare megoldása Chrome-ban
+4. **Beolvasás indítása** — összes oldal + telefonszámok → `output/*.txt`
+
+Kézi indítás terminálból:
+
+```bash
+npm run desktop
+```
+
+Verzió: `hasznaltauto-scraper v1.6.0`
+
+## Terminál mód (3 lépés)
 
 ```bash
 cd ~/bocsa-app/hasznaltauto-scraper
@@ -13,8 +37,6 @@ npm start
 3. Ha **látod a hirdetéseket**, nyomj **ENTER**-t a terminálban
 
 Kész. A program a **megnyitott lapról** olvassa ki az adatokat, majd minden hirdetésnél **rákattint a „Telefonszám felfedése” gombra** → `output/lista-megnyitott-*.txt`
-
-Verzió: `hasznaltauto-scraper v1.5.0`
 
 ## Miért egyszerűbb?
 

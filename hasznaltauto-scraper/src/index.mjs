@@ -4,7 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { isListPageUrl } from "./links.mjs";
-import { slugFromListUrl } from "./url-utils.mjs";
+import { buildOutputPath } from "./output-path.mjs";
 import { waitForUserReady } from "./ready.mjs";
 import { scrapeUrl } from "./scrape.mjs";
 
@@ -82,17 +82,8 @@ function readLinkFromFile(path) {
   }
 }
 
-function buildOutputPath(url, customOutput) {
-  if (customOutput) return customOutput;
-
-  if (url && isListPageUrl(url)) {
-    const slug = slugFromListUrl(url);
-    const stamp = new Date().toISOString().slice(0, 10);
-    return join(process.cwd(), "output", `lista-${slug}-${stamp}.txt`);
-  }
-
-  const stamp = new Date().toISOString().slice(0, 10);
-  return join(process.cwd(), "output", `lista-megnyitott-${stamp}.txt`);
+function buildOutputPathForCli(url, customOutput) {
+  return buildOutputPath(url, customOutput);
 }
 
 async function resolveUrl(options) {
@@ -141,7 +132,7 @@ async function main() {
     onProgress: (message) => console.log(message),
   });
 
-  const outputPath = buildOutputPath(url ?? result.listUrl, options.output);
+  const outputPath = buildOutputPathForCli(url ?? result.listUrl, options.output);
   mkdirSync(join(process.cwd(), "output"), { recursive: true });
   writeFileSync(outputPath, `${result.text}\n`, "utf8");
 
