@@ -448,10 +448,20 @@ textarea {
   gap: 10px 16px;
 }
 
+.inline-2-labeled.inline-3 {
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
+}
+
 .labeled-field {
   display: grid;
   gap: 8px;
   min-width: 0;
+}
+
+.labeled-field--fit {
+  width: fit-content;
+  max-width: 100%;
 }
 
 .labeled-field label {
@@ -459,9 +469,15 @@ textarea {
   color: #374151;
 }
 
-.labeled-field input,
-.labeled-field select {
+.labeled-field input {
   width: 100%;
+}
+
+select.field-fit {
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  field-sizing: content;
 }
 
 .equipment-grid {
@@ -585,11 +601,19 @@ textarea {
     max-width: 100%;
   }
 
+  .form-grid > .inline-2-labeled.full {
+    max-width: 100%;
+  }
+
   .autofelvitele-title input {
     width: 100%;
   }
 
   .inline-2-labeled {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-2-labeled.inline-3 {
     grid-template-columns: 1fr;
   }
 

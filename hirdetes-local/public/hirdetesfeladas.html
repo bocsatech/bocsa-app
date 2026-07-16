@@ -66,10 +66,10 @@
                   </select>
                 </div>
 
-                <div class="inline-2-labeled full">
-                  <div class="labeled-field">
+                <div class="inline-2-labeled inline-3 full">
+                  <div class="labeled-field labeled-field--fit">
                     <label for="gyartmany">Gyártmány: <span class="req">*</span></label>
-                    <select id="gyartmany" name="gyartmany" required>
+                    <select id="gyartmany" name="gyartmany" class="field-fit" required>
                       <option value="">Válasszon</option>
                       <option value="VOLKSWAGEN">VOLKSWAGEN</option>
                       <option value="OPEL">OPEL</option>
@@ -91,13 +91,14 @@
                     <label for="modell">Modell: <span class="req">*</span></label>
                     <input id="modell" name="modell" type="text" required />
                   </div>
+                  <div class="labeled-field">
+                    <label for="tipus">Típus: <span class="req">*</span></label>
+                    <input id="tipus" name="tipus" type="text" class="auto-filled" required />
+                  </div>
                 </div>
 
                 <label for="egyeb_modell">Egyéb modell:</label>
                 <input id="egyeb_modell" name="egyeb_modell" type="text" />
-
-                <label for="tipus">Típus: <span class="req">*</span></label>
-                <input id="tipus" name="tipus" type="text" class="auto-filled" required />
 
                 <label for="egyeb_tipus">Egyéb típus:</label>
                 <input id="egyeb_tipus" name="egyeb_tipus" type="text" />
