@@ -259,7 +259,6 @@ a:hover {
   font-weight: 400;
 }
 
-.readonly-field,
 input.auto-filled,
 select.auto-filled {
   background: #e8f5e9;

@@ -215,6 +215,7 @@ function updateLeDisplay() {
 }
 
 function updateTitle() {
+  if (hirdetesCime?.dataset.userEdited === "1") return;
   const parts = [gyartmany.value, modell.value, tipus.value].filter(Boolean);
   const year = gyartasiEv.value;
   hirdetesCime.value = parts.length
@@ -414,6 +415,10 @@ form.querySelectorAll(".auto-filled, #tipus, #hengerurtartalom, #sebessegvalto, 
 [gyartmany, modell, tipus, gyartasiEv].forEach((field) => {
   field?.addEventListener("input", updateTitle);
   field?.addEventListener("change", updateTitle);
+});
+
+hirdetesCime?.addEventListener("input", () => {
+  hirdetesCime.dataset.userEdited = "1";
 });
 
 gyartmany?.addEventListener("change", applyAutoFill);
