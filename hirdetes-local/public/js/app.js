@@ -232,6 +232,13 @@ function resetSuccess() {
   footerActions.classList.remove("hidden");
 }
 
+function goToStep(step) {
+  if (step < 1 || step > 4 || step === currentStep) return;
+  saveDraft();
+  if (currentStep === 4) resetSuccess();
+  showStep(step);
+}
+
 function showStep(step) {
   currentStep = step;
   panels.forEach((panel) => {
@@ -384,14 +391,27 @@ gyartmany?.addEventListener("change", applyAutoFill);
 teljesitmenyKw?.addEventListener("input", updateLeDisplay);
 
 backBtn.addEventListener("click", () => {
-  if (currentStep > 1) showStep(currentStep - 1);
+  if (currentStep > 1) goToStep(currentStep - 1);
+});
+
+indicators.forEach((indicator) => {
+  const step = Number(indicator.dataset.stepIndicator);
+  indicator.setAttribute("role", "tab");
+  indicator.setAttribute("tabindex", "0");
+  indicator.addEventListener("click", () => goToStep(step));
+  indicator.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      goToStep(step);
+    }
+  });
 });
 
 nextBtn.addEventListener("click", () => {
   if (!validateStep(currentStep)) return;
   saveDraft();
   if (currentStep < 4) {
-    showStep(currentStep + 1);
+    goToStep(currentStep + 1);
     return;
   }
   buildSummary();

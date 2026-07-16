@@ -339,6 +339,13 @@ select.auto-filled {
   background: #fafbfc;
   color: var(--muted);
   font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.step:hover:not(.active) {
+  background: #f0f4f8;
+  color: var(--text);
 }
 
 .step:last-child {
