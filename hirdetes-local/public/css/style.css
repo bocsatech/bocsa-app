@@ -107,11 +107,154 @@ a:hover {
   color: var(--blue-link);
 }
 
-.page {
-  max-width: 1180px;
+.page-wide {
+  max-width: 980px;
   margin: 0 auto;
   padding: 20px;
 }
+
+.category-bar {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.required-note {
+  margin: 0 0 12px;
+  color: #c62828;
+  font-weight: 600;
+}
+
+.req {
+  color: #c62828;
+}
+
+.info-box {
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid #c8e6c9;
+  background: #e8f5e9;
+  color: #1b5e20;
+  line-height: 1.5;
+}
+
+.popular-brands {
+  margin-bottom: 18px;
+}
+
+.popular-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.brand-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.brand-chip {
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  text-transform: capitalize;
+  font-size: 13px;
+}
+
+.brand-chip:hover,
+.brand-chip.active {
+  border-color: var(--orange);
+  background: var(--orange-light);
+  color: var(--orange-dark);
+}
+
+.help-link {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.suffix-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.suffix-field input {
+  flex: 1;
+}
+
+.suffix-field span {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.hint-inline {
+  margin-left: 4px;
+}
+
+.inline-check {
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+.readonly-field,
+input.auto-filled,
+select.auto-filled {
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+}
+
+.legal-text {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin-top: 6px;
+}
+
+.tire-row,
+.phone-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tire-row input,
+.phone-row input {
+  width: 80px;
+}
+
+.phone-part.wide {
+  flex: 1;
+  min-width: 140px;
+}
+
+.form-grid.compact {
+  margin-bottom: 14px;
+}
+
+.equipment-block {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.equipment-block h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.equipment-block .equipment-grid {
+  margin-bottom: 4px;
+}
+
 
 .page-title {
   margin: 0 0 6px;
