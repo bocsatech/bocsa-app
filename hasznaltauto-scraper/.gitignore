@@ -2,6 +2,7 @@ node_modules/
 .browser-profile/
 .chrome-connect-profile/
 output/*.txt
+taxonomy-output/
 probe.html
 probe-*.html
 link.txt

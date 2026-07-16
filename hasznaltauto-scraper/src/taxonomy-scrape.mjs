@@ -5,7 +5,7 @@ import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "./browser.
 import { startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_OUTPUT = join(__dirname, "../../hirdetes-local/data/vehicle-taxonomy-A.json");
+const DEFAULT_OUTPUT = join(process.cwd(), "taxonomy-output", "jarmu-katalogus-A.json");
 
 const FORM_URL = "https://www.hasznaltauto.hu/hirdetesfeladas/szemelyauto";
 const KATALOGUS_URL = "https://katalogus.hasznaltauto.hu/";

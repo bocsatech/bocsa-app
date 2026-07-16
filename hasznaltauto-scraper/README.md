@@ -62,34 +62,33 @@ npm start -- --no-phones  # telefonszámok kihagyása (gyorsabb)
 npm start -- --single-page  # csak az aktuális oldal (nincs lapozás)
 ```
 
-## Járműkatalógus (A betűs márkák)
+## Járműkatalógus (A betűs márkák) — külön mentés
 
-A hirdetésfeladás 4 összekapcsolt menüjének mentése tesztre:
+**Ne keverd** a hirdetés-lista scraperrel (`output/*.txt`). A katalógus külön mappába kerül:
+
+| Mit | Parancs | Kimenet |
+|-----|---------|---------|
+| Lista scraper | `npm run chrome` → `npm start -- --connect` | `output/lista-*.txt` |
+| Katalógus (4 menü) | `npm run chrome:taxonomy` → `npm run taxonomy:a` | `taxonomy-output/jarmu-katalogus-A.json` |
 
 ```bash
 cd ~/bocsa-app/hasznaltauto-scraper
-npm run chrome
-# Chrome-ban: oldd meg a Cloudflare-t, nyisd meg a hirdetésfeladást vagy katalógust
+git pull origin main
+npm run chrome:taxonomy
+# Chrome: Cloudflare + hirdetésfeladás űrlap betöltése
 npm run taxonomy:a
 ```
 
-Kimenet: `../hirdetes-local/data/vehicle-taxonomy-A.json`
-
 - **Gyártmány → Modell → Típus → Kivitel** fa
-- Minden típushoz: kivitel lista + zöld automatikus mezők (ajtók, teljesítmény, gumi stb.)
-- Csak **A** betűvel kezdődő márkák (pl. ABARTH, AUDI, ALFA ROMEO)
+- Minden típushoz: kivitel lista + zöld automatikus mezők
+- Csak **A** betűvel kezdődő márkák
 
 Opciók:
 
 ```bash
-# Hirdetésfeladás űrlap (teljes profil, bejelentkezés kellhet)
 node src/taxonomy-scrape.mjs --source form --connect
-
-# Katalógus oldal (csak a 4 menü, profil nélkül)
 node src/taxonomy-scrape.mjs --source katalogus --connect
-
-# Gyors próba: 1 márka, 2 modell, 2 típus
-node src/taxonomy-scrape.mjs --connect --max-brands 1 --max-models 2 --max-types 2
+node src/taxonomy-scrape.mjs --connect -o taxonomy-output/jarmu-katalogus-A-proba.json --max-brands 1
 ```
 
-**Fontos:** Cloudflare miatt a saját Chrome-oddal kell futtatni (`npm run chrome` → `--connect`). A mentett fájl **teszt adat** — élesítés előtt törölendő.
+**Fontos:** Cloudflare miatt saját Chrome kell (`npm run chrome:taxonomy`). Teszt adat — élesítés előtt a `taxonomy-output/` mappa törölhető.
