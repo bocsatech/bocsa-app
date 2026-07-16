@@ -22,4 +22,4 @@ Megnyílik: **http://127.0.0.1:3456**
 
 - Egyedi design / márkanév
 - Backend, aktiválás, import
-- Járműkatalógus: `hasznaltauto-scraper` → `npm run taxonomy:a` → `taxonomy-output/jarmu-katalogus-A.json`
+- Járműkatalógus: külön `mentesmarka` projekt → `data/jarmu-katalogus-A.json`

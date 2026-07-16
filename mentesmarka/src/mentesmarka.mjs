@@ -1,11 +1,9 @@
+import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "../../hasznaltauto-scraper/src/browser.mjs";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
-import { fileURLToPath } from "url";
-import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "./browser.mjs";
 import { startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_OUTPUT = join(process.cwd(), "taxonomy-output", "jarmu-katalogus-A.json");
+const DEFAULT_OUTPUT = join(process.cwd(), "data", "jarmu-katalogus-A.json");
 
 const FORM_URL = "https://www.hasznaltauto.hu/hirdetesfeladas/szemelyauto";
 const KATALOGUS_URL = "https://katalogus.hasznaltauto.hu/";
@@ -176,7 +174,7 @@ async function openPageSession(options, onProgress) {
       return { page, close: async () => session.browser.close() };
     } catch {
       onProgress?.("Chrome CDP nem elérhető — automatikus indítás...");
-      startChromeWithDebugging(KATALOGUS_URL);
+      startChromeWithDebugging(FORM_URL);
       const ready = await waitForCdpReady(DEFAULT_CDP_URL, { onProgress });
       if (!ready) throw new Error("Chrome nem indult el. Futtasd: npm run chrome");
       const session = await connectToOpenBrowser(DEFAULT_CDP_URL, { autoStart: false, onProgress });
@@ -210,7 +208,7 @@ async function waitForHumanIfBlocked(page, onProgress) {
       return;
     }
   }
-  throw new Error("Cloudflare továbbra is blokkol. Használd: npm run chrome, majd --connect");
+  throw new Error("Cloudflare továbbra is blokkol. Futtasd: npm run chrome");
 }
 
 function attachNetworkCollector(page, catalog) {
@@ -283,7 +281,7 @@ async function readFieldValues(page) {
   return Object.fromEntries(Object.entries(values).filter(([, value]) => String(value ?? "").trim()));
 }
 
-async function scrapeFormTaxonomy(page, options, catalog, onProgress) {
+async function scrapeFormCatalog(page, options, catalog, onProgress) {
   await page.goto(FORM_URL, { waitUntil: "domcontentloaded", timeout: 120000 });
   await waitForHumanIfBlocked(page, onProgress);
   await sleep(1500);
@@ -383,7 +381,7 @@ async function scrapeFormTaxonomy(page, options, catalog, onProgress) {
   }
 }
 
-async function scrapeKatalogusTaxonomy(page, options, catalog, onProgress) {
+async function scrapeKatalogusCatalog(page, options, catalog, onProgress) {
   await page.goto(KATALOGUS_URL, { waitUntil: "domcontentloaded", timeout: 120000 });
   await waitForHumanIfBlocked(page, onProgress);
   await sleep(1500);
@@ -446,21 +444,21 @@ async function scrapeKatalogusTaxonomy(page, options, catalog, onProgress) {
   }
 }
 
-export async function scrapeVehicleTaxonomy(argv = process.argv.slice(2)) {
+export async function runMentesmarka(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const catalog = loadCatalog(options.output, options.letter);
   catalog.meta.letter = options.letter;
   catalog.meta.source = options.source === "katalogus" ? "katalogus.hasznaltauto.hu" : "hasznaltauto.hu/hirdetesfeladas";
 
-  const onProgress = (message) => console.log(message);
+  const onProgress = (message) => console.log(`[mentesmarka] ${message}`);
   const { page, close } = await openPageSession(options, onProgress);
   attachNetworkCollector(page, catalog);
 
   try {
     if (options.source === "katalogus") {
-      await scrapeKatalogusTaxonomy(page, options, catalog, onProgress);
+      await scrapeKatalogusCatalog(page, options, catalog, onProgress);
     } else {
-      await scrapeFormTaxonomy(page, options, catalog, onProgress);
+      await scrapeFormCatalog(page, options, catalog, onProgress);
     }
   } finally {
     await close().catch(() => {});
@@ -469,12 +467,12 @@ export async function scrapeVehicleTaxonomy(argv = process.argv.slice(2)) {
   catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
   catalog.meta.scrapedAt = new Date().toISOString();
   saveCatalog(options.output, catalog);
-  onProgress?.(`Kész: ${options.output}`);
+  onProgress(`Kész: ${options.output}`);
   return catalog;
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
-  scrapeVehicleTaxonomy().catch((error) => {
+  runMentesmarka().catch((error) => {
     console.error(error.message);
     process.exit(1);
   });

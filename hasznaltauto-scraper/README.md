@@ -62,33 +62,4 @@ npm start -- --no-phones  # telefonszámok kihagyása (gyorsabb)
 npm start -- --single-page  # csak az aktuális oldal (nincs lapozás)
 ```
 
-## Járműkatalógus (A betűs márkák) — külön mentés
-
-**Ne keverd** a hirdetés-lista scraperrel (`output/*.txt`). A katalógus külön mappába kerül:
-
-| Mit | Parancs | Kimenet |
-|-----|---------|---------|
-| Lista scraper | `npm run chrome` → `npm start -- --connect` | `output/lista-*.txt` |
-| Katalógus (4 menü) | `npm run chrome:taxonomy` → `npm run taxonomy:a` | `taxonomy-output/jarmu-katalogus-A.json` |
-
-```bash
-cd ~/bocsa-app/hasznaltauto-scraper
-git pull origin main
-npm run chrome:taxonomy
-# Chrome: Cloudflare + hirdetésfeladás űrlap betöltése
-npm run taxonomy:a
-```
-
-- **Gyártmány → Modell → Típus → Kivitel** fa
-- Minden típushoz: kivitel lista + zöld automatikus mezők
-- Csak **A** betűvel kezdődő márkák
-
-Opciók:
-
-```bash
-node src/taxonomy-scrape.mjs --source form --connect
-node src/taxonomy-scrape.mjs --source katalogus --connect
-node src/taxonomy-scrape.mjs --connect -o taxonomy-output/jarmu-katalogus-A-proba.json --max-brands 1
-```
-
-**Fontos:** Cloudflare miatt saját Chrome kell (`npm run chrome:taxonomy`). Teszt adat — élesítés előtt a `taxonomy-output/` mappa törölhető.
+Járműkatalógus mentéshez használd a külön **`mentesmarka`** projektet (nem keverendő ezzel).
