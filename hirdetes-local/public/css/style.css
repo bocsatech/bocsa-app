@@ -239,10 +239,13 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .suffix-field input {
   flex: 1;
+  min-width: 0;
 }
 
 .suffix-field span {
@@ -382,9 +385,10 @@ select.auto-filled {
 
 .form-grid {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 200px minmax(0, 1fr);
   gap: 12px 16px;
   align-items: center;
+  --field-block-width: 50%;
 }
 
 .form-grid label {
@@ -393,8 +397,31 @@ select.auto-filled {
 }
 
 .form-grid > :not(label):not(.full) {
-  width: 100%;
-  max-width: 50%;
+  width: var(--field-block-width);
+  max-width: var(--field-block-width);
+  min-width: 0;
+  justify-self: start;
+}
+
+.form-grid > select,
+.form-grid > input,
+.form-grid > textarea,
+.form-grid > .inline-2,
+.form-grid > .inline-2-labeled,
+.form-grid > .suffix-field,
+.form-grid > .tire-row,
+.form-grid > .phone-row {
+  width: var(--field-block-width);
+  max-width: var(--field-block-width);
+  min-width: 0;
+  justify-self: start;
+}
+
+.form-grid select,
+.form-grid input,
+.form-grid textarea {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .form-grid .full {
@@ -441,15 +468,19 @@ textarea {
 
 .inline-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
+  width: 100%;
+  min-width: 0;
 }
 
 .inline-2-labeled {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
   align-items: start;
+  width: 100%;
+  min-width: 0;
 }
 
 .vehicle-row {
@@ -458,9 +489,28 @@ textarea {
 
 .vehicle-row-right {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
   min-width: 0;
+}
+
+.form-grid select,
+.vehicle-row .labeled-field select {
+  height: 40px;
+  box-sizing: border-box;
+  padding: 8px 11px;
+  line-height: 1.2;
+}
+
+.form-grid input[type="text"],
+.form-grid input[type="number"],
+.form-grid input[type="tel"],
+.form-grid input[type="email"],
+.vehicle-row .labeled-field input {
+  height: 40px;
+  box-sizing: border-box;
+  padding: 8px 11px;
+  line-height: 1.2;
 }
 
 .labeled-field {
@@ -477,10 +527,6 @@ textarea {
 .vehicle-row .labeled-field input,
 .vehicle-row .labeled-field select {
   width: 100%;
-  height: 40px;
-  box-sizing: border-box;
-  padding: 8px 11px;
-  line-height: 1.2;
 }
 
 .labeled-field input {
@@ -604,7 +650,16 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .form-grid > :not(label):not(.full) {
+  .form-grid > :not(label):not(.full),
+  .form-grid > select,
+  .form-grid > input,
+  .form-grid > textarea,
+  .form-grid > .inline-2,
+  .form-grid > .inline-2-labeled,
+  .form-grid > .suffix-field,
+  .form-grid > .tire-row,
+  .form-grid > .phone-row {
+    width: 100%;
     max-width: 100%;
   }
 
