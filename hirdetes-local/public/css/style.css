@@ -1094,11 +1094,10 @@ body.theme-m7::after {
 
 .theme-m7 .form-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px 18px;
+  gap: 16px;
   align-items: start;
 }
 
-.theme-m7 .form-grid > .md-outlined,
 .theme-m7 .form-grid > .field-row.full,
 .theme-m7 .form-grid > .full {
   grid-column: 1 / -1;
@@ -1107,7 +1106,7 @@ body.theme-m7::after {
 .theme-m7 .field-row.full {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 16px;
   width: 100%;
   max-width: 100%;
   flex-flow: unset;
@@ -1118,79 +1117,253 @@ body.theme-m7::after {
   min-width: 0;
 }
 
-.theme-m7 .md-outlined {
+/* —— Mockup cellák: lebegő címke, 14px radius, #d1d1d1 keret —— */
+.theme-m7 {
+  --m7-field-border: #d1d1d1;
+  --m7-field-radius: 14px;
+  --m7-field-height: 56px;
+  --m7-label-accent: #e64a19;
+  --m7-label-default: #3c4043;
+  --m7-placeholder: #9aa0a6;
+  --m7-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235f6368' d='M1.4 1.4 6 6l4.6-4.6L12 3.8 6 9.8.4 3.8z'/%3E%3C/svg%3E");
+  --m7-calendar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%235f6368' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 9h18M8 3v4M16 3v4'/%3E%3C/svg%3E");
+}
+
+.theme-m7 .md-outlined,
+.theme-m7 .labeled-field.md-outlined,
+.theme-m7 .autofelvitele-title.md-outlined {
   position: relative;
-  display: grid;
-  gap: 0;
+  display: block;
   min-width: 0;
 }
 
 .theme-m7 .md-outlined > label,
-.theme-m7 .labeled-field > label {
+.theme-m7 .labeled-field > label,
+.theme-m7 .autofelvitele-title > label {
   position: absolute;
   top: 0;
-  left: 12px;
+  left: 14px;
   transform: translateY(-50%);
-  z-index: 1;
+  z-index: 2;
   background: #ffffff;
-  padding: 0 6px;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--muted);
-  letter-spacing: 0;
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--m7-label-default);
+  letter-spacing: 0.01em;
   pointer-events: none;
 }
 
-.theme-m7 .md-outlined > select,
-.theme-m7 .md-outlined > input:not([type="checkbox"]):not([type="radio"]),
-.theme-m7 .md-outlined > textarea,
-.theme-m7 .md-outlined > .inline-2,
-.theme-m7 .md-outlined > .suffix-field,
-.theme-m7 .labeled-field > select,
-.theme-m7 .labeled-field > input {
-  width: 100% !important;
-  max-width: 100%;
-  min-width: 0;
-  margin-top: 0;
+.theme-m7 .field-row.full:first-of-type .labeled-field > label,
+.theme-m7 .field-row.full:first-of-type .labeled-field > label .req {
+  color: var(--m7-label-accent);
+}
+
+.theme-m7 .md-outlined > label .req,
+.theme-m7 .labeled-field > label .req {
+  color: inherit;
+}
+
+.theme-m7 .md-outlined > label .help-link {
+  pointer-events: auto;
+  font-weight: 600;
+}
+
+.theme-m7 .md-outlined:focus-within > label,
+.theme-m7 .labeled-field:focus-within > label,
+.theme-m7 .autofelvitele-title:focus-within > label {
+  color: var(--primary);
+}
+
+.theme-m7 .field-row.full:first-of-type .labeled-field:focus-within > label,
+.theme-m7 .field-row.full:first-of-type .labeled-field:focus-within > label .req {
+  color: var(--primary);
 }
 
 .theme-m7 .md-outlined > select,
 .theme-m7 .md-outlined > input:not([type="checkbox"]):not([type="radio"]),
 .theme-m7 .labeled-field > select,
-.theme-m7 .labeled-field > input {
-  height: 56px;
-  border-radius: var(--radius-sm);
-  padding: 16px 14px 12px;
-  border: 1px solid #cfd8dc;
+.theme-m7 .labeled-field > input,
+.theme-m7 .autofelvitele-title > input {
+  width: 100% !important;
+  max-width: 100%;
+  min-width: 0;
+  height: var(--m7-field-height);
+  margin: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--m7-field-border);
+  border-radius: var(--m7-field-radius);
+  background: #ffffff;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+  padding: 22px 16px 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.theme-m7 .md-outlined > select,
+.theme-m7 .labeled-field > select {
+  padding-right: 38px;
+  cursor: pointer;
+  background-image: var(--m7-select-arrow);
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 11px 7px;
+}
+
+.theme-m7 .md-outlined > select option,
+.theme-m7 .labeled-field > select option {
+  color: var(--text);
+}
+
+.theme-m7 .md-outlined > select:invalid,
+.theme-m7 .labeled-field > select:invalid,
+.theme-m7 .md-outlined > input::placeholder,
+.theme-m7 .labeled-field > input::placeholder {
+  color: var(--m7-placeholder);
+}
+
+.theme-m7 .md-outlined > select:has(option[value=""]:checked),
+.theme-m7 .labeled-field > select:has(option[value=""]:checked) {
+  color: var(--m7-placeholder);
 }
 
 .theme-m7 .md-outlined > select:focus,
 .theme-m7 .md-outlined > input:focus,
 .theme-m7 .labeled-field > select:focus,
-.theme-m7 .labeled-field > input:focus {
+.theme-m7 .labeled-field > input:focus,
+.theme-m7 .autofelvitele-title > input:focus {
+  outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary);
 }
 
-.theme-m7 .inline-2 {
+.theme-m7 .md-outlined > textarea {
+  width: 100% !important;
+  min-height: 120px;
+  border: 1px solid var(--m7-field-border);
+  border-radius: var(--m7-field-radius);
+  padding: 22px 16px 12px;
+  background: #ffffff;
+}
+
+.theme-m7 .md-outlined > .inline-2,
+.theme-m7 .md-outlined > .suffix-field {
+  width: 100%;
+  min-height: var(--m7-field-height);
+  border: 1px solid var(--m7-field-border);
+  border-radius: var(--m7-field-radius);
+  background: #ffffff;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.theme-m7 .md-outlined:focus-within > .inline-2,
+.theme-m7 .md-outlined:focus-within > .suffix-field {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.theme-m7 .md-outlined > .inline-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  align-items: stretch;
+  padding: 8px 36px 8px 0;
+  position: relative;
+}
+
+.theme-m7 .md-outlined > .inline-2 select,
+.theme-m7 .md-outlined > .inline-2 input {
+  height: 38px;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  padding: 0 12px;
+  background: transparent;
+  background-image: none;
+}
+
+.theme-m7 .md-outlined > .inline-2 select:first-child {
+  border-right: 1px solid #eceff1 !important;
+}
+
+.theme-m7 .md-outlined.md-has-calendar > .inline-2::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  background: var(--m7-calendar-icon) center / contain no-repeat;
+  pointer-events: none;
+}
+
+.theme-m7 .md-outlined > .suffix-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 0;
+}
+
+.theme-m7 .md-outlined > .suffix-field input {
+  flex: 1;
+  height: 38px;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  padding: 0 0 0 14px;
+  background: transparent;
+}
+
+.theme-m7 .md-outlined > .suffix-field span {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--m7-label-default);
+  padding-right: 4px;
+}
+
+.theme-m7 .inline-2:not(.md-outlined > .inline-2) {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
-.theme-m7 .suffix-field {
+.theme-m7 .suffix-field:not(.md-outlined > .suffix-field) {
   width: 100%;
 }
 
-.theme-m7 .suffix-field input {
+.theme-m7 .suffix-field:not(.md-outlined > .suffix-field) input {
   width: 100% !important;
   flex: 1;
 }
 
-.theme-m7 .form-grid textarea,
-.theme-m7 .form-grid > div:has(textarea) {
-  max-width: 100%;
+.theme-m7 .autofelvitele-title {
+  margin-top: 16px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.theme-m7 .autofelvitele-title > input {
+  field-sizing: normal;
+}
+
+.theme-m7 input.auto-filled,
+.theme-m7 select.auto-filled {
+  background: #ffffff;
+  border-color: var(--m7-field-border);
+}
+
+.theme-m7 input.auto-filled:focus,
+.theme-m7 select.auto-filled:focus {
+  border-color: var(--primary);
 }
 
 .theme-m7 .footer-actions {
