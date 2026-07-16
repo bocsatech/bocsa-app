@@ -10,9 +10,12 @@ Gyártmány → Modell → Típus → Kivitel + automatikus (zöld) mezők.
 
 ```bash
 cd ~/bocsa-app/mentesmarka
+rm -rf node_modules package-lock.json
 npm install
 npx playwright install chromium
 ```
+
+Ha `No version found for ^6.3.1` hibát kapsz: töröld a `node_modules`-t és a `package-lock.json`-t (fent), majd `git pull` és újra `npm install`.
 
 ## Használat
 
