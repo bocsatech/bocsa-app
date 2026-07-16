@@ -409,8 +409,8 @@ select.auto-filled {
 .form-grid select,
 .form-grid input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 .inline-2 select,
-.vehicle-row.full select,
-.vehicle-row.full input {
+.field-row.full select,
+.field-row.full input {
   width: auto;
   max-width: 100%;
   field-sizing: content;
@@ -429,12 +429,16 @@ select.auto-filled {
 
 .field-row.full {
   display: flex;
-  flex-wrap: wrap;
+  flex-flow: row nowrap;
   gap: 10px 16px;
   grid-column: 1 / -1;
   align-items: end;
   width: fit-content;
   max-width: 100%;
+}
+
+.field-row.full .labeled-field {
+  flex: 0 0 auto;
 }
 
 .labeled-field {
@@ -504,7 +508,7 @@ textarea {
 }
 
 .form-grid select,
-.vehicle-row.full .labeled-field select {
+.field-row.full .labeled-field select {
   height: 40px;
   box-sizing: border-box;
   padding: 8px 11px;
@@ -515,15 +519,15 @@ textarea {
 .form-grid input[type="number"],
 .form-grid input[type="tel"],
 .form-grid input[type="email"],
-.vehicle-row.full .labeled-field input {
+.field-row.full .labeled-field input {
   height: 40px;
   box-sizing: border-box;
   padding: 8px 11px;
   line-height: 1.2;
 }
 
-.vehicle-row.full .labeled-field input,
-.vehicle-row.full .labeled-field select {
+.field-row.full .labeled-field input,
+.field-row.full .labeled-field select {
   width: auto;
 }
 
@@ -651,7 +655,7 @@ textarea {
   .form-grid > :not(label):not(.full),
   .form-grid textarea,
   .form-grid > div:has(textarea),
-  .vehicle-row.full {
+  .field-row.full {
     width: 100%;
     max-width: 100%;
   }
