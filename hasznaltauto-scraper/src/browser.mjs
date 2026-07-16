@@ -155,20 +155,33 @@ export async function isPageBlocked(page) {
 
 export async function waitForHumanVerification(
   page,
-  { onProgress, waitSeconds = CLOUDFLARE_WAIT_SECONDS, maxRounds = CLOUDFLARE_MAX_ROUNDS } = {}
+  {
+    onProgress,
+    waitSeconds = CLOUDFLARE_WAIT_SECONDS,
+    maxRounds = CLOUDFLARE_MAX_ROUNDS,
+    pollIntervalMs = 1000,
+  } = {}
 ) {
   for (let round = 1; round <= maxRounds; round += 1) {
     if (!(await isPageBlocked(page))) return;
 
     if (round === 1) {
       onProgress?.(
-        `Cloudflare: igazold Chrome-ban, hogy ember vagy. Várakozás ${waitSeconds} másodperc...`
+        `Cloudflare: igazold Chrome-ban, hogy ember vagy (max ${waitSeconds} mp, ellenőrzés másodpercenként)...`
       );
     } else {
-      onProgress?.(`Még Cloudflare van. Újabb ${waitSeconds} mp várakozás (${round}. kör)...`);
+      onProgress?.(`Még Cloudflare van (${round}. kör, max ${waitSeconds} mp)...`);
     }
 
-    await sleep(waitSeconds * 1000);
+    const roundDeadline = Date.now() + waitSeconds * 1000;
+
+    while (Date.now() < roundDeadline) {
+      await sleep(pollIntervalMs);
+      if (!(await isPageBlocked(page))) {
+        onProgress?.("Cloudflare ellenőrzés kész, folytatás...");
+        return;
+      }
+    }
 
     if (!(await isPageBlocked(page))) {
       onProgress?.("Cloudflare ellenőrzés kész, folytatás...");
