@@ -99,26 +99,31 @@
                 <label for="egyeb_tipus">Egyéb típus:</label>
                 <input id="egyeb_tipus" name="egyeb_tipus" type="text" />
 
-                <label for="kivitel">Kivitel: <span class="req">*</span> <a href="#" class="help-link">Segítség</a></label>
-                <select id="kivitel" name="kivitel" required>
-                  <option value="">Válasszon</option>
-                  <option>Szedán</option>
-                  <option>Ferdehátú</option>
-                  <option>Kombi</option>
-                  <option>SUV / Crossover</option>
-                  <option>Egyterű</option>
-                  <option>Kupé</option>
-                  <option>Cabrio</option>
-                </select>
-
-                <label for="allapot">Állapot: <span class="req">*</span></label>
-                <select id="allapot" name="allapot" required>
-                  <option value="">Válasszon</option>
-                  <option>Normál</option>
-                  <option>Újszerű</option>
-                  <option>Sérülésmentes</option>
-                  <option>Sérült</option>
-                </select>
+                <div class="field-row full">
+                  <div class="labeled-field">
+                    <label for="kivitel">Kivitel: <span class="req">*</span> <a href="#" class="help-link">Segítség</a></label>
+                    <select id="kivitel" name="kivitel" required>
+                      <option value="">Válasszon</option>
+                      <option>Szedán</option>
+                      <option>Ferdehátú</option>
+                      <option>Kombi</option>
+                      <option>SUV / Crossover</option>
+                      <option>Egyterű</option>
+                      <option>Kupé</option>
+                      <option>Cabrio</option>
+                    </select>
+                  </div>
+                  <div class="labeled-field">
+                    <label for="allapot">Állapot: <span class="req">*</span></label>
+                    <select id="allapot" name="allapot" required>
+                      <option value="">Válasszon</option>
+                      <option>Normál</option>
+                      <option>Újszerű</option>
+                      <option>Sérülésmentes</option>
+                      <option>Sérült</option>
+                    </select>
+                  </div>
+                </div>
 
                 <label for="okmany_jelleg">Okmányok jellege: <span class="req">*</span></label>
                 <select id="okmany_jelleg" name="okmany_jelleg" required>

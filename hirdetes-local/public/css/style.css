@@ -427,7 +427,7 @@ select.auto-filled {
   grid-column: 1 / -1;
 }
 
-.vehicle-row.full {
+.field-row.full {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 16px;
