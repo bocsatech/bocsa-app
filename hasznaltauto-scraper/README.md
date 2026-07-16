@@ -14,7 +14,7 @@ npm start
 
 Kész. A program a **megnyitott lapról** olvassa ki az adatokat, majd minden hirdetésnél **rákattint a „Telefonszám felfedése” gombra** → `output/lista-megnyitott-*.txt`
 
-Verzió: `hasznaltauto-scraper v1.4.0`
+Verzió: `hasznaltauto-scraper v1.5.0`
 
 ## Miért egyszerűbb?
 
@@ -22,6 +22,7 @@ Verzió: `hasznaltauto-scraper v1.4.0`
 - **Nem nyit** új lapokat
 - Működik **talalatilista** keresési oldallal is (nem csak `/szemelyauto/tesla`)
 - **Telefonszámok**: automatikus „felfedés” gomb kattintás (lista sor vagy hirdetés oldal)
+- **Lapozás**: automatikusan bejárja az összes lista oldalt (1 → utolsó)
 
 ## Telepítés (egyszer)
 
@@ -36,4 +37,5 @@ npx playwright install chromium
 npm run chrome          # csak Chrome indítása
 npm start -- --debug    # hiba esetén HTML mentése
 npm start -- --no-phones  # telefonszámok kihagyása (gyorsabb)
+npm start -- --single-page  # csak az aktuális oldal (nincs lapozás)
 ```

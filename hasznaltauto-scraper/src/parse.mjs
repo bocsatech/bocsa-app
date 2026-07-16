@@ -266,11 +266,12 @@ export function formatSingleResultText(data) {
   return lines.join("\n");
 }
 
-export function formatListResultText({ listUrl, results }) {
+export function formatListResultText({ listUrl, results, pagesScraped = 1 }) {
   const lines = [
     "Hasznaltauto.hu — kinyert adatok",
     "================================",
     `Lista oldal: ${shortUrl(listUrl, 120)}`,
+    `Bejárt lista oldalak: ${pagesScraped}`,
     `Talált hirdetések: ${results.length}`,
     `Mentve: ${new Date().toLocaleString("hu-HU")}`,
     "",

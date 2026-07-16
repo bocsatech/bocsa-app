@@ -6,6 +6,7 @@ import {
   collectSubListLinksFromPage,
 } from "./links.mjs";
 import { sleep, startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs";
+import { buildListPageUrl, extractPaginationFromHtml, getPageNumberFromUrl, stripPageFromUrl } from "./pagination.mjs";
 import { shortUrl } from "./url-utils.mjs";
 
 const USER_AGENT =
@@ -13,6 +14,7 @@ const USER_AGENT =
 
 export const DEFAULT_CDP_URL = "http://127.0.0.1:9222";
 const MAX_SUB_LISTS = 20;
+const MAX_LIST_PAGES = 300;
 const CLOUDFLARE_WAIT_SECONDS = 20;
 const CLOUDFLARE_MAX_ROUNDS = 3;
 const CLOUDFLARE_POLL_MS = 500;
@@ -378,6 +380,147 @@ export async function collectListingLinksFromCurrentPage(
   return {
     listings: [...all].sort((a, b) => a.localeCompare(b, "hu")),
     listUrl: currentUrl,
+  };
+}
+
+export async function getPaginationState(page) {
+  const currentUrl = page.url();
+  const html = await page.content();
+  const fromHtml = extractPaginationFromHtml(html, currentUrl);
+
+  const live = await page.evaluate(() => {
+    const numbers = new Set();
+    let nextHref = null;
+
+    const addNum = (value) => {
+      const num = Number.parseInt(String(value ?? "").trim(), 10);
+      if (Number.isFinite(num) && num > 0 && num <= 500) numbers.add(num);
+    };
+
+    const roots = [
+      ...document.querySelectorAll('.pagination, .lapozo, nav, [class*="paginat"], [class*="lapozo"]'),
+      document.body,
+    ];
+
+    for (const root of roots) {
+      root.querySelectorAll("a[href], strong, b, span").forEach((node) => {
+        addNum(node.textContent);
+        const href = node.getAttribute?.("href") || "";
+        const match = href.match(/\/page(\d+)/i);
+        if (match) addNum(match[1]);
+      });
+
+      root.querySelectorAll('.active, .current, .aktiv, [aria-current="page"]').forEach((node) => {
+        addNum(node.textContent);
+      });
+    }
+
+    const nextLink = [...document.querySelectorAll('a[href][rel="next"], a[href*="page"]')].find((anchor) => {
+      const text = `${anchor.textContent || ""} ${anchor.getAttribute("title") || ""}`;
+      return /→|›|»|k\u00f6vetkez|next/i.test(text);
+    });
+
+    if (nextLink?.href) nextHref = nextLink.href;
+
+    return {
+      maxPage: numbers.size > 0 ? Math.max(...numbers) : 1,
+      nextHref,
+    };
+  });
+
+  return {
+    currentPage: fromHtml.currentPage,
+    maxPage: Math.max(fromHtml.maxPage, live.maxPage),
+    nextHref: live.nextHref || fromHtml.nextHref,
+    hasPagination: Math.max(fromHtml.maxPage, live.maxPage) > 1 || Boolean(live.nextHref || fromHtml.nextHref),
+  };
+}
+
+async function gotoListPage(page, targetUrl) {
+  const before = page.url();
+  await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+  await dismissCookieBanner(page);
+  await page.waitForTimeout(900);
+  return page.url() !== before || getPageNumberFromUrl(page.url()) !== getPageNumberFromUrl(before);
+}
+
+export async function collectCardsFromAllPages(
+  page,
+  { onProgress, paginate = true, listPhones = new Map() } = {}
+) {
+  const allCards = new Map();
+  const baseUrl = stripPageFromUrl(page.url());
+  let pageNum = getPageNumberFromUrl(page.url());
+  let pagesScraped = 0;
+
+  while (pagesScraped < MAX_LIST_PAGES) {
+    pagesScraped += 1;
+    onProgress?.(`Lista oldal ${pageNum} beolvasása...`);
+
+    await scrollPage(page, { steps: 6 });
+    await page.waitForTimeout(400);
+
+    let cards = await extractListingCardsFromPage(page);
+    if (cards.length === 0) {
+      const links = await collectListingLinksFromPage(page, baseUrl);
+      cards = links.map((url) => ({ url, text: "", title: "" }));
+    }
+
+    if (cards.length === 0) {
+      if (pageNum > 1) break;
+      return { cards: [], listPhones, pagesScraped: 0, startUrl: baseUrl };
+    }
+
+    for (const card of cards) {
+      if (!allCards.has(card.url)) allCards.set(card.url, card);
+    }
+
+    const pagePhones = await tryRevealPhonesOnListRows(page);
+    for (const [url, phone] of pagePhones) {
+      if (!listPhones.has(url)) listPhones.set(url, phone);
+    }
+
+    onProgress?.(`  → ${cards.length} hirdetés (összesen: ${allCards.size})`);
+
+    if (!paginate) break;
+
+    const pagination = await getPaginationState(page);
+    const hasMore = Boolean(pagination.nextHref) || pageNum < pagination.maxPage;
+    if (!hasMore) break;
+
+    const nextPageNum = pageNum + 1;
+    let moved = false;
+
+    if (pagination.nextHref) {
+      try {
+        const nextUrl = new URL(pagination.nextHref, page.url()).toString();
+        moved = await gotoListPage(page, nextUrl);
+      } catch {
+        moved = false;
+      }
+    }
+
+    if (!moved) {
+      try {
+        const nextUrl = buildListPageUrl(baseUrl, nextPageNum);
+        await gotoListPage(page, nextUrl);
+        const probe = await extractListingCardsFromPage(page);
+        if (probe.length === 0) break;
+        moved = true;
+      } catch {
+        break;
+      }
+    }
+
+    if (!moved) break;
+    pageNum = getPageNumberFromUrl(page.url()) || nextPageNum;
+  }
+
+  return {
+    cards: [...allCards.values()],
+    listPhones,
+    pagesScraped,
+    startUrl: baseUrl,
   };
 }
 

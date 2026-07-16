@@ -6,7 +6,10 @@ export function shortUrl(url, max = 70) {
 
 export function slugFromListUrl(url) {
   const parts = new URL(url).pathname.split("/").filter(Boolean);
-  const last = parts[parts.length - 1] || "lista";
+  let last = parts[parts.length - 1] || "lista";
+  if (/^page\d+$/i.test(last)) {
+    last = parts[parts.length - 2] || "talalatilista";
+  }
   if (last.length > 24) {
     return parts[parts.length - 2] || "talalatilista";
   }

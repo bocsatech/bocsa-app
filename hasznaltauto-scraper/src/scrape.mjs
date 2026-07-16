@@ -1,5 +1,6 @@
 import {
   closeSession,
+  collectCardsFromAllPages,
   collectListingLinksFromCurrentPage,
   connectToOpenBrowser,
   DEFAULT_CDP_URL,
@@ -14,6 +15,7 @@ import {
   tryRevealPhonesOnListRows,
 } from "./browser.mjs";
 import { isListPageUrl, isListingUrl } from "./links.mjs";
+import { stripPageFromUrl } from "./pagination.mjs";
 import { formatListResultText, formatSingleResultText, parseListingCard } from "./parse.mjs";
 import { shortUrl } from "./url-utils.mjs";
 
@@ -35,10 +37,9 @@ async function openSession({ connect = false, headless = true, profileDir, start
   return launchBrowser({ profileDir, headless });
 }
 
-async function enrichResultsWithPhones(page, results, { onProgress, listUrl } = {}) {
+async function enrichResultsWithPhones(page, results, { onProgress, listUrl, listPhones = new Map() } = {}) {
   onProgress?.("Telefonszámok: felfedés gombra kattintás...");
 
-  const listPhones = await tryRevealPhonesOnListRows(page);
   let fromList = 0;
 
   for (const item of results) {
@@ -46,6 +47,17 @@ async function enrichResultsWithPhones(page, results, { onProgress, listUrl } = 
     if (listed) {
       item.telefonszam = listed;
       fromList += 1;
+    }
+  }
+
+  if (fromList === 0) {
+    const currentListPhones = await tryRevealPhonesOnListRows(page);
+    for (const item of results) {
+      const listed = currentListPhones.get(item.url);
+      if (listed) {
+        item.telefonszam = listed;
+        fromList += 1;
+      }
     }
   }
 
@@ -83,7 +95,7 @@ async function enrichResultsWithPhones(page, results, { onProgress, listUrl } = 
 async function scrapeCardsFromPage(
   page,
   listUrl,
-  { onProgress, deep = false, debug = false, manualReady = false, fetchPhones = true } = {}
+  { onProgress, deep = false, debug = false, manualReady = false, fetchPhones = true, paginate = true } = {}
 ) {
   const currentUrl = page.url();
   onProgress?.(`Megnyitott oldal: ${shortUrl(currentUrl)}`);
@@ -96,7 +108,20 @@ async function scrapeCardsFromPage(
     await preparePageForScraping(page, { onProgress });
   }
 
-  let cards = await extractListingCardsFromPage(page);
+  const listPhones = new Map();
+  let cards = [];
+  let pagesScraped = 1;
+  let resolvedListUrl = stripPageFromUrl(currentUrl);
+
+  if (paginate) {
+    onProgress?.("Összes lista oldal bejárása (utolsó oldalig)...");
+    const collected = await collectCardsFromAllPages(page, { onProgress, paginate: true, listPhones });
+    cards = collected.cards;
+    pagesScraped = collected.pagesScraped;
+    resolvedListUrl = collected.startUrl;
+  } else {
+    cards = await extractListingCardsFromPage(page);
+  }
 
   if (cards.length === 0) {
     const { listings } = await collectListingLinksFromCurrentPage(page, listUrl, {
@@ -121,21 +146,26 @@ async function scrapeCardsFromPage(
     );
   }
 
-  onProgress?.(`Kinyert hirdetések: ${cards.length} db`);
+  onProgress?.(`Kinyert hirdetések: ${cards.length} db (${pagesScraped} oldal)`);
 
   let results = cards.map((card) => parseListingCard(card));
 
   if (fetchPhones) {
-    results = await enrichResultsWithPhones(page, results, { onProgress, listUrl: currentUrl });
+    results = await enrichResultsWithPhones(page, results, {
+      onProgress,
+      listUrl: resolvedListUrl,
+      listPhones,
+    });
   }
 
-  const text = formatListResultText({ listUrl: currentUrl, results });
+  const text = formatListResultText({ listUrl: resolvedListUrl, results, pagesScraped });
 
   return {
-    listUrl: currentUrl,
+    listUrl: resolvedListUrl,
     listingLinks: cards.map((c) => c.url),
     results,
     text,
+    pagesScraped,
   };
 }
 
@@ -149,6 +179,7 @@ async function scrapeListPageOnce(url, options = {}) {
     deep = false,
     manualReady = false,
     fetchPhones = true,
+    paginate = true,
   } = options;
 
   const listUrl = url ? normalizeInputUrl(url) : null;
@@ -182,6 +213,7 @@ async function scrapeListPageOnce(url, options = {}) {
       debug,
       manualReady,
       fetchPhones,
+      paginate,
     });
   } finally {
     if (!external) {

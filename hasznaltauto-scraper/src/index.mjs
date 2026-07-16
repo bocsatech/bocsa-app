@@ -20,6 +20,7 @@ function parseArgs(argv) {
     deep: false,
     debug: false,
     noPhones: false,
+    singlePage: false,
     linkFile: join(process.cwd(), "link.txt"),
   };
 
@@ -44,6 +45,10 @@ function parseArgs(argv) {
     }
     if (arg === "--no-phones") {
       options.noPhones = true;
+      continue;
+    }
+    if (arg === "--single-page") {
+      options.singlePage = true;
       continue;
     }
     if (arg === "--output" || arg === "-o") {
@@ -118,6 +123,7 @@ async function main() {
         "4) Ha látod a hirdetéseket, nyomj ENTER-t itt",
         "",
         "A program minden hirdetésnél rákattint a „Telefonszám felfedése” gombra.",
+        "Az összes lista oldalt bejárja (1 → utolsó oldal).",
       ].join("\n")
     );
   } else if (url) {
@@ -131,6 +137,7 @@ async function main() {
     debug: options.debug,
     manualReady: options.connect,
     fetchPhones: !options.noPhones,
+    paginate: !options.singlePage,
     onProgress: (message) => console.log(message),
   });
 
