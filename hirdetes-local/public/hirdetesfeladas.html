@@ -66,7 +66,7 @@
                   </select>
                 </div>
 
-                <div class="vehicle-row full">
+                <div class="field-row full">
                   <div class="labeled-field">
                     <label for="gyartmany">Gyártmány: <span class="req">*</span></label>
                     <select id="gyartmany" name="gyartmany" required>
@@ -125,19 +125,24 @@
                   </div>
                 </div>
 
-                <label for="okmany_jelleg">Okmányok jellege: <span class="req">*</span></label>
-                <select id="okmany_jelleg" name="okmany_jelleg" required>
-                  <option value="">Válasszon</option>
-                  <option>Érvényes magyar okmányokkal</option>
-                  <option>Érvényes külföldi okmányokkal</option>
-                </select>
-
-                <label for="okmany_ervenyesseg">Okmányok érvényessége: <span class="req">*</span></label>
-                <select id="okmany_ervenyesseg" name="okmany_ervenyesseg" required>
-                  <option value="">Válasszon</option>
-                  <option>Érvényes</option>
-                  <option>Lejárt</option>
-                </select>
+                <div class="field-row full">
+                  <div class="labeled-field">
+                    <label for="okmany_jelleg">Okmányok jellege: <span class="req">*</span></label>
+                    <select id="okmany_jelleg" name="okmany_jelleg" required>
+                      <option value="">Válasszon</option>
+                      <option>Érvényes magyar okmányokkal</option>
+                      <option>Érvényes külföldi okmányokkal</option>
+                    </select>
+                  </div>
+                  <div class="labeled-field">
+                    <label for="okmany_ervenyesseg">Okmányok érvényessége: <span class="req">*</span></label>
+                    <select id="okmany_ervenyesseg" name="okmany_ervenyesseg" required>
+                      <option value="">Válasszon</option>
+                      <option>Érvényes</option>
+                      <option>Lejárt</option>
+                    </select>
+                  </div>
+                </div>
 
                 <label>Műszaki vizsga érvényes:</label>
                 <div class="inline-2">
