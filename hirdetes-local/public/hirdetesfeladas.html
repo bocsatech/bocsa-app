@@ -218,24 +218,6 @@
           </div>
 
           <div class="card">
-            <div class="card-head">Felszereltség</div>
-            <div class="card-body">
-              <p class="hint">
-                Automatikus extra lista kitöltése: A rendszer automatikusan kitölti az autó felszereltségét a
-                rendelkezésre álló adatok alapján. Hirdetés véglegesítése előtt kérjük, mindig ellenőrizze ezek
-                valódiságát.
-              </p>
-              <div class="form-grid compact">
-                <label for="klima">Klíma</label>
-                <select id="klima" name="klima">
-                  <option value="">—</option>
-                </select>
-              </div>
-              <div id="equipment-sections"></div>
-            </div>
-          </div>
-
-          <div class="card">
             <div class="card-head">Leírás és elérhetőség</div>
             <div class="card-body form-grid">
               <label for="leiras">Leírás:</label>
@@ -448,7 +430,25 @@
 
         <section class="step-panel hidden" data-step="3">
           <div class="card">
-            <div class="card-head">Extrák</div>
+            <div class="card-head">Felszereltség</div>
+            <div class="card-body">
+              <p class="hint">
+                Automatikus extra lista kitöltése: A rendszer automatikusan kitölti az autó felszereltségét a
+                rendelkezésre álló adatok alapján. Hirdetés véglegesítése előtt kérjük, mindig ellenőrizze ezek
+                valódiságát.
+              </p>
+              <div class="form-grid compact">
+                <label for="klima">Klíma</label>
+                <select id="klima" name="klima">
+                  <option value="">—</option>
+                </select>
+              </div>
+              <div id="equipment-sections"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">Hirdetési csomag</div>
             <div class="card-body packages">
               <label class="package selected">
                 <input type="radio" name="csomag" value="ingyenes" checked hidden />
