@@ -1,7 +1,8 @@
 import {
-  collectListingLinksWithRetry,
+  collectAllListingLinks,
   launchBrowser,
   revealPhoneNumber,
+  saveDebugHtml,
   waitForListingPage,
 } from "./browser.mjs";
 import { isListPageUrl } from "./links.mjs";
@@ -49,7 +50,7 @@ export async function scrapeListing(url, { headless = true, profileDir } = {}) {
   }
 }
 
-async function scrapeListPageOnce(url, { headless = true, profileDir, onProgress } = {}) {
+async function scrapeListPageOnce(url, { headless = true, profileDir, onProgress, debug = false } = {}) {
   const listUrl = normalizeInputUrl(url);
   const { context } = await launchBrowser({ profileDir, headless });
   const page = await preparePage(context);
@@ -57,23 +58,26 @@ async function scrapeListPageOnce(url, { headless = true, profileDir, onProgress
   try {
     onProgress?.(headless ? "Oldal betöltése (háttérben)..." : "Oldal betöltése (látható böngésző)...");
 
-    await page.goto(listUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
-    await page.waitForTimeout(3000);
-
-    const listingLinks = await collectListingLinksWithRetry(page, listUrl);
+    const listingLinks = await collectAllListingLinks(page, listUrl, { onProgress, debug });
 
     if (listingLinks.length === 0) {
+      if (debug) await saveDebugHtml(page, "hiba");
       throw new Error(
-        "Nem találtunk hirdetés linket. Futtasd így: npm start -- \"LINK\" --headed"
+        [
+          "Nem találtunk hirdetés linket.",
+          "1) Futtasd: npm start -- \"LINK\" --headed",
+          "2) Várj, amíg betölt az oldal (Cloudflare ellenőrzés ha kell).",
+          "3) Ellenőrizd: git pull origin main (verzió 1.1.0+)",
+        ].join("\n")
       );
     }
 
-    onProgress?.(`Talált hirdetések: ${listingLinks.length}`);
+    onProgress?.(`Összesen feldolgozandó hirdetés: ${listingLinks.length}`);
 
     const results = [];
     for (let i = 0; i < listingLinks.length; i += 1) {
       const listingUrl = listingLinks[i];
-      onProgress?.(`[${i + 1}/${listingLinks.length}] ${listingUrl}`);
+      onProgress?.(`Hirdetés [${i + 1}/${listingLinks.length}]`);
       try {
         const item = await scrapeListingFromPage(page, listingUrl);
         results.push(item);
@@ -114,11 +118,12 @@ export async function scrapeListPage(url, options = {}) {
     throw new Error("A megadott link nem lista oldal, hanem egy konkrét hirdetés.");
   }
 
-  try {
-    return await scrapeListPageOnce(listUrl, options);
-  } catch (error) {
-    if (options.headless === false) throw error;
+  const headless = options.headless !== false;
 
+  try {
+    return await scrapeListPageOnce(listUrl, { ...options, headless });
+  } catch (error) {
+    if (!headless) throw error;
     options.onProgress?.("Nem sikerült háttérben. Újrapróbálás látható böngészővel...");
     return scrapeListPageOnce(listUrl, { ...options, headless: false });
   }

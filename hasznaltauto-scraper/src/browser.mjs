@@ -1,10 +1,15 @@
 import { chromium } from "playwright";
-import { mkdirSync } from "fs";
+import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
-import { collectListingLinksFromPage } from "./links.mjs";
+import {
+  collectListingLinksFromPage,
+  collectSubListLinksFromPage,
+} from "./links.mjs";
 
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+const MAX_SUB_LISTS = 20;
 
 export async function launchBrowser({ profileDir, headless = true } = {}) {
   const resolvedProfile = profileDir ?? join(process.cwd(), ".browser-profile");
@@ -50,7 +55,7 @@ async function waitForPage(page, isReady, timeoutMs = 120000) {
   }
 
   throw new Error(
-    "Az oldal nem töltődött be időben. Indítsd --headed módban, és ha kell, végezd el a Cloudflare ellenőrzést."
+    "Az oldal nem töltődött be időben. Futtasd --headed módban, és ha kell, végezd el a Cloudflare ellenőrzést."
   );
 }
 
@@ -79,6 +84,15 @@ export async function dismissCookieBanner(page) {
   }
 }
 
+async function scrollPage(page) {
+  for (let step = 0; step < 6; step += 1) {
+    await page.evaluate((offset) => window.scrollTo(0, offset), step * 900);
+    await page.waitForTimeout(1000);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(500);
+}
+
 export async function waitForListingPage(page, timeoutMs = 120000) {
   return waitForPage(
     page,
@@ -87,7 +101,7 @@ export async function waitForListingPage(page, timeoutMs = 120000) {
   );
 }
 
-export async function collectListingLinksWithRetry(page, baseUrl, { timeoutMs = 90000 } = {}) {
+export async function collectListingLinksWithRetry(page, baseUrl, { timeoutMs = 60000 } = {}) {
   const started = Date.now();
   let best = [];
 
@@ -99,11 +113,7 @@ export async function collectListingLinksWithRetry(page, baseUrl, { timeoutMs = 
     }
 
     await dismissCookieBanner(page);
-
-    for (let step = 0; step < 4; step += 1) {
-      await page.evaluate((offset) => window.scrollTo(0, offset), step * 900);
-      await page.waitForTimeout(1200);
-    }
+    await scrollPage(page);
 
     const links = await collectListingLinksFromPage(page, baseUrl);
     if (links.length > best.length) best = links;
@@ -113,6 +123,53 @@ export async function collectListingLinksWithRetry(page, baseUrl, { timeoutMs = 
   }
 
   return best;
+}
+
+export async function saveDebugHtml(page, label = "debug") {
+  const dir = join(process.cwd(), "output");
+  mkdirSync(dir, { recursive: true });
+  const path = join(dir, `${label}-oldal.html`);
+  writeFileSync(path, await page.content(), "utf8");
+  return path;
+}
+
+export async function collectAllListingLinks(page, listUrl, { onProgress, debug = false } = {}) {
+  await page.goto(listUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+  await page.waitForTimeout(4000);
+
+  let listings = await collectListingLinksWithRetry(page, listUrl, { timeoutMs: 45000 });
+  if (listings.length > 0) {
+    onProgress?.(`Közvetlen hirdetések: ${listings.length}`);
+    return listings;
+  }
+
+  const subLists = await collectSubListLinksFromPage(page, listUrl);
+  if (subLists.length === 0) {
+    if (debug) {
+      const path = await saveDebugHtml(page, "hiba");
+      onProgress?.(`Hibakereső HTML mentve: ${path}`);
+    }
+    return [];
+  }
+
+  onProgress?.(`Nincs közvetlen hirdetés. Alkategóriák bejárása: ${subLists.length} db`);
+
+  const all = new Set();
+  const targets = subLists.slice(0, MAX_SUB_LISTS);
+
+  for (let i = 0; i < targets.length; i += 1) {
+    const subUrl = targets[i];
+    onProgress?.(`[${i + 1}/${targets.length}] ${subUrl}`);
+
+    await page.goto(subUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+    await page.waitForTimeout(3000);
+
+    const found = await collectListingLinksWithRetry(page, subUrl, { timeoutMs: 45000 });
+    found.forEach((link) => all.add(link));
+    onProgress?.(`  → ${found.length} hirdetés`);
+  }
+
+  return [...all].sort((a, b) => a.localeCompare(b, "hu"));
 }
 
 export async function revealPhoneNumber(page) {

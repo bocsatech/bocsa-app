@@ -13,10 +13,10 @@ Két típusú linket ismer fel:
 
 ### Lista oldal működése
 
-1. Megnyitja a megadott oldalt (pl. Tesla lista).
-2. **Az aktuális oldalon látható hirdetés linkeket** kigyűjti.  
-   Az alhirdetések mindig változnak — a program minden futtatáskor az éppen ott lévő linkeket dolgozza fel.
-3. Egyenként megnyitja az összes talált hirdetést.
+1. Megnyitja a megadott oldalt (pl. Tesla márka oldal).
+2. Ha **közvetlen hirdetés linkek** vannak, azokat gyűjti.
+3. Ha nincs (pl. `/szemelyauto/tesla` csak modelleket mutat), **automatikusan bejárja az alkategóriákat** (`model_3`, `model_y` stb.), és onnan gyűjti a hirdetéseket.
+4. Egyenként megnyitja az összes talált hirdetést.
 4. Mindegyikből kiolvassa:
    - jármű típusát
    - árát
@@ -42,10 +42,11 @@ npx playwright install chromium
 ### Tesla lista (ajánlott)
 
 ```bash
+git pull origin main
 npm start -- "https://www.hasznaltauto.hu/szemelyauto/tesla" --headed
 ```
 
-Az első futtatáskor a `--headed` kapcsoló ajánlott (látható böngésző). Ha a háttérben nem talál linket, a program automatikusan újrapróbálja látható módban is.
+Induláskor látnod kell: `hasznaltauto-scraper v1.1.0` — ha nem, régi kód fut.
 
 ### Link fájlba (`link.txt`)
 

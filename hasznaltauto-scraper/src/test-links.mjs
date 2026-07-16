@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import {
   extractListingLinksFromHtml,
+  extractSubListLinksFromHtml,
   isListPageUrl,
   isListingUrl,
 } from "./links.mjs";
@@ -13,12 +14,18 @@ const listingUrl =
 if (!isListPageUrl(listUrl)) throw new Error("lista URL felismerés hibás");
 if (!isListingUrl(listingUrl)) throw new Error("hirdetés URL felismerés hibás");
 
-const html = readFileSync(join(process.cwd(), "fixtures", "sample-list-page.html"), "utf8");
-const links = extractListingLinksFromHtml(html, listUrl);
-
+const listHtml = readFileSync(join(process.cwd(), "fixtures", "sample-list-page.html"), "utf8");
+const links = extractListingLinksFromHtml(listHtml, listUrl);
 if (links.length !== 2) {
-  throw new Error(`2 link várható, kaptunk: ${links.length} → ${links.join(", ")}`);
+  throw new Error(`2 hirdetés link várható, kaptunk: ${links.length}`);
+}
+
+const brandHtml = readFileSync(join(process.cwd(), "fixtures", "sample-brand-page.html"), "utf8");
+const subLinks = extractSubListLinksFromHtml(brandHtml, listUrl);
+if (subLinks.length !== 2) {
+  throw new Error(`2 alkategória várható, kaptunk: ${subLinks.length}`);
 }
 
 console.log("✓ link kinyerés teszt sikeres");
-console.log(links.join("\n"));
+console.log("hirdetések:", links.join("\n"));
+console.log("alkategóriák:", subLinks.join("\n"));

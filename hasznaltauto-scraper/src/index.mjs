@@ -1,16 +1,20 @@
 import { createInterface } from "readline/promises";
 import { stdin as input, stdout as output } from "process";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
-import { join } from "path";
-import { isListPageUrl } from "./links.mjs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+import { isListPageUrl, slugFromListUrl } from "./links.mjs";
 import { scrapeUrl } from "./scrape.mjs";
-import { slugFromListUrl } from "./links.mjs";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"));
 
 function parseArgs(argv) {
   const options = {
     url: null,
     output: null,
     headed: false,
+    debug: false,
     linkFile: join(process.cwd(), "link.txt"),
   };
 
@@ -18,6 +22,10 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === "--headed") {
       options.headed = true;
+      continue;
+    }
+    if (arg === "--debug") {
+      options.debug = true;
       continue;
     }
     if (arg === "--output" || arg === "-o") {
@@ -83,10 +91,12 @@ async function main() {
   const url = await resolveUrl(options);
   const listMode = isListPageUrl(url);
 
+  console.log(`hasznaltauto-scraper v${pkg.version}`);
   console.log(listMode ? "Lista oldal feldolgozása:" : "Hirdetés feldolgozása:", url);
 
   const result = await scrapeUrl(url, {
     headless: !options.headed,
+    debug: options.debug,
     onProgress: (message) => console.log(message),
   });
 
