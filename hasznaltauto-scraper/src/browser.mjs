@@ -6,6 +6,7 @@ import {
   collectSubListLinksFromPage,
 } from "./links.mjs";
 import { sleep, startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs";
+import { shortUrl } from "./url-utils.mjs";
 
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -99,13 +100,34 @@ export async function closeSession(session) {
 
 export async function findHasznaltautoPage(context) {
   const pages = context.pages().filter((page) => !page.isClosed());
-  for (const page of pages.reverse()) {
+  if (pages.length === 0) return null;
+
+  const candidates = [];
+  for (const page of pages) {
     const url = page.url();
-    if (/hasznaltauto\.hu/i.test(url) && !/cloudflare/i.test(url)) {
-      return page;
+    if (!/hasznaltauto\.hu/i.test(url) || /cloudflare/i.test(url)) continue;
+
+    let score = 0;
+    if (/talalatilista/i.test(url)) score += 100;
+    if (/\/szemelyauto\//i.test(url)) score += 20;
+
+    try {
+      const signals = await page.evaluate(() => ({
+        rows: document.querySelectorAll(".talalati-sor, .row.talalati-sor").length,
+        links: document.querySelectorAll("a[href*='/szemelyauto/']").length,
+      }));
+      score += signals.rows * 5 + Math.min(signals.links, 50);
+    } catch {
+      /* lap még tölt */
     }
+
+    candidates.push({ page, score, url });
   }
-  return pages.at(-1) ?? null;
+
+  if (candidates.length === 0) return pages.at(-1) ?? null;
+
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0].page;
 }
 
 export async function waitForHasznaltautoPage(context, { onProgress, timeoutMs = 120000 } = {}) {
@@ -155,7 +177,7 @@ export function isHasznaltautoContentReady(title, html, url = "") {
 
   if (/szemelyauto\/.+-\d{5,}/i.test(html)) return true;
   if (/hirdetesadatok|Alapadatok/i.test(html)) return true;
-  if (/találati|talalati|hirdetés találat/i.test(html)) return true;
+  if (/találati|talalati|talalatilista/i.test(url) || /talalatilista/i.test(html)) return true;
   if (
     /\/szemelyauto\//i.test(url) &&
     html.length > 25000 &&
@@ -246,12 +268,19 @@ export async function dismissCookieBanner(page) {
   }
 }
 
-async function scrollPage(page) {
-  for (let step = 0; step < 4; step += 1) {
+async function scrollPage(page, { steps = 6 } = {}) {
+  for (let step = 0; step < steps; step += 1) {
     await page.evaluate((offset) => window.scrollTo(0, offset), step * 900);
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(500);
   }
   await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(400);
+}
+
+export async function preparePageForScraping(page, { onProgress } = {}) {
+  onProgress?.("Oldal előkészítése (süti, görgetés)...");
+  await dismissCookieBanner(page);
+  await scrollPage(page, { steps: 8 });
 }
 
 export async function waitForListingPage(page, timeoutMs = 120000) {
@@ -298,16 +327,22 @@ export async function saveDebugHtml(page, label = "debug") {
   return path;
 }
 
-export async function collectListingLinksFromCurrentPage(page, listUrl, { onProgress, deep = false, debug = false } = {}) {
+export async function collectListingLinksFromCurrentPage(
+  page,
+  listUrl,
+  { onProgress, deep = false, debug = false, manualReady = false } = {}
+) {
   const currentUrl = page.url();
-  onProgress?.(`Megnyitott oldal használata: ${currentUrl}`);
+  onProgress?.(`Lista beolvasása: ${shortUrl(currentUrl)}`);
 
   if (!/hasznaltauto\.hu/i.test(currentUrl)) {
-    throw new Error("A megnyitott lap nem hasznaltauto.hu. Nyisd meg a Tesla listát Chrome-ban.");
+    throw new Error("A megnyitott lap nem hasznaltauto.hu.");
   }
 
   const baseUrl = listUrl || currentUrl;
-  let listings = await collectListingLinksWithRetry(page, baseUrl, { timeoutMs: 30000, onProgress });
+  let listings = manualReady
+    ? await collectListingLinksFromPage(page, baseUrl)
+    : await collectListingLinksWithRetry(page, baseUrl, { timeoutMs: 15000, onProgress });
 
   if (listings.length > 0) {
     onProgress?.(`Hirdetések a megnyitott oldalon: ${listings.length}`);
@@ -348,33 +383,43 @@ export async function collectListingLinksFromCurrentPage(page, listUrl, { onProg
 
 export async function extractListingCardsFromPage(page) {
   return page.evaluate(() => {
-    const listingRe = /\/szemelyauto\/.+-\d{5,}$/;
+    const listingRe = /\/szemelyauto\/[^?#]+-\d{5,}/i;
     const seen = new Set();
     const cards = [];
 
-    for (const anchor of document.querySelectorAll("a[href]")) {
+    const addCard = (url, container, title) => {
       try {
-        const url = new URL(anchor.href, window.location.href);
-        if (!listingRe.test(url.pathname)) continue;
-
-        const clean = `${url.origin}${url.pathname}`;
-        if (seen.has(clean)) continue;
+        const absolute = new URL(url, window.location.href);
+        if (!listingRe.test(absolute.pathname)) return;
+        const clean = `${absolute.origin}${absolute.pathname}`;
+        if (seen.has(clean)) return;
         seen.add(clean);
-
-        const container =
-          anchor.closest(
-            'article,[class*="talalat"],[class*="listing"],[class*="hirdetes"],[class*="card"],li,tr'
-          ) ||
-          anchor.parentElement?.parentElement ||
-          anchor.parentElement;
-
-        const text = (container || anchor).innerText.replace(/\s+/g, " ").trim();
-        const title = anchor.innerText.replace(/\s+/g, " ").trim();
-
-        cards.push({ url: clean, text, title });
+        const text = (container || document.body).innerText?.replace(/\s+/g, " ").trim() ?? "";
+        cards.push({ url: clean, text, title: title?.trim() || "" });
       } catch {
         /* skip */
       }
+    };
+
+    for (const row of document.querySelectorAll(".row.talalati-sor, .talalati-sor")) {
+      const anchor =
+        row.querySelector(".cim-kontener h3 a") ||
+        row.querySelector("h3 a[href*='/szemelyauto/']") ||
+        row.querySelector("a[href*='/szemelyauto/']");
+      if (!anchor) continue;
+      addCard(anchor.href, row, anchor.innerText);
+    }
+
+    for (const anchor of document.querySelectorAll("a[href]")) {
+      const container =
+        anchor.closest(
+          'article,[class*="talalat"],[class*="listing"],[class*="hirdetes"],[class*="card"],[class*="row"],li,tr,div'
+        ) || anchor.parentElement;
+      addCard(anchor.href, container, anchor.innerText);
+    }
+
+    for (const node of document.querySelectorAll("[data-href],[data-url]")) {
+      addCard(node.getAttribute("data-href") || node.getAttribute("data-url"), node.parentElement, node.textContent);
     }
 
     return cards;

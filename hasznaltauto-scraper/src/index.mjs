@@ -3,7 +3,9 @@ import { stdin as input, stdout as output } from "process";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { isListPageUrl, slugFromListUrl } from "./links.mjs";
+import { isListPageUrl } from "./links.mjs";
+import { slugFromListUrl } from "./url-utils.mjs";
+import { waitForUserReady } from "./ready.mjs";
 import { scrapeUrl } from "./scrape.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -14,7 +16,7 @@ function parseArgs(argv) {
     url: null,
     output: null,
     headed: false,
-    connect: false,
+    connect: true,
     deep: false,
     debug: false,
     linkFile: join(process.cwd(), "link.txt"),
@@ -23,6 +25,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--headed") {
+      options.connect = false;
       options.headed = true;
       continue;
     }
@@ -90,7 +93,7 @@ async function resolveUrl(options) {
   if (fromFile) return fromFile;
 
   const rl = createInterface({ input, output });
-  const typed = await rl.question("Illeszd be a hasznaltauto.hu linket (lista vagy hirdetés): ");
+  const typed = await rl.question("Illeszd be a hasznaltauto.hu linket: ");
   rl.close();
   return typed.trim();
 }
@@ -102,9 +105,16 @@ async function main() {
   console.log(`hasznaltauto-scraper v${pkg.version}`);
 
   if (options.connect) {
-    console.log("Mód: megnyitott Chrome lap használata (--connect)");
+    await waitForUserReady(
+      [
+        "1) Chrome megnyílik (vagy már nyitva van)",
+        "2) Nyisd meg / görgess le a hasznaltauto.hu listán",
+        "3) Cloudflare: igazold, hogy ember vagy",
+        "4) Ha látod a hirdetéseket, nyomj ENTER-t itt",
+      ].join("\n")
+    );
   } else if (url) {
-    console.log(isListPageUrl(url) ? "Lista oldal feldolgozása:" : "Hirdetés feldolgozása:", url);
+    console.log(isListPageUrl(url) ? "Lista:" : "Hirdetés:", url);
   }
 
   const result = await scrapeUrl(url, {
@@ -112,6 +122,7 @@ async function main() {
     deep: options.deep,
     headless: !options.headed,
     debug: options.debug,
+    manualReady: options.connect,
     onProgress: (message) => console.log(message),
   });
 

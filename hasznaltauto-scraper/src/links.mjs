@@ -1,3 +1,5 @@
+import { shortUrl } from "./url-utils.mjs";
+
 const HASZNALTAUTO_HOST = "hasznaltauto.hu";
 const LISTING_PATH_RE = /\/szemelyauto\/.+-\d{5,}$/i;
 const LISTING_URL_RE = /https?:\/\/(?:www\.)?hasznaltauto\.hu\/szemelyauto\/.+-\d{5,}/gi;
@@ -142,7 +144,4 @@ export async function collectSubListLinksFromPage(page, listUrl) {
   return [...unique].sort((a, b) => a.localeCompare(b, "hu"));
 }
 
-export function slugFromListUrl(url) {
-  const parts = new URL(url).pathname.split("/").filter(Boolean);
-  return parts[parts.length - 1] || "lista";
-}
+export { slugFromListUrl } from "./url-utils.mjs";

@@ -1,3 +1,5 @@
+import { shortUrl } from "./url-utils.mjs";
+
 const PHONE_RE = /(?:\+36|06)\s*[\d\s/-]{7,14}\d/;
 
 const YEAR_KEYS = ["évjárat", "gyártási év", "gyartasi ev"];
@@ -268,7 +270,7 @@ export function formatListResultText({ listUrl, results }) {
   const lines = [
     "Hasznaltauto.hu — kinyert adatok",
     "================================",
-    `Lista oldal: ${listUrl}`,
+    `Lista oldal: ${shortUrl(listUrl, 120)}`,
     `Talált hirdetések: ${results.length}`,
     `Mentve: ${new Date().toLocaleString("hu-HU")}`,
     "",

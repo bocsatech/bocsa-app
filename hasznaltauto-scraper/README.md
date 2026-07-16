@@ -1,66 +1,37 @@
-# Hasznaltauto.hu scraper
+# Hasznaltauto.hu scraper — egyszerű mód
 
-A **megnyitott Chrome lapot** használja — nem nyit új oldalakat.
-
-## Gyors használat (2 lépés)
+## 3 lépés
 
 ```bash
 cd ~/bocsa-app/hasznaltauto-scraper
 git pull origin main
-npm start -- --connect
+npm start
 ```
 
-A program **magától elindítja a Chrome-ot**, ha még nem fut debug módban.  
-Ha Cloudflare ablak jön, végezd el **a Chrome-ban**, majd várj — a program folytatja.
+1. Megnyílik a Chrome (vagy csatlakozik a meglévőhöz)
+2. **Te** megnyitod / legörgeted a listát Chrome-ban (pl. Tesla találatok, `talalatilista` oldal is jó)
+3. Ha **látod a hirdetéseket**, nyomj **ENTER**-t a terminálban
 
-Induláskor: `hasznaltauto-scraper v1.2.4`
+Kész. A program a **megnyitott lapról** olvassa ki az adatokat → `output/lista-megnyitott-*.txt`
 
-Bejutás után **azonnal folytat** (0,5 mp-enként ellenőriz) — nem vár feleslegesen 20 mp-et, ha az oldal már betöltött.
+Verzió: `hasznaltauto-scraper v1.3.1`
 
-## Kézi Chrome indítás (ha kell)
+## Miért egyszerűbb?
 
-```bash
-npm run chrome
-```
+- **Nincs** automatikus Cloudflare várakozás — te döntöd el, mikor kész az oldal (ENTER)
+- **Nem nyit** új lapokat
+- Működik **talalatilista** keresési oldallal is (nem csak `/szemelyauto/tesla`)
 
-Majd másik terminálban:
-
-```bash
-npm start -- --connect
-```
-
-## Kimenet
-
-`hasznaltauto-scraper/output/lista-megnyitott-2026-07-16.txt`
-
-## Mit ment ki?
-
-- Jármű típusa
-- Ár
-- Gyártási év
-- Km
-- Telefonszám (ha a listakártyán látszik — általában csak a hirdetés lapján érhető el)
-
-## Egyéb kapcsolók
-
-| Kapcsoló | Mit csinál |
-|----------|------------|
-| `--connect` | Megnyitott Chrome lap használata (ajánlott) |
-| `--deep` | Ha nincs hirdetés a lapon, bejárja a model_3 / model_y aloldalakat |
-| `--headed` | Saját böngésző (ha nem használsz --connect-et) |
-| `--debug` | Hibánál HTML mentése az `output/` mappába |
-
-## Telepítés
+## Telepítés (egyszer)
 
 ```bash
-cd hasznaltauto-scraper
 npm install
 npx playwright install chromium
 ```
 
-## Tesztek (hálózat nélkül)
+## Opcionális
 
 ```bash
-npm run test:parse
-npm run test:links
+npm run chrome          # csak Chrome indítása
+npm start -- --debug    # hiba esetén HTML mentése
 ```

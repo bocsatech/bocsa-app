@@ -26,6 +26,15 @@ if (subLinks.length !== 2) {
   throw new Error(`2 alkategória várható, kaptunk: ${subLinks.length}`);
 }
 
+const talalatiHtml = readFileSync(join(process.cwd(), "fixtures", "sample-talalatilista-page.html"), "utf8");
+const talalatiLinks = extractListingLinksFromHtml(
+  talalatiHtml,
+  "https://www.hasznaltauto.hu/talalatilista/TEST123"
+);
+if (talalatiLinks.length !== 2) {
+  throw new Error(`talalatilista: 2 hirdetés várható, kaptunk: ${talalatiLinks.length}`);
+}
+
 console.log("✓ link kinyerés teszt sikeres");
 console.log("hirdetések:", links.join("\n"));
 console.log("alkategóriák:", subLinks.join("\n"));

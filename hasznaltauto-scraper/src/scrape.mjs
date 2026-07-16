@@ -2,14 +2,18 @@ import {
   closeSession,
   collectListingLinksFromCurrentPage,
   connectToOpenBrowser,
+  DEFAULT_CDP_URL,
   extractListingCardsFromPage,
+  findHasznaltautoPage,
   getContextFromSession,
   launchBrowser,
+  preparePageForScraping,
   resolveWorkingPage,
   saveDebugHtml,
 } from "./browser.mjs";
 import { isListPageUrl, isListingUrl } from "./links.mjs";
 import { formatListResultText, formatSingleResultText, parseListingCard } from "./parse.mjs";
+import { shortUrl } from "./url-utils.mjs";
 
 const HASZNALTAUTO_RE = /^https?:\/\/(www\.)?hasznaltauto\.hu\//i;
 
@@ -29,43 +33,51 @@ async function openSession({ connect = false, headless = true, profileDir, start
   return launchBrowser({ profileDir, headless });
 }
 
-async function scrapeListFromOpenPage(page, listUrl, { onProgress, deep = false, debug = false } = {}) {
-  const { listings, listUrl: resolvedListUrl } = await collectListingLinksFromCurrentPage(page, listUrl, {
-    onProgress,
-    deep,
-    debug,
-  });
+async function scrapeCardsFromPage(page, listUrl, { onProgress, deep = false, debug = false, manualReady = false } = {}) {
+  const currentUrl = page.url();
+  onProgress?.(`Megnyitott oldal: ${shortUrl(currentUrl)}`);
 
-  if (listings.length === 0) {
-    if (debug) await saveDebugHtml(page, "hiba");
+  if (!/hasznaltauto\.hu/i.test(currentUrl)) {
+    throw new Error("A megnyitott lap nem hasznaltauto.hu.");
+  }
+
+  if (manualReady) {
+    await preparePageForScraping(page, { onProgress });
+  }
+
+  let cards = await extractListingCardsFromPage(page);
+
+  if (cards.length === 0) {
+    const { listings } = await collectListingLinksFromCurrentPage(page, listUrl, {
+      onProgress,
+      deep,
+      debug,
+      manualReady: true,
+    });
+    cards = listings.map((url) => ({ url, text: "", title: "" }));
+  }
+
+  if (cards.length === 0) {
+    const debugPath = await saveDebugHtml(page, "hiba");
+    onProgress?.(`Hibakereső HTML mentve: ${debugPath}`);
     throw new Error(
       [
         "Nem találtunk hirdetést a megnyitott oldalon.",
-        "Görgess le a listán, várj a betöltésre, majd futtasd újra.",
-        "Ha modell aloldal kell: npm start -- --connect --deep",
+        "Ellenőrizd Chrome-ban: látod a hirdetéseket? (nem Cloudflare képernyő?)",
+        "Görgess le a listán, majd futtasd újra: npm start",
+        `Részletek: ${debugPath}`,
       ].join("\n")
     );
   }
 
-  onProgress?.(`Adatok kinyerése a lista kártyáiról (új lap nélkül): ${listings.length} db`);
+  onProgress?.(`Kinyert hirdetések: ${cards.length} db`);
 
-  const cards = await extractListingCardsFromPage(page);
-  const cardByUrl = new Map(cards.map((card) => [card.url, card]));
-
-  const results = listings.map((url) => {
-    const card = cardByUrl.get(url);
-    if (card) return parseListingCard(card);
-    return parseListingCard({ url, text: "", title: "" });
-  });
-
-  const text = formatListResultText({
-    listUrl: resolvedListUrl,
-    results,
-  });
+  const results = cards.map((card) => parseListingCard(card));
+  const text = formatListResultText({ listUrl: currentUrl, results });
 
   return {
-    listUrl: resolvedListUrl,
-    listingLinks: listings,
+    listUrl: currentUrl,
+    listingLinks: cards.map((c) => c.url),
     results,
     text,
   };
@@ -79,6 +91,7 @@ async function scrapeListPageOnce(url, options = {}) {
     onProgress,
     debug = false,
     deep = false,
+    manualReady = false,
   } = options;
 
   const listUrl = url ? normalizeInputUrl(url) : null;
@@ -88,25 +101,35 @@ async function scrapeListPageOnce(url, options = {}) {
 
   const session = await openSession({ connect, headless, profileDir, startUrl: listUrl, onProgress });
   const { context, external } = getContextFromSession(session);
-  const page = await resolveWorkingPage(context, { connect, onProgress });
 
   try {
     if (connect) {
-      onProgress?.("Csatlakozva a megnyitott Chrome-hoz.");
-    } else {
-      onProgress?.(headless ? "Meglévő böngésző lap használata..." : "Látható böngésző — megnyitott lap használata...");
-      if (listUrl && !connect && page.url() === "about:blank") {
-        await page.goto(listUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
-        await page.waitForTimeout(3000);
-      }
+      onProgress?.("Csatlakozva a Chrome-hoz.");
     }
 
-    return await scrapeListFromOpenPage(page, listUrl ?? page.url(), { onProgress, deep, debug });
+    const page = manualReady
+      ? await findHasznaltautoPage(context)
+      : await resolveWorkingPage(context, { connect, onProgress });
+
+    if (!page) {
+      throw new Error("Nincs hasznaltauto.hu lap a Chrome-ban. Nyisd meg a listát, majd ENTER.");
+    }
+
+    if (!connect && listUrl && page.url() === "about:blank") {
+      await page.goto(listUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+    }
+
+    return await scrapeCardsFromPage(page, listUrl ?? page.url(), {
+      onProgress,
+      deep,
+      debug,
+      manualReady,
+    });
   } finally {
     if (!external) {
       await closeSession(session);
     } else {
-      onProgress?.("A megnyitott Chrome lap nyitva maradt.");
+      onProgress?.("Chrome nyitva maradt.");
     }
   }
 }
@@ -118,7 +141,7 @@ export async function scrapeListPage(url, options = {}) {
     return await scrapeListPageOnce(url, { ...options, headless });
   } catch (error) {
     if (options.connect || !headless) throw error;
-    options.onProgress?.("Nem sikerült háttérben. Újrapróbálás látható böngészővel...");
+    options.onProgress?.("Újrapróbálás látható böngészővel...");
     return scrapeListPageOnce(url, { ...options, headless: false });
   }
 }
@@ -126,7 +149,7 @@ export async function scrapeListPage(url, options = {}) {
 export async function scrapeListing(url, options = {}) {
   const listingUrl = normalizeInputUrl(url);
   if (!listingUrl || !isListingUrl(listingUrl)) {
-    throw new Error("Egyszeri hirdetéshez adj meg közvetlen hirdetés linket, vagy használd a --connect módot listához.");
+    throw new Error("Egyszeri hirdetéshez adj meg közvetlen hirdetés linket.");
   }
 
   const session = await openSession(options);
@@ -150,13 +173,12 @@ export async function scrapeListing(url, options = {}) {
 
 export async function scrapeUrl(url, options = {}) {
   if (options.connect) {
-    const normalized = url ? normalizeInputUrl(url) : null;
-    return scrapeListPage(normalized, options);
+    return scrapeListPage(url ? normalizeInputUrl(url) : null, options);
   }
 
   const normalized = url ? normalizeInputUrl(url) : null;
   if (!normalized) {
-    throw new Error("Adj meg linket, vagy használd a --connect kapcsolót a megnyitott Chrome lappal.");
+    throw new Error("Adj meg linket, vagy használd: npm start -- --connect");
   }
 
   if (isListPageUrl(normalized)) {
