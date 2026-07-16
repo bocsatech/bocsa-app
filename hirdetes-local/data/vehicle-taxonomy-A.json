@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "letter": "A",
+    "source": "hasznaltauto.hu",
+    "scrapedAt": null,
+    "brandCount": 0,
+    "note": "Teszt katalógus — élesítés előtt törölendő. Generálás: cd hasznaltauto-scraper && npm run taxonomy:a"
+  },
+  "apiEndpoints": [],
+  "gyartmanyok": {}
+}

@@ -12,7 +12,9 @@
     "chrome": "node src/start-chrome.mjs",
     "test:parse": "node src/test-parse.mjs",
     "test:links": "node src/test-links.mjs",
-    "test:pagination": "node src/test-pagination.mjs"
+    "test:pagination": "node src/test-pagination.mjs",
+    "taxonomy:a": "node src/taxonomy-a.mjs",
+    "taxonomy": "node src/taxonomy-scrape.mjs"
   },
   "engines": {
     "node": ">=18"

@@ -61,3 +61,35 @@ npm start -- --debug    # hiba esetén HTML mentése
 npm start -- --no-phones  # telefonszámok kihagyása (gyorsabb)
 npm start -- --single-page  # csak az aktuális oldal (nincs lapozás)
 ```
+
+## Járműkatalógus (A betűs márkák)
+
+A hirdetésfeladás 4 összekapcsolt menüjének mentése tesztre:
+
+```bash
+cd ~/bocsa-app/hasznaltauto-scraper
+npm run chrome
+# Chrome-ban: oldd meg a Cloudflare-t, nyisd meg a hirdetésfeladást vagy katalógust
+npm run taxonomy:a
+```
+
+Kimenet: `../hirdetes-local/data/vehicle-taxonomy-A.json`
+
+- **Gyártmány → Modell → Típus → Kivitel** fa
+- Minden típushoz: kivitel lista + zöld automatikus mezők (ajtók, teljesítmény, gumi stb.)
+- Csak **A** betűvel kezdődő márkák (pl. ABARTH, AUDI, ALFA ROMEO)
+
+Opciók:
+
+```bash
+# Hirdetésfeladás űrlap (teljes profil, bejelentkezés kellhet)
+node src/taxonomy-scrape.mjs --source form --connect
+
+# Katalógus oldal (csak a 4 menü, profil nélkül)
+node src/taxonomy-scrape.mjs --source katalogus --connect
+
+# Gyors próba: 1 márka, 2 modell, 2 típus
+node src/taxonomy-scrape.mjs --connect --max-brands 1 --max-models 2 --max-types 2
+```
+
+**Fontos:** Cloudflare miatt a saját Chrome-oddal kell futtatni (`npm run chrome` → `--connect`). A mentett fájl **teszt adat** — élesítés előtt törölendő.
