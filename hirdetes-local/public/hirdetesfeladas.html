@@ -153,139 +153,6 @@
                   <input id="km" name="km" type="number" min="0" required />
                   <span>km</span>
                 </div>
-
-                <label for="ajtok">Ajtók száma:</label>
-                <select id="ajtok" name="ajtok">
-                  <option value="">—</option>
-                  <option>2</option><option>3</option><option>4</option><option>5</option>
-                </select>
-
-                <label for="szemelyek">Szállítható szem. száma:</label>
-                <div class="suffix-field">
-                  <input id="szemelyek" name="szemelyek" type="number" min="1" max="9" />
-                  <span>fő</span>
-                </div>
-
-                <label for="hengerurtartalom">Hengerűrtartalom:</label>
-                <div class="suffix-field">
-                  <input id="hengerurtartalom" name="hengerurtartalom" type="number" class="auto-filled" />
-                  <span>cm³</span>
-                </div>
-
-                <label for="teljesitmeny_kw">Teljesítmény:</label>
-                <div class="suffix-field">
-                  <input id="teljesitmeny_kw" name="teljesitmeny_kw" type="number" class="auto-filled" />
-                  <span>kW</span>
-                  <span id="le-display" class="hint-inline">(= 0 LE)</span>
-                </div>
-
-                <label for="kornyezetvedelmi">Környezetvédelmi oszt.: <a href="#" class="help-link">Segítség</a></label>
-                <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" />
-
-                <label for="sebessegvalto">Sebességváltó:</label>
-                <div>
-                  <select id="sebessegvalto" name="sebessegvalto" class="auto-filled">
-                    <option value="">—</option>
-                    <option>Manuális (5 seb.)</option>
-                    <option>Manuális (6 seb.)</option>
-                    <option>Automata</option>
-                    <option>Fokozatmentes automata</option>
-                  </select>
-                  <label class="check inline-check">
-                    <input type="checkbox" name="felezo_valto" value="1" /> felező váltó
-                  </label>
-                </div>
-
-                <label for="hajtas">Hajtás:</label>
-                <select id="hajtas" name="hajtas" class="auto-filled">
-                  <option value="">—</option>
-                  <option>Első kerék</option>
-                  <option>Hátsó kerék</option>
-                  <option>Összkerék</option>
-                </select>
-
-                <label for="henger_elrendezes">Henger-elrendezés:</label>
-                <select id="henger_elrendezes" name="henger_elrendezes">
-                  <option value="">—</option>
-                  <option>Sor</option>
-                  <option>V</option>
-                  <option>Boxer</option>
-                  <option>W</option>
-                </select>
-
-                <label for="sajat_tomeg">Saját tömeg:</label>
-                <div class="suffix-field">
-                  <input id="sajat_tomeg" name="sajat_tomeg" type="number" />
-                  <span>kg</span>
-                </div>
-
-                <label for="ossztomeg">Össztömeg:</label>
-                <div class="suffix-field">
-                  <input id="ossztomeg" name="ossztomeg" type="number" />
-                  <span>kg</span>
-                </div>
-
-                <label for="karpit1">Kárpit színe (1):</label>
-                <input id="karpit1" name="karpit1" type="text" />
-
-                <label for="karpit2">Kárpit színe (2):</label>
-                <input id="karpit2" name="karpit2" type="text" />
-
-                <label for="szin">Szín:</label>
-                <div>
-                  <input id="szin" name="szin" type="text" />
-                  <label class="check inline-check"><input type="checkbox" name="metalfeny" value="1" /> metál</label>
-                </div>
-
-                <label for="tetto">Tető:</label>
-                <input id="tetto" name="tetto" type="text" />
-
-                <label for="csomagtarto">Csomagtartó:</label>
-                <div class="suffix-field">
-                  <input id="csomagtarto" name="csomagtarto" type="number" />
-                  <span>liter</span>
-                </div>
-
-                <label for="belso_azonosito">Belső azonosító: <a href="#" class="help-link">Segítség</a></label>
-                <input id="belso_azonosito" name="belso_azonosito" type="text" />
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-head">Gumi méretek</div>
-            <div class="card-body form-grid">
-              <label>Nyári gumi méret:</label>
-              <div class="tire-row">
-                <input name="nyari_gumi_szelesseg" type="text" placeholder="szélesség" />
-                <span>/</span>
-                <input name="nyari_gumi_magassag" type="text" placeholder="magasság" />
-                <span>R</span>
-                <input name="nyari_gumi_atmero" type="text" placeholder="átmérő" />
-              </div>
-              <label>Hátsó nyári gumi méret:</label>
-              <div class="tire-row">
-                <input name="hatso_nyari_szelesseg" type="text" />
-                <span>/</span>
-                <input name="hatso_nyari_magassag" type="text" />
-                <span>R</span>
-                <input name="hatso_nyari_atmero" type="text" />
-              </div>
-              <label>Téli gumi méret:</label>
-              <div class="tire-row">
-                <input name="teli_gumi_szelesseg" type="text" />
-                <span>/</span>
-                <input name="teli_gumi_magassag" type="text" />
-                <span>R</span>
-                <input name="teli_gumi_atmero" type="text" />
-              </div>
-              <label>Hátsó téli gumi méret:</label>
-              <div class="tire-row">
-                <input name="hatso_teli_szelesseg" type="text" />
-                <span>/</span>
-                <input name="hatso_teli_magassag" type="text" />
-                <span>R</span>
-                <input name="hatso_teli_atmero" type="text" />
               </div>
             </div>
           </div>
@@ -440,14 +307,141 @@
 
         <section class="step-panel hidden" data-step="2">
           <div class="card">
-            <div class="card-head">Műszaki adatok</div>
             <div class="card-body">
-              <div class="upload-zone" id="upload-zone">
-                <strong>Húzd ide a képeket, vagy kattints a tallózáshoz</strong>
-                <span>Legfeljebb 12 kép · JPG, PNG</span>
-                <input id="photo-input" type="file" accept="image/*" multiple hidden />
+              <div class="form-grid">
+                <label for="ajtok">Ajtók száma:</label>
+                <select id="ajtok" name="ajtok">
+                  <option value="">—</option>
+                  <option>2</option><option>3</option><option>4</option><option>5</option>
+                </select>
+
+                <label for="szemelyek">Szállítható szem. száma:</label>
+                <div class="suffix-field">
+                  <input id="szemelyek" name="szemelyek" type="number" min="1" max="9" />
+                  <span>fő</span>
+                </div>
+
+                <label for="hengerurtartalom">Hengerűrtartalom:</label>
+                <div class="suffix-field">
+                  <input id="hengerurtartalom" name="hengerurtartalom" type="number" class="auto-filled" />
+                  <span>cm³</span>
+                </div>
+
+                <label for="teljesitmeny_kw">Teljesítmény:</label>
+                <div class="suffix-field">
+                  <input id="teljesitmeny_kw" name="teljesitmeny_kw" type="number" class="auto-filled" />
+                  <span>kW</span>
+                  <span id="le-display" class="hint-inline">(= 0 LE)</span>
+                </div>
+
+                <label for="kornyezetvedelmi">Környezetvédelmi oszt.: <a href="#" class="help-link">Segítség</a></label>
+                <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" />
+
+                <label for="sebessegvalto">Sebességváltó:</label>
+                <div>
+                  <select id="sebessegvalto" name="sebessegvalto" class="auto-filled">
+                    <option value="">—</option>
+                    <option>Manuális (5 seb.)</option>
+                    <option>Manuális (6 seb.)</option>
+                    <option>Automata</option>
+                    <option>Fokozatmentes automata</option>
+                  </select>
+                  <label class="check inline-check">
+                    <input type="checkbox" name="felezo_valto" value="1" /> felező váltó
+                  </label>
+                </div>
+
+                <label for="hajtas">Hajtás:</label>
+                <select id="hajtas" name="hajtas" class="auto-filled">
+                  <option value="">—</option>
+                  <option>Első kerék</option>
+                  <option>Hátsó kerék</option>
+                  <option>Összkerék</option>
+                </select>
+
+                <label for="henger_elrendezes">Henger-elrendezés:</label>
+                <select id="henger_elrendezes" name="henger_elrendezes">
+                  <option value="">—</option>
+                  <option>Sor</option>
+                  <option>V</option>
+                  <option>Boxer</option>
+                  <option>W</option>
+                </select>
+
+                <label for="sajat_tomeg">Saját tömeg:</label>
+                <div class="suffix-field">
+                  <input id="sajat_tomeg" name="sajat_tomeg" type="number" />
+                  <span>kg</span>
+                </div>
+
+                <label for="ossztomeg">Össztömeg:</label>
+                <div class="suffix-field">
+                  <input id="ossztomeg" name="ossztomeg" type="number" />
+                  <span>kg</span>
+                </div>
+
+                <label for="karpit1">Kárpit színe (1):</label>
+                <input id="karpit1" name="karpit1" type="text" />
+
+                <label for="karpit2">Kárpit színe (2):</label>
+                <input id="karpit2" name="karpit2" type="text" />
+
+                <label for="szin">Szín:</label>
+                <div>
+                  <input id="szin" name="szin" type="text" />
+                  <label class="check inline-check"><input type="checkbox" name="metalfeny" value="1" /> metál</label>
+                </div>
+
+                <label for="tetto">Tető:</label>
+                <input id="tetto" name="tetto" type="text" />
+
+                <label for="csomagtarto">Csomagtartó:</label>
+                <div class="suffix-field">
+                  <input id="csomagtarto" name="csomagtarto" type="number" />
+                  <span>liter</span>
+                </div>
+
+                <label for="belso_azonosito">Belső azonosító: <a href="#" class="help-link">Segítség</a></label>
+                <input id="belso_azonosito" name="belso_azonosito" type="text" />
               </div>
-              <div class="photo-grid" id="photo-grid"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">Gumi méretek</div>
+            <div class="card-body form-grid">
+              <label>Nyári gumi méret:</label>
+              <div class="tire-row">
+                <input name="nyari_gumi_szelesseg" type="text" placeholder="szélesség" />
+                <span>/</span>
+                <input name="nyari_gumi_magassag" type="text" placeholder="magasság" />
+                <span>R</span>
+                <input name="nyari_gumi_atmero" type="text" placeholder="átmérő" />
+              </div>
+              <label>Hátsó nyári gumi méret:</label>
+              <div class="tire-row">
+                <input name="hatso_nyari_szelesseg" type="text" />
+                <span>/</span>
+                <input name="hatso_nyari_magassag" type="text" />
+                <span>R</span>
+                <input name="hatso_nyari_atmero" type="text" />
+              </div>
+              <label>Téli gumi méret:</label>
+              <div class="tire-row">
+                <input name="teli_gumi_szelesseg" type="text" />
+                <span>/</span>
+                <input name="teli_gumi_magassag" type="text" />
+                <span>R</span>
+                <input name="teli_gumi_atmero" type="text" />
+              </div>
+              <label>Hátsó téli gumi méret:</label>
+              <div class="tire-row">
+                <input name="hatso_teli_szelesseg" type="text" />
+                <span>/</span>
+                <input name="hatso_teli_magassag" type="text" />
+                <span>R</span>
+                <input name="hatso_teli_atmero" type="text" />
+              </div>
             </div>
           </div>
         </section>
@@ -471,7 +465,18 @@
         </section>
 
         <section class="step-panel hidden" data-step="4">
-          <div class="card">
+          <div class="card" id="photos-panel">
+            <div class="card-body">
+              <div class="upload-zone" id="upload-zone">
+                <strong>Húzd ide a képeket, vagy kattints a tallózáshoz</strong>
+                <span>Legfeljebb 12 kép · JPG, PNG</span>
+                <input id="photo-input" type="file" accept="image/*" multiple hidden />
+              </div>
+              <div class="photo-grid" id="photo-grid"></div>
+            </div>
+          </div>
+
+          <div class="card hidden" id="success-panel">
             <div class="card-body success-box">
               <h2>Sikeres hirdetésfeladás!</h2>
               <p id="summary-text" class="hint"></p>

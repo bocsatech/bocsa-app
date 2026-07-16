@@ -12,6 +12,8 @@ const photoInput = document.getElementById("photo-input");
 const photoGrid = document.getElementById("photo-grid");
 const summaryText = document.getElementById("summary-text");
 const newAdBtn = document.getElementById("new-ad-btn");
+const photosPanel = document.getElementById("photos-panel");
+const successPanel = document.getElementById("success-panel");
 const gyartasiEv = document.getElementById("gyartasi_ev");
 const muszakiEv = document.getElementById("muszaki_ev");
 const gyartmany = document.getElementById("gyartmany");
@@ -218,6 +220,18 @@ function updateTitle() {
     : "";
 }
 
+function showSuccess() {
+  photosPanel?.classList.add("hidden");
+  successPanel?.classList.remove("hidden");
+  footerActions.classList.add("hidden");
+}
+
+function resetSuccess() {
+  photosPanel?.classList.remove("hidden");
+  successPanel?.classList.add("hidden");
+  footerActions.classList.remove("hidden");
+}
+
 function showStep(step) {
   currentStep = step;
   panels.forEach((panel) => {
@@ -229,10 +243,15 @@ function showStep(step) {
     indicator.classList.toggle("done", n < step);
   });
   backBtn.classList.toggle("hidden", step <= 1);
-  footerActions.classList.toggle("hidden", step === 4);
+  if (step === 4 && successPanel && !successPanel.classList.contains("hidden")) {
+    footerActions.classList.add("hidden");
+  } else {
+    footerActions.classList.remove("hidden");
+  }
   if (step === 1) nextBtn.textContent = "Hirdetésfeladás folytatása";
   if (step === 2) nextBtn.textContent = "Tovább az extrákhoz";
-  if (step === 3) nextBtn.textContent = "Hirdetés feladása kiemelés nélkül";
+  if (step === 3) nextBtn.textContent = "Tovább a képekhez";
+  if (step === 4) nextBtn.textContent = "Hirdetés feladása kiemelés nélkül";
 }
 
 function collectFormData() {
@@ -372,15 +391,18 @@ nextBtn.addEventListener("click", () => {
   if (!validateStep(currentStep)) return;
   saveDraft();
   if (currentStep < 4) {
-    if (currentStep === 3) buildSummary();
     showStep(currentStep + 1);
+    return;
   }
+  buildSummary();
+  showSuccess();
 });
 
 newAdBtn.addEventListener("click", () => {
   form.reset();
   localStorage.removeItem(STORAGE_KEY);
   renderPhotoPreview([]);
+  resetSuccess();
   updateTitle();
   showStep(1);
 });
