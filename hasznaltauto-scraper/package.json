@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/index.mjs",
     "scrape": "node src/index.mjs",
-    "test:parse": "node src/test-parse.mjs"
+    "test:parse": "node src/test-parse.mjs",
+    "test:links": "node src/test-links.mjs"
   },
   "engines": {
     "node": ">=18"

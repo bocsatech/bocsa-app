@@ -210,8 +210,6 @@ export function parseListingHtml(html, { url = "", phone = null } = {}) {
 
 export function formatResultText(data) {
   const lines = [
-    "Hasznaltauto.hu — kinyert adatok",
-    "================================",
     `Link: ${data.url || "—"}`,
     `Jármű típusa: ${data.jarmuTipus || "—"}`,
     `Ár: ${data.ar || "—"}`,
@@ -224,7 +222,39 @@ export function formatResultText(data) {
     lines.push(`Cím: ${data.cim}`);
   }
 
-  lines.push("");
-  lines.push(`Mentve: ${new Date().toLocaleString("hu-HU")}`);
+  if (data.hiba) {
+    lines.push(`Hiba: ${data.hiba}`);
+  }
+
   return lines.join("\n");
+}
+
+export function formatSingleResultText(data) {
+  const lines = [
+    "Hasznaltauto.hu — kinyert adatok",
+    "================================",
+    formatResultText(data),
+    "",
+    `Mentve: ${new Date().toLocaleString("hu-HU")}`,
+  ];
+  return lines.join("\n");
+}
+
+export function formatListResultText({ listUrl, results }) {
+  const lines = [
+    "Hasznaltauto.hu — kinyert adatok",
+    "================================",
+    `Lista oldal: ${listUrl}`,
+    `Talált hirdetések: ${results.length}`,
+    `Mentve: ${new Date().toLocaleString("hu-HU")}`,
+    "",
+  ];
+
+  results.forEach((item, index) => {
+    lines.push(`--- Hirdetés ${index + 1} ---`);
+    lines.push(formatResultText(item));
+    lines.push("");
+  });
+
+  return lines.join("\n").trimEnd();
 }

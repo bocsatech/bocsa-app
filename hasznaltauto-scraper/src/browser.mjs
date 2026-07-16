@@ -29,25 +29,46 @@ export async function launchBrowser({ profileDir, headless = true } = {}) {
   }
 }
 
-export async function waitForListingPage(page, timeoutMs = 120000) {
+function isBlockedPage(title, html) {
+  return (
+    /cloudflare|pillanat|attention required|biztonsági ellenőrzés/i.test(title) ||
+    /cf-challenge|cf-turnstile/i.test(html)
+  );
+}
+
+async function waitForPage(page, isReady, timeoutMs = 120000) {
   const started = Date.now();
 
   while (Date.now() - started < timeoutMs) {
     const title = await page.title();
     const html = await page.content();
-    const blocked =
-      /cloudflare|pillanat|attention required|biztonsági ellenőrzés/i.test(title) ||
-      /cf-challenge|cf-turnstile/i.test(html);
-
-    if (!blocked && (html.includes("hirdetesadatok") || html.includes("Alapadatok") || /<h1/i.test(html))) {
+    if (!isBlockedPage(title, html) && isReady(html, title)) {
       return html;
     }
-
     await page.waitForTimeout(1500);
   }
 
   throw new Error(
     "Az oldal nem töltődött be időben. Indítsd --headed módban, és ha kell, végezd el a Cloudflare ellenőrzést."
+  );
+}
+
+export async function waitForListingPage(page, timeoutMs = 120000) {
+  return waitForPage(
+    page,
+    (html) => html.includes("hirdetesadatok") || html.includes("Alapadatok") || /<h1/i.test(html),
+    timeoutMs
+  );
+}
+
+export async function waitForListPage(page, timeoutMs = 120000) {
+  return waitForPage(
+    page,
+    (html) =>
+      /szemelyauto\/[^"'\s]+-\d{5,}/i.test(html) ||
+      /találati lista|hirdetés találat/i.test(html) ||
+      /class="[^"]*talalat/i.test(html),
+    timeoutMs
   );
 }
 

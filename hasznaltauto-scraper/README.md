@@ -1,66 +1,102 @@
 # Hasznaltauto.hu scraper
 
-Teljesen önálló program: egy beírt **hasznaltauto.hu** hirdetés linkjéből kiolvassa a jármű adatait, majd **txt fájlba** menti.
+Teljesen önálló program. Egy **hasznaltauto.hu** linkből kiolvassa az autó adatokat, majd **txt fájlba** menti.
 
-## Mit ment ki?
+## Mit csinál?
 
-- Jármű típusa
-- Ár
-- Gyártási év
-- Km (futásteljesítmény)
-- Telefonszám (a „felfedése” gombra kattintva)
+Két típusú linket ismer fel:
+
+1. **Lista oldal** — pl. Tesla keresés:
+   `https://www.hasznaltauto.hu/szemelyauto/tesla`
+2. **Egy konkrét hirdetés** — pl.:
+   `https://www.hasznaltauto.hu/szemelyauto/tesla/model_3/...-12345678`
+
+### Lista oldal működése
+
+1. Megnyitja a megadott oldalt (pl. Tesla lista).
+2. **Az aktuális oldalon látható hirdetés linkeket** kigyűjti.  
+   Az alhirdetések mindig változnak — a program minden futtatáskor az éppen ott lévő linkeket dolgozza fel.
+3. Egyenként megnyitja az összes talált hirdetést.
+4. Mindegyikből kiolvassa:
+   - jármű típusát
+   - árát
+   - gyártási évét
+   - km-t
+   - telefonszámot (a „felfedése” gombra kattintva)
+5. Az összes eredményt **egy txt fájlba** írja: `output/lista-tesla-2026-07-16.txt`
+
+### Egy hirdetés működése
+
+Ha közvetlenül egy hirdetés linkjét adod meg, csak azt az egy autót menti txt-be.
 
 ## Telepítés
 
 ```bash
-cd hasznaltauto-scraper
+cd bocsa-app/hasznaltauto-scraper
 npm install
 npx playwright install chromium
 ```
 
 ## Használat
 
-### 1. Link paraméterként
+### Tesla lista (ajánlott)
 
 ```bash
-npm start -- "https://www.hasznaltauto.hu/szemelyauto/..."
+npm start -- "https://www.hasznaltauto.hu/szemelyauto/tesla"
 ```
 
-### 2. Link fájlba (`link.txt`)
-
-Másold a `link.txt.example` fájlt `link.txt` névre, és írd be a linket egy sorba:
+### Link fájlba (`link.txt`)
 
 ```bash
 cp link.txt.example link.txt
 npm start
 ```
 
-### 3. Interaktív beírás
+A `link.txt.example` már a Tesla listát tartalmazza.
 
-Ha nincs paraméter és nincs `link.txt`, a program bekéri a linket.
-
-## Kimenet
-
-A txt fájl az `output/` mappába kerül, pl. `output/hirdetes-23081872.txt`.
-
-Egyedi fájlnév:
+### Egyedi kimeneti fájl
 
 ```bash
-npm start -- "https://www.hasznaltauto.hu/..." --output eredmeny.txt
+npm start -- "https://www.hasznaltauto.hu/szemelyauto/tesla" --output tesla-eredmeny.txt
 ```
 
-## Cloudflare / telefonszám
+### Cloudflare ellenőrzés
 
-A Használtautó.hu Cloudflare védelmet használ. Ha az első futtatáskor nem tölt be az oldal:
+Ha nem tölt be az oldal, első futtatáskor:
 
 ```bash
-npm start -- "https://www.hasznaltauto.hu/..." --headed
+npm start -- "https://www.hasznaltauto.hu/szemelyauto/tesla" --headed
 ```
 
-Ekkor megnyílik a böngésző; ha kell, végezd el a biztonsági ellenőrzést. A program a mentett `.browser-profile` mappával a következő futtatásoknál már könnyebben dolgozik.
+Megnyílik a böngésző; ha kell, végezd el a biztonsági ellenőrzést. Utána headless módban is működhet.
 
-## Parser teszt (hálózat nélkül)
+## Kimenet példa
+
+```
+Hasznaltauto.hu — kinyert adatok
+================================
+Lista oldal: https://www.hasznaltauto.hu/szemelyauto/tesla
+Talált hirdetések: 12
+Mentve: 2026. 07. 16. 15:30:00
+
+--- Hirdetés 1 ---
+Link: https://www.hasznaltauto.hu/szemelyauto/tesla/...
+Jármű típusa: TESLA MODEL 3
+Ár: 8 990 000 Ft
+Gyártási év: 2021
+Km: 45 000 km
+Telefonszám: +36 30 123 4567
+```
+
+## Tesztek (hálózat nélkül)
 
 ```bash
 npm run test:parse
+npm run test:links
 ```
+
+## Fontos
+
+- A program **független** a BOCSA webapp-tól és más moduloktól.
+- Lista oldalnál **mindig az aktuális hirdetések** kerülnek feldolgozásra — ha holnap más autók vannak fent, más linkeket fog kinyerni.
+- Csak a **megnyitott lista oldal** hirdetéseit gyűjti (nem lapoz automatikusan tovább).

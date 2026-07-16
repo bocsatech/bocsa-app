@@ -1,8 +1,10 @@
 import { createInterface } from "readline/promises";
 import { stdin as input, stdout as output } from "process";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
-import { basename, join } from "path";
-import { scrapeListing } from "./scrape.mjs";
+import { join } from "path";
+import { isListPageUrl } from "./links.mjs";
+import { scrapeUrl } from "./scrape.mjs";
+import { slugFromListUrl } from "./links.mjs";
 
 function parseArgs(argv) {
   const options = {
@@ -52,6 +54,12 @@ function readLinkFromFile(path) {
 function buildOutputPath(url, customOutput) {
   if (customOutput) return customOutput;
 
+  if (isListPageUrl(url)) {
+    const slug = slugFromListUrl(url);
+    const stamp = new Date().toISOString().slice(0, 10);
+    return join(process.cwd(), "output", `lista-${slug}-${stamp}.txt`);
+  }
+
   const idMatch = url.match(/-(\d{5,})(?:[/?#]|$)/);
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const fileName = idMatch ? `hirdetes-${idMatch[1]}.txt` : `hirdetes-${stamp}.txt`;
@@ -65,7 +73,7 @@ async function resolveUrl(options) {
   if (fromFile) return fromFile;
 
   const rl = createInterface({ input, output });
-  const typed = await rl.question("Illeszd be a hasznaltauto.hu hirdetés linkjét: ");
+  const typed = await rl.question("Illeszd be a hasznaltauto.hu linket (lista vagy hirdetés): ");
   rl.close();
   return typed.trim();
 }
@@ -73,9 +81,14 @@ async function resolveUrl(options) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const url = await resolveUrl(options);
+  const listMode = isListPageUrl(url);
 
-  console.log("Letöltés:", url);
-  const result = await scrapeListing(url, { headless: !options.headed });
+  console.log(listMode ? "Lista oldal feldolgozása:" : "Hirdetés feldolgozása:", url);
+
+  const result = await scrapeUrl(url, {
+    headless: !options.headed,
+    onProgress: (message) => console.log(message),
+  });
 
   const outputPath = buildOutputPath(url, options.output);
   mkdirSync(join(process.cwd(), "output"), { recursive: true });
