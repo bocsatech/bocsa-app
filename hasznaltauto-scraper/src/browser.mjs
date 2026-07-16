@@ -426,8 +426,51 @@ export async function extractListingCardsFromPage(page) {
   });
 }
 
+export async function extractVisiblePhone(page) {
+  try {
+    const telLink = page.locator('a[href^="tel:"]').first();
+    if ((await telLink.count()) > 0) {
+      const href = await telLink.getAttribute("href");
+      if (href) {
+        return href
+          .replace(/^tel:/i, "")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+    }
+  } catch {
+    /* continue */
+  }
+
+  const selectors = [
+    ".contact-box",
+    ".telefonszam",
+    "[class*='telefon']",
+    "[class*='phone']",
+    "[data-phone]",
+  ];
+
+  for (const selector of selectors) {
+    try {
+      const node = page.locator(selector).first();
+      if ((await node.count()) === 0 || !(await node.isVisible())) continue;
+      const text = await node.innerText();
+      const match = text.match(/(?:\+36|06)[\s\d/-]{7,16}\d/);
+      if (match) return match[0].replace(/\s+/g, " ").trim();
+    } catch {
+      /* next */
+    }
+  }
+
+  const fullText = await page.locator("body").innerText();
+  const match = fullText.match(/(?:\+36|06)[\s\d/-]{7,16}\d/);
+  return match ? match[0].replace(/\s+/g, " ").trim() : null;
+}
+
 export async function revealPhoneNumber(page) {
   const revealSelectors = [
+    page.getByRole("button", { name: /elsődleges telefonszám felfedése/i }),
+    page.getByRole("link", { name: /elsődleges telefonszám felfedése/i }),
     page.getByRole("button", { name: /telefonszám.*felfed/i }),
     page.getByRole("link", { name: /telefonszám.*felfed/i }),
     page.getByText(/elsődleges telefonszám.*felfed/i),
@@ -440,14 +483,79 @@ export async function revealPhoneNumber(page) {
       const target = locator.first();
       if ((await target.count()) === 0 || !(await target.isVisible())) continue;
       await target.click({ timeout: 5000 });
-      await page.waitForTimeout(1200);
       break;
     } catch {
       /* try next */
     }
   }
 
-  const fullText = await page.locator("body").innerText();
-  const match = fullText.match(/(?:\+36|06)[\s\d/-]{7,16}\d/);
-  return match ? match[0].replace(/\s+/g, " ").trim() : null;
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const phone = await extractVisiblePhone(page);
+    if (phone) return phone;
+    await page.waitForTimeout(300);
+  }
+
+  return null;
+}
+
+function normalizeListingUrl(url, baseUrl = "https://www.hasznaltauto.hu/") {
+  try {
+    const absolute = new URL(url, baseUrl);
+    return `${absolute.origin}${absolute.pathname}`;
+  } catch {
+    return null;
+  }
+}
+
+export async function tryRevealPhonesOnListRows(page) {
+  const rows = page.locator(".row.talalati-sor, .talalati-sor");
+  const count = await rows.count();
+  const phones = new Map();
+
+  for (let i = 0; i < count; i += 1) {
+    const row = rows.nth(i);
+    let listingUrl = null;
+
+    try {
+      const anchor = row.locator("a[href*='/szemelyauto/']").first();
+      if ((await anchor.count()) > 0) {
+        listingUrl = normalizeListingUrl(await anchor.getAttribute("href"), page.url());
+      }
+    } catch {
+      /* skip row */
+    }
+
+    if (!listingUrl) continue;
+
+    const reveal = row.locator("button, a").filter({ hasText: /felfed|telefonszám/i });
+    try {
+      if ((await reveal.count()) > 0 && (await reveal.first().isVisible())) {
+        await reveal.first().click({ timeout: 3000 });
+        await page.waitForTimeout(900);
+      }
+    } catch {
+      /* maybe already visible */
+    }
+
+    try {
+      const text = await row.innerText();
+      const match = text.match(/(?:\+36|06)[\s\d/-]{7,16}\d/);
+      if (match) {
+        phones.set(listingUrl, match[0].replace(/\s+/g, " ").trim());
+      }
+    } catch {
+      /* skip */
+    }
+  }
+
+  return phones;
+}
+
+export async function fetchListingPhone(page, listingUrl, { onProgress } = {}) {
+  await page.goto(listingUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+  await dismissCookieBanner(page);
+  await page.waitForTimeout(800);
+  const phone = await revealPhoneNumber(page);
+  onProgress?.(phone ? `  → ${phone}` : "  → telefonszám nem található");
+  return phone;
 }

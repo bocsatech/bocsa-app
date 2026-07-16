@@ -19,6 +19,7 @@ function parseArgs(argv) {
     connect: true,
     deep: false,
     debug: false,
+    noPhones: false,
     linkFile: join(process.cwd(), "link.txt"),
   };
 
@@ -39,6 +40,10 @@ function parseArgs(argv) {
     }
     if (arg === "--debug") {
       options.debug = true;
+      continue;
+    }
+    if (arg === "--no-phones") {
+      options.noPhones = true;
       continue;
     }
     if (arg === "--output" || arg === "-o") {
@@ -111,6 +116,8 @@ async function main() {
         "2) Nyisd meg / görgess le a hasznaltauto.hu listán",
         "3) Cloudflare: igazold, hogy ember vagy",
         "4) Ha látod a hirdetéseket, nyomj ENTER-t itt",
+        "",
+        "A program minden hirdetésnél rákattint a „Telefonszám felfedése” gombra.",
       ].join("\n")
     );
   } else if (url) {
@@ -123,6 +130,7 @@ async function main() {
     headless: !options.headed,
     debug: options.debug,
     manualReady: options.connect,
+    fetchPhones: !options.noPhones,
     onProgress: (message) => console.log(message),
   });
 
