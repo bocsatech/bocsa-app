@@ -223,7 +223,7 @@ a:hover {
 }
 
 .autofelvitele-title input {
-  width: 100%;
+  width: 50%;
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 9px 11px;
@@ -392,6 +392,11 @@ select.auto-filled {
   color: #374151;
 }
 
+.form-grid > :not(label):not(.full) {
+  width: 100%;
+  max-width: 50%;
+}
+
 .form-grid .full {
   grid-column: 1 / -1;
 }
@@ -548,6 +553,14 @@ textarea {
 @media (max-width: 768px) {
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .form-grid > :not(label):not(.full) {
+    max-width: 100%;
+  }
+
+  .autofelvitele-title input {
+    width: 100%;
   }
 
   .steps {
