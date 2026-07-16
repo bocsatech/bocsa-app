@@ -17,7 +17,7 @@ export function getChromeProfileDir() {
   return join(process.cwd(), ".chrome-profile");
 }
 
-export function startChromeWithDebugging(startUrl, port = 9222) {
+export function startChromeWithDebugging(startUrl, port = 9223) {
   const chromePath = findChromeExecutable();
   if (!chromePath) {
     throw new Error(

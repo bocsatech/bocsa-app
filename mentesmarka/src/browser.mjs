@@ -6,7 +6,7 @@ import { startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-export const DEFAULT_CDP_URL = "http://127.0.0.1:9222";
+export const DEFAULT_CDP_URL = "http://127.0.0.1:9223";
 
 export async function launchBrowser({ profileDir, headless = true } = {}) {
   const resolvedProfile = profileDir ?? join(process.cwd(), ".browser-profile");
@@ -47,9 +47,11 @@ export async function connectToOpenBrowser(
     if (!autoStart) {
       throw new Error(
         [
-          "Nem sikerült csatlakozni a Chrome-hoz.",
-          "Futtasd: npm run chrome",
-          "Majd: npm run mentesmarka",
+          "Nem sikerült csatlakozni a mentesmarka Chrome-hoz (port 9223).",
+          "1. terminál: cd mentesmarka && npm run chrome",
+          "Töltsd be az űrlapot ABBAN az ablakban, majd: npm run mentesmarka",
+          "",
+          "Ha a hasznaltauto-scraper Chrome fut (9222), az más — ne keverd össze.",
         ].join("\n")
       );
     }

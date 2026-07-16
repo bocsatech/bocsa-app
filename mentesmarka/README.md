@@ -16,7 +16,7 @@ npx playwright install chromium
 
 ## Használat
 
-**1. terminál** — Chrome indítása:
+**1. terminál** — Chrome indítása (saját port **9223**, külön a scraper 9222-től):
 
 ```bash
 cd ~/bocsa-app/mentesmarka
@@ -25,6 +25,8 @@ npm run chrome
 
 Chrome-ban: Cloudflare megoldása, hirdetésfeladás űrlap betöltése (bejelentkezés ha kell).
 
+**Fontos:** a **mentesmarka Chrome ablakában** (9223) legyen az űrlap — nem a sima Chrome-ban és nem a scraper Chrome-ban (9222).
+
 **2. terminál** — katalógus mentés:
 
 ```bash
@@ -32,10 +34,8 @@ cd ~/bocsa-app/mentesmarka
 npm run mentesmarka
 ```
 
-A program **nem navigál el** — a Chrome-ban már nyitott hirdetésfeladás lapot használja.
-Ha kész az űrlap (Gyártmány mező látszik), nyomj **ENTER**-t a terminálban.
-
-Fontos: a Chrome-ot a `npm run chrome` paranccsal indítsd (9222-es port), ne sima Chrome ablakkal.
+Először ENTER-t kér: ha látod a Gyártmány mezőt a mentesmarka Chrome-ban, nyomj ENTER-t.
+A program **nem navigál el** — a meglévő lapot használja.
 
 ## Kimenet
 

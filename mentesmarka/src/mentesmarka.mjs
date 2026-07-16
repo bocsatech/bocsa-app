@@ -1,8 +1,12 @@
 import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "./browser.mjs";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
-import { startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs";
+import { fileURLToPath } from "url";
 import { waitForUserReady } from "./ready.mjs";
+
+const PKG = JSON.parse(
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8")
+);
 
 const DEFAULT_OUTPUT = join(process.cwd(), "data", "jarmu-katalogus-A.json");
 
@@ -201,10 +205,48 @@ async function findFormPageWithBrandSelect(session) {
 }
 
 async function pageHasBrandSelect(page) {
-  const brandSelect =
-    (await findSelectByLabel(page, ["Gyártmány", "Gyartmany"])) ??
-    page.locator('select[name*="gyart" i], select[id*="gyart" i]').first();
-  return (await brandSelect.count()) > 0;
+  try {
+    return await page.evaluate(() => {
+      const selectors = [
+        "select#gyartmany",
+        'select[name="gyartmany"]',
+        'select[name*="gyart" i]',
+        'select[id*="gyart" i]',
+      ];
+      for (const selector of selectors) {
+        const el = document.querySelector(selector);
+        if (el?.options?.length > 1) return true;
+      }
+      for (const label of document.querySelectorAll("label")) {
+        if (!/gyártmány|gyartmany/i.test(label.textContent ?? "")) continue;
+        const select =
+          label.control instanceof HTMLSelectElement
+            ? label.control
+            : label.parentElement?.querySelector("select") ??
+              label.nextElementSibling?.querySelector?.("select") ??
+              label.nextElementSibling;
+        if (select instanceof HTMLSelectElement && select.options.length > 1) return true;
+      }
+      return false;
+    });
+  } catch {
+    return false;
+  }
+}
+
+async function describePage(page) {
+  try {
+    return await page.evaluate(() => ({
+      title: document.title,
+      selects: [...document.querySelectorAll("select")].slice(0, 8).map((el) => ({
+        id: el.id,
+        name: el.name,
+        options: el.options.length,
+      })),
+    }));
+  } catch {
+    return { title: "(nem olvasható)", selects: [] };
+  }
 }
 
 async function resolveFormPage(session, onProgress) {
@@ -216,10 +258,15 @@ async function resolveFormPage(session, onProgress) {
     return page;
   }
 
-  const openTabs = listOpenPages(session).map((tab) => tab.url()).filter(Boolean);
+  const openTabs = listOpenPages(session);
   if (openTabs.length) {
-    onProgress(`Nyitott Chrome lapok (${openTabs.length}):`);
-    for (const url of openTabs) onProgress(`  - ${url}`);
+    onProgress(`Nyitott Chrome lapok (${openTabs.length}) — port 9223:`);
+    for (const tab of openTabs) {
+      const info = await describePage(tab);
+      onProgress(`  - ${tab.url()} (${info.title}, ${info.selects.length} select)`);
+    }
+  } else {
+    onProgress("Nincs nyitott lap a mentesmarka Chrome-ban (port 9223).");
   }
 
   await waitForUserReady(
@@ -246,28 +293,16 @@ async function resolveFormPage(session, onProgress) {
 
 async function openPageSession(options, onProgress) {
   if (options.connect) {
-    try {
-      const session = await connectToOpenBrowser(DEFAULT_CDP_URL, {
-        autoStart: false,
-        onProgress,
-      });
-      return {
-        session,
-        page: null,
-        close: async () => session.browser?.close().catch(() => {}),
-      };
-    } catch {
-      onProgress?.("Chrome CDP nem elérhető — automatikus indítás...");
-      startChromeWithDebugging(FORM_URL);
-      const ready = await waitForCdpReady(DEFAULT_CDP_URL, { onProgress });
-      if (!ready) throw new Error("Chrome nem indult el. Futtasd: npm run chrome");
-      const session = await connectToOpenBrowser(DEFAULT_CDP_URL, { autoStart: false, onProgress });
-      return {
-        session,
-        page: null,
-        close: async () => session.browser?.close().catch(() => {}),
-      };
-    }
+    const session = await connectToOpenBrowser(DEFAULT_CDP_URL, {
+      autoStart: false,
+      onProgress,
+    });
+    onProgress?.(`Csatlakozva: ${DEFAULT_CDP_URL}`);
+    return {
+      session,
+      page: null,
+      close: async () => session.browser?.close().catch(() => {}),
+    };
   }
 
   const session = await launchBrowser({ headless: !options.headed });
@@ -524,6 +559,20 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
   catalog.meta.source = options.source === "katalogus" ? "katalogus.hasznaltauto.hu" : "hasznaltauto.hu/hirdetesfeladas";
 
   const onProgress = (message) => console.log(`[mentesmarka] ${message}`);
+  console.log(`mentesmarka v${PKG.version} — saját Chrome port: 9223`);
+
+  if (options.connect && options.source === "form") {
+    await waitForUserReady(
+      [
+        "1) Másik terminálban futtasd: npm run chrome  (mentesmarka saját Chrome, port 9223)",
+        "2) ABBAN a Chrome ablakban: Cloudflare + bejelentkezés + hirdetésfeladás űrlap",
+        "3) Látszik a Gyártmány legördülő? Ha igen, nyomj ENTER-t itt",
+        "",
+        "NEM a sima Chrome és NEM a scraper Chrome (9222) — csak a mentesmarka Chrome (9223)!",
+      ].join("\n")
+    );
+  }
+
   const { session, page: initialPage, close } = await openPageSession(options, onProgress);
   let page = initialPage;
 
