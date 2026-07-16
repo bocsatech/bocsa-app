@@ -40,6 +40,7 @@
         <div class="step" data-step-indicator="2">Műszaki adatok</div>
         <div class="step" data-step-indicator="3">Extrák</div>
         <div class="step" data-step-indicator="4">Képek</div>
+        <div class="step" data-step-indicator="5">Hirdetés</div>
       </nav>
 
       <form id="ad-form" novalidate>
@@ -153,95 +154,6 @@
                   <input id="km" name="km" type="number" min="0" required />
                   <span>km</span>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-head">Ár</div>
-            <div class="card-body form-grid">
-              <label for="vetelar">Vételár: <span class="req">*</span></label>
-              <div class="suffix-field">
-                <input id="vetelar" name="vetelar" type="number" min="0" step="1000" required />
-                <span>Ft</span>
-              </div>
-              <label for="akcios_ar">Akciós ár:</label>
-              <div class="suffix-field">
-                <input id="akcios_ar" name="akcios_ar" type="number" min="0" step="1000" />
-                <span>Ft</span>
-              </div>
-              <div class="full hint">
-                Megjelenítheti és figyelemfelkeltő színnel kiemelheti az akciós árat a találati listában fizetős
-                szolgáltatásunk igénybevételével.
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-head">Leírás és elérhetőség</div>
-            <div class="card-body form-grid">
-              <label for="leiras">Leírás:</label>
-              <div>
-                <textarea id="leiras" name="leiras" rows="6"></textarea>
-                <p class="hint">A kereső a leírásban szereplő szövegben nem tud keresni!</p>
-              </div>
-
-              <label>Megtalálható: <span class="req">*</span></label>
-              <div class="inline-2">
-                <select id="megye" name="megye" required>
-                  <option value="">vármegye</option>
-                  <option>Budapest</option>
-                  <option>Pest</option>
-                  <option>Fejér</option>
-                  <option>Győr-Moson-Sopron</option>
-                  <option>Komárom-Esztergom</option>
-                  <option>Veszprém</option>
-                  <option>Baranya</option>
-                  <option>Bács-Kiskun</option>
-                  <option>Békés</option>
-                  <option>Borsod-Abaúj-Zemplén</option>
-                  <option>Csongrád-Csanád</option>
-                  <option>Hajdú-Bihar</option>
-                  <option>Heves</option>
-                  <option>Jász-Nagykun-Szolnok</option>
-                  <option>Nógrád</option>
-                  <option>Somogy</option>
-                  <option>Szabolcs-Szatmár-Bereg</option>
-                  <option>Tolna</option>
-                  <option>Vas</option>
-                  <option>Zala</option>
-                </select>
-                <input id="telepules" name="telepules" type="text" placeholder="település" required />
-              </div>
-
-              <label for="megtekintesi_cim">Megtekintési cím:</label>
-              <div>
-                <input id="megtekintesi_cim" name="megtekintesi_cim" type="text" />
-                <p class="hint">Ha üresen hagyja: „Megtekinthető: telefonon egyeztetett helyszínen”.</p>
-              </div>
-
-              <label>Email megjelenítése:</label>
-              <label class="check"><input type="checkbox" name="email_megjelenik" value="1" /> Megjelenjen az email címe is</label>
-
-              <label for="email">E-mail:</label>
-              <input id="email" name="email" type="email" />
-
-              <label>1. Telefonszám: <span class="req">*</span></label>
-              <div class="phone-row">
-                <input name="telefon1_orszag" type="text" value="+36" class="phone-part" />
-                <span>/</span>
-                <input name="telefon1_korzet" type="text" placeholder="30" class="phone-part" required />
-                <span>/</span>
-                <input name="telefon1_szam" type="text" placeholder="123 4567" class="phone-part wide" required />
-              </div>
-
-              <label>2. Telefonszám:</label>
-              <div class="phone-row">
-                <input name="telefon2_orszag" type="text" value="+36" class="phone-part" />
-                <span>/</span>
-                <input name="telefon2_korzet" type="text" class="phone-part" />
-                <span>/</span>
-                <input name="telefon2_szam" type="text" class="phone-part wide" />
               </div>
             </div>
           </div>
@@ -425,7 +337,7 @@
         </section>
 
         <section class="step-panel hidden" data-step="4">
-          <div class="card" id="photos-panel">
+          <div class="card">
             <div class="card-body">
               <div class="upload-zone" id="upload-zone">
                 <strong>Húzd ide a képeket, vagy kattints a tallózáshoz</strong>
@@ -433,6 +345,99 @@
                 <input id="photo-input" type="file" accept="image/*" multiple hidden />
               </div>
               <div class="photo-grid" id="photo-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="step-panel hidden" data-step="5">
+          <div id="ad-panel">
+            <div class="card">
+              <div class="card-head">Ár</div>
+              <div class="card-body form-grid">
+                <label for="vetelar">Vételár: <span class="req">*</span></label>
+                <div class="suffix-field">
+                  <input id="vetelar" name="vetelar" type="number" min="0" step="1000" required />
+                  <span>Ft</span>
+                </div>
+                <label for="akcios_ar">Akciós ár:</label>
+                <div class="suffix-field">
+                  <input id="akcios_ar" name="akcios_ar" type="number" min="0" step="1000" />
+                  <span>Ft</span>
+                </div>
+                <div class="full hint">
+                  Megjelenítheti és figyelemfelkeltő színnel kiemelheti az akciós árat a találati listában fizetős
+                  szolgáltatásunk igénybevételével.
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">Leírás és elérhetőség</div>
+              <div class="card-body form-grid">
+                <label for="leiras">Leírás:</label>
+                <div>
+                  <textarea id="leiras" name="leiras" rows="6"></textarea>
+                  <p class="hint">A kereső a leírásban szereplő szövegben nem tud keresni!</p>
+                </div>
+
+                <label>Megtalálható: <span class="req">*</span></label>
+                <div class="inline-2">
+                  <select id="megye" name="megye" required>
+                    <option value="">vármegye</option>
+                    <option>Budapest</option>
+                    <option>Pest</option>
+                    <option>Fejér</option>
+                    <option>Győr-Moson-Sopron</option>
+                    <option>Komárom-Esztergom</option>
+                    <option>Veszprém</option>
+                    <option>Baranya</option>
+                    <option>Bács-Kiskun</option>
+                    <option>Békés</option>
+                    <option>Borsod-Abaúj-Zemplén</option>
+                    <option>Csongrád-Csanád</option>
+                    <option>Hajdú-Bihar</option>
+                    <option>Heves</option>
+                    <option>Jász-Nagykun-Szolnok</option>
+                    <option>Nógrád</option>
+                    <option>Somogy</option>
+                    <option>Szabolcs-Szatmár-Bereg</option>
+                    <option>Tolna</option>
+                    <option>Vas</option>
+                    <option>Zala</option>
+                  </select>
+                  <input id="telepules" name="telepules" type="text" placeholder="település" required />
+                </div>
+
+                <label for="megtekintesi_cim">Megtekintési cím:</label>
+                <div>
+                  <input id="megtekintesi_cim" name="megtekintesi_cim" type="text" />
+                  <p class="hint">Ha üresen hagyja: „Megtekinthető: telefonon egyeztetett helyszínen”.</p>
+                </div>
+
+                <label>Email megjelenítése:</label>
+                <label class="check"><input type="checkbox" name="email_megjelenik" value="1" /> Megjelenjen az email címe is</label>
+
+                <label for="email">E-mail:</label>
+                <input id="email" name="email" type="email" />
+
+                <label>1. Telefonszám: <span class="req">*</span></label>
+                <div class="phone-row">
+                  <input name="telefon1_orszag" type="text" value="+36" class="phone-part" />
+                  <span>/</span>
+                  <input name="telefon1_korzet" type="text" placeholder="30" class="phone-part" required />
+                  <span>/</span>
+                  <input name="telefon1_szam" type="text" placeholder="123 4567" class="phone-part wide" required />
+                </div>
+
+                <label>2. Telefonszám:</label>
+                <div class="phone-row">
+                  <input name="telefon2_orszag" type="text" value="+36" class="phone-part" />
+                  <span>/</span>
+                  <input name="telefon2_korzet" type="text" class="phone-part" />
+                  <span>/</span>
+                  <input name="telefon2_szam" type="text" class="phone-part wide" />
+                </div>
+              </div>
             </div>
           </div>
 

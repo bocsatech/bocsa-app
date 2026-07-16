@@ -12,8 +12,10 @@ const photoInput = document.getElementById("photo-input");
 const photoGrid = document.getElementById("photo-grid");
 const summaryText = document.getElementById("summary-text");
 const newAdBtn = document.getElementById("new-ad-btn");
-const photosPanel = document.getElementById("photos-panel");
+const adPanel = document.getElementById("ad-panel");
 const successPanel = document.getElementById("success-panel");
+
+const TOTAL_STEPS = 5;
 const gyartasiEv = document.getElementById("gyartasi_ev");
 const muszakiEv = document.getElementById("muszaki_ev");
 const gyartmany = document.getElementById("gyartmany");
@@ -221,21 +223,21 @@ function updateTitle() {
 }
 
 function showSuccess() {
-  photosPanel?.classList.add("hidden");
+  adPanel?.classList.add("hidden");
   successPanel?.classList.remove("hidden");
   footerActions.classList.add("hidden");
 }
 
 function resetSuccess() {
-  photosPanel?.classList.remove("hidden");
+  adPanel?.classList.remove("hidden");
   successPanel?.classList.add("hidden");
   footerActions.classList.remove("hidden");
 }
 
 function goToStep(step) {
-  if (step < 1 || step > 4 || step === currentStep) return;
+  if (step < 1 || step > TOTAL_STEPS || step === currentStep) return;
   saveDraft();
-  if (currentStep === 4) resetSuccess();
+  if (currentStep === TOTAL_STEPS) resetSuccess();
   showStep(step);
 }
 
@@ -250,7 +252,7 @@ function showStep(step) {
     indicator.classList.toggle("done", n < step);
   });
   backBtn.classList.toggle("hidden", step <= 1);
-  if (step === 4 && successPanel && !successPanel.classList.contains("hidden")) {
+  if (step === TOTAL_STEPS && successPanel && !successPanel.classList.contains("hidden")) {
     footerActions.classList.add("hidden");
   } else {
     footerActions.classList.remove("hidden");
@@ -258,7 +260,8 @@ function showStep(step) {
   if (step === 1) nextBtn.textContent = "Hirdetésfeladás folytatása";
   if (step === 2) nextBtn.textContent = "Tovább az extrákhoz";
   if (step === 3) nextBtn.textContent = "Tovább a képekhez";
-  if (step === 4) nextBtn.textContent = "Hirdetés feladása kiemelés nélkül";
+  if (step === 4) nextBtn.textContent = "Tovább a hirdetéshez";
+  if (step === 5) nextBtn.textContent = "Hirdetés feladása kiemelés nélkül";
 }
 
 function collectFormData() {
@@ -303,9 +306,20 @@ function restoreDraft() {
   }
 }
 
+function validateFields(names) {
+  for (const name of names) {
+    const field = form.elements.namedItem(name);
+    const value = field?.value?.trim?.() ?? "";
+    if (!value) {
+      field?.focus();
+      return false;
+    }
+  }
+  return true;
+}
+
 function validateStep(step) {
-  if (step !== 1) return true;
-  const required = [
+  const basicRequired = [
     "uzemanyag",
     "gyartasi_ev",
     "gyartmany",
@@ -316,21 +330,36 @@ function validateStep(step) {
     "okmany_jelleg",
     "okmany_ervenyesseg",
     "km",
+  ];
+  const adRequired = [
     "vetelar",
     "megye",
     "telepules",
     "telefon1_korzet",
     "telefon1_szam",
   ];
-  for (const name of required) {
-    const field = form.elements.namedItem(name);
-    const value = field?.value?.trim?.() ?? "";
-    if (!value) {
-      field?.focus();
+
+  if (step === 1) {
+    if (!validateFields(basicRequired)) {
       alert("Kérjük, töltsd ki a kötelező (*) mezőket.");
       return false;
     }
+    return true;
   }
+
+  if (step === TOTAL_STEPS) {
+    if (!validateFields(basicRequired)) {
+      alert("Kérjük, töltsd ki a kötelező (*) mezőket az Alapadatok fülön.");
+      goToStep(1);
+      return false;
+    }
+    if (!validateFields(adRequired)) {
+      alert("Kérjük, töltsd ki a kötelező (*) mezőket.");
+      return false;
+    }
+    return true;
+  }
+
   return true;
 }
 
@@ -410,7 +439,7 @@ indicators.forEach((indicator) => {
 nextBtn.addEventListener("click", () => {
   if (!validateStep(currentStep)) return;
   saveDraft();
-  if (currentStep < 4) {
+  if (currentStep < TOTAL_STEPS) {
     goToStep(currentStep + 1);
     return;
   }
