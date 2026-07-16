@@ -255,9 +255,35 @@ function fitInputWidth(input) {
 }
 
 function fitAllFormFields() {
+  if (document.body.classList.contains("theme-m7")) {
+    form.querySelectorAll("select, input, textarea").forEach((el) => {
+      el.style.width = "";
+    });
+    return;
+  }
   form.querySelectorAll("select").forEach(fitSelectWidth);
   form.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]):not([type="file"])').forEach(fitInputWidth);
   if (hirdetesCime) fitInputWidth(hirdetesCime);
+}
+
+function wrapMdOutlinedFields() {
+  document.querySelectorAll(".form-grid").forEach((grid) => {
+    const items = [...grid.children];
+    for (const el of items) {
+      if (el.tagName !== "LABEL") continue;
+      const next = el.nextElementSibling;
+      if (!next || next.closest(".md-outlined")) continue;
+      if (next.classList.contains("full") || next.classList.contains("field-row")) continue;
+      const wrap = document.createElement("div");
+      wrap.className = "md-outlined";
+      grid.insertBefore(wrap, el);
+      wrap.append(el, next);
+    }
+  });
+
+  document.querySelectorAll(".labeled-field, .autofelvitele-title").forEach((block) => {
+    block.classList.add("md-outlined");
+  });
 }
 
 function showSuccess() {
@@ -546,6 +572,7 @@ fillYearSelect(muszakiEv);
 renderFuelSelector();
 renderKlimaOptions();
 renderEquipment();
+wrapMdOutlinedFields();
 restoreDraft();
 renderPhotoPreview([]);
 fitAllFormFields();
