@@ -1,4 +1,4 @@
-import { UZEMANYAG_OPTIONS, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
+import { UZEMANYAG_CATEGORIES, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
 
 const STORAGE_KEY = "hirdetes-local-draft";
 const form = document.getElementById("ad-form");
@@ -23,12 +23,15 @@ const leDisplay = document.getElementById("le-display");
 const klima = document.getElementById("klima");
 const equipmentRoot = document.getElementById("equipment-sections");
 const uzemanyag = document.getElementById("uzemanyag");
+const fuelMain = document.getElementById("fuel-main");
+const fuelSubpanels = document.getElementById("fuel-subpanels");
+const fuelSelected = document.getElementById("fuel-selected");
 
 let currentStep = 1;
 
 const AUTO_FILL_PRESETS = {
   TESLA: { tipus: "Long Range AWD", hengerurtartalom: "", uzemanyag: "Elektromos", sebessegvalto: "Automata", hajtas: "Összkerék", teljesitmeny_kw: "258" },
-  VOLKSWAGEN: { tipus: "1.6 TDI", hengerurtartalom: "1598", uzemanyag: "Dízel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
+  VOLKSWAGEN: { tipus: "1.6 TDI", hengerurtartalom: "1598", uzemanyag: "Diesel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
   TOYOTA: { tipus: "1.8 Hybrid", hengerurtartalom: "1798", uzemanyag: "Benzin/elektromos", sebessegvalto: "Fokozatmentes automata", hajtas: "Első kerék", teljesitmeny_kw: "72" },
 };
 
@@ -47,25 +50,110 @@ function fillYearSelect(select) {
   }
 }
 
-function renderUzemanyagOptions() {
-  if (!uzemanyag) return;
-  for (const entry of UZEMANYAG_OPTIONS) {
-    if (entry.children) {
-      const group = document.createElement("optgroup");
-      group.label = entry.label;
-      for (const child of entry.children) {
-        const option = document.createElement("option");
-        option.value = child.value;
-        option.textContent = child.label;
-        group.appendChild(option);
-      }
-      uzemanyag.appendChild(group);
-      continue;
+function renderFuelSelector() {
+  if (!fuelMain || !fuelSubpanels) return;
+
+  fuelMain.innerHTML = "";
+  fuelSubpanels.innerHTML = "";
+
+  for (const category of UZEMANYAG_CATEGORIES) {
+    const mainBtn = document.createElement("button");
+    mainBtn.type = "button";
+    mainBtn.className = "fuel-btn";
+    mainBtn.dataset.categoryId = category.id;
+    mainBtn.textContent = category.label;
+
+    if (category.children) {
+      mainBtn.addEventListener("click", () => toggleFuelPanel(category.id));
+    } else {
+      mainBtn.addEventListener("click", () => selectFuel(category.value, category.id));
     }
-    const option = document.createElement("option");
-    option.value = entry.value;
-    option.textContent = entry.label;
-    uzemanyag.appendChild(option);
+
+    fuelMain.appendChild(mainBtn);
+
+    if (!category.children) continue;
+
+    const panel = document.createElement("div");
+    panel.className = "fuel-subpanel";
+    panel.dataset.panelFor = category.id;
+
+    for (const child of category.children) {
+      const subBtn = document.createElement("button");
+      subBtn.type = "button";
+      subBtn.className = "fuel-btn";
+      subBtn.dataset.parentId = category.id;
+      subBtn.dataset.value = child.value;
+      subBtn.textContent = child.label;
+      subBtn.addEventListener("click", () => selectFuel(child.value, category.id, child.label));
+      panel.appendChild(subBtn);
+    }
+
+    fuelSubpanels.appendChild(panel);
+  }
+}
+
+function toggleFuelPanel(categoryId) {
+  const targetPanel = document.querySelector(`.fuel-subpanel[data-panel-for="${categoryId}"]`);
+  const willOpen = !targetPanel?.classList.contains("open");
+
+  document.querySelectorAll(".fuel-subpanel").forEach((panel) => panel.classList.remove("open"));
+  document.querySelectorAll(".fuel-btn[data-category-id]").forEach((btn) => btn.classList.remove("parent-open"));
+
+  if (willOpen && targetPanel) {
+    targetPanel.classList.add("open");
+    document.querySelector(`.fuel-btn[data-category-id="${categoryId}"]`)?.classList.add("parent-open");
+  }
+}
+
+function closeFuelPanels() {
+  document.querySelectorAll(".fuel-subpanel").forEach((panel) => panel.classList.remove("open"));
+  document.querySelectorAll(".fuel-btn.parent-open").forEach((btn) => btn.classList.remove("parent-open"));
+}
+
+function syncFuelButtonState(categoryId, subLabel = null) {
+  document.querySelectorAll(".fuel-btn").forEach((btn) => btn.classList.remove("active"));
+
+  if (categoryId) {
+    const mainBtn = document.querySelector(`.fuel-btn[data-category-id="${categoryId}"]`);
+    mainBtn?.classList.add("active");
+  }
+
+  if (subLabel) {
+    const subBtn = [...document.querySelectorAll(".fuel-btn[data-parent-id]")].find(
+      (btn) => btn.dataset.parentId === categoryId && btn.textContent === subLabel
+    );
+    subBtn?.classList.add("active");
+  }
+}
+
+function selectFuel(value, categoryId, subLabel = null) {
+  if (!uzemanyag) return;
+  uzemanyag.value = value;
+  uzemanyag.dataset.userEdited = "1";
+  closeFuelPanels();
+  syncFuelButtonState(categoryId, subLabel);
+
+  const category = UZEMANYAG_CATEGORIES.find((item) => item.id === categoryId);
+  const display = subLabel ? `${category?.label ?? ""} — ${subLabel}` : value;
+  if (fuelSelected) fuelSelected.textContent = `Kiválasztva: ${display}`;
+  saveDraft();
+}
+
+function restoreFuelSelection(value) {
+  if (!value) return;
+
+  for (const category of UZEMANYAG_CATEGORIES) {
+    if (category.value === value) {
+      selectFuel(value, category.id);
+      return;
+    }
+    if (category.children) {
+      const child = category.children.find((item) => item.value === value);
+      if (child) {
+        selectFuel(value, category.id, child.label);
+        return;
+      }
+    }
   }
 }
 
@@ -183,6 +271,7 @@ function restoreDraft() {
     syncPackageSelection();
     updateTitle();
     updateLeDisplay();
+    restoreFuelSelection(data.uzemanyag);
   } catch {
     /* ignore */
   }
@@ -330,7 +419,7 @@ photoInput.addEventListener("change", () => {
 
 fillYearSelect(gyartasiEv);
 fillYearSelect(muszakiEv);
-renderUzemanyagOptions();
+renderFuelSelector();
 renderKlimaOptions();
 renderEquipment();
 restoreDraft();
