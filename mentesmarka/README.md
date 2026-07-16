@@ -9,13 +9,25 @@ Gyártmány → Modell → Típus → Kivitel + automatikus (zöld) mezők.
 ## Telepítés (egyszer)
 
 ```bash
-cd ~/bocsa-app/mentesmarka
-rm -rf node_modules package-lock.json
-npm install
-npx playwright install chromium
+cd ~/bocsa-app
+git pull origin main
+
+cd mentesmarka
+npm run setup
 ```
 
-Ha `No version found for ^6.3.1` hibát kapsz: töröld a `node_modules`-t és a `package-lock.json`-t (fent), majd `git pull` és újra `npm install`.
+Ha még mindig `No version found for ^6.3.1`:
+
+```bash
+npm config get registry
+# legyen: https://registry.npmjs.org/
+
+npm config set registry https://registry.npmjs.org/
+npm cache clean --force
+npm run setup
+```
+
+Ellenőrizd, hogy a `package.json`-ban ez van: `"playwright": "1.61.1"` (ne `^1.52.0`).
 
 ## Használat
 
