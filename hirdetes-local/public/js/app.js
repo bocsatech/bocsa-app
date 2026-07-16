@@ -206,6 +206,7 @@ function applyAutoFill() {
     if (name !== "uzemanyag") field.classList.add("auto-filled");
   }
   updateLeDisplay();
+  fitAllFormFields();
 }
 
 function updateLeDisplay() {
@@ -221,6 +222,42 @@ function updateTitle() {
   hirdetesCime.value = parts.length
     ? `Eladó ${parts.join(" ")}${year ? ` (${year})` : ""}`
     : "";
+  fitInputWidth(hirdetesCime);
+}
+
+function measureTextWidth(text, font) {
+  const measure = document.createElement("span");
+  measure.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;";
+  measure.style.font = font;
+  measure.textContent = text || " ";
+  document.body.appendChild(measure);
+  const width = measure.offsetWidth;
+  measure.remove();
+  return width;
+}
+
+function fitSelectWidth(select) {
+  if (!select || select.tagName !== "SELECT") return;
+  const style = getComputedStyle(select);
+  const option = select.options[select.selectedIndex];
+  const text = option?.text?.trim() || "—";
+  select.style.width = `${Math.ceil(measureTextWidth(text, style.font)) + 34}px`;
+}
+
+function fitInputWidth(input) {
+  if (!input || input.tagName !== "INPUT") return;
+  if (input.type === "checkbox" || input.type === "radio" || input.type === "file") return;
+  const style = getComputedStyle(input);
+  const text = input.value?.trim() || input.placeholder?.trim() || " ";
+  const min = input.type === "number" ? 3 : 2;
+  const width = Math.max(measureTextWidth(text, style.font), min * 8);
+  input.style.width = `${Math.ceil(width) + 22}px`;
+}
+
+function fitAllFormFields() {
+  form.querySelectorAll("select").forEach(fitSelectWidth);
+  form.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]):not([type="file"])').forEach(fitInputWidth);
+  if (hirdetesCime) fitInputWidth(hirdetesCime);
 }
 
 function showSuccess() {
@@ -458,11 +495,22 @@ newAdBtn.addEventListener("click", () => {
   renderPhotoPreview([]);
   resetSuccess();
   updateTitle();
+  fitAllFormFields();
   showStep(1);
 });
 
 form.addEventListener("input", saveDraft);
 form.addEventListener("change", saveDraft);
+
+form.addEventListener("input", (event) => {
+  const target = event.target;
+  if (target.matches("select")) fitSelectWidth(target);
+  else if (target.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="file"])')) fitInputWidth(target);
+});
+
+form.addEventListener("change", (event) => {
+  if (event.target.matches("select")) fitSelectWidth(event.target);
+});
 
 document.querySelectorAll(".package").forEach((card) => {
   card.addEventListener("click", () => {
@@ -500,4 +548,5 @@ renderKlimaOptions();
 renderEquipment();
 restoreDraft();
 renderPhotoPreview([]);
+fitAllFormFields();
 showStep(1);

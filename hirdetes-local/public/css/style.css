@@ -223,11 +223,13 @@ a:hover {
 }
 
 .autofelvitele-title input {
-  width: 50%;
+  width: auto;
+  max-width: 100%;
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 9px 11px;
   font: inherit;
+  field-sizing: content;
 }
 
 .help-link {
@@ -239,13 +241,15 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
-  min-width: 0;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .suffix-field input {
-  flex: 1;
-  min-width: 0;
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 3ch;
+  field-sizing: content;
 }
 
 .suffix-field span {
@@ -388,7 +392,6 @@ select.auto-filled {
   grid-template-columns: 200px minmax(0, 1fr);
   gap: 12px 16px;
   align-items: center;
-  --field-block-width: 50%;
 }
 
 .form-grid label {
@@ -396,32 +399,28 @@ select.auto-filled {
   color: #374151;
 }
 
-.form-grid > :not(label):not(.full) {
-  width: var(--field-block-width);
-  max-width: var(--field-block-width);
-  min-width: 0;
-  justify-self: start;
-}
-
-.form-grid > select,
-.form-grid > input,
-.form-grid > textarea,
-.form-grid > .inline-2,
-.form-grid > .inline-2-labeled,
-.form-grid > .suffix-field,
-.form-grid > .tire-row,
-.form-grid > .phone-row {
-  width: var(--field-block-width);
-  max-width: var(--field-block-width);
+.form-grid > :not(label):not(.full):not(textarea) {
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
   justify-self: start;
 }
 
 .form-grid select,
-.form-grid input,
-.form-grid textarea {
-  min-width: 0;
+.form-grid input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.inline-2 select,
+.vehicle-row.full select,
+.vehicle-row.full input {
+  width: auto;
   max-width: 100%;
+  field-sizing: content;
+}
+
+.form-grid textarea,
+.form-grid > div:has(textarea) {
+  width: 100%;
+  max-width: 50%;
+  justify-self: start;
 }
 
 .form-grid .full {
@@ -429,14 +428,20 @@ select.auto-filled {
 }
 
 .vehicle-row.full {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  width: var(--field-block-width);
-  max-width: var(--field-block-width);
-  min-width: 0;
-  justify-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  grid-column: 1 / -1;
   align-items: end;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.labeled-field {
+  display: grid;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
 }
 
 input[type="text"],
@@ -471,11 +476,11 @@ textarea {
 }
 
 .inline-2 {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-  width: 100%;
-  min-width: 0;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .inline-2-labeled {
@@ -519,11 +524,11 @@ textarea {
 
 .vehicle-row.full .labeled-field input,
 .vehicle-row.full .labeled-field select {
-  width: 100%;
+  width: auto;
 }
 
 .labeled-field input {
-  width: 100%;
+  width: auto;
 }
 
 .equipment-grid {
@@ -644,20 +649,11 @@ textarea {
   }
 
   .form-grid > :not(label):not(.full),
-  .form-grid > select,
-  .form-grid > input,
-  .form-grid > textarea,
-  .form-grid > .inline-2,
-  .form-grid > .inline-2-labeled,
-  .form-grid > .suffix-field,
-  .form-grid > .tire-row,
-  .form-grid > .phone-row {
+  .form-grid textarea,
+  .form-grid > div:has(textarea),
+  .vehicle-row.full {
     width: 100%;
     max-width: 100%;
-  }
-
-  .vehicle-row.full {
-    grid-template-columns: 1fr;
   }
 
   .inline-2-labeled {
