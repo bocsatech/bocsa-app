@@ -1,4 +1,4 @@
-import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "../../hasznaltauto-scraper/src/browser.mjs";
+import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "./browser.mjs";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { startChromeWithDebugging, waitForCdpReady } from "./chrome-launcher.mjs";

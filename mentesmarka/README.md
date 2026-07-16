@@ -1,18 +1,31 @@
 # mentesmarka
 
-Hasznaltauto.hu **járműkatalógus mentés** — Gyártmány → Modell → Típus → Kivitel + automatikus mezők.
+Önálló program a hasznaltauto.hu **járműkatalógus** mentéséhez.
 
-**Nem keverendő** a `hasznaltauto-scraper` hirdetés-lista eszközzel.
+Gyártmány → Modell → Típus → Kivitel + automatikus (zöld) mezők.
 
-## Indítás
+**Teljesen külön** a `hasznaltauto-scraper` hirdetés-lista programtól — saját mappa, saját Chrome profil, saját kimenet.
+
+## Telepítés (egyszer)
 
 ```bash
 cd ~/bocsa-app/mentesmarka
 npm install
+npx playwright install chromium
+```
+
+## Használat
+
+**1. terminál** — Chrome indítása:
+
+```bash
+cd ~/bocsa-app/mentesmarka
 npm run chrome
 ```
 
-Chrome-ban: Cloudflare + hirdetésfeladás űrlap, majd **másik terminálban**:
+Chrome-ban: Cloudflare megoldása, hirdetésfeladás űrlap betöltése (bejelentkezés ha kell).
+
+**2. terminál** — katalógus mentés:
 
 ```bash
 cd ~/bocsa-app/mentesmarka
@@ -21,14 +34,31 @@ npm run mentesmarka
 
 ## Kimenet
 
-`data/jarmu-katalogus-A.json` — csak **A** betűvel kezdődő márkák.
+```
+mentesmarka/data/jarmu-katalogus-A.json
+```
+
+Csak **A** betűvel kezdődő márkák (ABARTH, AUDI, ALFA ROMEO, …).
 
 ## Opciók
 
 ```bash
 node src/mentesmarka.mjs --connect --max-brands 1
 node src/mentesmarka.mjs --connect --source katalogus
-node src/mentesmarka.mjs --connect -o data/proba.json --letter A
+node src/mentesmarka.mjs --connect -o data/proba.json
 ```
 
-Teszt adat — élesítés előtt a `data/*.json` fájlok törölhetők.
+## Mappastruktúra
+
+```
+mentesmarka/
+  package.json
+  src/
+    mentesmarka.mjs   — fő program
+    browser.mjs       — Chrome kapcsolat
+    chrome.mjs        — Chrome indító
+  data/               — mentett JSON (teszt, törölhető)
+  .chrome-profile/    — saját böngésző profil
+```
+
+Teszt adat — élesítés előtt a `data/*.json` törölhető.

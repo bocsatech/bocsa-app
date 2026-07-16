@@ -61,5 +61,3 @@ npm start -- --debug    # hiba esetén HTML mentése
 npm start -- --no-phones  # telefonszámok kihagyása (gyorsabb)
 npm start -- --single-page  # csak az aktuális oldal (nincs lapozás)
 ```
-
-Járműkatalógus mentéshez használd a külön **`mentesmarka`** projektet (nem keverendő ezzel).
