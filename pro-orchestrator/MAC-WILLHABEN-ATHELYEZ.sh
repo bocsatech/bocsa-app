@@ -116,6 +116,52 @@ if [ -n "$NODE" ] && [ ! -d "$TARGET/node_modules" ]; then
   (cd "$TARGET" && npm install 2>&1 | tail -5)
 fi
 
+get_desktop() {
+  local d=""
+  d="$(/usr/bin/osascript -e 'tell application "Finder" to get POSIX path of (desktop as alias)' 2>/dev/null || true)"
+  d="${d%/}"
+  if [ -n "$d" ] && [ -d "$d" ]; then
+    echo "$d"
+    return 0
+  fi
+  for d in "${HOME}/Desktop" "${HOME}/Asztal"; do
+    [ -d "$d" ] && echo "$d" && return 0
+  done
+  echo "${HOME}/Desktop"
+}
+
+install_desktop_icons() {
+  local DESKTOP
+  DESKTOP="$(get_desktop)"
+  echo ""
+  echo "🖥 Asztali ikonok frissítése → $DESKTOP"
+
+  if [ -d "$TARGET/Willhaben Pro.app" ]; then
+    rm -rf "$DESKTOP/Willhaben Pro.app"
+    cp -a "$TARGET/Willhaben Pro.app" "$DESKTOP/"
+    xattr -cr "$DESKTOP/Willhaben Pro.app" 2>/dev/null || true
+    echo "  ✓ Willhaben Pro.app"
+  elif [ -n "$BOCSA" ] && [ -x "$BOCSA/scripts/build-mac-launcher-app.sh" ]; then
+    echo "  → Willhaben Pro.app építése..."
+    (cd "$BOCSA" && bash scripts/build-mac-launcher-app.sh willhaben-pro) && \
+      cp -a "$TARGET/Willhaben Pro.app" "$DESKTOP/" && \
+      echo "  ✓ Willhaben Pro.app (újraépítve)"
+  fi
+
+  if [ -f "$TARGET/mac-launcher/Inditas.command" ]; then
+    cp "$TARGET/mac-launcher/Inditas.command" "$DESKTOP/Willhaben Pro Inditas.command"
+    chmod +x "$DESKTOP/Willhaben Pro Inditas.command"
+    xattr -cr "$DESKTOP/Willhaben Pro Inditas.command" 2>/dev/null || true
+    echo "  ✓ Willhaben Pro Inditas.command"
+  fi
+
+  if [ -n "$BOCSA" ] && [ -f "$BOCSA/Asztalra telepites.command" ]; then
+    echo "  ℹ BOCSA Pro ikonok: futtasd egyszer → $BOCSA/Asztalra telepites.command"
+  fi
+}
+
+install_desktop_icons
+
 echo ""
 echo "✅ Kész — Willhaben Pro helye:"
 echo "   $TARGET"

@@ -1,16 +1,15 @@
 Mac indító — Willhaben Pro
 ==========================
 
-Gyors indítás (dupla kattintás):
-  Inditas.command
+Program helye: ~/Downloads/willhaben pro/
+
+Gyors indítás (dupla kattintás az Asztalon):
+  Willhaben Pro Inditas.command
+  vagy: Willhaben Pro.app
 
 Indító ikon (.app) építése egyszer a Macen:
   cd ~/Downloads/bocsa-app
-  chmod +x scripts/build-mac-launcher-app.sh
   ./scripts/build-mac-launcher-app.sh willhaben-pro
-
-Utána dupla kattintás:
-  ../Willhaben Pro.app
 
 Mit csinál?
   - Megnyitja a Terminalt
