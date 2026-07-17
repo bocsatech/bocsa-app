@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>Pro Orchestrator</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #151d30;
+      --border: #2a3550;
+      --text: #e8edf7;
+      --muted: #8b9cb3;
+      --wh: #1db954;
+      --ha: #ff6b35;
+      --accent: #5b8cff;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    h1 { margin: 0; font-size: 1.2rem; }
+    .version { color: var(--muted); font-size: 12px; }
+    .banner {
+      margin: 16px 24px 0;
+      padding: 12px 16px;
+      border: 1px solid #5b8cff55;
+      background: #5b8cff18;
+      border-radius: 10px;
+      color: #b8ccff;
+    }
+    main {
+      padding: 20px 24px 32px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 1100px) { main { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
+    .slot {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+    .slot.running { border-color: #1db95466; }
+    .slot header {
+      padding: 0; border: 0; margin: 0;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .slot h2 { margin: 0; font-size: 1rem; }
+    .pill {
+      font-size: 11px; font-weight: 700; padding: 3px 8px;
+      border-radius: 999px; text-transform: uppercase;
+    }
+    .pill.wh { background: #1db95433; color: var(--wh); }
+    .pill.ha { background: #ff6b3533; color: var(--ha); }
+    .status { font-size: 12px; color: var(--muted); }
+    .status.run { color: var(--wh); }
+    label {
+      display: block; font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px;
+    }
+    input, select {
+      width: 100%; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: #0b1020; color: var(--text); font: inherit;
+    }
+    .log {
+      min-height: 120px; max-height: 160px; overflow: auto;
+      background: #080d18; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px; font: 11px/1.45 ui-monospace, monospace; color: #b8c4d9;
+    }
+    .log div { margin: 1px 0; }
+    .log-meta { font-size: 10px; color: var(--muted); margin-top: 4px; }
+    .log-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .log-head label { margin-bottom: 0; }
+    .log-clear {
+      font: inherit;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #ff6b6b55;
+      background: #ff6b6b18;
+      color: #ffb4b4;
+      cursor: pointer;
+    }
+    .log-clear:hover { background: #ff6b6b33; }
+    .log-warn {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #ffb34755;
+      background: #ffb34718;
+      color: #ffd89a;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: #24304a; color: var(--text); font-weight: 600; cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button.danger { background: #e74c3c33; color: #ff9f9f; border-color: #e74c3c55; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    footer {
+      padding: 0 24px 24px;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .dirty { color: #ffb347; font-size: 12px; display: none; }
+    .dirty.show { display: inline; }
+    .admin-link { font-size: 12px; color: #8ecfff; }
+    .url-list { display: grid; gap: 8px; }
+    .url-item {
+      background: #0b1020;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+    }
+    .url-item header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .url-item input[type="text"] { font-size: 12px; padding: 8px 10px; }
+    .url-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
+    textarea.msg-template {
+      width: 100%;
+      min-height: 88px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0b1020;
+      color: var(--text);
+      font: 12px/1.45 ui-monospace, monospace;
+      resize: vertical;
+    }
+    .sms-panel {
+      background: #0b1020;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .sms-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .timing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    @media (max-width: 720px) { .sms-grid { grid-template-columns: 1fr; } }
+    label.sub {
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+    label.inline-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text);
+    }
+    label.inline-check input { width: auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Pro Orchestrator</h1>
+      <div class="version" id="version"></div>
+    </div>
+    <div>http://127.0.0.1:<span id="port">3850</span></div>
+  </header>
+
+  <div class="banner">
+    Slotonként külön port (3851–3856) és <strong>külön Chrome profil</strong>.
+    <strong>Egy kattintás:</strong> asztali <em>BOCSA Pro Inditas</em> → orchestrator + böngésző + URL-lel rendelkező slotok automatikusan indulnak.
+    Willhaben slotoknál egyszer kell <strong>🔑 Bejelentkezés</strong> (utána automatikus).
+  </div>
+
+  <main id="slots"></main>
+
+  <footer>
+    <span class="dirty" id="dirty">⚠ Nem mentett változások</span>
+    <button onclick="startAllSlots()">▶ Minden slot indítása</button>
+    <button class="primary" onclick="saveAll()">💾 Összes slot mentése</button>
+  </footer>
+
+  <script>
+    let data = null;
+    let dirty = false;
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+
+    function markDirty() {
+      dirty = true;
+      document.getElementById('dirty').classList.add('show');
+    }
+
+    function runtimeFor(id) {
+      return (data?.runtime || []).find((r) => r.id === id) || {};
+    }
+
+    function urlPlaceholder(program) {
+      return program === 'hasznaltauto'
+        ? 'https://www.hasznaltauto.hu/talalatilista/...'
+        : 'https://www.willhaben.at/iad/...';
+    }
+
+    function pollMin(program) {
+      return program === 'hasznaltauto' ? 10 : 5;
+    }
+
+    function delayLabel(program) {
+      return program === 'hasznaltauto' ? 'SMS késleltetés (ms)' : 'Üzenet késleltetés (ms)';
+    }
+
+    function renderSmsSection(slot, i) {
+      const prefixes = (slot.allowedPrefixes || ['70', '20', '30']).join(', ');
+      const sms = slot.sms || {};
+      const tokenPlaceholder = sms.hasAuthToken ? '•••• (mentve)' : 'Twilio Auth Token';
+      const hidden = slot.program === 'hasznaltauto' ? '' : 'display:none';
+      return `
+        <div class="sms-panel" data-i="${i}" style="${hidden}">
+          <label>SMS / Twilio</label>
+          <div class="sms-grid">
+            <div>
+              <label class="sub">Engedélyezett előtagok</label>
+              <input class="sms-prefixes" data-i="${i}" value="${esc(prefixes)}" placeholder="70, 20, 30" oninput="markDirty()" />
+            </div>
+            <div>
+              <label class="sub">Account SID</label>
+              <input class="sms-sid" data-i="${i}" value="${esc(sms.accountSid || '')}" oninput="markDirty()" />
+            </div>
+            <div>
+              <label class="sub">Auth Token</label>
+              <input type="password" class="sms-token" data-i="${i}" value="" placeholder="${esc(tokenPlaceholder)}" oninput="markDirty()" />
+            </div>
+            <div>
+              <label class="sub">Feladó szám (Twilio)</label>
+              <input class="sms-from" data-i="${i}" value="${esc(sms.fromNumber || '')}" placeholder="+36..." oninput="markDirty()" />
+            </div>
+          </div>
+          <label class="inline-check">
+            <input type="checkbox" class="sms-dryrun" data-i="${i}" ${sms.dryRun !== false ? 'checked' : ''} onchange="markDirty()" />
+            Dry-run (teszt mód — nem küld tényleges SMS-t)
+          </label>
+          <div class="url-hint">Csak +36 70/20/30 magán mobil. Üres Twilio vagy dry-run: naplózza, nem küldi.</div>
+        </div>
+      `;
+    }
+
+    function renderUrlItems(slot, i, running) {
+      const urls = slot.watchUrls?.length ? slot.watchUrls : [];
+      const items = urls.length ? urls : [{ id: 'url-1', label: 'Keresés 1', url: '', enabled: true }];
+      return items.map((u, j) => `
+        <div class="url-item" data-slot-i="${i}" data-url-i="${j}">
+          <header>
+            <label><input type="checkbox" class="url-enabled" data-slot-i="${i}" data-url-i="${j}" ${u.enabled !== false ? 'checked' : ''} onchange="markDirty()" ${running ? 'disabled' : ''}/> Aktív</label>
+            <button type="button" onclick="removeUrl(${i}, ${j})" ${running ? 'disabled' : ''}>✕</button>
+          </header>
+          <input class="url-label" data-slot-i="${i}" data-url-i="${j}" value="${esc(u.label)}" placeholder="Név" oninput="markDirty()" ${running ? 'disabled' : ''} />
+          <input class="url-url" data-slot-i="${i}" data-url-i="${j}" value="${esc(u.url)}" placeholder="${urlPlaceholder(slot.program)}" oninput="markDirty()" ${running ? 'disabled' : ''} />
+        </div>
+      `).join('');
+    }
+
+    function renderSlots(slots) {
+      const root = document.getElementById('slots');
+      root.innerHTML = slots.map((slot, i) => {
+        const rt = runtimeFor(slot.id);
+        const pillClass = slot.program === 'hasznaltauto' ? 'ha' : 'wh';
+        const pillText = slot.program === 'hasznaltauto' ? 'Hasznaltauto' : 'Willhaben';
+        const running = !!rt.running;
+        return `
+          <section class="slot ${running ? 'running' : ''}" data-slot="${i}" id="card-${slot.id}">
+            <header>
+              <h2>${esc(slot.label || `Slot ${i + 1}`)}</h2>
+              <span class="pill ${pillClass}" id="pill-${i}">${pillText}</span>
+            </header>
+
+            <div class="status ${running ? 'run' : ''}" id="status-${slot.id}">
+              ${running ? `● Fut — :${rt.port}` : '○ Leállítva'}
+              ${rt.adminUrl ? ` — <a class="admin-link" href="${rt.adminUrl}" target="_blank">admin</a>` : ''}
+            </div>
+
+            <div>
+              <label>Program</label>
+              <select class="program" data-i="${i}" onchange="onProgramChange(${i})" ${running ? 'disabled' : ''}>
+                <option value="willhaben" ${slot.program === 'willhaben' ? 'selected' : ''}>Willhaben Pro</option>
+                <option value="hasznaltauto" ${slot.program === 'hasznaltauto' ? 'selected' : ''}>Hasznaltauto Pro</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Felhasználónév (willhaben login)</label>
+              <input class="username" data-i="${i}" value="${esc(slot.username)}" placeholder="pl. pelda.felhasznalo" oninput="markDirty()" ${running ? 'disabled' : ''} />
+            </div>
+
+            <div>
+              <label>Figyelt URL-ek</label>
+              <div class="url-list" id="urls-${slot.id}">
+                ${renderUrlItems(slot, i, running)}
+              </div>
+              <div class="url-hint">${slot.program === 'hasznaltauto' ? 'talalatilista/... link (nem egy hirdetés URL)' : 'willhaben keresés vagy Suchagent link'}</div>
+              <div class="url-actions">
+                <button type="button" onclick="addUrl(${i})" ${running ? 'disabled' : ''}>+ URL hozzáadása</button>
+                <button type="button" class="primary" onclick="saveSlot('${slot.id}', ${i + 1})">💾 Mentés</button>
+              </div>
+              <label class="inline-check" style="margin-top:8px">
+                <input type="checkbox" class="auto-start" data-i="${i}" ${slot.autoStart !== false ? 'checked' : ''} onchange="markDirty()" ${running ? 'disabled' : ''}/>
+                Automatikus indítás (egy kattintásos launchernél)
+              </label>
+            </div>
+
+            <div>
+              <label>Üzenet sablon</label>
+              <textarea class="msg-template" data-i="${i}" oninput="markDirty()">${esc(slot.messageTemplate || '')}</textarea>
+              <div class="url-hint">Változók: {title} {price} {location} {url} {id}</div>
+            </div>
+
+            <div>
+              <label>Időzítés</label>
+              <div class="timing-grid">
+                <div>
+                  <label class="sub">Ellenőrzés (mp)</label>
+                  <input type="number" class="poll-interval" data-i="${i}" min="${pollMin(slot.program)}" value="${slot.pollIntervalSeconds ?? pollMin(slot.program)}" oninput="markDirty()" />
+                </div>
+                <div>
+                  <label class="sub">${delayLabel(slot.program)}</label>
+                  <input type="number" class="send-delay" data-i="${i}" min="2000" step="500" value="${slot.sendDelayMs ?? 3000}" oninput="markDirty()" />
+                </div>
+              </div>
+              <div class="url-hint">Intervallum min. ${pollMin(slot.program)} mp. Intervallum változás: leállítás → mentés → újraindítás.</div>
+            </div>
+
+            ${renderSmsSection(slot, i)}
+
+            <div>
+              <div class="log-head">
+                <label>Napló ${running ? '(aktuális futás)' : ''}</label>
+                <button type="button" class="log-clear" onclick="clearLogs('${slot.id}')" title="Összes naplóbejegyzés törlése">🗑 Törlés</button>
+              </div>
+              ${slot.program === 'willhaben' ? `<div class="log-warn" id="login-warn-${slot.id}" style="display:none;margin-bottom:8px">
+                ⚠ <strong>Nincs bejelentkezve!</strong> Állítsd le a slotot → <strong>🔑 Bejelentkezés</strong> → Chrome-ban jelentkezz be willhaben.at-ra → zárd be a böngészőt → <strong>▶ Indítás</strong>
+              </div>` : ''}
+              <div class="log" id="log-${slot.id}">Betöltés…</div>
+              <div class="log-meta" id="log-meta-${slot.id}"></div>
+            </div>
+
+            <div class="btns">
+              <button class="primary" onclick="saveSlot('${slot.id}', ${i + 1})">💾 Mentés</button>
+              <button class="primary" onclick="startSlot('${slot.id}')" ${running ? 'disabled' : ''}>▶ Indítás</button>
+              <button onclick="restartSlot('${slot.id}')">↻ Újraindítás</button>
+              <button class="danger" onclick="stopSlot('${slot.id}')" ${running ? '' : 'disabled'}>■ Leállítás</button>
+              <button onclick="loginSlot('${slot.id}')" ${running ? 'disabled' : ''}>🔑 Bejelentkezés</button>
+            </div>
+          </section>
+        `;
+      }).join('');
+      slots.forEach((s) => refreshLogs(s.id));
+    }
+
+    function onProgramChange(i) {
+      const sel = document.querySelector(`.program[data-i="${i}"]`);
+      const pill = document.getElementById(`pill-${i}`);
+      const isHa = sel.value === 'hasznaltauto';
+      pill.textContent = isHa ? 'Hasznaltauto' : 'Willhaben';
+      pill.className = 'pill ' + (isHa ? 'ha' : 'wh');
+      document.querySelectorAll(`.url-url[data-slot-i="${i}"]`).forEach((inp) => {
+        inp.placeholder = urlPlaceholder(sel.value);
+      });
+      const panel = document.querySelector(`.sms-panel[data-i="${i}"]`);
+      if (panel) panel.style.display = isHa ? '' : 'none';
+      const poll = document.querySelector(`.poll-interval[data-i="${i}"]`);
+      if (poll) poll.min = pollMin(sel.value);
+      const delayLabelEl = document.querySelector(`.timing-grid .send-delay[data-i="${i}"]`)?.closest('div')?.querySelector('.sub');
+      if (delayLabelEl) delayLabelEl.textContent = delayLabel(sel.value);
+      markDirty();
+    }
+
+    function collectUrlsForSlot(i) {
+      const items = [...document.querySelectorAll(`.url-item[data-slot-i="${i}"]`)];
+      return items.map((_, j) => ({
+        id: `url-${j + 1}`,
+        label: document.querySelector(`.url-label[data-slot-i="${i}"][data-url-i="${j}"]`)?.value.trim() || `URL ${j + 1}`,
+        url: document.querySelector(`.url-url[data-slot-i="${i}"][data-url-i="${j}"]`)?.value.trim() || '',
+        enabled: document.querySelector(`.url-enabled[data-slot-i="${i}"][data-url-i="${j}"]`)?.checked !== false,
+      })).filter((u) => u.url || u.label);
+    }
+
+    function addUrl(i) {
+      const slotId = data.slots[i]?.id;
+      const box = document.getElementById(`urls-${slotId}`);
+      const count = box.querySelectorAll('.url-item').length;
+      const program = document.querySelector(`.program[data-i="${i}"]`).value;
+      const div = document.createElement('div');
+      div.className = 'url-item';
+      div.dataset.slotI = String(i);
+      div.dataset.urlI = String(count);
+      div.innerHTML = `
+        <header>
+          <label><input type="checkbox" class="url-enabled" data-slot-i="${i}" data-url-i="${count}" checked onchange="markDirty()"/> Aktív</label>
+          <button type="button" onclick="removeUrl(${i}, ${count})">✕</button>
+        </header>
+        <input class="url-label" data-slot-i="${i}" data-url-i="${count}" value="Keresés ${count + 1}" placeholder="Név" oninput="markDirty()" />
+        <input class="url-url" data-slot-i="${i}" data-url-i="${count}" value="" placeholder="${urlPlaceholder(program)}" oninput="markDirty()" />
+      `;
+      box.appendChild(div);
+      markDirty();
+    }
+
+    function removeUrl(slotI, urlI) {
+      const item = document.querySelector(`.url-item[data-slot-i="${slotI}"][data-url-i="${urlI}"]`);
+      if (item) item.remove();
+      markDirty();
+    }
+
+    function collectSlots() {
+      return [...document.querySelectorAll('.slot')].map((el, i) => {
+        const program = document.querySelector(`.program[data-i="${i}"]`).value;
+        const slot = {
+          id: data.slots[i]?.id || `slot-${i + 1}`,
+          label: `Slot ${i + 1}`,
+          program,
+          username: document.querySelector(`.username[data-i="${i}"]`).value.trim(),
+          watchUrls: collectUrlsForSlot(i),
+          messageTemplate: document.querySelector(`.msg-template[data-i="${i}"]`)?.value.trim() || '',
+          pollIntervalSeconds: Number(document.querySelector(`.poll-interval[data-i="${i}"]`)?.value) || undefined,
+          sendDelayMs: Number(document.querySelector(`.send-delay[data-i="${i}"]`)?.value) || undefined,
+          autoStart: document.querySelector(`.auto-start[data-i="${i}"]`)?.checked !== false,
+        };
+        if (program === 'hasznaltauto') {
+          slot.allowedPrefixes = document.querySelector(`.sms-prefixes[data-i="${i}"]`)?.value.trim() || '70, 20, 30';
+          slot.sms = {
+            accountSid: document.querySelector(`.sms-sid[data-i="${i}"]`)?.value.trim() || '',
+            authToken: document.querySelector(`.sms-token[data-i="${i}"]`)?.value.trim() || '',
+            fromNumber: document.querySelector(`.sms-from[data-i="${i}"]`)?.value.trim() || '',
+            dryRun: document.querySelector(`.sms-dryrun[data-i="${i}"]`)?.checked !== false,
+          };
+        }
+        return slot;
+      });
+    }
+
+    async function refresh({ keepForm = false } = {}) {
+      const res = await fetch('/api/status');
+      data = await res.json();
+      document.getElementById('version').textContent = `v${data.version}`;
+      document.getElementById('port').textContent = data.port;
+      if (!dirty || !keepForm) renderSlots(data.slots);
+      else {
+        for (const slot of data.slots) {
+          const rt = runtimeFor(slot.id);
+          const st = document.getElementById(`status-${slot.id}`);
+          if (st) {
+            st.className = 'status ' + (rt.running ? 'run' : '');
+            st.innerHTML = rt.running
+              ? `● Fut — :${rt.port} — <a class="admin-link" href="${rt.adminUrl}" target="_blank">admin</a>`
+              : '○ Leállítva';
+          }
+          refreshLogs(slot.id);
+        }
+      }
+    }
+
+    function formatViennaTime(iso) {
+      if (!iso) return '—';
+      try {
+        return new Date(iso).toLocaleTimeString('hu-HU', {
+          timeZone: 'Europe/Vienna',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        });
+      } catch {
+        return '—';
+      }
+    }
+
+    async function clearLogs(slotId) {
+      if (!confirm('Töröljük az összes naplóbejegyzést ennél a slotnál?')) return;
+      try {
+        const res = await fetch(`/api/slots/${slotId}/logs`, { method: 'DELETE' });
+        const body = await res.json();
+        if (!res.ok || body.ok === false) {
+          alert(body.error || 'Napló törlés sikertelen');
+          return;
+        }
+        await refreshLogs(slotId);
+      } catch {
+        alert('Napló törlés sikertelen');
+      }
+    }
+
+    async function refreshLogs(slotId) {
+      const el = document.getElementById(`log-${slotId}`);
+      if (!el) return;
+      try {
+        const res = await fetch(`/api/slots/${slotId}/logs?_=${Date.now()}`);
+        const body = await res.json();
+        const logs = body.logs || [];
+        el.innerHTML = logs.map((l) => `<div>${esc(l)}</div>`).join('') || '—';
+        el.scrollTop = el.scrollHeight;
+        const meta = document.getElementById(`log-meta-${slotId}`);
+        if (meta) {
+          const refreshed = formatViennaTime(body.refreshedAt);
+          const last = formatViennaTime(body.lastLogAt);
+          meta.textContent = body.running
+            ? `Frissítve: ${refreshed} · utolsó esemény: ${last}`
+            : `Frissítve: ${refreshed}`;
+        }
+        const warn = document.getElementById(`login-warn-${slotId}`);
+        if (warn) {
+          const show = !!body.needsLogin && body.running;
+          warn.style.display = show ? 'block' : 'none';
+        }
+      } catch {
+        el.textContent = '— napló hiba —';
+      }
+    }
+
+    async function saveSlots({ slotLabel } = {}) {
+      const res = await fetch('/api/slots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots: collectSlots() }),
+      });
+      if (!res.ok) return alert('Mentés sikertelen');
+      dirty = false;
+      document.getElementById('dirty').classList.remove('show');
+      await refresh();
+      const prefix = slotLabel ? `${slotLabel} mentve! ` : 'Mentve! ';
+      alert(prefix + 'URL és intervallum változáshoz: leállítás → mentés → újraindítás. Sablon, késleltetés és SMS futó slotnál is érvényes.');
+    }
+
+    async function saveAll() {
+      await saveSlots();
+    }
+
+    async function saveSlot(slotId, slotNum) {
+      await saveSlots({ slotLabel: `Slot ${slotNum}` });
+    }
+
+    async function startSlot(id) {
+      if (dirty) {
+        if (!confirm('Nem mentett változások vannak. Mentsem előbb?')) return;
+        await saveSlots();
+      }
+      const res = await fetch(`/api/slots/${id}/start`, { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok || !body.ok) return alert(body.error || 'Indítás sikertelen');
+      await refresh();
+    }
+
+    async function startAllSlots() {
+      if (dirty) {
+        if (!confirm('Nem mentett változások vannak. Mentsem előbb?')) return;
+        await saveSlots();
+      }
+      const res = await fetch('/api/start-all', { method: 'POST' });
+      const body = await res.json();
+      const ok = (body.started || []).filter((s) => s.ok).length;
+      const skip = (body.skipped || []).length;
+      alert(`Indítás kész: ${ok} slot fut, ${skip} kihagyva (nincs URL vagy autoStart ki).`);
+      await refresh();
+    }
+
+    async function restartSlot(id) {
+      if (dirty) {
+        if (!confirm('Nem mentett változások vannak. Mentsem előbb?')) return;
+        await saveSlots();
+      }
+      const res = await fetch(`/api/slots/${id}/restart`, { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok || !body.ok) return alert(body.error || 'Újraindítás sikertelen');
+      await refresh();
+    }
+
+    async function stopSlot(id) {
+      await fetch(`/api/slots/${id}/stop`, { method: 'POST' });
+      await refresh();
+    }
+
+    async function loginSlot(id) {
+      const res = await fetch(`/api/slots/${id}/login`, { method: 'POST' });
+      const body = await res.json();
+      alert(body.message || body.error || 'Bejelentkezés');
+    }
+
+    refresh();
+    setInterval(() => refresh({ keepForm: true }), 4000);
+    setInterval(() => {
+      if (data?.slots) data.slots.forEach((s) => refreshLogs(s.id));
+    }, 1000);
+  </script>
+</body>
+</html>
