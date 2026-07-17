@@ -1,0 +1,25 @@
+{
+  "adminPanel": {
+    "password": ""
+  },
+  "adminPort": 3848,
+  "pollIntervalSeconds": 30,
+  "sendDelayMs": 5000,
+  "headless": false,
+  "messageTemplate": "Üdvözlöm! Érdekel a hirdetése: „{title}” ({price}). Még eladó? Köszönöm! {url}",
+  "allowedPrefixes": ["70", "20", "30"],
+  "sms": {
+    "provider": "twilio",
+    "accountSid": "",
+    "authToken": "",
+    "fromNumber": "",
+    "dryRun": true
+  },
+  "admin": {
+    "maxPerDay": 20,
+    "maxTotal": 100,
+    "maxDays": 14,
+    "enabled": true
+  },
+  "watchUrls": []
+}

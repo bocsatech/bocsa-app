@@ -1,8 +1,8 @@
 {
-  "name": "willhaben-pro",
-  "version": "1.2.4",
+  "name": "hasznaltauto-pro",
+  "version": "1.0.0",
   "private": true,
-  "description": "Willhaben autó figyelő — több URL, admin panel, sablon üzenetek",
+  "description": "Hasznaltauto.hu magán hirdetés figyelő — SMS sablon, admin limitek",
   "type": "module",
   "scripts": {
     "prestart": "node src/stop.mjs",
@@ -10,7 +10,6 @@
     "start-awake": "node src/stop.mjs && caffeinate -dims node src/index.mjs",
     "stop": "node src/stop.mjs",
     "set-password": "node src/set-password.mjs",
-    "admin": "node src/index.mjs --admin-only",
     "login": "node src/login.mjs"
   },
   "engines": {

@@ -46,13 +46,13 @@ function killFromLock() {
 }
 
 const config = loadConfig();
-const port = config.adminPort ?? 3847;
+const port = config.adminPort ?? 3848;
 
 const byLock = killFromLock();
 const byPort = killOnPort(port);
 
 if (!byLock && !byPort) {
-  console.log('  Nincs futó Willhaben Pro példány.');
+  console.log('  Nincs futó Hasznaltauto Pro példány.');
 } else {
   console.log('  Korábbi példány leállítva. Indítható: npm start');
 }

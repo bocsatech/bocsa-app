@@ -1,0 +1,20 @@
+Mac indító — Hasznaltauto Pro
+===============================
+
+Gyors indítás (dupla kattintás):
+  Inditas.command
+
+Indító ikon (.app) építése egyszer a Macen:
+  cd ~/Downloads/bocsa-app
+  chmod +x scripts/build-mac-launcher-app.sh
+  ./scripts/build-mac-launcher-app.sh hasznaltauto-pro
+
+Utána dupla kattintás:
+  ../Hasznaltauto Pro.app
+
+Mit csinál?
+  - Megnyitja a Terminalt
+  - caffeinate: a gép nem alszik el
+  - npm start (admin: http://127.0.0.1:3848)
+
+Tipp: húzd a Hasznaltauto Pro.app ikont a Dockba vagy az Asztalra.
