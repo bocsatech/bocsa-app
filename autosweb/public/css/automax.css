@@ -5,11 +5,11 @@
   --ax-orange-dim: #cc4400;
   --ax-bg: #000000;
   --ax-surface: #0a0a0a;
-  --ax-border: #2a2a2a;
+  --ax-border: #ffffff;
   --ax-text: #ffffff;
   --ax-muted: #888888;
   --ax-label: #ffffff;
-  --m7-field-border: #2a2a2a;
+  --m7-field-border: #ffffff;
   --m7-field-radius: 4px;
   --m7-field-height: 48px;
   --m7-label-accent: var(--ax-orange);
@@ -454,6 +454,10 @@ body.theme-automax .local-banner {
 .theme-automax .autofelvitele-title.md-outlined {
   display: grid;
   gap: 8px;
+}
+
+.theme-automax .form-grid label {
+  color: #fff;
 }
 
 .theme-automax .md-outlined > label,
