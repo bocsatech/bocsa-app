@@ -1,25 +1,20 @@
-# Hirdetésfeladás — localhost klón
+# Áthelyezve → `autosweb`
 
-Teljesen **független** projekt a bocsa-tech-től. Csak helyi gépen fut, **nincs** külső hálózati hívás.
+Ez a mappa **átköltözött**.
 
-## Indítás
+Az autós hirdetésfeladás weboldal most itt van:
 
-```bash
-cd hirdetes-local
-npm start
+```
+~/Downloads/autosweb          ← telepítés után (Mac)
+~/bocsa-app/autosweb          ← forrás a git repóban
 ```
 
-Megnyílik: **http://127.0.0.1:3456**
+**Telepítés + asztali indító:**
 
-## Mi van benne?
+```bash
+cd ~/bocsa-app/autosweb/mac
+chmod +x telepites.command
+./telepites.command
+```
 
-- Hasznaltauto.hu **hirdetésfeladás** oldal egyszerű vizuális klónja
-- 4 lépéses varázsló: járműadatok → képek → csomag → kész
-- Űrlapmezők, felszereltség jelölőnégyzetek (mint az eredeti)
-- Vázlat mentés `localStorage`-ba (offline)
-
-## Következő lépések (később)
-
-- Egyedi design / márkanév
-- Backend, aktiválás, import
-- Járműkatalógus: külön `mentesmarka` projekt → `data/jarmu-katalogus.json`
+Utána az asztalon: **Autosweb-indito.command**
