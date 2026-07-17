@@ -150,8 +150,9 @@ if [ "$SOURCE" = "$DL/bocsa-app" ]; then
   echo "  ℹ bocsa-app → csak CRM maradt (vagy törölheted, ha már bocsa-crm van)"
 fi
 
-# npm install
+# npm install + .env.local ellenőrzés
 if [ -n "$NODE" ]; then
+  ensure_crm_env_local 2>/dev/null || true
   echo ""
   echo "📥 npm install..."
   for dir in "$DEST_CRM" "$DEST_ORCH" "$DEST_WH" "$DEST_HA"; do
