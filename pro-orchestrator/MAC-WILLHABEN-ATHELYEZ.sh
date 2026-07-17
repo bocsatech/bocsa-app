@@ -17,9 +17,37 @@ for p in /opt/homebrew/bin/node /usr/local/bin/node "$(command -v node 2>/dev/nu
   [ -x "$p" ] && NODE="$p" && break
 done
 
+has_package_json() {
+  [ -f "$1/package.json" ]
+}
+
+# mv cél már létezik → almappába kerülne (willhaben pro/willhaben-pro/) — javítás
+fix_nested_layout() {
+  if has_package_json "$TARGET"; then
+    return 0
+  fi
+  if [ -d "$TARGET/willhaben-pro" ] && has_package_json "$TARGET/willhaben-pro"; then
+    echo "  → Javítás: beágyazott mappa kibontása"
+    shopt -s dotglob nullglob
+    mv "$TARGET/willhaben-pro"/* "$TARGET/" 2>/dev/null || true
+    shopt -u dotglob nullglob
+    rmdir "$TARGET/willhaben-pro" 2>/dev/null || rm -rf "$TARGET/willhaben-pro"
+  fi
+  has_package_json "$TARGET"
+}
+
+copy_tree() {
+  local src="$1"
+  rm -rf "$TARGET"
+  mkdir -p "$(dirname "$TARGET")"
+  cp -a "$src" "$TARGET"
+}
+
 download_willhaben_from_github() {
   echo "  → Teljes letöltés GitHub-ról..."
+  rm -rf "$TARGET"
   mkdir -p "$TARGET/src" "$TARGET/public" "$TARGET/scripts" "$TARGET/mac-launcher"
+  local ok=0
   for f in \
     package.json package-lock.json config.json config.default.json README.md .gitignore \
     public/admin.html \
@@ -32,28 +60,37 @@ download_willhaben_from_github() {
     mkdir -p "$TARGET/$(dirname "$f")"
     if curl -sf "$RAW/$f" -o "$TARGET/$f"; then
       echo "    ✓ $f"
+      ok=1
     else
       echo "    ✗ $f"
     fi
   done
+  [ "$ok" -eq 1 ] && has_package_json "$TARGET"
 }
 
 echo ""
 echo "📦 Willhaben Pro → $TARGET"
 echo ""
 
-mkdir -p "$(dirname "$TARGET")"
-
-if [ -d "$TARGET" ] && [ -f "$TARGET/package.json" ]; then
+if has_package_json "$TARGET"; then
   echo "  ✓ Már telepítve: $TARGET"
-elif [ -n "$BOCSA" ] && [ -d "$BOCSA/willhaben-pro" ]; then
-  echo "  → Áthelyezés: $BOCSA/willhaben-pro"
-  mv "$BOCSA/willhaben-pro" "$TARGET"
-elif [ -n "$BOCSA" ] && [ -d "$BOCSA/pro-orchestrator/vendor/willhaben-pro" ]; then
+elif fix_nested_layout; then
+  echo "  ✓ Javítva (beágyazott mappa)"
+elif [ -n "$BOCSA" ] && has_package_json "$BOCSA/willhaben-pro"; then
+  echo "  → Másolás: $BOCSA/willhaben-pro"
+  copy_tree "$BOCSA/willhaben-pro"
+elif [ -n "$BOCSA" ] && has_package_json "$BOCSA/pro-orchestrator/vendor/willhaben-pro"; then
   echo "  → Másolás: pro-orchestrator/vendor/willhaben-pro"
-  cp -a "$BOCSA/pro-orchestrator/vendor/willhaben-pro" "$TARGET"
+  copy_tree "$BOCSA/pro-orchestrator/vendor/willhaben-pro"
 else
-  download_willhaben_from_github
+  download_willhaben_from_github || true
+fi
+
+fix_nested_layout || true
+
+if ! has_package_json "$TARGET"; then
+  echo "  ⚠ Újrapróbálás — GitHub letöltés..."
+  download_willhaben_from_github || true
 fi
 
 for legacy in \
@@ -66,16 +103,17 @@ do
   rm -rf "$legacy"
 done
 
-if [ ! -f "$TARGET/package.json" ]; then
+if ! has_package_json "$TARGET"; then
   echo ""
-  echo "❌ Sikertelen — nincs package.json a célmappában."
+  echo "❌ Sikertelen — nincs package.json itt: $TARGET"
+  echo "   Nézd meg: ls -la \"$TARGET\""
   exit 1
 fi
 
 if [ -n "$NODE" ] && [ ! -d "$TARGET/node_modules" ]; then
   echo ""
   echo "  📥 npm install..."
-  (cd "$TARGET" && npm install 2>&1 | tail -3)
+  (cd "$TARGET" && npm install 2>&1 | tail -5)
 fi
 
 echo ""
