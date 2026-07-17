@@ -410,12 +410,27 @@
 
     function collectUrlsForSlot(i) {
       const items = [...document.querySelectorAll(`.url-item[data-slot-i="${i}"]`)];
-      return items.map((_, j) => ({
-        id: `url-${j + 1}`,
-        label: document.querySelector(`.url-label[data-slot-i="${i}"][data-url-i="${j}"]`)?.value.trim() || `URL ${j + 1}`,
-        url: document.querySelector(`.url-url[data-slot-i="${i}"][data-url-i="${j}"]`)?.value.trim() || '',
-        enabled: document.querySelector(`.url-enabled[data-slot-i="${i}"][data-url-i="${j}"]`)?.checked !== false,
-      })).filter((u) => u.url || u.label);
+      return items
+        .map((item, j) => ({
+          id: `url-${j + 1}`,
+          label: item.querySelector('.url-label')?.value.trim() || `URL ${j + 1}`,
+          url: item.querySelector('.url-url')?.value.trim() || '',
+          enabled: item.querySelector('.url-enabled')?.checked !== false,
+        }))
+        .filter((u) => u.url);
+    }
+
+    function reindexUrlItems(slotI) {
+      const items = [...document.querySelectorAll(`.url-item[data-slot-i="${slotI}"]`)];
+      items.forEach((item, j) => {
+        item.dataset.urlI = String(j);
+        item.querySelectorAll('.url-label, .url-url, .url-enabled').forEach((el) => {
+          el.dataset.urlI = String(j);
+          el.dataset.slotI = String(slotI);
+        });
+        const btn = item.querySelector('header button');
+        if (btn) btn.setAttribute('onclick', `removeUrl(${slotI}, ${j})`);
+      });
     }
 
     function addUrl(i) {
@@ -436,12 +451,14 @@
         <input class="url-url" data-slot-i="${i}" data-url-i="${count}" value="" placeholder="${urlPlaceholder(program)}" oninput="markDirty()" />
       `;
       box.appendChild(div);
+      reindexUrlItems(i);
       markDirty();
     }
 
     function removeUrl(slotI, urlI) {
       const item = document.querySelector(`.url-item[data-slot-i="${slotI}"][data-url-i="${urlI}"]`);
       if (item) item.remove();
+      reindexUrlItems(slotI);
       markDirty();
     }
 

@@ -136,7 +136,7 @@ export function enrichSlot(slot) {
     : inst?.sms || defaults.sms || {};
   const enriched = {
     ...slot,
-    watchUrls: inst?.watchUrls?.length ? inst.watchUrls : slot.watchUrls || [],
+    watchUrls: Array.isArray(slot.watchUrls) ? slot.watchUrls : inst?.watchUrls || [],
     messageTemplate: slot.messageTemplate || inst?.messageTemplate || fallbackTemplate,
     pollIntervalSeconds:
       slot.pollIntervalSeconds ??
