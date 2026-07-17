@@ -1127,6 +1127,13 @@ body.theme-m7::after {
   align-items: start;
 }
 
+.theme-m7 .form-grid > .md-outlined {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+}
+
 .theme-m7 .form-grid > .field-row.full,
 .theme-m7 .form-grid > .full {
   grid-column: 1 / -1;
@@ -1143,6 +1150,44 @@ body.theme-m7::after {
 
 .theme-m7 .field-row--dates {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.theme-m7 .labeled-field.md-outlined > .suffix-field {
+  width: 100%;
+  min-height: var(--m7-field-height);
+  border: 1px solid var(--m7-field-border);
+  border-radius: var(--m7-field-radius);
+  background: #ffffff;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.theme-m7 .labeled-field.md-outlined:focus-within > .suffix-field {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.theme-m7 .labeled-field.md-outlined > .suffix-field input {
+  flex: 1;
+  height: 38px;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  padding: 0 0 0 14px;
+  background: transparent;
+  width: 100% !important;
+}
+
+.theme-m7 .labeled-field.md-outlined > .suffix-field span {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--m7-label-default);
+  padding-right: 4px;
 }
 
 .theme-m7 .labeled-field.md-outlined > .inline-2 {
