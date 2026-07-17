@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>Mobile.de Pro — Admin</title>
+  <style>
+    :root { --bg: #0f1419; --card: #1a2332; --border: #2d3a4f; --text: #e7ecf3; --muted: #8b9cb3; --accent: #ff6b35; --danger: #e74c3c; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; font-size: 1.25rem; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge.run { background: #ff6b3533; color: var(--accent); }
+    .badge.stop { background: #8b9cb333; color: var(--muted); }
+    main { max-width: 960px; margin: 0 auto; padding: 24px; display: grid; gap: 20px; }
+    section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    h2 { margin: 0 0 14px; font-size: 1rem; color: var(--accent); }
+    label { display: block; margin: 10px 0 4px; font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    input, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #0f1419; color: var(--text); font: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    button { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border); background: #243044; color: var(--text); cursor: pointer; font-weight: 600; }
+    button.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+    button.danger { background: #e74c3c22; color: var(--danger); border-color: var(--danger); }
+    button.danger.solid { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .url-item { border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #121a24; }
+    .url-item header { padding: 0; border: 0; margin-bottom: 8px; }
+    .log { max-height: 220px; overflow: auto; font: 12px/1.5 monospace; background: #0a0f14; padding: 10px; border-radius: 8px; }
+    .log div { margin: 2px 0; }
+    .log .error { color: #ff7b7b; }
+    .log .ok { color: #7dffb2; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .stat { background: #121a24; padding: 12px; border-radius: 8px; text-align: center; }
+    .stat b { display: block; font-size: 1.4rem; color: var(--accent); }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .locked section[data-protected] input { opacity: 0.45; pointer-events: none; }
+    .locked section[data-protected] .limit-check { opacity: 0.45; pointer-events: none; }
+    .pw-setup { margin-bottom: 12px; padding: 12px; background: #121a24; border-radius: 8px; border: 1px solid #ffb347; }
+    .warn-banner { background: #ffb34722; border: 1px solid #ffb347; color: #ffb347; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+    .info-banner { background: #3498db22; border: 1px solid #3498db; color: #8ecfff; padding: 12px 16px; border-radius: 8px; }
+    .version-tag { font-size: 11px; color: var(--muted); margin-left: 8px; }
+    .auth-bar { display: flex; gap: 8px; align-items: center; }
+    .auth-badge { font-size: 12px; color: var(--muted); }
+    .modal-backdrop { position: fixed; inset: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 100; }
+    .modal-backdrop.show { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: min(360px, 92vw); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mobile.de Pro <span id="version-tag" class="version-tag"></span></h1>
+    <div class="auth-bar">
+      <span id="auth-badge" class="auth-badge" style="display:none"></span>
+      <button id="btn-login" onclick="showLogin()" style="display:none">🔒 Bejelentkezés</button>
+      <button id="btn-logout" onclick="logout()" style="display:none">Kijelentkezés</button>
+      <span id="status" class="badge stop">…</span>
+    </div>
+  </header>
+  <main>
+    <div id="no-password-warn" class="warn-banner" style="display:none">
+      ⚠ <strong>Limitek nincsenek védve!</strong> <code>npm run set-password -- jelszavad</code>
+    </div>
+    <div class="info-banner">
+      Csak <strong>magán</strong> hirdetésekre küld SMS-t, és csak <strong>+36 70 / 20 / 30</strong> mobil számokra.
+      Kereskedői hirdetések automatikusan kihagyva.
+    </div>
+
+    <section>
+      <h2>Állapot</h2>
+      <div class="stats">
+        <div class="stat"><b id="st-today">0</b>Ma elküldve</div>
+        <div class="stat"><b id="st-total">0</b>Összesen</div>
+        <div class="stat"><b id="st-daylim">20</b>Napi limit</div>
+        <div class="stat"><b id="st-days">14</b>Max nap</div>
+      </div>
+      <div class="btns">
+        <button class="primary" onclick="control('start')">▶ Indítás</button>
+        <button onclick="control('stop')">⏸ Szünet</button>
+        <button class="danger solid" onclick="shutdownApp()">■ STOP</button>
+        <button onclick="control('recalibrate')">↺ Újrakalibrálás</button>
+        <button class="danger" onclick="control('reset-stats')">Stat törlés</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>SMS sablon</h2>
+      <p id="dirty-hint" class="hint" style="display:none;color:#ffb347">⚠ Nem mentett változások!</p>
+      <textarea id="template"></textarea>
+      <p class="hint">Változók: {title} {price} {location} {url} {id}</p>
+      <div class="row" style="margin-top:12px">
+        <div><label>Ellenőrzés (mp)</label><input type="number" id="pollInterval" min="10" /></div>
+        <div><label>SMS késleltetés (ms)</label><input type="number" id="sendDelay" min="2000" /></div>
+        <div><label>Engedélyezett előtagok</label><input id="prefixes" placeholder="70, 20, 30" /></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Twilio SMS beállítások</h2>
+      <p class="hint">Ha üres vagy dry-run be van kapcsolva, csak naplózza az SMS-t (nem küldi).</p>
+      <div class="row2">
+        <div><label>Account SID</label><input id="smsSid" /></div>
+        <div><label>Auth Token</label><input type="password" id="smsToken" placeholder="••••" /></div>
+      </div>
+      <div class="row2" style="margin-top:8px">
+        <div><label>Feladó szám (Twilio)</label><input id="smsFrom" placeholder="+36..." /></div>
+        <div style="padding-top:28px">
+          <label><input type="checkbox" id="smsDryRun" /> Dry-run (teszt mód — nem küld tényleges SMS-t)</label>
+        </div>
+      </div>
+      <div class="row2" style="margin-top:12px">
+        <div>
+          <label>Teszt SMS címzett (+36 70/20/30)</label>
+          <input id="testSmsTo" placeholder="+36 30 123 4567" />
+        </div>
+        <div>
+          <label>Teszt üzenet (opcionális)</label>
+          <input id="testSmsBody" placeholder="Mobile.de Pro teszt SMS" />
+        </div>
+      </div>
+      <div class="btns">
+        <button class="primary" onclick="sendTestSms()">📱 Teszt SMS küldése (éles)</button>
+      </div>
+      <p class="hint">A teszt SMS <strong>ténylegesen kimegy</strong> (dry-run-t felülírja). Előbb mentsd a Twilio adatokat!</p>
+    </section>
+
+    <section data-protected id="limits-section">
+      <h2>Admin — limitek 🔒</h2>
+      <div id="pw-setup" class="pw-setup" style="display:none">
+        <strong>Nincs jelszó beállítva</strong>
+        <label style="margin-top:10px">Új jelszó (min. 4 karakter)</label>
+        <input type="password" id="setup-password" />
+        <div class="btns"><button class="primary" onclick="setupPassword()">Jelszó beállítása</button></div>
+      </div>
+      <div class="row">
+        <div><label>Napi max SMS</label><input type="number" id="maxPerDay" min="1" /></div>
+        <div><label>Összes max</label><input type="number" id="maxTotal" min="1" /></div>
+        <div><label>Használati napok</label><input type="number" id="maxDays" min="1" /></div>
+      </div>
+      <div style="margin-top:12px" class="limit-check">
+        <label><input type="checkbox" id="adminEnabled" /> SMS küldés engedélyezve</label>
+      </div>
+      <div class="btns">
+        <button class="primary" onclick="saveLimits()">💾 Limitek mentése</button>
+        <button id="btn-limits-login" onclick="showLogin()" style="display:none">🔒 Bejelentkezés</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Figyelt URL-ek (mobile.de találati lista)</h2>
+      <div id="urls"></div>
+      <button onclick="addUrl()">+ URL hozzáadása</button>
+      <p class="hint">Másold be a böngésző címsorából a mentett keresés linkjét (<code>talalatilista/...</code>, <strong>nem</strong> egy konkrét hirdetés linkje). Az 1. oldalhoz ne adj hozzá <code>/page1</code>-et.</p>
+    </section>
+
+    <section>
+      <div class="btns"><button class="primary" onclick="save()">💾 Mentés</button></div>
+    </section>
+
+    <section>
+      <h2>Napló</h2>
+      <div class="log" id="log"></div>
+    </section>
+  </main>
+
+  <div id="login-modal" class="modal-backdrop" onclick="if(event.target===this)hideLogin()">
+    <div class="modal">
+      <h2 style="margin:0 0 12px;color:var(--accent)">Admin jelszó</h2>
+      <p id="login-error" class="hint" style="display:none;color:#ff7b7b;margin-top:8px"></p>
+      <input type="password" id="login-password" onkeydown="if(event.key==='Enter')submitLogin()" />
+      <div class="btns" style="margin-top:12px">
+        <button class="primary" onclick="submitLogin()">Belépés</button>
+        <button onclick="hideLogin()">Mégse</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const AUTH_KEY = 'ha-admin-token';
+    let memoryToken = '';
+    let data = null;
+    let formLoaded = false;
+    let formDirty = false;
+    let limitsDirty = false;
+    let unlocked = true;
+
+    function getToken() {
+      try { return memoryToken || localStorage.getItem(AUTH_KEY) || ''; }
+      catch { return memoryToken || ''; }
+    }
+    function setToken(token) {
+      memoryToken = token || '';
+      try {
+        if (token) localStorage.setItem(AUTH_KEY, token);
+        else localStorage.removeItem(AUTH_KEY);
+      } catch {}
+    }
+    function authHeaders() {
+      const h = { 'Content-Type': 'application/json' };
+      const t = getToken();
+      if (t) h.Authorization = `Bearer ${t}`;
+      return h;
+    }
+    async function api(url, opts = {}) {
+      const res = await fetch(url, { ...opts, headers: { ...authHeaders(), ...opts.headers } });
+      if (res.status === 401) {
+        setToken('');
+        unlocked = false;
+        applyAuthUi();
+        showLogin();
+        throw new Error('auth');
+      }
+      return res;
+    }
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    }
+
+    function applyAuthUi() {
+      const needAuth = data?.authRequired;
+      unlocked = !needAuth || data?.unlocked;
+      document.body.classList.toggle('locked', needAuth && !unlocked);
+      document.getElementById('btn-login').style.display = needAuth && !unlocked ? 'inline-block' : 'none';
+      document.getElementById('btn-logout').style.display = needAuth && unlocked ? 'inline-block' : 'none';
+      document.getElementById('btn-limits-login').style.display = needAuth && !unlocked ? 'inline-block' : 'none';
+      document.getElementById('pw-setup').style.display = needAuth ? 'none' : 'block';
+      document.getElementById('no-password-warn').style.display = needAuth ? 'none' : 'block';
+      document.getElementById('version-tag').textContent = data?.version ? `v${data.version}` : '';
+      const badge = document.getElementById('auth-badge');
+      badge.style.display = 'inline';
+      badge.textContent = needAuth ? (unlocked ? '🔓 Limitek szerkeszthető' : '🔒 Limitek védettek') : '⚠ Nincs jelszó';
+      ['maxPerDay','maxTotal','maxDays','adminEnabled'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = needAuth && !unlocked;
+      });
+    }
+
+    function showLogin() {
+      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('login-modal').classList.add('show');
+      document.getElementById('login-password').focus();
+    }
+    function hideLogin() {
+      document.getElementById('login-modal').classList.remove('show');
+      document.getElementById('login-password').value = '';
+    }
+    async function submitLogin() {
+      const password = document.getElementById('login-password').value.trim();
+      const errEl = document.getElementById('login-error');
+      errEl.style.display = 'none';
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        errEl.textContent = body.error || 'Hibás jelszó';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (body.token) setToken(body.token);
+      hideLogin();
+      await refresh();
+    }
+    async function setupPassword() {
+      const password = document.getElementById('setup-password').value.trim();
+      if (password.length < 4) return alert('Min. 4 karakter');
+      const res = await fetch('/api/config/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (!res.ok) return alert('Sikertelen');
+      await refresh();
+      alert('Jelszó aktív!');
+      showLogin();
+    }
+    async function logout() {
+      const t = getToken();
+      if (t) await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders(), body: '{}' }).catch(() => {});
+      setToken('');
+      await refresh();
+    }
+
+    function markDirty() {
+      formDirty = true;
+      document.getElementById('dirty-hint').style.display = 'block';
+    }
+    function clearDirty() {
+      formDirty = false;
+      document.getElementById('dirty-hint').style.display = 'none';
+    }
+
+    function renderUrls(urls) {
+      const el = document.getElementById('urls');
+      el.innerHTML = urls.map((u, i) => `
+        <div class="url-item">
+          <header><strong>URL #${i + 1}</strong>
+            <label style="display:inline;margin-left:12px"><input type="checkbox" data-i="${i}" class="url-enabled" ${u.enabled ? 'checked' : ''}/> Aktív</label>
+          </header>
+          <label>Név</label><input class="url-label" data-i="${i}" value="${esc(u.label)}" />
+          <label>Link</label><input class="url-url" data-i="${i}" value="${esc(u.url)}" />
+          <label>ID</label><input class="url-id" data-i="${i}" value="${esc(u.id)}" />
+        </div>
+      `).join('');
+      el.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', markDirty);
+        inp.addEventListener('change', markDirty);
+      });
+    }
+    function collectUrls() {
+      const items = [...document.querySelectorAll('.url-item')];
+      return items.map((_, i) => ({
+        id: document.querySelector(`.url-id[data-i="${i}"]`).value.trim() || `url-${i+1}`,
+        label: document.querySelector(`.url-label[data-i="${i}"]`).value.trim() || `URL ${i+1}`,
+        url: document.querySelector(`.url-url[data-i="${i}"]`).value.trim(),
+        enabled: document.querySelector(`.url-enabled[data-i="${i}"]`).checked,
+      })).filter(u => u.url);
+    }
+    function addUrl() {
+      const urls = collectUrls();
+      urls.push({ id: `url-${urls.length+1}`, label: 'Új keresés', url: '', enabled: true });
+      renderUrls(urls);
+      markDirty();
+    }
+
+    function applyForm() {
+      const c = data.config;
+      document.getElementById('template').value = c.messageTemplate;
+      document.getElementById('pollInterval').value = c.pollIntervalSeconds;
+      document.getElementById('sendDelay').value = c.sendDelayMs;
+      document.getElementById('prefixes').value = (c.allowedPrefixes || ['70','20','30']).join(', ');
+      document.getElementById('smsSid').value = c.sms?.accountSid || '';
+      document.getElementById('smsToken').value = '';
+      document.getElementById('smsToken').placeholder = c.sms?.hasAuthToken ? '•••• (mentve)' : 'Twilio Auth Token';
+      document.getElementById('smsFrom').value = c.sms?.fromNumber || '';
+      document.getElementById('smsDryRun').checked = c.sms?.dryRun !== false;
+      renderUrls(c.watchUrls || []);
+      if (!limitsDirty) {
+        document.getElementById('maxPerDay').value = c.admin.maxPerDay;
+        document.getElementById('maxTotal').value = c.admin.maxTotal;
+        document.getElementById('maxDays').value = c.admin.maxDays;
+        document.getElementById('adminEnabled').checked = c.admin.enabled;
+      }
+      document.getElementById('status').textContent = data.running ? '● Fut' : '○ Szünet';
+      document.getElementById('status').className = 'badge ' + (data.running ? 'run' : 'stop');
+      document.getElementById('st-today').textContent = `${data.state.sentToday}/${c.admin.maxPerDay}`;
+      document.getElementById('st-total').textContent = `${data.state.totalSent}/${c.admin.maxTotal}`;
+      document.getElementById('st-daylim').textContent = c.admin.maxPerDay;
+      document.getElementById('st-days').textContent = c.admin.maxDays;
+      document.getElementById('log').innerHTML = (data.state.log || []).map(l =>
+        `<div class="${l.level}">[${l.at.slice(11,19)}] ${esc(l.message)}</div>`
+      ).join('') || '<div>—</div>';
+    }
+
+    async function refresh() {
+      const res = await fetch('/api/status', { headers: authHeaders() });
+      data = await res.json();
+      applyAuthUi();
+      if (!formLoaded || !formDirty) {
+        applyForm();
+        formLoaded = true;
+        clearDirty();
+      } else {
+        document.getElementById('status').textContent = data.running ? '● Fut' : '○ Szünet';
+        document.getElementById('status').className = 'badge ' + (data.running ? 'run' : 'stop');
+      }
+    }
+
+    async function save() {
+      const prefixes = document.getElementById('prefixes').value.split(/[,;\s]+/).map(s => s.trim()).filter(Boolean);
+      const body = {
+        messageTemplate: document.getElementById('template').value,
+        pollIntervalSeconds: Number(document.getElementById('pollInterval').value),
+        sendDelayMs: Number(document.getElementById('sendDelay').value),
+        allowedPrefixes: prefixes.length ? prefixes : ['70','20','30'],
+        sms: {
+          accountSid: document.getElementById('smsSid').value.trim(),
+          authToken: document.getElementById('smsToken').value.trim() || undefined,
+          fromNumber: document.getElementById('smsFrom').value.trim(),
+          dryRun: document.getElementById('smsDryRun').checked,
+        },
+        watchUrls: collectUrls(),
+      };
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) return alert('Mentés sikertelen');
+      clearDirty();
+      await refresh();
+      alert('Mentve!');
+    }
+
+    async function saveLimits() {
+      if (data?.authRequired && !unlocked) {
+        showLogin();
+        return;
+      }
+      const res = await api('/api/config/limits', {
+        method: 'POST',
+        body: JSON.stringify({
+          admin: {
+            maxPerDay: Number(document.getElementById('maxPerDay').value),
+            maxTotal: Number(document.getElementById('maxTotal').value),
+            maxDays: Number(document.getElementById('maxDays').value),
+            enabled: document.getElementById('adminEnabled').checked,
+          },
+        }),
+      });
+      if (!res.ok) return alert('Sikertelen');
+      setToken('');
+      await refresh();
+      alert('Limitek mentve és zárolva.');
+    }
+
+    async function sendTestSms() {
+      const to = document.getElementById('testSmsTo').value.trim();
+      if (!to) return alert('Add meg a teszt telefonszámot (+36 70/20/30)');
+      if (!confirm(`Tényleges SMS megy erre a számra?\n${to}`)) return;
+
+      const res = await fetch('/api/sms/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to,
+          message: document.getElementById('testSmsBody').value.trim(),
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert('Teszt SMS sikertelen:\n' + (result.error || res.status));
+        await refresh();
+        return;
+      }
+      await refresh();
+      alert(`Teszt SMS elküldve!\nCímzett: ${result.to}\nTwilio SID: ${result.sid || '—'}`);
+    }
+
+    async function control(action) {
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      await refresh();
+    }
+    async function shutdownApp() {
+      if (!confirm('Teljes leállítás?')) return;
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'shutdown' }),
+      });
+      alert('Leállítva. Újraindítás: npm start');
+    }
+
+    ['template','pollInterval','sendDelay','prefixes','smsSid','smsToken','smsFrom','smsDryRun'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', markDirty);
+        el.addEventListener('change', markDirty);
+      }
+    });
+
+    refresh();
+    setInterval(refresh, 3000);
+  </script>
+</body>
+</html>

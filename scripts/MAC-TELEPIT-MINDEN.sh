@@ -38,6 +38,11 @@ copy_tree() {
 
 install_crm_from_source() {
   echo "📁 bocsa-crm"
+  local saved_env=""
+  if [ -f "$DEST_CRM/.env.local" ]; then
+    saved_env="$(mktemp)"
+    cp "$DEST_CRM/.env.local" "$saved_env"
+  fi
   rm -rf "$DEST_CRM"
   mkdir -p "$DEST_CRM"
   shopt -s dotglob nullglob
@@ -47,8 +52,39 @@ install_crm_from_source() {
     cp -a "$item" "$DEST_CRM/"
   done
   shopt -u dotglob nullglob
-  [ -f "$SOURCE/.env.local" ] && cp "$SOURCE/.env.local" "$DEST_CRM/.env.local" 2>/dev/null || true
+  for dot in .env.local .env.local.example .gitignore; do
+    [ -f "$SOURCE/$dot" ] && cp -a "$SOURCE/$dot" "$DEST_CRM/$dot" 2>/dev/null || true
+  done
+  for envsrc in "$DL/bocsa-app/.env.local" "$SOURCE/.env.local"; do
+    if [ -f "$envsrc" ] && grep -q 'NEXT_PUBLIC_SUPABASE_URL=' "$envsrc" 2>/dev/null; then
+      cp "$envsrc" "$DEST_CRM/.env.local"
+      break
+    fi
+  done
+  if [ -n "$saved_env" ] && [ -f "$saved_env" ]; then
+    cp "$saved_env" "$DEST_CRM/.env.local"
+    rm -f "$saved_env"
+  fi
+  ensure_crm_env_local
   echo "  ✓ $DEST_CRM"
+}
+
+ensure_crm_env_local() {
+  if [ -f "$DEST_CRM/.env.local" ] &&
+    grep -q 'NEXT_PUBLIC_SUPABASE_URL=' "$DEST_CRM/.env.local" 2>/dev/null &&
+    grep -q 'NEXT_PUBLIC_SUPABASE_ANON_KEY=' "$DEST_CRM/.env.local" 2>/dev/null; then
+    echo "  ✓ .env.local OK"
+    return 0
+  fi
+  echo "  → .env.local létrehozása (Supabase)..."
+  if [ -n "$NODE" ] && [ -f "$DEST_CRM/scripts/setup-env-local.mjs" ]; then
+    (cd "$DEST_CRM" && "$NODE" scripts/setup-env-local.mjs) || true
+  elif [ -f "$DEST_CRM/.env.local.example" ]; then
+    cp "$DEST_CRM/.env.local.example" "$DEST_CRM/.env.local"
+  else
+    curl -sf "$RAW/.env.local.example" -o "$DEST_CRM/.env.local" 2>/dev/null || true
+  fi
+  echo "  ✓ .env.local"
 }
 
 download_repo_to_temp() {
@@ -124,6 +160,13 @@ if [ -d "$SOURCE/hasznaltauto-pro" ]; then
   copy_tree "$SOURCE/hasznaltauto-pro" "$DEST_HA"
 fi
 
+# 4b. Mobile.de Pro
+DEST_MD="$DL/mobilede pro"
+if [ -d "$SOURCE/mobilede-pro" ]; then
+  echo "📁 mobilede pro"
+  copy_tree "$SOURCE/mobilede-pro" "$DEST_MD"
+fi
+
 # 5. Egyéb programok (ha vannak a forrásban)
 for pair in \
   "willhaben-watcher:$DEST_WHW" \
@@ -155,7 +198,7 @@ if [ -n "$NODE" ]; then
   ensure_crm_env_local 2>/dev/null || true
   echo ""
   echo "📥 npm install..."
-  for dir in "$DEST_CRM" "$DEST_ORCH" "$DEST_WH" "$DEST_HA"; do
+  for dir in "$DEST_CRM" "$DEST_ORCH" "$DEST_WH" "$DEST_HA" "$DEST_MD"; do
     [ -f "$dir/package.json" ] || continue
     echo "  $dir"
     (cd "$dir" && npm install --no-audit --no-fund 2>&1 | tail -2) || true
@@ -171,6 +214,7 @@ Frissítve: $(date)
 bocsa-crm (CRM web)          → $DEST_CRM
   Indítás: cd "$DEST_CRM" && npm run dev
   Böngésző: http://localhost:3000/login
+  .env.local hiba: curl -sf $RAW/scripts/MAC-CRM-ENV-JAVIT.sh | bash
 
 bocsa-orchestrator (Pro 3850) → $DEST_ORCH
   Indítás: cd "$DEST_ORCH" && npm start
@@ -178,6 +222,8 @@ bocsa-orchestrator (Pro 3850) → $DEST_ORCH
 
 willhaben pro                 → $DEST_WH
 hasznaltauto pro              → $DEST_HA
+mobilede pro                  → $DEST_MD
+  FSBO keresés + SMS +49 15/16/17
 willhaben-watcher             → $DEST_WHW
 hasznaltauto-scraper          → $DEST_HAS
 hirdetes-local                → $DEST_HIR

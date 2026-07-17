@@ -1,0 +1,32 @@
+{
+  "adminPanel": {
+    "password": ""
+  },
+  "adminPort": 3849,
+  "pollIntervalSeconds": 30,
+  "sendDelayMs": 5000,
+  "headless": false,
+  "messageTemplate": "Guten Tag! Ich interessiere mich für Ihr Fahrzeug „{title}“ ({price}, {location}). Ist es noch verfügbar? Vielen Dank! {url}",
+  "allowedPrefixes": ["15", "16", "17"],
+  "sms": {
+    "provider": "twilio",
+    "accountSid": "",
+    "authToken": "",
+    "fromNumber": "",
+    "dryRun": true
+  },
+  "admin": {
+    "maxPerDay": 20,
+    "maxTotal": 100,
+    "maxDays": 14,
+    "enabled": true
+  },
+  "watchUrls": [
+    {
+      "id": "bmw-hybrid-fsbo",
+      "label": "BMW Hybrid FSBO",
+      "url": "https://suchen.mobile.de/fahrzeuge/search.html?isSearchRequest=true&s=Car&vc=Car&dam=false&fr=2015&ml=%3A175000&ms=24100%3B%3B%3B&p=%3A22500&cn=DE&ft=HYBRID&st=FSBO&ref=dsp",
+      "enabled": true
+    }
+  ]
+}

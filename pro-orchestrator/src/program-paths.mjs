@@ -25,6 +25,11 @@ const DEFINITIONS = {
     dirs: ['hasznaltauto pro', 'hasznaltauto-pro'],
     marker: 'src/index.mjs',
   },
+  mobilede: {
+    env: 'MOBILEDE_PRO_ROOT',
+    dirs: ['mobilede pro', 'mobilede-pro'],
+    marker: 'src/index.mjs',
+  },
 };
 
 function isInstalled(root, marker) {
@@ -65,12 +70,8 @@ export function getHasznaltautoRoot() {
   return resolveProgram('hasznaltauto');
 }
 
-export function isCrmInstalled(root = getCrmRoot()) {
-  return isInstalled(root, DEFINITIONS.crm.marker);
-}
-
-export function isOrchestratorInstalled(root = getOrchestratorRoot()) {
-  return isInstalled(root, DEFINITIONS.orchestrator.marker);
+export function getMobiledeRoot() {
+  return resolveProgram('mobilede');
 }
 
 export function isWillhabenInstalled(root = getWillhabenRoot()) {
@@ -81,17 +82,16 @@ export function isHasznaltautoInstalled(root = getHasznaltautoRoot()) {
   return isInstalled(root, DEFINITIONS.hasznaltauto.marker);
 }
 
+export function isMobiledeInstalled(root = getMobiledeRoot()) {
+  return isInstalled(root, DEFINITIONS.mobilede.marker);
+}
+
 export function listProgramPaths() {
   return {
-    downloads: DOWNLOADS,
     crm: getCrmRoot(),
     orchestrator: getOrchestratorRoot(),
     willhaben: getWillhabenRoot(),
     hasznaltauto: getHasznaltautoRoot(),
+    mobilede: getMobiledeRoot(),
   };
-}
-
-/** @deprecated */
-export function getWillhabenVendorRoot() {
-  return path.join(getOrchestratorRoot(), 'vendor', 'willhaben-pro');
 }

@@ -2,7 +2,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { loadConfig, saveConfig, mergeSmsSettings, normalizePollInterval, normalizeSendDelay, normalizeExcludeKeywords } from './config.mjs';
+import { loadConfig, saveConfig, mergeSmsSettings, normalizePollInterval, normalizeSendDelay, normalizeExcludeKeywords, normalizeProgram } from './config.mjs';
 import {
   getAllSlotStatus,
   startSlot,
@@ -17,10 +17,10 @@ import {
 } from './slots.mjs';
 import { startAutoSlots } from './auto-start.mjs';
 import { ensureCalibrationFix } from './ensure-calibration-fix.mjs';
-import { listProgramPaths, isWillhabenInstalled, isHasznaltautoInstalled } from './program-paths.mjs';
+import { listProgramPaths, isWillhabenInstalled, isHasznaltautoInstalled, isMobiledeInstalled } from './program-paths.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.8.3';
+const VERSION = '0.9.0';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -79,7 +79,7 @@ const server = http.createServer(async (req, res) => {
         timing: true,
         autoStart: true,
         slotVisibility: true,
-        excludeKeywords: true,
+        mobilede: true,
       },
     });
   }
@@ -95,7 +95,7 @@ const server = http.createServer(async (req, res) => {
       const id = s.id || `slot-${i + 1}`;
       const previous = prevSlots.find((p) => p.id === id) || prevSlots[i] || {};
       const instance = readInstanceConfig(id);
-      const program = s.program === 'hasznaltauto' ? 'hasznaltauto' : 'willhaben';
+      const program = normalizeProgram(s.program);
       const prefixes = Array.isArray(s.allowedPrefixes)
         ? s.allowedPrefixes.map((p) => String(p).trim()).filter(Boolean)
         : String(s.allowedPrefixes || '')
@@ -122,10 +122,13 @@ const server = http.createServer(async (req, res) => {
           s.sendDelayMs ?? previous.sendDelayMs ?? instance?.sendDelayMs,
           program
         ),
-        allowedPrefixes: prefixes.length
-          ? prefixes
-          : previous.allowedPrefixes || instance?.allowedPrefixes || ['70', '20', '30'],
-        sms: mergeSmsSettings(s, previous, instance),
+        allowedPrefixes:
+          program === 'willhaben'
+            ? undefined
+            : prefixes.length
+              ? prefixes
+              : previous.allowedPrefixes || instance?.allowedPrefixes || (program === 'mobilede' ? ['15', '16', '17'] : ['70', '20', '30']),
+        sms: program === 'willhaben' ? undefined : mergeSmsSettings(s, previous, instance),
         autoStart: s.autoStart !== false,
         visible: s.visible !== false,
         excludeKeywords:
@@ -257,6 +260,7 @@ server.listen(port, '127.0.0.1', () => {
       console.log(`    Orchestrator:  ${paths.orchestrator}`);
       console.log(`    Willhaben Pro: ${paths.willhaben}${isWillhabenInstalled() ? '' : ' ⚠ hiányzik'}`);
       console.log(`    Hasznaltauto:  ${paths.hasznaltauto}${isHasznaltautoInstalled() ? '' : ' ⚠ hiányzik'}`);
+      console.log(`    Mobile.de:     ${paths.mobilede}${isMobiledeInstalled() ? '' : ' ⚠ hiányzik'}`);
       setTimeout(runAutoStart, 1500);
     });
 });

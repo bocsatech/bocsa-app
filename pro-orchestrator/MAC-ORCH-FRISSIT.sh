@@ -4,7 +4,7 @@
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-MIN_VERSION="0.8.3"
+MIN_VERSION="0.9.0"
 ORCH="${HOME}/Downloads/bocsa-orchestrator"
 WH="${HOME}/Downloads/willhaben pro"
 ORCH_BASE="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/pro-orchestrator"
@@ -105,5 +105,5 @@ TS=$(date +%s)
 
 echo ""
 echo "✅ Kész! Safari megnyílt — KÖTELEZŐ: Cmd+Shift+R (kemény frissítés)"
-echo "   Új funkciók: kizáró szavak (Willhaben), slot ✕ Bezárás"
+echo "   Új: Mobile.de Pro slot (program: Mobile.de Pro, SMS +49)"
 echo "   Willhaben slot: 💾 Mentés → ■ Leállítás → ↻ Újraindítás"

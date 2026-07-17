@@ -2,12 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import { spawn, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { getRoot, loadConfig, publicSmsForApi, normalizeWatchUrlsForSlot, normalizeExcludeKeywords } from './config.mjs';
+import { getRoot, loadConfig, publicSmsForApi, normalizeWatchUrlsForSlot, normalizeExcludeKeywords, normalizeProgram } from './config.mjs';
 import {
   getWillhabenRoot,
   getHasznaltautoRoot,
+  getMobiledeRoot,
   isWillhabenInstalled,
   isHasznaltautoInstalled,
+  isMobiledeInstalled,
 } from './program-paths.mjs';
 
 const ORCH_ROOT = getRoot();
@@ -37,6 +39,16 @@ function programRoot(program) {
     if (!isHasznaltautoInstalled(root)) {
       throw new Error(
         `Hasznaltauto Pro nincs telepítve: ${root}\n` +
+          '  Futtasd: curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-TELEPIT-MINDEN.sh | bash'
+      );
+    }
+    return root;
+  }
+  if (program === 'mobilede') {
+    const root = getMobiledeRoot();
+    if (!isMobiledeInstalled(root)) {
+      throw new Error(
+        `Mobile.de Pro nincs telepítve: ${root}\n` +
           '  Futtasd: curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-TELEPIT-MINDEN.sh | bash'
       );
     }
@@ -142,19 +154,21 @@ export function enrichSlot(slot) {
       slot.pollIntervalSeconds ??
       inst?.pollIntervalSeconds ??
       defaults.pollIntervalSeconds ??
-      (slot.program === 'hasznaltauto' ? 30 : 10),
+      (slot.program === 'hasznaltauto' || slot.program === 'mobilede' ? 30 : 10),
     sendDelayMs:
       slot.sendDelayMs ??
       inst?.sendDelayMs ??
       defaults.sendDelayMs ??
-      (slot.program === 'hasznaltauto' ? 5000 : 3000),
+      (slot.program === 'hasznaltauto' || slot.program === 'mobilede' ? 5000 : 3000),
     allowedPrefixes: prefixes,
     sms: publicSmsForApi(smsSource),
   };
-  if (slot.program !== 'hasznaltauto') {
+  if (slot.program === 'willhaben') {
     delete enriched.allowedPrefixes;
     delete enriched.sms;
     enriched.excludeKeywords = normalizeExcludeKeywords(slot.excludeKeywords);
+  } else if (slot.program === 'mobilede') {
+    delete enriched.excludeKeywords;
   } else {
     delete enriched.excludeKeywords;
   }
@@ -176,12 +190,12 @@ function applySlotFieldsToConfig(slot, cfg) {
   cfg.pollIntervalSeconds =
     slot.pollIntervalSeconds ??
     readProgramDefaults(slot.program).pollIntervalSeconds ??
-    (slot.program === 'hasznaltauto' ? 30 : 10);
+    (slot.program === 'hasznaltauto' || slot.program === 'mobilede' ? 30 : 10);
   cfg.sendDelayMs =
     slot.sendDelayMs ??
     readProgramDefaults(slot.program).sendDelayMs ??
-    (slot.program === 'hasznaltauto' ? 5000 : 3000);
-  if (slot.program === 'hasznaltauto') {
+    (slot.program === 'hasznaltauto' || slot.program === 'mobilede' ? 5000 : 3000);
+  if (slot.program === 'hasznaltauto' || slot.program === 'mobilede') {
     const prefixes = Array.isArray(slot.allowedPrefixes) ? slot.allowedPrefixes : [];
     cfg.allowedPrefixes = prefixes.length ? prefixes : ['70', '20', '30'];
     cfg.sms = {

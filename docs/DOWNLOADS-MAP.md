@@ -8,6 +8,7 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 | **Pro Orchestrator** | `bocsa-orchestrator` | `cd ~/Downloads/bocsa-orchestrator && npm start` | http://localhost:3850 |
 | **Willhaben Pro** | `willhaben pro` | `cd ~/Downloads/willhaben\ pro && npm start` | slot / 3847 |
 | **Hasznaltauto Pro** | `hasznaltauto pro` | `cd ~/Downloads/hasznaltauto\ pro && npm start` | slot / 3848 |
+| **Mobile.de Pro** | `mobilede pro` | `cd ~/Downloads/mobilede\ pro && npm start` | slot / SMS +49 |
 | Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
 | Hasznaltauto scraper | `hasznaltauto-scraper` | `npm start` | — |
 | Hirdetés local | `hirdetes-local` | `npm start` | http://localhost:3456 |

@@ -5,9 +5,22 @@ import { fileURLToPath } from 'url';
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CONFIG_PATH = path.join(ROOT, 'config.json');
 
-const DEFAULT_PREFIXES = ['70', '20', '30'];
+const DEFAULT_PREFIXES_HU = ['70', '20', '30'];
+const DEFAULT_PREFIXES_DE = ['15', '16', '17'];
 
 export const DEFAULT_EXCLUDE_KEYWORDS = ['ecoboost', 'export'];
+
+export function normalizeProgram(value) {
+  if (value === 'hasznaltauto') return 'hasznaltauto';
+  if (value === 'mobilede') return 'mobilede';
+  return 'willhaben';
+}
+
+function defaultPrefixes(program) {
+  if (program === 'mobilede') return [...DEFAULT_PREFIXES_DE];
+  if (program === 'hasznaltauto') return [...DEFAULT_PREFIXES_HU];
+  return [...DEFAULT_PREFIXES_HU];
+}
 
 const DEFAULT_SMS = {
   provider: 'twilio',
@@ -18,9 +31,9 @@ const DEFAULT_SMS = {
 };
 
 function defaultTiming(program) {
-  return program === 'hasznaltauto'
-    ? { pollIntervalSeconds: 30, sendDelayMs: 5000 }
-    : { pollIntervalSeconds: 10, sendDelayMs: 3000 };
+  return program === 'willhaben'
+    ? { pollIntervalSeconds: 10, sendDelayMs: 3000 }
+    : { pollIntervalSeconds: 30, sendDelayMs: 5000 };
 }
 
 const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => {
@@ -35,7 +48,7 @@ const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => {
     messageTemplate: '',
     pollIntervalSeconds: timing.pollIntervalSeconds,
     sendDelayMs: timing.sendDelayMs,
-    allowedPrefixes: [...DEFAULT_PREFIXES],
+    allowedPrefixes: defaultPrefixes(program),
     sms: { ...DEFAULT_SMS },
     autoStart: true,
     visible: true,
@@ -43,14 +56,15 @@ const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => {
   };
 });
 
-function normalizeAllowedPrefixes(value) {
+function normalizeAllowedPrefixes(value, program = 'hasznaltauto') {
+  const fallback = defaultPrefixes(program);
   if (Array.isArray(value)) {
     return value.map((p) => String(p).trim()).filter(Boolean);
   }
   if (typeof value === 'string') {
     return value.split(/[,;\s]+/).map((p) => p.trim()).filter(Boolean);
   }
-  return [...DEFAULT_PREFIXES];
+  return [...fallback];
 }
 
 function normalizeSms(sms) {
@@ -66,7 +80,7 @@ function normalizeSms(sms) {
 
 export function normalizePollInterval(value, program) {
   const n = Number(value);
-  const min = program === 'hasznaltauto' ? 10 : 5;
+  const min = program === 'willhaben' ? 5 : 10;
   const fallback = defaultTiming(program).pollIntervalSeconds;
   return Number.isFinite(n) && n >= min ? Math.round(n) : fallback;
 }
@@ -160,7 +174,7 @@ function normalizeSlots(slots) {
   const list = Array.isArray(slots) ? slots : [];
   return DEFAULT_SLOTS.map((def, i) => {
     const incoming = list.find((s) => s.id === def.id) || list[i] || {};
-    const program = incoming.program === 'hasznaltauto' ? 'hasznaltauto' : 'willhaben';
+    const program = normalizeProgram(incoming.program);
     return {
       id: def.id,
       label: String(incoming.label || def.label).trim() || def.label,
@@ -170,8 +184,11 @@ function normalizeSlots(slots) {
       messageTemplate: String(incoming.messageTemplate || '').trim(),
       pollIntervalSeconds: normalizePollInterval(incoming.pollIntervalSeconds, program),
       sendDelayMs: normalizeSendDelay(incoming.sendDelayMs, program),
-      allowedPrefixes: normalizeAllowedPrefixes(incoming.allowedPrefixes),
-      sms: normalizeSms(incoming.sms || def.sms),
+      allowedPrefixes:
+        program === 'willhaben'
+          ? undefined
+          : normalizeAllowedPrefixes(incoming.allowedPrefixes, program),
+      sms: program === 'willhaben' ? undefined : normalizeSms(incoming.sms || def.sms),
       autoStart: incoming.autoStart !== false,
       visible: incoming.visible !== false,
       excludeKeywords:

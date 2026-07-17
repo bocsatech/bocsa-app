@@ -63,6 +63,7 @@
     }
     .pill.wh { background: #1db95433; color: var(--wh); }
     .pill.ha { background: #ff6b3533; color: var(--ha); }
+    .pill.md { background: #4da6ff33; color: #4da6ff; }
     .status { font-size: 12px; color: var(--muted); }
     .status.run { color: var(--wh); }
     label {
@@ -276,32 +277,55 @@
       return (data?.runtime || []).find((r) => r.id === id) || {};
     }
 
+    function isSmsProgram(program) {
+      return program === 'hasznaltauto' || program === 'mobilede';
+    }
+
+    function pillFor(program) {
+      if (program === 'hasznaltauto') return { class: 'ha', text: 'Hasznaltauto' };
+      if (program === 'mobilede') return { class: 'md', text: 'Mobile.de' };
+      return { class: 'wh', text: 'Willhaben' };
+    }
+
     function urlPlaceholder(program) {
-      return program === 'hasznaltauto'
-        ? 'https://www.hasznaltauto.hu/talalatilista/...'
-        : 'https://www.willhaben.at/iad/...';
+      if (program === 'hasznaltauto') return 'https://www.hasznaltauto.hu/talalatilista/...';
+      if (program === 'mobilede') return 'https://suchen.mobile.de/fahrzeuge/search.html?...&st=FSBO';
+      return 'https://www.willhaben.at/iad/...';
     }
 
     function pollMin(program) {
-      return program === 'hasznaltauto' ? 10 : 5;
+      return program === 'willhaben' ? 5 : 10;
     }
 
     function delayLabel(program) {
-      return program === 'hasznaltauto' ? 'SMS késleltetés (ms)' : 'Üzenet késleltetés (ms)';
+      return isSmsProgram(program) ? 'SMS késleltetés (ms)' : 'Üzenet késleltetés (ms)';
+    }
+
+    function urlHint(program) {
+      if (program === 'hasznaltauto') return 'talalatilista/... link (nem egy hirdetés URL)';
+      if (program === 'mobilede') return 'mobile.de search.html keresés — FSBO (magán) ajánlott: &st=FSBO';
+      return 'willhaben keresés vagy Suchagent link';
+    }
+
+    function defaultPrefixes(program) {
+      return program === 'mobilede' ? '15, 16, 17' : '70, 20, 30';
     }
 
     function renderSmsSection(slot, i) {
-      const prefixes = (slot.allowedPrefixes || ['70', '20', '30']).join(', ');
+      if (!isSmsProgram(slot.program)) return '';
+      const prefixes = (slot.allowedPrefixes || (slot.program === 'mobilede' ? ['15', '16', '17'] : ['70', '20', '30'])).join(', ');
       const sms = slot.sms || {};
       const tokenPlaceholder = sms.hasAuthToken ? '•••• (mentve)' : 'Twilio Auth Token';
-      const hidden = slot.program === 'hasznaltauto' ? '' : 'display:none';
+      const prefixHint = slot.program === 'mobilede'
+        ? 'Csak +49 15/16/17 mobil (DE). Twilio feladó: DE vagy nemzetközi szám.'
+        : 'Csak +36 70/20/30 magán mobil. Üres Twilio vagy dry-run: naplózza, nem küldi.';
       return `
-        <div class="sms-panel" data-i="${i}" style="${hidden}">
-          <label>SMS / Twilio</label>
+        <div class="sms-panel" data-i="${i}">
+          <label>SMS / Twilio ${slot.program === 'mobilede' ? '(mobile.de)' : ''}</label>
           <div class="sms-grid">
             <div>
               <label class="sub">Engedélyezett előtagok</label>
-              <input class="sms-prefixes" data-i="${i}" value="${esc(prefixes)}" placeholder="70, 20, 30" oninput="markDirty()" />
+              <input class="sms-prefixes" data-i="${i}" value="${esc(prefixes)}" placeholder="${esc(defaultPrefixes(slot.program))}" oninput="markDirty()" />
             </div>
             <div>
               <label class="sub">Account SID</label>
@@ -320,7 +344,7 @@
             <input type="checkbox" class="sms-dryrun" data-i="${i}" ${sms.dryRun !== false ? 'checked' : ''} onchange="markDirty()" />
             Dry-run (teszt mód — nem küld tényleges SMS-t)
           </label>
-          <div class="url-hint">Csak +36 70/20/30 magán mobil. Üres Twilio vagy dry-run: naplózza, nem küldi.</div>
+          <div class="url-hint">${prefixHint}</div>
         </div>
       `;
     }
@@ -366,8 +390,9 @@
 
     function renderSlotCard(slot, i) {
       const rt = runtimeFor(slot.id);
-      const pillClass = slot.program === 'hasznaltauto' ? 'ha' : 'wh';
-      const pillText = slot.program === 'hasznaltauto' ? 'Hasznaltauto' : 'Willhaben';
+      const pill = pillFor(slot.program);
+      const pillClass = pill.class;
+      const pillText = pill.text;
       const running = !!rt.running;
       return `
           <section class="slot ${running ? 'running' : ''}" data-slot="${i}" id="card-${slot.id}">
@@ -389,10 +414,11 @@
               <select class="program" data-i="${i}" onchange="onProgramChange(${i})" ${running ? 'disabled' : ''}>
                 <option value="willhaben" ${slot.program === 'willhaben' ? 'selected' : ''}>Willhaben Pro</option>
                 <option value="hasznaltauto" ${slot.program === 'hasznaltauto' ? 'selected' : ''}>Hasznaltauto Pro</option>
+                <option value="mobilede" ${slot.program === 'mobilede' ? 'selected' : ''}>Mobile.de Pro</option>
               </select>
             </div>
 
-            <div>
+            <div class="username-row" data-i="${i}" style="${isSmsProgram(slot.program) ? 'display:none' : ''}">
               <label>Felhasználónév (willhaben login)</label>
               <input class="username" data-i="${i}" value="${esc(slot.username)}" placeholder="pl. pelda.felhasznalo" oninput="markDirty()" ${running ? 'disabled' : ''} />
             </div>
@@ -402,7 +428,7 @@
               <div class="url-list" id="urls-${slot.id}">
                 ${renderUrlItems(slot, i, running)}
               </div>
-              <div class="url-hint">${slot.program === 'hasznaltauto' ? 'talalatilista/... link (nem egy hirdetés URL)' : 'willhaben keresés vagy Suchagent link'}</div>
+              <div class="url-hint">${urlHint(slot.program)}</div>
               <div class="url-actions">
                 <button type="button" onclick="addUrl(${i})" ${running ? 'disabled' : ''}>+ URL hozzáadása</button>
                 <button type="button" class="primary" onclick="saveSlot('${slot.id}', ${i + 1})">💾 Mentés</button>
@@ -488,20 +514,34 @@
     function onProgramChange(i) {
       const sel = document.querySelector(`.program[data-i="${i}"]`);
       const pill = document.getElementById(`pill-${i}`);
-      const isHa = sel.value === 'hasznaltauto';
-      pill.textContent = isHa ? 'Hasznaltauto' : 'Willhaben';
-      pill.className = 'pill ' + (isHa ? 'ha' : 'wh');
+      const p = sel.value;
+      const pf = pillFor(p);
+      pill.textContent = pf.text;
+      pill.className = 'pill ' + pf.class;
       document.querySelectorAll(`.url-url[data-slot-i="${i}"]`).forEach((inp) => {
-        inp.placeholder = urlPlaceholder(sel.value);
+        inp.placeholder = urlPlaceholder(p);
       });
+      const userRow = document.querySelector(`.username-row[data-i="${i}"]`);
+      if (userRow) userRow.style.display = isSmsProgram(p) ? 'none' : '';
       const panel = document.querySelector(`.sms-panel[data-i="${i}"]`);
-      if (panel) panel.style.display = isHa ? '' : 'none';
+      const card = document.querySelector(`#card-${data.slots[i]?.id}`);
+      if (isSmsProgram(p)) {
+        if (!panel && card) {
+          const timing = card.querySelector('.timing-grid')?.closest('div')?.parentElement;
+          const tmp = document.createElement('div');
+          tmp.innerHTML = renderSmsSection({ program: p, allowedPrefixes: p === 'mobilede' ? ['15','16','17'] : ['70','20','30'], sms: {} }, i);
+          const smsEl = tmp.firstElementChild;
+          const exclude = card.querySelector('.exclude-panel');
+          if (exclude) exclude.insertAdjacentElement('afterend', smsEl);
+          else if (timing) timing.parentElement.insertBefore(smsEl, timing);
+        } else if (panel) panel.style.display = '';
+      } else if (panel) panel.remove();
       const excludePanel = document.querySelector(`.exclude-panel[data-i="${i}"]`);
-      if (excludePanel) excludePanel.style.display = isHa ? 'none' : '';
+      if (excludePanel) excludePanel.style.display = p === 'willhaben' ? '' : 'none';
       const poll = document.querySelector(`.poll-interval[data-i="${i}"]`);
-      if (poll) poll.min = pollMin(sel.value);
+      if (poll) poll.min = pollMin(p);
       const delayLabelEl = document.querySelector(`.timing-grid .send-delay[data-i="${i}"]`)?.closest('div')?.querySelector('.sub');
-      if (delayLabelEl) delayLabelEl.textContent = delayLabel(sel.value);
+      if (delayLabelEl) delayLabelEl.textContent = delayLabel(p);
       markDirty();
     }
 
@@ -644,15 +684,15 @@
           autoStart: document.querySelector(`.auto-start[data-i="${i}"]`)?.checked !== false,
           visible: slot.visible !== false,
         };
-        if (program === 'hasznaltauto') {
-          next.allowedPrefixes = document.querySelector(`.sms-prefixes[data-i="${i}"]`)?.value.trim() || '70, 20, 30';
+        if (isSmsProgram(program)) {
+          next.allowedPrefixes = document.querySelector(`.sms-prefixes[data-i="${i}"]`)?.value.trim() || defaultPrefixes(program);
           next.sms = {
             accountSid: document.querySelector(`.sms-sid[data-i="${i}"]`)?.value.trim() || '',
             authToken: document.querySelector(`.sms-token[data-i="${i}"]`)?.value.trim() || '',
             fromNumber: document.querySelector(`.sms-from[data-i="${i}"]`)?.value.trim() || '',
             dryRun: document.querySelector(`.sms-dryrun[data-i="${i}"]`)?.checked !== false,
           };
-        } else {
+        } else if (program === 'willhaben') {
           next.excludeKeywords = collectExcludeKeywords(i);
         }
         return next;

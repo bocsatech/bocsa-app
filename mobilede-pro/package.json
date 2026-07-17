@@ -1,0 +1,21 @@
+{
+  "name": "mobilede-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "mobile.de magán hirdetés figyelő — SMS (Twilio), FSBO keresés",
+  "type": "module",
+  "scripts": {
+    "prestart": "node src/stop.mjs",
+    "start": "node src/index.mjs",
+    "start-awake": "node src/stop.mjs && caffeinate -dims node src/index.mjs",
+    "stop": "node src/stop.mjs",
+    "set-password": "node src/set-password.mjs",
+    "login": "node src/login.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "playwright": "^1.52.0"
+  }
+}
