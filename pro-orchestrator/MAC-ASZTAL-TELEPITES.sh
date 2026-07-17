@@ -70,9 +70,12 @@ for port in 3850 3851 3852 3853 3854 3855 3856; do
 done
 sleep 1
 nohup "\$NODE" src/server.mjs >>"\$HOME/Desktop/BOCSA-Pro.log" 2>&1 &
-sleep 2
-/usr/bin/open -a Safari "http://localhost:3850" 2>/dev/null || true
-echo "BOCSA Pro: http://localhost:3850"
+sleep 3
+VER=\$(curl -sf http://127.0.0.1:3850/api/status 2>/dev/null | grep -o '"version":"[^"]*"' | head -1 || echo "")
+TS=\$(date +%s)
+/usr/bin/open -a Safari "http://localhost:3850/?v=\$TS" 2>/dev/null || true
+echo "BOCSA Pro: http://localhost:3850 \$VER"
+echo "Safari: Cmd+Shift+R ha régi kinézet"
 SCRIPT
 chmod +x "$ORCH_CMD"
 xattr -cr "$ORCH_CMD" 2>/dev/null || true
