@@ -2,6 +2,9 @@
 
 6 slotos helyi vezérlő Willhaben Pro + Hasznaltauto Pro programokhoz.
 
+**Willhaben Pro helye (Mac):** `~/Downloads/willhaben pro/` — nem a bocsa-app mappában.
+Telepítés: `bash scripts/move-willhaben-pro-to-downloads.sh`
+
 **Jelenlegi állapot (0.7.0):** egy kattintásos indítás + automatikus slot start.
 
 ## Egy kattintásos indítás (Mac)

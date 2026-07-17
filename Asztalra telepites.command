@@ -10,7 +10,7 @@ echo "BOCSA Pro — Asztali telepítő"
 echo "Mappa: $HERE"
 echo ""
 
-if [ ! -d "$HERE/willhaben-pro" ] || [ ! -d "$HERE/hasznaltauto-pro" ]; then
+if [ ! -d "$HERE/hasznaltauto-pro" ]; then
   echo "HIBA: Ez nem a bocsa-app mappa."
   echo "Előbb: cd a bocsa-app könyvtárba, majd dupla kattintás ide."
   read -r -p "Enter..."

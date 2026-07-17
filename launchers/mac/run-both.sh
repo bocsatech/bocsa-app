@@ -23,7 +23,7 @@ find_repo() {
     "$(dirname "$0")/../../.bocsa-pro-repo"; do
     if [ -f "$f" ]; then
       repo="$(tr -d '\r' < "$f" | head -n 1)"
-      if [ -n "$repo" ] && [ -d "$repo/willhaben-pro" ] && [ -d "$repo/hasznaltauto-pro" ]; then
+      if [ -n "$repo" ] && [ -d "$repo/hasznaltauto-pro" ]; then
         echo "$repo"
         return 0
       fi
@@ -45,8 +45,13 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-WH_DIR="${REPO}/willhaben-pro"
+WH_DIR="${HOME}/Downloads/willhaben pro"
 HA_DIR="${REPO}/hasznaltauto-pro"
+
+if [ ! -d "$WH_DIR" ] || [ ! -f "$WH_DIR/package.json" ]; then
+  alert "Willhaben Pro nincs a Letöltések mappában. Futtasd: bash scripts/move-willhaben-pro-to-downloads.sh"
+  exit 1
+fi
 
 launch_terminal() {
   local dir="$1"

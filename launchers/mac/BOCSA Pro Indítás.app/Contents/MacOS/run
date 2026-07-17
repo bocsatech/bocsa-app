@@ -13,10 +13,16 @@ else
   REPO=""
 fi
 
-if [ -z "$REPO" ] || [ ! -d "$REPO/willhaben-pro" ] || [ ! -d "$REPO/hasznaltauto-pro" ]; then
+if [ -z "$REPO" ] || [ ! -d "$REPO/hasznaltauto-pro" ]; then
   osascript -e 'display alert "BOCSA Pro — rossz útvonal" message "Futtasd újra: Asztalra telepites.command a bocsa-app mappában, majd az Asztalon dupla kattintás." as critical' 2>/dev/null || true
   echo "Nem találom a projektet. Telepítsd az asztalra: ./scripts/install-desktop-launcher.sh"
   read -r -p "Enter..."
+  exit 1
+fi
+
+WH_DIR="${HOME}/Downloads/willhaben pro"
+if [ ! -d "$WH_DIR" ] || [ ! -f "$WH_DIR/package.json" ]; then
+  osascript -e 'display alert "Willhaben Pro hiányzik" message "Futtasd: bash scripts/move-willhaben-pro-to-downloads.sh a bocsa-app mappában." as critical' 2>/dev/null || true
   exit 1
 fi
 
@@ -25,7 +31,7 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-WH_DIR="$REPO/willhaben-pro"
+WH_DIR="${HOME}/Downloads/willhaben pro"
 HA_DIR="$REPO/hasznaltauto-pro"
 
 WH_CMD="cd $(printf '%q' "$WH_DIR") && echo '=== Willhaben Pro — admin http://127.0.0.1:3847 ===' && caffeinate -dims npm start"

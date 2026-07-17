@@ -17,9 +17,10 @@ import {
 } from './slots.mjs';
 import { startAutoSlots } from './auto-start.mjs';
 import { ensureCalibrationFix } from './ensure-calibration-fix.mjs';
+import { syncWillhabenProToDownloads } from './sync-willhaben-pro.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.7.4';
+const VERSION = '0.7.5';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -232,5 +233,13 @@ server.listen(port, '127.0.0.1', () => {
       }
     })
     .catch(() => {})
-    .finally(() => setTimeout(runAutoStart, 1500));
+    .finally(() => {
+      const wh = syncWillhabenProToDownloads();
+      if (wh.action) {
+        console.log(`  ✓ Willhaben Pro: ${wh.path} (${wh.action})`);
+      } else if (!wh.ok) {
+        console.log(`  ⚠ Willhaben Pro hiányzik — bash scripts/move-willhaben-pro-to-downloads.sh`);
+      }
+      setTimeout(runAutoStart, 1500);
+    });
 });

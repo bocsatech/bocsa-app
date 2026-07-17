@@ -16,10 +16,19 @@ case "$TARGET" in
   willhaben-pro)
     APP_NAME="Willhaben Pro"
     BUNDLE_ID="hu.bocsa.willhaben-pro"
+    PRO_DIR="${HOME}/Downloads/willhaben pro"
+    VENDOR="$ROOT/pro-orchestrator/vendor/willhaben-pro"
+    if [ ! -d "$PRO_DIR" ] && [ -d "$VENDOR" ]; then
+      mkdir -p "$(dirname "$PRO_DIR")"
+      cp -a "$VENDOR" "$PRO_DIR"
+    fi
+    LAUNCHER_DIR="$VENDOR/mac-launcher"
     ;;
   hasznaltauto-pro)
     APP_NAME="Hasznaltauto Pro"
     BUNDLE_ID="hu.bocsa.hasznaltauto-pro"
+    PRO_DIR="$ROOT/$TARGET"
+    LAUNCHER_DIR="$PRO_DIR/mac-launcher"
     ;;
   *)
     echo "Ismeretlen cél: $TARGET"
@@ -27,8 +36,6 @@ case "$TARGET" in
     ;;
 esac
 
-PRO_DIR="$ROOT/$TARGET"
-LAUNCHER_DIR="$PRO_DIR/mac-launcher"
 APP_PATH="$PRO_DIR/$APP_NAME.app"
 ICON_PNG="$LAUNCHER_DIR/icon.png"
 RUN_SRC="$LAUNCHER_DIR/run.sh"

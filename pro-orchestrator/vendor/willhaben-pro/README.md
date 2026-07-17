@@ -29,8 +29,15 @@ Professzionális, helyi autó-hirdetés figyelő és üzenetküldő a **willhabe
 
 ## Telepítés (egyszer)
 
+**Mac — a program helye:** `~/Downloads/willhaben pro/`
+
+Ha még a bocsa-app mappában van, egyszer futtasd:
 ```bash
-cd willhaben-pro
+bash ~/Downloads/bocsa-app/scripts/move-willhaben-pro-to-downloads.sh
+```
+
+```bash
+cd ~/Downloads/willhaben\ pro
 npm install
 npx playwright install chromium
 ```
@@ -95,7 +102,7 @@ Alapból beállítva:
 **Terminálból** (legegyszerűbb):
 
 ```bash
-cd willhaben-pro
+cd ~/Downloads/willhaben\ pro
 npm run set-password -- bocsa2024
 npm start
 ```

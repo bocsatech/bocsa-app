@@ -46,7 +46,7 @@ fail() {
   exit 1
 }
 
-if [ ! -d "$ROOT/willhaben-pro" ] || [ ! -d "$ROOT/hasznaltauto-pro" ]; then
+if [ ! -d "$ROOT/hasznaltauto-pro" ]; then
   fail "Nem a bocsa-app mappából fut. Keresd meg a bocsa-app könyvtárat, és onnan futtasd az Asztalra telepites.command fájlt."
 fi
 

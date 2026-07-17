@@ -12,10 +12,20 @@ elif [ -f "${HOME}/.bocsa-pro/repo-path" ]; then
   REPO="$(tr -d '\r' < "${HOME}/.bocsa-pro/repo-path" | head -n 1)"
 fi
 
-if [ -z "$REPO" ] || [ ! -d "$REPO/willhaben-pro" ] || [ ! -d "$REPO/hasznaltauto-pro" ]; then
+if [ -z "$REPO" ] || [ ! -d "$REPO/hasznaltauto-pro" ]; then
   echo ""
   echo "HIBA: Nem találom a bocsa-app mappát."
   echo "Futtasd egyszer: bocsa-app / Asztalra telepites.command"
+  echo ""
+  read -r -p "Enter..."
+  exit 1
+fi
+
+WH_DIR="${HOME}/Downloads/willhaben pro"
+if [ ! -d "$WH_DIR" ] || [ ! -f "$WH_DIR/package.json" ]; then
+  echo ""
+  echo "HIBA: Willhaben Pro nincs a Letöltések mappában."
+  echo "Futtasd: bash \"$REPO/scripts/move-willhaben-pro-to-downloads.sh\""
   echo ""
   read -r -p "Enter..."
   exit 1
@@ -34,7 +44,7 @@ echo "  Hasznaltauto Pro → http://127.0.0.1:3848"
 echo "  (caffeinate — gép nem alszik el)"
 echo ""
 
-WH_DIR="$REPO/willhaben-pro"
+WH_DIR="${HOME}/Downloads/willhaben pro"
 HA_DIR="$REPO/hasznaltauto-pro"
 
 /usr/bin/osascript -e 'tell application "Terminal" to activate' \

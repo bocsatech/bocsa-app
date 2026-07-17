@@ -3,18 +3,19 @@ import path from 'path';
 import { execSync } from 'child_process';
 import https from 'https';
 import { fileURLToPath } from 'url';
+import { getWillhabenRoot } from './willhaben-root.mjs';
 
 const ORCH_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = path.dirname(ORCH_ROOT);
 const RAW_BASE = 'https://raw.githubusercontent.com/bocsatech/bocsa-app/main';
 
-const WILLHABEN_FILES = [
-  'willhaben-pro/src/parse.mjs',
-  'willhaben-pro/src/index.mjs',
-  'willhaben-pro/src/state.mjs',
-  'willhaben-pro/src/config.mjs',
-  'willhaben-pro/src/instance-lock.mjs',
-  'willhaben-pro/src/stop.mjs',
+const WILLHABEN_REL_FILES = [
+  'src/parse.mjs',
+  'src/index.mjs',
+  'src/state.mjs',
+  'src/config.mjs',
+  'src/instance-lock.mjs',
+  'src/stop.mjs',
 ];
 
 const HASZNALTAUTO_FILES = [
@@ -35,7 +36,7 @@ function readText(file) {
 }
 
 function isOldWillhaben() {
-  const text = readText(path.join(REPO_ROOT, 'willhaben-pro/src/index.mjs'));
+  const text = readText(path.join(getWillhabenRoot(), 'src/index.mjs'));
   return text.includes('Kalibrálás → referencia');
 }
 
@@ -74,8 +75,18 @@ function downloadRaw(rel) {
   });
 }
 
-async function downloadFiles(files) {
-  for (const rel of files) {
+async function downloadWillhabenFiles() {
+  const root = getWillhabenRoot();
+  for (const rel of WILLHABEN_REL_FILES) {
+    const dest = path.join(root, rel);
+    const content = await downloadRaw(`pro-orchestrator/vendor/willhaben-pro/${rel}`);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, content);
+  }
+}
+
+async function downloadHasznaltautoFiles() {
+  for (const rel of HASZNALTAUTO_FILES) {
     const dest = path.join(REPO_ROOT, rel);
     const content = await downloadRaw(rel);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -120,14 +131,9 @@ export async function ensureCalibrationFix() {
   if (tryGitUpdate() && !isOldWillhaben() && !isOldHasznaltauto()) {
     method = 'git';
   } else {
-    const files = [];
-    if (isOldWillhaben()) files.push(...WILLHABEN_FILES);
-    if (isOldHasznaltauto()) files.push(...HASZNALTAUTO_FILES);
-    if (!files.length) {
-      return { ok: true, updated: false };
-    }
     try {
-      await downloadFiles(files);
+      if (needsWh) await downloadWillhabenFiles();
+      if (needsHa) await downloadHasznaltautoFiles();
       method = 'download';
     } catch (err) {
       return { ok: false, updated: false, error: err?.message || String(err) };

@@ -3,6 +3,7 @@ import path from 'path';
 import { spawn, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { getRoot, loadConfig, publicSmsForApi } from './config.mjs';
+import { getWillhabenRoot, isWillhabenInstalled } from './willhaben-root.mjs';
 
 const ORCH_ROOT = getRoot();
 const REPO_ROOT = path.dirname(ORCH_ROOT);
@@ -27,9 +28,17 @@ function instanceDir(slotId) {
 }
 
 function programRoot(program) {
-  return program === 'hasznaltauto'
-    ? path.join(REPO_ROOT, 'hasznaltauto-pro')
-    : path.join(REPO_ROOT, 'willhaben-pro');
+  if (program === 'hasznaltauto') {
+    return path.join(REPO_ROOT, 'hasznaltauto-pro');
+  }
+  const root = getWillhabenRoot();
+  if (!isWillhabenInstalled(root)) {
+    throw new Error(
+      `Willhaben Pro nincs telepítve: ${root}\n` +
+        '  Futtasd: bash scripts/move-willhaben-pro-to-downloads.sh'
+    );
+  }
+  return root;
 }
 
 function isAlive(pid) {

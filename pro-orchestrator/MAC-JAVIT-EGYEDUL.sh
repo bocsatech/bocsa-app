@@ -15,6 +15,9 @@ for p in /opt/homebrew/bin/node /usr/local/bin/node "$(command -v node 2>/dev/nu
 done
 [ -n "$NODE" ] || { echo "❌ Node.js kell"; exit 1; }
 
+echo "📦 Willhaben Pro → Letöltések/willhaben pro"
+bash scripts/move-willhaben-pro-to-downloads.sh 2>/dev/null || true
+
 echo "🛑 Slotok + orchestrator leállítása..."
 cd pro-orchestrator
 "$NODE" src/stop.mjs 2>/dev/null || true
@@ -29,22 +32,25 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
   git fetch origin main 2>/dev/null && git reset --hard origin/main 2>/dev/null && echo "  ✓ git reset --hard origin/main"
 fi
 
+WH_ROOT="${HOME}/Downloads/willhaben pro"
 OLD=$("$NODE" -e "
 const fs=require('fs');
-const t=fs.readFileSync('willhaben-pro/src/index.mjs','utf8');
-process.exit(t.includes('Kalibrálás → referencia')?1:0);
+const f='${WH_ROOT}/src/index.mjs';
+if(!fs.existsSync(f)) process.exit(1);
+process.exit(fs.readFileSync(f,'utf8').includes('Kalibrálás → referencia')?1:0);
 " 2>/dev/null; echo $?)
 
 if [ "$OLD" != "0" ]; then
   echo "  ⚠ Régi kód — letöltés GitHub-ról..."
   RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main"
+  mkdir -p "$WH_ROOT/src"
   for f in \
-    willhaben-pro/src/parse.mjs \
-    willhaben-pro/src/index.mjs \
-    willhaben-pro/src/state.mjs \
-    willhaben-pro/src/config.mjs \
-    willhaben-pro/src/instance-lock.mjs \
-    willhaben-pro/src/stop.mjs \
+    pro-orchestrator/vendor/willhaben-pro/src/parse.mjs \
+    pro-orchestrator/vendor/willhaben-pro/src/index.mjs \
+    pro-orchestrator/vendor/willhaben-pro/src/state.mjs \
+    pro-orchestrator/vendor/willhaben-pro/src/config.mjs \
+    pro-orchestrator/vendor/willhaben-pro/src/instance-lock.mjs \
+    pro-orchestrator/vendor/willhaben-pro/src/stop.mjs \
     hasznaltauto-pro/src/parse.mjs \
     hasznaltauto-pro/src/index.mjs \
     hasznaltauto-pro/src/state.mjs \
@@ -52,11 +58,18 @@ if [ "$OLD" != "0" ]; then
     hasznaltauto-pro/src/instance-lock.mjs \
     hasznaltauto-pro/src/stop.mjs \
     pro-orchestrator/src/ensure-calibration-fix.mjs \
+    pro-orchestrator/src/willhaben-root.mjs \
+    pro-orchestrator/src/sync-willhaben-pro.mjs \
     pro-orchestrator/src/server.mjs \
     pro-orchestrator/public/index.html \
     pro-orchestrator/src/slots.mjs
   do
-    curl -sf "$RAW/$f" -o "$f" && echo "  ✓ $f" || echo "  ✗ $f"
+    dest="$f"
+    if [[ "$f" == pro-orchestrator/vendor/willhaben-pro/* ]]; then
+      dest="${WH_ROOT}/${f#pro-orchestrator/vendor/willhaben-pro/}"
+    fi
+    mkdir -p "$(dirname "$dest")"
+    curl -sf "$RAW/$f" -o "$dest" && echo "  ✓ $dest" || echo "  ✗ $f"
   done
 fi
 
@@ -81,6 +94,7 @@ echo "Verzió: $VER"
 /usr/bin/open -a Safari "http://localhost:3850" 2>/dev/null || true
 echo ""
 echo "✅ Kész!"
+echo "   Willhaben Pro: $WH_ROOT"
 echo "   1. Safari: Cmd+Shift+R"
 echo "   2. Minden slot: ■ Leállítás → ↻ Újraindítás"
 echo "   3. Naplóban: „Ellenőrizve — N hirdetés, nincs új” (NEM „referencia”)"
