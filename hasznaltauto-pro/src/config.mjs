@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CONFIG_PATH = path.join(ROOT, 'config.json');
-const DEFAULT_CONFIG_PATH = path.join(ROOT, 'config.default.json');
 
 export function getRoot() {
   return ROOT;
@@ -24,7 +23,7 @@ export function getConfigPath() {
   return CONFIG_PATH;
 }
 
-export function resolveAdminPort(config, fallback = 3847) {
+export function resolveAdminPort(config, fallback = 3848) {
   if (process.env.PRO_ADMIN_PORT) {
     const n = Number(process.env.PRO_ADMIN_PORT);
     if (Number.isFinite(n) && n > 0) return n;
@@ -35,9 +34,7 @@ export function resolveAdminPort(config, fallback = 3847) {
 export function loadConfig() {
   const configPath = getConfigPath();
   if (!fs.existsSync(configPath)) {
-    if (!process.env.PRO_INSTANCE_DIR && fs.existsSync(DEFAULT_CONFIG_PATH)) {
-      fs.copyFileSync(DEFAULT_CONFIG_PATH, CONFIG_PATH);
-    }
+    throw new Error(`Hiányzó config: ${configPath}`);
   }
   return JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }

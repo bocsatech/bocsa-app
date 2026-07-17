@@ -1,14 +1,15 @@
 import path from 'path';
 import { getRoot, loadConfig, getInstanceDir, resolveAdminPort } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
-import { parseAdsFromHtml, findNewAds } from './parse.mjs';
-import { sendMessage, isDealerSkipError } from './message.mjs';
+import { fetchListings, findNewAds } from './parse.mjs';
+import { getPhoneForAd } from './phone.mjs';
+import { sendSms } from './sms.mjs';
 import { startAdminServer, setMonitorControl, setAppShutdown } from './admin-server.mjs';
 import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
-import { setupConsentHandler } from './consent.mjs';
+import { setupConsentHandler, dismissConsent } from './consent.mjs';
 import { launchBrowser } from './browser.mjs';
 
-process.title = 'willhaben-pro';
+process.title = 'hasznaltauto-pro';
 
 const PROFILE_DIR = path.join(getInstanceDir(), 'browser-profile');
 
@@ -76,6 +77,7 @@ class Monitor {
     });
     this.page = this.context.pages()[0] || (await this.context.newPage());
     setupConsentHandler(this.page);
+    await dismissConsent(this.page);
     appendLog(
       state,
       'info',
@@ -92,7 +94,7 @@ class Monitor {
     }
 
     if (!config.admin.enabled) {
-      return { ok: false, reason: 'Admin: kikapcsolva' };
+      return { ok: false, reason: 'Admin: küldés kikapcsolva' };
     }
 
     if (!state.startedAt) state.startedAt = Date.now();
@@ -113,38 +115,11 @@ class Monitor {
   formatError(err) {
     let msg = err?.message || String(err);
     if (msg.includes('Call log')) msg = msg.split('Call log')[0].trim();
-    if (/ETIMEDOUT|ECONNRESET|ENOTFOUND/i.test(msg)) {
-      return 'Hálózati timeout — willhaben nem válaszolt (később újra próbálja)';
+    if (/ETIMEDOUT|ECONNRESET|ENOTFOUND|timeout/i.test(msg)) {
+      return 'Hálózati timeout — hasznaltauto.hu nem válaszolt (később újra próbálja)';
     }
-    if (msg.length > 200) return `${msg.slice(0, 200)}…`;
+    if (msg.length > 220) return `${msg.slice(0, 220)}…`;
     return msg;
-  }
-
-  async fetchAds(page, url) {
-    const maxAttempts = 3;
-    let lastErr;
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        const res = await page.request.get(url, {
-          headers: { Accept: 'text/html', 'User-Agent': 'Mozilla/5.0' },
-          timeout: 45000,
-        });
-        if (!res.ok()) throw new Error(`HTTP ${res.status()}`);
-        const html = await res.text();
-        const ads = parseAdsFromHtml(html);
-        if (!ads) throw new Error('Nincs hirdetéslista (__NEXT_DATA__)');
-        return ads;
-      } catch (err) {
-        lastErr = err;
-        const retryable = /ETIMEDOUT|ECONNRESET|timeout|Timeout/i.test(err?.message || '');
-        if (attempt < maxAttempts && retryable) {
-          await new Promise((r) => setTimeout(r, 4000 * attempt));
-          continue;
-        }
-        throw err;
-      }
-    }
-    throw lastErr;
   }
 
   async tick() {
@@ -161,12 +136,12 @@ class Monitor {
     }
 
     await this.ensureBrowser(state);
-
-    let tickHadActivity = false;
+    const prefixes = config.allowedPrefixes || ['70', '20', '30'];
 
     for (const watch of config.watchUrls.filter((w) => w.enabled && w.url)) {
       try {
-        const ads = await this.fetchAds(this.page, watch.url);
+        const ads = await fetchListings(this.page, watch.url);
+
         const marker = state.urlMarkers[watch.id];
         const calibrated = state.urlCalibrated[watch.id];
         const result = findNewAds(ads, marker, calibrated);
@@ -180,78 +155,81 @@ class Monitor {
             `[${watch.label}] Kalibrálás → referencia ${result.newMarker}`
           );
           saveState(state);
-          tickHadActivity = true;
           continue;
         }
 
         const fresh = result.newAds.filter((a) => !state.sentAdIds.includes(a.id));
         if (!fresh.length) continue;
-        tickHadActivity = true;
 
         for (const ad of fresh) {
           const lim = this.getLimitStatus(config, state);
           if (!lim.ok) break;
 
+          if (!ad.isPrivate) {
+            appendLog(state, 'info', `[${watch.label}] Kihagyva (kereskedő): ${ad.title}`);
+            state.urlMarkers[watch.id] = result.newMarker;
+            saveState(state);
+            continue;
+          }
+
           this.processing = true;
           try {
-            if (ad.isDealer) {
-              state.sentAdIds.push(ad.id);
-              appendLog(state, 'info', `[${watch.label}] Händler kihagyva (lista): ${ad.title}`);
+            const phoneResult = await getPhoneForAd(this.page, ad.url, prefixes);
+            if (!phoneResult.ok) {
+              appendLog(
+                state,
+                'info',
+                `[${watch.label}] Kihagyva ${ad.id}: ${phoneResult.reason}`
+              );
+              state.urlMarkers[watch.id] = result.newMarker;
+              saveState(state);
               continue;
             }
-            await sendMessage(this.page, ad, config.messageTemplate, config.sendDelayMs);
+
+            const smsResult = await sendSms(
+              config,
+              { ...ad, phone: phoneResult.phone },
+              config.messageTemplate
+            );
+
             state.totalSent += 1;
             state.sentToday += 1;
             state.sentAdIds.push(ad.id);
             state.urlMarkers[watch.id] = result.newMarker;
-            appendLog(state, 'ok', `[${watch.label}] Üzenet elküldve: ${ad.title} → ${ad.url}`);
+
+            const mode = smsResult.dryRun ? 'DRY-RUN SMS' : 'SMS elküldve';
+            appendLog(
+              state,
+              'ok',
+              `[${watch.label}] ${mode} → ${phoneResult.phone}: ${ad.title}`
+            );
           } catch (err) {
             if (this.isBrowserClosedError(err)) {
               await this.resetBrowser(
                 state,
-                'Böngésző bezárva — üzenetküldés szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
+                'Böngésző bezárva — SMS szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
               );
-              break;
-            }
-            if (isDealerSkipError(err)) {
-              state.sentAdIds.push(ad.id);
-              appendLog(state, 'info', `[${watch.label}] Händler kihagyva: ${ad.title}`);
-              continue;
-            }
-            const errText = this.formatError(err);
-            appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${errText}`);
-            if (/üzenetmező|bejelentkezve/i.test(errText)) {
-              state.sentAdIds.push(ad.id);
-              continue;
+            } else {
+              appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${this.formatError(err)}`);
             }
             break;
           } finally {
             this.processing = false;
             saveState(state);
+            await new Promise((r) => setTimeout(r, config.sendDelayMs || 5000));
           }
         }
       } catch (err) {
         if (this.isBrowserClosedError(err)) {
           await this.resetBrowser(
             state,
-            'Böngésző bezárva — figyelés folytatódik, de üzenet csak nyitott böngészővel megy ki'
+            'Böngésző bezárva — figyelés folytatódik, SMS csak nyitott böngészővel'
           );
         } else {
           appendLog(state, 'error', `[${watch.label}] ${this.formatError(err)}`);
         }
         saveState(state);
       }
-    }
-
-    if (!tickHadActivity) {
-      const now = new Date().toLocaleTimeString('hu-HU', {
-        timeZone: 'Europe/Vienna',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      });
-      appendLog(state, 'info', `Ellenőrzés — nincs új hirdetés (${now})`);
     }
     saveState(state);
   }
@@ -260,11 +238,11 @@ class Monitor {
     if (this.running) return;
     this.running = true;
     const config = loadConfig();
-    const ms = Math.max(5, config.pollIntervalSeconds) * 1000;
+    const ms = Math.max(10, config.pollIntervalSeconds) * 1000;
     this.tick();
     this.timer = setInterval(() => this.tick(), ms);
     const state = loadState();
-    appendLog(state, 'info', 'Figyelés elindítva');
+    appendLog(state, 'info', 'Figyelés elindítva (csak magán + SMS +36 70/20/30)');
     saveState(state);
   }
 
@@ -291,7 +269,6 @@ class Monitor {
     state.sentToday = 0;
     state.sentAdIds = [];
     state.startedAt = null;
-    state.queue = [];
     appendLog(state, 'info', 'Statisztika nullázva');
     saveState(state);
   }
@@ -327,9 +304,9 @@ setAppShutdown(shutdown);
 const lock = acquireInstanceLock();
 if (!lock.ok) {
   const config = loadConfig();
-  const port = resolveAdminPort(config, 3847);
+  const port = resolveAdminPort(loadConfig(), 3848);
   console.error(
-    `\n  Willhaben Pro már fut (PID ${lock.existingPid}).\n` +
+    `\n  Hasznaltauto Pro már fut (PID ${lock.existingPid}).\n` +
       `  Admin panel: http://127.0.0.1:${port}\n` +
       `  Leállítás: npm run stop\n`
   );
@@ -337,7 +314,7 @@ if (!lock.ok) {
 }
 
 const config = loadConfig();
-const adminPort = resolveAdminPort(config, 3847);
+const adminPort = resolveAdminPort(config, 3848);
 
 startAdminServer(adminPort)
   .then(() => {

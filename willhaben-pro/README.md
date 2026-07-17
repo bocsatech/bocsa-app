@@ -57,6 +57,11 @@ npm run login
 npm start
 ```
 
+Vagy Macen **dupla kattintás** (Terminal + gép ébren tartása):
+
+- `mac-launcher/Inditas.command`
+- `Willhaben Pro.app` (színes ikon: `./scripts/build-mac-launcher-app.sh willhaben-pro`)
+
 - Megnyílik a böngésző (háttérben figyel)
 - **Admin panel:** http://127.0.0.1:3847
 
