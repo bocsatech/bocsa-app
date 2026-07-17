@@ -13,12 +13,21 @@
   <body class="theme-automax">
     <div class="local-banner">LOCALHOST — nincs internetkapcsolat, csak helyi prototípus</div>
 
-    <header class="site-header">
+    <header class="site-header automax-header">
       <div class="header-top">
         <div class="logo">
           <div class="logo-mark">A</div>
-          <span>használtautó.hu</span>
+          <span class="logo-text">használtautó.hu</span>
         </div>
+
+        <nav class="steps" aria-label="Lépések">
+          <div class="step active" data-step-indicator="1">Alapadatok</div>
+          <div class="step" data-step-indicator="2">Műszaki adatok</div>
+          <div class="step" data-step-indicator="3">Extrák</div>
+          <div class="step" data-step-indicator="4">Képek</div>
+          <div class="step" data-step-indicator="5">Hirdetés</div>
+        </nav>
+
         <div class="header-actions">
           <a href="#">Belépés</a>
           <a href="#">Regisztráció</a>
@@ -29,18 +38,14 @@
 
     <main class="page page-automax">
       <div class="automax-main">
+      <div class="automax-step-header">
+        <h1 class="automax-step-title" id="automax-step-title">Alapadatok</h1>
+        <p class="automax-step-lead" id="automax-step-lead">A csillaggal jelölt mezők kitöltése kötelező!</p>
+      </div>
+
       <div class="category-bar">
         <strong>Kategória:</strong> Személyautó
       </div>
-      <p class="required-note">A csillaggal jelölt mezők kitöltése kötelező!</p>
-
-      <nav class="steps" aria-label="Lépések">
-        <div class="step active" data-step-indicator="1">Alapadatok</div>
-        <div class="step" data-step-indicator="2">Műszaki adatok</div>
-        <div class="step" data-step-indicator="3">Extrák</div>
-        <div class="step" data-step-indicator="4">Képek</div>
-        <div class="step" data-step-indicator="5">Hirdetés</div>
-      </nav>
 
       <form id="ad-form" novalidate>
         <section class="step-panel" data-step="1">
@@ -127,14 +132,7 @@
                   </div>
                 </div>
 
-                <div class="field-row full">
-                  <div class="labeled-field">
-                    <label for="egyeb_tipus">Egyéb típus:</label>
-                    <input id="egyeb_tipus" name="egyeb_tipus" type="text" />
-                  </div>
-                </div>
-
-                <div class="field-row full">
+                <div class="field-row full field-row--pair">
                   <div class="labeled-field">
                     <label for="kivitel">Kivitel: <span class="req">*</span> <a href="#" class="help-link">Segítség</a></label>
                     <select id="kivitel" name="kivitel" required>
@@ -147,6 +145,10 @@
                       <option>Kupé</option>
                       <option>Cabrio</option>
                     </select>
+                  </div>
+                  <div class="labeled-field">
+                    <label for="egyeb_tipus">Egyéb típus:</label>
+                    <input id="egyeb_tipus" name="egyeb_tipus" type="text" />
                   </div>
                 </div>
 
@@ -169,7 +171,7 @@
                   </div>
                 </div>
 
-                <div class="field-row full">
+                <div class="field-row full field-row--km">
                   <div class="labeled-field">
                     <label for="km">Km. óra állás: <span class="req">*</span></label>
                     <div class="suffix-field">
@@ -486,10 +488,12 @@
         <div class="automax-panel-glow" aria-hidden="true"></div>
         <div class="automax-car-visual" aria-hidden="true"></div>
         <div class="automax-panel-content">
-          <h2 class="m7-sidebar-title">Adj el gyorsabban!</h2>
-          <p class="m7-sidebar-lead">
-            Töltsd ki minél részletesebben a hirdetésed adatait, hogy a vásárlók könnyebben rátaláljanak.
-          </p>
+          <div class="automax-panel-quote">
+            <h2 class="m7-sidebar-title">Adj el gyorsabban!</h2>
+            <p class="m7-sidebar-lead">
+              Töltsd ki minél részletesebben a hirdetésed adatait, hogy a vásárlók könnyebben rátaláljanak.
+            </p>
+          </div>
           <ul class="m7-sidebar-features">
             <li>
               <span class="m7-feature-icon m7-feature-icon--orange" aria-hidden="true">

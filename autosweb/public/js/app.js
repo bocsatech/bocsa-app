@@ -7,6 +7,8 @@ const indicators = [...document.querySelectorAll("[data-step-indicator]")];
 const backBtn = document.getElementById("back-btn");
 const nextBtn = document.getElementById("next-btn");
 const footerActions = document.getElementById("footer-actions");
+const automaxStepTitle = document.getElementById("automax-step-title");
+const automaxStepLead = document.getElementById("automax-step-lead");
 const uploadZone = document.getElementById("upload-zone");
 const photoInput = document.getElementById("photo-input");
 const photoGrid = document.getElementById("photo-grid");
@@ -311,6 +313,32 @@ function goToStep(step) {
   showStep(step);
 }
 
+function updateAutomaxStepHeader(step) {
+  if (!automaxStepTitle) return;
+  const activeIndicator = indicators.find((el) => Number(el.dataset.stepIndicator) === step);
+  automaxStepTitle.textContent = activeIndicator?.textContent?.trim() || "";
+
+  if (!automaxStepLead) return;
+  const panel = panels.find((el) => Number(el.dataset.step) === step);
+  const hint = panel?.querySelector(".card-body > .hint, .form-grid + .hint");
+  const uploadStrong = panel?.querySelector(".upload-zone strong");
+  const cardHead = panel?.querySelector(".card-head");
+
+  let lead = "";
+  if (step === 1) {
+    lead = "A csillaggal jelölt mezők kitöltése kötelező!";
+  } else if (hint) {
+    lead = hint.textContent.trim();
+  } else if (uploadStrong) {
+    lead = uploadStrong.textContent.trim();
+  } else if (cardHead) {
+    lead = cardHead.textContent.trim();
+  }
+
+  automaxStepLead.textContent = lead;
+  automaxStepLead.hidden = !lead;
+}
+
 function showStep(step) {
   currentStep = step;
   panels.forEach((panel) => {
@@ -321,6 +349,7 @@ function showStep(step) {
     indicator.classList.toggle("active", n === step);
     indicator.classList.toggle("done", n < step);
   });
+  updateAutomaxStepHeader(step);
   backBtn.classList.toggle("hidden", step <= 1);
   if (step === TOTAL_STEPS && successPanel && !successPanel.classList.contains("hidden")) {
     footerActions.classList.add("hidden");
