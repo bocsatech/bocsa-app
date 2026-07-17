@@ -224,7 +224,7 @@ function updateTitle() {
   hirdetesCime.value = parts.length
     ? `Eladó ${parts.join(" ")}${year ? ` (${year})` : ""}`
     : "";
-  fitInputWidth(hirdetesCime);
+  if (shouldFitFieldWidths()) fitInputWidth(hirdetesCime);
 }
 
 function measureTextWidth(text, font) {
@@ -266,6 +266,10 @@ function fitAllFormFields() {
   form.querySelectorAll("select").forEach(fitSelectWidth);
   form.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]):not([type="file"])').forEach(fitInputWidth);
   if (hirdetesCime) fitInputWidth(hirdetesCime);
+}
+
+function shouldFitFieldWidths() {
+  return !document.body.classList.contains("theme-m7") && !document.body.classList.contains("theme-automax");
 }
 
 function wrapMdOutlinedFields() {
@@ -564,12 +568,14 @@ form.addEventListener("input", saveDraft);
 form.addEventListener("change", saveDraft);
 
 form.addEventListener("input", (event) => {
+  if (!shouldFitFieldWidths()) return;
   const target = event.target;
   if (target.matches("select")) fitSelectWidth(target);
   else if (target.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="file"])')) fitInputWidth(target);
 });
 
 form.addEventListener("change", (event) => {
+  if (!shouldFitFieldWidths()) return;
   if (event.target.matches("select")) fitSelectWidth(event.target);
 });
 
