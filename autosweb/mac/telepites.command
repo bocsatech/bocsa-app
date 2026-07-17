@@ -2,7 +2,8 @@
 # Csak a futtatáshoz kellő fájlok → ~/Downloads/autosweb (sem mac/, sem README)
 set -euo pipefail
 
-SOURCE="$(cd "$(dirname "$0")/.." && pwd)"
+REPO="$(cd "$(dirname "$0")/../.." && pwd)"
+SOURCE="$REPO/autosweb"
 TARGET="$HOME/Downloads/autosweb"
 DESKTOP="$HOME/Desktop/Autosweb-indito.command"
 
@@ -10,6 +11,10 @@ echo "Autosweb telepítés"
 echo "  Forrás: $SOURCE"
 echo "  Cél:    $TARGET"
 echo ""
+
+cd "$REPO"
+git fetch origin main 2>/dev/null || true
+git checkout origin/main -- autosweb/ 2>/dev/null || true
 
 mkdir -p "$TARGET/public" "$HOME/Desktop"
 
