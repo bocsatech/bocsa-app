@@ -13,5 +13,24 @@ fi
 cp "$SOURCE/package.json" "$SOURCE/server.mjs" "$TARGET/"
 rsync -a --delete "$SOURCE/public/" "$TARGET/public/"
 
+VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
+echo ""
 echo "✓ Másolva: $TARGET"
-grep -n "field-row--vehicle-top" "$TARGET/public/hirdetesfeladas.html" && echo "(OK: 3 mező egy sorban)" || echo "(HIBA: régi HTML!)"
+echo "  Verzió: $VER"
+
+if [ ! -f "$TARGET/public/css/automax.css" ]; then
+  echo "  ✗ HIBA: automax.css hiányzik!"
+  exit 1
+fi
+if grep -q 'theme-automax' "$TARGET/public/hirdetesfeladas.html"; then
+  echo "  ✓ AUTOMAX téma (theme-automax)"
+else
+  echo "  ✗ HIBA: régi HTML — nincs theme-automax!"
+  exit 1
+fi
+
+echo ""
+echo "Következő lépések:"
+echo "  1) Állítsd le a futó Autosweb-et (Ctrl+C)"
+echo "  2) Indítsd: ~/Desktop/Autosweb-indito.command"
+echo "  3) Böngésző: Cmd+Shift+R"

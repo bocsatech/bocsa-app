@@ -32,12 +32,23 @@ npm install
 
 cat > "$DESKTOP" << 'LAUNCHER'
 #!/bin/bash
-cd "$HOME/Downloads/autosweb" || {
+set -euo pipefail
+TARGET="$HOME/Downloads/autosweb"
+cd "$TARGET" || {
   osascript -e 'display alert "Autosweb" message "Hiányzik: ~/Downloads/autosweb — telepítsd újra."'
   exit 1
 }
+if command -v lsof >/dev/null 2>&1; then
+  PIDS=$(lsof -ti:3456 2>/dev/null || true)
+  [ -n "$PIDS" ] && kill -9 $PIDS 2>/dev/null || true
+fi
+if [ ! -f public/css/automax.css ] || ! grep -q theme-automax public/hirdetesfeladas.html; then
+  osascript -e 'display alert "Régi verzió" message "Futtasd: bocsa-app/autosweb/mac/frissites.command"'
+  exit 1
+fi
+[ ! -d node_modules ] && npm install
 open "http://127.0.0.1:3456"
-echo "Autosweb: http://127.0.0.1:3456  (Ctrl+C = leállítás)"
+echo "Autosweb $(cat public/version.txt 2>/dev/null) — http://127.0.0.1:3456"
 npm start
 LAUNCHER
 
