@@ -53,36 +53,18 @@ body.theme-automax .local-banner {
 .theme-automax .header-top {
   max-width: none;
   padding: 22px 48px;
-  display: grid;
-  grid-template-columns: minmax(160px, 1fr) auto minmax(160px, 1fr);
+  display: flex;
+  justify-content: center;
   align-items: center;
+  position: relative;
   gap: 24px;
 }
 
-.theme-automax .logo {
-  color: #fff;
-  font-weight: 800;
-  font-size: 16px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  justify-self: start;
-}
-
-.theme-automax .logo-mark {
-  background: var(--ax-orange);
-  border-radius: 4px;
-  box-shadow: none;
-  width: 36px;
-  height: 36px;
-  font-size: 15px;
-}
-
-.theme-automax .logo-text {
-  line-height: 1.15;
-}
-
 .theme-automax .header-actions {
-  justify-self: end;
+  position: absolute;
+  right: 48px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .theme-automax .header-actions,
@@ -687,15 +669,14 @@ body.theme-automax .local-banner {
 
 @media (max-width: 1200px) {
   .theme-automax .header-top {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
+    flex-direction: column;
     gap: 20px;
+    padding-bottom: 18px;
   }
 
-  .theme-automax .logo,
   .theme-automax .header-actions {
-    justify-self: center;
+    position: static;
+    transform: none;
   }
 }
 
