@@ -729,7 +729,8 @@ body.theme-automax .local-banner {
     grid-template-columns: 1fr;
   }
 
-  .theme-automax .field-row--km .labeled-field {
+  .theme-automax .field-row--km .labeled-field,
+  .theme-automax .field-row--tipus .labeled-field {
     max-width: none;
   }
 
