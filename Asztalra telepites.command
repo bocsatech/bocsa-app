@@ -10,16 +10,19 @@ echo "BOCSA Pro — Asztali telepítő"
 echo "Mappa: $HERE"
 echo ""
 
-if [ ! -d "$HERE/hasznaltauto-pro" ]; then
-  echo "HIBA: Ez nem a bocsa-app mappa."
-  echo "Előbb: cd a bocsa-app könyvtárba, majd dupla kattintás ide."
+if [ ! -d "$HERE/pro-orchestrator" ] && [ ! -d "$HERE/hasznaltauto-pro" ]; then
+  echo "HIBA: Hiányzik a pro-orchestrator vagy hasznaltauto-pro mappa."
+  echo "Próbáld: curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/pro-orchestrator/MAC-ASZTAL-TELEPITES.sh | bash"
   read -r -p "Enter..."
   exit 1
 fi
 
+if [ -f "$HERE/pro-orchestrator/MAC-ASZTAL-TELEPITES.sh" ]; then
+  exec bash "$HERE/pro-orchestrator/MAC-ASZTAL-TELEPITES.sh"
+fi
+
 if [ ! -f "$HERE/scripts/install-desktop-launcher.sh" ]; then
   echo "HIBA: Hiányzik a telepítő script."
-  echo "Futtasd: git pull origin cursor/hasznaltauto-pro-1db0"
   read -r -p "Enter..."
   exit 1
 fi
