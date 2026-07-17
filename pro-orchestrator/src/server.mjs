@@ -16,9 +16,10 @@ import {
   readInstanceConfig,
 } from './slots.mjs';
 import { startAutoSlots } from './auto-start.mjs';
+import { ensureCalibrationFix } from './ensure-calibration-fix.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.7.3';
+const VERSION = '0.7.4';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -211,15 +212,25 @@ server.listen(port, '127.0.0.1', () => {
   console.log(`\n  Pro Orchestrator: http://127.0.0.1:${port}  (v${VERSION})`);
   console.log('  6 slot — automatikus indítás URL-lel rendelkező slotoknál\n');
   const cfg = loadConfig();
-  if (cfg.autoStartOnLaunch !== false) {
-    setTimeout(() => {
-      startAutoSlots()
-        .then((r) => {
-          const ok = r.started?.filter((s) => s.ok).length ?? 0;
-          const skip = r.skipped?.length ?? 0;
-          console.log(`  Auto-start: ${ok} slot elindítva, ${skip} kihagyva`);
-        })
-        .catch((err) => console.error('  Auto-start hiba:', err.message));
-    }, 2000);
-  }
+  const runAutoStart = () => {
+    if (cfg.autoStartOnLaunch === false) return;
+    startAutoSlots()
+      .then((r) => {
+        const ok = r.started?.filter((s) => s.ok).length ?? 0;
+        const skip = r.skipped?.length ?? 0;
+        console.log(`  Auto-start: ${ok} slot elindítva, ${skip} kihagyva`);
+      })
+      .catch((err) => console.error('  Auto-start hiba:', err.message));
+  };
+  ensureCalibrationFix()
+    .then((fix) => {
+      if (fix.updated) {
+        console.log(`  ⚠ Slotok újraindítása ajánlott (■ Leállítás → ↻ Újraindítás)`);
+      }
+      if (!fix.ok && fix.error) {
+        console.log(`  ⚠ Kalibráció-javítás sikertelen: ${fix.error}`);
+      }
+    })
+    .catch(() => {})
+    .finally(() => setTimeout(runAutoStart, 1500));
 });

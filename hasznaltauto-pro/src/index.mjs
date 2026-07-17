@@ -1,7 +1,7 @@
 import path from 'path';
-import { getRoot, loadConfig } from './config.mjs';
+import { getInstanceDir, loadConfig, resolveAdminPort } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
-import { fetchListings, findNewAds } from './parse.mjs';
+import { fetchListings, findNewAds, mergeSeenIds } from './parse.mjs';
 import { getPhoneForAd } from './phone.mjs';
 import { sendSms } from './sms.mjs';
 import { startAdminServer, setMonitorControl, setAppShutdown } from './admin-server.mjs';
@@ -11,7 +11,7 @@ import { launchBrowser } from './browser.mjs';
 
 process.title = 'hasznaltauto-pro';
 
-const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
+const PROFILE_DIR = path.join(getInstanceDir(), 'browser-profile');
 
 class Monitor {
   constructor() {
@@ -20,6 +20,7 @@ class Monitor {
     this.context = null;
     this.page = null;
     this.processing = false;
+    this.tickInProgress = false;
     this.lastBrowserWarnAt = 0;
   }
 
@@ -123,115 +124,139 @@ class Monitor {
   }
 
   async tick() {
-    if (!this.running || this.processing) return;
+    if (!this.running || this.tickInProgress) return;
+    this.tickInProgress = true;
 
-    const config = loadConfig();
-    const state = loadState();
-    const limit = this.getLimitStatus(config, state);
-    if (!limit.ok) {
-      appendLog(state, 'error', `Leállítva: ${limit.reason}`);
-      saveState(state);
-      this.stop();
-      return;
-    }
+    try {
+      const config = loadConfig();
+      const state = loadState();
+      const limit = this.getLimitStatus(config, state);
+      if (!limit.ok) {
+        appendLog(state, 'error', `Leállítva: ${limit.reason}`);
+        saveState(state);
+        this.stop();
+        return;
+      }
 
-    await this.ensureBrowser(state);
-    const prefixes = config.allowedPrefixes || ['70', '20', '30'];
+      await this.ensureBrowser(state);
+      const prefixes = config.allowedPrefixes || ['70', '20', '30'];
 
-    for (const watch of config.watchUrls.filter((w) => w.enabled && w.url)) {
-      try {
-        const ads = await fetchListings(this.page, watch.url);
+      for (const watch of config.watchUrls.filter((w) => w.enabled && w.url)) {
+        try {
+          const ads = await fetchListings(this.page, watch.url);
+          const marker = state.urlMarkers[watch.id];
+          const calibrated = state.urlCalibrated[watch.id];
+          state.urlSeenIds = state.urlSeenIds || {};
+          let seenIds = state.urlSeenIds[watch.id] || [];
+          if (calibrated && !seenIds.length && ads.length) {
+            seenIds = ads.map((a) => a.id);
+            state.urlSeenIds[watch.id] = seenIds;
+          }
+          const result = findNewAds(ads, marker, calibrated, seenIds);
 
-        const marker = state.urlMarkers[watch.id];
-        const calibrated = state.urlCalibrated[watch.id];
-        const result = findNewAds(ads, marker, calibrated);
-
-        if (result.action === 'calibrate' || result.action === 'recalibrate') {
-          state.urlMarkers[watch.id] = result.newMarker;
-          state.urlCalibrated[watch.id] = true;
-          appendLog(
-            state,
-            'info',
-            `[${watch.label}] Kalibrálás → referencia ${result.newMarker}`
-          );
-          saveState(state);
-          continue;
-        }
-
-        const fresh = result.newAds.filter((a) => !state.sentAdIds.includes(a.id));
-        if (!fresh.length) continue;
-
-        for (const ad of fresh) {
-          const lim = this.getLimitStatus(config, state);
-          if (!lim.ok) break;
-
-          if (!ad.isPrivate) {
-            appendLog(state, 'info', `[${watch.label}] Kihagyva (kereskedő): ${ad.title}`);
+          state.urlSeenIds[watch.id] = result.seenIds || seenIds;
+          if (result.action === 'calibrate') {
             state.urlMarkers[watch.id] = result.newMarker;
+            state.urlCalibrated[watch.id] = true;
+            appendLog(
+              state,
+              'info',
+              `[${watch.label}] Kalibrálás → ${result.seenIds?.length || ads.length} hirdetés megjelölve`
+            );
             saveState(state);
             continue;
           }
 
-          this.processing = true;
-          try {
-            const phoneResult = await getPhoneForAd(this.page, ad.url, prefixes);
-            if (!phoneResult.ok) {
-              appendLog(
-                state,
-                'info',
-                `[${watch.label}] Kihagyva ${ad.id}: ${phoneResult.reason}`
-              );
+          if (result.action === 'none' || result.action === 'empty') {
+            appendLog(state, 'info', `[${watch.label}] Ellenőrizve — ${ads.length} hirdetés, nincs új`);
+            saveState(state);
+            continue;
+          }
+
+          const fresh = (result.newAds || []).filter((a) => !state.sentAdIds.includes(a.id));
+          if (!fresh.length) {
+            appendLog(state, 'info', `[${watch.label}] Ellenőrizve — ${ads.length} hirdetés, nincs új`);
+            saveState(state);
+            continue;
+          }
+
+          for (const ad of fresh) {
+            const lim = this.getLimitStatus(config, state);
+            if (!lim.ok) break;
+
+            if (!ad.isPrivate) {
+              appendLog(state, 'info', `[${watch.label}] Kihagyva (kereskedő): ${ad.title}`);
               state.urlMarkers[watch.id] = result.newMarker;
+              state.urlSeenIds[watch.id] = mergeSeenIds(state.urlSeenIds[watch.id], [ad.id]);
               saveState(state);
               continue;
             }
 
-            const smsResult = await sendSms(
-              config,
-              { ...ad, phone: phoneResult.phone },
-              config.messageTemplate
-            );
+            this.processing = true;
+            try {
+              const phoneResult = await getPhoneForAd(this.page, ad.url, prefixes);
+              if (!phoneResult.ok) {
+                appendLog(
+                  state,
+                  'info',
+                  `[${watch.label}] Kihagyva ${ad.id}: ${phoneResult.reason}`
+                );
+                state.urlMarkers[watch.id] = result.newMarker;
+                state.urlSeenIds[watch.id] = mergeSeenIds(state.urlSeenIds[watch.id], [ad.id]);
+                saveState(state);
+                continue;
+              }
 
-            state.totalSent += 1;
-            state.sentToday += 1;
-            state.sentAdIds.push(ad.id);
-            state.urlMarkers[watch.id] = result.newMarker;
-
-            const mode = smsResult.dryRun ? 'DRY-RUN SMS' : 'SMS elküldve';
-            appendLog(
-              state,
-              'ok',
-              `[${watch.label}] ${mode} → ${phoneResult.phone}: ${ad.title}`
-            );
-          } catch (err) {
-            if (this.isBrowserClosedError(err)) {
-              await this.resetBrowser(
-                state,
-                'Böngésző bezárva — SMS szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
+              const smsResult = await sendSms(
+                config,
+                { ...ad, phone: phoneResult.phone },
+                config.messageTemplate
               );
-            } else {
-              appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${this.formatError(err)}`);
+
+              state.totalSent += 1;
+              state.sentToday += 1;
+              state.sentAdIds.push(ad.id);
+              state.urlMarkers[watch.id] = result.newMarker;
+              state.urlSeenIds[watch.id] = mergeSeenIds(state.urlSeenIds[watch.id], [ad.id]);
+
+              const mode = smsResult.dryRun ? 'DRY-RUN SMS' : 'SMS elküldve';
+              appendLog(
+                state,
+                'ok',
+                `[${watch.label}] ${mode} → ${phoneResult.phone}: ${ad.title}`
+              );
+            } catch (err) {
+              if (this.isBrowserClosedError(err)) {
+                await this.resetBrowser(
+                  state,
+                  'Böngésző bezárva — SMS szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
+                );
+              } else {
+                appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${this.formatError(err)}`);
+              }
+              break;
+            } finally {
+              this.processing = false;
+              saveState(state);
+              await new Promise((r) => setTimeout(r, config.sendDelayMs || 5000));
             }
-            break;
-          } finally {
-            this.processing = false;
-            saveState(state);
-            await new Promise((r) => setTimeout(r, config.sendDelayMs || 5000));
           }
+        } catch (err) {
+          if (this.isBrowserClosedError(err)) {
+            await this.resetBrowser(
+              state,
+              'Böngésző bezárva — figyelés folytatódik, SMS csak nyitott böngészővel'
+            );
+          } else {
+            appendLog(state, 'error', `[${watch.label}] ${this.formatError(err)}`);
+          }
+          saveState(state);
         }
-      } catch (err) {
-        if (this.isBrowserClosedError(err)) {
-          await this.resetBrowser(
-            state,
-            'Böngésző bezárva — figyelés folytatódik, SMS csak nyitott böngészővel'
-          );
-        } else {
-          appendLog(state, 'error', `[${watch.label}] ${this.formatError(err)}`);
-        }
-        saveState(state);
       }
+      saveState(state);
+    } finally {
+      this.tickInProgress = false;
     }
-    saveState(state);
   }
 
   start() {
@@ -259,6 +284,7 @@ class Monitor {
     const state = loadState();
     state.urlMarkers = {};
     state.urlCalibrated = {};
+    state.urlSeenIds = {};
     appendLog(state, 'info', 'Összes URL újrakalibrálva');
     saveState(state);
   }
@@ -304,7 +330,7 @@ setAppShutdown(shutdown);
 const lock = acquireInstanceLock();
 if (!lock.ok) {
   const config = loadConfig();
-  const port = config.adminPort ?? 3848;
+  const port = resolveAdminPort(config);
   console.error(
     `\n  Hasznaltauto Pro már fut (PID ${lock.existingPid}).\n` +
       `  Admin panel: http://127.0.0.1:${port}\n` +
@@ -314,7 +340,7 @@ if (!lock.ok) {
 }
 
 const config = loadConfig();
-const adminPort = config.adminPort ?? 3848;
+const adminPort = resolveAdminPort(config);
 
 startAdminServer(adminPort)
   .then(() => {
