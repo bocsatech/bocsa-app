@@ -29,7 +29,10 @@ const server = createServer((req, res) => {
   }
 
   const ext = extname(filePath);
-  res.writeHead(200, { "Content-Type": MIME[ext] ?? "application/octet-stream" });
+  res.writeHead(200, {
+    "Content-Type": MIME[ext] ?? "application/octet-stream",
+    "Cache-Control": "no-store, no-cache, must-revalidate",
+  });
   res.end(readFileSync(filePath));
 });
 
