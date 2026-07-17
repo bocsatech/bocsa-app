@@ -1,0 +1,611 @@
+/* AUTOMAX prémium dizájn — szövegek változatlanok */
+
+.theme-automax {
+  --ax-orange: #ff5500;
+  --ax-orange-dim: #cc4400;
+  --ax-bg: #000000;
+  --ax-surface: #0a0a0a;
+  --ax-border: #2a2a2a;
+  --ax-text: #ffffff;
+  --ax-muted: #888888;
+  --ax-label: #666666;
+  --m7-field-border: #2a2a2a;
+  --m7-field-radius: 4px;
+  --m7-field-height: 48px;
+  --m7-label-accent: var(--ax-orange);
+  --m7-label-default: var(--ax-label);
+  --m7-placeholder: #555555;
+  --primary: var(--ax-orange);
+  --orange-dark: var(--ax-orange-dim);
+  --text: var(--ax-text);
+  --muted: var(--ax-muted);
+  --bg: var(--ax-bg);
+  --border: var(--ax-border);
+  --surface-container: var(--ax-surface);
+  --surface-container-low: #111111;
+  --blue-link: var(--ax-orange);
+}
+
+body.theme-automax {
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--ax-bg);
+  color: var(--ax-text);
+}
+
+body.theme-automax .local-banner {
+  background: #111;
+  color: #666;
+  border-bottom: 1px solid #1a1a1a;
+  font-size: 11px;
+}
+
+/* —— Fejléc —— */
+.theme-automax .site-header {
+  background: #000;
+  border-bottom: 1px solid #1a1a1a;
+  box-shadow: none;
+}
+
+.theme-automax .header-top {
+  max-width: none;
+  padding: 20px 48px;
+}
+
+.theme-automax .logo {
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.theme-automax .logo-mark {
+  background: var(--ax-orange);
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+.theme-automax .header-actions,
+.theme-automax .header-actions a {
+  color: #aaa;
+  font-size: 13px;
+}
+
+.theme-automax .header-actions a:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+.theme-automax .header-actions .btn-primary {
+  background: transparent;
+  color: var(--ax-orange);
+  border: 1px solid var(--ax-orange);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.theme-automax .header-actions .btn-primary:hover {
+  background: var(--ax-orange);
+  color: #000;
+}
+
+/* —— Layout: bal űrlap, jobb panel —— */
+.page-automax {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 40%);
+  min-height: calc(100vh - 72px);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.automax-main {
+  padding: 32px 48px 56px;
+  background: #000;
+  min-width: 0;
+}
+
+/* —— Jobb panel —— */
+.automax-panel {
+  position: relative;
+  background: #050505;
+  overflow: hidden;
+  border-left: 1px solid #1a1a1a;
+}
+
+.automax-panel-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 0% 45%, rgba(255, 85, 0, 0.45) 0%, transparent 55%),
+    linear-gradient(180deg, #0a0a0a 0%, #000 100%);
+  pointer-events: none;
+}
+
+.automax-car-visual {
+  position: absolute;
+  left: -10%;
+  top: 18%;
+  width: 110%;
+  height: 45%;
+  background:
+    linear-gradient(105deg, transparent 30%, rgba(255, 85, 0, 0.15) 45%, transparent 60%),
+    linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 40%, #000 100%);
+  border-radius: 8px 80px 80px 8px;
+  box-shadow:
+    inset -40px 0 80px rgba(255, 85, 0, 0.25),
+    0 0 120px rgba(255, 85, 0, 0.12);
+  transform: perspective(800px) rotateY(-8deg);
+  pointer-events: none;
+}
+
+.automax-panel-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 48px 36px;
+  gap: 20px;
+}
+
+.theme-automax .m7-sidebar-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  text-align: left;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.theme-automax .m7-sidebar-lead {
+  color: #888;
+  font-size: 14px;
+  text-align: left;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.theme-automax .m7-sidebar-features {
+  gap: 14px;
+}
+
+.theme-automax .m7-feature-icon--orange,
+.theme-automax .m7-feature-icon--green,
+.theme-automax .m7-feature-icon--purple {
+  background: rgba(255, 85, 0, 0.12);
+  color: var(--ax-orange);
+}
+
+.theme-automax .m7-feature-text strong {
+  color: #ddd;
+  font-size: 12px;
+}
+
+.theme-automax .m7-feature-text > span {
+  color: #666;
+  font-size: 11px;
+}
+
+.theme-automax .m7-sidebar-tip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+}
+
+.theme-automax .m7-tip-text strong,
+.theme-automax .m7-tip-text > span,
+.theme-automax .m7-tip-icon {
+  color: #aaa;
+}
+
+/* —— Kategória, figyelmeztetés —— */
+.theme-automax .category-bar {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  padding: 0;
+  margin-bottom: 8px;
+  color: #888;
+  font-size: 13px;
+}
+
+.theme-automax .category-bar strong {
+  color: #fff;
+}
+
+.theme-automax .required-note {
+  color: var(--ax-orange);
+  font-size: 12px;
+  margin-bottom: 28px;
+}
+
+/* —— Lépéssáv (01 ALAPADATOK stílus) —— */
+.theme-automax .steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 36px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0 0 36px;
+  margin-bottom: 8px;
+  overflow: visible;
+}
+
+.theme-automax .step {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 10px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent !important;
+  color: #555;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: none !important;
+}
+
+.theme-automax .step::before {
+  content: "0" attr(data-step-indicator);
+  width: auto;
+  height: auto;
+  min-width: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent !important;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.theme-automax .step.active {
+  color: #fff;
+  border-bottom-color: var(--ax-orange);
+}
+
+.theme-automax .step.active::before {
+  color: #fff;
+}
+
+.theme-automax .step.done {
+  color: #666;
+}
+
+.theme-automax .step.done::before {
+  color: #666;
+}
+
+/* —— Kártyák, űrlap —— */
+.theme-automax .card {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  margin-bottom: 0;
+}
+
+.theme-automax .card-body {
+  padding: 0;
+}
+
+.theme-automax .card-head {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 22px;
+  color: #fff;
+  border-bottom-color: #222;
+  padding-left: 0;
+}
+
+.theme-automax .autofelvitele {
+  border-bottom-color: #222;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+}
+
+.theme-automax .autofelvitele-label {
+  color: var(--ax-label);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.theme-automax .fuel-btn {
+  background: #111;
+  border: 1px solid #333;
+  color: #888;
+  border-radius: 0;
+}
+
+.theme-automax .fuel-btn.active {
+  background: var(--ax-orange);
+  border-color: var(--ax-orange);
+  color: #000;
+  font-weight: 700;
+}
+
+.theme-automax .fuel-selected,
+.theme-automax .hint,
+.theme-automax .hint-inline {
+  color: #666;
+}
+
+.theme-automax .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+}
+
+.theme-automax .form-grid > .md-outlined {
+  width: 100%;
+  justify-self: stretch;
+}
+
+.theme-automax .field-row.full {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+  width: 100% !important;
+}
+
+.theme-automax .form-grid > .field-row.full,
+.theme-automax .form-grid > .full {
+  grid-column: 1 / -1;
+}
+
+.theme-automax .field-row.full:has(.labeled-field:nth-child(3):last-child) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.theme-automax .field-row--vehicle-top {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.theme-automax .field-row--dates {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.theme-automax .field-row.full .labeled-field {
+  width: 100%;
+}
+
+/* —— Mezők: címke felül, sötét input —— */
+.theme-automax .md-outlined,
+.theme-automax .labeled-field.md-outlined,
+.theme-automax .autofelvitele-title.md-outlined {
+  display: grid;
+  gap: 8px;
+}
+
+.theme-automax .md-outlined > label,
+.theme-automax .labeled-field > label,
+.theme-automax .autofelvitele-title > label {
+  position: static;
+  transform: none;
+  background: transparent;
+  padding: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ax-label);
+  pointer-events: auto;
+}
+
+.theme-automax .field-row.full:first-of-type .labeled-field > label,
+.theme-automax .field-row.full:first-of-type .labeled-field > label .req {
+  color: var(--ax-label);
+}
+
+.theme-automax .md-outlined > label .req,
+.theme-automax .labeled-field > label .req {
+  color: var(--ax-orange);
+}
+
+.theme-automax .md-outlined:focus-within > label,
+.theme-automax .labeled-field:focus-within > label {
+  color: var(--ax-orange);
+}
+
+.theme-automax .md-outlined > select,
+.theme-automax .md-outlined > input:not([type="checkbox"]):not([type="radio"]),
+.theme-automax .labeled-field > select,
+.theme-automax .labeled-field > input,
+.theme-automax .autofelvitele-title > input {
+  width: 100% !important;
+  height: var(--m7-field-height);
+  background: var(--ax-surface);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--m7-field-radius);
+  color: #fff;
+  padding: 12px 14px;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+.theme-automax .md-outlined > select,
+.theme-automax .labeled-field > select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M1.4 1.4 6 6l4.6-4.6L12 3.8 6 9.8.4 3.8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+.theme-automax .md-outlined > select:focus,
+.theme-automax .md-outlined > input:focus,
+.theme-automax .labeled-field > select:focus,
+.theme-automax .labeled-field > input:focus {
+  border-color: var(--ax-orange);
+  box-shadow: 0 0 0 1px var(--ax-orange);
+  outline: none;
+}
+
+.theme-automax .labeled-field.md-outlined > .inline-2,
+.theme-automax .md-outlined > .inline-2,
+.theme-automax .labeled-field.md-outlined > .suffix-field,
+.theme-automax .md-outlined > .suffix-field {
+  background: var(--ax-surface);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--m7-field-radius);
+  min-height: var(--m7-field-height);
+  padding: 4px 8px;
+}
+
+.theme-automax .labeled-field.md-outlined > .inline-2 select,
+.theme-automax .md-outlined > .inline-2 select,
+.theme-automax .labeled-field.md-outlined > .inline-2 input {
+  background: transparent;
+  border: 0 !important;
+  color: #fff;
+  height: 38px;
+}
+
+.theme-automax .labeled-field.md-outlined > .suffix-field input,
+.theme-automax .md-outlined > .suffix-field input {
+  background: transparent;
+  border: 0 !important;
+  color: #fff;
+}
+
+.theme-automax .labeled-field.md-outlined > .suffix-field span,
+.theme-automax .md-outlined > .suffix-field span {
+  color: #888;
+}
+
+.theme-automax input.auto-filled,
+.theme-automax select.auto-filled {
+  background: #0f1a0f;
+  border-color: #2a4a2a;
+}
+
+.theme-automax .help-link {
+  color: var(--ax-orange);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+}
+
+.theme-automax .form-grid textarea,
+.theme-automax .md-outlined > textarea {
+  background: var(--ax-surface);
+  border: 1px solid var(--ax-border);
+  color: #fff;
+  min-height: 140px;
+}
+
+.theme-automax .check {
+  color: #aaa;
+}
+
+.theme-automax .upload-zone {
+  background: #0a0a0a;
+  border-color: #333;
+  color: #888;
+}
+
+.theme-automax .upload-zone strong {
+  color: #fff;
+}
+
+.theme-automax .package {
+  background: #0a0a0a;
+  border-color: #333;
+}
+
+.theme-automax .package.selected {
+  border-color: var(--ax-orange);
+  background: rgba(255, 85, 0, 0.08);
+}
+
+.theme-automax .package h3,
+.theme-automax .package .price {
+  color: #fff;
+}
+
+/* —— Lábléc gombok —— */
+.theme-automax .footer-actions {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.theme-automax .footer-actions .btn-secondary {
+  background: transparent;
+  color: #888;
+  border: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+.theme-automax #next-btn.btn-primary,
+.theme-automax #new-ad-btn.btn-primary {
+  background: var(--ax-orange);
+  color: #000;
+  border-radius: 0;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 16px 36px;
+  box-shadow: none;
+}
+
+.theme-automax #next-btn.btn-primary:hover {
+  background: #ff7722;
+  color: #000;
+}
+
+.theme-automax .success-box h2 {
+  font-family: "Playfair Display", Georgia, serif;
+  color: #fff;
+}
+
+@media (max-width: 1100px) {
+  .page-automax {
+    grid-template-columns: 1fr;
+  }
+
+  .automax-panel {
+    min-height: 280px;
+    border-left: 0;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .automax-car-visual {
+    height: 35%;
+    top: 10%;
+  }
+
+  .automax-main {
+    padding: 24px 24px 40px;
+  }
+
+  .theme-automax .header-top {
+    padding: 16px 24px;
+  }
+
+  .theme-automax .field-row--vehicle-top {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-automax .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-automax .field-row.full {
+    grid-template-columns: 1fr !important;
+  }
+}

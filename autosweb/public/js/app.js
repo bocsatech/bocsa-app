@@ -255,7 +255,7 @@ function fitInputWidth(input) {
 }
 
 function fitAllFormFields() {
-  if (document.body.classList.contains("theme-m7")) {
+  if (document.body.classList.contains("theme-m7") || document.body.classList.contains("theme-automax")) {
     form.querySelectorAll("select, input, textarea").forEach((el) => {
       el.style.width = "";
     });
