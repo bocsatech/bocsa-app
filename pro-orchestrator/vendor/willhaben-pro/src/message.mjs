@@ -1,5 +1,7 @@
 import { formatMessage } from './parse.mjs';
 import { dismissConsent } from './consent.mjs';
+import { getAdPageText } from './ad-detail.mjs';
+import { matchExcludeKeyword } from './exclude-keywords.mjs';
 
 async function openMessageForm(page) {
   const textarea = page.locator('[data-testid="mailContent-input"]');
@@ -29,10 +31,16 @@ async function openMessageForm(page) {
   return textarea;
 }
 
-export async function sendMessage(page, ad, template, sendDelayMs) {
+export async function sendMessage(page, ad, template, sendDelayMs, excludeKeywords = []) {
   await page.goto(ad.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
   await dismissConsent(page);
   await page.waitForTimeout(1200);
+
+  const pageText = await getAdPageText(page, ad);
+  const hit = matchExcludeKeyword(pageText, excludeKeywords);
+  if (hit) {
+    return { ok: false, skipped: true, keyword: hit };
+  }
 
   let textarea;
   try {
@@ -60,4 +68,5 @@ export async function sendMessage(page, ad, template, sendDelayMs) {
   }
 
   await page.waitForTimeout(sendDelayMs);
+  return { ok: true };
 }

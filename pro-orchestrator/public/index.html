@@ -186,6 +186,51 @@
       color: var(--text);
     }
     label.inline-check input { width: auto; }
+    .slot-head-actions { display: flex; gap: 8px; align-items: center; }
+    .slot-close {
+      font: inherit;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #24304a;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .slot-close:hover { color: var(--text); background: #2f3d5c; }
+    .hidden-slots {
+      margin: 0 24px 16px;
+      padding: 12px 16px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .hidden-slots:empty { display: none; }
+    .keyword-panel {
+      background: #0b1020;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .keyword-list { display: grid; gap: 6px; }
+    .keyword-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .keyword-item input { flex: 1; font-size: 12px; padding: 8px 10px; }
+    .keyword-item button {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    .url-hint { font-size: 11px; color: var(--muted); line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -204,6 +249,7 @@
   </div>
 
   <main id="slots"></main>
+  <div class="hidden-slots" id="hidden-slots"></div>
 
   <footer>
     <span class="dirty" id="dirty">⚠ Nem mentett változások</span>
@@ -279,6 +325,30 @@
       `;
     }
 
+    function renderExcludeKeywords(slot, i, running) {
+      if (slot.program !== 'willhaben') return '';
+      const keywords = slot.excludeKeywords?.length
+        ? slot.excludeKeywords
+        : ['ecoboost', 'export'];
+      return `
+        <div class="keyword-panel exclude-panel" data-i="${i}">
+          <label>Kizáró szavak (hirdetés szövegében — nem küld üzenetet)</label>
+          <div class="keyword-list" id="keywords-${slot.id}">
+            ${keywords.map((kw, j) => `
+              <div class="keyword-item" data-slot-i="${i}" data-kw-i="${j}">
+                <input class="exclude-kw" data-slot-i="${i}" data-kw-i="${j}" value="${esc(kw)}" placeholder="pl. ecoboost" oninput="markDirty()" ${running ? 'disabled' : ''} />
+                <button type="button" onclick="removeExcludeKeyword(${i}, ${j})" ${running ? 'disabled' : ''}>✕</button>
+              </div>
+            `).join('')}
+          </div>
+          <div class="url-actions" style="margin-top:0">
+            <button type="button" onclick="addExcludeKeyword(${i})" ${running ? 'disabled' : ''}>+ Szó hozzáadása</button>
+          </div>
+          <div class="url-hint">A hirdetés teljes szövegében keresi (cím + leírás + mezők). Alapértelmezés: ecoboost, export.</div>
+        </div>
+      `;
+    }
+
     function renderUrlItems(slot, i, running) {
       const urls = slot.watchUrls?.length ? slot.watchUrls : [];
       const items = urls.length ? urls : [{ id: 'url-1', label: 'Keresés 1', url: '', enabled: true }];
@@ -294,18 +364,19 @@
       `).join('');
     }
 
-    function renderSlots(slots) {
-      const root = document.getElementById('slots');
-      root.innerHTML = slots.map((slot, i) => {
-        const rt = runtimeFor(slot.id);
-        const pillClass = slot.program === 'hasznaltauto' ? 'ha' : 'wh';
-        const pillText = slot.program === 'hasznaltauto' ? 'Hasznaltauto' : 'Willhaben';
-        const running = !!rt.running;
-        return `
+    function renderSlotCard(slot, i) {
+      const rt = runtimeFor(slot.id);
+      const pillClass = slot.program === 'hasznaltauto' ? 'ha' : 'wh';
+      const pillText = slot.program === 'hasznaltauto' ? 'Hasznaltauto' : 'Willhaben';
+      const running = !!rt.running;
+      return `
           <section class="slot ${running ? 'running' : ''}" data-slot="${i}" id="card-${slot.id}">
             <header>
               <h2>${esc(slot.label || `Slot ${i + 1}`)}</h2>
-              <span class="pill ${pillClass}" id="pill-${i}">${pillText}</span>
+              <div class="slot-head-actions">
+                <span class="pill ${pillClass}" id="pill-${i}">${pillText}</span>
+                <button type="button" class="slot-close" onclick="closeSlot('${slot.id}')" title="Slot panel bezárása">✕ Bezárás</button>
+              </div>
             </header>
 
             <div class="status ${running ? 'run' : ''}" id="status-${slot.id}">
@@ -341,6 +412,8 @@
                 Automatikus indítás (egy kattintásos launchernél)
               </label>
             </div>
+
+            ${renderExcludeKeywords(slot, i, running)}
 
             <div>
               <label>Üzenet sablon</label>
@@ -386,8 +459,30 @@
             </div>
           </section>
         `;
-      }).join('');
-      slots.forEach((s) => refreshLogs(s.id));
+    }
+
+    function renderHiddenSlotsBar(slots) {
+      const hidden = slots.filter((s) => s.visible === false);
+      const bar = document.getElementById('hidden-slots');
+      if (!hidden.length) {
+        bar.innerHTML = '';
+        return;
+      }
+      bar.innerHTML = `
+        <span>Bezárt slotok (${hidden.length}/6):</span>
+        ${hidden.map((s) => `<button type="button" onclick="openSlot('${s.id}')">+ ${esc(s.label || s.id)} megnyitása</button>`).join('')}
+      `;
+    }
+
+    function renderSlots(slots) {
+      const root = document.getElementById('slots');
+      root.innerHTML = slots
+        .map((slot, i) => ({ slot, i }))
+        .filter(({ slot }) => slot.visible !== false)
+        .map(({ slot, i }) => renderSlotCard(slot, i))
+        .join('');
+      renderHiddenSlotsBar(slots);
+      slots.filter((s) => s.visible !== false).forEach((s) => refreshLogs(s.id));
     }
 
     function onProgramChange(i) {
@@ -401,11 +496,77 @@
       });
       const panel = document.querySelector(`.sms-panel[data-i="${i}"]`);
       if (panel) panel.style.display = isHa ? '' : 'none';
+      const excludePanel = document.querySelector(`.exclude-panel[data-i="${i}"]`);
+      if (excludePanel) excludePanel.style.display = isHa ? 'none' : '';
       const poll = document.querySelector(`.poll-interval[data-i="${i}"]`);
       if (poll) poll.min = pollMin(sel.value);
       const delayLabelEl = document.querySelector(`.timing-grid .send-delay[data-i="${i}"]`)?.closest('div')?.querySelector('.sub');
       if (delayLabelEl) delayLabelEl.textContent = delayLabel(sel.value);
       markDirty();
+    }
+
+    function collectExcludeKeywords(i) {
+      return [...document.querySelectorAll(`.exclude-kw[data-slot-i="${i}"]`)]
+        .map((inp) => inp.value.trim())
+        .filter(Boolean);
+    }
+
+    function reindexExcludeKeywords(slotI) {
+      const items = [...document.querySelectorAll(`.keyword-item[data-slot-i="${slotI}"]`)];
+      items.forEach((item, j) => {
+        item.dataset.kwI = String(j);
+        item.querySelectorAll('.exclude-kw').forEach((el) => {
+          el.dataset.kwI = String(j);
+          el.dataset.slotI = String(slotI);
+        });
+        const btn = item.querySelector('button');
+        if (btn) btn.setAttribute('onclick', `removeExcludeKeyword(${slotI}, ${j})`);
+      });
+    }
+
+    function addExcludeKeyword(i) {
+      const slotId = data.slots[i]?.id;
+      const box = document.getElementById(`keywords-${slotId}`);
+      const count = box.querySelectorAll('.keyword-item').length;
+      const div = document.createElement('div');
+      div.className = 'keyword-item';
+      div.dataset.slotI = String(i);
+      div.dataset.kwI = String(count);
+      div.innerHTML = `
+        <input class="exclude-kw" data-slot-i="${i}" data-kw-i="${count}" value="" placeholder="pl. unfall" oninput="markDirty()" />
+        <button type="button" onclick="removeExcludeKeyword(${i}, ${count})">✕</button>
+      `;
+      box.appendChild(div);
+      reindexExcludeKeywords(i);
+      markDirty();
+    }
+
+    function removeExcludeKeyword(slotI, kwI) {
+      const item = document.querySelector(`.keyword-item[data-slot-i="${slotI}"][data-kw-i="${kwI}"]`);
+      if (item) item.remove();
+      reindexExcludeKeywords(slotI);
+      markDirty();
+    }
+
+    async function closeSlot(slotId) {
+      const slot = data.slots.find((s) => s.id === slotId);
+      if (!slot) return;
+      const rt = runtimeFor(slotId);
+      if (rt.running) {
+        if (!confirm('A slot fut. Leállítom és bezárom a panelt?')) return;
+        await fetch(`/api/slots/${slotId}/stop`, { method: 'POST' });
+      }
+      slot.visible = false;
+      markDirty();
+      renderSlots(data.slots);
+    }
+
+    function openSlot(slotId) {
+      const slot = data.slots.find((s) => s.id === slotId);
+      if (!slot) return;
+      slot.visible = true;
+      markDirty();
+      renderSlots(data.slots);
     }
 
     function collectUrlsForSlot(i) {
@@ -465,11 +626,15 @@
     }
 
     function collectSlots() {
-      return [...document.querySelectorAll('.slot')].map((el, i) => {
+      return data.slots.map((slot, i) => {
+        const card = document.getElementById(`card-${slot.id}`);
+        if (!card) {
+          return { ...slot, visible: slot.visible === false ? false : true };
+        }
         const program = document.querySelector(`.program[data-i="${i}"]`).value;
-        const slot = {
-          id: data.slots[i]?.id || `slot-${i + 1}`,
-          label: `Slot ${i + 1}`,
+        const next = {
+          id: slot.id,
+          label: slot.label || `Slot ${i + 1}`,
           program,
           username: document.querySelector(`.username[data-i="${i}"]`).value.trim(),
           watchUrls: collectUrlsForSlot(i),
@@ -477,17 +642,20 @@
           pollIntervalSeconds: Number(document.querySelector(`.poll-interval[data-i="${i}"]`)?.value) || undefined,
           sendDelayMs: Number(document.querySelector(`.send-delay[data-i="${i}"]`)?.value) || undefined,
           autoStart: document.querySelector(`.auto-start[data-i="${i}"]`)?.checked !== false,
+          visible: slot.visible !== false,
         };
         if (program === 'hasznaltauto') {
-          slot.allowedPrefixes = document.querySelector(`.sms-prefixes[data-i="${i}"]`)?.value.trim() || '70, 20, 30';
-          slot.sms = {
+          next.allowedPrefixes = document.querySelector(`.sms-prefixes[data-i="${i}"]`)?.value.trim() || '70, 20, 30';
+          next.sms = {
             accountSid: document.querySelector(`.sms-sid[data-i="${i}"]`)?.value.trim() || '',
             authToken: document.querySelector(`.sms-token[data-i="${i}"]`)?.value.trim() || '',
             fromNumber: document.querySelector(`.sms-from[data-i="${i}"]`)?.value.trim() || '',
             dryRun: document.querySelector(`.sms-dryrun[data-i="${i}"]`)?.checked !== false,
           };
+        } else {
+          next.excludeKeywords = collectExcludeKeywords(i);
         }
-        return slot;
+        return next;
       });
     }
 
@@ -498,7 +666,7 @@
       document.getElementById('port').textContent = data.port;
       if (!dirty || !keepForm) renderSlots(data.slots);
       else {
-        for (const slot of data.slots) {
+        for (const slot of data.slots.filter((s) => s.visible !== false)) {
           const rt = runtimeFor(slot.id);
           const st = document.getElementById(`status-${slot.id}`);
           if (st) {
@@ -651,7 +819,7 @@
     refresh();
     setInterval(() => refresh({ keepForm: true }), 4000);
     setInterval(() => {
-      if (data?.slots) data.slots.forEach((s) => refreshLogs(s.id));
+      if (data?.slots) data.slots.filter((s) => s.visible !== false).forEach((s) => refreshLogs(s.id));
     }, 1000);
   </script>
 </body>

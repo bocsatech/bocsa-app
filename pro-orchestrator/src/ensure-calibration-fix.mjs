@@ -19,6 +19,11 @@ const WILLHABEN_REL_FILES = [
   'src/config.mjs',
   'src/instance-lock.mjs',
   'src/stop.mjs',
+  'src/message.mjs',
+  'src/exclude-keywords.mjs',
+  'src/ad-detail.mjs',
+  'src/admin-server.mjs',
+  'config.default.json',
 ];
 
 const HASZNALTAUTO_REL_FILES = [...WILLHABEN_REL_FILES];
@@ -32,8 +37,12 @@ function readText(file) {
 }
 
 function isOldWillhaben() {
-  const text = readText(path.join(getWillhabenRoot(), 'src/index.mjs'));
-  return text.includes('Kalibrálás → referencia');
+  const indexText = readText(path.join(getWillhabenRoot(), 'src/index.mjs'));
+  const messageText = readText(path.join(getWillhabenRoot(), 'src/message.mjs'));
+  return (
+    indexText.includes('Kalibrálás → referencia') ||
+    !messageText.includes('excludeKeywords')
+  );
 }
 
 function isOldHasznaltauto() {

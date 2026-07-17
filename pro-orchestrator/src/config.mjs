@@ -7,6 +7,8 @@ const CONFIG_PATH = path.join(ROOT, 'config.json');
 
 const DEFAULT_PREFIXES = ['70', '20', '30'];
 
+export const DEFAULT_EXCLUDE_KEYWORDS = ['ecoboost', 'export'];
+
 const DEFAULT_SMS = {
   provider: 'twilio',
   accountSid: '',
@@ -36,6 +38,8 @@ const DEFAULT_SLOTS = Array.from({ length: 6 }, (_, i) => {
     allowedPrefixes: [...DEFAULT_PREFIXES],
     sms: { ...DEFAULT_SMS },
     autoStart: true,
+    visible: true,
+    excludeKeywords: program === 'willhaben' ? [...DEFAULT_EXCLUDE_KEYWORDS] : undefined,
   };
 });
 
@@ -120,6 +124,12 @@ export function normalizeWatchUrlsForSlot(urls) {
   return normalizeWatchUrls(Array.isArray(urls) ? urls : []);
 }
 
+export function normalizeExcludeKeywords(value) {
+  if (!Array.isArray(value)) return [...DEFAULT_EXCLUDE_KEYWORDS];
+  const list = value.map((k) => String(k || '').trim()).filter(Boolean);
+  return list.length ? list : [...DEFAULT_EXCLUDE_KEYWORDS];
+}
+
 export function getRoot() {
   return ROOT;
 }
@@ -163,6 +173,11 @@ function normalizeSlots(slots) {
       allowedPrefixes: normalizeAllowedPrefixes(incoming.allowedPrefixes),
       sms: normalizeSms(incoming.sms || def.sms),
       autoStart: incoming.autoStart !== false,
+      visible: incoming.visible !== false,
+      excludeKeywords:
+        program === 'willhaben'
+          ? normalizeExcludeKeywords(incoming.excludeKeywords ?? def.excludeKeywords)
+          : undefined,
     };
   });
 }

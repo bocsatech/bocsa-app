@@ -2,7 +2,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { loadConfig, saveConfig, mergeSmsSettings, normalizePollInterval, normalizeSendDelay } from './config.mjs';
+import { loadConfig, saveConfig, mergeSmsSettings, normalizePollInterval, normalizeSendDelay, normalizeExcludeKeywords } from './config.mjs';
 import {
   getAllSlotStatus,
   startSlot,
@@ -20,7 +20,7 @@ import { ensureCalibrationFix } from './ensure-calibration-fix.mjs';
 import { listProgramPaths, isWillhabenInstalled, isHasznaltautoInstalled } from './program-paths.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.8.2';
+const VERSION = '0.8.3';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -78,6 +78,8 @@ const server = http.createServer(async (req, res) => {
         smsSettings: true,
         timing: true,
         autoStart: true,
+        slotVisibility: true,
+        excludeKeywords: true,
       },
     });
   }
@@ -125,6 +127,11 @@ const server = http.createServer(async (req, res) => {
           : previous.allowedPrefixes || instance?.allowedPrefixes || ['70', '20', '30'],
         sms: mergeSmsSettings(s, previous, instance),
         autoStart: s.autoStart !== false,
+        visible: s.visible !== false,
+        excludeKeywords:
+          program === 'willhaben'
+            ? normalizeExcludeKeywords(s.excludeKeywords ?? previous.excludeKeywords)
+            : undefined,
       };
     });
     saveConfig(config);
