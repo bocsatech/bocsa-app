@@ -1,5 +1,5 @@
 import path from 'path';
-import { getRoot, loadConfig } from './config.mjs';
+import { getRoot, loadConfig, getInstanceDir, resolveAdminPort } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
 import { parseAdsFromHtml, findNewAds, mergeSeenIds } from './parse.mjs';
 import { sendMessage } from './message.mjs';
@@ -10,7 +10,7 @@ import { launchBrowser } from './browser.mjs';
 
 process.title = 'willhaben-pro';
 
-const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
+const PROFILE_DIR = path.join(getInstanceDir(), 'browser-profile');
 
 class Monitor {
   constructor() {
@@ -170,14 +170,17 @@ class Monitor {
           const ads = await this.fetchAds(this.page, watch.url);
           const marker = state.urlMarkers[watch.id];
           const calibrated = state.urlCalibrated[watch.id];
-          const seenIds = state.urlSeenIds?.[watch.id] || [];
+          state.urlSeenIds = state.urlSeenIds || {};
+          let seenIds = state.urlSeenIds[watch.id] || [];
+          if (calibrated && !seenIds.length && ads.length) {
+            seenIds = ads.map((a) => a.id);
+            state.urlSeenIds[watch.id] = seenIds;
+          }
           const result = findNewAds(ads, marker, calibrated, seenIds);
 
-          state.urlSeenIds = state.urlSeenIds || {};
           state.urlSeenIds[watch.id] = result.seenIds || seenIds;
-          state.urlMarkers[watch.id] = result.newMarker;
-
           if (result.action === 'calibrate') {
+            state.urlMarkers[watch.id] = result.newMarker;
             state.urlCalibrated[watch.id] = true;
             appendLog(
               state,
@@ -211,6 +214,7 @@ class Monitor {
               state.totalSent += 1;
               state.sentToday += 1;
               state.sentAdIds.push(ad.id);
+              state.urlMarkers[watch.id] = result.newMarker;
               state.urlSeenIds[watch.id] = mergeSeenIds(state.urlSeenIds[watch.id], [ad.id]);
               appendLog(state, 'ok', `[${watch.label}] Üzenet elküldve: ${ad.title} → ${ad.url}`);
             } catch (err) {
@@ -328,7 +332,7 @@ if (!lock.ok) {
 }
 
 const config = loadConfig();
-const adminPort = config.adminPort ?? 3847;
+const adminPort = resolveAdminPort(config);
 
 startAdminServer(adminPort)
   .then(() => {

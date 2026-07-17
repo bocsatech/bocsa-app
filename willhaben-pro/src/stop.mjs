@@ -1,9 +1,11 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { getRoot, loadConfig } from './config.mjs';
+import { getInstanceDir, loadConfig, resolveAdminPort } from './config.mjs';
 
-const LOCK_PATH = path.join(getRoot(), 'data', '.instance.lock');
+function lockPath() {
+  return path.join(getInstanceDir(), '.instance.lock');
+}
 
 function killPid(pid) {
   if (!pid || pid <= 0) return false;
@@ -33,6 +35,7 @@ function killOnPort(port) {
 }
 
 function killFromLock() {
+  const LOCK_PATH = lockPath();
   if (!fs.existsSync(LOCK_PATH)) return false;
   const raw = fs.readFileSync(LOCK_PATH, 'utf8').trim();
   const pid = Number.parseInt(raw, 10);
@@ -46,7 +49,7 @@ function killFromLock() {
 }
 
 const config = loadConfig();
-const port = config.adminPort ?? 3847;
+const port = resolveAdminPort(config);
 
 const byLock = killFromLock();
 const byPort = killOnPort(port);

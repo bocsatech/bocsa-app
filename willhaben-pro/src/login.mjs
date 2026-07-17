@@ -1,9 +1,9 @@
 import path from 'path';
-import { getRoot } from './config.mjs';
+import { getInstanceDir } from './config.mjs';
 import { dismissConsent } from './consent.mjs';
 import { launchBrowser } from './browser.mjs';
 
-const PROFILE_DIR = path.join(getRoot(), 'data', 'browser-profile');
+const PROFILE_DIR = path.join(getInstanceDir(), 'browser-profile');
 
 console.log('\n  Willhaben Pro — bejelentkezés\n');
 console.log('  1. Megnyílik a böngésző (Google Chrome, ha telepítve van)');

@@ -10,15 +10,40 @@ export function getRoot() {
   return ROOT;
 }
 
+export function getInstanceDir() {
+  if (process.env.PRO_INSTANCE_DIR) {
+    return path.resolve(process.env.PRO_INSTANCE_DIR);
+  }
+  return path.join(ROOT, 'data');
+}
+
+export function getConfigPath() {
+  if (process.env.PRO_INSTANCE_DIR) {
+    return path.join(getInstanceDir(), 'config.json');
+  }
+  return CONFIG_PATH;
+}
+
+export function resolveAdminPort(config, fallback = 3847) {
+  if (process.env.PRO_ADMIN_PORT) {
+    const n = Number(process.env.PRO_ADMIN_PORT);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return config.adminPort ?? fallback;
+}
+
 export function loadConfig() {
-  if (!fs.existsSync(CONFIG_PATH)) {
-    if (fs.existsSync(DEFAULT_CONFIG_PATH)) {
+  const configPath = getConfigPath();
+  if (!fs.existsSync(configPath)) {
+    if (!process.env.PRO_INSTANCE_DIR && fs.existsSync(DEFAULT_CONFIG_PATH)) {
       fs.copyFileSync(DEFAULT_CONFIG_PATH, CONFIG_PATH);
     }
   }
-  return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+  return JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }
 
 export function saveConfig(config) {
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+  const dir = path.dirname(getConfigPath());
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(getConfigPath(), JSON.stringify(config, null, 2));
 }

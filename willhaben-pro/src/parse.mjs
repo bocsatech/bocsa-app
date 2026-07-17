@@ -73,7 +73,7 @@ export function findNewAds(ads, markerId, calibrated, seenIds = []) {
 
   if (idx === -1) {
     if (!newAds.length) {
-      return { newAds: [], action: 'none', newMarker: ads[0].id, seenIds: grownSeen };
+      return { newAds: [], action: 'none', newMarker: markerId, seenIds: grownSeen };
     }
     return { newAds, action: 'new', newMarker: ads[0].id, seenIds: grownSeen };
   }
@@ -85,7 +85,7 @@ export function findNewAds(ads, markerId, calibrated, seenIds = []) {
   return {
     newAds: newAds.length ? newAds : ads.slice(0, idx),
     action: newAds.length ? 'new' : 'none',
-    newMarker: ads[0].id,
+    newMarker: newAds.length ? ads[0].id : markerId,
     seenIds: grownSeen,
   };
 }
