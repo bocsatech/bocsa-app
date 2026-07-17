@@ -3,6 +3,7 @@ import { startSlot } from './slots.mjs';
 
 export function slotReadyForAutoStart(slot) {
   if (slot.autoStart === false) return false;
+  if (slot.visible === false) return false;
   const urls = slot.watchUrls || [];
   return urls.some((u) => u.enabled !== false && String(u.url || '').trim());
 }

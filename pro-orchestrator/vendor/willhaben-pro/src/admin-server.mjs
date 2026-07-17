@@ -15,6 +15,7 @@ import {
   isValidToken,
 } from './auth.mjs';
 import { APP_VERSION } from './version.mjs';
+import { normalizeExcludeKeywords } from './exclude-keywords.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -134,6 +135,9 @@ export function startAdminServer(port = 3847) {
             url: u.url,
             enabled: u.enabled !== false,
           }));
+        }
+        if (body.excludeKeywords != null) {
+          config.excludeKeywords = normalizeExcludeKeywords(body.excludeKeywords);
         }
         saveConfig(config);
         const state = loadState();

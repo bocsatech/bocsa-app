@@ -3,6 +3,7 @@
   "sendDelayMs": 3000,
   "headless": false,
   "messageTemplate": "Guten Tag! Ich interessiere mich für Ihr Fahrzeug „{title}“ ({price}, {location}). Ist es noch verfügbar? Vielen Dank!",
+  "excludeKeywords": ["ecoboost", "export"],
   "admin": {
     "maxPerDay": 10,
     "maxTotal": 50,

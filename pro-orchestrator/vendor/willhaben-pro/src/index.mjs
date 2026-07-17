@@ -210,7 +210,25 @@ class Monitor {
 
             this.processing = true;
             try {
-              await sendMessage(this.page, ad, config.messageTemplate, config.sendDelayMs);
+              const sendResult = await sendMessage(
+                this.page,
+                ad,
+                config.messageTemplate,
+                config.sendDelayMs,
+                config.excludeKeywords
+              );
+              if (sendResult?.skipped) {
+                state.sentAdIds.push(ad.id);
+                state.urlMarkers[watch.id] = result.newMarker;
+                state.urlSeenIds[watch.id] = mergeSeenIds(state.urlSeenIds[watch.id], [ad.id]);
+                appendLog(
+                  state,
+                  'info',
+                  `[${watch.label}] Kihagyva (${sendResult.keyword}): ${ad.title}`
+                );
+                saveState(state);
+                continue;
+              }
               state.totalSent += 1;
               state.sentToday += 1;
               state.sentAdIds.push(ad.id);

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { getRoot, loadConfig, publicSmsForApi, normalizeWatchUrlsForSlot } from './config.mjs';
+import { getRoot, loadConfig, publicSmsForApi, normalizeWatchUrlsForSlot, normalizeExcludeKeywords } from './config.mjs';
 import {
   getWillhabenRoot,
   getHasznaltautoRoot,
@@ -154,6 +154,9 @@ export function enrichSlot(slot) {
   if (slot.program !== 'hasznaltauto') {
     delete enriched.allowedPrefixes;
     delete enriched.sms;
+    enriched.excludeKeywords = normalizeExcludeKeywords(slot.excludeKeywords);
+  } else {
+    delete enriched.excludeKeywords;
   }
   return enriched;
 }
@@ -188,6 +191,8 @@ function applySlotFieldsToConfig(slot, cfg) {
       fromNumber: String(slot.sms?.fromNumber || '').trim(),
       dryRun: slot.sms?.dryRun !== false,
     };
+  } else {
+    cfg.excludeKeywords = normalizeExcludeKeywords(slot.excludeKeywords);
   }
   return cfg;
 }
