@@ -3,9 +3,14 @@ set -euo pipefail
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-APP_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-PRO_DIR="$(dirname "$APP_ROOT")"
-APP_LABEL="$(basename "$APP_ROOT" .app)"
+PRO_DIR="${HOME}/Downloads/hasznaltauto pro"
+if [ ! -f "$PRO_DIR/package.json" ]; then
+  APP_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+  CANDIDATE="$(dirname "$APP_ROOT")"
+  if [ -f "$CANDIDATE/package.json" ]; then
+    PRO_DIR="$CANDIDATE"
+  fi
+fi
 
 if ! command -v npm >/dev/null 2>&1; then
   osascript -e 'display alert "Node.js / npm nincs telepítve" message "Telepítsd innen: https://nodejs.org/" as critical' 2>/dev/null || true
@@ -15,7 +20,7 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 if [ ! -f "$PRO_DIR/package.json" ]; then
-  osascript -e "display alert \"Nem találom a projektet\" message \"$PRO_DIR\" as critical" 2>/dev/null || true
+  osascript -e "display alert \"Nem találom a Hasznaltauto Pro mappát\" message \"${PRO_DIR}\" as critical" 2>/dev/null || true
   echo "Nem találom: $PRO_DIR/package.json"
   read -r -p "Enter..."
   exit 1

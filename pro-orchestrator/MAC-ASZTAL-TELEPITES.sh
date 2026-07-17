@@ -92,7 +92,8 @@ if [ -f "$WH/package.json" ]; then
   if [ -f "$WH/mac-launcher/Inditas.command" ]; then
     cp "$WH/mac-launcher/Inditas.command" "$DESKTOP/Willhaben Pro Inditas.command"
     chmod +x "$DESKTOP/Willhaben Pro Inditas.command"
-    echo "  ✓ Willhaben Pro Inditas.command"
+    xattr -cr "$DESKTOP/Willhaben Pro Inditas.command" 2>/dev/null || true
+    echo "  ✓ Willhaben Pro Inditas.command → ~/Downloads/willhaben pro"
   fi
 fi
 
@@ -100,7 +101,8 @@ fi
 if [ -f "$HA/mac-launcher/Inditas.command" ]; then
   cp "$HA/mac-launcher/Inditas.command" "$DESKTOP/Hasznaltauto Pro Inditas.command"
   chmod +x "$DESKTOP/Hasznaltauto Pro Inditas.command"
-  echo "  ✓ Hasznaltauto Pro Inditas.command"
+  xattr -cr "$DESKTOP/Hasznaltauto Pro Inditas.command" 2>/dev/null || true
+  echo "  ✓ Hasznaltauto Pro Inditas.command → ~/Downloads/hasznaltauto pro"
 fi
 
 printf '%s\n' "$ORCH" > "${HOME}/.bocsa-pro/orchestrator-path" 2>/dev/null || mkdir -p "${HOME}/.bocsa-pro" && printf '%s\n' "$ORCH" > "${HOME}/.bocsa-pro/orchestrator-path"
