@@ -10,8 +10,8 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 | **Hasznaltauto Pro** | `hasznaltauto pro` | `cd ~/Downloads/hasznaltauto\ pro && npm start` | slot / 3848 |
 | **Mobile.de Pro** | `mobilede pro` | `cd ~/Downloads/mobilede\ pro && npm start` | slot / SMS +49 |
 | Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
+| **Autosweb** (hirdetésfeladás) | `autosweb` | Asztal: Autosweb-indito.command | http://127.0.0.1:3456 |
 | Hasznaltauto scraper | `hasznaltauto-scraper` | `npm start` | — |
-| Hirdetés local | `hirdetes-local` | `npm start` | http://localhost:3456 |
 
 ## Telepítés / szétválasztás (Mac, egyszer)
 

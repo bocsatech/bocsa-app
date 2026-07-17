@@ -1,37 +1,41 @@
-# Autosweb — hirdetésfeladás oldal
+# Autosweb — autós hirdetésfeladás (helyi web)
 
-Hasznaltauto.hu hirdetésfeladás **helyi weboldal** (7-es minta kinézet).
+## Mi hol van
 
-## Mac telepítés (Letöltések mappa + asztali indító)
+| Hely | Mi |
+|------|-----|
+| **`~/Downloads/autosweb`** | Csak a futó weboldal (telepítés után) |
+| **`~/bocsa-app/autosweb`** | Forrás + telepítő scriptek (fejlesztés) |
 
-A repóból **egyszer** futtasd:
-
-```bash
-cd ~/bocsa-app/autosweb/mac
-chmod +x telepites.command
-./telepites.command
-```
-
-Ez:
-1. Másolja a projektet → **`~/Downloads/autosweb`**
-2. Telepíti a függőségeket (`npm install`)
-3. Az asztalra tesz egy **`Autosweb-indito.command`** fájlt
-
-## Használat
-
-Dupla kattintás az asztalon: **Autosweb-indito.command**
-
-Megnyílik: **http://127.0.0.1:3456**
-
-## Fájlok helye a Mac-en
+A **Letöltések** mappába **nem** kerül minden — csak ez:
 
 ```
 ~/Downloads/autosweb/
+├── package.json
+├── server.mjs
 ├── public/          ← HTML, CSS, JS
-├── server.mjs       ← helyi szerver
-└── package.json
+└── node_modules/
 ```
 
-## Járműkatalógus
+**Nincs** benne: `mac/`, README, git, más program.
 
-Külön program: `~/bocsa-app/mentesmarka` → `data/jarmu-katalogus.json`
+## Telepítés (Mac, egyszer)
+
+```bash
+cd ~/bocsa-app/autosweb/mac
+chmod +x telepites.command frissites.command
+./telepites.command
+```
+
+Asztalon: **Autosweb-indito.command**
+
+## Kinézet frissítése (git pull NEM kell)
+
+```bash
+cd ~/bocsa-app/autosweb/mac
+./frissites.command
+```
+
+## URL
+
+http://127.0.0.1:3456
