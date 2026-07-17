@@ -432,15 +432,20 @@ body.theme-automax .local-banner {
 }
 
 .theme-automax .field-row.full:has(.labeled-field:nth-child(3):last-child),
-.theme-automax .field-row--vehicle-top,
-.theme-automax .field-row--brand {
+.theme-automax .field-row--vehicle-top {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.theme-automax .field-row--km {
+  grid-template-columns: 1fr !important;
+}
+
+.theme-automax .field-row--km .labeled-field {
+  max-width: calc(50% - 14px);
 }
 
 .theme-automax .field-row.full .labeled-field {
   width: 100%;
-  min-width: 0;
-  max-width: 100%;
 }
 
 /* —— Mezők: címke felül, sötét input —— */
@@ -449,8 +454,6 @@ body.theme-automax .local-banner {
 .theme-automax .autofelvitele-title.md-outlined {
   display: grid;
   gap: 8px;
-  width: 100%;
-  min-width: 0;
 }
 
 .theme-automax .form-grid label {
@@ -484,14 +487,6 @@ body.theme-automax .local-banner {
 
 .theme-automax .md-outlined > select,
 .theme-automax .md-outlined > input:not([type="checkbox"]):not([type="radio"]),
-.theme-automax .field-row--km {
-  grid-template-columns: 1fr !important;
-}
-
-.theme-automax .field-row--km .labeled-field {
-  max-width: calc(50% - 14px);
-}
-
 .theme-automax .labeled-field > select,
 .theme-automax .labeled-field > input,
 .theme-automax .autofelvitele-title > input {
@@ -560,8 +555,8 @@ body.theme-automax .local-banner {
 
 .theme-automax input.auto-filled,
 .theme-automax select.auto-filled {
-  background: #0f1a0f;
-  border-color: #2a4a2a;
+  background: var(--ax-surface);
+  border-color: #ffffff;
 }
 
 .theme-automax .help-link {
