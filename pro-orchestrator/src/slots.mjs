@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { getRoot, loadConfig, publicSmsForApi } from './config.mjs';
+import { getRoot, loadConfig, publicSmsForApi, normalizeWatchUrlsForSlot } from './config.mjs';
 import {
   getWillhabenRoot,
   getHasznaltautoRoot,
@@ -136,7 +136,7 @@ export function enrichSlot(slot) {
     : inst?.sms || defaults.sms || {};
   const enriched = {
     ...slot,
-    watchUrls: Array.isArray(slot.watchUrls) ? slot.watchUrls : inst?.watchUrls || [],
+    watchUrls: normalizeWatchUrlsForSlot(slot.watchUrls),
     messageTemplate: slot.messageTemplate || inst?.messageTemplate || fallbackTemplate,
     pollIntervalSeconds:
       slot.pollIntervalSeconds ??
@@ -167,9 +167,7 @@ function writeInstanceConfig(slot, cfg) {
 
 function applySlotFieldsToConfig(slot, cfg) {
   cfg.adminPort = slotPort(slot.id);
-  if (Array.isArray(slot.watchUrls)) {
-    cfg.watchUrls = slot.watchUrls.filter((u) => u.url);
-  }
+  cfg.watchUrls = normalizeWatchUrlsForSlot(slot.watchUrls).filter((u) => u.url);
   const template = String(slot.messageTemplate || '').trim();
   cfg.messageTemplate = template || readProgramDefaultTemplate(slot.program);
   cfg.pollIntervalSeconds =
@@ -195,8 +193,10 @@ function applySlotFieldsToConfig(slot, cfg) {
 }
 
 export function syncSlotToInstance(slot) {
-  const { dir, root } = ensureInstance(slot);
+  const dir = instanceDir(slot.id);
+  fs.mkdirSync(dir, { recursive: true });
   const dest = instanceConfigPath(slot.id);
+  const root = programRoot(slot.program);
   const cfg = fs.existsSync(dest)
     ? JSON.parse(fs.readFileSync(dest, 'utf8'))
     : JSON.parse(fs.readFileSync(path.join(root, 'config.json'), 'utf8'));

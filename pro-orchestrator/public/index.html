@@ -459,6 +459,8 @@
       const item = document.querySelector(`.url-item[data-slot-i="${slotI}"][data-url-i="${urlI}"]`);
       if (item) item.remove();
       reindexUrlItems(slotI);
+      const remaining = document.querySelectorAll(`.url-item[data-slot-i="${slotI}"]`).length;
+      if (remaining === 0) addUrl(slotI);
       markDirty();
     }
 
@@ -490,7 +492,7 @@
     }
 
     async function refresh({ keepForm = false } = {}) {
-      const res = await fetch('/api/status');
+      const res = await fetch(`/api/status?_=${Date.now()}`, { cache: 'no-store' });
       data = await res.json();
       document.getElementById('version').textContent = `v${data.version}`;
       document.getElementById('port').textContent = data.port;
@@ -573,12 +575,21 @@
       const res = await fetch('/api/slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ slots: collectSlots() }),
       });
-      if (!res.ok) return alert('Mentés sikertelen');
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.ok === false) return alert(body.error || 'Mentés sikertelen');
+      if (body.syncErrors?.length) {
+        console.warn('Instance sync hibák:', body.syncErrors);
+      }
       dirty = false;
       document.getElementById('dirty').classList.remove('show');
-      await refresh();
+      data.slots = body.slots || data.slots;
+      renderSlots(data.slots);
+      const res2 = await fetch(`/api/status?_=${Date.now()}`, { cache: 'no-store' });
+      data = await res2.json();
+      document.getElementById('version').textContent = `v${data.version}`;
       const prefix = slotLabel ? `${slotLabel} mentve! ` : 'Mentve! ';
       alert(prefix + 'URL és intervallum változáshoz: leállítás → mentés → újraindítás. Sablon, késleltetés és SMS futó slotnál is érvényes.');
     }

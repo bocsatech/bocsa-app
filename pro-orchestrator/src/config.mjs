@@ -115,6 +115,11 @@ function normalizeWatchUrls(urls) {
   }));
 }
 
+/** Orchestrator slot watchUrls — soha nem esik vissza instance/program sablonra. */
+export function normalizeWatchUrlsForSlot(urls) {
+  return normalizeWatchUrls(Array.isArray(urls) ? urls : []);
+}
+
 export function getRoot() {
   return ROOT;
 }

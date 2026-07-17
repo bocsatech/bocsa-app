@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /** URL mentés: orchestrator config elsődleges, nem a régi instance. */
 import assert from 'node:assert/strict';
+import { normalizeWatchUrlsForSlot } from '../src/config.mjs';
 
-function pickWatchUrls(slot, inst) {
-  return Array.isArray(slot.watchUrls) ? slot.watchUrls : inst?.watchUrls || [];
+function pickWatchUrls(slot) {
+  return normalizeWatchUrlsForSlot(slot.watchUrls);
 }
 
 const inst = {
@@ -22,10 +23,11 @@ const saved = {
 };
 
 const emptySave = { watchUrls: [] };
+const missingSave = {};
 
-assert.equal(pickWatchUrls(saved, inst)[0].url, saved.watchUrls[0].url);
-assert.notEqual(pickWatchUrls(saved, inst)[0].url, inst.watchUrls[0].url);
-assert.deepEqual(pickWatchUrls(emptySave, inst), []);
-assert.equal(pickWatchUrls(emptySave, inst).length, 0);
+assert.equal(pickWatchUrls(saved)[0].url, saved.watchUrls[0].url);
+assert.notEqual(pickWatchUrls(saved)[0].url, inst.watchUrls[0].url);
+assert.deepEqual(pickWatchUrls(emptySave), []);
+assert.deepEqual(pickWatchUrls(missingSave), []);
 
-console.log('✓ watchUrls mentés — orchestrator config elsődleges');
+console.log('✓ watchUrls mentés — orchestrator config elsődleges, instance fallback nincs');

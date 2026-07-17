@@ -20,7 +20,7 @@ import { ensureCalibrationFix } from './ensure-calibration-fix.mjs';
 import { listProgramPaths, isWillhabenInstalled, isHasznaltautoInstalled } from './program-paths.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.8.1';
+const VERSION = '0.8.2';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -32,7 +32,11 @@ function readBody(req) {
 }
 
 function json(res, status, obj) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    Pragma: 'no-cache',
+  });
   res.end(JSON.stringify(obj, null, 2));
 }
 
@@ -124,14 +128,20 @@ const server = http.createServer(async (req, res) => {
       };
     });
     saveConfig(config);
+    const syncErrors = [];
     for (const slot of config.slots) {
       try {
         syncSlotToInstance(slot);
-      } catch {
-        /* instance sync optional before first start */
+      } catch (err) {
+        syncErrors.push({ slotId: slot.id, error: err.message });
       }
     }
-    return json(res, 200, { ok: true, slots: config.slots.map(enrichSlot) });
+    const saved = loadConfig();
+    return json(res, 200, {
+      ok: true,
+      slots: saved.slots.map(enrichSlot),
+      syncErrors: syncErrors.length ? syncErrors : undefined,
+    });
   }
 
   const startMatch = url.pathname.match(/^\/api\/slots\/([^/]+)\/start$/);
