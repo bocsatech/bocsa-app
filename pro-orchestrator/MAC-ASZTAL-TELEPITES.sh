@@ -1,16 +1,18 @@
 #!/bin/bash
-# BOCSA Pro — asztali ikonok (git nélkül)
+# BOCSA — asztali ikonok (külön Letöltések mappák)
 # curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/pro-orchestrator/MAC-ASZTAL-TELEPITES.sh | bash
 set -u
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-BOCSA=""
-for d in "$HOME/Downloads/bocsa-app" "$HOME/Desktop/bocsa-app"; do
-  [ -d "$d/pro-orchestrator" ] && BOCSA="$d" && break
-done
+DL="${HOME}/Downloads"
+ORCH="$DL/bocsa-orchestrator"
+CRM="$DL/bocsa-crm"
+WH="$DL/willhaben pro"
+HA="$DL/hasznaltauto pro"
 
-WH="${HOME}/Downloads/willhaben pro"
-RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main"
+# Régi elrendezés fallback
+[ -d "$ORCH/src" ] || ORCH="$DL/bocsa-app/pro-orchestrator"
+[ -f "$CRM/app/login/page.tsx" ] || CRM="$DL/bocsa-app"
 
 NODE=""
 for p in /opt/homebrew/bin/node /usr/local/bin/node "$(command -v node 2>/dev/null)"; do
@@ -32,39 +34,36 @@ get_desktop() {
 DESKTOP="$(get_desktop)"
 
 echo ""
-echo "🖥 BOCSA Pro — asztali ikonok → $DESKTOP"
+echo "🖥 Asztali ikonok → $DESKTOP"
 echo ""
 
-if [ -z "$BOCSA" ]; then
-  echo "❌ Nincs bocsa-app (pro-orchestrator). Letöltés..."
-  BOCSA="${HOME}/Downloads/bocsa-app"
-  mkdir -p "$BOCSA/pro-orchestrator/src" "$BOCSA/launchers/mac"
-  for f in \
-    pro-orchestrator/src/server.mjs \
-    pro-orchestrator/src/stop.mjs \
-    pro-orchestrator/package.json \
-    launchers/mac/icon.png
-  do
-    mkdir -p "$BOCSA/$(dirname "$f")"
-    curl -sf "$RAW/$f" -o "$BOCSA/$f" 2>/dev/null || true
-  done
-  [ -d "$BOCSA/pro-orchestrator" ] || { echo "❌ bocsa-app letöltés sikertelen"; exit 1; }
+if [ ! -f "$ORCH/src/server.mjs" ]; then
+  echo "❌ Nincs bocsa-orchestrator. Futtasd előbb:"
+  echo "   curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-TELEPIT-MINDEN.sh | bash"
+  exit 1
 fi
 
-# Willhaben Pro ikonok
-if [ ! -f "$WH/package.json" ]; then
-  echo "📦 Willhaben Pro telepítés..."
-  curl -sf "$RAW/pro-orchestrator/MAC-WILLHABEN-ATHELYEZ.sh" | bash
+# BOCSA CRM
+if [ -f "$CRM/package.json" ]; then
+  CRM_CMD="$DESKTOP/BOCSA CRM Inditas.command"
+  cat > "$CRM_CMD" <<SCRIPT
+#!/bin/bash
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:\$PATH"
+cd "$CRM" || exit 1
+npm run dev
+SCRIPT
+  chmod +x "$CRM_CMD"
+  xattr -cr "$CRM_CMD" 2>/dev/null || true
+  echo "  ✓ BOCSA CRM Inditas.command → localhost:3000"
 fi
 
-# BOCSA Pro Orchestrator — Asztali indító
+# BOCSA Pro Orchestrator
 ORCH_CMD="$DESKTOP/BOCSA Pro Inditas.command"
 cat > "$ORCH_CMD" <<SCRIPT
 #!/bin/bash
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:\$PATH"
-BOCSA="$BOCSA"
 NODE="$NODE"
-cd "\$BOCSA/pro-orchestrator" || exit 1
+cd "$ORCH" || exit 1
 "\$NODE" src/stop.mjs 2>/dev/null || true
 for port in 3850 3851 3852 3853 3854 3855 3856; do
   lsof -ti :\$port 2>/dev/null | xargs kill -9 2>/dev/null || true
@@ -77,30 +76,34 @@ echo "BOCSA Pro: http://localhost:3850"
 SCRIPT
 chmod +x "$ORCH_CMD"
 xattr -cr "$ORCH_CMD" 2>/dev/null || true
-echo "  ✓ BOCSA Pro Inditas.command"
+echo "  ✓ BOCSA Pro Inditas.command → localhost:3850"
 
-# Willhaben Pro ikonok
-if [ -d "$WH/Willhaben Pro.app" ]; then
-  rm -rf "$DESKTOP/Willhaben Pro.app"
-  cp -a "$WH/Willhaben Pro.app" "$DESKTOP/"
-  xattr -cr "$DESKTOP/Willhaben Pro.app" 2>/dev/null || true
-  echo "  ✓ Willhaben Pro.app"
-fi
-if [ -f "$WH/mac-launcher/Inditas.command" ]; then
-  cp "$WH/mac-launcher/Inditas.command" "$DESKTOP/Willhaben Pro Inditas.command"
-  chmod +x "$DESKTOP/Willhaben Pro Inditas.command"
-  xattr -cr "$DESKTOP/Willhaben Pro Inditas.command" 2>/dev/null || true
-  echo "  ✓ Willhaben Pro Inditas.command"
+# Willhaben Pro
+if [ -f "$WH/package.json" ]; then
+  if [ -d "$WH/Willhaben Pro.app" ]; then
+    rm -rf "$DESKTOP/Willhaben Pro.app"
+    cp -a "$WH/Willhaben Pro.app" "$DESKTOP/"
+    xattr -cr "$DESKTOP/Willhaben Pro.app" 2>/dev/null || true
+    echo "  ✓ Willhaben Pro.app"
+  fi
+  if [ -f "$WH/mac-launcher/Inditas.command" ]; then
+    cp "$WH/mac-launcher/Inditas.command" "$DESKTOP/Willhaben Pro Inditas.command"
+    chmod +x "$DESKTOP/Willhaben Pro Inditas.command"
+    echo "  ✓ Willhaben Pro Inditas.command"
+  fi
 fi
 
-printf '%s\n' "$BOCSA" > "${HOME}/.bocsa-pro/repo-path"
-printf '%s\n' "$BOCSA" > "${DESKTOP}/.bocsa-pro-repo"
+# Hasznaltauto Pro
+if [ -f "$HA/mac-launcher/Inditas.command" ]; then
+  cp "$HA/mac-launcher/Inditas.command" "$DESKTOP/Hasznaltauto Pro Inditas.command"
+  chmod +x "$DESKTOP/Hasznaltauto Pro Inditas.command"
+  echo "  ✓ Hasznaltauto Pro Inditas.command"
+fi
+
+printf '%s\n' "$ORCH" > "${HOME}/.bocsa-pro/orchestrator-path" 2>/dev/null || mkdir -p "${HOME}/.bocsa-pro" && printf '%s\n' "$ORCH" > "${HOME}/.bocsa-pro/orchestrator-path"
+printf '%s\n' "$CRM" > "${HOME}/.bocsa-pro/crm-path" 2>/dev/null || true
 
 echo ""
-echo "✅ Kész — az Asztalon:"
-echo "   • BOCSA Pro Inditas.command  → Safari + orchestrator (3850)"
-echo "   • Willhaben Pro Inditas.command / Willhaben Pro.app"
-echo ""
-/usr/bin/osascript -e "tell application \"Finder\" to activate" 2>/dev/null || true
-/usr/bin/osascript -e "tell application \"Finder\" to reveal POSIX file \"$ORCH_CMD\"" 2>/dev/null || true
+echo "✅ Kész"
+echo "   Térkép: $DL/BOCSA-PROGRAMOK.txt"
 echo ""

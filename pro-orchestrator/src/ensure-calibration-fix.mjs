@@ -3,10 +3,13 @@ import path from 'path';
 import { execSync } from 'child_process';
 import https from 'https';
 import { fileURLToPath } from 'url';
-import { getWillhabenRoot } from './willhaben-root.mjs';
+import {
+  getWillhabenRoot,
+  getHasznaltautoRoot,
+  getOrchestratorRoot,
+} from './program-paths.mjs';
 
 const ORCH_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const REPO_ROOT = path.dirname(ORCH_ROOT);
 const RAW_BASE = 'https://raw.githubusercontent.com/bocsatech/bocsa-app/main';
 
 const WILLHABEN_REL_FILES = [
@@ -18,14 +21,7 @@ const WILLHABEN_REL_FILES = [
   'src/stop.mjs',
 ];
 
-const HASZNALTAUTO_FILES = [
-  'hasznaltauto-pro/src/parse.mjs',
-  'hasznaltauto-pro/src/index.mjs',
-  'hasznaltauto-pro/src/state.mjs',
-  'hasznaltauto-pro/src/config.mjs',
-  'hasznaltauto-pro/src/instance-lock.mjs',
-  'hasznaltauto-pro/src/stop.mjs',
-];
+const HASZNALTAUTO_REL_FILES = [...WILLHABEN_REL_FILES];
 
 function readText(file) {
   try {
@@ -41,21 +37,11 @@ function isOldWillhaben() {
 }
 
 function isOldHasznaltauto() {
-  const text = readText(path.join(REPO_ROOT, 'hasznaltauto-pro/src/index.mjs'));
+  const text = readText(path.join(getHasznaltautoRoot(), 'src/index.mjs'));
   return (
     text.includes('Kalibrálás → referencia') ||
     (text.includes("result.action === 'recalibrate'") && !text.includes('urlSeenIds'))
   );
-}
-
-function tryGitUpdate() {
-  try {
-    execSync('git fetch origin main', { cwd: REPO_ROOT, stdio: 'pipe', timeout: 90000 });
-    execSync('git reset --hard origin/main', { cwd: REPO_ROOT, stdio: 'pipe' });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 function downloadRaw(rel) {
@@ -86,16 +72,17 @@ async function downloadWillhabenFiles() {
 }
 
 async function downloadHasznaltautoFiles() {
-  for (const rel of HASZNALTAUTO_FILES) {
-    const dest = path.join(REPO_ROOT, rel);
-    const content = await downloadRaw(rel);
+  const root = getHasznaltautoRoot();
+  for (const rel of HASZNALTAUTO_REL_FILES) {
+    const dest = path.join(root, rel);
+    const content = await downloadRaw(`hasznaltauto-pro/${rel}`);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, content);
   }
 }
 
 export function resetAllSlotCalibration() {
-  const instDir = path.join(ORCH_ROOT, 'data', 'instances');
+  const instDir = path.join(getOrchestratorRoot(), 'data', 'instances');
   if (!fs.existsSync(instDir)) return 0;
   let n = 0;
   for (const slot of fs.readdirSync(instDir)) {
@@ -114,7 +101,7 @@ export function resetAllSlotCalibration() {
       fs.writeFileSync(sf, JSON.stringify(s, null, 2));
       n += 1;
     } catch {
-      /* skip corrupt state */
+      /* skip */
     }
   }
   return n;
@@ -127,20 +114,14 @@ export async function ensureCalibrationFix() {
     return { ok: true, updated: false };
   }
 
-  let method = null;
-  if (tryGitUpdate() && !isOldWillhaben() && !isOldHasznaltauto()) {
-    method = 'git';
-  } else {
-    try {
-      if (needsWh) await downloadWillhabenFiles();
-      if (needsHa) await downloadHasznaltautoFiles();
-      method = 'download';
-    } catch (err) {
-      return { ok: false, updated: false, error: err?.message || String(err) };
-    }
+  try {
+    if (needsWh) await downloadWillhabenFiles();
+    if (needsHa) await downloadHasznaltautoFiles();
+  } catch (err) {
+    return { ok: false, updated: false, error: err?.message || String(err) };
   }
 
   const slotsReset = resetAllSlotCalibration();
-  console.log(`  ✓ Kalibráció-javítás (${method}) — ${slotsReset} slot state nullázva`);
-  return { ok: true, updated: true, method, slotsReset };
+  console.log(`  ✓ Kalibráció-javítás (download) — ${slotsReset} slot state nullázva`);
+  return { ok: true, updated: true, method: 'download', slotsReset };
 }

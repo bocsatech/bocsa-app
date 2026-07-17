@@ -17,10 +17,10 @@ import {
 } from './slots.mjs';
 import { startAutoSlots } from './auto-start.mjs';
 import { ensureCalibrationFix } from './ensure-calibration-fix.mjs';
-import { syncWillhabenProToDownloads } from './sync-willhaben-pro.mjs';
+import { listProgramPaths, isWillhabenInstalled, isHasznaltautoInstalled } from './program-paths.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.7.5';
+const VERSION = '0.8.0';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -234,12 +234,12 @@ server.listen(port, '127.0.0.1', () => {
     })
     .catch(() => {})
     .finally(() => {
-      const wh = syncWillhabenProToDownloads();
-      if (wh.action) {
-        console.log(`  ✓ Willhaben Pro: ${wh.path} (${wh.action})`);
-      } else if (!wh.ok) {
-        console.log(`  ⚠ Willhaben Pro hiányzik — bash scripts/move-willhaben-pro-to-downloads.sh`);
-      }
+      const paths = listProgramPaths();
+      console.log('  Programok (Letöltések):');
+      console.log(`    CRM:           ${paths.crm}`);
+      console.log(`    Orchestrator:  ${paths.orchestrator}`);
+      console.log(`    Willhaben Pro: ${paths.willhaben}${isWillhabenInstalled() ? '' : ' ⚠ hiányzik'}`);
+      console.log(`    Hasznaltauto:  ${paths.hasznaltauto}${isHasznaltautoInstalled() ? '' : ' ⚠ hiányzik'}`);
       setTimeout(runAutoStart, 1500);
     });
 });

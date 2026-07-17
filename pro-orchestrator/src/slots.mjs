@@ -3,10 +3,14 @@ import path from 'path';
 import { spawn, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { getRoot, loadConfig, publicSmsForApi } from './config.mjs';
-import { getWillhabenRoot, isWillhabenInstalled } from './willhaben-root.mjs';
+import {
+  getWillhabenRoot,
+  getHasznaltautoRoot,
+  isWillhabenInstalled,
+  isHasznaltautoInstalled,
+} from './program-paths.mjs';
 
 const ORCH_ROOT = getRoot();
-const REPO_ROOT = path.dirname(ORCH_ROOT);
 
 const SLOT_PORTS = {
   'slot-1': 3851,
@@ -29,13 +33,20 @@ function instanceDir(slotId) {
 
 function programRoot(program) {
   if (program === 'hasznaltauto') {
-    return path.join(REPO_ROOT, 'hasznaltauto-pro');
+    const root = getHasznaltautoRoot();
+    if (!isHasznaltautoInstalled(root)) {
+      throw new Error(
+        `Hasznaltauto Pro nincs telepítve: ${root}\n` +
+          '  Futtasd: curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-TELEPIT-MINDEN.sh | bash'
+      );
+    }
+    return root;
   }
   const root = getWillhabenRoot();
   if (!isWillhabenInstalled(root)) {
     throw new Error(
       `Willhaben Pro nincs telepítve: ${root}\n` +
-        '  Futtasd: bash scripts/move-willhaben-pro-to-downloads.sh'
+        '  Futtasd: curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-TELEPIT-MINDEN.sh | bash'
     );
   }
   return root;

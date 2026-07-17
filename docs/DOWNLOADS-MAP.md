@@ -1,0 +1,31 @@
+# BOCSA programok — Letöltések mappák
+
+Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
+
+| Program | Mappa | Indítás | URL |
+|---------|-------|---------|-----|
+| **BOCSA Tech CRM** | `bocsa-crm` | `cd ~/Downloads/bocsa-crm && npm run dev` | http://localhost:3000 |
+| **Pro Orchestrator** | `bocsa-orchestrator` | `cd ~/Downloads/bocsa-orchestrator && npm start` | http://localhost:3850 |
+| **Willhaben Pro** | `willhaben pro` | `cd ~/Downloads/willhaben\ pro && npm start` | slot / 3847 |
+| **Hasznaltauto Pro** | `hasznaltauto pro` | `cd ~/Downloads/hasznaltauto\ pro && npm start` | slot / 3848 |
+| Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
+| Hasznaltauto scraper | `hasznaltauto-scraper` | `npm start` | — |
+| Hirdetés local | `hirdetes-local` | `npm start` | http://localhost:3456 |
+
+## Telepítés / szétválasztás (Mac, egyszer)
+
+```bash
+curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-TELEPIT-MINDEN.sh | bash
+```
+
+Ez létrehozza a fenti mappákat, törli a programokat a régi `bocsa-app` almappáiból, és ír egy **`~/Downloads/BOCSA-PROGRAMOK.txt`** térképet.
+
+## Asztali ikonok
+
+```bash
+curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/pro-orchestrator/MAC-ASZTAL-TELEPITES.sh | bash
+```
+
+## GitHub fejlesztés
+
+A GitHubon továbbra is **egy monorepo** (`bocsa-app`) — a Mac telepítő szétválasztja futásra.

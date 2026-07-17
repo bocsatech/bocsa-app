@@ -7,6 +7,7 @@ exec >>"$LOG" 2>&1
 echo "===== $(date) ====="
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:${PATH:-}"
+DL="${HOME}/Downloads"
 [ -f "${HOME}/.zprofile" ] && source "${HOME}/.zprofile" 2>/dev/null || true
 [ -f "${HOME}/.zshrc" ] && source "${HOME}/.zshrc" 2>/dev/null || true
 
@@ -23,7 +24,7 @@ find_repo() {
     "$(dirname "$0")/../../.bocsa-pro-repo"; do
     if [ -f "$f" ]; then
       repo="$(tr -d '\r' < "$f" | head -n 1)"
-      if [ -n "$repo" ] && [ -d "$repo/hasznaltauto-pro" ]; then
+      if [ -n "$repo" ] && { [ -d "$repo/hasznaltauto-pro" ] || [ -d "$DL/bocsa-orchestrator/src" ]; }; then
         echo "$repo"
         return 0
       fi
@@ -45,8 +46,13 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-WH_DIR="${HOME}/Downloads/willhaben pro"
-HA_DIR="${REPO}/hasznaltauto-pro"
+DL="${HOME}/Downloads"
+ORCH="$DL/bocsa-orchestrator"
+[ -d "$ORCH/src" ] || ORCH="$DL/bocsa-app/pro-orchestrator"
+
+WH_DIR="$DL/willhaben pro"
+HA_DIR="$DL/hasznaltauto pro"
+[ -d "$HA_DIR" ] || HA_DIR="$REPO/hasznaltauto-pro"
 
 if [ ! -d "$WH_DIR" ] || [ ! -f "$WH_DIR/package.json" ]; then
   alert "Willhaben Pro nincs a Letöltések mappában. Futtasd: bash scripts/move-willhaben-pro-to-downloads.sh"
