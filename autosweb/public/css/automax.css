@@ -446,6 +446,20 @@ body.theme-automax .local-banner {
 
 .theme-automax .field-row.full .labeled-field {
   width: 100%;
+  min-width: 0;
+}
+
+.theme-automax .labeled-field {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.theme-automax .field-row.full .labeled-field input,
+.theme-automax .field-row.full .labeled-field select {
+  width: 100% !important;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* —— Mezők: címke felül, sötét input —— */

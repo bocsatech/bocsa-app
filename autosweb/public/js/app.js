@@ -202,11 +202,13 @@ function applyAutoFill() {
   if (!preset) return;
 
   for (const [name, value] of Object.entries(preset)) {
+    if (name === "modell") continue;
     const field = form.elements.namedItem(name);
     if (!field || field.dataset.userEdited === "1") continue;
     field.value = value;
     if (name !== "uzemanyag") field.classList.add("auto-filled");
   }
+  modell?.classList.remove("auto-filled");
   updateLeDisplay();
   fitAllFormFields();
 }
