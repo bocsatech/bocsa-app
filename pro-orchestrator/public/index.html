@@ -518,6 +518,8 @@
           return;
         }
         await refreshLogs(slotId);
+        const meta = document.getElementById(`log-meta-${slotId}`);
+        if (meta) meta.textContent = `Törölve: ${body.cleared ?? 0} bejegyzés`;
       } catch {
         alert('Napló törlés sikertelen');
       }

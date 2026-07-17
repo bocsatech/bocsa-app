@@ -18,7 +18,7 @@ import {
 import { startAutoSlots } from './auto-start.mjs';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const VERSION = '0.7.1';
+const VERSION = '0.7.2';
 
 function readBody(req) {
   return new Promise((resolve, reject) => {

@@ -11,6 +11,7 @@ const DEFAULT_STATE = {
   startedAt: null,
   urlMarkers: {},
   urlCalibrated: {},
+  urlSeenIds: {},
   sentAdIds: [],
   queue: [],
   log: [],

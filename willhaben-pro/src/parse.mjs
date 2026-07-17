@@ -37,33 +37,56 @@ export function parseAdsFromHtml(html) {
   }
 }
 
-export function findNewAds(ads, markerId, calibrated) {
-  if (!ads.length) return { newAds: [], action: 'empty' };
+export function mergeSeenIds(seenIds, currentIds) {
+  const set = new Set(seenIds || []);
+  for (const id of currentIds || []) set.add(id);
+  return [...set];
+}
+
+export function findNewAds(ads, markerId, calibrated, seenIds = []) {
+  const currentIds = ads.map((a) => a.id);
+  if (!ads.length) return { newAds: [], action: 'empty', seenIds, newMarker: markerId };
 
   if (!calibrated || !markerId) {
     return {
       newAds: [],
       action: 'calibrate',
       newMarker: ads[0].id,
+      seenIds: mergeSeenIds([], currentIds),
     };
   }
 
-  const idx = ads.findIndex((a) => a.id === markerId);
-  if (idx === -1) {
+  const known = new Set(seenIds || []);
+  const newAds = ads.filter((a) => !known.has(a.id));
+
+  if (!known.size) {
     return {
       newAds: [],
-      action: 'recalibrate',
+      action: 'calibrate',
       newMarker: ads[0].id,
+      seenIds: mergeSeenIds([], currentIds),
     };
   }
-  if (idx === 0) {
-    return { newAds: [], action: 'none', newMarker: markerId };
+
+  const grownSeen = mergeSeenIds(seenIds, currentIds);
+  const idx = ads.findIndex((a) => a.id === markerId);
+
+  if (idx === -1) {
+    if (!newAds.length) {
+      return { newAds: [], action: 'none', newMarker: ads[0].id, seenIds: grownSeen };
+    }
+    return { newAds, action: 'new', newMarker: ads[0].id, seenIds: grownSeen };
+  }
+
+  if (idx === 0 && !newAds.length) {
+    return { newAds: [], action: 'none', newMarker: markerId, seenIds: grownSeen };
   }
 
   return {
-    newAds: ads.slice(0, idx),
-    action: 'new',
+    newAds: newAds.length ? newAds : ads.slice(0, idx),
+    action: newAds.length ? 'new' : 'none',
     newMarker: ads[0].id,
+    seenIds: grownSeen,
   };
 }
 

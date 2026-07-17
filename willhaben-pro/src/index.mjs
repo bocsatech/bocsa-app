@@ -1,7 +1,7 @@
 import path from 'path';
 import { getRoot, loadConfig } from './config.mjs';
 import { loadState, saveState, appendLog, todayKey } from './state.mjs';
-import { parseAdsFromHtml, findNewAds } from './parse.mjs';
+import { parseAdsFromHtml, findNewAds, mergeSeenIds } from './parse.mjs';
 import { sendMessage } from './message.mjs';
 import { startAdminServer, setMonitorControl, setAppShutdown } from './admin-server.mjs';
 import { acquireInstanceLock, releaseInstanceLock } from './instance-lock.mjs';
@@ -19,6 +19,7 @@ class Monitor {
     this.context = null;
     this.page = null;
     this.processing = false;
+    this.tickInProgress = false;
     this.lastBrowserWarnAt = 0;
   }
 
@@ -148,82 +149,101 @@ class Monitor {
   }
 
   async tick() {
-    if (!this.running || this.processing) return;
+    if (!this.running || this.tickInProgress) return;
+    this.tickInProgress = true;
 
-    const config = loadConfig();
-    const state = loadState();
-    const limit = this.getLimitStatus(config, state);
-    if (!limit.ok) {
-      appendLog(state, 'error', `Leállítva: ${limit.reason}`);
-      saveState(state);
-      this.stop();
-      return;
-    }
-
-    await this.ensureBrowser(state);
-
-    for (const watch of config.watchUrls.filter((w) => w.enabled && w.url)) {
-      try {
-        const ads = await this.fetchAds(this.page, watch.url);
-        const marker = state.urlMarkers[watch.id];
-        const calibrated = state.urlCalibrated[watch.id];
-        const result = findNewAds(ads, marker, calibrated);
-
-        if (result.action === 'calibrate' || result.action === 'recalibrate') {
-          state.urlMarkers[watch.id] = result.newMarker;
-          state.urlCalibrated[watch.id] = true;
-          appendLog(
-            state,
-            'info',
-            `[${watch.label}] Kalibrálás → referencia ${result.newMarker}`
-          );
-          saveState(state);
-          continue;
-        }
-
-        const fresh = result.newAds.filter((a) => !state.sentAdIds.includes(a.id));
-        if (!fresh.length) continue;
-
-        for (const ad of fresh) {
-          const lim = this.getLimitStatus(config, state);
-          if (!lim.ok) break;
-
-          this.processing = true;
-          try {
-            await sendMessage(this.page, ad, config.messageTemplate, config.sendDelayMs);
-            state.totalSent += 1;
-            state.sentToday += 1;
-            state.sentAdIds.push(ad.id);
-            state.urlMarkers[watch.id] = result.newMarker;
-            appendLog(state, 'ok', `[${watch.label}] Üzenet elküldve: ${ad.title} → ${ad.url}`);
-          } catch (err) {
-            if (this.isBrowserClosedError(err)) {
-              await this.resetBrowser(
-                state,
-                'Böngésző bezárva — üzenetküldés szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
-              );
-            } else {
-              appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${this.formatError(err)}`);
-            }
-            break;
-          } finally {
-            this.processing = false;
-            saveState(state);
-          }
-        }
-      } catch (err) {
-        if (this.isBrowserClosedError(err)) {
-          await this.resetBrowser(
-            state,
-            'Böngésző bezárva — figyelés folytatódik, de üzenet csak nyitott böngészővel megy ki'
-          );
-        } else {
-          appendLog(state, 'error', `[${watch.label}] ${this.formatError(err)}`);
-        }
+    try {
+      const config = loadConfig();
+      const state = loadState();
+      const limit = this.getLimitStatus(config, state);
+      if (!limit.ok) {
+        appendLog(state, 'error', `Leállítva: ${limit.reason}`);
         saveState(state);
+        this.stop();
+        return;
       }
+
+      await this.ensureBrowser(state);
+
+      for (const watch of config.watchUrls.filter((w) => w.enabled && w.url)) {
+        try {
+          const ads = await this.fetchAds(this.page, watch.url);
+          const marker = state.urlMarkers[watch.id];
+          const calibrated = state.urlCalibrated[watch.id];
+          const seenIds = state.urlSeenIds?.[watch.id] || [];
+          const result = findNewAds(ads, marker, calibrated, seenIds);
+
+          state.urlSeenIds = state.urlSeenIds || {};
+          state.urlSeenIds[watch.id] = result.seenIds || seenIds;
+          state.urlMarkers[watch.id] = result.newMarker;
+
+          if (result.action === 'calibrate') {
+            state.urlCalibrated[watch.id] = true;
+            appendLog(
+              state,
+              'info',
+              `[${watch.label}] Kalibrálás → ${result.seenIds?.length || ads.length} hirdetés megjelölve`
+            );
+            saveState(state);
+            continue;
+          }
+
+          if (result.action === 'none' || result.action === 'empty') {
+            appendLog(state, 'info', `[${watch.label}] Ellenőrizve — ${ads.length} hirdetés, nincs új`);
+            saveState(state);
+            continue;
+          }
+
+          const fresh = (result.newAds || []).filter((a) => !state.sentAdIds.includes(a.id));
+          if (!fresh.length) {
+            appendLog(state, 'info', `[${watch.label}] Ellenőrizve — ${ads.length} hirdetés, nincs új`);
+            saveState(state);
+            continue;
+          }
+
+          for (const ad of fresh) {
+            const lim = this.getLimitStatus(config, state);
+            if (!lim.ok) break;
+
+            this.processing = true;
+            try {
+              await sendMessage(this.page, ad, config.messageTemplate, config.sendDelayMs);
+              state.totalSent += 1;
+              state.sentToday += 1;
+              state.sentAdIds.push(ad.id);
+              state.urlSeenIds[watch.id] = mergeSeenIds(state.urlSeenIds[watch.id], [ad.id]);
+              appendLog(state, 'ok', `[${watch.label}] Üzenet elküldve: ${ad.title} → ${ad.url}`);
+            } catch (err) {
+              if (this.isBrowserClosedError(err)) {
+                await this.resetBrowser(
+                  state,
+                  'Böngésző bezárva — üzenetküldés szünetel. Hagyd nyitva a Chrome-ot, vagy: npm start'
+                );
+              } else {
+                appendLog(state, 'error', `[${watch.label}] Hiba ${ad.id}: ${this.formatError(err)}`);
+              }
+              break;
+            } finally {
+              this.processing = false;
+              saveState(state);
+            }
+          }
+        } catch (err) {
+          if (this.isBrowserClosedError(err)) {
+            await this.resetBrowser(
+              state,
+              'Böngésző bezárva — figyelés folytatódik, de üzenet csak nyitott böngészővel megy ki'
+            );
+          } else {
+            appendLog(state, 'error', `[${watch.label}] ${this.formatError(err)}`);
+          }
+          saveState(state);
+        }
+      }
+      saveState(state);
+    } finally {
+      this.tickInProgress = false;
     }
-    saveState(state);
   }
 
   start() {
@@ -251,6 +271,7 @@ class Monitor {
     const state = loadState();
     state.urlMarkers = {};
     state.urlCalibrated = {};
+    state.urlSeenIds = {};
     appendLog(state, 'info', 'Összes URL újrakalibrálva');
     saveState(state);
   }
