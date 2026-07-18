@@ -193,23 +193,46 @@ export async function extractListingFromPage(page) {
     for (const [key, value] of Object.entries(map)) {
       if (/megtalál|települ|megye|elérhet/i.test(key)) location = value;
     }
+    let kmText = "";
+    for (const [key, value] of Object.entries(map)) {
+      if (/futás|km óra|kilométeróra/i.test(key)) kmText = value;
+    }
+    if (!kmText) {
+      for (const node of document.querySelectorAll(
+        ".talalatisor-infokontener span, [class*='km'], [class*='futas'], .hirdetes-km, .pricefield-secondary"
+      )) {
+        const t = clean(node.innerText ?? "");
+        if (/\d[\d\s.]*\s*km/i.test(t) || /\b0\s*km/i.test(t)) {
+          kmText = t;
+          break;
+        }
+      }
+    }
 
-    return { map, leiras, felszereltseg, title, location };
+    return { map, leiras, felszereltseg, title, location, kmText };
   });
 }
 
 export function mergePageExtract(parsed, extracted) {
   if (!extracted) return parsed;
+  const mergedMap = {
+    ...(extracted.map ?? {}),
+    ...(parsed.nyersAdatok ?? {}),
+  };
+  if (extracted.kmText && !mergedMap["Futásteljesítmény"]) {
+    mergedMap["Futásteljesítmény"] = extracted.kmText;
+  }
+  if (extracted.kmText && !mergedMap["Km óra állás"]) {
+    mergedMap["Km óra állás"] = extracted.kmText;
+  }
+
   return {
     ...parsed,
     cim: parsed.cim || extracted.title || "",
     leiras: parsed.leiras || extracted.leiras || "",
     telefonszam: parsed.telefonszam || extracted.phone || parsed.telefonszam,
     felszereltseg: extracted.felszereltseg?.length ? extracted.felszereltseg : parsed.felszereltseg,
-    nyersAdatok: {
-      ...(extracted.map ?? {}),
-      ...(parsed.nyersAdatok ?? {}),
-    },
+    nyersAdatok: mergedMap,
   };
 }
 

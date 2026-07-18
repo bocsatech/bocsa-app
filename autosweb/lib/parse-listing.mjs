@@ -1,4 +1,5 @@
 import { shortUrl } from "./url-utils.mjs";
+import { extractOdometerKm, formatKmDisplay } from "./extract-km.mjs";
 
 const PHONE_RE = /(?:\+36|06)\s*[\d\s/-]{7,14}\d/;
 
@@ -210,7 +211,11 @@ export function parseListingHtml(html, { url = "", phone = null } = {}) {
   const evjarat =
     extractYear(pickValue(attributeMap, YEAR_KEYS)) ??
     parseYearFromTitle(title);
-  const km = extractKm(pickValue(attributeMap, KM_KEYS));
+  const kmDigits = extractOdometerKm({
+    maps: [attributeMap],
+    texts: [title, html],
+  });
+  const km = kmDigits ? formatKmDisplay(kmDigits) : extractKm(pickValue(attributeMap, KM_KEYS));
   const telefonszam = phone ?? extractPhone(html);
   const leiras = parseDescription(html);
 
@@ -241,8 +246,12 @@ function parseSummaryLine(text) {
     map.Évjárat = yearMatch[2] ? `${yearMatch[1]}/${yearMatch[2]}` : yearMatch[1];
   }
 
-  const kmMatch = text.match(/([\d\s.]+)\s*km\b/i);
+  const kmMatch = text.match(/(\d[\d\s.]{1,12})\s*km\b/i);
   if (kmMatch) map.Futásteljesítmény = `${kmMatch[1].trim()} km`;
+  else {
+    const zero = /\b0\s*[- ]?kmes\b/i.test(text) || /\b0\s*km[- ]?es\b/i.test(text);
+    if (zero) map.Futásteljesítmény = "0 km";
+  }
 
   const ccMatch = text.match(/([\d\s.]+)\s*cm³/i);
   if (ccMatch) map.Hengerűrtartalom = ccMatch[1].replace(/\s/g, "");
@@ -264,12 +273,16 @@ export function mergeParsedListing(detail, card) {
     ...(cardParsed.nyersAdatok ?? {}),
     ...(detail.nyersAdatok ?? {}),
   };
+  const kmDigits = extractOdometerKm({
+    maps: [mergedAttrs],
+    texts: [detail.cim, detail.leiras, card?.text, card?.title, cardParsed.km, detail.km],
+  });
 
   return {
     ...detail,
     cim: detail.cim || cardParsed.cim,
     ar: detail.ar || cardParsed.ar,
-    km: detail.km || cardParsed.km,
+    km: kmDigits ? formatKmDisplay(kmDigits) : detail.km || cardParsed.km,
     evjarat: detail.evjarat || cardParsed.evjarat,
     jarmuTipus: detail.jarmuTipus || cardParsed.jarmuTipus,
     telefonszam: detail.telefonszam || cardParsed.telefonszam,
@@ -290,12 +303,17 @@ export function parseListingCard({ url, text, title }) {
     .replace(/\s*\((19|20)\d{2}.*\)\s*$/, "")
     .trim();
 
+  const kmDigits = extractOdometerKm({
+    maps: [summaryMap],
+    texts: [text, title, source],
+  });
+
   return {
     url: cleanText(url),
     jarmuTipus: jarmuTipus || null,
     ar: arMatch ? extractPrice(`${arMatch[1]} Ft`) : null,
     evjarat: yearMatch ? yearMatch[0] : null,
-    km: kmMatch ? extractKm(`${kmMatch[1]} km`) : null,
+    km: kmDigits ? formatKmDisplay(kmDigits) : kmMatch ? extractKm(`${kmMatch[1]} km`) : null,
     telefonszam: phoneMatch ? cleanText(phoneMatch[0]) : null,
     cim: cleanText(title) || null,
     forras: "lista oldal",

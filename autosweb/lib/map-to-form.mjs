@@ -1,4 +1,5 @@
 import { pickValue, cleanText, normalizeKey } from "./parse-listing.mjs";
+import { extractOdometerKm, kmDigitsFromValue } from "./extract-km.mjs";
 
 const COUNTY_NAMES = [
   "Budapest",
@@ -22,6 +23,15 @@ const COUNTY_NAMES = [
   "Vas",
   "Zala",
 ];
+
+function resolveKm(parsed, m, titleParts) {
+  const fromFields = extractOdometerKm({
+    maps: [m],
+    texts: [parsed.km, parsed.cim, parsed.jarmuTipus, parsed.leiras, titleParts.rest],
+  });
+  if (fromFields !== "") return fromFields;
+  return kmDigitsFromValue(parsed.km || pickValue(m, ["futásteljesítmény", "futasteljesitmeny", "km óra állás", "km ora allas"]));
+}
 
 function digits(value) {
   const match = String(value ?? "").match(/[\d\s.]+/);
@@ -208,7 +218,7 @@ export function getMissingRequiredFields(formData) {
 }
 
 function applyRequiredDefaults(data, parsed, titleParts, m) {
-  if (!data.km) data.km = digits(parsed.km || pickValue(m, ["futásteljesítmény", "futasteljesitmeny"]));
+  if (!data.km) data.km = resolveKm(parsed, m, titleParts);
   if (!data.gyartasi_ev) {
     data.gyartasi_ev = parseYearMonth(pickValue(m, ["évjárat", "gyártási év"]) || parsed.evjarat).ev;
   }
@@ -314,7 +324,7 @@ export function mapListingToForm(parsed) {
     muszaki_ev: muszaki.ev,
     muszaki_honap: muszaki.honap,
     allapot: mapAllapot(pickValue(m, ["állapot", "allapot"])),
-    km: digits(parsed.km || pickValue(m, ["futásteljesítmény", "futasteljesitmeny"])),
+    km: resolveKm(parsed, m, titleParts),
     okmany_jelleg: mapOkmanyJelleg(pickValue(m, ["okmányok jellege", "okmanyok jellege"])),
     okmany_ervenyesseg: mapOkmanyErvenyesseg(
       pickValue(m, ["okmányok érvényessége", "okmanyok ervenyessege"])
