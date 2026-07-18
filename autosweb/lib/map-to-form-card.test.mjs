@@ -31,6 +31,7 @@ test("lista kártya összefoglaló → kötelező mezők", () => {
   assert.equal(form.teljesitmeny_le, "152");
   assert.equal(form.sebessegvalto, "Fokozatmentes automata");
   assert.equal(form.hatotav, "50");
+  assert.equal(form.hirdetes_cime, "Eladó FORD KUGA 2.5 PHEV ST-Line CVT (2023/7)");
   assert.ok(form.felszereltseg?.includes("könnyűfém felni"));
   assert.equal(form.klima, "automata klíma");
   assert.ok(form.felszereltseg?.includes("bluetooth-os kihangosító"));

@@ -456,7 +456,13 @@ function applyFormData(data, { fromImport = false } = {}) {
   }
 
   syncPackageSelection();
-  updateTitle();
+  if (fromImport && data.hirdetes_cime && hirdetesCime) {
+    hirdetesCime.value = data.hirdetes_cime;
+    hirdetesCime.dataset.userEdited = "1";
+    fitInputWidth(hirdetesCime);
+  } else {
+    updateTitle();
+  }
   updateLeDisplay();
   restoreFuelSelection(data.uzemanyag);
   syncFuelDependentFields();

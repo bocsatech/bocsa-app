@@ -87,6 +87,33 @@ function parseTitleParts(title) {
   };
 }
 
+export function buildHirdetesCime(parsed, data = {}) {
+  const m = parsed.nyersAdatok ?? {};
+  const raw = cleanText(
+    parsed.cim ||
+      parsed.jarmuTipus ||
+      pickValue(m, ["cím", "cim", "hirdetés címe", "hirdetes cime"]) ||
+      ""
+  );
+
+  if (raw && /^eladó\s/i.test(raw)) return raw;
+
+  const year = data.gyartasi_ev || parseYearMonth(parsed.evjarat || pickValue(m, ["évjárat", "gyártási év"])).ev;
+  const month = data.gyartasi_honap || parseYearMonth(parsed.evjarat || pickValue(m, ["évjárat", "gyártási év"])).honap;
+  const yearLabel = year ? (month ? `${year}/${month}` : String(year)) : "";
+
+  if (raw) {
+    if (/\(\s*(19|20)\d{2}/.test(raw)) {
+      return /^eladó\s/i.test(raw) ? raw : `Eladó ${raw}`;
+    }
+    return yearLabel ? `Eladó ${raw} (${yearLabel})` : `Eladó ${raw}`;
+  }
+
+  const parts = [data.gyartmany, data.modell, data.tipus].filter(Boolean);
+  if (!parts.length) return "";
+  return yearLabel ? `Eladó ${parts.join(" ")} (${yearLabel})` : `Eladó ${parts.join(" ")}`;
+}
+
 function mapFuel(value) {
   const v = normalizeKey(value);
   if (!v) return "";
@@ -200,7 +227,6 @@ function applyRequiredDefaults(data, parsed, titleParts, m) {
     data.gyartasi_ev = parseYearMonth(pickValue(m, ["évjárat", "gyártási év"]) || parsed.evjarat).ev;
   }
   if (!data.vetelar) data.vetelar = digits(parsed.ar || pickValue(m, ["vételár", "vetelar"]));
-  if (!data.hirdetes_cime) data.hirdetes_cime = parsed.cim || "";
   if (!data.leiras) data.leiras = parsed.leiras || "";
   if (!data.kivitel) {
     data.kivitel =
@@ -285,7 +311,7 @@ export function mapListingToForm(parsed) {
   const data = {
     forras_url: parsed.url || "",
     hasznaltauto_hirdetes_id: extractListingId(parsed.url),
-    hirdetes_cime: parsed.cim || "",
+    hirdetes_cime: "",
     gyartmany: String(pickValue(m, ["gyártmány", "gyartmany"]) || titleParts.gyartmany || "").toUpperCase(),
     modell: pickValue(m, ["modell"]) || titleParts.modell,
     tipus: pickValue(m, ["típus", "tipus"]) || titleParts.rest,
@@ -356,6 +382,7 @@ export function mapListingToForm(parsed) {
   const badges = parsed.felszereltseg ?? [];
   applyMuszakiFields(data, parsed, m, badges);
   applyExtrakFields(data, parsed, m, badges);
+  data.hirdetes_cime = buildHirdetesCime(parsed, data);
 
   return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== "" && value != null));
 }

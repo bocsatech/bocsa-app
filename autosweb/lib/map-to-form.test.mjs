@@ -27,4 +27,5 @@ test("mapListingToForm kitölti az alap mezőket", () => {
   assert.equal(form.okmany_jelleg, "Érvényes magyar okmányokkal");
   assert.equal(form.okmany_ervenyesseg, "Érvényes");
   assert.equal(form.tipus, "Kombi");
+  assert.equal(form.hirdetes_cime, "Eladó VOLKSWAGEN GOLF Kombi (2018)");
 });
