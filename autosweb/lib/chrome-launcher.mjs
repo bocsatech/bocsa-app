@@ -39,6 +39,17 @@ export function startChromeWithDebugging(startUrl, port = DEFAULT_PORT) {
     startUrl,
   ];
 
+  // macOS: `open -na` megbízhatóbban indítja a Chrome-ot (Dock, Gatekeeper).
+  if (process.platform === "darwin" && chromePath.includes(".app/")) {
+    const appName = /Chromium/i.test(chromePath) ? "Chromium" : "Google Chrome";
+    const child = spawn("open", ["-na", appName, "--args", ...args], {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.unref();
+    return { chromePath, profileDir, startUrl, port, viaOpen: true };
+  }
+
   const child = spawn(chromePath, args, { detached: true, stdio: "ignore" });
   child.unref();
 

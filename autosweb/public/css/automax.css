@@ -809,6 +809,16 @@ body.theme-automax .import-log-line + .import-log-line {
   margin-top: 4px;
 }
 
+body.theme-automax .import-upgrade-warn {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #c45a00;
+  border-radius: var(--m7-field-radius);
+  background: rgba(196, 90, 0, 0.12);
+  color: #ffb366;
+  font-size: 0.9rem;
+}
+
 body.theme-automax .import-results {
   display: flex;
   flex-direction: column;

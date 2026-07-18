@@ -1,4 +1,5 @@
 const IMPORT_LIST_KEY = "autosweb-import-list";
+const EMBEDDED_VERSION = document.querySelector('meta[name="autosweb-version"]')?.content ?? "";
 
 export function initImportPanel({ form, onApply }) {
   const panel = document.getElementById("import-panel");
@@ -26,6 +27,38 @@ export function initImportPanel({ form, onApply }) {
     line.textContent = message;
     logEl.appendChild(line);
     logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function showUpgradeWarning(serverVersion) {
+    const msg =
+      `Régi autosweb verzió fut (${serverVersion || "?"}). Frissíts:\n\n` +
+      "cd ~/bocsa-app && git pull origin main\n" +
+      "cd autosweb/mac && ./frissites.command\n\n" +
+      "Majd indítsd újra az Autosweb-et és Cmd+Shift+R a böngészőben.";
+    appendLog(`⚠ Frissítés szükséges — jelenlegi szerver verzió: ${serverVersion || "?"}`);
+    const warn = document.getElementById("import-upgrade-warn");
+    if (warn) {
+      warn.hidden = false;
+      warn.textContent =
+        "Régi verzió — futtasd: autosweb/mac/frissites.command, majd indítsd újra az Autosweb-et.";
+    }
+    console.warn(msg);
+  }
+
+  async function checkVersion() {
+    try {
+      const response = await fetch("/api/health");
+      const data = await response.json();
+      const serverVersion = data.version ?? "";
+      if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
+        appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
+      }
+      if (serverVersion && !serverVersion.includes("importfix")) {
+        showUpgradeWarning(serverVersion);
+      }
+    } catch {
+      /* offline / server down */
+    }
   }
 
   function renderResults(items) {
@@ -105,7 +138,9 @@ export function initImportPanel({ form, onApply }) {
     startBtn.disabled = true;
     startBtn.textContent = "Importálás…";
     if (logEl) {
-      logEl.innerHTML = "";
+      if (logEl.childElementCount > 0) {
+        appendLog("— Új import —");
+      }
       logEl.hidden = false;
     }
     if (resultsEl) resultsEl.hidden = true;
@@ -153,7 +188,11 @@ export function initImportPanel({ form, onApply }) {
       }
     } catch (error) {
       appendLog(`Hiba: ${error.message ?? error}`);
-      alert(error.message ?? "Import sikertelen.");
+      const hint =
+        error.message?.includes("Cloudflare") || error.message?.includes("hirdetést")
+          ? "\n\n1) Chrome megnyitása gomb → oldd meg a Cloudflare-t\n2) Várj, amíg látszanak a hirdetések\n3) Import indítása újra"
+          : "";
+      alert((error.message ?? "Import sikertelen.") + hint);
     } finally {
       importing = false;
       startBtn.disabled = false;
@@ -162,6 +201,7 @@ export function initImportPanel({ form, onApply }) {
   });
 
   restoreResults();
+  checkVersion();
 }
 
 function escapeHtml(value) {

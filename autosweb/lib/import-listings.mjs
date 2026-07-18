@@ -22,11 +22,18 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function hasListPageContent(html) {
+  return /talalati-sor|talalatisor-infokontener|class="row talalati-sor"/i.test(html);
+}
+
 function isContentReady(title, html, url) {
   if (!/hasznaltauto\.hu/i.test(url)) return false;
+  if (/Attention Required|biztonsági ellenőrzés|Egy pillanat/i.test(title + html)) return false;
+  if (/challenges\.cloudflare\.com|cf-challenge-platform|cf-turnstile/i.test(html)) return false;
   if (/hirdetesadatok|Alapadatok/i.test(html)) return true;
-  if (/talalatilista|találati|talalati/i.test(url + html)) return true;
-  if (/\/szemelyauto\/.+-\d{5,}/i.test(url)) return true;
+  if (/\/szemelyauto\/.+-\d{5,}/i.test(url) && html.length > 12000) return true;
+  if (/talalatilista/i.test(url) && hasListPageContent(html)) return true;
+  if (/talalatilista/i.test(url)) return false;
   return html.length > 25000 && !/Attention Required|biztonsági ellenőrzés/i.test(title + html);
 }
 
@@ -133,13 +140,36 @@ async function waitForListingHtml(page) {
   throw new Error("Hirdetés oldal nem töltődött be a Chrome-ban.");
 }
 
+async function scrollListPage(page, onProgress) {
+  onProgress?.("Lista görgetése (lazy load)…");
+  for (let i = 0; i < 6; i += 1) {
+    await page.evaluate(() => window.scrollBy(0, Math.max(window.innerHeight * 1.5, 600)));
+    await sleep(700);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await sleep(500);
+}
+
 async function collectListingUrls(page, listUrl, limit, onProgress) {
   await waitForAccess(page, onProgress);
-  const cards = await extractListingCardsFromPage(page);
+  await scrollListPage(page, onProgress);
+
+  let cards = await extractListingCardsFromPage(page);
   let urls = cards.map((c) => c.url);
 
   if (urls.length === 0) {
     urls = await collectListingLinksFromPage(page, listUrl || page.url());
+  }
+
+  if (urls.length === 0) {
+    onProgress?.("Még nincs link — várunk, hátha betölt a lista…");
+    await sleep(5000);
+    await scrollListPage(page, onProgress);
+    cards = await extractListingCardsFromPage(page);
+    urls = cards.map((c) => c.url);
+    if (urls.length === 0) {
+      urls = await collectListingLinksFromPage(page, listUrl || page.url());
+    }
   }
 
   const unique = [...new Set(urls)];
@@ -189,8 +219,12 @@ export async function importListings(inputUrl, options = {}) {
 
     const { urls, cards } = await collectListingUrls(page, url, limit, onProgress);
     if (urls.length === 0) {
+      const title = await page.title().catch(() => "");
+      const onCf = isBlocked(title, await page.content().catch(() => ""), page.url());
       throw new Error(
-        "Nem találtunk hirdetést. A Chrome ablakban görgess le a listán, oldd meg a Cloudflare-t, majd indítsd újra az importot."
+        onCf
+          ? "Cloudflare blokkolja az oldalt. A Chrome ablakban jelöld meg a pipát, várj amíg megjelennek a hirdetések, majd indítsd újra az importot."
+          : "Nem találtunk hirdetést a listán. A Chrome ablakban görgess le, ellenőrizd hogy betöltött-e a találati lista, majd indítsd újra az importot."
       );
     }
 
