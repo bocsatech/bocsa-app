@@ -1,6 +1,8 @@
 import { pickValue, cleanText, normalizeKey } from "./parse-listing.mjs";
 import { extractOdometerKm, kmDigitsFromValue } from "./extract-km.mjs";
 import { applyMuszakiFields, applyExtrakFields } from "./map-tech.mjs";
+import { applyFieldMap } from "./field-key-map.mjs";
+import { summarizeImportByStep, formatImportSummary } from "./map-import-summary.mjs";
 
 const COUNTY_NAMES = [
   "Budapest",
@@ -172,7 +174,7 @@ function mapOkmanyErvenyesseg(value) {
 }
 
 function inferTipus(titleParts, parsed, m) {
-  const fromTable = pickValue(m, ["típus", "tipus", "felszereltség", "felszereltseg"]);
+  const fromTable = pickValue(m, ["típus", "tipus"]);
   if (fromTable) return fromTable;
   if (titleParts.rest) return titleParts.rest;
   const cim = cleanText(parsed.cim || "");
@@ -378,6 +380,7 @@ export function mapListingToForm(parsed) {
   }
 
   applyRequiredDefaults(data, parsed, titleParts, m);
+  applyFieldMap(data, m, parsed);
 
   const badges = parsed.felszereltseg ?? [];
   applyMuszakiFields(data, parsed, m, badges);
@@ -387,15 +390,28 @@ export function mapListingToForm(parsed) {
   return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== "" && value != null));
 }
 
-export function mapCardPreview(card, parsed) {
+export function mapListingToFormWithSummary(parsed) {
   const form = mapListingToForm(parsed);
+  const importSummary = summarizeImportByStep(form);
+  return {
+    form,
+    importSummary,
+    importSummaryText: formatImportSummary(importSummary),
+    missingRequired: getMissingRequiredFields(form),
+  };
+}
+
+export function mapCardPreview(card, parsed) {
+  const mapped = mapListingToFormWithSummary(parsed);
   return {
     url: card.url,
     cim: parsed.cim || card.title || card.jarmuTipus || "—",
     ar: parsed.ar || card.ar || "—",
     km: parsed.km || card.km || "—",
     evjarat: parsed.evjarat || card.evjarat || "—",
-    form,
-    missingRequired: getMissingRequiredFields(form),
+    form: mapped.form,
+    importSummary: mapped.importSummary,
+    importSummaryText: mapped.importSummaryText,
+    missingRequired: mapped.missingRequired,
   };
 }

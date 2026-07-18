@@ -53,7 +53,7 @@ export function initImportPanel({ form, onApply }) {
       if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
         appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
       }
-      if (serverVersion && !serverVersion.includes("kmfix")) {
+      if (serverVersion && !serverVersion.includes("full")) {
         showUpgradeWarning(serverVersion);
       }
     } catch {
@@ -77,12 +77,15 @@ export function initImportPanel({ form, onApply }) {
       row.addEventListener("click", () => {
         onApply?.(item.form, item);
         appendLog(`Betöltve: ${item.cim || item.url}`);
-        if (item.missingRequired?.length) {
-          appendLog(`Hiányzó mezők: ${item.missingRequired.join(", ")}`);
-          alert(
-            `Az autó betöltve. Ezeket még töltsd ki kézzel:\n\n${item.missingRequired.join("\n")}`
-          );
+        if (item.importSummaryText) {
+          appendLog(item.importSummaryText.replace(/\n/g, " · "));
         }
+        const missing = item.missingRequired?.length
+          ? `\n\nHiányzó kötelező mezők:\n${item.missingRequired.join("\n")}`
+          : "";
+        alert(
+          `Az autó adatai betöltve az összes fülre (1–5).\n\n${item.importSummaryText || ""}${missing}\n\nLépj végig a füleken és ellenőrizd!`
+        );
       });
       resultsEl.appendChild(row);
     }
