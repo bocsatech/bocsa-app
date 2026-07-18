@@ -53,7 +53,7 @@ export function initImportPanel({ form, onApply }) {
       if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
         appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
       }
-      if (serverVersion && !serverVersion.includes("cdpfix")) {
+      if (serverVersion && !serverVersion.includes("pwchrome")) {
         showUpgradeWarning(serverVersion);
       }
     } catch {
@@ -145,7 +145,7 @@ export function initImportPanel({ form, onApply }) {
     }
     if (resultsEl) resultsEl.hidden = true;
 
-    appendLog("Import indul — megnyílik a Google Chrome (vagy a már futó Chrome-hoz csatlakozunk).");
+    appendLog("Import indul — megnyílik egy látható Chrome ablak.");
 
     try {
       const response = await fetch("/api/import", {

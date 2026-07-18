@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { existsSync, mkdirSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import { join, resolve } from "path";
 
 const DEFAULT_PORT = 9222;
@@ -18,6 +18,18 @@ export function findChromeExecutable() {
 
 export function getChromeProfileDir() {
   return resolve(process.cwd(), ".chrome-import-profile");
+}
+
+export function clearStaleProfileLocks(profileDir) {
+  for (const name of ["SingletonLock", "SingletonCookie", "SingletonSocket"]) {
+    const filePath = join(profileDir, name);
+    if (!existsSync(filePath)) continue;
+    try {
+      unlinkSync(filePath);
+    } catch {
+      /* profil használatban */
+    }
+  }
 }
 
 export function readCdpPortFromProfile(profileDir) {
@@ -42,9 +54,11 @@ export function startChromeWithDebugging(startUrl, port = DEFAULT_PORT) {
 
   const profileDir = getChromeProfileDir();
   mkdirSync(profileDir, { recursive: true });
+  clearStaleProfileLocks(profileDir);
 
   const args = [
     `--remote-debugging-port=${port}`,
+    `--remote-debugging-address=127.0.0.1`,
     `--user-data-dir=${profileDir}`,
     "--remote-allow-origins=*",
     "--no-first-run",
@@ -53,7 +67,6 @@ export function startChromeWithDebugging(startUrl, port = DEFAULT_PORT) {
     startUrl,
   ];
 
-  // Közvetlen bináris indítás — a hasznaltauto-scraper módszere (open -na nem adja át megbízhatóan a CDP-t).
   const child = spawn(chromePath, args, { detached: true, stdio: "ignore" });
   child.unref();
 

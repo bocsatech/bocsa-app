@@ -1,4 +1,3 @@
-import { chromium } from "playwright";
 import {
   collectListingLinksFromPage,
   extractListingCardsFromPage,
@@ -9,15 +8,9 @@ import {
 import { parseListingHtml } from "./parse-listing.mjs";
 import { mapCardPreview, mapListingToForm } from "./map-to-form.mjs";
 import { shortUrl } from "./url-utils.mjs";
-import {
-  findChromeExecutable,
-  getChromeProfileDir,
-  isCdpReady,
-  startChromeWithDebugging,
-  waitForCdpReady,
-} from "./chrome-launcher.mjs";
+import { acquireImportSession, openChromeForImport } from "./browser-session.mjs";
 
-const CDP_PORT = 9222;
+export { openChromeForImport };
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -63,58 +56,11 @@ async function waitForAccess(page, onProgress, maxSeconds = 120) {
   );
 }
 
-export async function openChromeForImport(startUrl, { onProgress } = {}) {
-  const url = normalizeInputUrl(startUrl);
-
-  if (await isCdpReady(CDP_PORT)) {
-    onProgress?.("Meglévő Chrome (9222) — csatlakozás…");
-    return connectChrome(onProgress, CDP_PORT);
-  }
-
-  const chromePath = findChromeExecutable();
-  if (!chromePath) {
-    throw new Error(
-      "Google Chrome nem található. Telepítsd a Chrome-ot Mac-re, majd próbáld újra."
-    );
-  }
-
-  const profileDir = getChromeProfileDir();
-  onProgress?.("Chrome indítása (külön import profil, CDP 9222)…");
-  startChromeWithDebugging(url, CDP_PORT);
-
-  const port = await waitForCdpReady(CDP_PORT, {
-    profileDir,
-    timeoutMs: 90000,
-    onProgress,
-  });
-
-  if (!port) {
-    throw new Error(
-      "Chrome CDP nem elérhető 90 mp alatt. Zárj be minden Chrome-ot, kattints újra a „Chrome megnyitása” gombra. " +
-        "Ha megjelenik a Chrome, de ez a hiba marad: a sima Chrome nem elég — az importnak külön debug mód kell."
-    );
-  }
-
-  onProgress?.(`Chrome CDP kész (${port}) — ha kell, oldd meg a Cloudflare-t abban az ablakban.`);
-  return connectChrome(onProgress, port);
-}
-
-async function connectChrome(onProgress, port = CDP_PORT) {
-  const CDP_URL = `http://127.0.0.1:${port}`;
-  const browser = await chromium.connectOverCDP(CDP_URL);
-  const context = browser.contexts()[0];
-  if (!context) {
-    throw new Error("Chrome csatlakozott, de nincs nyitott lap.");
-  }
-  onProgress?.("Playwright csatlakozva a Chrome-hoz.");
-  return { context, browser, external: true };
-}
-
 async function openSession({ startUrl, onProgress }) {
   try {
-    return await openChromeForImport(startUrl, { onProgress });
+    return await acquireImportSession(startUrl, { onProgress });
   } catch (error) {
-    onProgress?.(`Chrome indítás sikertelen: ${error.message}`);
+    onProgress?.(`Böngésző indítás sikertelen: ${error.message}`);
     throw error;
   }
 }

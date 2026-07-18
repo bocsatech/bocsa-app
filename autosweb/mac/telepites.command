@@ -34,6 +34,7 @@ fi
 cd "$TARGET"
 npm install
 npx playwright install chromium 2>/dev/null || true
+npx playwright install chrome 2>/dev/null || true
 
 cat > "$DESKTOP" << 'LAUNCHER'
 #!/bin/bash
