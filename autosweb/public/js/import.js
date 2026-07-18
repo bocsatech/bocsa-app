@@ -53,7 +53,7 @@ export function initImportPanel({ form, onApply }) {
       if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
         appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
       }
-      if (serverVersion && !serverVersion.includes("listfix")) {
+      if (serverVersion && !serverVersion.includes("fieldsfix")) {
         showUpgradeWarning(serverVersion);
       }
     } catch {

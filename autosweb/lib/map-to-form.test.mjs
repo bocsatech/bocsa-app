@@ -22,4 +22,9 @@ test("mapListingToForm kitölti az alap mezőket", () => {
   assert.equal(form.vetelar, "4290000");
   assert.equal(form.hasznaltauto_hirdetes_id, "12345678");
   assert.equal(form.telefon1_korzet, "30");
+  assert.equal(form.kivitel, "Kombi");
+  assert.equal(form.allapot, "Normál");
+  assert.equal(form.okmany_jelleg, "Érvényes magyar okmányokkal");
+  assert.equal(form.okmany_ervenyesseg, "Érvényes");
+  assert.equal(form.tipus, "Kombi");
 });

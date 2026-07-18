@@ -227,8 +227,59 @@ export function parseListingHtml(html, { url = "", phone = null } = {}) {
   };
 }
 
+function parseSummaryLine(text) {
+  const map = {};
+  if (!text) return map;
+
+  const fuelMatch =
+    text.match(/Hibrid\s*\([^)]+\)/i) ||
+    text.match(/(?:^|[,(]\s*)((?:Elektromos|Diesel|Benzin|LPG|CNG)[^,)]*)/i);
+  if (fuelMatch) map.Üzemanyag = cleanText(fuelMatch[0].replace(/^[,(]\s*/, ""));
+
+  const yearMatch = text.match(/\b((?:19|20)\d{2})(?:\/(\d{1,2}))?\b/);
+  if (yearMatch) {
+    map.Évjárat = yearMatch[2] ? `${yearMatch[1]}/${yearMatch[2]}` : yearMatch[1];
+  }
+
+  const kmMatch = text.match(/([\d\s.]+)\s*km\b/i);
+  if (kmMatch) map.Futásteljesítmény = `${kmMatch[1].trim()} km`;
+
+  const ccMatch = text.match(/([\d\s.]+)\s*cm³/i);
+  if (ccMatch) map.Hengerűrtartalom = ccMatch[1].replace(/\s/g, "");
+
+  const powerMatch = text.match(/([\d.,]+)\s*kW/i);
+  if (powerMatch) map.Teljesítmény = `${powerMatch[1]} kW`;
+
+  return map;
+}
+
+export function mergeParsedListing(detail, card) {
+  if (!card) return detail;
+  const cardParsed = parseListingCard({
+    url: card.url ?? detail.url,
+    text: card.text,
+    title: card.title,
+  });
+  const mergedAttrs = {
+    ...(cardParsed.nyersAdatok ?? {}),
+    ...(detail.nyersAdatok ?? {}),
+  };
+
+  return {
+    ...detail,
+    cim: detail.cim || cardParsed.cim,
+    ar: detail.ar || cardParsed.ar,
+    km: detail.km || cardParsed.km,
+    evjarat: detail.evjarat || cardParsed.evjarat,
+    jarmuTipus: detail.jarmuTipus || cardParsed.jarmuTipus,
+    telefonszam: detail.telefonszam || cardParsed.telefonszam,
+    nyersAdatok: mergedAttrs,
+  };
+}
+
 export function parseListingCard({ url, text, title }) {
   const source = cleanText(`${title}\n${text}`);
+  const summaryMap = parseSummaryLine(text);
   const arMatch = source.match(/([\d\s.]+)\s*Ft/i);
   const kmMatch = source.match(/([\d\s.]+)\s*km/i);
   const yearMatch = source.match(/\b(19|20)\d{2}\b/);
@@ -248,6 +299,7 @@ export function parseListingCard({ url, text, title }) {
     telefonszam: phoneMatch ? cleanText(phoneMatch[0]) : null,
     cim: cleanText(title) || null,
     forras: "lista oldal",
+    nyersAdatok: summaryMap,
   };
 }
 

@@ -7,7 +7,7 @@ import {
   isListingUrl,
   normalizeInputUrl,
 } from "./links.mjs";
-import { parseListingHtml } from "./parse-listing.mjs";
+import { parseListingHtml, mergeParsedListing } from "./parse-listing.mjs";
 import { mapCardPreview, mapListingToForm } from "./map-to-form.mjs";
 import { shortUrl } from "./url-utils.mjs";
 import { acquireImportSession, openChromeForImport } from "./browser-session.mjs";
@@ -145,13 +145,36 @@ async function collectListingUrls(page, listUrl, limit, onProgress) {
   return { urls: unique.slice(0, limit), cards };
 }
 
+async function revealPhoneOnPage(page) {
+  const selectors = [
+    "text=/telefonszám felfedése/i",
+    "text=/Elsődleges telefonszám felfedése/i",
+    "text=/felfedése/i",
+    "[data-testid*='phone']",
+    ".phone-reveal",
+  ];
+  for (const selector of selectors) {
+    try {
+      const button = page.locator(selector).first();
+      if (await button.isVisible({ timeout: 800 })) {
+        await button.click({ timeout: 3000 });
+        await sleep(1200);
+        return;
+      }
+    } catch {
+      /* next selector */
+    }
+  }
+}
+
 async function fetchListingForm(page, url, card, onProgress) {
   onProgress?.(`Részletek: ${shortUrl(url, 70)}`);
   if (page.url() !== url) {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
   }
+  await revealPhoneOnPage(page);
   const html = await waitForListingHtml(page);
-  const parsed = parseListingHtml(html, { url });
+  const parsed = mergeParsedListing(parseListingHtml(html, { url }), card);
   return mapCardPreview(card ?? { url }, parsed);
 }
 

@@ -79,15 +79,104 @@ function parseTitleParts(title) {
 function mapFuel(value) {
   const v = normalizeKey(value);
   if (!v) return "";
+  if (v.includes("phev") || (v.includes("hibrid") && v.includes("benzin"))) return "Benzin/elektromos";
+  if (v.includes("hibrid") && v.includes("diesel")) return "Diesel/elektromos";
   if (v.includes("elektromos") && v.includes("benzin")) return "Benzin/elektromos";
   if (v.includes("elektromos") && v.includes("diesel")) return "Diesel/elektromos";
   if (v.includes("elektromos")) return "Elektromos";
   if (v.includes("diesel")) return "Diesel";
-  if (v.includes("lpg")) return "LPG/benzin";
+  if (v.includes("lpg") || v.includes("gaz")) return "LPG/benzin";
   if (v.includes("cng")) return "CNG/benzin";
-  if (v.includes("hibrid") && v.includes("benzin")) return "Benzin/elektromos";
+  if (v.includes("hibrid")) return "Benzin/elektromos";
   if (v.includes("benzin")) return "Benzin";
   return cleanText(value);
+}
+
+function mapKivitel(value) {
+  const v = normalizeKey(value);
+  if (!v) return "";
+  if (v.includes("suv") || v.includes("crossover") || v.includes("terepjaro")) return "SUV / Crossover";
+  if (v.includes("kombi") || v.includes("wagon") || v.includes("estate")) return "Kombi";
+  if (v.includes("ferde") || v.includes("hatchback")) return "Ferdehátú";
+  if (v.includes("sedan") || v.includes("szedan")) return "Szedán";
+  if (v.includes("egyteru") || v.includes("mpv")) return "Egyterű";
+  if (v.includes("kupe") || v.includes("coupe")) return "Kupé";
+  if (v.includes("cabrio") || v.includes("convertible")) return "Cabrio";
+  return cleanText(value);
+}
+
+function mapAllapot(value) {
+  const v = normalizeKey(value);
+  if (!v) return "";
+  if (v.includes("ujra") || v.includes("újszer")) return "Újszerű";
+  if (v.includes("serulesmentes") || v.includes("sérülésmentes")) return "Sérülésmentes";
+  if (v.includes("serult") || v.includes("sérült")) return "Sérült";
+  if (v.includes("normal") || v.includes("normál") || v.includes("hasznalt") || v.includes("használt")) {
+    return "Normál";
+  }
+  return cleanText(value);
+}
+
+function mapOkmanyJelleg(value) {
+  const v = normalizeKey(value);
+  if (!v) return "";
+  if (v.includes("kulfold") || v.includes("külföld")) return "Érvényes külföldi okmányokkal";
+  if (v.includes("magyar") || v.includes("forgalmi")) return "Érvényes magyar okmányokkal";
+  return cleanText(value);
+}
+
+function mapOkmanyErvenyesseg(value) {
+  const v = normalizeKey(value);
+  if (!v) return "";
+  if (v.includes("lejart") || v.includes("lejárt")) return "Lejárt";
+  if (v.includes("ervenyes") || v.includes("érvényes")) return "Érvényes";
+  return cleanText(value);
+}
+
+function inferTipus(titleParts, parsed, m) {
+  const fromTable = pickValue(m, ["típus", "tipus", "felszereltség", "felszereltseg"]);
+  if (fromTable) return fromTable;
+  if (titleParts.rest) return titleParts.rest;
+  const cim = cleanText(parsed.cim || "");
+  const withoutBrandModel = cim
+    .replace(new RegExp(`^${titleParts.gyartmany}\\s+`, "i"), "")
+    .replace(new RegExp(`^${titleParts.modell}\\s+`, "i"), "")
+    .replace(/\s*\((19|20)\d{2}.*\)\s*$/, "")
+    .trim();
+  return withoutBrandModel || cim || "—";
+}
+
+function applyRequiredDefaults(data, parsed, titleParts, m) {
+  if (!data.kivitel) {
+    data.kivitel = mapKivitel(
+      pickValue(m, ["kivitel", "kategória", "kategoria", "szerkezeti változat", "szerkezeti valtozat"])
+    );
+  }
+  if (!data.allapot) {
+    data.allapot = mapAllapot(pickValue(m, ["állapot", "allapot"])) || "Normál";
+  }
+  if (!data.okmany_jelleg) {
+    data.okmany_jelleg =
+      mapOkmanyJelleg(pickValue(m, ["okmányok jellege", "okmanyok jellege"])) ||
+      "Érvényes magyar okmányokkal";
+  }
+  if (!data.okmany_ervenyesseg) {
+    data.okmany_ervenyesseg =
+      mapOkmanyErvenyesseg(pickValue(m, ["okmányok érvényessége", "okmanyok ervenyessege"])) || "Érvényes";
+  }
+  if (!data.tipus) {
+    data.tipus = inferTipus(titleParts, parsed, m);
+  }
+  if (!data.uzemanyag) {
+    data.uzemanyag = mapFuel(pickValue(m, ["üzemanyag", "uzemanyag"]));
+  }
+  if (!data.gyartmany && titleParts.gyartmany) {
+    data.gyartmany = titleParts.gyartmany.toUpperCase();
+  }
+  if (!data.modell && titleParts.modell) {
+    data.modell = titleParts.modell;
+  }
+  return data;
 }
 
 function mapCounty(location) {
@@ -136,7 +225,9 @@ export function mapListingToForm(parsed) {
     gyartmany: pickValue(m, ["gyártmány", "gyartmany"]) || titleParts.gyartmany,
     modell: pickValue(m, ["modell"]) || titleParts.modell,
     tipus: pickValue(m, ["típus", "tipus"]) || titleParts.rest,
-    kivitel: pickValue(m, ["kivitel", "szerkezeti változat", "szerkezeti valtozat"]),
+    kivitel: mapKivitel(
+      pickValue(m, ["kivitel", "kategória", "kategoria", "szerkezeti változat", "szerkezeti valtozat"])
+    ),
     egyeb_tipus: pickValue(m, ["egyéb típus", "egyeb tipus"]) || "",
     uzemanyag: mapFuel(pickValue(m, ["üzemanyag", "uzemanyag"])),
     gyartasi_ev: gyartEv.ev,
@@ -145,10 +236,12 @@ export function mapListingToForm(parsed) {
     forgalomba_helyezes_honap: forgalom.honap,
     muszaki_ev: muszaki.ev,
     muszaki_honap: muszaki.honap,
-    allapot: pickValue(m, ["állapot", "allapot"]),
+    allapot: mapAllapot(pickValue(m, ["állapot", "allapot"])),
     km: digits(parsed.km || pickValue(m, ["futásteljesítmény", "futasteljesitmeny"])),
-    okmany_jelleg: pickValue(m, ["okmányok jellege", "okmanyok jellege"]),
-    okmany_ervenyesseg: pickValue(m, ["okmányok érvényessége", "okmanyok ervenyessege"]),
+    okmany_jelleg: mapOkmanyJelleg(pickValue(m, ["okmányok jellege", "okmanyok jellege"])),
+    okmany_ervenyesseg: mapOkmanyErvenyesseg(
+      pickValue(m, ["okmányok érvényessége", "okmanyok ervenyessege"])
+    ),
     alvazszam: pickValue(m, ["alvázszám", "alvazszam", "vin"]),
     rendszam: pickValue(m, ["rendszám", "rendszam"]),
     tulajdonosok_szama: pickValue(m, ["tulajdonosok száma", "tulajdonos"]),
@@ -193,6 +286,8 @@ export function mapListingToForm(parsed) {
   if (meta && !data.hasznaltauto_hirdetes_id) {
     data.hasznaltauto_hirdetes_id = digits(meta);
   }
+
+  applyRequiredDefaults(data, parsed, titleParts, m);
 
   return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== "" && value != null));
 }
