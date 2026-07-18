@@ -210,7 +210,7 @@ export async function extractListingFromPage(page) {
     }
     let kmText = "";
     for (const [key, value] of Object.entries(map)) {
-      if (/futás|km óra|kilométeróra/i.test(key)) kmText = value;
+      if (/futás|km\s*óra|km\s*ora|kilométeróra|kilometerora/i.test(key)) kmText = value;
     }
     if (!kmText) {
       for (const node of document.querySelectorAll(

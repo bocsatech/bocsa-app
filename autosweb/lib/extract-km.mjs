@@ -8,7 +8,10 @@ const KM_LABEL_KEYS = [
   "km óra állás",
   "km ora allas",
   "km. óra állás",
+  "km. ora allas",
+  "km óra állása",
   "km ora allasa",
+  "km. óra állása",
   "km óra",
   "km",
 ];

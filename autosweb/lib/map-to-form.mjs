@@ -288,6 +288,21 @@ function firstNumber(value) {
   return Number.isFinite(n) ? String(n) : digits(value);
 }
 
+function ensureKmField(data, parsed, m, titleParts) {
+  const km = extractOdometerKm({
+    maps: [m],
+    texts: [
+      parsed.km,
+      parsed.cardText,
+      parsed.cim,
+      parsed.jarmuTipus,
+      parsed.leiras,
+      titleParts.rest,
+    ],
+  });
+  if (km !== "") data.km = km;
+}
+
 export function mapListingToForm(parsed) {
   const m = parsed.nyersAdatok ?? {};
   const titleParts = parseTitleParts(parsed.cim || parsed.jarmuTipus || "");
@@ -386,6 +401,7 @@ export function mapListingToForm(parsed) {
   applyMuszakiFields(data, parsed, m, badges);
   applyExtrakFields(data, parsed, m, badges);
   data.hirdetes_cime = buildHirdetesCime(parsed, data);
+  ensureKmField(data, parsed, m, titleParts);
 
   return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== "" && value != null));
 }

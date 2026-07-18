@@ -30,3 +30,16 @@ test("km: Km óra állás felirat", () => {
   assert.equal(kmDigitsFromValue("82 500 km"), "82500");
   assert.equal(chooseOdometerKm([50, 82500]), "82500");
 });
+
+test("km: Km. óra állás felirat (ponttal)", () => {
+  const km = extractOdometerKm({
+    maps: [{ "Km. óra állás": "82 500 km" }],
+  });
+  assert.equal(km, "82500");
+});
+
+test("pickValue: Km. óra állás illesztés", async () => {
+  const { pickValue } = await import("./parse-listing.mjs");
+  const map = { "Km. óra állás": "45 000 km" };
+  assert.equal(pickValue(map, ["km óra állás", "km. óra állás"]), "45 000 km");
+});

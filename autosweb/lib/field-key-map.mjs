@@ -1,4 +1,5 @@
-import { cleanText, normalizeKey, pickValue } from "./parse-listing.mjs";
+import { pickValue, cleanText, normalizeKey } from "./parse-listing.mjs";
+import { extractOdometerKm, kmDigitsFromValue } from "./extract-km.mjs";
 
 /** Hasznaltauto.hu táblázat címkék → form mezőnév */
 export const FIELD_ALIASES = {
@@ -10,7 +11,17 @@ export const FIELD_ALIASES = {
   kivitel: ["kivitel", "kategória", "kategoria", "szerkezeti változat", "szerkezeti valtozat", "karosszéria"],
   uzemanyag: ["üzemanyag", "uzemanyag"],
   allapot: ["állapot", "allapot"],
-  km: ["futásteljesítmény", "futasteljesitmeny", "km óra állás", "km ora allas", "kilométeróra"],
+  km: [
+    "futásteljesítmény",
+    "futasteljesitmeny",
+    "km óra állás",
+    "km. óra állás",
+    "km ora allas",
+    "km. ora allas",
+    "km óra állása",
+    "kilométeróra",
+    "kilometerora",
+  ],
   okmany_jelleg: ["okmányok jellege", "okmanyok jellege"],
   okmany_ervenyesseg: ["okmányok érvényessége", "okmanyok ervenyessege"],
   alvazszam: ["alvázszám", "alvazszam", "vin"],
@@ -132,6 +143,7 @@ export function transformFieldValue(field, value) {
 
   switch (field) {
     case "km":
+      return kmDigitsFromValue(raw) || digits(raw);
     case "vetelar":
     case "akcios_ar":
     case "vetelar_eur":

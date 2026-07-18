@@ -13,6 +13,8 @@ export function normalizeKey(value) {
   return String(value ?? "")
     .trim()
     .replace(/:$/, "")
+    .replace(/[.:·,]/g, " ")
+    .replace(/\s+/g, " ")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
