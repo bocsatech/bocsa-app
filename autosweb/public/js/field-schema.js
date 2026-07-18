@@ -1,4 +1,4 @@
-/** Hasznaltauto.hu személyautó hirdetésfeladás — mezőlista export/import egyeztetéshez. */
+/** Hasznaltauto.hu személyautó — mezőlista import egyeztetéshez (csak olvasás, nincs feladás). */
 export const HASZNALTAUTO_FIELD_GROUPS = {
   alapadatok: [
     "uzemanyag",

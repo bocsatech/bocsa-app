@@ -20,7 +20,12 @@ if [ ! -d "$TARGET" ]; then
 fi
 
 cp "$SOURCE/package.json" "$SOURCE/server.mjs" "$TARGET/"
+rsync -a --delete "$SOURCE/lib/" "$TARGET/lib/"
 rsync -a --delete "$SOURCE/public/" "$TARGET/public/"
+
+cd "$TARGET"
+npm install
+npx playwright install chromium 2>/dev/null || true
 
 VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
 echo ""

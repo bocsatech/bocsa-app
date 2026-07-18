@@ -20,6 +20,10 @@ mkdir -p "$TARGET/public" "$HOME/Desktop"
 
 cp "$SOURCE/package.json" "$SOURCE/server.mjs" "$TARGET/"
 
+if [ -d "$SOURCE/lib" ]; then
+  rsync -a --delete "$SOURCE/lib/" "$TARGET/lib/"
+fi
+
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --delete "$SOURCE/public/" "$TARGET/public/"
 else
@@ -29,6 +33,7 @@ fi
 
 cd "$TARGET"
 npm install
+npx playwright install chromium 2>/dev/null || true
 
 cat > "$DESKTOP" << 'LAUNCHER'
 #!/bin/bash
@@ -59,5 +64,5 @@ echo "Kész."
 echo "  Weboldal: $TARGET"
 echo "  Indító:   $DESKTOP"
 echo ""
-echo "A Letöltések mappában csak: package.json, server.mjs, public/, node_modules/"
+echo "A Letöltések mappában: package.json, server.mjs, lib/, public/, node_modules/"
 read -r -p "ENTER…" _ >/dev/null || true

@@ -1,23 +1,22 @@
-# Autosweb — autós hirdetésfeladás (helyi web)
+# Autosweb — autós hirdetés űrlap (helyi)
+
+**Hasznaltauto.hu-ról importál, de soha nem ad fel hirdetést oda.**
 
 ## Mi hol van
 
 | Hely | Mi |
 |------|-----|
-| **`~/Downloads/autosweb`** | Csak a futó weboldal (telepítés után) |
-| **`~/bocsa-app/autosweb`** | Forrás + telepítő scriptek (fejlesztés) |
-
-A **Letöltések** mappába **nem** kerül minden — csak ez:
+| **`~/Downloads/autosweb`** | Futó weboldal + import (telepítés után) |
+| **`~/bocsa-app/autosweb`** | Forrás + telepítő scriptek |
 
 ```
 ~/Downloads/autosweb/
 ├── package.json
 ├── server.mjs
-├── public/          ← HTML, CSS, JS
+├── lib/             ← import scraper
+├── public/
 └── node_modules/
 ```
-
-**Nincs** benne: `mac/`, README, git, más program.
 
 ## Telepítés (Mac, egyszer)
 
@@ -29,13 +28,19 @@ chmod +x telepites.command frissites.command
 
 Asztalon: **Autosweb-indito.command**
 
-## Kinézet frissítése (git pull NEM kell)
+## Import hasznaltauto.hu-ról
+
+1. Indítsd az Autosweb-et → http://127.0.0.1:3456
+2. Illeszd be a **lista URL-t** (találatilista vagy keresés) vagy **egy hirdetés linkjét**
+3. **Import indítása** — megnyílik a böngésző; Cloudflare esetén jelöld meg ott
+4. Max. **50 hirdetés** betöltődik (képek nélkül)
+5. Kattints egy sorra → az űrlap kitöltődik (helyi piszkozat)
+
+## Frissítés
 
 ```bash
 cd ~/bocsa-app/autosweb/mac
 ./frissites.command
 ```
 
-## URL
-
-http://127.0.0.1:3456
+Majd indító újra + **Cmd+Shift+R** a böngészőben.

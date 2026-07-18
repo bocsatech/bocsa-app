@@ -1,5 +1,5 @@
 import { UZEMANYAG_CATEGORIES, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
-import { listMissingFormFields } from "./field-schema.js";
+import { initImportPanel } from "./import.js";
 
 const STORAGE_KEY = "hirdetes-local-draft";
 const form = document.getElementById("ad-form");
@@ -383,7 +383,7 @@ function showStep(step) {
   if (step === 2) nextBtn.textContent = "Tovább az extrákhoz";
   if (step === 3) nextBtn.textContent = "Tovább a képekhez";
   if (step === 4) nextBtn.textContent = "Tovább a hirdetéshez";
-  if (step === 5) nextBtn.textContent = "Hirdetés feladása kiemelés nélkül";
+  if (step === 5) nextBtn.textContent = "Mentés / összegzés";
 }
 
 function collectFormData() {
@@ -396,34 +396,69 @@ function saveDraft() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormData()));
 }
 
+function ensureSelectOption(select, value) {
+  if (!select || !value) return;
+  const has = [...select.options].some((option) => option.value === value || option.textContent === value);
+  if (!has) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  }
+  select.value = value;
+}
+
+function applyFormData(data, { fromImport = false } = {}) {
+  if (!data || typeof data !== "object") return;
+
+  form.querySelectorAll('input[name="felszereltseg"]').forEach((box) => {
+    box.checked = false;
+  });
+
+  for (const [key, value] of Object.entries(data)) {
+    if (key === "felszereltseg") continue;
+    const field = form.elements.namedItem(key);
+    if (!field) continue;
+    if (field instanceof RadioNodeList) {
+      [...field].forEach((node) => {
+        node.checked = node.value === value;
+      });
+    } else if (field.type === "checkbox") {
+      field.checked = value === "1" || value === true || value === "on";
+    } else if (field.tagName === "SELECT") {
+      ensureSelectOption(field, value);
+    } else {
+      field.value = value;
+    }
+    if (fromImport) {
+      field.dataset.userEdited = "1";
+      field.classList.remove("auto-filled");
+    }
+  }
+
+  for (const item of data.felszereltseg ?? []) {
+    const box = [...form.querySelectorAll('input[name="felszereltseg"]')].find((el) => el.value === item);
+    if (box) box.checked = true;
+  }
+
+  if (data.hirdetes_cime) {
+    hirdetesCime.dataset.userEdited = "1";
+  }
+
+  syncPackageSelection();
+  updateTitle();
+  updateLeDisplay();
+  restoreFuelSelection(data.uzemanyag);
+  syncFuelDependentFields();
+  saveDraft();
+  goToStep(1);
+}
+
 function restoreDraft() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
-    const data = JSON.parse(raw);
-    for (const [key, value] of Object.entries(data)) {
-      if (key === "felszereltseg") continue;
-      const field = form.elements.namedItem(key);
-      if (!field) continue;
-      if (field instanceof RadioNodeList) {
-        [...field].forEach((node) => {
-          node.checked = node.value === value;
-        });
-      } else if (field.type === "checkbox") {
-        field.checked = value === "1" || value === true || value === "on";
-      } else {
-        field.value = value;
-      }
-    }
-    for (const item of data.felszereltseg ?? []) {
-      const box = [...form.querySelectorAll('input[name="felszereltseg"]')].find((el) => el.value === item);
-      if (box) box.checked = true;
-    }
-    syncPackageSelection();
-    updateTitle();
-    updateLeDisplay();
-    restoreFuelSelection(data.uzemanyag);
-    syncFuelDependentFields();
+    applyFormData(JSON.parse(raw));
   } catch {
     /* ignore */
   }
@@ -639,7 +674,7 @@ renderPhotoPreview([]);
 fitAllFormFields();
 showStep(1);
 
-if (import.meta.env?.DEV) {
-  const missing = listMissingFormFields(form);
-  if (missing.length) console.warn("[autosweb] Hiányzó mezők a hasznaltauto.hu sémához képest:", missing);
-}
+initImportPanel({
+  form,
+  onApply: (formData) => applyFormData(formData, { fromImport: true }),
+});

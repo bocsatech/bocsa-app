@@ -754,3 +754,88 @@ body.theme-automax .local-banner {
     grid-template-columns: 1fr !important;
   }
 }
+
+body.theme-automax .import-panel {
+  margin-bottom: 20px;
+  border-color: var(--ax-border);
+}
+
+body.theme-automax .import-panel.collapsed .card-body {
+  display: none;
+}
+
+body.theme-automax .import-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+body.theme-automax .btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+body.theme-automax .import-url-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
+}
+
+body.theme-automax .import-url-row input {
+  flex: 1 1 280px;
+  min-height: var(--m7-field-height);
+  padding: 0 14px;
+  border: 1px solid var(--ax-border);
+  border-radius: var(--m7-field-radius);
+  background: var(--ax-surface);
+  color: var(--ax-text);
+}
+
+body.theme-automax .import-log {
+  margin-top: 12px;
+  max-height: 140px;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--ax-border);
+  border-radius: var(--m7-field-radius);
+  background: #111;
+  font-size: 0.85rem;
+  color: var(--ax-muted);
+}
+
+body.theme-automax .import-log-line + .import-log-line {
+  margin-top: 4px;
+}
+
+body.theme-automax .import-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+body.theme-automax .import-result-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--ax-border);
+  border-radius: var(--m7-field-radius);
+  background: var(--ax-surface);
+  color: var(--ax-text);
+  cursor: pointer;
+}
+
+body.theme-automax .import-result-row:hover {
+  border-color: var(--ax-orange);
+}
+
+body.theme-automax .import-result-row span {
+  color: var(--ax-muted);
+  font-size: 0.9rem;
+}
