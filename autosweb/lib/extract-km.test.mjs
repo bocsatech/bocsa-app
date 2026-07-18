@@ -38,6 +38,10 @@ test("km: Km. óra állás felirat (ponttal)", () => {
   assert.equal(km, "82500");
 });
 
+test("km: 125 ezer km", () => {
+  assert.equal(kmDigitsFromValue("125 ezer km"), "125000");
+});
+
 test("pickValue: Km. óra állás illesztés", async () => {
   const { pickValue } = await import("./parse-listing.mjs");
   const map = { "Km. óra állás": "45 000 km" };

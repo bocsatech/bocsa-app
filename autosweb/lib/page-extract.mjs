@@ -1,4 +1,5 @@
 import { cleanText } from "./parse-listing.mjs";
+import { extractOdometerKm, formatKmDisplay } from "./extract-km.mjs";
 
 export async function dismissCookieBanner(page) {
   const candidates = [
@@ -214,13 +215,38 @@ export async function extractListingFromPage(page) {
     }
     if (!kmText) {
       for (const node of document.querySelectorAll(
-        ".talalatisor-infokontener span, [class*='km'], [class*='futas'], .hirdetes-km, .pricefield-secondary"
+        ".talalatisor-infokontener span, [class*='km'], [class*='futas'], .hirdetes-km, .pricefield-secondary, .adatok"
       )) {
         const t = clean(node.innerText ?? "");
         if (/\d[\d\s.]*\s*km/i.test(t) || /\b0\s*km/i.test(t)) {
           kmText = t;
           break;
         }
+      }
+    }
+
+    if (!kmText) {
+      const body = clean(document.body.innerText ?? "");
+      const inline = body.match(
+        /(?:Futásteljesítmény|Futasteljesitmeny|Km\.?\s*óra\s*állás[a]?)\s*:?\s*([\d\s.]+)\s*km/i
+      );
+      if (inline) kmText = `${inline[1]} km`;
+    }
+
+    for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
+      try {
+        const raw = JSON.parse(script.textContent ?? "null");
+        const items = Array.isArray(raw) ? raw : [raw];
+        for (const item of items) {
+          const value = item?.mileageFromOdometer?.value;
+          if (value != null && value !== "") {
+            const text = `${value} km`;
+            map["Futásteljesítmény"] = text;
+            if (!kmText) kmText = text;
+          }
+        }
+      } catch {
+        /* ignore */
       }
     }
 
@@ -237,14 +263,21 @@ export function mergePageExtract(parsed, extracted) {
   if (extracted.kmText && !mergedMap["Futásteljesítmény"]) {
     mergedMap["Futásteljesítmény"] = extracted.kmText;
   }
-  if (extracted.kmText && !mergedMap["Km óra állás"]) {
-    mergedMap["Km óra állás"] = extracted.kmText;
+  if (extracted.kmText && !mergedMap["Km. óra állás"]) {
+    mergedMap["Km. óra állás"] = extracted.kmText;
   }
+
+  const kmDigits = extractOdometerKm({
+    maps: [mergedMap],
+    texts: [extracted.kmText, parsed.km, parsed.cim],
+  });
+  const km = kmDigits ? formatKmDisplay(kmDigits) : parsed.km;
 
   return {
     ...parsed,
     cim: parsed.cim || extracted.title || "",
     leiras: parsed.leiras || extracted.leiras || "",
+    km,
     telefonszam: parsed.telefonszam || extracted.phone || parsed.telefonszam,
     felszereltseg: [...new Set([...(parsed.felszereltseg ?? []), ...(extracted.felszereltseg ?? [])])],
     nyersAdatok: mergedMap,

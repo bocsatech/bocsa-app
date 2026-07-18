@@ -53,7 +53,7 @@ export function initImportPanel({ form, onApply }) {
       if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
         appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
       }
-      if (serverVersion && !serverVersion.includes("km2")) {
+      if (serverVersion && !serverVersion.includes("km3")) {
         showUpgradeWarning(serverVersion);
       }
     } catch {
@@ -77,14 +77,22 @@ export function initImportPanel({ form, onApply }) {
       row.addEventListener("click", () => {
         onApply?.(item.form, item);
         appendLog(`Betöltve: ${item.cim || item.url}`);
+        if (!item.form?.km && item.km) {
+          appendLog(`⚠ Km a listából: ${item.km} — ellenőrizd a Km. óra állás mezőt`);
+        } else if (item.form?.km) {
+          appendLog(`Km. óra állás: ${Number(item.form.km).toLocaleString("hu-HU")} km`);
+        }
         if (item.importSummaryText) {
           appendLog(item.importSummaryText.replace(/\n/g, " · "));
         }
         const missing = item.missingRequired?.length
           ? `\n\nHiányzó kötelező mezők:\n${item.missingRequired.join("\n")}`
           : "";
+        const kmNote = !item.form?.km
+          ? "\n\n⚠ Km. óra állás üres — a hirdetésben nem volt olvasható futásteljesítmény."
+          : `\n\nKm. óra állás: ${Number(item.form.km).toLocaleString("hu-HU")} km`;
         alert(
-          `Az autó adatai betöltve az összes fülre (1–5).\n\n${item.importSummaryText || ""}${missing}\n\nLépj végig a füleken és ellenőrizd!`
+          `Az autó adatai betöltve az összes fülre (1–5).\n\n${item.importSummaryText || ""}${kmNote}${missing}\n\nLépj végig a füleken és ellenőrizd!`
         );
       });
       resultsEl.appendChild(row);

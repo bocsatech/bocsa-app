@@ -84,7 +84,17 @@ export async function extractListingCardsFromPage(page) {
         if (seen.has(clean)) return;
         seen.add(clean);
         const text = (container || document.body).innerText?.replace(/\s+/g, " ").trim() ?? "";
-        cards.push({ url: clean, text, title: title?.trim() || "" });
+        let kmText = "";
+        for (const node of (container || document.body).querySelectorAll(
+          ".talalatisor-infokontener span, [class*='km'], [class*='futas'], .hirdetes-km, .pricefield-secondary"
+        )) {
+          const t = node.innerText?.replace(/\s+/g, " ").trim() ?? "";
+          if (/\d[\d\s.]*\s*km/i.test(t) || /\b0\s*km/i.test(t)) {
+            kmText = t;
+            break;
+          }
+        }
+        cards.push({ url: clean, text, title: title?.trim() || "", kmText });
       } catch {
         /* skip */
       }

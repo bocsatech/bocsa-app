@@ -463,6 +463,12 @@ function applyFormData(data, { fromImport = false } = {}) {
   } else {
     updateTitle();
   }
+
+  const kmInput = document.getElementById("km");
+  if (kmInput && data.km != null && String(data.km).trim() !== "") {
+    kmInput.value = String(data.km);
+    if (fromImport) kmInput.dataset.userEdited = "1";
+  }
   updateLeDisplay();
   restoreFuelSelection(data.uzemanyag);
   syncFuelDependentFields();
@@ -692,5 +698,11 @@ showStep(1);
 
 initImportPanel({
   form,
-  onApply: (formData) => applyFormData(formData, { fromImport: true }),
+  onApply: (formData, item) => {
+    if ((!formData?.km || String(formData.km).trim() === "") && item?.km) {
+      const digits = String(item.km).replace(/[^\d]/g, "");
+      if (digits) formData.km = digits;
+    }
+    applyFormData(formData, { fromImport: true });
+  },
 });

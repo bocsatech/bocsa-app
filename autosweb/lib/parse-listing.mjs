@@ -367,7 +367,7 @@ export function mergeParsedListing(detail, card) {
   };
   const kmDigits = extractOdometerKm({
     maps: [mergedAttrs],
-    texts: [detail.cim, detail.leiras, card?.text, card?.title, cardParsed.km, detail.km],
+    texts: [detail.cim, detail.leiras, card?.text, card?.title, card?.kmText, cardParsed.km, detail.km],
   });
 
   const cardBadges = extractBadgesFromText(card?.text ?? "");

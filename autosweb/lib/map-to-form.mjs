@@ -289,7 +289,9 @@ function firstNumber(value) {
 }
 
 function ensureKmField(data, parsed, m, titleParts) {
-  const km = extractOdometerKm({
+  if (data.km) return;
+
+  let km = extractOdometerKm({
     maps: [m],
     texts: [
       parsed.km,
@@ -300,7 +302,16 @@ function ensureKmField(data, parsed, m, titleParts) {
       titleParts.rest,
     ],
   });
+
+  if (!km && parsed.km) km = kmDigitsFromValue(parsed.km);
   if (km !== "") data.km = km;
+}
+
+export function backfillKmInForm(form, parsed) {
+  if (form?.km) return form;
+  const km = kmDigitsFromValue(parsed?.km);
+  if (km) return { ...form, km };
+  return form;
 }
 
 export function mapListingToForm(parsed) {
@@ -407,7 +418,7 @@ export function mapListingToForm(parsed) {
 }
 
 export function mapListingToFormWithSummary(parsed) {
-  const form = mapListingToForm(parsed);
+  const form = backfillKmInForm(mapListingToForm(parsed), parsed);
   const importSummary = summarizeImportByStep(form);
   return {
     form,

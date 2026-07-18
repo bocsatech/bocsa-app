@@ -24,6 +24,12 @@ export function kmDigitsFromValue(value) {
     return "0";
   }
 
+  const ezer = text.match(/(\d[\d\s.]*)\s*(?:ezer|e\s*zer)\s*km\b/i);
+  if (ezer) {
+    const base = Number.parseInt(ezer[1].replace(/\s|\./g, ""), 10);
+    if (Number.isFinite(base)) return String(base * 1000);
+  }
+
   const labeled = text.match(/(\d[\d\s.]{0,12})\s*km\b/i);
   if (labeled) {
     return labeled[1].replace(/\s|\./g, "");
