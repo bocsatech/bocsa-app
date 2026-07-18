@@ -835,7 +835,11 @@ body.theme-automax .import-result-row:hover {
   border-color: var(--ax-orange);
 }
 
-body.theme-automax .import-result-row span {
-  color: var(--ax-muted);
-  font-size: 0.9rem;
+body.theme-automax .import-hint-steps {
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+body.theme-automax .import-url-row .btn-secondary {
+  flex: 0 0 auto;
 }

@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260718import" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260718import" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260718chrome" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260718chrome" />
   </head>
   <body class="theme-automax">
     <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
@@ -53,8 +53,12 @@
           </p>
           <div class="import-url-row">
             <input id="import-url" type="url" placeholder="https://www.hasznaltauto.hu/szemelyauto/… vagy talalatilista/…" />
+            <button type="button" class="btn btn-secondary" id="import-chrome-btn">Chrome megnyitása</button>
             <button type="button" class="btn btn-primary" id="import-start-btn">Import indítása (max 50)</button>
           </div>
+          <p class="hint import-hint-steps">
+            1) Chrome megnyitása → megjelenik a Google Chrome a listával &nbsp; 2) Cloudflare jelölés ha kell &nbsp; 3) Import indítása
+          </p>
           <div id="import-log" class="import-log" hidden></div>
           <div id="import-results" class="import-results" hidden></div>
         </div>
@@ -695,7 +699,7 @@
       </aside>
     </main>
 
-    <script src="/js/import.js?v=automax20260718import" type="module"></script>
-    <script src="/js/app.js?v=automax20260718import" type="module"></script>
+    <script src="/js/import.js?v=automax20260718chrome" type="module"></script>
+    <script src="/js/app.js?v=automax20260718chrome" type="module"></script>
   </body>
 </html>

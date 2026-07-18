@@ -3,7 +3,8 @@ import { readFileSync, existsSync } from "fs";
 import { join, extname } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { importListings } from "./lib/import-listings.mjs";
+import { importListings, openChromeForImport } from "./lib/import-listings.mjs";
+import { findChromeExecutable } from "./lib/chrome-launcher.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -60,6 +61,32 @@ function serveStatic(path, res) {
   res.end(readFileSync(filePath));
 }
 
+async function handleOpenChrome(req, res) {
+  let body;
+  try {
+    body = await readBody(req);
+  } catch {
+    sendJson(res, 400, { error: "Érvénytelen JSON." });
+    return;
+  }
+
+  const url = String(body.url ?? "https://www.hasznaltauto.hu/szemelyauto").trim();
+  const logs = [];
+
+  try {
+    await openChromeForImport(url, {
+      onProgress: (message) => logs.push(message),
+    });
+    sendJson(res, 200, { ok: true, logs, chrome: findChromeExecutable() });
+  } catch (error) {
+    sendJson(res, 500, {
+      error: error.message ?? String(error),
+      logs,
+      chrome: findChromeExecutable(),
+    });
+  }
+}
+
 async function handleImport(req, res) {
   if (importRunning) {
     sendJson(res, 409, { error: "Már fut egy import." });
@@ -94,7 +121,6 @@ async function handleImport(req, res) {
   try {
     const result = await importListings(url, {
       limit: body.limit ?? 50,
-      connect: body.connect !== false,
       onProgress: (message) => send({ type: "log", message }),
     });
     send({ type: "done", result });
@@ -108,6 +134,20 @@ async function handleImport(req, res) {
 
 const server = createServer(async (req, res) => {
   const pathname = req.url?.split("?")[0] || "/";
+
+  if (pathname === "/api/health" && req.method === "GET") {
+    sendJson(res, 200, {
+      ok: true,
+      version: readFileSync(join(PUBLIC, "version.txt"), "utf8").trim(),
+      chrome: findChromeExecutable(),
+    });
+    return;
+  }
+
+  if (pathname === "/api/open-chrome" && req.method === "POST") {
+    await handleOpenChrome(req, res);
+    return;
+  }
 
   if (pathname === "/api/import" && req.method === "POST") {
     await handleImport(req, res);

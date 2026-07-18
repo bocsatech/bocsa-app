@@ -1,7 +1,4 @@
 import { chromium } from "playwright";
-import { mkdirSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
 import {
   collectListingLinksFromPage,
   extractListingCardsFromPage,
@@ -12,12 +9,14 @@ import {
 import { parseListingHtml } from "./parse-listing.mjs";
 import { mapCardPreview, mapListingToForm } from "./map-to-form.mjs";
 import { shortUrl } from "./url-utils.mjs";
+import {
+  findChromeExecutable,
+  isCdpReady,
+  startChromeWithDebugging,
+  waitForCdpReady,
+} from "./chrome-launcher.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROFILE_DIR = join(__dirname, "..", ".import-profile");
-const CDP_URL = "http://127.0.0.1:9222";
-const USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+const CDP_PORT = 9222;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -39,7 +38,7 @@ function isBlocked(title, html, url) {
   );
 }
 
-async function waitForAccess(page, onProgress, maxSeconds = 90) {
+async function waitForAccess(page, onProgress, maxSeconds = 120) {
   const deadline = Date.now() + maxSeconds * 1000;
   while (Date.now() < deadline) {
     const title = await page.title();
@@ -47,55 +46,78 @@ async function waitForAccess(page, onProgress, maxSeconds = 90) {
     const url = page.url();
     if (isContentReady(title, html, url)) return;
     if (isBlocked(title, html, url)) {
-      onProgress?.("Cloudflare: oldd meg a böngészőben, majd folytatjuk…");
+      onProgress?.("Cloudflare: jelöld meg a megnyílt Chrome ablakban, majd várunk…");
     }
-    await sleep(1500);
+    await sleep(2000);
   }
-  throw new Error("Az oldal nem töltődött be időben. Oldd meg a Cloudflare ellenőrzést a böngészőben.");
+  throw new Error(
+    "Az oldal nem töltődött be időben. A Chrome ablakban oldd meg a Cloudflare-t, majd indítsd újra az importot."
+  );
 }
 
-async function openSession({ connect, startUrl, onProgress }) {
-  if (connect) {
-    try {
-      const browser = await chromium.connectOverCDP(CDP_URL);
-      const context = browser.contexts()[0];
-      if (!context) throw new Error("Nincs Chrome ablak.");
-      onProgress?.("Csatlakozva a megnyitott Chrome-hoz.");
-      return { context, external: true, browser };
-    } catch {
-      onProgress?.("Chrome CDP (9222) nem elérhető — saját böngésző indul.");
-    }
+export async function openChromeForImport(startUrl, { onProgress } = {}) {
+  const url = normalizeInputUrl(startUrl);
+
+  if (await isCdpReady(CDP_PORT)) {
+    onProgress?.("Meglévő Chrome (9222) — csatlakozás…");
+    return connectChrome(onProgress);
   }
 
-  mkdirSync(PROFILE_DIR, { recursive: true });
-  const common = {
-    headless: false,
-    locale: "hu-HU",
-    viewport: { width: 1360, height: 900 },
-    userAgent: USER_AGENT,
-    args: ["--disable-blink-features=AutomationControlled"],
-  };
+  const chromePath = findChromeExecutable();
+  if (!chromePath) {
+    throw new Error(
+      "Google Chrome nem található. Telepítsd a Chrome-ot Mac-re, majd próbáld újra."
+    );
+  }
 
-  let context;
+  onProgress?.(`Chrome megnyitása: ${chromePath.split("/").pop()}`);
+  startChromeWithDebugging(url, CDP_PORT);
+
+  const ready = await waitForCdpReady(CDP_PORT, {
+    timeoutMs: 60000,
+    onProgress,
+  });
+
+  if (!ready) {
+    throw new Error(
+      "Chrome nem indult el 60 mp alatt. Ellenőrizd, hogy megjelent-e a Chrome ablak."
+    );
+  }
+
+  onProgress?.("Chrome megnyitva — ha kell, oldd meg a Cloudflare-t abban az ablakban.");
+  return connectChrome(onProgress);
+}
+
+async function connectChrome(onProgress) {
+  const CDP_URL = "http://127.0.0.1:9222";
+  const browser = await chromium.connectOverCDP(CDP_URL);
+  const context = browser.contexts()[0];
+  if (!context) {
+    throw new Error("Chrome csatlakozott, de nincs nyitott lap.");
+  }
+  onProgress?.("Playwright csatlakozva a Chrome-hoz.");
+  return { context, browser, external: true };
+}
+
+async function openSession({ startUrl, onProgress }) {
   try {
-    context = await chromium.launchPersistentContext(PROFILE_DIR, { ...common, channel: "chrome" });
-  } catch {
-    context = await chromium.launchPersistentContext(PROFILE_DIR, common);
+    return await openChromeForImport(startUrl, { onProgress });
+  } catch (error) {
+    onProgress?.(`Chrome indítás sikertelen: ${error.message}`);
+    throw error;
+  }
+}
+
+async function getWorkingPage(context, startUrl) {
+  for (const page of context.pages()) {
+    if (/hasznaltauto\.hu/i.test(page.url())) return page;
   }
 
-  onProgress?.("Böngésző megnyitva — szükség esetén jelöld meg a Cloudflare-t.");
   const page = context.pages()[0] ?? (await context.newPage());
   if (startUrl && (!page.url() || page.url() === "about:blank")) {
     await page.goto(startUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
   }
-  return { context, external: false, browser: null };
-}
-
-async function getWorkingPage(context) {
-  for (const page of context.pages()) {
-    if (/hasznaltauto\.hu/i.test(page.url())) return page;
-  }
-  return context.pages()[0] ?? (await context.newPage());
+  return page;
 }
 
 async function waitForListingHtml(page) {
@@ -106,9 +128,9 @@ async function waitForListingHtml(page) {
     if (isContentReady(title, html, page.url()) && /hirdetesadatok|Alapadatok/i.test(html)) {
       return html;
     }
-    await sleep(1200);
+    await sleep(1500);
   }
-  throw new Error("Hirdetés oldal nem töltődött be.");
+  throw new Error("Hirdetés oldal nem töltődött be a Chrome-ban.");
 }
 
 async function collectListingUrls(page, listUrl, limit, onProgress) {
@@ -132,24 +154,24 @@ async function fetchListingForm(page, url, card, onProgress) {
   }
   const html = await waitForListingHtml(page);
   const parsed = parseListingHtml(html, { url });
-  const preview = mapCardPreview(card ?? { url }, parsed);
-  return preview;
+  return mapCardPreview(card ?? { url }, parsed);
 }
 
 export async function importListings(inputUrl, options = {}) {
   const limit = Math.min(Math.max(Number(options.limit) || 50, 1), 50);
   const onProgress = options.onProgress;
-  const connect = options.connect !== false;
   const url = normalizeInputUrl(inputUrl);
 
-  const session = await openSession({ connect, startUrl: url, onProgress });
+  const session = await openSession({ startUrl: url, onProgress });
   const items = [];
   const errors = [];
 
   try {
-    const page = await getWorkingPage(session.context);
+    const page = await getWorkingPage(session.context, url);
 
     if (isListingUrl(url)) {
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 }).catch(() => {});
+      await waitForAccess(page, onProgress);
       const item = await fetchListingForm(page, url, { url }, onProgress);
       items.push(item);
       return { listUrl: url, count: 1, items, errors };
@@ -161,13 +183,15 @@ export async function importListings(inputUrl, options = {}) {
 
     if (!/hasznaltauto\.hu/i.test(page.url()) || page.url() === "about:blank") {
       await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
-    } else if (page.url() !== url) {
+    } else if (!page.url().startsWith(url.split("?")[0].slice(0, 40))) {
       await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
     }
 
     const { urls, cards } = await collectListingUrls(page, url, limit, onProgress);
     if (urls.length === 0) {
-      throw new Error("Nem találtunk hirdetést a listán. Görgess le, vagy oldd meg a Cloudflare-t.");
+      throw new Error(
+        "Nem találtunk hirdetést. A Chrome ablakban görgess le a listán, oldd meg a Cloudflare-t, majd indítsd újra az importot."
+      );
     }
 
     const cardByUrl = new Map(cards.map((c) => [c.url, c]));
@@ -181,17 +205,12 @@ export async function importListings(inputUrl, options = {}) {
       } catch (error) {
         errors.push({ url: listingUrl, message: error.message ?? String(error) });
       }
-      await sleep(300);
+      await sleep(400);
     }
 
     return { listUrl: url, count: items.length, items, errors };
   } finally {
-    if (!session.external) {
-      await session.context.close().catch(() => {});
-      onProgress?.("Böngésző bezárva.");
-    } else {
-      onProgress?.("Chrome nyitva maradt.");
-    }
+    onProgress?.("Chrome nyitva maradt — bezárhatod kézzel, ha kész.");
   }
 }
 

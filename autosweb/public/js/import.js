@@ -4,6 +4,7 @@ export function initImportPanel({ form, onApply }) {
   const panel = document.getElementById("import-panel");
   const urlInput = document.getElementById("import-url");
   const startBtn = document.getElementById("import-start-btn");
+  const chromeBtn = document.getElementById("import-chrome-btn");
   const logEl = document.getElementById("import-log");
   const resultsEl = document.getElementById("import-results");
   const toggleBtn = document.getElementById("import-toggle-btn");
@@ -59,6 +60,39 @@ export function initImportPanel({ form, onApply }) {
     }
   }
 
+  async function openChromeOnly() {
+    const url = urlInput.value.trim() || "https://www.hasznaltauto.hu/szemelyauto";
+    if (chromeBtn) {
+      chromeBtn.disabled = true;
+      chromeBtn.textContent = "Chrome indul…";
+    }
+    appendLog("Google Chrome indítása…");
+    try {
+      const response = await fetch("/api/open-chrome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await response.json();
+      for (const line of data.logs ?? []) appendLog(line);
+      if (!response.ok) throw new Error(data.error || "Chrome nem indult el");
+      appendLog("Chrome megnyitva. Oldd meg a Cloudflare-t, majd: Import indítása.");
+    } catch (error) {
+      appendLog(`Hiba: ${error.message ?? error}`);
+      alert(
+        (error.message ?? "Chrome nem indult el") +
+          "\n\nTelepítve van a Google Chrome? Ha igen, engedélyezd a megnyitást."
+      );
+    } finally {
+      if (chromeBtn) {
+        chromeBtn.disabled = false;
+        chromeBtn.textContent = "Chrome megnyitása";
+      }
+    }
+  }
+
+  chromeBtn?.addEventListener("click", openChromeOnly);
+
   startBtn.addEventListener("click", async () => {
     if (importing) return;
     const url = urlInput.value.trim();
@@ -76,13 +110,13 @@ export function initImportPanel({ form, onApply }) {
     }
     if (resultsEl) resultsEl.hidden = true;
 
-    appendLog("Import indul — ha kell, oldd meg a Cloudflare-t a megnyíló böngészőben.");
+    appendLog("Import indul — megnyílik a Google Chrome (vagy a már futó Chrome-hoz csatlakozunk).");
 
     try {
       const response = await fetch("/api/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, limit: 50, connect: true }),
+        body: JSON.stringify({ url, limit: 50 }),
       });
 
       if (!response.ok && response.headers.get("content-type")?.includes("json")) {
