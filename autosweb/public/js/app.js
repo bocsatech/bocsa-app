@@ -1,4 +1,5 @@
 import { UZEMANYAG_CATEGORIES, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
+import { listMissingFormFields } from "./field-schema.js";
 
 const STORAGE_KEY = "hirdetes-local-draft";
 const form = document.getElementById("ad-form");
@@ -20,12 +21,15 @@ const successPanel = document.getElementById("success-panel");
 const TOTAL_STEPS = 5;
 const gyartasiEv = document.getElementById("gyartasi_ev");
 const muszakiEv = document.getElementById("muszaki_ev");
+const forgalombaHelyezesEv = document.getElementById("forgalomba_helyezes_ev");
 const gyartmany = document.getElementById("gyartmany");
 const modell = document.getElementById("modell");
 const tipus = document.getElementById("tipus");
 const hirdetesCime = document.getElementById("hirdetes_cime");
 const teljesitmenyKw = document.getElementById("teljesitmeny_kw");
+const teljesitmenyLe = document.getElementById("teljesitmeny_le");
 const leDisplay = document.getElementById("le-display");
+const electricFieldsCard = document.getElementById("electric-fields-card");
 const klima = document.getElementById("klima");
 const equipmentRoot = document.getElementById("equipment-sections");
 const uzemanyag = document.getElementById("uzemanyag");
@@ -142,6 +146,7 @@ function selectFuel(value, categoryId, subLabel = null) {
   const category = UZEMANYAG_CATEGORIES.find((item) => item.id === categoryId);
   const display = subLabel ? `${category?.label ?? ""} — ${subLabel}` : value;
   if (fuelSelected) fuelSelected.textContent = `Kiválasztva: ${display}`;
+  syncFuelDependentFields();
   saveDraft();
 }
 
@@ -213,10 +218,24 @@ function applyAutoFill() {
   fitAllFormFields();
 }
 
+function isElectricFuel(value) {
+  return String(value ?? "").toLowerCase().includes("elektromos");
+}
+
+function syncFuelDependentFields() {
+  const value = uzemanyag?.value ?? "";
+  const electric = isElectricFuel(value);
+  electricFieldsCard?.classList.toggle("hidden", !electric);
+  document.querySelectorAll(".fuel-combustion-only").forEach((el) => {
+    el.classList.toggle("hidden", electric);
+  });
+}
+
 function updateLeDisplay() {
   const kw = Number(teljesitmenyKw.value);
   const le = Number.isFinite(kw) ? Math.round(kw * 1.36) : 0;
   leDisplay.textContent = `(= ${le.toLocaleString("hu-HU")} LE)`;
+  if (teljesitmenyLe) teljesitmenyLe.value = le > 0 ? String(le) : "";
 }
 
 function updateTitle() {
@@ -242,6 +261,7 @@ function measureTextWidth(text, font) {
 
 function fitSelectWidth(select) {
   if (!select || select.tagName !== "SELECT") return;
+  if (document.body.classList.contains("theme-automax")) return;
   const style = getComputedStyle(select);
   const option = select.options[select.selectedIndex];
   const text = option?.text?.trim() || "—";
@@ -250,6 +270,7 @@ function fitSelectWidth(select) {
 
 function fitInputWidth(input) {
   if (!input || input.tagName !== "INPUT") return;
+  if (document.body.classList.contains("theme-automax")) return;
   if (input.type === "checkbox" || input.type === "radio" || input.type === "file") return;
   const style = getComputedStyle(input);
   const text = input.value?.trim() || input.placeholder?.trim() || " ";
@@ -402,6 +423,7 @@ function restoreDraft() {
     updateTitle();
     updateLeDisplay();
     restoreFuelSelection(data.uzemanyag);
+    syncFuelDependentFields();
   } catch {
     /* ignore */
   }
@@ -606,11 +628,18 @@ photoInput.addEventListener("change", () => {
 
 fillYearSelect(gyartasiEv);
 fillYearSelect(muszakiEv);
+fillYearSelect(forgalombaHelyezesEv);
 renderFuelSelector();
 renderKlimaOptions();
 renderEquipment();
 wrapMdOutlinedFields();
 restoreDraft();
+syncFuelDependentFields();
 renderPhotoPreview([]);
 fitAllFormFields();
 showStep(1);
+
+if (import.meta.env?.DEV) {
+  const missing = listMissingFormFields(form);
+  if (missing.length) console.warn("[autosweb] Hiányzó mezők a hasznaltauto.hu sémához képest:", missing);
+}

@@ -32,6 +32,16 @@ body.theme-automax {
   color: var(--ax-text);
 }
 
+body.theme-automax .inline-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+
+body.theme-automax .owner-flags .inline-checks {
+  align-items: center;
+}
+
 body.theme-automax .local-banner {
   background: #0a0a0a;
   color: #444;
@@ -436,11 +446,13 @@ body.theme-automax .local-banner {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.theme-automax .field-row--km {
+.theme-automax .field-row--km,
+.theme-automax .field-row--tipus {
   grid-template-columns: 1fr !important;
 }
 
-.theme-automax .field-row--km .labeled-field {
+.theme-automax .field-row--km .labeled-field,
+.theme-automax .field-row--tipus .labeled-field {
   max-width: calc(50% - 14px);
 }
 

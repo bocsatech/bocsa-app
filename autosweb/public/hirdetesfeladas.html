@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260717modellfix" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260717modellfix" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260718fields" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260718fields" />
   </head>
   <body class="theme-automax">
     <div class="local-banner" id="local-banner">LOCALHOST — nincs internetkapcsolat, csak helyi prototípus</div>
@@ -74,6 +74,18 @@
                     </div>
                   </div>
                   <div class="labeled-field">
+                    <label for="forgalomba_helyezes_ev">Első magyarországi forgalomba helyezés:</label>
+                    <div class="inline-2">
+                      <select id="forgalomba_helyezes_ev" name="forgalomba_helyezes_ev"></select>
+                      <select id="forgalomba_helyezes_honap" name="forgalomba_helyezes_honap">
+                        <option value="">hó</option>
+                        <option>1</option><option>2</option><option>3</option><option>4</option>
+                        <option>5</option><option>6</option><option>7</option><option>8</option>
+                        <option>9</option><option>10</option><option>11</option><option>12</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="labeled-field">
                     <label for="muszaki_ev">Műszaki vizsga érvényes:</label>
                     <div class="inline-2">
                       <select id="muszaki_ev" name="muszaki_ev"></select>
@@ -85,6 +97,9 @@
                       </select>
                     </div>
                   </div>
+                </div>
+
+                <div class="field-row full field-row--pair">
                   <div class="labeled-field">
                     <label for="allapot">Állapot: <span class="req">*</span></label>
                     <select id="allapot" name="allapot" required>
@@ -93,6 +108,16 @@
                       <option>Újszerű</option>
                       <option>Sérülésmentes</option>
                       <option>Sérült</option>
+                    </select>
+                  </div>
+                  <div class="labeled-field">
+                    <label for="tulajdonosok_szama">Tulajdonosok száma:</label>
+                    <select id="tulajdonosok_szama" name="tulajdonosok_szama">
+                      <option value="">—</option>
+                      <option>1</option>
+                      <option>2</option>
+                      <option>3</option>
+                      <option>4+</option>
                     </select>
                   </div>
                 </div>
@@ -178,6 +203,17 @@
                     </div>
                   </div>
                 </div>
+
+                <div class="field-row full field-row--pair">
+                  <div class="labeled-field">
+                    <label for="alvazszam">Alvázszám (VIN): <a href="#" class="help-link">Segítség</a></label>
+                    <input id="alvazszam" name="alvazszam" type="text" maxlength="17" autocomplete="off" />
+                  </div>
+                  <div class="labeled-field">
+                    <label for="rendszam">Rendszám:</label>
+                    <input id="rendszam" name="rendszam" type="text" maxlength="8" autocomplete="off" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -210,10 +246,35 @@
                   <input id="teljesitmeny_kw" name="teljesitmeny_kw" type="number" class="auto-filled" />
                   <span>kW</span>
                   <span id="le-display" class="hint-inline">(= 0 LE)</span>
+                  <input type="hidden" id="teljesitmeny_le" name="teljesitmeny_le" />
                 </div>
 
                 <label for="kornyezetvedelmi">Környezetvédelmi oszt.: <a href="#" class="help-link">Segítség</a></label>
                 <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" />
+
+                <label for="co2_kibocsatas" class="fuel-combustion-only">CO₂-kibocsátás:</label>
+                <div class="suffix-field fuel-combustion-only">
+                  <input id="co2_kibocsatas" name="co2_kibocsatas" type="number" min="0" step="1" />
+                  <span>g/km</span>
+                </div>
+
+                <label for="fogyasztas_varosi" class="fuel-combustion-only">Városi fogyasztás:</label>
+                <div class="suffix-field fuel-combustion-only">
+                  <input id="fogyasztas_varosi" name="fogyasztas_varosi" type="number" min="0" step="0.1" />
+                  <span>l/100 km</span>
+                </div>
+
+                <label for="fogyasztas_orszaguti" class="fuel-combustion-only">Országúti fogyasztás:</label>
+                <div class="suffix-field fuel-combustion-only">
+                  <input id="fogyasztas_orszaguti" name="fogyasztas_orszaguti" type="number" min="0" step="0.1" />
+                  <span>l/100 km</span>
+                </div>
+
+                <label for="fogyasztas_kombinalt" class="fuel-combustion-only">Kombinált fogyasztás:</label>
+                <div class="suffix-field fuel-combustion-only">
+                  <input id="fogyasztas_kombinalt" name="fogyasztas_kombinalt" type="number" min="0" step="0.1" />
+                  <span>l/100 km</span>
+                </div>
 
                 <label for="sebessegvalto">Sebességváltó:</label>
                 <div>
@@ -285,6 +346,32 @@
             </div>
           </div>
 
+          <div class="card fuel-electric-only hidden" id="electric-fields-card">
+            <div class="card-head">Elektromos / hibrid adatok</div>
+            <div class="card-body form-grid">
+              <label for="akkumulator_kwh">Akkumulátor kapacitás:</label>
+              <div class="suffix-field">
+                <input id="akkumulator_kwh" name="akkumulator_kwh" type="number" min="0" step="0.1" />
+                <span>kWh</span>
+              </div>
+
+              <label for="hatotav">Hatótáv:</label>
+              <div class="suffix-field">
+                <input id="hatotav" name="hatotav" type="number" min="0" step="1" />
+                <span>km</span>
+              </div>
+
+              <label for="tolto_csatlakozas">Töltőcsatlakozó:</label>
+              <select id="tolto_csatlakozas" name="tolto_csatlakozas">
+                <option value="">—</option>
+                <option>Type 2</option>
+                <option>CCS</option>
+                <option>CHAdeMO</option>
+                <option>Schuko / hálózati</option>
+              </select>
+            </div>
+          </div>
+
           <div class="card">
             <div class="card-head">Gumi méretek</div>
             <div class="card-body form-grid">
@@ -339,6 +426,13 @@
                   <option value="">—</option>
                 </select>
               </div>
+              <div class="form-grid compact owner-flags">
+                <label>Tulajdonos jellemzők:</label>
+                <div class="inline-checks">
+                  <label class="check inline-check"><input type="checkbox" name="nem_dohanyzo" value="1" /> nem dohányzó autó</label>
+                  <label class="check inline-check"><input type="checkbox" name="holgy_tulajdonos" value="1" /> hölgy tulajdonostól</label>
+                </div>
+              </div>
               <div id="equipment-sections"></div>
             </div>
           </div>
@@ -372,6 +466,25 @@
                   <input id="akcios_ar" name="akcios_ar" type="number" min="0" step="1000" />
                   <span>Ft</span>
                 </div>
+
+                <label for="vetelar_eur">Ár (EUR):</label>
+                <div class="suffix-field">
+                  <input id="vetelar_eur" name="vetelar_eur" type="number" min="0" step="1" />
+                  <span>EUR</span>
+                </div>
+
+                <label for="forgalomba_helyezes_ar">Forgalomba helyezés ára:</label>
+                <div class="suffix-field">
+                  <input id="forgalomba_helyezes_ar" name="forgalomba_helyezes_ar" type="number" min="0" step="1000" />
+                  <span>Ft</span>
+                </div>
+
+                <label>Ár jellemzők:</label>
+                <div class="inline-checks">
+                  <label class="check inline-check"><input type="checkbox" name="alkudhato" value="1" /> alkudható</label>
+                  <label class="check inline-check"><input type="checkbox" name="csere" value="1" /> csere érdekel</label>
+                </div>
+
                 <div class="full hint">
                   Megjelenítheti és figyelemfelkeltő színnel kiemelheti az akciós árat a találati listában fizetős
                   szolgáltatásunk igénybevételével.
@@ -432,6 +545,9 @@
                   <input id="telepules" name="telepules" type="text" placeholder="település" required />
                 </div>
 
+                <label for="iranyitoszam">Irányítószám:</label>
+                <input id="iranyitoszam" name="iranyitoszam" type="text" inputmode="numeric" maxlength="4" placeholder="pl. 1011" />
+
                 <label for="megtekintesi_cim">Megtekintési cím:</label>
                 <div>
                   <input id="megtekintesi_cim" name="megtekintesi_cim" type="text" />
@@ -461,9 +577,24 @@
                   <span>/</span>
                   <input name="telefon2_szam" type="text" class="phone-part wide" />
                 </div>
+
+                <label>3. Telefonszám:</label>
+                <div class="phone-row">
+                  <input name="telefon3_orszag" type="text" value="+36" class="phone-part" />
+                  <span>/</span>
+                  <input name="telefon3_korzet" type="text" class="phone-part" />
+                  <span>/</span>
+                  <input name="telefon3_szam" type="text" class="phone-part wide" />
+                </div>
+
+                <label for="video_url">Videó link (YouTube):</label>
+                <input id="video_url" name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
               </div>
             </div>
           </div>
+
+          <input type="hidden" id="forras_url" name="forras_url" />
+          <input type="hidden" id="hasznaltauto_hirdetes_id" name="hasznaltauto_hirdetes_id" />
 
           <div class="card hidden" id="success-panel">
             <div class="card-body success-box">
@@ -545,6 +676,6 @@
       </aside>
     </main>
 
-    <script src="/js/app.js?v=automax20260717modellfix" type="module"></script>
+    <script src="/js/app.js?v=automax20260718fields" type="module"></script>
   </body>
 </html>
