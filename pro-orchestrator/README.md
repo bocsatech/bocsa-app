@@ -9,6 +9,8 @@
 | Willhaben Pro | `willhaben pro` |
 | Hasznaltauto Pro | `hasznaltauto pro` |
 
+**Linux (BOCSA Pro):** `~/Downloads/bocsa Pro linux/` — telepítő: `pro-orchestrator/linux/telepites.sh`
+
 Telepítő: `docs/DOWNLOADS-MAP.md` vagy:
 
 ```bash
