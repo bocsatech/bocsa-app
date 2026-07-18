@@ -1,5 +1,6 @@
 import { pickValue, cleanText, normalizeKey } from "./parse-listing.mjs";
 import { extractOdometerKm, kmDigitsFromValue } from "./extract-km.mjs";
+import { applyMuszakiFields, mapEquipmentFromBadges } from "./map-tech.mjs";
 
 const COUNTY_NAMES = [
   "Budapest",
@@ -169,30 +170,6 @@ function inferKivitelFromText(...texts) {
   if (v.includes("kupe") || v.includes("coupe")) return "Kupé";
   if (v.includes("cabrio")) return "Cabrio";
   return "";
-}
-
-function mapFelszereltseg(badges = [], html = "") {
-  const known = [
-    "könnyűfém felni", "automata", "klíma", "bőr belső", "tolatóradar", "tolatókamera",
-    "navigáció", "bluetooth", "tempomat", "fűthető ülés", "elektromos ablak", "szervokormány",
-    "centrálzár", "riasztó", "vonóhorog", "sportülések", "xenon", "led", "start-stop",
-  ];
-  const found = new Set();
-  const hay = normalizeKey([...badges, html].join(" "));
-
-  for (const item of known) {
-    const key = normalizeKey(item);
-    if (hay.includes(key) || badges.some((b) => normalizeKey(b).includes(key) || key.includes(normalizeKey(b)))) {
-      found.add(item);
-    }
-  }
-
-  for (const badge of badges) {
-    const b = cleanText(badge);
-    if (b.length > 2 && b.length < 50) found.add(b);
-  }
-
-  return [...found];
 }
 
 export const REQUIRED_FORM_FIELDS = [
@@ -376,7 +353,10 @@ export function mapListingToForm(parsed) {
 
   applyRequiredDefaults(data, parsed, titleParts, m);
 
-  const felszereltseg = mapFelszereltseg(parsed.felszereltseg ?? [], parsed.leiras ?? "");
+  const badges = parsed.felszereltseg ?? [];
+  applyMuszakiFields(data, parsed, m, badges);
+
+  const felszereltseg = mapEquipmentFromBadges(badges, [parsed.leiras, parsed.cardText].filter(Boolean).join(" "));
   if (felszereltseg.length) data.felszereltseg = felszereltseg;
 
   return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== "" && value != null));

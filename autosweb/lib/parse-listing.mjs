@@ -1,5 +1,6 @@
 import { shortUrl } from "./url-utils.mjs";
 import { extractOdometerKm, formatKmDisplay } from "./extract-km.mjs";
+import { parseSummarySpecs } from "./map-tech.mjs";
 
 const PHONE_RE = /(?:\+36|06)\s*[\d\s/-]{7,14}\d/;
 
@@ -232,6 +233,44 @@ export function parseListingHtml(html, { url = "", phone = null } = {}) {
   };
 }
 
+const CARD_BADGE_TOKENS = [
+  "AUTOMATA",
+  "MANUÁLIS",
+  "MANUALIS",
+  "ALUFELNI",
+  "BLUETOOTH",
+  "KLÍMA",
+  "KLIMA",
+  "TEMPOMAT",
+  "NAVIGÁCIÓ",
+  "NAVIGACIO",
+  "BŐR",
+  "XENON",
+  "LED",
+  "VONÓHOROG",
+  "VONOHOROG",
+  "GARANCIÁLIS",
+  "GARANCIALIS",
+  "KEVESET FUTOTT",
+  "NEM DOHÁNYZÓ",
+  "NEM DOHANYZO",
+  "TOLATÓRADAR",
+  "TOLATORADAR",
+  "TOLATÓKAMERA",
+  "TOLATOKAMERA",
+  "START-STOP",
+];
+
+function extractBadgesFromText(text) {
+  if (!text) return [];
+  const hay = normalizeKey(text);
+  const found = [];
+  for (const token of CARD_BADGE_TOKENS) {
+    if (hay.includes(normalizeKey(token))) found.push(token);
+  }
+  return found;
+}
+
 function parseSummaryLine(text) {
   const map = {};
   if (!text) return map;
@@ -246,20 +285,19 @@ function parseSummaryLine(text) {
     map.Évjárat = yearMatch[2] ? `${yearMatch[1]}/${yearMatch[2]}` : yearMatch[1];
   }
 
-  const kmMatch = text.match(/(\d[\d\s.]{1,12})\s*km\b/i);
-  if (kmMatch) map.Futásteljesítmény = `${kmMatch[1].trim()} km`;
-  else {
+  const kmMatches = [...text.matchAll(/(\d[\d\s.]{1,12})\s*km\b/gi)];
+  for (const match of kmMatches) {
+    const before = text.slice(Math.max(0, match.index - 8), match.index);
+    if (/\bLE,\s*$/i.test(before)) continue;
+    map.Futásteljesítmény = `${match[1].trim()} km`;
+    break;
+  }
+  if (!map.Futásteljesítmény) {
     const zero = /\b0\s*[- ]?kmes\b/i.test(text) || /\b0\s*km[- ]?es\b/i.test(text);
     if (zero) map.Futásteljesítmény = "0 km";
   }
 
-  const ccMatch = text.match(/([\d\s.]+)\s*cm³/i);
-  if (ccMatch) map.Hengerűrtartalom = ccMatch[1].replace(/\s/g, "");
-
-  const powerMatch = text.match(/([\d.,]+)\s*kW/i);
-  if (powerMatch) map.Teljesítmény = `${powerMatch[1]} kW`;
-
-  return map;
+  return { ...parseSummarySpecs(text), ...map };
 }
 
 export function mergeParsedListing(detail, card) {
@@ -278,6 +316,11 @@ export function mergeParsedListing(detail, card) {
     texts: [detail.cim, detail.leiras, card?.text, card?.title, cardParsed.km, detail.km],
   });
 
+  const cardBadges = extractBadgesFromText(card?.text ?? "");
+  const felszereltseg = [
+    ...new Set([...(detail.felszereltseg ?? []), ...(cardParsed.felszereltseg ?? []), ...cardBadges]),
+  ];
+
   return {
     ...detail,
     cim: detail.cim || cardParsed.cim,
@@ -286,6 +329,8 @@ export function mergeParsedListing(detail, card) {
     evjarat: detail.evjarat || cardParsed.evjarat,
     jarmuTipus: detail.jarmuTipus || cardParsed.jarmuTipus,
     telefonszam: detail.telefonszam || cardParsed.telefonszam,
+    felszereltseg: felszereltseg.length ? felszereltseg : detail.felszereltseg,
+    cardText: card?.text ?? "",
     nyersAdatok: mergedAttrs,
   };
 }
@@ -308,6 +353,8 @@ export function parseListingCard({ url, text, title }) {
     texts: [text, title, source],
   });
 
+  const felszereltseg = extractBadgesFromText(source);
+
   return {
     url: cleanText(url),
     jarmuTipus: jarmuTipus || null,
@@ -317,6 +364,8 @@ export function parseListingCard({ url, text, title }) {
     telefonszam: phoneMatch ? cleanText(phoneMatch[0]) : null,
     cim: cleanText(title) || null,
     forras: "lista oldal",
+    felszereltseg: felszereltseg.length ? felszereltseg : undefined,
+    cardText: cleanText(text) || undefined,
     nyersAdatok: summaryMap,
   };
 }
