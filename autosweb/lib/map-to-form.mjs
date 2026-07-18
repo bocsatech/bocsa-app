@@ -1,6 +1,6 @@
 import { pickValue, cleanText, normalizeKey } from "./parse-listing.mjs";
 import { extractOdometerKm, kmDigitsFromValue } from "./extract-km.mjs";
-import { applyMuszakiFields, mapEquipmentFromBadges } from "./map-tech.mjs";
+import { applyMuszakiFields, applyExtrakFields } from "./map-tech.mjs";
 
 const COUNTY_NAMES = [
   "Budapest",
@@ -355,9 +355,7 @@ export function mapListingToForm(parsed) {
 
   const badges = parsed.felszereltseg ?? [];
   applyMuszakiFields(data, parsed, m, badges);
-
-  const felszereltseg = mapEquipmentFromBadges(badges, [parsed.leiras, parsed.cardText].filter(Boolean).join(" "));
-  if (felszereltseg.length) data.felszereltseg = felszereltseg;
+  applyExtrakFields(data, parsed, m, badges);
 
   return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== "" && value != null));
 }

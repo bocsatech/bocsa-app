@@ -7,7 +7,7 @@ test("lista kártya összefoglaló → kötelező mezők", () => {
   const card = parseListingCard({
     url: "https://www.hasznaltauto.hu/szemelyauto/ford/kuga/test-99999999",
     title: "FORD KUGA 2.5 PHEV ST-Line CVT",
-    text: "10 999 000 Ft Hibrid (Benzin), 2023/7, 2 488 cm³, 112 kW, 152 LE, 50 km AUTOMATA ALUFELNI",
+    text: "10 999 000 Ft Hibrid (Benzin), 2023/7, 2 488 cm³, 112 kW, 152 LE, 50 km AUTOMATA ALUFELNI BLUETOOTH KLÍMA",
   });
   const form = mapListingToForm({
     url: card.url,
@@ -32,6 +32,8 @@ test("lista kártya összefoglaló → kötelező mezők", () => {
   assert.equal(form.sebessegvalto, "Fokozatmentes automata");
   assert.equal(form.hatotav, "50");
   assert.ok(form.felszereltseg?.includes("könnyűfém felni"));
+  assert.equal(form.klima, "automata klíma");
+  assert.ok(form.felszereltseg?.includes("bluetooth-os kihangosító"));
 });
 
 test("km: 45 000 km a listában, 50 km hatótáv az összefoglalóban", () => {

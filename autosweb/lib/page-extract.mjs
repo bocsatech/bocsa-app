@@ -180,11 +180,26 @@ export async function extractListingFromPage(page) {
       ".hirdetes-extra",
       ".talalati-sor .badge",
       ".feature-badge",
+      ".hirdetes-felszereltseg li",
+      ".felszereltseg-list li",
+      "[class*='extra'] li",
+      ".extranev",
     ];
     for (const selector of badgeSelectors) {
       for (const node of document.querySelectorAll(selector)) {
         const text = clean(node.innerText);
         if (text && text.length <= 60 && !felszereltseg.includes(text)) felszereltseg.push(text);
+      }
+    }
+
+    for (const section of document.querySelectorAll("[class*='felszer'], [class*='extra'], section")) {
+      const heading = clean(section.querySelector("h2, h3, h4, strong")?.innerText ?? "");
+      if (!/felszer|extra|további/i.test(heading)) continue;
+      for (const item of section.querySelectorAll("li, span, label")) {
+        const text = clean(item.innerText);
+        if (text.length > 2 && text.length <= 60 && !felszereltseg.includes(text)) {
+          felszereltseg.push(text);
+        }
       }
     }
 
@@ -231,7 +246,7 @@ export function mergePageExtract(parsed, extracted) {
     cim: parsed.cim || extracted.title || "",
     leiras: parsed.leiras || extracted.leiras || "",
     telefonszam: parsed.telefonszam || extracted.phone || parsed.telefonszam,
-    felszereltseg: extracted.felszereltseg?.length ? extracted.felszereltseg : parsed.felszereltseg,
+    felszereltseg: [...new Set([...(parsed.felszereltseg ?? []), ...(extracted.felszereltseg ?? [])])],
     nyersAdatok: mergedMap,
   };
 }

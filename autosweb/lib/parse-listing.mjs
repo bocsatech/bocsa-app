@@ -197,6 +197,34 @@ export function parseDescription(html) {
   return null;
 }
 
+function parseEquipmentFromHtml(html) {
+  const items = [];
+  const patterns = [
+    /class="[^"]*(?:extra-badge|tooltip-badge|feature-badge)[^"]*"[^>]*>([^<]{2,60})</gi,
+    /class="[^"]*felszer[^"]*"[^>]*>([^<]{2,80})</gi,
+    /data-(?:extra|feature)="([^"]{2,80})"/gi,
+  ];
+
+  for (const pattern of patterns) {
+    for (const match of html.matchAll(pattern)) {
+      const text = cleanText(match[1]);
+      if (text && !items.includes(text)) items.push(text);
+    }
+  }
+
+  const felszerBlock = html.match(/Felszereltség[\s\S]{0,4000}?<\/(?:section|div)>/i);
+  if (felszerBlock) {
+    for (const match of felszerBlock[0].matchAll(/>([^<]{2,60})</g)) {
+      const text = cleanText(match[1]);
+      if (text.length > 2 && text.length < 60 && !/felszereltség|extra|további/i.test(text)) {
+        if (!items.includes(text)) items.push(text);
+      }
+    }
+  }
+
+  return items;
+}
+
 export function parseListingHtml(html, { url = "", phone = null } = {}) {
   const attributeMap = {
     ...parseJsonLd(html),
@@ -219,6 +247,7 @@ export function parseListingHtml(html, { url = "", phone = null } = {}) {
   const km = kmDigits ? formatKmDisplay(kmDigits) : extractKm(pickValue(attributeMap, KM_KEYS));
   const telefonszam = phone ?? extractPhone(html);
   const leiras = parseDescription(html);
+  const felszereltseg = parseEquipmentFromHtml(html);
 
   return {
     url: cleanText(url),
@@ -229,6 +258,7 @@ export function parseListingHtml(html, { url = "", phone = null } = {}) {
     telefonszam,
     cim: title,
     leiras,
+    felszereltseg: felszereltseg.length ? felszereltseg : undefined,
     nyersAdatok: attributeMap,
   };
 }
@@ -259,6 +289,28 @@ const CARD_BADGE_TOKENS = [
   "TOLATÓKAMERA",
   "TOLATOKAMERA",
   "START-STOP",
+  "FULL EXTRA",
+  "CARPLAY",
+  "ANDROID AUTO",
+  "KEYLESS",
+  "FŰTHETŐ ÜLÉS",
+  "FŰTHETŐ KORMÁNY",
+  "SPORTÜLÉS",
+  "CENTRÁLZÁR",
+  "SZERVOKORMÁNY",
+  "ISOFIX",
+  "ESP",
+  "ABS",
+  "USB",
+  "360 KAMERA",
+  "SÁVTARTÓ",
+  "IMMOBILISER",
+  "DIGITÁLIS KLÍMA",
+  "DIGITALIS KLIMA",
+  "GARÁZS",
+  "SZERVIZKÖNYV",
+  "ÁFÁS",
+  "AFAS",
 ];
 
 function extractBadgesFromText(text) {

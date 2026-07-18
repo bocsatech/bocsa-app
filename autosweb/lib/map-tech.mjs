@@ -1,21 +1,5 @@
 import { cleanText, normalizeKey, pickValue } from "./parse-listing.mjs";
-
-const EQUIPMENT_ALIASES = [
-  ["könnyűfém felni", ["alufelni", "aluminium felni", "könnyűfém"]],
-  ["bluetooth-os kihangosító", ["bluetooth"]],
-  ["tempomat", ["tempomat", "sebességtartó"]],
-  ["tolatóradar", ["parkolóradar", "radar", "parkassist"]],
-  ["tolatókamera", ["tolatókamera", "kamera", "rear view"]],
-  ["bőr belső", ["bőr", "bőrkarpit", "bőr ülés"]],
-  ["LED fényszóró", ["led", "ledes"]],
-  ["xenon fényszóró", ["xenon"]],
-  ["start-stop/motormegállító rendszer", ["start-stop", "start stop"]],
-  ["vonóhorog", ["vonóhorog", "towbar"]],
-  ["GPS (navigáció)", ["navigáció", "navigation", "gps"]],
-  ["garanciális", ["garanciális", "garancia"]],
-  ["keveset futott", ["keveset futott"]],
-  ["nem dohányzó", ["nem dohányzó", "nem dohanyzo"]],
-];
+import { ALL_FORM_EQUIPMENT, EQUIPMENT_ALIASES, KLIM_OPTIONS } from "./equipment-catalog.mjs";
 
 export function parseSummarySpecs(text) {
   const map = {};
@@ -88,40 +72,102 @@ export function mapHengerElrendezes(value) {
   return cleanText(value);
 }
 
-export function mapKlima(value, badges = []) {
-  const v = normalizeKey([value, ...badges].filter(Boolean).join(" "));
+export function mapKlima(value, badges = [], extraText = "") {
+  const v = normalizeKey([value, ...badges, extraText].filter(Boolean).join(" "));
   if (!v) return "";
+  if (v.includes("hoszivattyu") || v.includes("hőszivattyú")) return "hőszivattyús klíma";
   if (v.includes("tobbzona") || v.includes("többzónás")) return "digitális többzónás klíma";
   if (v.includes("ketzone") || v.includes("kétzónás")) return "digitális kétzónás klíma";
   if (v.includes("digitalis") || v.includes("digitális")) return "digitális klíma";
+  if (v.includes("manualis") && v.includes("klima")) return "manuális klíma";
   if (v.includes("automata") && v.includes("klima")) return "automata klíma";
-  if (v.includes("klima") || v.includes("klíma")) return "automata klíma";
+  if (/\bklima\b|\bklíma\b/.test(v) && !v.includes("nincs")) return "automata klíma";
   return "";
 }
 
-export function mapEquipmentFromBadges(badges = [], extraText = "") {
+function hayIncludes(hay, token) {
+  const key = normalizeKey(token);
+  if (!key || key.length < 2) return false;
+  return hay.includes(key);
+}
+
+function matchAlias(hay, canonical, aliases) {
+  if (hayIncludes(hay, canonical)) return true;
+  return aliases.some((alias) => hayIncludes(hay, alias));
+}
+
+export function splitEquipmentTokens(text) {
+  if (!text) return [];
+  return String(text)
+    .split(/[,;|•·\n/]+/)
+    .map((part) => cleanText(part))
+    .filter((part) => part.length > 1 && part.length < 80);
+}
+
+export function mapEquipmentFromSources({ badges = [], texts = [] } = {}) {
   const found = new Set();
-  const hay = normalizeKey([...badges, extraText].join(" "));
+  const parts = [...badges, ...texts.flatMap((text) => splitEquipmentTokens(text)), ...texts];
+  const hay = normalizeKey(parts.filter(Boolean).join(" "));
 
   for (const [canonical, aliases] of EQUIPMENT_ALIASES) {
-    if (hay.includes(normalizeKey(canonical))) {
-      found.add(canonical);
-      continue;
-    }
-    for (const alias of aliases) {
-      if (hay.includes(normalizeKey(alias))) {
-        found.add(canonical);
-        break;
-      }
-    }
+    if (matchAlias(hay, canonical, aliases)) found.add(canonical);
   }
 
-  for (const badge of badges) {
-    const b = cleanText(badge);
-    if (b.length > 2 && b.length < 60) found.add(b);
+  const sorted = [...ALL_FORM_EQUIPMENT].sort((a, b) => b.length - a.length);
+  for (const item of sorted) {
+    if (hayIncludes(hay, item)) found.add(item);
   }
 
   return [...found];
+}
+
+export function mapEquipmentFromBadges(badges = [], extraText = "") {
+  return mapEquipmentFromSources({ badges, texts: extraText ? [extraText] : [] });
+}
+
+export function mapOwnerFlags(texts = []) {
+  const hay = normalizeKey(texts.filter(Boolean).join(" "));
+  return {
+    nem_dohanyzo: /\bnem dohanyzo\b|dohanyzasmentes/.test(hay) ? "1" : "",
+    holgy_tulajdonos: /\bholgy tulajdon|noi tulajdon|asszony tulajdon/.test(hay) ? "1" : "",
+  };
+}
+
+export function applyExtrakFields(data, parsed, m, badges = []) {
+  const textSources = [
+    parsed.leiras,
+    parsed.cardText,
+    pickValue(m, ["felszereltség", "felszereltseg", "extrák", "extrak", "extra felszereltség"]),
+    pickValue(m, ["klíma", "klima", "klíma felszereltség", "klima felszereltseg"]),
+    ...badges,
+  ].filter(Boolean);
+
+  const equipment = mapEquipmentFromSources({
+    badges,
+    texts: textSources,
+  });
+
+  if (equipment.length) {
+    data.felszereltseg = equipment;
+  }
+
+  const klimaRaw = pickValue(m, ["klíma", "klima", "klíma felszereltség", "klima felszereltseg"]);
+  const klima = mapKlima(klimaRaw, badges, textSources.join(" "));
+  if (klima && KLIM_OPTIONS.includes(klima)) {
+    data.klima = klima;
+  } else if (!data.klima && /\bklima\b|\bklíma\b/i.test(textSources.join(" "))) {
+    data.klima = "automata klíma";
+  }
+
+  const flags = mapOwnerFlags(textSources);
+  if (flags.nem_dohanyzo) data.nem_dohanyzo = flags.nem_dohanyzo;
+  if (flags.holgy_tulajdonos) data.holgy_tulajdonos = flags.holgy_tulajdonos;
+
+  if (equipment.includes("nem dohányzó") && !data.nem_dohanyzo) {
+    data.nem_dohanyzo = "1";
+  }
+
+  return data;
 }
 
 export function applyMuszakiFields(data, parsed, m, badges = []) {
@@ -196,7 +242,7 @@ export function applyMuszakiFields(data, parsed, m, badges = []) {
     data.tolto_csatlakozas = pickValue(merged, ["töltőcsatlakozó", "tolto csatlakozas", "töltő csatlakozó"]);
   }
   if (!data.klima) {
-    data.klima = mapKlima(pickValue(merged, ["klíma", "klima", "klíma felszereltség"]), badges);
+    data.klima = mapKlima(pickValue(merged, ["klíma", "klima", "klíma felszereltség"]), badges, hints);
   }
 
   return data;

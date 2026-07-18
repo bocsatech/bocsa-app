@@ -4,7 +4,10 @@ import {
   parseSummarySpecs,
   mapSebessegvalto,
   mapEquipmentFromBadges,
+  mapEquipmentFromSources,
   applyMuszakiFields,
+  applyExtrakFields,
+  mapOwnerFlags,
 } from "./map-tech.mjs";
 
 test("parseSummarySpecs: cm³, kW, LE, CVT, hatótáv", () => {
@@ -33,6 +36,40 @@ test("mapEquipmentFromBadges: alufelni és bluetooth", () => {
   const items = mapEquipmentFromBadges(["ALUFELNI", "BLUETOOTH"], "");
   assert.ok(items.includes("könnyűfém felni"));
   assert.ok(items.includes("bluetooth-os kihangosító"));
+});
+
+test("applyExtrakFields: badge-ek, klíma, nem dohányzó", () => {
+  const data = {};
+  const parsed = {
+    leiras: "Garanciális, nem dohányzó autó. Tempomat, navigáció, bluetooth.",
+    cardText: "AUTOMATA ALUFELNI BLUETOOTH KLÍMA",
+    felszereltseg: ["AUTOMATA", "ALUFELNI", "BLUETOOTH", "KLÍMA", "TEMPOMAT"],
+  };
+
+  applyExtrakFields(data, parsed, {}, parsed.felszereltseg);
+
+  assert.equal(data.klima, "automata klíma");
+  assert.equal(data.nem_dohanyzo, "1");
+  assert.ok(data.felszereltseg.includes("könnyűfém felni"));
+  assert.ok(data.felszereltseg.includes("bluetooth-os kihangosító"));
+  assert.ok(data.felszereltseg.includes("tempomat"));
+  assert.ok(data.felszereltseg.includes("GPS (navigáció)"));
+});
+
+test("mapEquipmentFromSources: felszereltség lista mezőből", () => {
+  const items = mapEquipmentFromSources({
+    texts: ["tempomat, LED fényszóró, Apple CarPlay, ESP, ABS"],
+  });
+  assert.ok(items.includes("tempomat"));
+  assert.ok(items.includes("LED fényszóró"));
+  assert.ok(items.includes("Apple CarPlay"));
+  assert.ok(items.includes("ESP (menetstabilizátor)"));
+  assert.ok(items.includes("ABS (blokkolásgátló)"));
+});
+
+test("mapOwnerFlags: hölgy tulajdonos", () => {
+  const flags = mapOwnerFlags(["Hölgy tulajdonostól eladó"]);
+  assert.equal(flags.holgy_tulajdonos, "1");
 });
 
 test("applyMuszakiFields: lista összefoglalóból kitölt", () => {
