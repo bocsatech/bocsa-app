@@ -1,6 +1,6 @@
-import { spawn, execSync } from "child_process";
-import { existsSync, mkdirSync } from "fs";
-import { join } from "path";
+import { spawn } from "child_process";
+import { existsSync, mkdirSync, readFileSync } from "fs";
+import { join, resolve } from "path";
 
 const DEFAULT_PORT = 9222;
 
@@ -17,7 +17,19 @@ export function findChromeExecutable() {
 }
 
 export function getChromeProfileDir() {
-  return join(process.cwd(), ".chrome-import-profile");
+  return resolve(process.cwd(), ".chrome-import-profile");
+}
+
+export function readCdpPortFromProfile(profileDir) {
+  const filePath = join(profileDir, "DevToolsActivePort");
+  if (!existsSync(filePath)) return null;
+  try {
+    const line = readFileSync(filePath, "utf8").split("\n")[0]?.trim() ?? "";
+    const port = Number.parseInt(line, 10);
+    return Number.isFinite(port) && port > 0 ? port : null;
+  } catch {
+    return null;
+  }
 }
 
 export function startChromeWithDebugging(startUrl, port = DEFAULT_PORT) {
@@ -34,22 +46,14 @@ export function startChromeWithDebugging(startUrl, port = DEFAULT_PORT) {
   const args = [
     `--remote-debugging-port=${port}`,
     `--user-data-dir=${profileDir}`,
+    "--remote-allow-origins=*",
     "--no-first-run",
     "--no-default-browser-check",
+    "--disable-features=TranslateUI",
     startUrl,
   ];
 
-  // macOS: `open -na` megbízhatóbban indítja a Chrome-ot (Dock, Gatekeeper).
-  if (process.platform === "darwin" && chromePath.includes(".app/")) {
-    const appName = /Chromium/i.test(chromePath) ? "Chromium" : "Google Chrome";
-    const child = spawn("open", ["-na", appName, "--args", ...args], {
-      detached: true,
-      stdio: "ignore",
-    });
-    child.unref();
-    return { chromePath, profileDir, startUrl, port, viaOpen: true };
-  }
-
+  // Közvetlen bináris indítás — a hasznaltauto-scraper módszere (open -na nem adja át megbízhatóan a CDP-t).
   const child = spawn(chromePath, args, { detached: true, stdio: "ignore" });
   child.unref();
 
@@ -67,14 +71,26 @@ export async function isCdpReady(port = DEFAULT_PORT) {
   }
 }
 
-export async function waitForCdpReady(port = DEFAULT_PORT, { timeoutMs = 45000, onProgress } = {}) {
-  const cdpUrl = `http://127.0.0.1:${port}`;
+export async function waitForCdpReady(port = DEFAULT_PORT, { profileDir, timeoutMs = 90000, onProgress } = {}) {
   const started = Date.now();
+  let reportedFilePort = false;
 
   while (Date.now() - started < timeoutMs) {
-    if (await isCdpReady(port)) return cdpUrl;
-    onProgress?.("Várakozás: Chrome indul…");
-    await sleep(1500);
+    if (await isCdpReady(port)) return port;
+
+    if (profileDir) {
+      const filePort = readCdpPortFromProfile(profileDir);
+      if (filePort && filePort !== port) {
+        if (!reportedFilePort) {
+          onProgress?.(`Chrome CDP port: ${filePort} (profil fájlból)`);
+          reportedFilePort = true;
+        }
+        if (await isCdpReady(filePort)) return filePort;
+      }
+    }
+
+    onProgress?.("Várakozás: Chrome CDP (9222)…");
+    await sleep(1000);
   }
 
   return null;
@@ -82,13 +98,4 @@ export async function waitForCdpReady(port = DEFAULT_PORT, { timeoutMs = 45000, 
 
 export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export function ensurePlaywrightBrowsers() {
-  try {
-    execSync("npx playwright install chromium", { stdio: "pipe", timeout: 120000 });
-    return true;
-  } catch {
-    return false;
-  }
 }

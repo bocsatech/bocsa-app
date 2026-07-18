@@ -11,6 +11,7 @@ import { mapCardPreview, mapListingToForm } from "./map-to-form.mjs";
 import { shortUrl } from "./url-utils.mjs";
 import {
   findChromeExecutable,
+  getChromeProfileDir,
   isCdpReady,
   startChromeWithDebugging,
   waitForCdpReady,
@@ -67,7 +68,7 @@ export async function openChromeForImport(startUrl, { onProgress } = {}) {
 
   if (await isCdpReady(CDP_PORT)) {
     onProgress?.("Meglévő Chrome (9222) — csatlakozás…");
-    return connectChrome(onProgress);
+    return connectChrome(onProgress, CDP_PORT);
   }
 
   const chromePath = findChromeExecutable();
@@ -77,26 +78,29 @@ export async function openChromeForImport(startUrl, { onProgress } = {}) {
     );
   }
 
-  onProgress?.(`Chrome megnyitása: ${chromePath.split("/").pop()}`);
+  const profileDir = getChromeProfileDir();
+  onProgress?.("Chrome indítása (külön import profil, CDP 9222)…");
   startChromeWithDebugging(url, CDP_PORT);
 
-  const ready = await waitForCdpReady(CDP_PORT, {
-    timeoutMs: 60000,
+  const port = await waitForCdpReady(CDP_PORT, {
+    profileDir,
+    timeoutMs: 90000,
     onProgress,
   });
 
-  if (!ready) {
+  if (!port) {
     throw new Error(
-      "Chrome nem indult el 60 mp alatt. Ellenőrizd, hogy megjelent-e a Chrome ablak."
+      "Chrome CDP nem elérhető 90 mp alatt. Zárj be minden Chrome-ot, kattints újra a „Chrome megnyitása” gombra. " +
+        "Ha megjelenik a Chrome, de ez a hiba marad: a sima Chrome nem elég — az importnak külön debug mód kell."
     );
   }
 
-  onProgress?.("Chrome megnyitva — ha kell, oldd meg a Cloudflare-t abban az ablakban.");
-  return connectChrome(onProgress);
+  onProgress?.(`Chrome CDP kész (${port}) — ha kell, oldd meg a Cloudflare-t abban az ablakban.`);
+  return connectChrome(onProgress, port);
 }
 
-async function connectChrome(onProgress) {
-  const CDP_URL = "http://127.0.0.1:9222";
+async function connectChrome(onProgress, port = CDP_PORT) {
+  const CDP_URL = `http://127.0.0.1:${port}`;
   const browser = await chromium.connectOverCDP(CDP_URL);
   const context = browser.contexts()[0];
   if (!context) {
