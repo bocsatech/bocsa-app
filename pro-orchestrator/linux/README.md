@@ -1,34 +1,28 @@
-# BOCSA Pro — Linux (Letöltések)
+# BOCSA Pro — Linux vékony kliens
 
-A Linux verzió futási mappája:
+A **teljes BOCSA Pro a szerveren** fut. A Linux gépen csak egy **vékony kliens** van a Letöltésekben: SSH tunell + böngésző.
 
 ```
 ~/Downloads/bocsa Pro linux/
+├── config.env           ← szerver címe, SSH user (te töltöd ki)
+├── config.env.example
+├── indito.sh            ← SSH tunell + localhost:3850 megnyitás
+├── leallitas.sh         ← tunell leállítás
+├── szerver-ssh.sh       ← terminálos SSH a szerverre
+└── BOCSA-PRO-LINUX.txt
 ```
 
-A forrás a git repóban: `bocsa-app/pro-orchestrator/`  
-A `linux/` almappa csak telepítő scripteket tartalmaz — **nem** kerül a Letöltésekbe.
+**Nincs** `src/`, `node_modules/`, `npm install` — az mind a **szerveren** van.
+
+Telepítő scriptek (git repó): `bocsa-app/pro-orchestrator/linux/`
 
 ## Telepítés (egyszer)
 
 ```bash
 cd ~/bocsa-app/pro-orchestrator/linux
-chmod +x *.sh
+chmod +x *.sh client/*.sh
 ./telepites.sh
-```
-
-## Frissítés (GitHub main)
-
-```bash
-cd ~/bocsa-app/pro-orchestrator/linux
-./frissites.sh
-```
-
-## Másolás git nélkül (helyi forrás friss)
-
-```bash
-cd ~/bocsa-app/pro-orchestrator/linux
-./masol.sh
+nano ~/Downloads/bocsa\ Pro\ linux/config.env
 ```
 
 ## Indítás
@@ -37,15 +31,17 @@ cd ~/bocsa-app/pro-orchestrator/linux
 ~/Desktop/bocsa-pro-linux-indito.sh
 ```
 
-Vagy:
+→ SSH tunell → http://127.0.0.1:3850 (a szerveren futó BOCSA Pro)
+
+## SSH a szerverre (terminál)
 
 ```bash
-cd ~/Downloads/bocsa\ Pro\ linux && npm start
+~/Downloads/bocsa\ Pro\ linux/szerver-ssh.sh
 ```
 
-→ http://127.0.0.1:3850
+## Frissítés (csak kliens scriptek)
 
-## Mi kerül a Letöltések mappába?
-
-Csak futási fájlok: `package.json`, `config.json`, `src/`, `public/`, `node_modules/`  
-Mac scriptek (`MAC-*.sh`), `vendor/`, `linux/` — **nem**.
+```bash
+cd ~/bocsa-app/pro-orchestrator/linux
+./frissites.sh
+```

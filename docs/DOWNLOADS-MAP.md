@@ -11,7 +11,7 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 | **Mobile.de Pro** | `mobilede pro` | `cd ~/Downloads/mobilede\ pro && npm start` | slot / SMS +49 |
 | Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
 | **Autosweb** (hirdetésfeladás) | `autosweb` | Asztal: Autosweb-indito.command | http://127.0.0.1:3456 |
-| **BOCSA Pro Linux** | `bocsa Pro linux` | `~/Desktop/bocsa-pro-linux-indito.sh` | http://127.0.0.1:3850 |
+| **BOCSA Pro Linux** (vékony kliens) | `bocsa Pro linux` | `~/Desktop/bocsa-pro-linux-indito.sh` | SSH tunell → szerver :3850 |
 | Hasznaltauto scraper | `hasznaltauto-scraper` | `npm start` | — |
 
 ## Telepítés / szétválasztás (Mac, egyszer)
@@ -22,15 +22,18 @@ curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-
 
 Ez létrehozza a fenti mappákat, törli a programokat a régi `bocsa-app` almappáiból, és ír egy **`~/Downloads/BOCSA-PROGRAMOK.txt`** térképet.
 
-## Linux — BOCSA Pro
+## Linux — BOCSA Pro (vékony kliens)
+
+A teljes program a **szerveren** fut. Linuxon csak SSH tunell + indító:
 
 ```bash
 cd ~/bocsa-app/pro-orchestrator/linux
-chmod +x *.sh
+chmod +x *.sh client/*.sh
 ./telepites.sh
+# majd: ~/Downloads/bocsa Pro linux/config.env — szerver adatok
 ```
 
-→ `~/Downloads/bocsa Pro linux/` + asztali indító
+→ `~/Downloads/bocsa Pro linux/` (config.env, indito.sh, szerver-ssh.sh — **nincs** teljes program másolat)
 
 ## Asztali ikonok
 

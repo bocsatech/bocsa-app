@@ -12,7 +12,7 @@ const DEFINITIONS = {
   },
   orchestrator: {
     env: 'BOCSA_ORCHESTRATOR_ROOT',
-    dirs: ['bocsa Pro linux', 'bocsa-orchestrator', 'bocsa-app/pro-orchestrator'],
+    dirs: ['bocsa-orchestrator', 'bocsa-app/pro-orchestrator'],
     marker: 'src/server.mjs',
   },
   willhaben: {

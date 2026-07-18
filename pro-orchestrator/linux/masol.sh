@@ -1,8 +1,9 @@
 #!/bin/bash
-# Közvetlen másolás → ~/Downloads/bocsa Pro linux (git nélkül is)
+# Kliens scriptek másolása → ~/Downloads/bocsa Pro linux
 set -euo pipefail
 
-SOURCE="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CLIENT="$SCRIPT_DIR/client"
 TARGET="$HOME/Downloads/bocsa Pro linux"
 
 if [ ! -d "$TARGET" ]; then
@@ -10,32 +11,15 @@ if [ ! -d "$TARGET" ]; then
   exit 1
 fi
 
-echo "Másolás: $SOURCE → $TARGET"
+echo "Kliens frissítés: $CLIENT → $TARGET"
 
-rsync -a --delete \
-  --exclude 'MAC-*.sh' \
-  --exclude 'vendor/' \
-  --exclude 'linux/' \
-  --exclude 'node_modules/' \
-  --exclude '.git/' \
-  "$SOURCE/package.json" \
-  "$SOURCE/config.json" \
-  "$SOURCE/src/" \
-  "$SOURCE/public/" \
-  "$TARGET/"
+cp "$CLIENT/indito.sh" "$CLIENT/leallitas.sh" "$CLIENT/szerver-ssh.sh" "$CLIENT/BOCSA-PRO-LINUX.txt" "$TARGET/"
+chmod +x "$TARGET"/*.sh
+cp "$CLIENT/config.env.example" "$TARGET/config.env.example"
 
-if [ -d "$SOURCE/scripts" ]; then
-  rsync -a --delete "$SOURCE/scripts/" "$TARGET/scripts/"
+if [ ! -f "$TARGET/config.env" ]; then
+  cp "$CLIENT/config.env.example" "$TARGET/config.env"
 fi
 
-if [ -f "$SOURCE/package.json" ] && grep -q '"version"' "$TARGET/package.json"; then
-  VER=$(grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' "$TARGET/package.json" | head -1)
-  echo "  $VER"
-fi
-
-if [ ! -f "$TARGET/src/server.mjs" ]; then
-  echo "  ✗ HIBA: hiányzik src/server.mjs"
-  exit 1
-fi
-
-echo "✓ Másolva: $TARGET"
+echo "✓ Kliens scriptek frissítve: $TARGET"
+echo "  (config.env megmaradt — nem írjuk felül)"

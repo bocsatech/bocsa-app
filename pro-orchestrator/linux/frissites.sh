@@ -1,15 +1,12 @@
 #!/bin/bash
-# Frissítés: GitHub main → ~/Downloads/bocsa Pro linux
+# Frissítés: git → kliens scriptek ~/Downloads/bocsa Pro linux
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
-SOURCE="$REPO/pro-orchestrator"
-TARGET="$HOME/Downloads/bocsa Pro linux"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TARGET="$HOME/Downloads/bocsa Pro linux"
 
-echo "BOCSA Pro Linux frissítés…"
-echo "  Repo: $REPO"
-echo ""
+echo "BOCSA Pro Linux kliens frissítés…"
 
 if [ ! -d "$TARGET" ]; then
   echo "Nincs telepítve. Futtasd: ./telepites.sh"
@@ -17,13 +14,10 @@ if [ ! -d "$TARGET" ]; then
 fi
 
 cd "$REPO"
-git fetch origin main
-git pull origin main -- pro-orchestrator/ 2>/dev/null || git checkout origin/main -- pro-orchestrator/
+git fetch origin main 2>/dev/null || true
+git pull origin main -- pro-orchestrator/linux/ 2>/dev/null || git checkout origin/main -- pro-orchestrator/linux/
 
 "$SCRIPT_DIR/masol.sh"
 
 echo ""
-echo "✓ Frissítve: $TARGET"
-echo "  1) Állítsd le a futó BOCSA Pro-t (Ctrl+C)"
-echo "  2) Indítsd: ~/Desktop/bocsa-pro-linux-indito.sh"
-echo "  3) Böngésző: Ctrl+Shift+R"
+echo "✓ Frissítve. Indítás: ~/Desktop/bocsa-pro-linux-indito.sh"

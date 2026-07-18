@@ -1,0 +1,27 @@
+BOCSA Pro — Linux vékony kliens
+=================================
+
+Ez a mappa NEM tartalmazza a teljes programot.
+A BOCSA Pro nagy része a SZERVEREN fut.
+
+Linux gépen csak:
+  • SSH tunell a szerver felé
+  • böngésző indítás (localhost)
+
+Beállítás (egyszer):
+  1) Másold: config.env.example → config.env
+  2) Töltsd ki: BOCSA_SERVER_HOST, BOCSA_SSH_USER
+
+Indítás:
+  ~/Desktop/bocsa-pro-linux-indito.sh
+
+  vagy: ~/Downloads/bocsa Pro linux/indito.sh
+
+Leállítás (tunell):
+  ~/Downloads/bocsa Pro linux/leallitas.sh
+
+SSH bejelentkezés a szerverre (terminál):
+  ~/Downloads/bocsa Pro linux/szerver-ssh.sh
+
+Frissítés (csak kliens scriptek):
+  ~/bocsa-app/pro-orchestrator/linux/frissites.sh
