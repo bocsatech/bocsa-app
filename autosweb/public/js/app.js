@@ -166,6 +166,12 @@ function restoreFuelSelection(value) {
       }
     }
   }
+
+  if (uzemanyag && !uzemanyag.value) {
+    uzemanyag.value = value;
+    if (fuelSelected) fuelSelected.textContent = `Kiválasztva: ${value}`;
+    syncFuelDependentFields();
+  }
 }
 
 function renderKlimaOptions() {
@@ -419,16 +425,17 @@ function applyFormData(data, { fromImport = false } = {}) {
     if (key === "felszereltseg") continue;
     const field = form.elements.namedItem(key);
     if (!field) continue;
+    const appliedValue = key === "gyartmany" && value ? String(value).toUpperCase() : value;
     if (field instanceof RadioNodeList) {
       [...field].forEach((node) => {
-        node.checked = node.value === value;
+        node.checked = node.value === appliedValue;
       });
     } else if (field.type === "checkbox") {
-      field.checked = value === "1" || value === true || value === "on";
+      field.checked = appliedValue === "1" || appliedValue === true || appliedValue === "on";
     } else if (field.tagName === "SELECT") {
-      ensureSelectOption(field, value);
+      ensureSelectOption(field, appliedValue);
     } else {
-      field.value = value;
+      field.value = appliedValue;
     }
     if (fromImport) {
       field.dataset.userEdited = "1";
@@ -437,7 +444,10 @@ function applyFormData(data, { fromImport = false } = {}) {
   }
 
   for (const item of data.felszereltseg ?? []) {
-    const box = [...form.querySelectorAll('input[name="felszereltseg"]')].find((el) => el.value === item);
+    const needle = String(item).toLowerCase();
+    const box = [...form.querySelectorAll('input[name="felszereltseg"]')].find(
+      (el) => el.value === item || el.value.toLowerCase() === needle || el.value.toLowerCase().includes(needle)
+    );
     if (box) box.checked = true;
   }
 

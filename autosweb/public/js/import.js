@@ -53,7 +53,7 @@ export function initImportPanel({ form, onApply }) {
       if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
         appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
       }
-      if (serverVersion && !serverVersion.includes("fieldsfix")) {
+      if (serverVersion && !serverVersion.includes("fullimport")) {
         showUpgradeWarning(serverVersion);
       }
     } catch {
@@ -77,6 +77,12 @@ export function initImportPanel({ form, onApply }) {
       row.addEventListener("click", () => {
         onApply?.(item.form, item);
         appendLog(`Betöltve: ${item.cim || item.url}`);
+        if (item.missingRequired?.length) {
+          appendLog(`Hiányzó mezők: ${item.missingRequired.join(", ")}`);
+          alert(
+            `Az autó betöltve. Ezeket még töltsd ki kézzel:\n\n${item.missingRequired.join("\n")}`
+          );
+        }
       });
       resultsEl.appendChild(row);
     }

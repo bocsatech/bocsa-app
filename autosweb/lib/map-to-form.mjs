@@ -146,11 +146,79 @@ function inferTipus(titleParts, parsed, m) {
   return withoutBrandModel || cim || "—";
 }
 
+function inferKivitelFromText(...texts) {
+  const v = normalizeKey(texts.filter(Boolean).join(" "));
+  if (!v) return "";
+  if (v.includes("suv") || v.includes("crossover") || /\bkuga\b|\btucson\b|\bx\d|\bq\d|\bglc\b|\bgle\b/.test(v)) {
+    return "SUV / Crossover";
+  }
+  if (v.includes("kombi") || v.includes("wagon") || v.includes("estate")) return "Kombi";
+  if (v.includes("ferde") || v.includes("hatchback")) return "Ferdehátú";
+  if (v.includes("sedan") || v.includes("szedan")) return "Szedán";
+  if (v.includes("egyteru") || v.includes("mpv")) return "Egyterű";
+  if (v.includes("kupe") || v.includes("coupe")) return "Kupé";
+  if (v.includes("cabrio")) return "Cabrio";
+  return "";
+}
+
+function mapFelszereltseg(badges = [], html = "") {
+  const known = [
+    "könnyűfém felni", "automata", "klíma", "bőr belső", "tolatóradar", "tolatókamera",
+    "navigáció", "bluetooth", "tempomat", "fűthető ülés", "elektromos ablak", "szervokormány",
+    "centrálzár", "riasztó", "vonóhorog", "sportülések", "xenon", "led", "start-stop",
+  ];
+  const found = new Set();
+  const hay = normalizeKey([...badges, html].join(" "));
+
+  for (const item of known) {
+    const key = normalizeKey(item);
+    if (hay.includes(key) || badges.some((b) => normalizeKey(b).includes(key) || key.includes(normalizeKey(b)))) {
+      found.add(item);
+    }
+  }
+
+  for (const badge of badges) {
+    const b = cleanText(badge);
+    if (b.length > 2 && b.length < 50) found.add(b);
+  }
+
+  return [...found];
+}
+
+export const REQUIRED_FORM_FIELDS = [
+  "uzemanyag",
+  "gyartasi_ev",
+  "gyartmany",
+  "modell",
+  "tipus",
+  "kivitel",
+  "allapot",
+  "okmany_jelleg",
+  "okmany_ervenyesseg",
+  "km",
+  "vetelar",
+  "megye",
+  "telepules",
+  "telefon1_korzet",
+  "telefon1_szam",
+];
+
+export function getMissingRequiredFields(formData) {
+  return REQUIRED_FORM_FIELDS.filter((name) => !String(formData?.[name] ?? "").trim());
+}
+
 function applyRequiredDefaults(data, parsed, titleParts, m) {
+  if (!data.km) data.km = digits(parsed.km || pickValue(m, ["futásteljesítmény", "futasteljesitmeny"]));
+  if (!data.gyartasi_ev) {
+    data.gyartasi_ev = parseYearMonth(pickValue(m, ["évjárat", "gyártási év"]) || parsed.evjarat).ev;
+  }
+  if (!data.vetelar) data.vetelar = digits(parsed.ar || pickValue(m, ["vételár", "vetelar"]));
+  if (!data.hirdetes_cime) data.hirdetes_cime = parsed.cim || "";
+  if (!data.leiras) data.leiras = parsed.leiras || "";
   if (!data.kivitel) {
-    data.kivitel = mapKivitel(
-      pickValue(m, ["kivitel", "kategória", "kategoria", "szerkezeti változat", "szerkezeti valtozat"])
-    );
+    data.kivitel =
+      mapKivitel(pickValue(m, ["kivitel", "kategória", "kategoria", "szerkezeti változat", "szerkezeti valtozat"])) ||
+      inferKivitelFromText(parsed.cim, titleParts.rest, parsed.jarmuTipus);
   }
   if (!data.allapot) {
     data.allapot = mapAllapot(pickValue(m, ["állapot", "allapot"])) || "Normál";
@@ -170,11 +238,20 @@ function applyRequiredDefaults(data, parsed, titleParts, m) {
   if (!data.uzemanyag) {
     data.uzemanyag = mapFuel(pickValue(m, ["üzemanyag", "uzemanyag"]));
   }
-  if (!data.gyartmany && titleParts.gyartmany) {
-    data.gyartmany = titleParts.gyartmany.toUpperCase();
-  }
   if (!data.modell && titleParts.modell) {
     data.modell = titleParts.modell;
+  }
+  if (!data.gyartmany && titleParts.gyartmany) {
+    data.gyartmany = titleParts.gyartmany.toUpperCase();
+  } else if (data.gyartmany) {
+    data.gyartmany = String(data.gyartmany).toUpperCase();
+  }
+  if (!data.megye || !data.telepules) {
+    const loc = mapCounty(
+      pickValue(m, ["megtalálható", "megtalalhato", "település", "telepules", "megye", "elhelyezkedés"])
+    );
+    if (!data.megye) data.megye = loc.megye;
+    if (!data.telepules) data.telepules = loc.telepules;
   }
   return data;
 }
@@ -222,7 +299,7 @@ export function mapListingToForm(parsed) {
     forras_url: parsed.url || "",
     hasznaltauto_hirdetes_id: extractListingId(parsed.url),
     hirdetes_cime: parsed.cim || "",
-    gyartmany: pickValue(m, ["gyártmány", "gyartmany"]) || titleParts.gyartmany,
+    gyartmany: String(pickValue(m, ["gyártmány", "gyartmany"]) || titleParts.gyartmany || "").toUpperCase(),
     modell: pickValue(m, ["modell"]) || titleParts.modell,
     tipus: pickValue(m, ["típus", "tipus"]) || titleParts.rest,
     kivitel: mapKivitel(
@@ -289,16 +366,21 @@ export function mapListingToForm(parsed) {
 
   applyRequiredDefaults(data, parsed, titleParts, m);
 
+  const felszereltseg = mapFelszereltseg(parsed.felszereltseg ?? [], parsed.leiras ?? "");
+  if (felszereltseg.length) data.felszereltseg = felszereltseg;
+
   return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== "" && value != null));
 }
 
 export function mapCardPreview(card, parsed) {
+  const form = mapListingToForm(parsed);
   return {
     url: card.url,
     cim: parsed.cim || card.title || card.jarmuTipus || "—",
     ar: parsed.ar || card.ar || "—",
     km: parsed.km || card.km || "—",
     evjarat: parsed.evjarat || card.evjarat || "—",
-    form: mapListingToForm(parsed),
+    form,
+    missingRequired: getMissingRequiredFields(form),
   };
 }
