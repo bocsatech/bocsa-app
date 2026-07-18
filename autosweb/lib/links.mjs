@@ -107,6 +107,32 @@ export async function extractListingCardsFromPage(page) {
   });
 }
 
+export function countListingLinksInHtml(html, baseUrl) {
+  return extractListingLinksFromHtml(html, baseUrl).length;
+}
+
+export function hasListingLinksInHtml(html, baseUrl) {
+  return countListingLinksInHtml(html, baseUrl) > 0;
+}
+
+export async function countListingLinksOnPage(page) {
+  return page.evaluate(() => {
+    const re = /\/szemelyauto\/[^?#]+-\d{5,}/i;
+    const seen = new Set();
+    for (const anchor of document.querySelectorAll("a[href]")) {
+      try {
+        const absolute = new URL(anchor.href, window.location.href);
+        if (absolute.hostname.replace(/^www\./, "") !== "hasznaltauto.hu") continue;
+        if (!re.test(absolute.pathname)) continue;
+        seen.add(`${absolute.origin}${absolute.pathname}`);
+      } catch {
+        /* skip */
+      }
+    }
+    return seen.size;
+  });
+}
+
 export function normalizeInputUrl(input) {
   const url = String(input ?? "").trim();
   if (!url) return null;

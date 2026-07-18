@@ -3,7 +3,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extractListingLinksFromHtml } from "./links.mjs";
+import { extractListingLinksFromHtml, hasListingLinksInHtml } from "./links.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const talalatiFixture = join(
@@ -23,4 +23,11 @@ test("extractListingLinksFromHtml talalatilista oldalról", () => {
   assert.equal(links.length, 2);
   assert.ok(links[0].includes("11111111"));
   assert.ok(links[1].includes("22222222"));
+});
+
+test("hasListingLinksInHtml cf-challenge-platform mellett is true ha van link", () => {
+  const html = readFileSync(talalatiFixture, "utf8");
+  const withCf = html.replace("</body>", '<script src="cf-challenge-platform"></script></body>');
+  const baseUrl = "https://www.hasznaltauto.hu/talalatilista/TEST";
+  assert.equal(hasListingLinksInHtml(withCf, baseUrl), true);
 });

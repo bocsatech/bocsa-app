@@ -1,6 +1,8 @@
 import {
   collectListingLinksFromPage,
+  countListingLinksOnPage,
   extractListingCardsFromPage,
+  hasListingLinksInHtml,
   isListPageUrl,
   isListingUrl,
   normalizeInputUrl,
@@ -16,43 +18,59 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function hasListPageContent(html) {
-  return /talalati-sor|talalatisor-infokontener|class="row talalati-sor"/i.test(html);
+function hasListPageContent(html, url) {
+  if (/talalati-sor|talalatisor-infokontener|pricefield-primary|Hirdetéskód|hirdeteskod/i.test(html)) {
+    return true;
+  }
+  return hasListingLinksInHtml(html, url || "https://www.hasznaltauto.hu/");
+}
+
+function isRealCloudflareChallenge(title, html, url) {
+  if (hasListPageContent(html, url)) return false;
+  if (/hirdetesadatok|Alapadatok/i.test(html)) return false;
+  if (/Attention Required|biztonsági ellenőrzés|Egy pillanat/i.test(title)) return true;
+  if (/challenges\.cloudflare\.com/i.test(html) && html.length < 40000) return true;
+  return false;
 }
 
 function isContentReady(title, html, url) {
   if (!/hasznaltauto\.hu/i.test(url)) return false;
-  if (/Attention Required|biztonsági ellenőrzés|Egy pillanat/i.test(title + html)) return false;
-  if (/challenges\.cloudflare\.com|cf-challenge-platform|cf-turnstile/i.test(html)) return false;
   if (/hirdetesadatok|Alapadatok/i.test(html)) return true;
   if (/\/szemelyauto\/.+-\d{5,}/i.test(url) && html.length > 12000) return true;
-  if (/talalatilista/i.test(url) && hasListPageContent(html)) return true;
-  if (/talalatilista/i.test(url)) return false;
-  return html.length > 25000 && !/Attention Required|biztonsági ellenőrzés/i.test(title + html);
+  if (hasListPageContent(html, url)) return true;
+  return false;
 }
 
 function isBlocked(title, html, url) {
-  if (isContentReady(title, html, url)) return false;
-  return (
-    /Attention Required|Egy pillanat/i.test(title) ||
-    /challenges\.cloudflare\.com|cf-challenge-platform/i.test(html)
-  );
+  return isRealCloudflareChallenge(title, html, url);
 }
 
 async function waitForAccess(page, onProgress, maxSeconds = 120) {
   const deadline = Date.now() + maxSeconds * 1000;
+  let lastCfLog = 0;
+
   while (Date.now() < deadline) {
+    const url = page.url();
+    const linkCount = await countListingLinksOnPage(page);
+    if (linkCount > 0) return;
+
     const title = await page.title();
     const html = await page.content();
-    const url = page.url();
     if (isContentReady(title, html, url)) return;
+
     if (isBlocked(title, html, url)) {
-      onProgress?.("Cloudflare: jelöld meg a megnyílt Chrome ablakban, majd várunk…");
+      const now = Date.now();
+      if (now - lastCfLog > 8000) {
+        onProgress?.("Cloudflare: jelöld meg a megnyílt Chrome ablakban, majd várunk…");
+        lastCfLog = now;
+      }
+    } else if (/talalatilista/i.test(url)) {
+      onProgress?.("Várakozás: találati lista betöltése…");
     }
     await sleep(2000);
   }
   throw new Error(
-    "Az oldal nem töltődött be időben. A Chrome ablakban oldd meg a Cloudflare-t, majd indítsd újra az importot."
+    "Az oldal nem töltődött be időben. Ellenőrizd a Chrome ablakban, hogy látszanak-e a hirdetések, majd indítsd újra az importot."
   );
 }
 
