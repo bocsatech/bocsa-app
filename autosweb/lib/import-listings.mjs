@@ -9,10 +9,10 @@ import {
 } from "./links.mjs";
 import { parseListingHtml, mergeParsedListing } from "./parse-listing.mjs";
 import {
-  extractListingFromPage,
   mergePageExtract,
   prepareListingPage,
   revealPhoneNumber,
+  waitForListingAttributes,
 } from "./page-extract.mjs";
 import { mapCardPreview, mapListingToForm } from "./map-to-form.mjs";
 import { shortUrl } from "./url-utils.mjs";
@@ -159,11 +159,13 @@ async function fetchListingForm(page, url, card, onProgress) {
   await waitForListingHtml(page);
   await prepareListingPage(page);
   const phone = await revealPhoneNumber(page);
-  const extracted = await extractListingFromPage(page);
+  const extracted = await waitForListingAttributes(page);
   const html = await page.content();
   let parsed = parseListingHtml(html, { url, phone: phone ?? undefined });
   parsed = mergePageExtract(parsed, { ...extracted, phone });
   parsed = mergeParsedListing(parsed, card);
+  const fieldCount = Object.keys(parsed.nyersAdatok ?? {}).length;
+  onProgress?.(`Kinyerve: ${fieldCount} adatmező → űrlap kitöltés`);
   return mapCardPreview(card ?? { url }, parsed);
 }
 

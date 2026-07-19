@@ -1,4 +1,4 @@
-import { cleanText } from "./parse-listing.mjs";
+import { cleanText, mergeAttributeMaps } from "./parse-listing.mjs";
 import { extractOdometerKm, formatKmDisplay } from "./extract-km.mjs";
 
 export async function dismissCookieBanner(page) {
@@ -98,15 +98,31 @@ export async function extractListingFromPage(page) {
     const addPair = (rawKey, rawValue) => {
       const key = clean(rawKey).replace(/:$/, "");
       const value = clean(rawValue);
-      if (!key || !value || key.length > 80) return;
-      if (!map[key]) map[key] = value;
+      if (!key || !value || key.length > 80 || value.length > 500) return;
+      if (/^(ár|ar|költségek|altalanos adatok|muszaki adatok)$/i.test(key)) return;
+      if (!map[key] || map[key].length < value.length) map[key] = value;
     };
 
-    for (const table of document.querySelectorAll("table.hirdetesadatok, table[class*='hirdetesadatok'], .hirdetesadatok table")) {
+    const parseTable = (table) => {
       for (const row of table.querySelectorAll("tr")) {
         const cells = [...row.querySelectorAll("td, th")];
-        if (cells.length >= 2) addPair(cells[0].innerText, cells[1].innerText);
+        if (cells.length < 2) continue;
+        const keyCell = row.querySelector("td.bal.pontos, td.pontos, th.pontos, .bal.pontos");
+        if (keyCell) {
+          const valueCell = keyCell.nextElementSibling;
+          if (valueCell) {
+            addPair(keyCell.innerText, valueCell.innerText);
+            continue;
+          }
+        }
+        addPair(cells[0].innerText, cells[cells.length - 1].innerText);
       }
+    };
+
+    for (const table of document.querySelectorAll(
+      "table.hirdetesadatok, table[class*='hirdetesadatok'], .hirdetesadatok table, table[class*='adat']"
+    )) {
+      parseTable(table);
     }
 
     for (const row of document.querySelectorAll("tr")) {
@@ -116,27 +132,51 @@ export async function extractListingFromPage(page) {
       if (valueCell) addPair(keyCell.innerText, valueCell.innerText);
     }
 
-    for (const dt of document.querySelectorAll("dt")) {
-      const dd = dt.nextElementSibling;
-      if (dd) addPair(dt.innerText, dd.innerText);
+    for (const dl of document.querySelectorAll("dl")) {
+      for (const dt of dl.querySelectorAll("dt")) {
+        const dd = dt.nextElementSibling;
+        if (dd?.tagName === "DD") addPair(dt.innerText, dd.innerText);
+      }
     }
 
-    for (const label of document.querySelectorAll("label, .label, [class*='label']")) {
+    for (const label of document.querySelectorAll("label, .label, [class*='label'], [class*='cimke']")) {
       const text = clean(label.innerText);
       if (!text.endsWith(":") || text.length > 50) continue;
       const parent = label.parentElement;
       const valueNode =
-        parent?.querySelector("strong, span:not(.label), input, select, .value, [class*='value']") ||
+        parent?.querySelector("strong, span:not(.label), input, select, .value, [class*='value'], [class*='ertek']") ||
         label.nextElementSibling;
       if (valueNode && valueNode !== label) addPair(text, valueNode.innerText || valueNode.value);
     }
 
-    for (const section of document.querySelectorAll("[class*='adat'], [class*='spec'], [class*='property'], .hirdetes-adatok, .adatok")) {
+    for (const section of document.querySelectorAll(
+      "[class*='adat'], [class*='spec'], [class*='property'], [class*='attribute'], .hirdetes-adatok, .adatok, [data-testid*='spec']"
+    )) {
       const text = section.innerText || "";
       for (const line of text.split("\n")) {
-        const match = line.match(/^(.{2,45}?):\s*(.+)$/);
+        const match = line.match(/^(.{2,50}?):\s*(.+)$/);
         if (match) addPair(match[1], match[2]);
       }
+    }
+
+    for (const item of document.querySelectorAll(
+      "[class*='highlight'], [class*='kiemelt'], [class*='summary'], [class*='infokontener'], [class*='quick-spec']"
+    )) {
+      const text = clean(item.innerText ?? "");
+      if (!text) continue;
+      const yearKm = text.match(/(\d{4}(?:\/\d{1,2})?).*?(\d[\d\s.]*\s*km)/i);
+      if (yearKm) {
+        addPair("Évjárat", yearKm[1]);
+        addPair("Futásteljesítmény", yearKm[2]);
+      }
+      const fuel = text.match(/(Hibrid\s*\([^)]+\)|Elektromos|Diesel|Benzin|LPG|CNG[^,]*)/i);
+      if (fuel) addPair("Üzemanyag", fuel[1]);
+      const power = text.match(/([\d.,]+)\s*kW(?:\s*\/\s*([\d.,]+)\s*LE)?/i);
+      if (power) {
+        addPair("Teljesítmény", power[2] ? `${power[1]} kW / ${power[2]} LE` : `${power[1]} kW`);
+      }
+      const cc = text.match(/([\d\s.]+)\s*cm³/i);
+      if (cc) addPair("Hengerűrtartalom", cc[1].replace(/\s|\./g, ""));
     }
 
     let leiras = "";
@@ -256,10 +296,7 @@ export async function extractListingFromPage(page) {
 
 export function mergePageExtract(parsed, extracted) {
   if (!extracted) return parsed;
-  const mergedMap = {
-    ...(extracted.map ?? {}),
-    ...(parsed.nyersAdatok ?? {}),
-  };
+  const mergedMap = mergeAttributeMaps(extracted.map, parsed.nyersAdatok);
   if (extracted.kmText && !mergedMap["Futásteljesítmény"]) {
     mergedMap["Futásteljesítmény"] = extracted.kmText;
   }
@@ -282,6 +319,17 @@ export function mergePageExtract(parsed, extracted) {
     felszereltseg: [...new Set([...(parsed.felszereltseg ?? []), ...(extracted.felszereltseg ?? [])])],
     nyersAdatok: mergedMap,
   };
+}
+
+export async function waitForListingAttributes(page, { minFields = 5, timeoutMs = 45000 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const extracted = await extractListingFromPage(page);
+    const count = Object.keys(extracted.map ?? {}).length;
+    if (count >= minFields) return extracted;
+    await page.waitForTimeout(800);
+  }
+  return extractListingFromPage(page);
 }
 
 export async function prepareListingPage(page) {

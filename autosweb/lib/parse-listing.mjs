@@ -45,8 +45,73 @@ export function pickValue(map, keys) {
 
 function extractYear(value) {
   if (!value) return null;
-  const match = value.match(/\b(19|20)\d{2}\b/);
-  return match ? match[0] : cleanText(value);
+  const ym = value.match(/\b((19|20)\d{2})(?:\/(\d{1,2}))?\b/);
+  if (ym) {
+    return ym[3] ? `${ym[1]}/${Number(ym[3])}` : ym[1];
+  }
+  return cleanText(value);
+}
+
+/** Több forrásból származó címke→érték map egyesítése; a hosszabb/nem üres érték marad. */
+export function mergeAttributeMaps(...maps) {
+  const merged = {};
+  for (const map of maps) {
+    if (!map || typeof map !== "object") continue;
+    for (const [rawKey, rawValue] of Object.entries(map)) {
+      const key = cleanText(String(rawKey).replace(/:$/, ""));
+      const value = cleanText(rawValue);
+      if (!key || !value || key.length > 80) continue;
+      const existing = merged[key];
+      if (!existing || existing.length < value.length) {
+        merged[key] = value;
+      }
+    }
+  }
+  return merged;
+}
+
+function stripHtml(value) {
+  return cleanText(String(value ?? "").replace(/<[^>]+>/g, " "));
+}
+
+function isPlausibleLabel(key) {
+  const text = cleanText(String(key).replace(/:$/, ""));
+  if (!text || text.length < 2 || text.length > 60) return false;
+  if (/https?:|javascript:|<|>|{|}/i.test(text)) return false;
+  return true;
+}
+
+function addAttributePair(map, rawKey, rawValue) {
+  const key = cleanText(String(rawKey).replace(/:$/, ""));
+  const value = stripHtml(rawValue);
+  if (!isPlausibleLabel(key) || !value || value.length > 500) return;
+  if (/^(ár|ar|költségek|altalanos adatok|muszaki adatok|felszereltseg|felszereltség)$/i.test(key)) {
+    return;
+  }
+  if (!map[key] || map[key].length < value.length) {
+    map[key] = value;
+  }
+}
+
+function parseTableRows(tableHtml, map) {
+  const rows = [...tableHtml.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
+  for (const row of rows) {
+    const cells = [...row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)];
+    if (cells.length < 2) continue;
+
+    let keyCell = cells[0][1];
+    let valueCell = cells[cells.length - 1][1];
+
+    const keyFromBal = row[1].match(/<td[^>]*class="[^"]*bal[^"]*pontos[^"]*"[^>]*>([\s\S]*?)<\/td>/i);
+    if (keyFromBal) {
+      keyCell = keyFromBal[1];
+      const afterKey = row[1].slice(keyFromBal.index + keyFromBal[0].length);
+      const valueAfterKey = afterKey.match(/<td[^>]*>([\s\S]*?)<\/td>/i);
+      if (valueAfterKey) valueCell = valueAfterKey[1];
+    }
+
+    addAttributePair(map, keyCell, valueCell);
+  }
 }
 
 function extractKm(value) {
@@ -72,18 +137,15 @@ function extractPhone(text) {
 
 function parseAttributesTable(html) {
   const map = {};
-  const tableMatch = html.match(/<table[^>]*class="[^"]*hirdetesadatok[^"]*"[^>]*>([\s\S]*?)<\/table>/i);
-  if (!tableMatch) return map;
+  const tablePatterns = [
+    /<table[^>]*class="[^"]*hirdetesadatok[^"]*"[^>]*>([\s\S]*?)<\/table>/gi,
+    /<table[^>]*class="[^"]*adat[^"]*"[^>]*>([\s\S]*?)<\/table>/gi,
+  ];
 
-  const rows = [...tableMatch[1].matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
-  for (const row of rows) {
-    const keyMatch = row[1].match(/<td[^>]*class="[^"]*bal[^"]*pontos[^"]*"[^>]*>([\s\S]*?)<\/td>/i);
-    const valueMatch = row[1].match(/<td[^>]*>([\s\S]*?)<\/td>\s*<\/tr>/i);
-    if (!keyMatch || !valueMatch) continue;
-
-    const key = cleanText(keyMatch[1].replace(/<[^>]+>/g, ""));
-    const value = cleanText(valueMatch[1].replace(/<[^>]+>/g, ""));
-    if (key && value) map[key] = value;
+  for (const pattern of tablePatterns) {
+    for (const tableMatch of html.matchAll(pattern)) {
+      parseTableRows(tableMatch[1], map);
+    }
   }
 
   return map;
@@ -92,20 +154,75 @@ function parseAttributesTable(html) {
 function parseLabeledBlocks(html) {
   const map = {};
   const patterns = [
-    />([^<:]{2,40}):<\/[^>]+>\s*<[^>]+>\s*<[^>]+>\s*([^<]+)</gi,
+    />([^<:]{2,50}):<\/[^>]+>\s*<[^>]+>\s*<[^>]+>\s*([^<]+)</gi,
     /<dt[^>]*>([\s\S]*?)<\/dt>\s*<dd[^>]*>([\s\S]*?)<\/dd>/gi,
     /<span[^>]*>([\s\S]*?)<\/span>\s*<(?:strong|span|div)[^>]*>([\s\S]*?)<\/(?:strong|span|div)>/gi,
+    /<div[^>]*class="[^"]*(?:label|cimke|key)[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<div[^>]*class="[^"]*(?:value|ertek)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi,
   ];
 
   for (const pattern of patterns) {
     for (const match of html.matchAll(pattern)) {
-      const key = cleanText(match[1].replace(/<[^>]+>/g, ""));
-      const value = cleanText(match[2].replace(/<[^>]+>/g, ""));
-      if (!key || !value || key.length > 40) continue;
-      if (!key.endsWith(":") && !TYPE_KEYS.concat(YEAR_KEYS, KM_KEYS, PRICE_KEYS).some((k) => normalizeKey(key).includes(k))) {
-        continue;
+      addAttributePair(map, match[1], match[2]);
+    }
+  }
+
+  return map;
+}
+
+function parseInlineAttributes(html) {
+  const map = {};
+  const text = stripHtml(
+    html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+  );
+
+  for (const line of text.split(/\n+/)) {
+    const match = line.match(/^(.{2,50}?):\s*(.{1,200})$/);
+    if (match) addAttributePair(map, match[1], match[2]);
+  }
+
+  return map;
+}
+
+function parseEmbeddedListingJson(html) {
+  const map = {};
+  const scriptPatterns = [
+    /<script[^>]*id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i,
+    /<script[^>]*type="application\/json"[^>]*>([\s\S]*?)<\/script>/gi,
+  ];
+
+  const tryExtract = (node, depth = 0) => {
+    if (!node || depth > 12) return;
+    if (Array.isArray(node)) {
+      for (const item of node) tryExtract(item, depth + 1);
+      return;
+    }
+    if (typeof node !== "object") return;
+
+    const label = node.label ?? node.name ?? node.key ?? node.title;
+    const value = node.value ?? node.text ?? node.content ?? node.val;
+    if (typeof label === "string" && (typeof value === "string" || typeof value === "number")) {
+      addAttributePair(map, label, value);
+    }
+
+    for (const value of Object.values(node)) {
+      if (value && typeof value === "object") tryExtract(value, depth + 1);
+    }
+  };
+
+  for (const pattern of scriptPatterns) {
+    const matches = pattern.global
+      ? [...html.matchAll(pattern)]
+      : html.match(pattern)
+        ? [html.match(pattern)]
+        : [];
+    for (const match of matches) {
+      try {
+        tryExtract(JSON.parse(match[1]));
+      } catch {
+        /* ignore */
       }
-      map[key.replace(/:$/, "")] = value;
     }
   }
 
@@ -228,11 +345,13 @@ function parseEquipmentFromHtml(html) {
 }
 
 export function parseListingHtml(html, { url = "", phone = null } = {}) {
-  const attributeMap = {
-    ...parseJsonLd(html),
-    ...parseLabeledBlocks(html),
-    ...parseAttributesTable(html),
-  };
+  const attributeMap = mergeAttributeMaps(
+    parseJsonLd(html),
+    parseEmbeddedListingJson(html),
+    parseLabeledBlocks(html),
+    parseInlineAttributes(html),
+    parseAttributesTable(html)
+  );
 
   const title = parseTitle(html);
   const jarmuTipus = parseVehicleType(title, attributeMap);
@@ -361,10 +480,7 @@ export function mergeParsedListing(detail, card) {
     text: card.text,
     title: card.title,
   });
-  const mergedAttrs = {
-    ...(cardParsed.nyersAdatok ?? {}),
-    ...(detail.nyersAdatok ?? {}),
-  };
+  const mergedAttrs = mergeAttributeMaps(cardParsed.nyersAdatok, detail.nyersAdatok);
   const kmDigits = extractOdometerKm({
     maps: [mergedAttrs],
     texts: [detail.cim, detail.leiras, card?.text, card?.title, card?.kmText, cardParsed.km, detail.km],
