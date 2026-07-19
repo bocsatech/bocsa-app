@@ -1,0 +1,486 @@
+/* —— Közös app shell: főoldal stílusú világos téma (minden oldalon) —— */
+
+body.site-app {
+  margin: 0;
+  font-family: Inter, Roboto, system-ui, sans-serif;
+  background: #eef0f3;
+  color: #202124;
+}
+
+body.site-app .local-banner {
+  background: #1a1a1a;
+  color: #ccc;
+  text-align: center;
+  font-size: 0.75rem;
+  padding: 0.35rem;
+  border-bottom: none;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Fejléc + navigáció (home + aloldalak) */
+body.site-app .site-header,
+body.site-app .home-header,
+body.site-app .site-app-header {
+  background: #fff;
+  border-bottom: 1px solid #e3e6ea;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+body.site-app .home-header-inner,
+body.site-app .site-app-header-inner,
+body.site-app .header-top {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0.85rem 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  position: static;
+  transform: none;
+  justify-content: stretch;
+}
+
+body.site-app .home-logo,
+body.site-app .site-app-logo {
+  justify-self: start;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111;
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+body.site-app .home-nav,
+body.site-app .site-app-nav,
+body.site-app .import-nav {
+  justify-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+body.site-app .home-header-spacer,
+body.site-app .site-app-header-spacer {
+  justify-self: end;
+}
+
+body.site-app .header-actions {
+  justify-self: end;
+  position: static;
+  transform: none;
+}
+
+body.site-app .home-nav-link,
+body.site-app .site-app-nav-link,
+body.site-app .import-nav-link {
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  color: #444;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: transparent;
+}
+
+body.site-app .home-nav-link:hover,
+body.site-app .site-app-nav-link:hover,
+body.site-app .import-nav-link:hover {
+  background: #f0f2f5;
+  color: #111;
+}
+
+body.site-app .home-nav-link.active,
+body.site-app .site-app-nav-link.active,
+body.site-app .import-nav-link.active {
+  background: #111;
+  color: #fff;
+}
+
+body.site-app .import-db-badge {
+  font-size: 0.75rem;
+  color: #666;
+  background: #f0f2f5;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+}
+
+/* Lépéssáv (hirdetésfeladás) */
+body.site-app .site-app-wizard-steps {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0.65rem 1.25rem 0;
+}
+
+body.site-app .site-app-wizard-steps .steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+body.site-app .site-app-wizard-steps .step {
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #666;
+  background: #fff;
+  border: 1px solid #d5d9e0;
+  cursor: default;
+}
+
+body.site-app .site-app-wizard-steps .step::before {
+  display: none;
+}
+
+body.site-app .site-app-wizard-steps .step.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+body.site-app .site-app-wizard-steps .step.done {
+  color: #111;
+  border-color: #111;
+  background: #f0f2f5;
+}
+
+/* Tartalom */
+body.site-app .page,
+body.site-app .home-main,
+body.site-app main {
+  color: #202124;
+}
+
+body.site-app .page-import,
+body.site-app .page-listings,
+body.site-app .page-automax {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+body.site-app .automax-step-header {
+  margin-bottom: 1rem;
+}
+
+body.site-app .automax-step-title {
+  margin: 0 0 0.35rem;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: -0.02em;
+}
+
+body.site-app .automax-step-lead {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+body.site-app .category-bar {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 1rem;
+  color: #444;
+  font-size: 0.88rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+body.site-app .category-bar strong {
+  color: #111;
+}
+
+/* Kártyák */
+body.site-app .card {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  color: #202124;
+}
+
+body.site-app .card-head {
+  background: #f8f9fb;
+  border-bottom: 1px solid #e3e6ea;
+  color: #111;
+  font-weight: 600;
+}
+
+body.site-app .card-body {
+  background: #fff;
+}
+
+/* Gombok */
+body.site-app .btn-primary,
+body.site-app #next-btn.btn-primary,
+body.site-app #new-ad-btn.btn-primary,
+body.site-app .import-save-bar .btn-primary {
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+  border-radius: 999px;
+  box-shadow: none;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+body.site-app .btn-primary:hover,
+body.site-app #next-btn.btn-primary:hover {
+  background: #333;
+  border-color: #333;
+}
+
+body.site-app .btn-primary::after,
+body.site-app #next-btn.btn-primary::after {
+  display: none;
+}
+
+body.site-app .btn-secondary {
+  background: #fff;
+  color: #111;
+  border: 1px solid #d5d9e0;
+  border-radius: 999px;
+}
+
+body.site-app .btn-secondary:hover {
+  border-color: #111;
+  background: #f8f9fb;
+}
+
+/* Űrlap mezők */
+body.site-app .labeled-field > label,
+body.site-app .md-outlined > label,
+body.site-app .autofelvitele-title > label {
+  color: #444;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+body.site-app .labeled-field > input,
+body.site-app .labeled-field > select,
+body.site-app .labeled-field > textarea,
+body.site-app .md-outlined > input,
+body.site-app .md-outlined > select,
+body.site-app .md-outlined > textarea,
+body.site-app .autofelvitele-title > input {
+  background: #fff;
+  color: #111;
+  border: 1px solid #d5d9e0;
+  border-radius: 6px;
+}
+
+body.site-app .labeled-field > input:focus,
+body.site-app .labeled-field > select:focus,
+body.site-app .md-outlined > input:focus,
+body.site-app .md-outlined > select:focus {
+  border-color: #111;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+  outline: none;
+}
+
+body.site-app .fuel-btn {
+  background: #fff;
+  border: 1px solid #d5d9e0;
+  color: #444;
+  border-radius: 6px;
+}
+
+body.site-app .fuel-btn.active,
+body.site-app .fuel-btn.parent-open {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+body.site-app .fuel-subpanel {
+  background: #f8f9fb;
+  border: 1px dashed #d5d9e0;
+  border-radius: 8px;
+}
+
+body.site-app .hint,
+body.site-app .hint-inline,
+body.site-app .fuel-selected {
+  color: #666;
+}
+
+body.site-app .help-link {
+  color: #1565c0;
+}
+
+/* Import panel */
+body.site-app .import-panel-head {
+  color: #111;
+}
+
+body.site-app .import-url-row input {
+  background: #fff;
+  border: 1px solid #d5d9e0;
+  color: #111;
+  border-radius: 6px;
+}
+
+body.site-app .import-log {
+  background: #1a1a1a;
+  color: #e8e8e8;
+  border-radius: 8px;
+}
+
+body.site-app .import-upgrade-warn {
+  background: #fff8e6;
+  border: 1px solid #f0d78c;
+  color: #7a5a00;
+  border-radius: 8px;
+}
+
+body.site-app .import-result-row {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  color: #111;
+  border-radius: 8px;
+}
+
+body.site-app .import-result-row:hover {
+  border-color: #111;
+}
+
+body.site-app .import-cell-row input,
+body.site-app .import-cell-row textarea {
+  background: #fff;
+  border: 1px solid #d5d9e0;
+  color: #111;
+}
+
+body.site-app .import-cells-step-title {
+  color: #111;
+  border-bottom-color: #e3e6ea;
+}
+
+body.site-app .import-save-bar {
+  background: #fff;
+  border-top: 1px solid #e3e6ea;
+}
+
+/* Listings */
+body.site-app .listings-filter-btn {
+  background: #fff;
+  border: 1px solid #d5d9e0;
+  color: #333;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+body.site-app .listings-filter-btn.active,
+body.site-app .listings-filter-btn:hover {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+body.site-app .listings-empty {
+  color: #666;
+}
+
+body.site-app .ha-card {
+  border-radius: 12px;
+  border-color: #e3e6ea;
+}
+
+body.site-app .ha-card-title {
+  color: #111;
+}
+
+/* Oldalsáv videók */
+body.site-app .site-side-card {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+body.site-app .site-side-title {
+  color: #111;
+}
+
+body.site-app .site-video-slot {
+  background: #eef0f3;
+  border-color: #e0e4ea;
+}
+
+body.site-app .site-video-placeholder {
+  color: #888;
+}
+
+body.site-app .site-video-input,
+body.site-app .site-side-input {
+  background: #fff;
+  border: 1px solid #d5d9e0;
+  color: #111;
+}
+
+body.site-app .site-content-bar {
+  background: #111;
+  border-top: 1px solid #333;
+}
+
+body.site-app .site-side-edit,
+body.site-app .site-side-btn {
+  background: #fff;
+  color: #111;
+}
+
+body.site-app .site-side-btn--ghost {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+body.site-app .footer-actions {
+  background: #fff;
+  border-top: 1px solid #e3e6ea;
+}
+
+body.site-app .upload-zone {
+  background: #f8f9fb;
+  border: 2px dashed #d5d9e0;
+  color: #444;
+}
+
+body.site-app .package {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+}
+
+body.site-app .package.selected {
+  border-color: #111;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 720px) {
+  body.site-app .home-header-inner,
+  body.site-app .site-app-header-inner,
+  body.site-app .header-top {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  body.site-app .home-nav,
+  body.site-app .import-nav {
+    justify-self: start;
+  }
+}

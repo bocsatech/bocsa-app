@@ -49,12 +49,20 @@ test("index.html: főoldal kereső oldalsávval", () => {
   assert.ok(html.includes('data-site-page="home"'));
   assert.ok(html.includes("site-content-bar"));
   assert.ok(html.includes("site-side-edit"));
+  assert.match(html, /class="[^"]*site-app[^"]*"/);
+  assert.match(html, /site-app\.css/);
 });
 
 test("import.html: videó oldalsávok", () => {
   const html = readFileSync(join(PUBLIC, "import.html"), "utf8");
   assert.ok(html.includes('data-site-page="import"'));
   assert.ok(html.includes("SITE_SIDE_LEFT"));
+  assert.match(html, /class="[^"]*site-app[^"]*"/);
+  assert.match(html, /site-app\.css/);
+  assert.match(html, /Add el autod\.hu/);
+  assert.match(html, /site-app-nav/);
+  assert.match(html, /site-app-header/);
+  assert.doesNotMatch(html, /theme-automax/);
 });
 
 test("listings.html: hirdetések oldal", () => {
@@ -64,4 +72,15 @@ test("listings.html: hirdetések oldal", () => {
   assert.ok(html.includes("listings-detail"));
   assert.ok(html.includes('data-listings-filter="mentett"'));
   assert.ok(html.includes('href="/listings.html"'));
+  assert.match(html, /class="[^"]*site-app[^"]*"/);
+  assert.match(html, /site-app\.css/);
+  assert.doesNotMatch(html, /theme-automax/);
+});
+
+test("hirdetesfeladas.html: egységes fejléc és wizard", () => {
+  const html = readFileSync(join(PUBLIC, "hirdetesfeladas.html"), "utf8");
+  assert.match(html, /class="[^"]*site-app[^"]*"/);
+  assert.match(html, /site-app-wizard-steps/);
+  assert.match(html, /Add el autod\.hu/);
+  assert.doesNotMatch(html, /theme-automax/);
 });

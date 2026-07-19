@@ -3,35 +3,41 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719listings" />
-    <title>Hirdetésfeladás — localhost klón</title>
+    <meta name="autosweb-version" content="automax20260719sitestyle" />
+    <title>Hirdetésfeladás — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719listings" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260719videos" />
-    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719fixbar" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719sitestyle" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260719sitestyle" />
+    <link rel="stylesheet" href="/css/site-app.css?v=automax20260719sitestyle" />
+    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719sitestyle" />
   </head>
-  <body class="theme-automax site-page" data-site-page="hirdetesfeladas">
-    <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
+  <body class="site-app site-page" data-site-page="hirdetesfeladas">
+    <div class="local-banner" id="local-banner">LOCALHOST — hirdetésfeladás varázsló</div>
 
-    <header class="site-header automax-header">
-      <div class="header-top">
-        <nav class="steps" aria-label="Lépések">
-          <div class="step active" data-step-indicator="1">Alapadatok</div>
-          <div class="step" data-step-indicator="2">Műszaki adatok</div>
-          <div class="step" data-step-indicator="3">Extrák</div>
-          <div class="step" data-step-indicator="4">Képek</div>
-          <div class="step" data-step-indicator="5">Hirdetés</div>
+    <header class="site-header site-app-header">
+      <div class="site-app-header-inner">
+        <a class="site-app-logo" href="/">Add el autod.hu</a>
+        <nav class="import-nav site-app-nav" aria-label="Oldalak">
+          <a class="import-nav-link" href="/">Főoldal</a>
+          <a class="import-nav-link" href="/import.html">Import</a>
+          <a class="import-nav-link active" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
+          <a class="import-nav-link" href="/listings.html">Hirdetések</a>
         </nav>
-
-        <div class="header-actions">
-          <a href="#">Belépés</a>
-          <a href="#">Regisztráció</a>
-          <button type="button" class="btn btn-primary">Hirdetésfeladás</button>
-        </div>
+        <div class="site-app-header-spacer" aria-hidden="true"></div>
       </div>
     </header>
+
+    <div class="site-app-wizard-steps">
+      <nav class="steps" aria-label="Lépések">
+        <div class="step active" data-step-indicator="1">Alapadatok</div>
+        <div class="step" data-step-indicator="2">Műszaki adatok</div>
+        <div class="step" data-step-indicator="3">Extrák</div>
+        <div class="step" data-step-indicator="4">Képek</div>
+        <div class="step" data-step-indicator="5">Hirdetés</div>
+      </nav>
+    </div>
 
     <main class="page page-automax site-page-main">
       <div class="site-layout site-layout--wide">
@@ -45,12 +51,6 @@
 
       <div class="category-bar">
         <strong>Kategória:</strong> Személyautó
-        <nav class="import-nav import-nav--inline" aria-label="Oldalak">
-          <a class="import-nav-link" href="/">Főoldal</a>
-          <a class="import-nav-link" href="/import.html">Import</a>
-          <a class="import-nav-link active" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
-          <a class="import-nav-link" href="/listings.html">Hirdetések</a>
-        </nav>
       </div>
 
       <form id="ad-form" novalidate>
@@ -752,6 +752,6 @@
       </div>
     </footer>
 
-    <script src="/js/app.js?v=automax20260719fixbar" type="module"></script>
+    <script src="/js/app.js?v=automax20260719sitestyle" type="module"></script>
   </body>
 </html>
