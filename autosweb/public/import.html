@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="autosweb-version" content="automax20260719importpage" />
+    <title>Import — Autosweb</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719importpage" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260719importpage" />
+  </head>
+  <body class="theme-automax import-page">
+    <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
+
+    <header class="site-header automax-header import-header">
+      <div class="header-top">
+        <nav class="import-nav" aria-label="Oldalak">
+          <a class="import-nav-link active" href="/import.html">Import</a>
+          <a class="import-nav-link" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
+        </nav>
+        <div class="header-actions">
+          <span class="import-db-badge" id="import-db-badge" hidden></span>
+        </div>
+      </div>
+    </header>
+
+    <main class="page page-import">
+      <div class="import-page-main">
+        <div class="automax-step-header">
+          <h1 class="automax-step-title">Hasznaltauto.hu import</h1>
+          <p class="automax-step-lead">Importáld a hirdetéseket, ellenőrizd a cellákat, majd mentsd az adatbázisba.</p>
+        </div>
+
+        <div class="card import-panel" id="import-panel">
+          <div class="card-head import-panel-head">
+            <span>Import hasznaltauto.hu-ról</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="import-toggle-btn">Import összecsukása</button>
+          </div>
+          <div class="card-body">
+            <p class="hint">
+              Lista vagy egy hirdetés URL-jét illeszd be — max. 50 db, képek nélkül. Csak adatolvasás; <strong>nem ad fel hirdetést</strong> a Használtautó.hu-ra.
+            </p>
+            <div class="import-url-row">
+              <input id="import-url" type="url" placeholder="https://www.hasznaltauto.hu/szemelyauto/… vagy talalatilista/…" />
+              <button type="button" class="btn btn-secondary" id="import-chrome-btn">Chrome megnyitása</button>
+              <button type="button" class="btn btn-primary" id="import-start-btn">Import indítása (max 50)</button>
+            </div>
+            <p class="hint import-hint-steps">
+              1) <strong>Import indítása</strong> (vagy Chrome megnyitása) → látható Chrome ablak &nbsp;
+              2) Cloudflare jelölés ha kell &nbsp; 3) Válassz hirdetést a listából
+            </p>
+            <p id="import-upgrade-warn" class="import-upgrade-warn" hidden></p>
+            <div id="import-log" class="import-log" hidden></div>
+            <div id="import-results" class="import-results" hidden></div>
+          </div>
+        </div>
+
+        <section class="card import-cells-card hidden" id="import-cells-card">
+          <div class="card-head">
+            <span id="import-cells-title">Importált adatok</span>
+          </div>
+          <div class="card-body">
+            <p class="hint" id="import-cells-hint">Ellenőrizd és szükség esetén módosítsd a cellákat, majd mentsd az adatbázisba.</p>
+            <div id="import-cells-grid"></div>
+            <div class="import-extras-block">
+              <label for="import-extras-input">Felszereltség (soronként egy extra)</label>
+              <textarea id="import-extras-input" data-extras-input rows="4" placeholder="pl. tempomat"></textarea>
+            </div>
+          </div>
+          <div class="import-save-bar">
+            <button type="button" class="btn btn-primary btn-lg" id="import-save-btn">Mentés az adatbázisba</button>
+            <span class="import-save-status" id="import-save-status"></span>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="/js/import-app.js?v=automax20260719importpage" type="module"></script>
+  </body>
+</html>

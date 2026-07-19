@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719sqlite" />
+    <meta name="autosweb-version" content="automax20260719importpage" />
     <title>Hirdetésfeladás — localhost klón</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719sqlite" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260719sqlite" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719importpage" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260719importpage" />
   </head>
   <body class="theme-automax">
     <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
@@ -41,30 +41,10 @@
 
       <div class="category-bar">
         <strong>Kategória:</strong> Személyautó
-      </div>
-
-      <div class="card import-panel" id="import-panel">
-        <div class="card-head import-panel-head">
-          <span>Import hasznaltauto.hu-ról</span>
-          <button type="button" class="btn btn-secondary btn-sm" id="import-toggle-btn">Import összecsukása</button>
-        </div>
-        <div class="card-body">
-          <p class="hint">
-            Lista vagy egy hirdetés URL-jét illeszd be — max. 50 db, képek nélkül. Csak adatolvasás; <strong>nem ad fel hirdetést</strong> a Használtautó.hu-ra.
-          </p>
-          <div class="import-url-row">
-            <input id="import-url" type="url" placeholder="https://www.hasznaltauto.hu/szemelyauto/… vagy talalatilista/…" />
-            <button type="button" class="btn btn-secondary" id="import-chrome-btn">Chrome megnyitása</button>
-            <button type="button" class="btn btn-primary" id="import-start-btn">Import indítása (max 50)</button>
-          </div>
-          <p class="hint import-hint-steps">
-            1) <strong>Import indítása</strong> (vagy Chrome megnyitása) → látható Chrome ablak &nbsp;
-            2) Cloudflare jelölés ha kell &nbsp; 3) Ha bezáródott, indítsd újra az importot
-          </p>
-          <p id="import-upgrade-warn" class="import-upgrade-warn" hidden></p>
-          <div id="import-log" class="import-log" hidden></div>
-          <div id="import-results" class="import-results" hidden></div>
-        </div>
+        <nav class="import-nav import-nav--inline" aria-label="Oldalak">
+          <a class="import-nav-link" href="/import.html">Import</a>
+          <a class="import-nav-link active" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
+        </nav>
       </div>
 
       <form id="ad-form" novalidate>
@@ -623,7 +603,7 @@
 
           <div class="card hidden" id="success-panel">
             <div class="card-body success-box">
-              <h2>Adatok mentve (SQLite + helyi piszkozat)</h2>
+              <h2>Adatok mentve (helyi piszkozat)</h2>
               <p id="summary-text" class="hint"></p>
               <p class="hint">Ez csak a gépeden van — nem kerül fel a Használtautó.hu-ra.</p>
               <button type="button" class="btn btn-primary" id="new-ad-btn">Új hirdetés</button>
@@ -702,7 +682,6 @@
       </aside>
     </main>
 
-    <script src="/js/import.js?v=automax20260719sqlite" type="module"></script>
-    <script src="/js/app.js?v=automax20260719sqlite" type="module"></script>
+    <script src="/js/app.js?v=automax20260719importpage" type="module"></script>
   </body>
 </html>

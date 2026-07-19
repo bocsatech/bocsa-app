@@ -57,7 +57,8 @@ function sendJson(res, status, data) {
 }
 
 function serveStatic(path, res) {
-  const filePath = join(PUBLIC, path === "/" ? "hirdetesfeladas.html" : path);
+  const rel = path === "/" ? "import.html" : path.replace(/^\//, "");
+  const filePath = join(PUBLIC, rel);
   if (!filePath.startsWith(PUBLIC) || !existsSync(filePath)) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("404 — nem található");

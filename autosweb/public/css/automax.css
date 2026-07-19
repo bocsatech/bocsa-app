@@ -347,6 +347,10 @@ body.theme-automax .local-banner {
 
 /* —— Kategória —— */
 .theme-automax .category-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
   background: transparent;
   box-shadow: none;
   border: 0;
@@ -852,4 +856,142 @@ body.theme-automax .import-hint-steps {
 
 body.theme-automax .import-url-row .btn-secondary {
   flex: 0 0 auto;
+}
+
+/* —— Import oldal —— */
+body.import-page .page-import {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 3rem;
+}
+
+body.theme-automax .import-nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+body.theme-automax .import-nav--inline {
+  margin-left: auto;
+}
+
+body.theme-automax .import-nav-link {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #444;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+body.theme-automax .import-nav-link.active,
+body.theme-automax .import-nav-link:hover {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+body.theme-automax .import-db-badge {
+  font-size: 0.85rem;
+  color: #666;
+  background: #f5f5f5;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+}
+
+body.theme-automax .import-cells-card {
+  margin-top: 1.25rem;
+}
+
+body.theme-automax .import-cells-step {
+  margin-bottom: 1.5rem;
+}
+
+body.theme-automax .import-cells-step-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.35rem;
+}
+
+body.theme-automax .import-cells-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+body.theme-automax .import-cell-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 34%) 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  body.theme-automax .import-cell-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+body.theme-automax .import-cell-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #555;
+  padding-top: 0.45rem;
+}
+
+body.theme-automax .import-cell-row input,
+body.theme-automax .import-cell-row textarea,
+body.theme-automax .import-extras-block textarea {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font: inherit;
+  background: #fafafa;
+}
+
+body.theme-automax .import-cell-row input:focus,
+body.theme-automax .import-cell-row textarea:focus,
+body.theme-automax .import-extras-block textarea:focus {
+  outline: 2px solid #ffb74d;
+  background: #fff;
+}
+
+body.theme-automax .import-extras-block {
+  margin-top: 1rem;
+}
+
+body.theme-automax .import-extras-block label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+}
+
+body.theme-automax .import-save-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+  position: sticky;
+  bottom: 0;
+}
+
+body.theme-automax .import-save-status {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+body.theme-automax .import-save-status--ok {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+body.theme-automax .import-save-status--err {
+  color: #c62828;
+  font-weight: 500;
 }
