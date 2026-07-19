@@ -74,6 +74,18 @@ function serveStatic(path, res) {
         html = html.replace("<!-- AD_FORM -->", readFileSync(partialPath, "utf8"));
       }
     }
+    if (html.includes("<!-- SITE_SIDE_LEFT -->")) {
+      html = html.replace(
+        "<!-- SITE_SIDE_LEFT -->",
+        readFileSync(join(PUBLIC, "partials", "site-side-left.html"), "utf8")
+      );
+    }
+    if (html.includes("<!-- SITE_SIDE_RIGHT -->")) {
+      html = html.replace(
+        "<!-- SITE_SIDE_RIGHT -->",
+        readFileSync(join(PUBLIC, "partials", "site-side-right.html"), "utf8")
+      );
+    }
     res.writeHead(200, {
       "Content-Type": MIME[".html"],
       "Cache-Control": "no-store, no-cache, must-revalidate",
@@ -254,7 +266,9 @@ const server = createServer(async (req, res) => {
   }
 
   if (pathname === "/api/site-blocks" && req.method === "GET") {
-    sendJson(res, 200, getSiteBlocks());
+    const url = new URL(req.url ?? "", `http://${HOST}`);
+    const page = url.searchParams.get("page");
+    sendJson(res, 200, getSiteBlocks(page));
     return;
   }
 

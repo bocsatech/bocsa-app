@@ -1,6 +1,7 @@
 import { fetchListings, fetchListing, deleteListingFromDb, fetchDbStats, saveListingToDb } from "./db-client.js";
 import { renderListingCells } from "./cells-view.js";
 import { createListingCard } from "./listing-card.js";
+import { initSiteSideContent } from "./site-side-content.js";
 
 const listEl = document.getElementById("listings-list");
 const detailEl = document.getElementById("listings-detail");
@@ -152,6 +153,7 @@ if (Number.isFinite(openId) && openId > 0) {
 }
 
 setActiveFilter("all");
+initSiteSideContent().catch(console.error);
 refreshStats().catch(console.error);
 loadList().catch((error) => {
   emptyEl.hidden = false;

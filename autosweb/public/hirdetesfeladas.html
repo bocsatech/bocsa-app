@@ -9,9 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260719listings" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260719listings" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260719videos" />
+    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719videos" />
   </head>
-  <body class="theme-automax">
+  <body class="theme-automax site-page" data-site-page="hirdetesfeladas">
     <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
 
     <header class="site-header automax-header">
@@ -32,7 +33,10 @@
       </div>
     </header>
 
-    <main class="page page-automax">
+    <main class="page page-automax site-page-main">
+      <div class="site-layout site-layout--wide">
+        <!-- SITE_SIDE_LEFT -->
+        <div class="site-center site-center--automax">
       <div class="automax-main">
       <div class="automax-step-header">
         <h1 class="automax-step-title" id="automax-step-title">Alapadatok</h1>
@@ -733,8 +737,11 @@
           </div>
         </div>
       </aside>
+        </div>
+        <!-- SITE_SIDE_RIGHT -->
+      </div>
     </main>
 
-    <script src="/js/app.js?v=automax20260719listings" type="module"></script>
+    <script src="/js/app.js?v=automax20260719videos" type="module"></script>
   </body>
 </html>

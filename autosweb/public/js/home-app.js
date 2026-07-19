@@ -1,6 +1,6 @@
 import { fetchListings } from "./db-client.js";
 import { createHomeGridCard } from "./home-grid-card.js";
-import { initHomeSideContent } from "./home-side-content.js";
+import { initSiteSideContent } from "./site-side-content.js";
 
 const gridEl = document.getElementById("home-grid");
 const emptyEl = document.getElementById("home-empty");
@@ -85,7 +85,7 @@ searchInput?.addEventListener("input", () => {
   renderGrid(allItems);
 });
 
-initHomeSideContent().catch(console.error);
+initSiteSideContent().catch(console.error);
 loadListings().catch((error) => {
   emptyEl.hidden = false;
   emptyEl.textContent = error.message ?? "Nem sikerült betölteni a hirdetéseket.";

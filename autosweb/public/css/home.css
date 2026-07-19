@@ -123,22 +123,7 @@ body.home-page .local-banner {
   position: relative;
 }
 
-.home-layout {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) 220px;
-  gap: 1.25rem;
-  align-items: start;
-}
-
 @media (max-width: 1100px) {
-  .home-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .home-side {
-    order: 2;
-  }
-
   .home-center {
     order: 1;
   }

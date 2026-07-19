@@ -4,25 +4,28 @@ import { mkdtempSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-test("getSiteBlocks és saveSiteBlocks", async () => {
+test("getSiteBlocks és saveSiteBlocks oldalanként 3 videóval", async () => {
   const dir = mkdtempSync(join(tmpdir(), "autosweb-blocks-"));
   process.env.AUTOSWEB_BLOCKS_PATH = join(dir, "site-blocks.json");
 
-  const { getSiteBlocks, saveSiteBlocks } = await import(`./site-blocks.mjs?t=${Date.now()}`);
+  const { getSiteBlocks, saveSiteBlocks, VIDEOS_PER_SIDE } = await import(`./site-blocks.mjs?t=${Date.now()}`);
 
   const initial = getSiteBlocks();
-  assert.ok(initial.left?.title);
-  assert.ok(initial.right?.html);
+  assert.ok(initial.pages.home.left.videos.length === VIDEOS_PER_SIDE);
 
   const saved = saveSiteBlocks({
-    left: { title: "Bal teszt", html: "<p>Bal tartalom</p>" },
-    right: { title: "Jobb teszt", html: "<p>Jobb tartalom</p>" },
+    page: "home",
+    left: {
+      title: "Bal videók",
+      videos: ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "", ""],
+    },
+    right: { title: "Jobb videók", videos: ["", "", ""] },
   });
-  assert.equal(saved.left.title, "Bal teszt");
-  assert.equal(saved.right.html, "<p>Jobb tartalom</p>");
+  assert.equal(saved.pages.home.left.videos[0], "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
 
-  const loaded = getSiteBlocks();
-  assert.equal(loaded.left.title, "Bal teszt");
+  const page = getSiteBlocks("import");
+  assert.equal(page.page, "import");
+  assert.equal(page.left.videos.length, VIDEOS_PER_SIDE);
 
   delete process.env.AUTOSWEB_BLOCKS_PATH;
   rmSync(dir, { recursive: true, force: true });

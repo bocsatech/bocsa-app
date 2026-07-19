@@ -33,16 +33,23 @@ test("hirdetesfeladas.html: beépített űrlap", () => {
   assert.ok(!html.includes("<!-- AD_FORM -->"));
 });
 
-test("index.html: főoldal feladott hirdetésekkel", () => {
+test("index.html: főoldal videó oldalsávokkal", () => {
   const html = readFileSync(join(PUBLIC, "index.html"), "utf8");
   assert.ok(html.includes("home-grid"));
   assert.ok(html.includes("home-search"));
-  assert.ok(html.includes('data-home-side="left"'));
-  assert.ok(html.includes('data-home-side="right"'));
+  assert.ok(html.includes('data-site-page="home"'));
+  assert.ok(html.includes("SITE_SIDE_LEFT"));
+});
+
+test("import.html: videó oldalsávok", () => {
+  const html = readFileSync(join(PUBLIC, "import.html"), "utf8");
+  assert.ok(html.includes('data-site-page="import"'));
+  assert.ok(html.includes("SITE_SIDE_LEFT"));
 });
 
 test("listings.html: hirdetések oldal", () => {
   const html = readFileSync(join(PUBLIC, "listings.html"), "utf8");
+  assert.ok(html.includes('data-site-page="listings"'));
   assert.ok(html.includes("ha-card-feed"));
   assert.ok(html.includes("listings-detail"));
   assert.ok(html.includes('data-listings-filter="mentett"'));
