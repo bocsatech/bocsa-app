@@ -85,16 +85,18 @@ export async function extractListingCardsFromPage(page) {
         seen.add(clean);
         const text = (container || document.body).innerText?.replace(/\s+/g, " ").trim() ?? "";
         let kmText = "";
-        for (const node of (container || document.body).querySelectorAll(
-          ".talalatisor-infokontener span, [class*='km'], [class*='futas'], .hirdetes-km, .pricefield-secondary"
-        )) {
+        const infoNodes = (container || document.body).querySelectorAll(
+          ".talalatisor-infokontener, .talalatisor-infokontener span, [class*='infokontener'], [class*='summary'], [class*='spec'], .pricefield-secondary, [class*='km'], [class*='futas'], .hirdetes-km"
+        );
+        for (const node of infoNodes.length ? infoNodes : [container || document.body]) {
           const t = node.innerText?.replace(/\s+/g, " ").trim() ?? "";
           if (/\d[\d\s.]*\s*km/i.test(t) || /\b0\s*km/i.test(t)) {
-            kmText = t;
+            kmText = t.match(/(\d[\d\s.]*\s*km|\b0\s*km)/i)?.[0] ?? t;
             break;
           }
         }
-        cards.push({ url: clean, text, title: title?.trim() || "", kmText });
+        const fullText = text.length >= 40 ? text : [title, text, kmText].filter(Boolean).join(" ");
+        cards.push({ url: clean, text: fullText, title: title?.trim() || "", kmText });
       } catch {
         /* skip */
       }

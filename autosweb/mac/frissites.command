@@ -55,6 +55,15 @@ fi
 
 echo ""
 echo "  1) Állítsd le a futó Autosweb-et (Ctrl+C a terminálban)"
+if command -v lsof >/dev/null 2>&1; then
+  PIDS=$(lsof -ti:3456 2>/dev/null || true)
+  if [ -n "$PIDS" ]; then
+    echo "  ⚠ Port 3456 foglalt — régi szerver fut. Leállítás…"
+    kill -9 $PIDS 2>/dev/null || true
+    sleep 1
+    echo "  ✓ Régi szerver leállítva"
+  fi
+fi
 echo "  2) Indítsd újra: ~/Desktop/Autosweb-indito.command"
 echo "  3) Böngésző: Cmd+Shift+R (kemény frissítés)"
 echo ""

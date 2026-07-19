@@ -3,7 +3,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseListingHtml, mergeAttributeMaps } from "./parse-listing.mjs";
+import { parseListingHtml, mergeAttributeMaps, parseBodyTextAttributes } from "./parse-listing.mjs";
 import { mapListingToFormWithSummary } from "./map-to-form.mjs";
 import { mergePageExtract } from "./page-extract.mjs";
 
@@ -78,11 +78,42 @@ test("mergePageExtract: élő DOM adat nem íródik felül üres HTML parse-szal
   assert.equal(form.szin, "Piros");
 });
 
-test("mergeAttributeMaps: hosszabb érték marad", () => {
+test("mergeAttributeMaps: zajos érték nem nyer a tiszta ellen", () => {
   const merged = mergeAttributeMaps(
-    { Évjárat: "2020" },
-    { Évjárat: "2020/6", Futásteljesítmény: "80 000 km" }
+    { Kategória: "Kombi" },
+    { Kategória: "Kombi Elsődleges telefonszám felfedése +" }
   );
-  assert.equal(merged["Évjárat"], "2020/6");
-  assert.equal(merged["Futásteljesítmény"], "80 000 km");
+  assert.equal(merged["Kategória"], "Kombi");
+});
+
+test("parseBodyTextAttributes: új layout — címke sor + érték sor", () => {
+  const map = parseBodyTextAttributes(`
+    Évjárat
+    2021/3
+    Futásteljesítmény
+    125 000 km
+    Üzemanyag
+    Diesel
+    Állapot
+    Normál
+    Sebességváltó
+    Automata (9 f.)
+  `);
+  assert.equal(map["Évjárat"], "2021/3");
+  assert.equal(map["Futásteljesítmény"], "125 000 km");
+  assert.equal(map["Üzemanyag"], "Diesel");
+  assert.equal(map["Állapot"], "Normál");
+  assert.equal(map["Sebességváltó"], "Automata (9 f.)");
+});
+
+test("inferFuelFromHints: 220 d → Diesel", async () => {
+  const { mapListingToFormWithSummary } = await import("./map-to-form.mjs");
+  const { form } = mapListingToFormWithSummary({
+    url: "https://www.hasznaltauto.hu/szemelyauto/mercedes-benz/glc/test-12345678",
+    cim: "Eladó MERCEDES-BENZ GLC 220 d 4Matic 9G-TRONIC",
+    nyersAdatok: {},
+  });
+  assert.equal(form.uzemanyag, "Diesel");
+  assert.equal(form.kivitel, "SUV / Crossover");
+  assert.equal(form.allapot, "Normál");
 });

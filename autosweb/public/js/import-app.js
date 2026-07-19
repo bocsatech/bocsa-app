@@ -4,6 +4,10 @@ import { initImportPanel } from "./import.js";
 import { enrichFormFromImportItem } from "./import-enrich.js";
 import { saveListingToDb, setStoredListingId, getStoredListingId } from "./db-client.js";
 
+const EMBEDDED_VERSION = document.querySelector('meta[name="autosweb-version"]')?.content ?? "";
+const SERVER_RESTART_MSG =
+  "Régi Autosweb szerver fut — állítsd le (Ctrl+C), majd indítsd újra: ~/Desktop/Autosweb-indito.command (vagy autosweb/mac/frissites.command után újraindítás).";
+
 const formSection = document.getElementById("import-form-section");
 const formTitle = document.getElementById("import-form-title");
 const formError = document.getElementById("import-form-error");
@@ -13,11 +17,30 @@ const dbBadge = document.getElementById("import-db-badge");
 
 let currentListingId = null;
 let adForm = null;
+let serverReady = false;
 
 function showFormError(message) {
   if (!formError) return;
   formError.hidden = false;
   formError.textContent = message;
+}
+
+function setSaveBlocked(message) {
+  serverReady = false;
+  if (saveBtn) saveBtn.disabled = true;
+  if (saveStatus) {
+    saveStatus.textContent = message;
+    saveStatus.className = "import-save-status import-save-status--err";
+  }
+}
+
+function setSaveReady() {
+  serverReady = true;
+  if (saveBtn) saveBtn.disabled = false;
+  if (saveStatus?.classList.contains("import-save-status--err")) {
+    saveStatus.textContent = "";
+    saveStatus.className = "import-save-status";
+  }
 }
 
 function verifyFormLoaded() {
@@ -30,6 +53,32 @@ function verifyFormLoaded() {
     formError.hidden = true;
   }
   return ok;
+}
+
+async function checkServerReady() {
+  try {
+    const healthRes = await fetch("/api/health");
+    if (!healthRes.ok) throw new Error("health");
+    const health = await healthRes.json();
+    const statsRes = await fetch("/api/db/stats");
+    if (!statsRes.ok) throw new Error("stats");
+    const stats = await statsRes.json();
+    if (typeof stats.listings !== "number") throw new Error("stats shape");
+
+    dbBadge.hidden = false;
+    dbBadge.textContent = `SQLite: ${stats.listings} hirdetés · ${stats.cells} cella · szerver ${health.version ?? "?"}`;
+
+    if (EMBEDDED_VERSION && health.version && health.version !== EMBEDDED_VERSION) {
+      setSaveBlocked(`Verzió eltérés (${EMBEDDED_VERSION} ≠ ${health.version}) — Cmd+Shift+R, majd szerver újraindítás.`);
+      return false;
+    }
+
+    setSaveReady();
+    return true;
+  } catch {
+    setSaveBlocked(SERVER_RESTART_MSG);
+    return false;
+  }
 }
 
 async function initPage() {
@@ -49,7 +98,7 @@ async function initPage() {
   });
 
   verifyFormLoaded();
-  await refreshDbBadge();
+  await checkServerReady();
 
   initImportPanel({
     alertOnApply: false,
@@ -61,13 +110,25 @@ async function initPage() {
       adForm.resetForm();
       formTitle.textContent = item?.cim || item?.url || "Importált hirdetés";
       adForm.applyFormData(enriched, { fromImport: true });
-      saveStatus.textContent = "";
+      if (saveStatus && !serverReady) {
+        saveStatus.textContent = SERVER_RESTART_MSG;
+        saveStatus.className = "import-save-status import-save-status--err";
+      } else if (saveStatus) {
+        saveStatus.textContent = "";
+        saveStatus.className = "import-save-status";
+      }
     },
   });
 }
 
 async function handleSave() {
   if (!adForm || !verifyFormLoaded()) return;
+  if (!serverReady) {
+    saveStatus.textContent = SERVER_RESTART_MSG;
+    saveStatus.className = "import-save-status import-save-status--err";
+    return;
+  }
+
   saveBtn.disabled = true;
   saveStatus.textContent = "Mentés…";
   saveStatus.className = "import-save-status";
@@ -78,24 +139,13 @@ async function handleSave() {
     currentListingId = saved?.id ?? currentListingId;
     saveStatus.textContent = `Mentve (#${saved?.id ?? "?"}, ${saved?.cells?.length ?? 0} cella)`;
     saveStatus.className = "import-save-status import-save-status--ok";
-    await refreshDbBadge();
+    await checkServerReady();
   } catch (error) {
     saveStatus.textContent = error.message ?? "Mentés sikertelen";
     saveStatus.className = "import-save-status import-save-status--err";
+    await checkServerReady();
   } finally {
-    saveBtn.disabled = false;
-  }
-}
-
-async function refreshDbBadge() {
-  try {
-    const response = await fetch("/api/db/stats");
-    if (!response.ok) return;
-    const stats = await response.json();
-    dbBadge.hidden = false;
-    dbBadge.textContent = `SQLite: ${stats.listings} hirdetés · ${stats.cells} cella`;
-  } catch {
-    /* ignore */
+    if (serverReady) saveBtn.disabled = false;
   }
 }
 

@@ -1,4 +1,4 @@
-import { cleanText, mergeAttributeMaps } from "./parse-listing.mjs";
+import { cleanText, mergeAttributeMaps, parseBodyTextAttributes } from "./parse-listing.mjs";
 import { extractOdometerKm, formatKmDisplay } from "./extract-km.mjs";
 
 export async function dismissCookieBanner(page) {
@@ -290,13 +290,14 @@ export async function extractListingFromPage(page) {
       }
     }
 
-    return { map, leiras, felszereltseg, title, location, kmText };
+    return { map, leiras, felszereltseg, title, location, kmText, bodyText: document.body.innerText ?? "" };
   });
 }
 
 export function mergePageExtract(parsed, extracted) {
   if (!extracted) return parsed;
-  const mergedMap = mergeAttributeMaps(extracted.map, parsed.nyersAdatok);
+  const fromBody = parseBodyTextAttributes(extracted.bodyText ?? "");
+  const mergedMap = mergeAttributeMaps(parsed.nyersAdatok, fromBody, extracted.map);
   if (extracted.kmText && !mergedMap["Futásteljesítmény"]) {
     mergedMap["Futásteljesítmény"] = extracted.kmText;
   }

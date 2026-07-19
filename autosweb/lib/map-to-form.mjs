@@ -116,6 +116,22 @@ export function buildHirdetesCime(parsed, data = {}) {
   return yearLabel ? `Eladó ${parts.join(" ")} (${yearLabel})` : `Eladó ${parts.join(" ")}`;
 }
 
+function inferFuelFromHints(...texts) {
+  const v = normalizeKey(texts.filter(Boolean).join(" "));
+  if (!v) return "";
+  if (v.includes("phev") || (v.includes("hibrid") && v.includes("benzin"))) return "Benzin/elektromos";
+  if (v.includes("hibrid") && v.includes("diesel")) return "Diesel/elektromos";
+  if (/\belektromos\b|\be-tron\b|\be\s*\d{2,3}\b|\btfsi e\b/.test(v)) return "Elektromos";
+  if (/\b\d{2,3}\s*d\b|\bdiesel\b|\btdi\b|\bcdi\b|\bcdti\b|\bmultijet\b|\b220\s*d\b|\b250\s*d\b|\b350\s*d\b/.test(v)) {
+    return "Diesel";
+  }
+  if (v.includes("lpg") || v.includes("gaz")) return "LPG/benzin";
+  if (v.includes("cng")) return "CNG/benzin";
+  if (v.includes("hibrid")) return "Benzin/elektromos";
+  if (/\bbenzin\b|\btsi\b|\btfsi\b|\bmpi\b|\becoboost\b|\bpuretech\b/.test(v)) return "Benzin";
+  return "";
+}
+
 function mapFuel(value) {
   const v = normalizeKey(value);
   if (!v) return "";
@@ -251,7 +267,9 @@ function applyRequiredDefaults(data, parsed, titleParts, m) {
     data.tipus = inferTipus(titleParts, parsed, m);
   }
   if (!data.uzemanyag) {
-    data.uzemanyag = mapFuel(pickValue(m, ["üzemanyag", "uzemanyag"]));
+    data.uzemanyag =
+      mapFuel(pickValue(m, ["üzemanyag", "uzemanyag"])) ||
+      inferFuelFromHints(data.tipus, titleParts.rest, parsed.cim, parsed.cardText, parsed.jarmuTipus);
   }
   if (!data.modell && titleParts.modell) {
     data.modell = titleParts.modell;
@@ -347,7 +365,15 @@ export function mapListingToForm(parsed) {
       pickValue(m, ["kivitel", "kategória", "kategoria", "szerkezeti változat", "szerkezeti valtozat"])
     ),
     egyeb_tipus: pickValue(m, ["egyéb típus", "egyeb tipus"]) || "",
-    uzemanyag: mapFuel(pickValue(m, ["üzemanyag", "uzemanyag"])),
+    uzemanyag:
+      mapFuel(pickValue(m, ["üzemanyag", "uzemanyag"])) ||
+      inferFuelFromHints(
+        pickValue(m, ["típus", "tipus"]),
+        titleParts.rest,
+        parsed.cim,
+        parsed.cardText,
+        parsed.jarmuTipus
+      ),
     gyartasi_ev: gyartEv.ev,
     gyartasi_honap: gyartEv.honap,
     forgalomba_helyezes_ev: forgalom.ev,

@@ -52,7 +52,15 @@ function extractYear(value) {
   return cleanText(value);
 }
 
-/** Több forrásból származó címke→érték map egyesítése; a hosszabb/nem üres érték marad. */
+function attributeValueScore(value) {
+  const v = cleanText(value);
+  if (!v) return -1;
+  if (/telefonszám|felfedése|elfogad|cookie|cloudflare|parkolóba/i.test(v)) return -1000;
+  if (v.length > 120) return 50;
+  return v.length;
+}
+
+/** Több forrásból származó címke→érték map egyesítése; a tisztább/hosszabb érték marad. */
 export function mergeAttributeMaps(...maps) {
   const merged = {};
   for (const map of maps) {
@@ -62,7 +70,11 @@ export function mergeAttributeMaps(...maps) {
       const value = cleanText(rawValue);
       if (!key || !value || key.length > 80) continue;
       const existing = merged[key];
-      if (!existing || existing.length < value.length) {
+      if (!existing) {
+        merged[key] = value;
+        continue;
+      }
+      if (attributeValueScore(value) > attributeValueScore(existing)) {
         merged[key] = value;
       }
     }
@@ -223,6 +235,63 @@ function parseEmbeddedListingJson(html) {
       } catch {
         /* ignore */
       }
+    }
+  }
+
+  return map;
+}
+
+/** Új hasznaltauto layout: kiemelt ikonok + táblázat — body szövegből címke/érték pár. */
+export function parseBodyTextAttributes(text) {
+  const map = {};
+  const raw = String(text ?? "");
+  if (!raw.trim()) return map;
+
+  const inlinePatterns = [
+    ["Évjárat", /\b(?:Évjárat|Gyártási év)\s*[:\n]\s*(\d{4}(?:\/\d{1,2})?)/gi],
+    ["Futásteljesítmény", /\b(?:Futásteljesítmény|Km\.?\s*óra\s*állás[a]?)\s*[:\n]\s*([\d\s.]+\s*km)/gi],
+    ["Vételár", /\b(?:Vételár|Hirdetési ár)\s*[:\n]\s*([\d\s.]+\s*Ft)/gi],
+    ["Üzemanyag", /\bÜzemanyag\s*[:\n]\s*([^\n]{2,60})/gi],
+    ["Kategória", /\b(?:Kategória|Kivitel)\s*[:\n]\s*([^\n]{2,40})/gi],
+    ["Állapot", /\bÁllapot\s*[:\n]\s*([^\n]{2,40})/gi],
+    ["Teljesítmény", /\bTeljesítmény\s*[:\n]\s*([^\n]{2,40})/gi],
+    ["Sebességváltó", /\bSebességváltó\s*[:\n]\s*([^\n]{2,40})/gi],
+    ["Hajtás", /\b(?:Hajtás|Hajtáslánc|Meghajtás)\s*[:\n]\s*([^\n]{2,40})/gi],
+    ["Szín", /\bSzín\s*[:\n]\s*([^\n]{2,40})/gi],
+    ["Hengerűrtartalom", /\bHengerűrtartalom\s*[:\n]\s*([\d\s.]+\s*cm³?)/gi],
+    ["Okmányok jellege", /\bOkmányok jellege\s*[:\n]\s*([^\n]{2,60})/gi],
+    ["Okmányok érvényessége", /\bOkmányok érvényessége\s*[:\n]\s*([^\n]{2,40})/gi],
+    [
+      "Első magyarországi forgalomba helyezés",
+      /\bElső magyarországi forgalomba helyezés\s*[:\n]\s*(\d{4}(?:\/\d{1,2})?)/gi,
+    ],
+    ["Műszaki vizsga érvényes", /\bMűszaki vizsga érvényes\s*[:\n]\s*(\d{4}(?:\/\d{1,2})?)/gi],
+    ["Megtalálható", /\b(?:Megtalálható|Település|Elhelyezkedés)\s*[:\n]\s*([^\n]{2,80})/gi],
+    ["Nyári gumi méret", /\bNyári gumi méret\s*[:\n]\s*(\d{3}\s*\/\s*\d{2}\s*R?\s*\d{2})/gi],
+  ];
+
+  for (const [label, pattern] of inlinePatterns) {
+    for (const match of raw.matchAll(pattern)) {
+      addAttributePair(map, label, match[1]);
+    }
+  }
+
+  const lines = raw
+    .split(/\n+/)
+    .map((line) => cleanText(line))
+    .filter(Boolean);
+
+  const labelHints =
+    /^(evjarat|gyartasi|futasteljesitmeny|km|vetelar|uzemanyag|kategoria|kivitel|allapot|teljesitmeny|sebesseg|hajt|szin|henger|okmany|forgalomba|muszaki|megtalalhato|ajto|szallithato|co2|fogyasztas|csomagtarto|karpit|tulajdonos)/;
+
+  for (let i = 0; i < lines.length - 1; i += 1) {
+    const line = lines[i].replace(/:$/, "");
+    const next = lines[i + 1];
+    if (!line || line.length > 55 || next.length > 80) continue;
+    if (next.endsWith(":") || /^[\d\s.]+\s*Ft$/i.test(line)) continue;
+    if (/telefonszám|felfedése|cookie/i.test(next)) continue;
+    if (labelHints.test(normalizeKey(line)) || line.endsWith(":")) {
+      addAttributePair(map, line, next);
     }
   }
 
