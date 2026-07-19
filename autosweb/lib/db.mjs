@@ -2,8 +2,8 @@ import { mkdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { DatabaseSync } from "node:sqlite";
-import { FORM_FIELD_CATALOG } from "./form-field-catalog.mjs";
-import { formDataToCells, cellsToFormData } from "./form-field-catalog.mjs";
+import { formDataToCells, cellsToFormData, FORM_FIELD_CATALOG } from "./form-field-catalog.mjs";
+import { buildPreviewFromCells } from "./listing-preview.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, "..", "data");
@@ -116,6 +116,33 @@ export function listListings({ limit = 50, status = null } = {}) {
        FROM listings l ORDER BY l.updated_at DESC LIMIT ?`
     )
     .all(limit);
+}
+
+function loadCellsByListingIds(ids) {
+  if (!ids.length) return new Map();
+  const db = getDb();
+  const placeholders = ids.map(() => "?").join(",");
+  const rows = db
+    .prepare(
+      `SELECT listing_id, field_key, label, value, step
+       FROM listing_cells WHERE listing_id IN (${placeholders})`
+    )
+    .all(...ids);
+  const map = new Map();
+  for (const row of rows) {
+    if (!map.has(row.listing_id)) map.set(row.listing_id, []);
+    map.get(row.listing_id).push(row);
+  }
+  return map;
+}
+
+export function listListingsWithPreview({ limit = 50, status = null } = {}) {
+  const rows = listListings({ limit, status });
+  const cellsById = loadCellsByListingIds(rows.map((row) => row.id));
+  return rows.map((row) => ({
+    ...row,
+    preview: buildPreviewFromCells(cellsById.get(row.id) ?? [], row),
+  }));
 }
 
 export function getListing(id) {

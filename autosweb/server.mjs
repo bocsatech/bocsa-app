@@ -9,7 +9,7 @@ import {
   saveListing,
   getListing,
   getLatestListing,
-  listListings,
+  listListingsWithPreview,
   deleteListing,
   dbStats,
   listFieldDefs,
@@ -182,7 +182,7 @@ async function handleListingsApi(req, res, pathname) {
     const url = new URL(req.url ?? "", `http://${HOST}`);
     const limit = Number(url.searchParams.get("limit") ?? 50);
     const status = url.searchParams.get("status");
-    sendJson(res, 200, { listings: listListings({ limit, status }) });
+    sendJson(res, 200, { listings: listListingsWithPreview({ limit, status }) });
     return;
   }
 

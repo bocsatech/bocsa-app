@@ -1,5 +1,6 @@
 import { fetchListings, fetchListing, deleteListingFromDb, fetchDbStats } from "./db-client.js";
 import { renderListingCells } from "./cells-view.js";
+import { createListingCard } from "./listing-card.js";
 
 const listEl = document.getElementById("listings-list");
 const detailEl = document.getElementById("listings-detail");
@@ -29,14 +30,6 @@ function formatDate(value) {
   }
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function setActiveFilter(filter) {
   currentFilter = filter;
   filterButtons.forEach((btn) => {
@@ -59,20 +52,12 @@ function renderList(items) {
   emptyEl.hidden = items.length > 0;
 
   for (const item of items) {
-    const row = document.createElement("button");
-    row.type = "button";
-    row.className = "import-result-row listings-row";
-    if (item.id === selectedId) row.classList.add("listings-row--active");
-    row.innerHTML = `
-      <strong>${escapeHtml(item.hirdetes_cime || `Hirdetés #${item.id}`)}</strong>
-      <span class="listings-row-meta">
-        <span class="listings-status listings-status--${escapeHtml(item.status || "mentett")}">${escapeHtml(STATUS_LABELS[item.status] || item.status || "Mentett")}</span>
-        · ${escapeHtml(formatDate(item.updated_at))}
-        · ${item.cell_count ?? 0} cella
-      </span>
-    `;
-    row.addEventListener("click", () => selectListing(item.id));
-    listEl.appendChild(row);
+    const card = createListingCard(item, {
+      selected: item.id === selectedId,
+      formatDate,
+    });
+    card.addEventListener("click", () => selectListing(item.id));
+    listEl.appendChild(card);
   }
 }
 

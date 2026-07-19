@@ -1078,9 +1078,237 @@ body.import-page .import-save-bar {
 
 /* —— Hirdetések lista oldal —— */
 body.listings-page .page-listings {
-  max-width: 1100px;
+  max-width: 920px;
   margin: 0 auto;
   padding: 1rem 1.25rem 3rem;
+}
+
+body.listings-page .listings-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+body.listings-page .ha-card-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* —— Hasznaltauto.hu stílusú hirdetéskártya —— */
+body.listings-page .ha-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  background: #fff;
+  color: #222;
+  border: 1px solid #d8d8d8;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  padding: 0;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+body.listings-page .ha-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+body.listings-page .ha-card--selected {
+  border-color: #006699;
+  box-shadow: 0 0 0 2px rgba(0, 102, 153, 0.35);
+}
+
+body.listings-page .ha-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.85rem 0.35rem;
+}
+
+body.listings-page .ha-card-title {
+  margin: 0;
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #006699;
+  letter-spacing: 0.01em;
+}
+
+body.listings-page .ha-card-price {
+  flex-shrink: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+body.listings-page .ha-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0 0.85rem 0.55rem;
+}
+
+body.listings-page .ha-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  border-radius: 2px;
+}
+
+body.listings-page .ha-badge--status.ha-badge--mentett {
+  background: #5a9fd4;
+  color: #fff;
+}
+
+body.listings-page .ha-badge--status.ha-badge--feladott {
+  background: #88b04b;
+  color: #fff;
+}
+
+body.listings-page .ha-badge--feature {
+  background: #ececec;
+  color: #444;
+  font-weight: 600;
+}
+
+body.listings-page .ha-card-body {
+  display: grid;
+  grid-template-columns: 140px 1fr 100px;
+  gap: 0.75rem;
+  padding: 0 0.85rem 0.65rem;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  body.listings-page .ha-card-body {
+    grid-template-columns: 110px 1fr;
+  }
+
+  body.listings-page .ha-card-dealer {
+    display: none;
+  }
+}
+
+body.listings-page .ha-card-photo-empty {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #f2f2f2;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+}
+
+body.listings-page .ha-card-photo-icon svg {
+  display: block;
+}
+
+body.listings-page .ha-card-main {
+  min-width: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #333;
+}
+
+body.listings-page .ha-card-spec {
+  margin: 0 0 0.4rem;
+}
+
+body.listings-page .ha-card-km {
+  text-decoration: underline;
+}
+
+body.listings-page .ha-card-desc {
+  margin: 0 0 0.35rem;
+  color: #444;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+body.listings-page .ha-card-code {
+  margin: 0 0 0.25rem;
+  color: #666;
+  font-size: 0.78rem;
+}
+
+body.listings-page .ha-card-location {
+  margin: 0;
+  color: #88b04b;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+body.listings-page .ha-card-pin {
+  display: inline-block;
+  width: 10px;
+  height: 13px;
+  background: #88b04b;
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  flex-shrink: 0;
+}
+
+body.listings-page .ha-card-dealer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.listings-page .ha-card-dealer-logo {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #e0e0e0;
+  background: #fafafa;
+  color: #888;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.35rem;
+}
+
+body.listings-page .ha-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0.85rem;
+  border-top: 1px solid #e8e8e8;
+  font-size: 0.72rem;
+  color: #888;
+}
+
+body.listings-page .ha-card-foot-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #004b91;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+body.listings-page .listings-detail-card {
+  margin-top: 1.25rem;
 }
 
 body.listings-page .listings-filters {
@@ -1107,16 +1335,7 @@ body.listings-page .listings-filter-btn:hover {
 }
 
 body.listings-page .listings-layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 360px) 1fr;
-  gap: 1.25rem;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  body.listings-page .listings-layout {
-    grid-template-columns: 1fr;
-  }
+  display: none;
 }
 
 body.listings-page .listings-row--active {

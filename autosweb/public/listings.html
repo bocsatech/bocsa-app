@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719listings" />
+    <meta name="autosweb-version" content="automax20260719listingscards" />
     <title>Hirdetések — Autosweb</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719listings" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260719listings" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719listingscards" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260719listingscards" />
   </head>
   <body class="theme-automax import-page listings-page">
     <div class="local-banner">LOCALHOST — mentett és feladott hirdetések (SQLite)</div>
@@ -31,7 +31,7 @@
       <div class="automax-step-header">
         <h1 class="automax-step-title">Mentett és feladott hirdetések</h1>
         <p class="automax-step-lead">
-          Az import oldalon mentett hirdetések és a hirdetésfeladás varázslóban véglegesített (feladott) hirdetések cellái.
+          Az import oldalon mentett hirdetések és a hirdetésfeladás varázslóban véglegesített (feladott) hirdetések — hasznaltauto.hu stílusú kártyákon.
         </p>
       </div>
 
@@ -41,33 +41,28 @@
         <button type="button" class="listings-filter-btn" data-listings-filter="feladott">Feladott</button>
       </div>
 
-      <div class="listings-layout">
-        <section class="card listings-list-card">
-          <div class="card-head">Hirdetések</div>
-          <div class="card-body">
-            <div id="listings-list" class="import-results"></div>
-            <p id="listings-empty" class="listings-empty" hidden>Még nincs mentett hirdetés. Importálj egy autót, majd kattints a „Mentés az adatbázisba” gombra.</p>
-          </div>
-        </section>
-
-        <section class="card listings-detail-card" id="listings-detail" hidden>
-          <div class="card-head listings-detail-head">
-            <div>
-              <h2 id="listings-detail-title" class="listings-detail-title">—</h2>
-              <p id="listings-detail-meta" class="listings-detail-meta"></p>
-            </div>
-            <div class="listings-detail-actions">
-              <a class="btn btn-secondary btn-sm" id="listings-edit-btn" href="/import.html">Szerkesztés</a>
-              <button type="button" class="btn btn-secondary btn-sm listings-delete-btn" id="listings-delete-btn">Törlés</button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div id="listings-cells" class="import-cells-card"></div>
-          </div>
-        </section>
+      <div class="listings-feed">
+        <div id="listings-list" class="ha-card-feed"></div>
+        <p id="listings-empty" class="listings-empty" hidden>Még nincs mentett hirdetés. Importálj egy autót, majd kattints a „Mentés az adatbázisba” gombra.</p>
       </div>
+
+      <section class="card listings-detail-card" id="listings-detail" hidden>
+        <div class="card-head listings-detail-head">
+          <div>
+            <h2 id="listings-detail-title" class="listings-detail-title">—</h2>
+            <p id="listings-detail-meta" class="listings-detail-meta"></p>
+          </div>
+          <div class="listings-detail-actions">
+            <a class="btn btn-secondary btn-sm" id="listings-edit-btn" href="/import.html">Szerkesztés</a>
+            <button type="button" class="btn btn-secondary btn-sm listings-delete-btn" id="listings-delete-btn">Törlés</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="listings-cells" class="import-cells-card"></div>
+        </div>
+      </section>
     </main>
 
-    <script src="/js/listings-app.js?v=automax20260719listings" type="module"></script>
+    <script src="/js/listings-app.js?v=automax20260719listingscards" type="module"></script>
   </body>
 </html>
