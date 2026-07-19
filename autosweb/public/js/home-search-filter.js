@@ -1,3 +1,19 @@
+const FUEL_QUICK_FILTERS = [
+  { id: "benzin", label: "Benzin", match: (value) => value === "Benzin" },
+  { id: "diesel", label: "Diesel", match: (value) => value === "Diesel" || value === "Dízel" },
+  {
+    id: "hybrid",
+    label: "Hybrid",
+    match: (value) => /elektromos/i.test(value ?? "") && value !== "Elektromos",
+  },
+  {
+    id: "benzin-gaz",
+    label: "Benzin/Gáz",
+    match: (value) => /lpg|cng|gáz|gaz/i.test(value ?? ""),
+  },
+  { id: "elektromos", label: "Elektromos", match: (value) => value === "Elektromos" },
+];
+
 const FEATURE_CHECKS = [
   { id: "automata", label: "automata", match: (item) => hasBadgeOrText(item, ["AUTOMATA", "automata"]) },
   { id: "tempomat", label: "tempomat", match: (item) => hasBadgeOrText(item, ["TEMPOMAT", "tempomat"]) },
@@ -44,6 +60,7 @@ function readFilters(form) {
     allapot: data.get("allapot")?.toString() ?? "",
     ajtok: data.get("ajtok")?.toString() ?? "",
     ulesek: data.get("ulesek")?.toString() ?? "",
+    uzemanyagQuick: data.get("uzemanyag_quick")?.toString() ?? "",
     features,
   };
 }
@@ -69,7 +86,10 @@ export function filterListingsBySidebar(items, filters) {
     if (filters.gyartmany && f.gyartmany !== filters.gyartmany) return false;
     if (filters.modell && f.modell !== filters.modell) return false;
     if (filters.kivitel && f.kivitel !== filters.kivitel) return false;
-    if (filters.uzemanyag && f.uzemanyag !== filters.uzemanyag) return false;
+    if (filters.uzemanyagQuick) {
+      const rule = FUEL_QUICK_FILTERS.find((entry) => entry.id === filters.uzemanyagQuick);
+      if (rule && !rule.match(f.uzemanyag)) return false;
+    } else if (filters.uzemanyag && f.uzemanyag !== filters.uzemanyag) return false;
     if (filters.allapot && f.allapot !== filters.allapot) return false;
     if (filters.ajtok && f.ajtok !== filters.ajtok) return false;
     if (filters.ulesek && f.ulesek !== filters.ulesek) return false;
@@ -139,6 +159,7 @@ export function emptyFilters() {
     allapot: "",
     ajtok: "",
     ulesek: "",
+    uzemanyagQuick: "",
     features: [],
   };
 }
@@ -149,16 +170,48 @@ export function initHomeSearchSidebar(onChange) {
 
   const trigger = () => onChange(readFilters(form));
 
+  initFuelQuickButtons(form, trigger);
+
   form.addEventListener("input", trigger);
   form.addEventListener("change", trigger);
 
   document.getElementById("filter-reset")?.addEventListener("click", (event) => {
     event.preventDefault();
     form.reset();
+    syncFuelQuickButtons(form, "");
     trigger();
   });
 
   return () => readFilters(form);
 }
 
-export { FEATURE_CHECKS };
+function syncFuelQuickButtons(form, quickValue) {
+  form.querySelectorAll("[data-fuel-quick]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.fuelQuick === quickValue);
+  });
+}
+
+function initFuelQuickButtons(form, trigger) {
+  const quickInput = form.querySelector("#filter-uzemanyag-quick");
+  const uzemanyagSelect = form.querySelector("#filter-uzemanyag");
+  if (!quickInput) return;
+
+  form.querySelectorAll("[data-fuel-quick]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const next = quickInput.value === button.dataset.fuelQuick ? "" : button.dataset.fuelQuick;
+      quickInput.value = next;
+      syncFuelQuickButtons(form, next);
+      if (next && uzemanyagSelect) uzemanyagSelect.value = "";
+      trigger();
+    });
+  });
+
+  uzemanyagSelect?.addEventListener("change", () => {
+    if (uzemanyagSelect.value) {
+      quickInput.value = "";
+      syncFuelQuickButtons(form, "");
+    }
+  });
+}
+
+export { FEATURE_CHECKS, FUEL_QUICK_FILTERS };

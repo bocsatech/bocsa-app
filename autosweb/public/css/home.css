@@ -163,6 +163,41 @@ body.home-page .local-banner {
   gap: 0.65rem;
 }
 
+.home-filter-fuel-btns {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin: -0.15rem 0 0.1rem;
+}
+
+.home-filter-fuel-btn {
+  min-width: 0;
+  margin: 0;
+  padding: 0.38rem 0.2rem;
+  border: 1px solid #d5d9e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #444;
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.home-filter-fuel-btn:hover {
+  border-color: #111;
+  color: #111;
+}
+
+.home-filter-fuel-btn.is-active {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
 .home-filter-field {
   display: flex;
   flex-direction: column;

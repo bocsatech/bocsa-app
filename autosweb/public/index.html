@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719homeside" />
+    <meta name="autosweb-version" content="automax20260719homefuel" />
     <title>Autosweb — Feladott hirdetések</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719homeside" />
-    <link rel="stylesheet" href="/css/home.css?v=automax20260719homeside" />
-    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719homeside" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719homefuel" />
+    <link rel="stylesheet" href="/css/home.css?v=automax20260719homefuel" />
+    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719homefuel" />
   </head>
   <body class="home-page site-page" data-site-page="home">
     <div class="local-banner">LOCALHOST — feladott hirdetések főoldala</div>
@@ -44,6 +44,14 @@
           <div class="home-filter-card">
             <h2 class="home-filter-title">Keresés</h2>
             <form id="home-filter-form" class="home-filter-form">
+              <input type="hidden" name="uzemanyag_quick" id="filter-uzemanyag-quick" value="" />
+              <div class="home-filter-fuel-btns" role="group" aria-label="Üzemanyag gyorsválasztó">
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="benzin">Benzin</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="diesel">Diesel</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="hybrid">Hybrid</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="benzin-gaz">Benzin/Gáz</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="elektromos">Elektromos</button>
+              </div>
               <label class="home-filter-field">
                 <span class="home-filter-label">Márka</span>
                 <select id="filter-gyartmany" name="gyartmany"><option value="">Mindegy</option></select>
@@ -160,6 +168,6 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=automax20260719homeside" type="module"></script>
+    <script src="/js/home-app.js?v=automax20260719homefuel" type="module"></script>
   </body>
 </html>

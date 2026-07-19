@@ -2,6 +2,14 @@
           <div class="home-filter-card">
             <h2 class="home-filter-title">Keresés</h2>
             <form id="home-filter-form" class="home-filter-form">
+              <input type="hidden" name="uzemanyag_quick" id="filter-uzemanyag-quick" value="" />
+              <div class="home-filter-fuel-btns" role="group" aria-label="Üzemanyag gyorsválasztó">
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="benzin">Benzin</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="diesel">Diesel</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="hybrid">Hybrid</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="benzin-gaz">Benzin/Gáz</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="elektromos">Elektromos</button>
+              </div>
               <label class="home-filter-field">
                 <span class="home-filter-label">Márka</span>
                 <select id="filter-gyartmany" name="gyartmany"><option value="">Mindegy</option></select>

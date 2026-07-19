@@ -36,6 +36,8 @@ test("hirdetesfeladas.html: beépített űrlap", () => {
 test("index.html: főoldal kereső oldalsávval", () => {
   const html = readFileSync(join(PUBLIC, "index.html"), "utf8");
   assert.ok(html.includes("home-filter-form"));
+  assert.ok(html.includes("home-filter-fuel-btns"));
+  assert.ok(html.includes('data-fuel-quick="benzin"'));
   assert.ok(html.includes("home-grid-track"));
   assert.ok(html.includes("data-center-content"));
   assert.ok(html.includes('data-site-page="home"'));
