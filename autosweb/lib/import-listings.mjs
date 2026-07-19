@@ -32,10 +32,6 @@ function withTimeout(promise, ms, message) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function hasListPageContent(html, url) {
   if (/talalati-sor|talalatisor-infokontener|pricefield-primary|Hirdetéskód|hirdeteskod/i.test(html)) {
     return true;
