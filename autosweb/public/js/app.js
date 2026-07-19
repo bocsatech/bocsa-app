@@ -1,5 +1,11 @@
 import { UZEMANYAG_CATEGORIES, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
 import { initImportPanel } from "./import.js";
+import {
+  fetchLatestListing,
+  saveListingToDb,
+  getStoredListingId,
+  setStoredListingId,
+} from "./db-client.js";
 
 const STORAGE_KEY = "hirdetes-local-draft";
 const form = document.getElementById("ad-form");
@@ -38,6 +44,7 @@ const fuelSubpanels = document.getElementById("fuel-subpanels");
 const fuelSelected = document.getElementById("fuel-selected");
 
 let currentStep = 1;
+let dbSaveTimer = null;
 
 const AUTO_FILL_PRESETS = {
   TESLA: { tipus: "Long Range AWD", hengerurtartalom: "", uzemanyag: "Elektromos", sebessegvalto: "Automata", hajtas: "Összkerék", teljesitmeny_kw: "258" },
@@ -400,6 +407,20 @@ function collectFormData() {
 
 function saveDraft() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormData()));
+  scheduleDbSave();
+}
+
+async function saveToDb() {
+  try {
+    await saveListingToDb(collectFormData(), getStoredListingId());
+  } catch (error) {
+    console.warn("SQLite mentés:", error.message ?? error);
+  }
+}
+
+function scheduleDbSave() {
+  clearTimeout(dbSaveTimer);
+  dbSaveTimer = setTimeout(saveToDb, 800);
 }
 
 function ensureSelectOption(select, value) {
@@ -476,7 +497,17 @@ function applyFormData(data, { fromImport = false } = {}) {
   goToStep(1);
 }
 
-function restoreDraft() {
+async function restoreDraft() {
+  try {
+    const listing = await fetchLatestListing();
+    if (listing?.form && Object.keys(listing.form).length > 0) {
+      setStoredListingId(listing.id);
+      applyFormData(listing.form);
+      return;
+    }
+  } catch {
+    /* fallback localStorage */
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
@@ -634,6 +665,7 @@ nextBtn.addEventListener("click", () => {
 newAdBtn.addEventListener("click", () => {
   form.reset();
   localStorage.removeItem(STORAGE_KEY);
+  setStoredListingId(null);
   renderPhotoPreview([]);
   resetSuccess();
   updateTitle();
@@ -690,19 +722,30 @@ renderFuelSelector();
 renderKlimaOptions();
 renderEquipment();
 wrapMdOutlinedFields();
-restoreDraft();
-syncFuelDependentFields();
-renderPhotoPreview([]);
-fitAllFormFields();
-showStep(1);
+restoreDraft().then(() => {
+  syncFuelDependentFields();
+  renderPhotoPreview([]);
+  fitAllFormFields();
+  showStep(1);
+});
 
 initImportPanel({
   form,
-  onApply: (formData, item) => {
+  onApply: async (formData, item) => {
     if ((!formData?.km || String(formData.km).trim() === "") && item?.km) {
       const digits = String(item.km).replace(/[^\d]/g, "");
       if (digits) formData.km = digits;
     }
+    if (item?.url && !formData.forras_url) formData.forras_url = item.url;
+    if (item?.id && !formData.hasznaltauto_hirdetes_id) formData.hasznaltauto_hirdetes_id = String(item.id);
+    setStoredListingId(null);
     applyFormData(formData, { fromImport: true });
+    clearTimeout(dbSaveTimer);
+    try {
+      const saved = await saveListingToDb(collectFormData(), null);
+      if (saved?.id) console.info(`SQLite mentve (#${saved.id})`);
+    } catch (error) {
+      console.warn("SQLite mentés:", error.message ?? error);
+    }
   },
 });

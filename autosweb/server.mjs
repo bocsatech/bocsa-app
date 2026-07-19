@@ -5,6 +5,16 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { importListings, openChromeForImport } from "./lib/import-listings.mjs";
 import { findChromeExecutable } from "./lib/chrome-launcher.mjs";
+import {
+  saveListing,
+  getListing,
+  getLatestListing,
+  listListings,
+  deleteListing,
+  dbStats,
+  listFieldDefs,
+  findListingBySourceUrl,
+} from "./lib/db.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -132,6 +142,76 @@ async function handleImport(req, res) {
   }
 }
 
+async function handleListingsApi(req, res, pathname) {
+  const latestMatch = pathname === "/api/listings/latest";
+  const listMatch = pathname === "/api/listings";
+  const idMatch = pathname.match(/^\/api\/listings\/(\d+)$/);
+
+  if (pathname === "/api/db/stats" && req.method === "GET") {
+    sendJson(res, 200, dbStats());
+    return;
+  }
+
+  if (pathname === "/api/field-defs" && req.method === "GET") {
+    sendJson(res, 200, { fields: listFieldDefs() });
+    return;
+  }
+
+  if (latestMatch && req.method === "GET") {
+    sendJson(res, 200, { listing: getLatestListing() });
+    return;
+  }
+
+  if (listMatch && req.method === "GET") {
+    const limit = Number(new URL(req.url ?? "", `http://${HOST}`).searchParams.get("limit") ?? 50);
+    sendJson(res, 200, { listings: listListings(limit) });
+    return;
+  }
+
+  if (idMatch && req.method === "GET") {
+    const listing = getListing(Number(idMatch[1]));
+    if (!listing) {
+      sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
+      return;
+    }
+    sendJson(res, 200, { listing });
+    return;
+  }
+
+  if (listMatch && req.method === "POST") {
+    let body;
+    try {
+      body = await readBody(req);
+    } catch {
+      sendJson(res, 400, { error: "Érvénytelen JSON." });
+      return;
+    }
+
+    const formData = body.form ?? body;
+    const listingId = body.id != null ? Number(body.id) : null;
+    if (!formData || typeof formData !== "object") {
+      sendJson(res, 400, { error: "Hiányzó űrlap adat." });
+      return;
+    }
+
+    const saved = saveListing(formData, listingId);
+    if (!saved) {
+      sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
+      return;
+    }
+    sendJson(res, 200, { listing: saved });
+    return;
+  }
+
+  if (idMatch && req.method === "DELETE") {
+    deleteListing(Number(idMatch[1]));
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  sendJson(res, 405, { error: "Nem támogatott művelet." });
+}
+
 const server = createServer(async (req, res) => {
   const pathname = req.url?.split("?")[0] || "/";
 
@@ -154,6 +234,17 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (
+    pathname === "/api/db/stats" ||
+    pathname === "/api/field-defs" ||
+    pathname === "/api/listings" ||
+    pathname === "/api/listings/latest" ||
+    pathname.startsWith("/api/listings/")
+  ) {
+    await handleListingsApi(req, res, pathname);
+    return;
+  }
+
   if (pathname.startsWith("/api/")) {
     sendJson(res, 404, { error: "Ismeretlen API." });
     return;
@@ -165,4 +256,10 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
+  try {
+    const stats = dbStats();
+    console.log(`SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella)`);
+  } catch (error) {
+    console.warn("SQLite inicializálás:", error.message ?? error);
+  }
 });

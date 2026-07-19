@@ -53,8 +53,17 @@ export function initImportPanel({ form, onApply }) {
       if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
         appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
       }
-      if (serverVersion && !serverVersion.includes("km3")) {
+      if (serverVersion && !serverVersion.includes("sqlite")) {
         showUpgradeWarning(serverVersion);
+      }
+      try {
+        const statsResponse = await fetch("/api/db/stats");
+        if (statsResponse.ok) {
+          const stats = await statsResponse.json();
+          appendLog(`SQLite: ${stats.listings} hirdetés, ${stats.cells} cella`);
+        }
+      } catch {
+        /* db offline */
       }
     } catch {
       /* offline / server down */
