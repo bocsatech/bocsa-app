@@ -3,6 +3,10 @@ import { buildYouTubeEmbedHtml } from "./youtube-embed.js";
 const SIDE_KEYS = ["left", "right"];
 const VIDEO_COUNT = 3;
 
+function getPresentSides() {
+  return SIDE_KEYS.filter((side) => document.querySelector(`[data-site-side="${side}"]`));
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -130,10 +134,10 @@ export async function initSiteSideContent() {
   };
 
   const renderAll = () => {
-    for (const side of SIDE_KEYS) {
+    for (const side of getPresentSides()) {
       renderPanel(side, pageData[side], { editing });
     }
-    if (pageData.center) {
+    if (document.querySelector("[data-center-content]") && pageData.center) {
       renderCenter(pageData.center, { editing });
     }
     if (toolbar) toolbar.hidden = !editing;
@@ -157,16 +161,17 @@ export async function initSiteSideContent() {
   });
 
   saveBtn?.addEventListener("click", async () => {
-    const payload = {
-      left: readPanel("left"),
-      right: readPanel("right"),
-    };
-    if (pageData.center) {
+    const payload = {};
+    for (const side of getPresentSides()) {
+      payload[side] = readPanel(side);
+    }
+    if (document.querySelector("[data-center-content]")) {
       payload.center = readCenter();
     }
     const saved = await savePageBlocks(page, payload);
-    pageData.left = saved.pages[page].left;
-    pageData.right = saved.pages[page].right;
+    for (const side of getPresentSides()) {
+      pageData[side] = saved.pages[page][side];
+    }
     if (saved.pages[page].center) {
       pageData.center = saved.pages[page].center;
     }

@@ -11,7 +11,7 @@ export const SITE_PAGES = ["home", "import", "listings", "hirdetesfeladas"];
 export const VIDEOS_PER_SIDE = 3;
 
 const PAGE_DEFAULT_TITLES = {
-  home: { left: "Kiemelt videók", right: "Hasznos videók", center: "Aktív tartalom" },
+  home: { left: "Hasznos információ", right: "Hasznos videók", center: "Aktív tartalom" },
   import: { left: "Import tippek", right: "Útmutatók" },
   listings: { left: "Hirdetés videók", right: "További videók" },
   hirdetesfeladas: { left: "Feladás tippek", right: "Segítség videók" },
