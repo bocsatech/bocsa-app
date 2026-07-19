@@ -684,6 +684,8 @@ if (mode === "wizard") {
       return;
     }
     buildSummary();
+    const formData = collectFormData();
+    options.onWizardComplete?.(formData);
     showSuccess();
   });
 

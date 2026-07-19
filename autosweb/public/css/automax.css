@@ -1075,3 +1075,137 @@ body.import-page .import-save-bar {
   background: #111;
   border-top: 1px solid #333;
 }
+
+/* —— Hirdetések lista oldal —— */
+body.listings-page .page-listings {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 3rem;
+}
+
+body.listings-page .listings-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 1.25rem;
+}
+
+body.listings-page .listings-filter-btn {
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--ax-border);
+  background: var(--ax-surface);
+  color: var(--ax-text);
+  cursor: pointer;
+  font: inherit;
+}
+
+body.listings-page .listings-filter-btn.active,
+body.listings-page .listings-filter-btn:hover {
+  border-color: var(--ax-orange);
+  color: var(--ax-orange);
+}
+
+body.listings-page .listings-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  body.listings-page .listings-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+body.listings-page .listings-row--active {
+  border-color: var(--ax-orange);
+  box-shadow: 0 0 0 1px var(--ax-orange);
+}
+
+body.listings-page .listings-row-meta {
+  font-size: 0.85rem;
+  color: var(--ax-muted);
+}
+
+body.listings-page .listings-status {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+body.listings-page .listings-status--mentett {
+  color: #7ec8ff;
+}
+
+body.listings-page .listings-status--feladott {
+  color: #9be7a0;
+}
+
+body.listings-page .listings-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+body.listings-page .listings-detail-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+body.listings-page .listings-detail-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ax-muted);
+  word-break: break-word;
+}
+
+body.listings-page .listings-detail-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+body.listings-page .listings-delete-btn {
+  color: #ffb4b4;
+  border-color: #633;
+}
+
+body.listings-page .listings-empty {
+  color: var(--ax-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+body.listings-page .import-cell-label {
+  color: var(--ax-muted);
+}
+
+body.listings-page .import-cell-value {
+  color: var(--ax-text);
+  word-break: break-word;
+}
+
+body.listings-page .import-cells-step-title {
+  color: var(--ax-orange);
+  border-bottom-color: #333;
+}
+
+body.import-page .import-nav-link {
+  color: var(--ax-muted);
+}
+
+body.import-page .import-nav-link.active,
+body.import-page .import-nav-link:hover {
+  background: rgba(255, 85, 0, 0.15);
+  color: var(--ax-orange);
+}
+
+body.theme-automax .listings-inline-link {
+  color: var(--ax-orange);
+  font-weight: 600;
+}

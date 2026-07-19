@@ -33,17 +33,22 @@ test("saveListing: sqlite fájlba ment", async () => {
   const tempDir = mkdtempSync(join(tmpdir(), "autosweb-db-"));
   process.env.AUTOSWEB_DB_PATH = join(tempDir, "test.db");
 
-  const { saveListing, getListing, dbStats } = await import(`./db.mjs?t=${Date.now()}`);
+  const { saveListing, getListing, dbStats, listListings } = await import(`./db.mjs?t=${Date.now()}`);
 
-  const saved = saveListing({
-    hirdetes_cime: "Eladó FORD KUGA (2023)",
-    gyartmany: "FORD",
-    modell: "KUGA",
-    km: "45000",
-    forras_url: "https://www.hasznaltauto.hu/szemelyauto/ford/kuga/test-12345678",
-  });
+  const saved = saveListing(
+    {
+      hirdetes_cime: "Eladó FORD KUGA (2023)",
+      gyartmany: "FORD",
+      modell: "KUGA",
+      km: "45000",
+      forras_url: "https://www.hasznaltauto.hu/szemelyauto/ford/kuga/test-12345678",
+    },
+    null,
+    { status: "mentett" }
+  );
 
   assert.ok(saved.id);
+  assert.equal(saved.status, "mentett");
   assert.equal(saved.form.km, "45000");
   assert.ok(saved.cells.some((c) => c.label === "Km. óra állás"));
 
@@ -52,7 +57,14 @@ test("saveListing: sqlite fájlba ment", async () => {
 
   const stats = dbStats();
   assert.equal(stats.listings, 1);
+  assert.equal(stats.mentett, 1);
   assert.ok(stats.cells >= 4);
+
+  const feladott = saveListing({ hirdetes_cime: "Feladott teszt", gyartmany: "BMW" }, null, {
+    status: "feladott",
+  });
+  assert.equal(feladott.status, "feladott");
+  assert.equal(listListings({ status: "feladott" }).length, 1);
 
   rmSync(tempDir, { recursive: true, force: true });
   delete process.env.AUTOSWEB_DB_PATH;

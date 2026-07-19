@@ -179,8 +179,10 @@ async function handleListingsApi(req, res, pathname) {
   }
 
   if (listMatch && req.method === "GET") {
-    const limit = Number(new URL(req.url ?? "", `http://${HOST}`).searchParams.get("limit") ?? 50);
-    sendJson(res, 200, { listings: listListings(limit) });
+    const url = new URL(req.url ?? "", `http://${HOST}`);
+    const limit = Number(url.searchParams.get("limit") ?? 50);
+    const status = url.searchParams.get("status");
+    sendJson(res, 200, { listings: listListings({ limit, status }) });
     return;
   }
 
@@ -210,7 +212,7 @@ async function handleListingsApi(req, res, pathname) {
       return;
     }
 
-    const saved = saveListing(formData, listingId);
+    const saved = saveListing(formData, listingId, { status: body.status });
     if (!saved) {
       sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
       return;

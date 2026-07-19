@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719importdatafix2" />
+    <meta name="autosweb-version" content="automax20260719listings" />
     <title>Hirdetésfeladás — localhost klón</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719importdatafix2" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260719importdatafix2" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719listings" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260719listings" />
   </head>
   <body class="theme-automax">
     <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
@@ -44,6 +44,7 @@
         <nav class="import-nav import-nav--inline" aria-label="Oldalak">
           <a class="import-nav-link" href="/import.html">Import</a>
           <a class="import-nav-link active" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
+          <a class="import-nav-link" href="/listings.html">Hirdetések</a>
         </nav>
       </div>
 
@@ -652,9 +653,10 @@
 
           <div class="card hidden" id="success-panel">
             <div class="card-body success-box">
-              <h2>Adatok mentve (helyi piszkozat)</h2>
+              <h2>Hirdetés feladva (mentve)</h2>
               <p id="summary-text" class="hint"></p>
-              <p class="hint">Ez csak a gépeden van — nem kerül fel a Használtautó.hu-ra.</p>
+              <p class="hint">Az adatok SQLite-ba kerültek „feladott” státusszal — nem kerülnek fel automatikusan a Használtautó.hu-ra.</p>
+              <p class="hint"><a class="listings-inline-link" href="/listings.html">Összes hirdetés megtekintése</a></p>
               <button type="button" class="btn btn-primary" id="new-ad-btn">Új hirdetés</button>
             </div>
           </div>
@@ -732,6 +734,6 @@
       </aside>
     </main>
 
-    <script src="/js/app.js?v=automax20260719importdatafix2" type="module"></script>
+    <script src="/js/app.js?v=automax20260719listings" type="module"></script>
   </body>
 </html>

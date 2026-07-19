@@ -28,6 +28,14 @@ export async function fetchDbStats() {
   return parseJson(response);
 }
 
+export async function fetchListings({ limit = 100, status = null } = {}) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (status) params.set("status", status);
+  const response = await fetch(`/api/listings?${params}`);
+  const data = await parseJson(response);
+  return data.listings ?? [];
+}
+
 export async function fetchLatestListing() {
   const response = await fetch("/api/listings/latest");
   const data = await parseJson(response);
@@ -40,14 +48,19 @@ export async function fetchListing(id) {
   return data.listing ?? null;
 }
 
-export async function saveListingToDb(formData, listingId = null) {
+export async function saveListingToDb(formData, listingId = null, { status = null } = {}) {
   const response = await fetch("/api/listings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ form: formData, id: listingId }),
+    body: JSON.stringify({ form: formData, id: listingId, status }),
   });
   const data = await parseJson(response);
   const saved = data.listing;
   if (saved?.id) setStoredListingId(saved.id);
   return saved;
+}
+
+export async function deleteListingFromDb(id) {
+  const response = await fetch(`/api/listings/${id}`, { method: "DELETE" });
+  return parseJson(response);
 }

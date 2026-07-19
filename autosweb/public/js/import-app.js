@@ -2,7 +2,13 @@ import { loadAdFormPartial } from "./load-ad-form.js";
 import { createAdForm } from "./form-core.js";
 import { initImportPanel } from "./import.js";
 import { enrichFormFromImportItem } from "./import-enrich.js";
-import { saveListingToDb, setStoredListingId, getStoredListingId } from "./db-client.js";
+import {
+  saveListingToDb,
+  setStoredListingId,
+  getStoredListingId,
+  fetchListing,
+  fetchDbStats,
+} from "./db-client.js";
 
 const EMBEDDED_VERSION = document.querySelector('meta[name="autosweb-version"]')?.content ?? "";
 const SERVER_RESTART_MSG =
@@ -119,6 +125,26 @@ async function initPage() {
       }
     },
   });
+
+  await loadListingFromUrl();
+}
+
+async function loadListingFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const listingId = Number(params.get("listing"));
+  if (!Number.isFinite(listingId) || listingId <= 0 || !adForm) return;
+
+  try {
+    const listing = await fetchListing(listingId);
+    if (!listing?.form) return;
+    currentListingId = listing.id;
+    setStoredListingId(listing.id);
+    formTitle.textContent = listing.hirdetes_cime || `Hirdetés #${listing.id}`;
+    adForm.applyFormData(listing.form, { fromImport: true });
+    formSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    showFormError(error.message ?? "Hirdetés betöltése sikertelen.");
+  }
 }
 
 async function handleSave() {
@@ -135,9 +161,11 @@ async function handleSave() {
 
   try {
     const formData = adForm.collectFormData();
-    const saved = await saveListingToDb(formData, currentListingId ?? getStoredListingId());
+    const saved = await saveListingToDb(formData, currentListingId ?? getStoredListingId(), {
+      status: "mentett",
+    });
     currentListingId = saved?.id ?? currentListingId;
-    saveStatus.textContent = `Mentve (#${saved?.id ?? "?"}, ${saved?.cells?.length ?? 0} cella)`;
+    saveStatus.textContent = `Mentve (#${saved?.id ?? "?"}, ${saved?.cells?.length ?? 0} cella) — megtekintés: /listings.html?id=${saved?.id ?? ""}`;
     saveStatus.className = "import-save-status import-save-status--ok";
     await checkServerReady();
   } catch (error) {

@@ -41,6 +41,7 @@ function initSchema(db) {
       hirdetes_cime TEXT,
       forras_url TEXT,
       hasznaltauto_hirdetes_id TEXT,
+      status TEXT NOT NULL DEFAULT 'mentett',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -66,6 +67,22 @@ function initSchema(db) {
   FORM_FIELD_CATALOG.forEach((def, index) => {
     insertDef.run(def.field_key, def.label, def.step, index);
   });
+
+  migrateListingsStatus(db);
+}
+
+function migrateListingsStatus(db) {
+  const columns = db.prepare("PRAGMA table_info(listings)").all();
+  if (!columns.some((col) => col.name === "status")) {
+    db.exec("ALTER TABLE listings ADD COLUMN status TEXT NOT NULL DEFAULT 'mentett'");
+  }
+}
+
+export const LISTING_STATUSES = ["mentett", "feladott"];
+
+export function normalizeListingStatus(status) {
+  const value = String(status ?? "mentett").trim().toLowerCase();
+  return LISTING_STATUSES.includes(value) ? value : "mentett";
 }
 
 export function getDbPath() {
@@ -78,12 +95,25 @@ export function listFieldDefs() {
   return db.prepare("SELECT field_key, label, step FROM field_defs ORDER BY sort_order").all();
 }
 
-export function listListings(limit = 50) {
+export function listListings({ limit = 50, status = null } = {}) {
   const db = getDb();
+  const normalizedStatus = status ? normalizeListingStatus(status) : null;
+  if (normalizedStatus) {
+    return db
+      .prepare(
+        `SELECT l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.status,
+                l.created_at, l.updated_at,
+                (SELECT COUNT(*) FROM listing_cells c WHERE c.listing_id = l.id) AS cell_count
+         FROM listings l WHERE l.status = ? ORDER BY l.updated_at DESC LIMIT ?`
+      )
+      .all(normalizedStatus, limit);
+  }
   return db
     .prepare(
-      `SELECT id, hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, created_at, updated_at
-       FROM listings ORDER BY updated_at DESC LIMIT ?`
+      `SELECT l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.status,
+              l.created_at, l.updated_at,
+              (SELECT COUNT(*) FROM listing_cells c WHERE c.listing_id = l.id) AS cell_count
+       FROM listings l ORDER BY l.updated_at DESC LIMIT ?`
     )
     .all(limit);
 }
@@ -92,7 +122,7 @@ export function getListing(id) {
   const db = getDb();
   const listing = db
     .prepare(
-      `SELECT id, hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, created_at, updated_at
+      `SELECT id, hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, status, created_at, updated_at
        FROM listings WHERE id = ?`
     )
     .get(id);
@@ -127,18 +157,20 @@ export function findListingBySourceUrl(url) {
   return row ? getListing(row.id) : null;
 }
 
-function upsertListingMeta(db, id, formData) {
+function upsertListingMeta(db, id, formData, status) {
   db.prepare(
     `UPDATE listings SET
       hirdetes_cime = ?,
       forras_url = ?,
       hasznaltauto_hirdetes_id = ?,
+      status = ?,
       updated_at = datetime('now')
      WHERE id = ?`
   ).run(
     formData.hirdetes_cime ?? "",
     formData.forras_url ?? "",
     formData.hasznaltauto_hirdetes_id ?? "",
+    normalizeListingStatus(status ?? formData.status),
     id
   );
 }
@@ -154,26 +186,28 @@ function replaceCells(db, listingId, cells) {
   }
 }
 
-export function saveListing(formData, listingId = null) {
+export function saveListing(formData, listingId = null, { status = null } = {}) {
   const db = getDb();
   const cells = formDataToCells(formData);
+  const listingStatus = normalizeListingStatus(status ?? formData.status);
 
   if (listingId) {
     const existing = db.prepare("SELECT id FROM listings WHERE id = ?").get(listingId);
     if (!existing) return null;
-    upsertListingMeta(db, listingId, formData);
+    upsertListingMeta(db, listingId, formData, listingStatus);
     replaceCells(db, listingId, cells);
     return getListing(listingId);
   }
 
   const insert = db.prepare(
-    `INSERT INTO listings (hirdetes_cime, forras_url, hasznaltauto_hirdetes_id)
-     VALUES (?, ?, ?)`
+    `INSERT INTO listings (hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, status)
+     VALUES (?, ?, ?, ?)`
   );
   const result = insert.run(
     formData.hirdetes_cime ?? "",
     formData.forras_url ?? "",
-    formData.hasznaltauto_hirdetes_id ?? ""
+    formData.hasznaltauto_hirdetes_id ?? "",
+    listingStatus
   );
   const id = Number(result.lastInsertRowid);
   replaceCells(db, id, cells);
@@ -190,7 +224,9 @@ export function dbStats() {
   const db = getDb();
   const listings = db.prepare("SELECT COUNT(*) AS n FROM listings").get().n;
   const cells = db.prepare("SELECT COUNT(*) AS n FROM listing_cells").get().n;
-  return { listings, cells, path: resolveDbPath() };
+  const mentett = db.prepare("SELECT COUNT(*) AS n FROM listings WHERE status = 'mentett'").get().n;
+  const feladott = db.prepare("SELECT COUNT(*) AS n FROM listings WHERE status = 'feladott'").get().n;
+  return { listings, cells, mentett, feladott, path: resolveDbPath() };
 }
 
 export { formDataToCells, cellsToFormData };

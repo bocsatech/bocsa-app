@@ -32,3 +32,11 @@ test("hirdetesfeladas.html: beépített űrlap", () => {
   assert.ok(html.includes('id="gyartasi_ev"'));
   assert.ok(!html.includes("<!-- AD_FORM -->"));
 });
+
+test("listings.html: hirdetések oldal", () => {
+  const html = readFileSync(join(PUBLIC, "listings.html"), "utf8");
+  assert.ok(html.includes("listings-list"));
+  assert.ok(html.includes("listings-detail"));
+  assert.ok(html.includes('data-listings-filter="mentett"'));
+  assert.ok(html.includes('href="/listings.html"'));
+});
