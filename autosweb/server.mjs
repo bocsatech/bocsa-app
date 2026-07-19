@@ -15,6 +15,7 @@ import {
   listFieldDefs,
   findListingBySourceUrl,
 } from "./lib/db.mjs";
+import { getSiteBlocks, saveSiteBlocks } from "./lib/site-blocks.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -57,7 +58,7 @@ function sendJson(res, status, data) {
 }
 
 function serveStatic(path, res) {
-  const rel = path === "/" ? "import.html" : path.replace(/^\//, "");
+  const rel = path === "/" ? "index.html" : path.replace(/^\//, "");
   const filePath = join(PUBLIC, rel);
   if (!filePath.startsWith(PUBLIC) || !existsSync(filePath)) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
@@ -249,6 +250,23 @@ const server = createServer(async (req, res) => {
 
   if (pathname === "/api/import" && req.method === "POST") {
     await handleImport(req, res);
+    return;
+  }
+
+  if (pathname === "/api/site-blocks" && req.method === "GET") {
+    sendJson(res, 200, getSiteBlocks());
+    return;
+  }
+
+  if (pathname === "/api/site-blocks" && req.method === "PUT") {
+    let body;
+    try {
+      body = await readBody(req);
+    } catch {
+      sendJson(res, 400, { error: "Érvénytelen JSON." });
+      return;
+    }
+    sendJson(res, 200, saveSiteBlocks(body));
     return;
   }
 
