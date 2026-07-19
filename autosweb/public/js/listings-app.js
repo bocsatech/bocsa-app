@@ -1,4 +1,4 @@
-import { fetchListings, fetchListing, deleteListingFromDb, fetchDbStats } from "./db-client.js";
+import { fetchListings, fetchListing, deleteListingFromDb, fetchDbStats, saveListingToDb } from "./db-client.js";
 import { renderListingCells } from "./cells-view.js";
 import { createListingCard } from "./listing-card.js";
 
@@ -11,10 +11,12 @@ const emptyEl = document.getElementById("listings-empty");
 const statsEl = document.getElementById("listings-stats");
 const filterButtons = [...document.querySelectorAll("[data-listings-filter]")];
 const editBtn = document.getElementById("listings-edit-btn");
+const publishBtn = document.getElementById("listings-publish-btn");
 const deleteBtn = document.getElementById("listings-delete-btn");
 
 let currentFilter = "all";
 let selectedId = null;
+let currentListing = null;
 
 const STATUS_LABELS = {
   mentett: "Mentett",
@@ -84,6 +86,8 @@ async function selectListing(id) {
     return;
   }
 
+  currentListing = listing;
+
   detailTitle.textContent = listing.hirdetes_cime || `Hirdetés #${listing.id}`;
   const parts = [
     STATUS_LABELS[listing.status] || listing.status,
@@ -97,10 +101,25 @@ async function selectListing(id) {
 
   renderListingCells(cellsEl, listing.cells);
   editBtn.href = `/import.html?listing=${listing.id}`;
+  publishBtn.hidden = listing.status === "feladott";
   deleteBtn.dataset.id = String(listing.id);
 
   await loadList();
   detailEl.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function handlePublish() {
+  if (!currentListing?.form || !selectedId) return;
+  publishBtn.disabled = true;
+  try {
+    await saveListingToDb(currentListing.form, selectedId, { status: "feladott" });
+    await refreshStats();
+    await selectListing(selectedId);
+  } catch (error) {
+    alert(error.message ?? "Közzététel sikertelen.");
+  } finally {
+    publishBtn.disabled = false;
+  }
 }
 
 async function handleDelete() {
@@ -110,6 +129,7 @@ async function handleDelete() {
 
   await deleteListingFromDb(selectedId);
   selectedId = null;
+  currentListing = null;
   detailEl.hidden = true;
   await refreshStats();
   await loadList();
@@ -122,6 +142,7 @@ filterButtons.forEach((btn) => {
   });
 });
 
+publishBtn?.addEventListener("click", handlePublish);
 deleteBtn?.addEventListener("click", handleDelete);
 
 const params = new URLSearchParams(location.search);

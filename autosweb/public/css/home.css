@@ -355,6 +355,25 @@ body.home-page .local-banner {
   overflow: hidden;
 }
 
+.home-grid-card-status {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.home-grid-card-status--published {
+  background: #e7f5ea;
+  color: #2e7d32;
+}
+
+.home-grid-card-status--draft {
+  background: #eef0f3;
+  color: #666;
+}
+
 .home-grid-card-deal {
   align-self: flex-start;
   font-size: 0.72rem;

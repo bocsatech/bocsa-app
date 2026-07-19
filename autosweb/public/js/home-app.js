@@ -50,10 +50,14 @@ function renderGrid(items) {
   emptyEl.hidden = filtered.length > 0;
 
   if (countEl) {
-    countEl.textContent =
-      searchQuery.trim() ?
-        `${filtered.length} találat · ${items.length} feladott hirdetés`
-      : `${filtered.length} feladott hirdetés`;
+    const published = items.filter((item) => item.status === "feladott").length;
+    if (searchQuery.trim()) {
+      countEl.textContent = `${filtered.length} találat · ${published} közzétett · ${items.length} hirdetés`;
+    } else if (published > 0) {
+      countEl.textContent = `${published} közzétett · ${items.length} hirdetés összesen`;
+    } else {
+      countEl.textContent = `${items.length} hirdetés (még nincs közzétéve a főoldalon)`;
+    }
   }
 
   for (const item of filtered) {
@@ -62,7 +66,11 @@ function renderGrid(items) {
 }
 
 async function loadListings() {
-  allItems = await fetchListings({ limit: 300, status: "feladott" });
+  const all = await fetchListings({ limit: 300 });
+  allItems = all.sort((a, b) => {
+    if (a.status === b.status) return 0;
+    return a.status === "feladott" ? -1 : 1;
+  });
   renderGrid(allItems);
 }
 

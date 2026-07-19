@@ -1389,6 +1389,11 @@ body.listings-page .listings-detail-actions {
   flex-wrap: wrap;
 }
 
+body.listings-page .listings-publish-btn {
+  color: #9be7a0;
+  border-color: #385;
+}
+
 body.listings-page .listings-delete-btn {
   color: #ffb4b4;
   border-color: #633;
