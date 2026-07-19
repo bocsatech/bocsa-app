@@ -59,6 +59,7 @@ test("import.html: videó oldalsávok", () => {
   assert.doesNotMatch(html, /SITE_SIDE_LEFT/);
   assert.doesNotMatch(html, /data-site-side="left"/);
   assert.doesNotMatch(html, /site-content-bar/);
+  assert.ok(html.includes("import-top-alert"));
   assert.match(html, /class="[^"]*site-app[^"]*"/);
   assert.match(html, /site-app\.css/);
   assert.match(html, /Add el autod\.hu/);

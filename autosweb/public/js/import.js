@@ -46,12 +46,21 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
             `⚠ Verzió eltérés: böngésző ${EMBEDDED_VERSION}, szerver ${serverVersion} — futtasd: autosweb/mac/frissites.command, indítsd újra, Cmd+Shift+R.`
           );
         }
+        const versionMsg = `Verzió eltérés (${EMBEDDED_VERSION} ≠ ${serverVersion}) — frissítsd: frissites.command → Autosweb újraindítás → Cmd+Shift+R.`;
+        const topAlert = document.getElementById("import-top-alert");
+        if (topAlert) {
+          topAlert.hidden = false;
+          topAlert.dataset.alertType = "warn";
+          topAlert.textContent = versionMsg;
+        }
         for (const warn of warns) {
           warn.hidden = false;
-          warn.textContent = `Verzió eltérés (${EMBEDDED_VERSION} ≠ ${serverVersion}) — frissítsd: frissites.command → Autosweb újraindítás → Cmd+Shift+R.`;
+          warn.textContent = versionMsg;
         }
       } else {
         versionMismatchLogged = false;
+        const topAlert = document.getElementById("import-top-alert");
+        if (topAlert?.dataset.alertType === "warn") topAlert.hidden = true;
         for (const warn of warns) {
           if (warn.id !== "import-form-error") warn.hidden = true;
         }

@@ -17,6 +17,7 @@ const SERVER_RESTART_MSG =
 const formSection = document.getElementById("import-form-section");
 const formTitle = document.getElementById("import-form-title");
 const formError = document.getElementById("import-form-error");
+const topAlert = document.getElementById("import-top-alert");
 const saveBtn = document.getElementById("import-save-btn");
 const saveStatus = document.getElementById("import-save-status");
 const dbBadge = document.getElementById("import-db-badge");
@@ -25,28 +26,52 @@ let currentListingId = null;
 let adForm = null;
 let serverReady = false;
 
+function showTopAlert(message, type = "err") {
+  if (!topAlert) {
+    showFormError(message);
+    return;
+  }
+  topAlert.hidden = false;
+  topAlert.textContent = message;
+  topAlert.dataset.alertType = type;
+  topAlert.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function hideTopAlert() {
+  if (topAlert) topAlert.hidden = true;
+}
+
 function showFormError(message) {
   if (!formError) return;
   formError.hidden = false;
   formError.textContent = message;
+  formError.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function setSaveStatus(message, type = "") {
+  if (!saveStatus) return;
+  saveStatus.textContent = message;
+  saveStatus.className = type ? `import-save-status import-save-status--${type}` : "import-save-status";
 }
 
 function setSaveBlocked(message) {
   serverReady = false;
   if (saveBtn) saveBtn.disabled = true;
-  if (saveStatus) {
-    saveStatus.textContent = message;
-    saveStatus.className = "import-save-status import-save-status--err";
-  }
+  showTopAlert(message, "err");
+  setSaveStatus(message, "err");
 }
 
 function setSaveReady() {
   serverReady = true;
   if (saveBtn) saveBtn.disabled = false;
   if (saveStatus?.classList.contains("import-save-status--err")) {
-    saveStatus.textContent = "";
-    saveStatus.className = "import-save-status";
+    setSaveStatus("");
   }
+}
+
+function setVersionWarning(message) {
+  showTopAlert(message, "warn");
+  setSaveStatus(message, "err");
 }
 
 function verifyFormLoaded() {
@@ -75,10 +100,11 @@ async function checkServerReady() {
     dbBadge.textContent = `SQLite: ${stats.listings} hirdetés · ${stats.cells} cella · szerver ${health.version ?? "?"}`;
 
     if (EMBEDDED_VERSION && health.version && health.version !== EMBEDDED_VERSION) {
-      setSaveBlocked(
+      setVersionWarning(
         `Verzió eltérés (${EMBEDDED_VERSION} ≠ ${health.version}) — frissites.command → újraindítás → Cmd+Shift+R.`
       );
-      return false;
+    } else {
+      hideTopAlert();
     }
 
     setSaveReady();
@@ -120,11 +146,9 @@ async function initPage() {
       formTitle.textContent = item?.cim || item?.url || "Importált hirdetés";
       adForm.applyFormData(enriched, { fromImport: true });
       if (saveStatus && !serverReady) {
-        saveStatus.textContent = SERVER_RESTART_MSG;
-        saveStatus.className = "import-save-status import-save-status--err";
+        setSaveStatus(SERVER_RESTART_MSG, "err");
       } else if (saveStatus) {
-        saveStatus.textContent = "";
-        saveStatus.className = "import-save-status";
+        setSaveStatus("");
       }
     },
   });
@@ -153,14 +177,13 @@ async function loadListingFromUrl() {
 async function handleSave() {
   if (!adForm || !verifyFormLoaded()) return;
   if (!serverReady) {
-    saveStatus.textContent = SERVER_RESTART_MSG;
-    saveStatus.className = "import-save-status import-save-status--err";
+    showTopAlert(SERVER_RESTART_MSG, "err");
+    setSaveStatus(SERVER_RESTART_MSG, "err");
     return;
   }
 
   saveBtn.disabled = true;
-  saveStatus.textContent = "Mentés…";
-  saveStatus.className = "import-save-status";
+  setSaveStatus("Mentés…");
 
   try {
     const formData = adForm.collectFormData();
@@ -168,12 +191,16 @@ async function handleSave() {
       status: "mentett",
     });
     currentListingId = saved?.id ?? currentListingId;
-    saveStatus.textContent = `Mentve (#${saved?.id ?? "?"}, ${saved?.cells?.length ?? 0} cella) — megtekintés: /listings.html?id=${saved?.id ?? ""}`;
-    saveStatus.className = "import-save-status import-save-status--ok";
+    hideTopAlert();
+    setSaveStatus(
+      `Mentve (#${saved?.id ?? "?"}, ${saved?.cells?.length ?? 0} cella) — megtekintés: /listings.html?id=${saved?.id ?? ""}`,
+      "ok"
+    );
     await checkServerReady();
   } catch (error) {
-    saveStatus.textContent = error.message ?? "Mentés sikertelen";
-    saveStatus.className = "import-save-status import-save-status--err";
+    const message = error.message ?? "Mentés sikertelen";
+    showTopAlert(message, "err");
+    setSaveStatus(message, "err");
     await checkServerReady();
   } finally {
     if (serverReady) saveBtn.disabled = false;
