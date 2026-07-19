@@ -75,7 +75,9 @@ async function checkServerReady() {
     dbBadge.textContent = `SQLite: ${stats.listings} hirdetés · ${stats.cells} cella · szerver ${health.version ?? "?"}`;
 
     if (EMBEDDED_VERSION && health.version && health.version !== EMBEDDED_VERSION) {
-      setSaveBlocked(`Verzió eltérés (${EMBEDDED_VERSION} ≠ ${health.version}) — Cmd+Shift+R, majd szerver újraindítás.`);
+      setSaveBlocked(
+        `Verzió eltérés (${EMBEDDED_VERSION} ≠ ${health.version}) — frissites.command → újraindítás → Cmd+Shift+R.`
+      );
       return false;
     }
 
@@ -105,6 +107,7 @@ async function initPage() {
 
   verifyFormLoaded();
   await checkServerReady();
+  setInterval(checkServerReady, 15000);
 
   initImportPanel({
     alertOnApply: false,

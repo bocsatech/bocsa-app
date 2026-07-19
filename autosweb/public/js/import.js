@@ -29,21 +29,32 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
     logEl.scrollTop = logEl.scrollHeight;
   }
 
+  let versionMismatchLogged = false;
+
   async function checkVersion() {
     try {
       const response = await fetch("/api/health");
       const data = await response.json();
       const serverVersion = data.version ?? "";
-      if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
-        appendLog(`⚠ Verzió eltérés: böngésző ${EMBEDDED_VERSION}, szerver ${serverVersion} — Cmd+Shift+R + Autosweb újraindítás.`);
-        const warn = document.getElementById("import-upgrade-warn");
-        if (warn) {
+      const mismatch = EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION;
+      const warns = document.querySelectorAll("#import-upgrade-warn, .import-upgrade-warn[data-version-warn]");
+
+      if (mismatch) {
+        if (!versionMismatchLogged) {
+          versionMismatchLogged = true;
+          appendLog(
+            `⚠ Verzió eltérés: böngésző ${EMBEDDED_VERSION}, szerver ${serverVersion} — futtasd: autosweb/mac/frissites.command, indítsd újra, Cmd+Shift+R.`
+          );
+        }
+        for (const warn of warns) {
           warn.hidden = false;
-          warn.textContent = `Verzió eltérés (${EMBEDDED_VERSION} ≠ ${serverVersion}) — frissítsd a böngészőt (Cmd+Shift+R) és indítsd újra az Autosweb-et.`;
+          warn.textContent = `Verzió eltérés (${EMBEDDED_VERSION} ≠ ${serverVersion}) — frissítsd: frissites.command → Autosweb újraindítás → Cmd+Shift+R.`;
         }
       } else {
-        const warn = document.getElementById("import-upgrade-warn");
-        if (warn) warn.hidden = true;
+        versionMismatchLogged = false;
+        for (const warn of warns) {
+          if (warn.id !== "import-form-error") warn.hidden = true;
+        }
       }
       try {
         const statsResponse = await fetch("/api/db/stats");
@@ -225,6 +236,7 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
 
   restoreResults();
   checkVersion();
+  setInterval(checkVersion, 15000);
 }
 
 function escapeHtml(value) {

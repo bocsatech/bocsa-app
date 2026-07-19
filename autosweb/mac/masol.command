@@ -19,14 +19,14 @@ echo ""
 echo "✓ Másolva: $TARGET"
 echo "  Verzió: $VER"
 
-if [ ! -f "$TARGET/public/css/automax.css" ]; then
-  echo "  ✗ HIBA: automax.css hiányzik!"
+if [ ! -f "$TARGET/public/css/site-app.css" ]; then
+  echo "  ✗ HIBA: site-app.css hiányzik!"
   exit 1
 fi
-if grep -q 'theme-automax' "$TARGET/public/hirdetesfeladas.html"; then
-  echo "  ✓ AUTOMAX téma (theme-automax)"
+if grep -q 'site-app' "$TARGET/public/hirdetesfeladas.html"; then
+  echo "  ✓ site-app téma"
 else
-  echo "  ✗ HIBA: régi HTML — nincs theme-automax!"
+  echo "  ✗ HIBA: régi HTML — nincs site-app!"
   exit 1
 fi
 

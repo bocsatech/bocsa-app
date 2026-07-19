@@ -39,10 +39,15 @@ if [ ! -f "$TARGET/public/css/automax.css" ]; then
   echo "  ✗ HIBA: automax.css hiányzik — git pull sikertelen?"
   exit 1
 fi
-if grep -q 'theme-automax' "$TARGET/public/hirdetesfeladas.html"; then
-  echo "  ✓ AUTOMAX téma OK"
+if grep -q 'site-app' "$TARGET/public/hirdetesfeladas.html"; then
+  echo "  ✓ site-app téma OK"
 else
-  echo "  ✗ HIBA: régi HTML!"
+  echo "  ✗ HIBA: régi HTML — nincs site-app!"
+  exit 1
+fi
+
+if [ ! -f "$TARGET/public/css/site-app.css" ]; then
+  echo "  ✗ HIBA: site-app.css hiányzik — git pull sikertelen?"
   exit 1
 fi
 
@@ -67,4 +72,4 @@ fi
 echo "  2) Indítsd újra: ~/Desktop/Autosweb-indito.command"
 echo "  3) Böngésző: Cmd+Shift+R (kemény frissítés)"
 echo ""
-echo "Jó verzió = fekete háttér, narancs gombok. Világos szürke = még régi."
+echo "Jó verzió = világos háttér, fekete nav-pill (Add el autod.hu). Sötét = régi."

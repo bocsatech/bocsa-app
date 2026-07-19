@@ -50,7 +50,7 @@ if command -v lsof >/dev/null 2>&1; then
   PIDS=$(lsof -ti:3456 2>/dev/null || true)
   [ -n "$PIDS" ] && kill -9 $PIDS 2>/dev/null || true
 fi
-if [ ! -f public/css/automax.css ] || ! grep -q theme-automax public/hirdetesfeladas.html; then
+if [ ! -f public/css/site-app.css ] || ! grep -q site-app public/hirdetesfeladas.html; then
   osascript -e 'display alert "Régi verzió" message "Futtasd: bocsa-app/autosweb/mac/frissites.command"'
   exit 1
 fi

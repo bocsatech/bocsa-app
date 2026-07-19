@@ -1,10 +1,10 @@
 #!/bin/bash
-# Indító — ~/Downloads/autosweb (AUTOMAX téma)
+# Indító — ~/Downloads/autosweb (site-app téma)
 set -euo pipefail
 
 TARGET="$HOME/Downloads/autosweb"
 HTML="$TARGET/public/hirdetesfeladas.html"
-CSS="$TARGET/public/css/automax.css"
+CSS="$TARGET/public/css/site-app.css"
 
 cd "$TARGET" || {
   osascript -e 'display alert "Autosweb" message "Először telepítsd: bocsa-app/autosweb/mac/telepites.command"'
@@ -23,21 +23,17 @@ fi
 
 # Téma ellenőrzés
 if [ ! -f "$CSS" ]; then
-  osascript -e 'display alert "Régi verzió!" message "Hiányzik automax.css. Futtasd: bocsa-app/autosweb/mac/frissites.command"'
+  osascript -e 'display alert "Régi verzió!" message "Hiányzik site-app.css. Futtasd: bocsa-app/autosweb/mac/frissites.command"'
   exit 1
 fi
-if ! grep -q 'theme-automax' "$HTML" 2>/dev/null; then
+if ! grep -q 'site-app' "$HTML" 2>/dev/null; then
   osascript -e 'display alert "Régi verzió!" message "Régi HTML. Futtasd: bocsa-app/autosweb/mac/frissites.command"'
-  exit 1
-fi
-if ! grep -q 'automax-step-title' "$HTML" 2>/dev/null; then
-  osascript -e 'display alert "Régi verzió!" message "Régi HTML (nincs AUTOMAX fejléc). Futtasd: frissites.command"'
   exit 1
 fi
 
 VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "?")
-echo "Autosweb $VER — AUTOMAX téma OK"
-echo "Fekete háttér + narancs = jó verzió. Világos szürke = régi — frissíts!"
+echo "Autosweb $VER — site-app téma OK"
+echo "Világos háttér + fekete nav = jó verzió. Sötét = régi — frissíts!"
 
 if [ ! -d node_modules ]; then
   npm install
