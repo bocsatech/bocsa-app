@@ -84,7 +84,7 @@ export function filterListingsBySidebar(items, filters) {
     if (!inRange(preview.kmNum, filters.km_tol, filters.km_ig)) return false;
     if (!inRange(f.hengerurtartalom, filters.ccm_tol, filters.ccm_ig)) return false;
 
-    for (const feat of filters.features) {
+    for (const feat of filters?.features ?? []) {
       const rule = FEATURE_CHECKS.find((entry) => entry.id === feat);
       if (rule && !rule.match(item)) return false;
     }
@@ -121,9 +121,31 @@ export function populateFilterOptions(items) {
   fillSelect(document.getElementById("filter-ulesek"), uniqueSorted(filters.map((f) => f.ulesek)));
 }
 
+export function emptyFilters() {
+  return {
+    gyartmany: "",
+    modell: "",
+    kivitel: "",
+    uzemanyag: "",
+    ev_tol: null,
+    ev_ig: null,
+    ar_tol: null,
+    ar_ig: null,
+    tipus: "",
+    km_tol: null,
+    km_ig: null,
+    ccm_tol: null,
+    ccm_ig: null,
+    allapot: "",
+    ajtok: "",
+    ulesek: "",
+    features: [],
+  };
+}
+
 export function initHomeSearchSidebar(onChange) {
   const form = document.getElementById("home-filter-form");
-  if (!form) return () => ({});
+  if (!form) return () => emptyFilters();
 
   const trigger = () => onChange(readFilters(form));
 

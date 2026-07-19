@@ -1,6 +1,7 @@
 import { fetchListings } from "./db-client.js";
 import { createHomeGridCard } from "./home-grid-card.js";
 import {
+  emptyFilters,
   filterListingsBySidebar,
   populateFilterOptions,
   initHomeSearchSidebar,
@@ -19,7 +20,7 @@ const AUTO_SCROLL_MS = 5000;
 
 let allItems = [];
 let searchQuery = "";
-let sidebarFilters = {};
+let sidebarFilters = emptyFilters();
 let currentPage = 0;
 let pageCount = 0;
 let carouselTimer = null;
@@ -204,10 +205,11 @@ searchInput?.addEventListener("input", () => {
 gridViewport?.addEventListener("mouseenter", stopCarousel);
 gridViewport?.addEventListener("mouseleave", startCarousel);
 
-initHomeSearchSidebar((filters) => {
+const readSidebarFilters = initHomeSearchSidebar((filters) => {
   sidebarFilters = filters;
   applyFilters();
 });
+sidebarFilters = readSidebarFilters?.() ?? emptyFilters();
 
 import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())
