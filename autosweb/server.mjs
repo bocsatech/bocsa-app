@@ -74,6 +74,12 @@ function serveStatic(path, res) {
         html = html.replace("<!-- AD_FORM -->", readFileSync(partialPath, "utf8"));
       }
     }
+    if (html.includes("<!-- HOME_SEARCH_SIDEBAR -->")) {
+      html = html.replace(
+        "<!-- HOME_SEARCH_SIDEBAR -->",
+        readFileSync(join(PUBLIC, "partials", "home-search-sidebar.html"), "utf8")
+      );
+    }
     if (html.includes("<!-- SITE_SIDE_LEFT -->")) {
       html = html.replace(
         "<!-- SITE_SIDE_LEFT -->",

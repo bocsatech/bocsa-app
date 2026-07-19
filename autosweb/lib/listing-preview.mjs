@@ -105,14 +105,29 @@ export function buildListingPreview(form, meta = {}) {
   return {
     title,
     price: formatPriceFt(data.vetelar || data.akcios_ar),
+    priceNum: Number(String(data.vetelar || data.akcios_ar || "").replace(/\D/g, "")) || null,
     specLine: specParts.join(", "),
     km,
+    kmNum: Number(String(data.km ?? "").replace(/\D/g, "")) || null,
     leiras: cleanText(data.leiras).slice(0, 240),
     hirdeteskod: meta.hasznaltauto_hirdetes_id || data.hasznaltauto_hirdetes_id || data.belso_azonosito || "",
     location,
     badges: collectBadges(data),
     status: meta.status ?? "mentett",
     forras_url: meta.forras_url || data.forras_url || "",
+    filter: {
+      gyartmany: cleanText(data.gyartmany),
+      modell: cleanText(data.modell),
+      kivitel: cleanText(data.kivitel),
+      uzemanyag: cleanText(data.uzemanyag),
+      gyartasi_ev: Number(data.gyartasi_ev) || null,
+      hengerurtartalom: Number(String(data.hengerurtartalom ?? "").replace(/\D/g, "")) || null,
+      allapot: cleanText(data.allapot),
+      ajtok: cleanText(data.ajtok_szama),
+      ulesek: cleanText(data.ulesek_szama),
+      tipus: cleanText(data.tipus),
+      telepules: cleanText(data.telepules),
+    },
   };
 }
 

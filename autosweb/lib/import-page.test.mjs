@@ -33,12 +33,13 @@ test("hirdetesfeladas.html: beépített űrlap", () => {
   assert.ok(!html.includes("<!-- AD_FORM -->"));
 });
 
-test("index.html: főoldal videó oldalsávokkal", () => {
+test("index.html: főoldal kereső oldalsávval", () => {
   const html = readFileSync(join(PUBLIC, "index.html"), "utf8");
+  assert.ok(html.includes("home-filter-form"));
   assert.ok(html.includes("home-grid-track"));
   assert.ok(html.includes("data-center-content"));
   assert.ok(html.includes('data-site-page="home"'));
-  assert.ok(html.includes('data-site-side="left"'));
+  assert.ok(html.includes('data-site-side="right"'));
   assert.ok(html.includes("site-content-bar"));
   assert.ok(html.includes("site-side-edit"));
 });

@@ -116,6 +116,130 @@ body.home-page .local-banner {
   color: #666;
 }
 
+.home-layout.site-layout {
+  grid-template-columns: 260px minmax(0, 1fr) 200px;
+}
+
+.home-filter-sidebar {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+
+.home-filter-card {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 12px;
+  padding: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  max-height: calc(100vh - 8rem);
+  overflow: auto;
+}
+
+.home-filter-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.home-filter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.home-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.home-filter-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.home-filter-field select,
+.home-filter-field input[type="text"],
+.home-filter-field input[type="number"] {
+  width: 100%;
+  font: inherit;
+  font-size: 0.82rem;
+  border: 1px solid #d5d9e0;
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  background: #fff;
+  color: #111;
+}
+
+.home-filter-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.home-filter-checks {
+  border: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.home-filter-checks label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #333;
+  cursor: pointer;
+}
+
+.home-filter-checks legend {
+  padding: 0;
+  margin-bottom: 0.35rem;
+}
+
+.home-filter-actions {
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eee;
+}
+
+.home-filter-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  color: #1565c0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+@media (max-width: 1200px) {
+  .home-layout.site-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .home-filter-sidebar {
+    order: 0;
+    position: static;
+    max-height: none;
+  }
+
+  .home-center {
+    order: 1;
+  }
+
+  .site-side--right {
+    order: 2;
+  }
+}
+
 .home-main {
   max-width: 1320px;
   margin: 0 auto;

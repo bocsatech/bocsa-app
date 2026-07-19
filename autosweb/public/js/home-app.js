@@ -1,5 +1,10 @@
 import { fetchListings } from "./db-client.js";
 import { createHomeGridCard } from "./home-grid-card.js";
+import {
+  filterListingsBySidebar,
+  populateFilterOptions,
+  initHomeSearchSidebar,
+} from "./home-search-filter.js";
 
 const gridTrack = document.getElementById("home-grid-track");
 const gridViewport = document.getElementById("home-grid-viewport");
@@ -14,6 +19,7 @@ const AUTO_SCROLL_MS = 5000;
 
 let allItems = [];
 let searchQuery = "";
+let sidebarFilters = {};
 let currentPage = 0;
 let pageCount = 0;
 let carouselTimer = null;
@@ -45,10 +51,13 @@ function listingSearchHaystack(item) {
   );
 }
 
-function filterItems(items, query) {
-  const q = normalizeSearch(query);
-  if (!q) return items;
-  return items.filter((item) => listingSearchHaystack(item).includes(q));
+function filterItems(items) {
+  let result = filterListingsBySidebar(items, sidebarFilters);
+  const q = normalizeSearch(searchQuery);
+  if (q) {
+    result = result.filter((item) => listingSearchHaystack(item).includes(q));
+  }
+  return result;
 }
 
 function chunkItems(items, size) {
@@ -108,7 +117,7 @@ function updateCount(items, filtered) {
   const published = items.filter((item) => item.status === "feladott").length;
   const pages = Math.max(1, Math.ceil(filtered.length / VISIBLE_COUNT));
   const base =
-    searchQuery.trim() ?
+    searchQuery.trim() || Object.keys(sidebarFilters).length ?
       `${filtered.length} találat · ${published} közzétett · ${items.length} hirdetés`
     : published > 0 ?
       `${published} közzétett · ${items.length} hirdetés összesen`
@@ -124,7 +133,7 @@ function renderCarousel(items) {
   pageCount = 0;
   gridTrack.innerHTML = "";
 
-  const filtered = filterItems(items, searchQuery);
+  const filtered = filterItems(items);
   emptyEl.hidden = filtered.length > 0;
   updateCount(items, filtered);
 
@@ -151,22 +160,54 @@ async function loadListings() {
     if (a.status === b.status) return 0;
     return a.status === "feladott" ? -1 : 1;
   });
+  populateFilterOptions(allItems);
+  populateYearOptions(allItems);
+  renderCarousel(allItems);
+}
+
+function populateYearOptions(items) {
+  const years = [
+    ...new Set(
+      items.map((item) => item.preview?.filter?.gyartasi_ev).filter((y) => y && y > 1900)
+    ),
+  ].sort((a, b) => a - b);
+
+  for (const select of document.querySelectorAll('[name="ev_tol"], [name="ev_ig"]')) {
+    const current = select.value;
+    const empty = select.name === "ev_tol" ? "-tól" : "-ig";
+    select.innerHTML = `<option value="">${empty}</option>`;
+    for (const year of years) {
+      const opt = document.createElement("option");
+      opt.value = String(year);
+      opt.textContent = String(year);
+      select.appendChild(opt);
+    }
+    if (current) select.value = current;
+  }
+}
+
+function applyFilters() {
   renderCarousel(allItems);
 }
 
 searchForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   searchQuery = searchInput?.value ?? "";
-  renderCarousel(allItems);
+  applyFilters();
 });
 
 searchInput?.addEventListener("input", () => {
   searchQuery = searchInput.value;
-  renderCarousel(allItems);
+  applyFilters();
 });
 
 gridViewport?.addEventListener("mouseenter", stopCarousel);
 gridViewport?.addEventListener("mouseleave", startCarousel);
+
+initHomeSearchSidebar((filters) => {
+  sidebarFilters = filters;
+  applyFilters();
+});
 
 import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())
