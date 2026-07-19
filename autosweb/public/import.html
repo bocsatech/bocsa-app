@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260719listings" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260719videos" />
-    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719videos" />
+    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719fixbar" />
   </head>
   <body class="theme-automax import-page site-page" data-site-page="import">
     <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
@@ -698,9 +698,18 @@
         </div>
         <!-- SITE_SIDE_RIGHT -->
       </div>
-      <!-- SITE_SIDE_CONTROLS -->
     </main>
 
-    <script src="/js/import-app.js?v=automax20260719videos" type="module"></script>
+    <footer class="site-content-bar" id="site-content-bar" aria-label="Tartalom szerkesztése">
+      <div class="site-content-bar-inner">
+        <button type="button" class="site-side-edit" id="site-side-edit">Tartalom szerkesztése</button>
+        <div id="site-side-toolbar" class="site-side-toolbar" hidden>
+          <button type="button" class="site-side-btn" id="site-side-save">Tartalom mentése</button>
+          <button type="button" class="site-side-btn site-side-btn--ghost" id="site-side-cancel">Mégse</button>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/js/import-app.js?v=automax20260719fixbar" type="module"></script>
   </body>
 </html>

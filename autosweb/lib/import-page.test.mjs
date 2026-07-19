@@ -39,6 +39,7 @@ test("index.html: főoldal videó oldalsávokkal", () => {
   assert.ok(html.includes("data-center-content"));
   assert.ok(html.includes('data-site-page="home"'));
   assert.ok(html.includes('data-site-side="left"'));
+  assert.ok(html.includes("site-content-bar"));
   assert.ok(html.includes("site-side-edit"));
 });
 
