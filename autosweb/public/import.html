@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719importform" />
+    <meta name="autosweb-version" content="automax20260719importfull" />
     <title>Import — Autosweb</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719importform" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260719importform" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719importfull" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260719importfull" />
   </head>
   <body class="theme-automax import-page">
     <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
@@ -30,8 +30,10 @@
       <div class="import-page-main">
         <div class="automax-step-header">
           <h1 class="automax-step-title">Hasznaltauto.hu import</h1>
-          <p class="automax-step-lead">Importáld a hirdetéseket, ellenőrizd az űrlapot, majd mentsd az adatbázisba.</p>
+          <p class="automax-step-lead">Az alábbi űrlap minden cellája itt látható. Import után kattints egy autóra — kitölti a mezőket. Mentés gomb → SQLite adatbázis.</p>
         </div>
+
+        <p id="import-form-error" class="import-upgrade-warn" hidden></p>
 
         <div class="card import-panel" id="import-panel">
           <div class="card-head import-panel-head">
@@ -49,7 +51,7 @@
             </div>
             <p class="hint import-hint-steps">
               1) <strong>Import indítása</strong> → látható Chrome ablak &nbsp;
-              2) Cloudflare ha kell &nbsp; 3) Válassz hirdetést → kitöltődik az űrlap alatta
+              2) Cloudflare ha kell &nbsp; 3) Válassz hirdetést a listából
             </p>
             <p id="import-upgrade-warn" class="import-upgrade-warn" hidden></p>
             <div id="import-log" class="import-log" hidden></div>
@@ -57,10 +59,9 @@
           </div>
         </div>
 
-        <section class="import-form-section hidden" id="import-form-section">
+        <section class="import-form-section" id="import-form-section">
           <div class="import-form-head">
-            <h2 class="import-form-title" id="import-form-title">Importált hirdetés</h2>
-            <p class="hint">Az alábbi űrlap minden mezője szerkeszthető. A mentés gomb csak a kitöltött cellákat tárolja az adatbázisban.</p>
+            <h2 class="import-form-title" id="import-form-title">Hirdetés űrlap (összes cella)</h2>
           </div>
           <form id="ad-form" novalidate>
 <!-- AD_FORM -->
@@ -73,6 +74,6 @@
       </div>
     </main>
 
-    <script src="/js/import-app.js?v=automax20260719importform" type="module"></script>
+    <script src="/js/import-app.js?v=automax20260719importfull" type="module"></script>
   </body>
 </html>

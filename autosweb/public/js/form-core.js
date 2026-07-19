@@ -1,4 +1,5 @@
 import { UZEMANYAG_CATEGORIES, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
+import { EGYEB_INFO_OPTIONS } from "./egyeb-info-data.js";
 
 export function createAdForm(options = {}) {
   const mode = options.mode ?? "wizard";
@@ -36,6 +37,7 @@ export function createAdForm(options = {}) {
   const electricFieldsCard = document.getElementById("electric-fields-card");
   const klima = document.getElementById("klima");
   const equipmentRoot = document.getElementById("equipment-sections");
+  const egyebInfoRoot = document.getElementById("egyeb-info-sections");
   const uzemanyag = document.getElementById("uzemanyag");
   const fuelMain = document.getElementById("fuel-main");
   const fuelSubpanels = document.getElementById("fuel-subpanels");
@@ -184,6 +186,18 @@ function renderKlimaOptions() {
     el.value = option;
     el.textContent = option;
     klima.appendChild(el);
+  }
+}
+
+function renderEgyebInfo() {
+  if (!egyebInfoRoot) return;
+  egyebInfoRoot.innerHTML = "";
+  for (const item of EGYEB_INFO_OPTIONS) {
+    const id = `info_${item.replace(/[^a-z0-9]+/gi, "_").toLowerCase()}`;
+    const label = document.createElement("label");
+    label.className = "check";
+    label.innerHTML = `<input type="checkbox" name="egyeb_info" value="${item}" id="${id}" /> ${item}`;
+    egyebInfoRoot.appendChild(label);
   }
 }
 
@@ -399,6 +413,7 @@ function showStep(step) {
 function collectFormData() {
   const data = Object.fromEntries(new FormData(form).entries());
   data.felszereltseg = [...form.querySelectorAll('input[name="felszereltseg"]:checked')].map((el) => el.value);
+  data.egyeb_info = [...form.querySelectorAll('input[name="egyeb_info"]:checked')].map((el) => el.value);
   return data;
 }
 
@@ -425,9 +440,12 @@ function applyFormData(data, { fromImport = false } = {}) {
   form.querySelectorAll('input[name="felszereltseg"]').forEach((box) => {
     box.checked = false;
   });
+  form.querySelectorAll('input[name="egyeb_info"]').forEach((box) => {
+    box.checked = false;
+  });
 
   for (const [key, value] of Object.entries(data)) {
-    if (key === "felszereltseg") continue;
+    if (key === "felszereltseg" || key === "egyeb_info") continue;
     const field = form.elements.namedItem(key);
     if (!field) continue;
     const appliedValue = key === "gyartmany" && value ? String(value).toUpperCase() : value;
@@ -452,6 +470,14 @@ function applyFormData(data, { fromImport = false } = {}) {
     const needle = String(item).toLowerCase();
     const box = [...form.querySelectorAll('input[name="felszereltseg"]')].find(
       (el) => el.value === item || el.value.toLowerCase() === needle || el.value.toLowerCase().includes(needle)
+    );
+    if (box) box.checked = true;
+  }
+
+  for (const item of data.egyeb_info ?? []) {
+    const needle = String(item).toLowerCase();
+    const box = [...form.querySelectorAll('input[name="egyeb_info"]')].find(
+      (el) => el.value === item || el.value.toLowerCase() === needle
     );
     if (box) box.checked = true;
   }
@@ -504,6 +530,9 @@ function showAllSteps() {
 function resetForm() {
   form.reset();
   form.querySelectorAll('input[name="felszereltseg"]').forEach((box) => {
+    box.checked = false;
+  });
+  form.querySelectorAll('input[name="egyeb_info"]').forEach((box) => {
     box.checked = false;
   });
   if (fuelSelected) fuelSelected.textContent = "";
@@ -717,6 +746,7 @@ fillYearSelect(forgalombaHelyezesEv);
 renderFuelSelector();
 renderKlimaOptions();
 renderEquipment();
+renderEgyebInfo();
 wrapMdOutlinedFields();
 syncFuelDependentFields();
 fitAllFormFields();

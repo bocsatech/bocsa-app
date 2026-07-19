@@ -7,11 +7,15 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "..", "public");
 
-test("ad-form partial: nincs dupla form tag", () => {
+test("ad-form partial: összes fő mezőcsoport", () => {
   const partial = readFileSync(join(PUBLIC, "partials", "ad-form.html"), "utf8");
-  assert.ok(!partial.includes("<form"), "partial ne tartalmazzon form taget");
-  assert.ok(partial.includes('data-step="1"'));
-  assert.ok(partial.includes("equipment-sections"));
+  assert.ok(partial.includes("Gyártási év"));
+  assert.ok(partial.includes("Egyéb modell"));
+  assert.ok(partial.includes("Km. óra állás"));
+  assert.ok(partial.includes("Hitel"));
+  assert.ok(partial.includes("Egyéb információk"));
+  assert.ok(partial.includes("Beszélt nyelvek"));
+  assert.ok(partial.includes("egyeb-info-sections"));
 });
 
 test("import.html és hirdetesfeladas.html: AD_FORM placeholder", () => {

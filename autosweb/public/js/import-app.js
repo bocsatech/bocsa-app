@@ -5,22 +5,41 @@ import { saveListingToDb, setStoredListingId, getStoredListingId } from "./db-cl
 
 const formSection = document.getElementById("import-form-section");
 const formTitle = document.getElementById("import-form-title");
+const formError = document.getElementById("import-form-error");
 const saveBtn = document.getElementById("import-save-btn");
 const saveStatus = document.getElementById("import-save-status");
 const dbBadge = document.getElementById("import-db-badge");
 
 let currentListingId = null;
 
+function verifyFormLoaded() {
+  const ok = Boolean(document.getElementById("gyartasi_ev") && document.getElementById("km") && document.getElementById("equipment-sections"));
+  if (!ok && formError) {
+    formError.hidden = false;
+    formError.textContent =
+      "Az űrlap nem töltődött be — indítsd újra az Autosweb szervert (autosweb/mac/frissites.command), majd Cmd+Shift+R. Csak http://127.0.0.1:3456/import.html működik.";
+  }
+  return ok;
+}
+
 const adForm = createAdForm({
   mode: "import",
   onApplied: () => {
-    formSection?.classList.remove("hidden");
     formSection?.scrollIntoView({ behavior: "smooth", block: "start" });
   },
 });
 
+if (!verifyFormLoaded()) {
+  console.error("Import űrlap hiányos — szerver injektálás vagy cache hiba.");
+}
+
 async function handleSave() {
   if (!adForm) return;
+  if (!verifyFormLoaded()) {
+    saveStatus.textContent = "Az űrlap nincs betöltve — indítsd újra az Autosweb-et.";
+    saveStatus.className = "import-save-status import-save-status--err";
+    return;
+  }
   saveBtn.disabled = true;
   saveStatus.textContent = "Mentés…";
   saveStatus.className = "import-save-status";
@@ -58,6 +77,7 @@ await refreshDbBadge();
 initImportPanel({
   alertOnApply: false,
   onApply: (formData, item) => {
+    if (!verifyFormLoaded()) return;
     const enriched = enrichFormFromImportItem(formData, item);
     currentListingId = null;
     setStoredListingId(null);

@@ -62,6 +62,12 @@ export const FORM_FIELD_CATALOG = [
   { field_key: "klima", label: "Klíma", step: 3 },
   { field_key: "nem_dohanyzo", label: "Nem dohányzó", step: 3 },
   { field_key: "holgy_tulajdonos", label: "Hölgy tulajdonostól", step: 3 },
+  { field_key: "hitel", label: "Hitel", step: 5 },
+  { field_key: "kezdo_reszlet", label: "Kezdőrészlet", step: 5 },
+  { field_key: "havi_reszlet", label: "Havi részlet", step: 5 },
+  { field_key: "futamido", label: "Futamidő", step: 5 },
+  { field_key: "berelheto", label: "Bérelhető", step: 5 },
+  { field_key: "beszelt_nyelvek", label: "Beszélt nyelvek", step: 5 },
   { field_key: "vetelar", label: "Vételár", step: 5 },
   { field_key: "akcios_ar", label: "Akciós ár", step: 5 },
   { field_key: "vetelar_eur", label: "Ár (EUR)", step: 5 },
@@ -138,6 +144,17 @@ export function formDataToCells(formData) {
     });
   }
 
+  for (const item of formData.egyeb_info ?? []) {
+    const text = String(item).trim();
+    if (!text) continue;
+    cells.push({
+      field_key: `info:${slugify(text)}`,
+      label: text,
+      value: "1",
+      step: 3,
+    });
+  }
+
   return cells;
 }
 
@@ -145,15 +162,19 @@ export function formDataToCells(formData) {
 export function cellsToFormData(cells) {
   const data = {};
   const felszereltseg = [];
+  const egyeb_info = [];
 
   for (const cell of cells ?? []) {
     if (cell.field_key?.startsWith("extra:")) {
       felszereltseg.push(cell.label);
+    } else if (cell.field_key?.startsWith("info:")) {
+      egyeb_info.push(cell.label);
     } else if (cell.field_key) {
       data[cell.field_key] = cell.value;
     }
   }
 
   if (felszereltseg.length) data.felszereltseg = felszereltseg;
+  if (egyeb_info.length) data.egyeb_info = egyeb_info;
   return data;
 }

@@ -1,4 +1,5 @@
         <section class="step-panel" data-step="1">
+          <h2 class="import-step-label">Alapadatok</h2>
           <div class="card">
             <div class="card-body">
               <div class="autofelvitele">
@@ -95,11 +96,17 @@
                       <option value="FIAT">FIAT</option>
                       <option value="TESLA">TESLA</option>
                       <option value="SKODA">SKODA</option>
+                      <option value="MERCEDES-BENZ">MERCEDES-BENZ</option>
+                      <option value="HYUNDAI">HYUNDAI</option>
                     </select>
                   </div>
                   <div class="labeled-field">
                     <label for="modell">Modell: <span class="req">*</span></label>
                     <input id="modell" name="modell" type="text" required />
+                  </div>
+                  <div class="labeled-field">
+                    <label for="egyeb_modell">Egyéb modell:</label>
+                    <input id="egyeb_modell" name="egyeb_modell" type="text" />
                   </div>
                 </div>
 
@@ -175,6 +182,7 @@
         </section>
 
         <section class="step-panel hidden" data-step="2">
+          <h2 class="import-step-label">Műszaki adatok</h2>
           <div class="card">
             <div class="card-body">
               <div class="form-grid">
@@ -367,6 +375,7 @@
         </section>
 
         <section class="step-panel hidden" data-step="3">
+          <h2 class="import-step-label">Extrák és felszereltség</h2>
           <div class="card">
             <div class="card-head">Felszereltség</div>
             <div class="card-body">
@@ -391,6 +400,13 @@
               <div id="equipment-sections"></div>
             </div>
           </div>
+
+          <div class="card">
+            <div class="card-head">Egyéb információk</div>
+            <div class="card-body">
+              <div id="egyeb-info-sections" class="equipment-grid"></div>
+            </div>
+          </div>
         </section>
 
         <section class="step-panel hidden" data-step="4">
@@ -407,7 +423,37 @@
         </section>
 
         <section class="step-panel hidden" data-step="5">
+          <h2 class="import-step-label">Hirdetés és elérhetőség</h2>
           <div id="ad-panel">
+            <div class="card">
+              <div class="card-head">Hitel és bérlés</div>
+              <div class="card-body form-grid">
+                <label for="hitel">Hitel:</label>
+                <select id="hitel" name="hitel">
+                  <option value="">—</option>
+                  <option>Hitel/leasing</option>
+                  <option>Csak készpénz</option>
+                </select>
+                <label for="kezdo_reszlet">Kezdőrészlet:</label>
+                <div class="suffix-field">
+                  <input id="kezdo_reszlet" name="kezdo_reszlet" type="number" min="0" step="1000" />
+                  <span>Ft</span>
+                </div>
+                <label for="havi_reszlet">Havi részlet:</label>
+                <div class="suffix-field">
+                  <input id="havi_reszlet" name="havi_reszlet" type="number" min="0" step="1000" />
+                  <span>Ft</span>
+                </div>
+                <label for="futamido">Futamidő:</label>
+                <div class="suffix-field">
+                  <input id="futamido" name="futamido" type="number" min="0" step="1" />
+                  <span>hónap</span>
+                </div>
+                <label>Bérelhető:</label>
+                <label class="check inline-check"><input type="checkbox" name="berelheto" value="1" /> Igen</label>
+              </div>
+            </div>
+
             <div class="card">
               <div class="card-head">Ár</div>
               <div class="card-body form-grid">
@@ -544,6 +590,9 @@
 
                 <label for="video_url">Videó link (YouTube):</label>
                 <input id="video_url" name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+
+                <label for="beszelt_nyelvek">Beszélt nyelvek:</label>
+                <input id="beszelt_nyelvek" name="beszelt_nyelvek" type="text" placeholder="pl. magyar, angol, német" />
               </div>
             </div>
           </div>
