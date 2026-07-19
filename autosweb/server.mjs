@@ -86,6 +86,12 @@ function serveStatic(path, res) {
         readFileSync(join(PUBLIC, "partials", "site-side-right.html"), "utf8")
       );
     }
+    if (html.includes("<!-- SITE_SIDE_CONTROLS -->")) {
+      html = html.replace(
+        "<!-- SITE_SIDE_CONTROLS -->",
+        readFileSync(join(PUBLIC, "partials", "site-side-controls.html"), "utf8")
+      );
+    }
     res.writeHead(200, {
       "Content-Type": MIME[".html"],
       "Cache-Control": "no-store, no-cache, must-revalidate",

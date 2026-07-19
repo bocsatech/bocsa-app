@@ -38,7 +38,8 @@ test("index.html: főoldal videó oldalsávokkal", () => {
   assert.ok(html.includes("home-grid-track"));
   assert.ok(html.includes("data-center-content"));
   assert.ok(html.includes('data-site-page="home"'));
-  assert.ok(html.includes("SITE_SIDE_LEFT"));
+  assert.ok(html.includes('data-site-side="left"'));
+  assert.ok(html.includes("site-side-edit"));
 });
 
 test("import.html: videó oldalsávok", () => {

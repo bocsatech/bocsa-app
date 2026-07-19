@@ -1,6 +1,5 @@
 import { fetchListings } from "./db-client.js";
 import { createHomeGridCard } from "./home-grid-card.js";
-import { initSiteSideContent } from "./site-side-content.js";
 
 const gridTrack = document.getElementById("home-grid-track");
 const gridViewport = document.getElementById("home-grid-viewport");
@@ -169,7 +168,10 @@ searchInput?.addEventListener("input", () => {
 gridViewport?.addEventListener("mouseenter", stopCarousel);
 gridViewport?.addEventListener("mouseleave", startCarousel);
 
-initSiteSideContent().catch(console.error);
+import("./site-side-content.js")
+  .then((mod) => mod.initSiteSideContent())
+  .catch((error) => console.error("Oldalsáv betöltés:", error));
+
 loadListings().catch((error) => {
   emptyEl.hidden = false;
   emptyEl.textContent = error.message ?? "Nem sikerült betölteni a hirdetéseket.";

@@ -1,7 +1,6 @@
 import { loadAdFormPartial } from "./load-ad-form.js";
 import { createAdForm } from "./form-core.js";
 import { initImportPanel } from "./import.js";
-import { initSiteSideContent } from "./site-side-content.js";
 import { enrichFormFromImportItem } from "./import-enrich.js";
 import {
   saveListingToDb,
@@ -179,5 +178,7 @@ async function handleSave() {
 }
 
 saveBtn?.addEventListener("click", handleSave);
-initSiteSideContent().catch(console.error);
+import("./site-side-content.js")
+  .then((mod) => mod.initSiteSideContent())
+  .catch((error) => console.error("Oldalsáv betöltés:", error));
 await initPage();

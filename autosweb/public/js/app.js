@@ -1,6 +1,5 @@
 import { saveListingToDb, getStoredListingId } from "./db-client.js";
 import { createAdForm } from "./form-core.js";
-import { initSiteSideContent } from "./site-side-content.js";
 
 createAdForm({
   mode: "wizard",
@@ -35,4 +34,6 @@ createAdForm({
   },
 });
 
-initSiteSideContent().catch(console.error);
+import("./site-side-content.js")
+  .then((mod) => mod.initSiteSideContent())
+  .catch((error) => console.error("Oldalsáv betöltés:", error));

@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719homecarousel" />
+    <meta name="autosweb-version" content="automax20260719fixside" />
     <title>Autosweb — Feladott hirdetések</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719homecarousel" />
-    <link rel="stylesheet" href="/css/home.css?v=automax20260719homecarousel" />
-    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719homecarousel" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719fixside" />
+    <link rel="stylesheet" href="/css/home.css?v=automax20260719fixside" />
+    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719fixside" />
   </head>
   <body class="home-page site-page" data-site-page="home">
     <div class="local-banner">LOCALHOST — feladott hirdetések főoldala</div>
@@ -40,7 +40,12 @@
 
     <main class="home-main">
       <div class="site-layout home-layout">
-        <!-- SITE_SIDE_LEFT -->
+        <aside class="site-side site-side--left" data-site-side="left">
+          <div class="site-side-card">
+            <h2 class="site-side-title" data-side-title>Videók</h2>
+            <div class="site-video-list" data-side-videos></div>
+          </div>
+        </aside>
 
         <section class="site-center home-center" aria-label="Feladott hirdetések">
           <div class="home-listings-panel">
@@ -59,10 +64,21 @@
           </div>
         </section>
 
-        <!-- SITE_SIDE_RIGHT -->
+        <aside class="site-side site-side--right" data-site-side="right">
+          <div class="site-side-card">
+            <h2 class="site-side-title" data-side-title>Videók</h2>
+            <div class="site-video-list" data-side-videos></div>
+          </div>
+        </aside>
       </div>
+
+      <div id="site-side-toolbar" class="site-side-toolbar" hidden>
+        <button type="button" class="site-side-btn" id="site-side-save">Tartalom mentése</button>
+        <button type="button" class="site-side-btn site-side-btn--ghost" id="site-side-cancel">Mégse</button>
+      </div>
+      <button type="button" class="site-side-edit" id="site-side-edit">Tartalom szerkesztése</button>
     </main>
 
-    <script src="/js/home-app.js?v=automax20260719homecarousel" type="module"></script>
+    <script src="/js/home-app.js?v=automax20260719fixside" type="module"></script>
   </body>
 </html>
