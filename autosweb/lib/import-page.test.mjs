@@ -56,7 +56,9 @@ test("index.html: főoldal kereső oldalsávval", () => {
 test("import.html: videó oldalsávok", () => {
   const html = readFileSync(join(PUBLIC, "import.html"), "utf8");
   assert.ok(html.includes('data-site-page="import"'));
-  assert.ok(html.includes("SITE_SIDE_LEFT"));
+  assert.doesNotMatch(html, /SITE_SIDE_LEFT/);
+  assert.doesNotMatch(html, /data-site-side="left"/);
+  assert.doesNotMatch(html, /site-content-bar/);
   assert.match(html, /class="[^"]*site-app[^"]*"/);
   assert.match(html, /site-app\.css/);
   assert.match(html, /Add el autod\.hu/);

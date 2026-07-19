@@ -181,7 +181,4 @@ async function handleSave() {
 }
 
 saveBtn?.addEventListener("click", handleSave);
-import("./site-side-content.js")
-  .then((mod) => mod.initSiteSideContent())
-  .catch((error) => console.error("Oldalsáv betöltés:", error));
 await initPage();
