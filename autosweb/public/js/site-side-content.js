@@ -57,6 +57,32 @@ function renderVideoSlots(container, videos, { editing = false } = {}) {
   }
 }
 
+function renderCenter(data, { editing = false } = {}) {
+  const wrap = document.querySelector("[data-center-content]");
+  if (!wrap) return;
+
+  const titleEl = wrap.querySelector("[data-center-title]");
+  const bodyEl = wrap.querySelector("[data-center-body]");
+  if (!titleEl || !bodyEl) return;
+
+  if (editing) {
+    titleEl.innerHTML = `<input type="text" class="site-side-input home-center-input" data-edit-center-title value="${escapeHtml(data.title)}">`;
+    bodyEl.innerHTML = `<textarea class="site-side-textarea home-center-textarea" data-edit-center-html rows="10">${escapeHtml(data.html)}</textarea>`;
+    return;
+  }
+
+  titleEl.textContent = data.title;
+  bodyEl.innerHTML = data.html;
+}
+
+function readCenter() {
+  const wrap = document.querySelector("[data-center-content]");
+  return {
+    title: wrap?.querySelector("[data-edit-center-title]")?.value?.trim() ?? "",
+    html: wrap?.querySelector("[data-edit-center-html]")?.value?.trim() ?? "",
+  };
+}
+
 function renderPanel(side, data, { editing = false } = {}) {
   const panel = document.querySelector(`[data-site-side="${side}"]`);
   if (!panel) return;
@@ -97,11 +123,18 @@ export async function initSiteSideContent() {
   let blocks = await fetchPageBlocks(page);
   let editing = false;
 
-  const pageData = { left: blocks.left, right: blocks.right };
+  const pageData = {
+    left: blocks.left,
+    right: blocks.right,
+    center: blocks.center ?? null,
+  };
 
   const renderAll = () => {
     for (const side of SIDE_KEYS) {
       renderPanel(side, pageData[side], { editing });
+    }
+    if (pageData.center) {
+      renderCenter(pageData.center, { editing });
     }
     if (toolbar) toolbar.hidden = !editing;
     if (editBtn) editBtn.hidden = editing;
@@ -119,6 +152,7 @@ export async function initSiteSideContent() {
     blocks = await fetchPageBlocks(page);
     pageData.left = blocks.left;
     pageData.right = blocks.right;
+    pageData.center = blocks.center ?? pageData.center;
     renderAll();
   });
 
@@ -127,9 +161,15 @@ export async function initSiteSideContent() {
       left: readPanel("left"),
       right: readPanel("right"),
     };
+    if (pageData.center) {
+      payload.center = readCenter();
+    }
     const saved = await savePageBlocks(page, payload);
     pageData.left = saved.pages[page].left;
     pageData.right = saved.pages[page].right;
+    if (saved.pages[page].center) {
+      pageData.center = saved.pages[page].center;
+    }
     editing = false;
     renderAll();
   });

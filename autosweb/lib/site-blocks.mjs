@@ -11,11 +11,22 @@ export const SITE_PAGES = ["home", "import", "listings", "hirdetesfeladas"];
 export const VIDEOS_PER_SIDE = 3;
 
 const PAGE_DEFAULT_TITLES = {
-  home: { left: "Kiemelt videók", right: "Hasznos videók" },
+  home: { left: "Kiemelt videók", right: "Hasznos videók", center: "Aktív tartalom" },
   import: { left: "Import tippek", right: "Útmutatók" },
   listings: { left: "Hirdetés videók", right: "További videók" },
   hirdetesfeladas: { left: "Feladás tippek", right: "Segítség videók" },
 };
+
+const PAGE_DEFAULT_CENTER_HTML = {
+  home: "<p>Itt jelenik meg a hirdetésrács alatti szerkeszthető tartalom — hírek, promóciók, szövegek.</p>",
+};
+
+function emptyCenter(page) {
+  return {
+    title: PAGE_DEFAULT_TITLES[page]?.center ?? "Aktív tartalom",
+    html: PAGE_DEFAULT_CENTER_HTML[page] ?? "<p>Szerkeszthető tartalom.</p>",
+  };
+}
 
 function emptySide(page, side) {
   return {
@@ -31,8 +42,19 @@ function defaultPages() {
       left: emptySide(page, "left"),
       right: emptySide(page, "right"),
     };
+    if (page === "home") {
+      pages[page].center = emptyCenter(page);
+    }
   }
   return pages;
+}
+
+function normalizeCenter(value, fallback) {
+  if (!fallback) return null;
+  return {
+    title: String(value?.title ?? fallback.title).slice(0, 120),
+    html: String(value?.html ?? fallback.html).slice(0, 24000),
+  };
 }
 
 function normalizeSide(value, fallback) {
@@ -50,6 +72,9 @@ function normalizePages(input) {
       left: normalizeSide(input?.[page]?.left, defaults[page].left),
       right: normalizeSide(input?.[page]?.right, defaults[page].right),
     };
+    if (defaults[page].center) {
+      pages[page].center = normalizeCenter(input?.[page]?.center, defaults[page].center);
+    }
   }
   return pages;
 }
@@ -98,13 +123,17 @@ export function saveSiteBlocks(payload) {
   let pages = current;
 
   if (payload?.page && SITE_PAGES.includes(payload.page)) {
+    const currentPage = current[payload.page];
     pages = {
       ...current,
       [payload.page]: {
-        left: normalizeSide(payload.left, current[payload.page].left),
-        right: normalizeSide(payload.right, current[payload.page].right),
+        left: normalizeSide(payload.left, currentPage.left),
+        right: normalizeSide(payload.right, currentPage.right),
       },
     };
+    if (currentPage.center) {
+      pages[payload.page].center = normalizeCenter(payload.center, currentPage.center);
+    }
   } else if (payload?.pages) {
     pages = normalizePages({ ...current, ...payload.pages });
   }

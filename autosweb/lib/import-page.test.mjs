@@ -35,8 +35,8 @@ test("hirdetesfeladas.html: beépített űrlap", () => {
 
 test("index.html: főoldal videó oldalsávokkal", () => {
   const html = readFileSync(join(PUBLIC, "index.html"), "utf8");
-  assert.ok(html.includes("home-grid"));
-  assert.ok(html.includes("home-search"));
+  assert.ok(html.includes("home-grid-track"));
+  assert.ok(html.includes("data-center-content"));
   assert.ok(html.includes('data-site-page="home"'));
   assert.ok(html.includes("SITE_SIDE_LEFT"));
 });

@@ -12,6 +12,7 @@ test("getSiteBlocks és saveSiteBlocks oldalanként 3 videóval", async () => {
 
   const initial = getSiteBlocks();
   assert.ok(initial.pages.home.left.videos.length === VIDEOS_PER_SIDE);
+  assert.ok(initial.pages.home.center?.html);
 
   const saved = saveSiteBlocks({
     page: "home",

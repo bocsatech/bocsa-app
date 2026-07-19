@@ -2,14 +2,22 @@ import { fetchListings } from "./db-client.js";
 import { createHomeGridCard } from "./home-grid-card.js";
 import { initSiteSideContent } from "./site-side-content.js";
 
-const gridEl = document.getElementById("home-grid");
+const gridTrack = document.getElementById("home-grid-track");
+const gridViewport = document.getElementById("home-grid-viewport");
+const gridIndicators = document.getElementById("home-grid-indicators");
 const emptyEl = document.getElementById("home-empty");
 const countEl = document.getElementById("home-result-count");
 const searchInput = document.getElementById("home-search");
 const searchForm = document.getElementById("home-search-form");
 
+const VISIBLE_COUNT = 9;
+const AUTO_SCROLL_MS = 5000;
+
 let allItems = [];
 let searchQuery = "";
+let currentPage = 0;
+let pageCount = 0;
+let carouselTimer = null;
 
 function normalizeSearch(value) {
   return String(value ?? "")
@@ -44,25 +52,98 @@ function filterItems(items, query) {
   return items.filter((item) => listingSearchHaystack(item).includes(q));
 }
 
-function renderGrid(items) {
-  gridEl.innerHTML = "";
+function chunkItems(items, size) {
+  const pages = [];
+  for (let i = 0; i < items.length; i += size) {
+    pages.push(items.slice(i, i + size));
+  }
+  return pages.length ? pages : [[]];
+}
+
+function stopCarousel() {
+  if (carouselTimer) {
+    clearInterval(carouselTimer);
+    carouselTimer = null;
+  }
+}
+
+function goToPage(index) {
+  if (!pageCount) return;
+  currentPage = ((index % pageCount) + pageCount) % pageCount;
+  gridTrack.style.transform = `translateX(-${currentPage * 100}%)`;
+  gridIndicators?.querySelectorAll("[data-carousel-page]").forEach((dot) => {
+    dot.classList.toggle("is-active", Number(dot.dataset.carouselPage) === currentPage);
+  });
+}
+
+function startCarousel() {
+  stopCarousel();
+  if (pageCount <= 1) return;
+  carouselTimer = setInterval(() => {
+    goToPage(currentPage + 1);
+  }, AUTO_SCROLL_MS);
+}
+
+function renderIndicators(totalPages) {
+  if (!gridIndicators) return;
+  gridIndicators.innerHTML = "";
+  gridIndicators.hidden = totalPages <= 1;
+
+  for (let index = 0; index < totalPages; index += 1) {
+    const dot = document.createElement("button");
+    dot.type = "button";
+    dot.className = "home-grid-dot";
+    dot.dataset.carouselPage = String(index);
+    dot.setAttribute("aria-label", `${index + 1}. oldal`);
+    if (index === 0) dot.classList.add("is-active");
+    dot.addEventListener("click", () => {
+      goToPage(index);
+      startCarousel();
+    });
+    gridIndicators.appendChild(dot);
+  }
+}
+
+function updateCount(items, filtered) {
+  if (!countEl) return;
+  const published = items.filter((item) => item.status === "feladott").length;
+  const pages = Math.max(1, Math.ceil(filtered.length / VISIBLE_COUNT));
+  const base =
+    searchQuery.trim() ?
+      `${filtered.length} találat · ${published} közzétett · ${items.length} hirdetés`
+    : published > 0 ?
+      `${published} közzétett · ${items.length} hirdetés összesen`
+    : `${items.length} hirdetés (még nincs közzétéve a főoldalon)`;
+  countEl.textContent = filtered.length > VISIBLE_COUNT ? `${base} · ${pages} oldal (9 / oldal)` : base;
+}
+
+function renderCarousel(items) {
+  if (!gridTrack) return;
+
+  stopCarousel();
+  currentPage = 0;
+  pageCount = 0;
+  gridTrack.innerHTML = "";
+
   const filtered = filterItems(items, searchQuery);
   emptyEl.hidden = filtered.length > 0;
+  updateCount(items, filtered);
 
-  if (countEl) {
-    const published = items.filter((item) => item.status === "feladott").length;
-    if (searchQuery.trim()) {
-      countEl.textContent = `${filtered.length} találat · ${published} közzétett · ${items.length} hirdetés`;
-    } else if (published > 0) {
-      countEl.textContent = `${published} közzétett · ${items.length} hirdetés összesen`;
-    } else {
-      countEl.textContent = `${items.length} hirdetés (még nincs közzétéve a főoldalon)`;
+  const pages = chunkItems(filtered, VISIBLE_COUNT);
+  pageCount = pages.length;
+
+  for (const pageItems of pages) {
+    const pageEl = document.createElement("div");
+    pageEl.className = "home-grid-page";
+    for (const item of pageItems) {
+      pageEl.appendChild(createHomeGridCard(item));
     }
+    gridTrack.appendChild(pageEl);
   }
 
-  for (const item of filtered) {
-    gridEl.appendChild(createHomeGridCard(item));
-  }
+  goToPage(0);
+  renderIndicators(pageCount);
+  startCarousel();
 }
 
 async function loadListings() {
@@ -71,19 +152,22 @@ async function loadListings() {
     if (a.status === b.status) return 0;
     return a.status === "feladott" ? -1 : 1;
   });
-  renderGrid(allItems);
+  renderCarousel(allItems);
 }
 
 searchForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   searchQuery = searchInput?.value ?? "";
-  renderGrid(allItems);
+  renderCarousel(allItems);
 });
 
 searchInput?.addEventListener("input", () => {
   searchQuery = searchInput.value;
-  renderGrid(allItems);
+  renderCarousel(allItems);
 });
+
+gridViewport?.addEventListener("mouseenter", stopCarousel);
+gridViewport?.addEventListener("mouseleave", startCarousel);
 
 initSiteSideContent().catch(console.error);
 loadListings().catch((error) => {

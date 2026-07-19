@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719videos" />
+    <meta name="autosweb-version" content="automax20260719homecarousel" />
     <title>Autosweb — Feladott hirdetések</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719videos" />
-    <link rel="stylesheet" href="/css/home.css?v=automax20260719videos" />
-    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719videos" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719homecarousel" />
+    <link rel="stylesheet" href="/css/home.css?v=automax20260719homecarousel" />
+    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719homecarousel" />
   </head>
   <body class="home-page site-page" data-site-page="home">
     <div class="local-banner">LOCALHOST — feladott hirdetések főoldala</div>
@@ -27,7 +27,7 @@
       </div>
       <div class="home-search-wrap">
         <form id="home-search-form" class="home-search-form" role="search">
-          <label class="visually-hidden" for="home-search">Kereses</label>
+          <label class="visually-hidden" for="home-search">Keresés</label>
           <svg class="home-search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.6"/>
             <path d="M13 13 18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -43,16 +43,26 @@
         <!-- SITE_SIDE_LEFT -->
 
         <section class="site-center home-center" aria-label="Feladott hirdetések">
-          <div id="home-grid" class="home-grid"></div>
-          <p id="home-empty" class="home-empty" hidden>
-            Még nincs hirdetés. Importálj és mentsd az adatbázisba, vagy fejezd be a hirdetésfeladás varázslót — utána itt jelennek meg a kártyák.
-          </p>
+          <div class="home-listings-panel">
+            <div id="home-grid-viewport" class="home-grid-viewport">
+              <div id="home-grid-track" class="home-grid-track"></div>
+            </div>
+            <div id="home-grid-indicators" class="home-grid-indicators" hidden></div>
+            <p id="home-empty" class="home-empty" hidden>
+              Még nincs hirdetés. Importálj és mentsd az adatbázisba, vagy fejezd be a hirdetésfeladás varázslót — utána itt jelennek meg a kártyák.
+            </p>
+          </div>
+
+          <div class="home-active-content" data-center-content>
+            <h2 class="home-active-title" data-center-title>Aktív tartalom</h2>
+            <div class="home-active-body" data-center-body></div>
+          </div>
         </section>
 
         <!-- SITE_SIDE_RIGHT -->
       </div>
     </main>
 
-    <script src="/js/home-app.js?v=automax20260719videos" type="module"></script>
+    <script src="/js/home-app.js?v=automax20260719homecarousel" type="module"></script>
   </body>
 </html>
