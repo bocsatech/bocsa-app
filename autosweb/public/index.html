@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719addelautod" />
+    <meta name="autosweb-version" content="automax20260719homemock" />
     <title>Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719addelautod" />
-    <link rel="stylesheet" href="/css/home.css?v=automax20260719addelautod" />
-    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719addelautod" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719homemock" />
+    <link rel="stylesheet" href="/css/home.css?v=automax20260719homemock" />
+    <link rel="stylesheet" href="/css/site-side.css?v=automax20260719homemock" />
   </head>
   <body class="home-page site-page" data-site-page="home">
     <div class="local-banner">LOCALHOST — feladott hirdetések főoldala</div>
 
     <header class="site-header home-header">
-      <div class="header-top home-header-top">
+      <div class="home-header-inner">
         <a class="home-logo" href="/">Add el autod.hu</a>
         <nav class="home-nav" aria-label="Oldalak">
           <a class="home-nav-link active" href="/">Főoldal</a>
@@ -24,19 +24,47 @@
           <a class="home-nav-link" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
           <a class="home-nav-link" href="/listings.html">Hirdetések</a>
         </nav>
+        <div class="home-header-spacer" aria-hidden="true"></div>
+      </div>
+      <div class="home-search-wrap">
+        <form id="home-search-form" class="home-search-form" role="search">
+          <label class="visually-hidden" for="home-search">Keresés</label>
+          <svg class="home-search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M13 13 18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <input id="home-search" class="home-search-input" type="search" placeholder="Keresés gyártmány, modell, település, ár…" autocomplete="off" />
+        </form>
+        <p id="home-result-count" class="home-result-count"></p>
       </div>
     </header>
 
     <main class="home-main">
       <div class="site-layout home-layout">
         <aside class="site-side site-side--left home-info-sidebar" data-site-side="left" aria-label="Hasznos információ">
-          <div class="site-side-card">
+          <div class="site-side-card home-info-card">
             <h2 class="site-side-title" data-side-title>Hasznos információ</h2>
             <div class="site-video-list" data-side-videos></div>
+            <div class="home-trust-block">
+              <h3 class="home-trust-title">Miért Add el autod.hu?</h3>
+              <ul class="home-trust-list">
+                <li>Átlátható árak</li>
+                <li>Friss hirdetések</li>
+                <li>Egyszerű keresés</li>
+              </ul>
+              <a class="home-trust-link" href="/import.html">Vásárlási checklist →</a>
+            </div>
           </div>
         </aside>
 
         <section class="site-center home-center" aria-label="Feladott hirdetések">
+          <div class="home-quick-filters" role="group" aria-label="Gyors szűrők">
+            <button type="button" class="home-quick-pill" data-quick-preset="under10m">10 M Ft alatt</button>
+            <button type="button" class="home-quick-pill" data-quick-preset="lowKm">Alacsony km</button>
+            <button type="button" class="home-quick-pill" data-quick-preset="hybridEv">Hibrid &amp; EV</button>
+            <button type="button" class="home-quick-pill" data-quick-preset="fresh">Frissen feladott</button>
+            <button type="button" class="home-quick-pill" data-quick-preset="firstCar">Első autó</button>
+          </div>
           <div class="home-listings-panel">
             <div id="home-grid-viewport" class="home-grid-viewport">
               <div id="home-grid-track" class="home-grid-track"></div>
@@ -152,6 +180,6 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=automax20260719addelautod" type="module"></script>
+    <script src="/js/home-app.js?v=automax20260719homemock" type="module"></script>
   </body>
 </html>
