@@ -24,6 +24,18 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function withTimeout(promise, ms, message) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function hasListPageContent(html, url) {
   if (/talalati-sor|talalatisor-infokontener|pricefield-primary|Hirdetéskód|hirdeteskod/i.test(html)) {
     return true;
@@ -101,17 +113,22 @@ async function getWorkingPage(context, startUrl) {
   return page;
 }
 
-async function waitForListingHtml(page) {
-  const deadline = Date.now() + 120000;
+async function waitForListingHtml(page, onProgress) {
+  const deadline = Date.now() + 60000;
+  let lastLog = 0;
   while (Date.now() < deadline) {
     const html = await page.content();
     const title = await page.title();
     if (isContentReady(title, html, page.url()) && /hirdetesadatok|Alapadatok/i.test(html)) {
       return html;
     }
+    if (Date.now() - lastLog > 8000) {
+      onProgress?.("Várakozás: hirdetés oldal betöltése…");
+      lastLog = Date.now();
+    }
     await sleep(1500);
   }
-  throw new Error("Hirdetés oldal nem töltődött be a Chrome-ban.");
+  throw new Error("Hirdetés oldal nem töltődött be 60 mp alatt — következő hirdetés.");
 }
 
 async function scrollListPage(page, onProgress) {
@@ -154,12 +171,14 @@ async function collectListingUrls(page, listUrl, limit, onProgress) {
 async function fetchListingForm(page, url, card, onProgress) {
   onProgress?.(`Részletek: ${shortUrl(url, 70)}`);
   if (page.url() !== url) {
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
+    onProgress?.("Oldal betöltése…");
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
   }
-  await waitForListingHtml(page);
+  await waitForListingHtml(page, onProgress);
   await prepareListingPage(page);
+  onProgress?.("Telefonszám és adatmezők…");
   const phone = await revealPhoneNumber(page);
-  const extracted = await waitForListingAttributes(page);
+  const extracted = await waitForListingAttributes(page, { minFields: 5, timeoutMs: 25000 });
   const html = await page.content();
   let parsed = parseListingHtml(html, { url, phone: phone ?? undefined });
   parsed = mergePageExtract(parsed, { ...extracted, phone });
@@ -216,10 +235,16 @@ export async function importListings(inputUrl, options = {}) {
       const listingUrl = urls[i];
       try {
         onProgress?.(`[${i + 1}/${urls.length}] Import…`);
-        const item = await fetchListingForm(page, listingUrl, cardByUrl.get(listingUrl), onProgress);
+        const item = await withTimeout(
+          fetchListingForm(page, listingUrl, cardByUrl.get(listingUrl), onProgress),
+          90000,
+          "Időtúllépés (90 mp) — a hirdetés oldal nem válaszolt időben"
+        );
         items.push(item);
       } catch (error) {
-        errors.push({ url: listingUrl, message: error.message ?? String(error) });
+        const message = error.message ?? String(error);
+        onProgress?.(`⚠ [${i + 1}/${urls.length}] ${message}`);
+        errors.push({ url: listingUrl, message });
       }
       await sleep(400);
     }

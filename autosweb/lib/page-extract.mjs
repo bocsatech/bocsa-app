@@ -43,17 +43,17 @@ export async function revealPhoneNumber(page) {
     try {
       const target = locator.first();
       if ((await target.count()) === 0 || !(await target.isVisible())) continue;
-      await target.click({ timeout: 5000 });
+      await target.click({ timeout: 2000 });
       break;
     } catch {
       /* try next */
     }
   }
 
-  for (let attempt = 0; attempt < 12; attempt += 1) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
     const phone = await extractVisiblePhone(page);
     if (phone) return phone;
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(200);
   }
   return null;
 }

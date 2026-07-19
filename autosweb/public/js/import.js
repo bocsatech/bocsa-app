@@ -29,32 +29,21 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  function showUpgradeWarning(serverVersion) {
-    const msg =
-      `Régi autosweb verzió fut (${serverVersion || "?"}). Frissíts:\n\n` +
-      "cd ~/bocsa-app && git pull origin main\n" +
-      "cd autosweb/mac && ./frissites.command\n\n" +
-      "Majd indítsd újra az Autosweb-et és Cmd+Shift+R a böngészőben.";
-    appendLog(`⚠ Frissítés szükséges — jelenlegi szerver verzió: ${serverVersion || "?"}`);
-    const warn = document.getElementById("import-upgrade-warn");
-    if (warn) {
-      warn.hidden = false;
-      warn.textContent =
-        "Régi verzió — futtasd: autosweb/mac/frissites.command, majd indítsd újra az Autosweb-et.";
-    }
-    console.warn(msg);
-  }
-
   async function checkVersion() {
     try {
       const response = await fetch("/api/health");
       const data = await response.json();
       const serverVersion = data.version ?? "";
       if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
-        appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
-      }
-      if (serverVersion && !serverVersion.includes("importdatafix") && !serverVersion.includes("listings")) {
-        showUpgradeWarning(serverVersion);
+        appendLog(`⚠ Verzió eltérés: böngésző ${EMBEDDED_VERSION}, szerver ${serverVersion} — Cmd+Shift+R + Autosweb újraindítás.`);
+        const warn = document.getElementById("import-upgrade-warn");
+        if (warn) {
+          warn.hidden = false;
+          warn.textContent = `Verzió eltérés (${EMBEDDED_VERSION} ≠ ${serverVersion}) — frissítsd a böngészőt (Cmd+Shift+R) és indítsd újra az Autosweb-et.`;
+        }
+      } else {
+        const warn = document.getElementById("import-upgrade-warn");
+        if (warn) warn.hidden = true;
       }
       try {
         const statsResponse = await fetch("/api/db/stats");
@@ -209,7 +198,12 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
             renderResults(payload.result.items ?? []);
             appendLog(`Kész: ${payload.result.count} hirdetés importálva.`);
             if (payload.result.errors?.length) {
-              appendLog(`${payload.result.errors.length} hiba (részletek a konzolban).`);
+              for (const entry of payload.result.errors.slice(0, 8)) {
+                appendLog(`⚠ ${shortUrl(entry.url, 55)} — ${entry.message}`);
+              }
+              if (payload.result.errors.length > 8) {
+                appendLog(`⚠ … és még ${payload.result.errors.length - 8} hiba`);
+              }
               console.warn("Import hibák:", payload.result.errors);
             }
           }
@@ -239,4 +233,9 @@ function escapeHtml(value) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function shortUrl(url, max = 70) {
+  const text = String(url ?? "");
+  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 }
