@@ -14,7 +14,12 @@ export function setStoredListingId(id) {
 
 async function parseJson(response) {
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Szerver hiba");
+  if (!response.ok) {
+    if (response.status === 404 && data.error === "Ismeretlen API.") {
+      throw new Error("Régi Autosweb szerver — futtasd: autosweb/mac/frissites.command, majd indítsd újra.");
+    }
+    throw new Error(data.error || "Szerver hiba");
+  }
   return data;
 }
 

@@ -65,6 +65,21 @@ function serveStatic(path, res) {
     return;
   }
   const ext = extname(filePath);
+  if (ext === ".html") {
+    let html = readFileSync(filePath, "utf8");
+    if (html.includes("<!-- AD_FORM -->")) {
+      const partialPath = join(PUBLIC, "partials", "ad-form.html");
+      if (existsSync(partialPath)) {
+        html = html.replace("<!-- AD_FORM -->", readFileSync(partialPath, "utf8"));
+      }
+    }
+    res.writeHead(200, {
+      "Content-Type": MIME[".html"],
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+    });
+    res.end(html);
+    return;
+  }
   res.writeHead(200, {
     "Content-Type": MIME[ext] ?? "application/octet-stream",
     "Cache-Control": "no-store, no-cache, must-revalidate",

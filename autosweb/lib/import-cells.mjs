@@ -18,7 +18,6 @@ export function enrichFormFromImportItem(formData, item) {
   if (item?.id && !data.hasznaltauto_hirdetes_id) data.hasznaltauto_hirdetes_id = String(item.id);
   return data;
 }
-
 /** Űrlap adat → szerkeszthető cellák (csak kitöltött mezők + extrák). */
 export function formDataToDisplayCells(formData) {
   return formDataToCells(formData);

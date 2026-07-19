@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260719importpage" />
+    <meta name="autosweb-version" content="automax20260719importform" />
     <title>Import — Autosweb</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=automax20260719importpage" />
-    <link rel="stylesheet" href="/css/automax.css?v=automax20260719importpage" />
+    <link rel="stylesheet" href="/css/style.css?v=automax20260719importform" />
+    <link rel="stylesheet" href="/css/automax.css?v=automax20260719importform" />
   </head>
   <body class="theme-automax import-page">
     <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
@@ -30,7 +30,7 @@
       <div class="import-page-main">
         <div class="automax-step-header">
           <h1 class="automax-step-title">Hasznaltauto.hu import</h1>
-          <p class="automax-step-lead">Importáld a hirdetéseket, ellenőrizd a cellákat, majd mentsd az adatbázisba.</p>
+          <p class="automax-step-lead">Importáld a hirdetéseket, ellenőrizd az űrlapot, majd mentsd az adatbázisba.</p>
         </div>
 
         <div class="card import-panel" id="import-panel">
@@ -48,8 +48,8 @@
               <button type="button" class="btn btn-primary" id="import-start-btn">Import indítása (max 50)</button>
             </div>
             <p class="hint import-hint-steps">
-              1) <strong>Import indítása</strong> (vagy Chrome megnyitása) → látható Chrome ablak &nbsp;
-              2) Cloudflare jelölés ha kell &nbsp; 3) Válassz hirdetést a listából
+              1) <strong>Import indítása</strong> → látható Chrome ablak &nbsp;
+              2) Cloudflare ha kell &nbsp; 3) Válassz hirdetést → kitöltődik az űrlap alatta
             </p>
             <p id="import-upgrade-warn" class="import-upgrade-warn" hidden></p>
             <div id="import-log" class="import-log" hidden></div>
@@ -57,18 +57,14 @@
           </div>
         </div>
 
-        <section class="card import-cells-card hidden" id="import-cells-card">
-          <div class="card-head">
-            <span id="import-cells-title">Importált adatok</span>
+        <section class="import-form-section hidden" id="import-form-section">
+          <div class="import-form-head">
+            <h2 class="import-form-title" id="import-form-title">Importált hirdetés</h2>
+            <p class="hint">Az alábbi űrlap minden mezője szerkeszthető. A mentés gomb csak a kitöltött cellákat tárolja az adatbázisban.</p>
           </div>
-          <div class="card-body">
-            <p class="hint" id="import-cells-hint">Ellenőrizd és szükség esetén módosítsd a cellákat, majd mentsd az adatbázisba.</p>
-            <div id="import-cells-grid"></div>
-            <div class="import-extras-block">
-              <label for="import-extras-input">Felszereltség (soronként egy extra)</label>
-              <textarea id="import-extras-input" data-extras-input rows="4" placeholder="pl. tempomat"></textarea>
-            </div>
-          </div>
+          <form id="ad-form" novalidate>
+<!-- AD_FORM -->
+          </form>
           <div class="import-save-bar">
             <button type="button" class="btn btn-primary btn-lg" id="import-save-btn">Mentés az adatbázisba</button>
             <span class="import-save-status" id="import-save-status"></span>
@@ -77,6 +73,6 @@
       </div>
     </main>
 
-    <script src="/js/import-app.js?v=automax20260719importpage" type="module"></script>
+    <script src="/js/import-app.js?v=automax20260719importform" type="module"></script>
   </body>
 </html>
