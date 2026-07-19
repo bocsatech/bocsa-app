@@ -10,7 +10,9 @@
     "telepites": "bash mac/telepites.command",
     "test:map": "node --test lib/map-to-form.test.mjs",
     "test:links": "node --test lib/links.test.mjs",
-    "test": "node --test lib/*.test.mjs"
+    "test": "node --test lib/*.test.mjs",
+    "build:html": "node scripts/embed-ad-form.mjs",
+    "prestart": "node scripts/embed-ad-form.mjs"
   },
   "engines": {
     "node": ">=18"

@@ -1053,6 +1053,25 @@ body.import-page .help-link {
   display: none;
 }
 
-body.import-page .page-import {
-  max-width: 1100px;
+body.import-page #ad-form {
+  display: block;
+}
+
+body.import-page #ad-form .labeled-field label,
+body.import-page #ad-form .form-grid > label,
+body.import-page #ad-form .autofelvitele-label {
+  color: #ddd;
+}
+
+body.import-page #ad-form input,
+body.import-page #ad-form select,
+body.import-page #ad-form textarea {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #fff;
+}
+
+body.import-page .import-save-bar {
+  background: #111;
+  border-top: 1px solid #333;
 }

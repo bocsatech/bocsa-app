@@ -43,7 +43,7 @@ if [ ! -d node_modules ]; then
   npm install
 fi
 
-open "http://127.0.0.1:3456"
-echo "Autosweb: http://127.0.0.1:3456"
+open "http://127.0.0.1:3456/import.html"
+echo "Autosweb: http://127.0.0.1:3456/import.html"
 echo "Bezáráshoz: Ctrl+C"
 npm start

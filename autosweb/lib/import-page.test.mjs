@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -18,20 +18,17 @@ test("ad-form partial: összes fő mezőcsoport", () => {
   assert.ok(partial.includes("egyeb-info-sections"));
 });
 
-test("import.html és hirdetesfeladas.html: AD_FORM placeholder", () => {
-  for (const file of ["import.html", "hirdetesfeladas.html"]) {
-    const html = readFileSync(join(PUBLIC, file), "utf8");
-    assert.ok(html.includes("<!-- AD_FORM -->"), `${file} placeholder`);
-    assert.ok(html.includes('id="ad-form"'));
-  }
+test("import.html: beépített teljes űrlap", () => {
+  const html = readFileSync(join(PUBLIC, "import.html"), "utf8");
+  assert.ok(html.includes('id="gyartasi_ev"'), "gyartasi_ev");
+  assert.ok(html.includes('id="km"'), "km");
+  assert.ok(html.includes("equipment-sections"), "felszereltség");
+  assert.ok(html.includes("Hitel"), "hitel");
+  assert.ok(!html.includes("<!-- AD_FORM -->"), "nincs placeholder");
 });
 
-test("serveHtml inject: placeholder helyettesítés", () => {
-  const template = readFileSync(join(PUBLIC, "import.html"), "utf8");
-  const partial = readFileSync(join(PUBLIC, "partials", "ad-form.html"), "utf8");
-  const merged = template.replace("<!-- AD_FORM -->", partial);
-  assert.ok(merged.includes("Gyártási év"));
-  assert.ok(merged.includes("Km. óra állás"));
-  assert.ok(merged.includes("equipment-sections"));
-  assert.equal((merged.match(/<form/g) ?? []).length, 1);
+test("hirdetesfeladas.html: beépített űrlap", () => {
+  const html = readFileSync(join(PUBLIC, "hirdetesfeladas.html"), "utf8");
+  assert.ok(html.includes('id="gyartasi_ev"'));
+  assert.ok(!html.includes("<!-- AD_FORM -->"));
 });

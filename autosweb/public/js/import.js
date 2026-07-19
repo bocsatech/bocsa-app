@@ -53,7 +53,7 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
       if (EMBEDDED_VERSION && serverVersion && serverVersion !== EMBEDDED_VERSION) {
         appendLog(`⚠ Böngésző cache ≠ szerver (${EMBEDDED_VERSION} vs ${serverVersion}). Cmd+Shift+R.`);
       }
-      if (serverVersion && !serverVersion.includes("importfull")) {
+      if (serverVersion && !serverVersion.includes("importfix")) {
         showUpgradeWarning(serverVersion);
       }
       try {
@@ -143,7 +143,7 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
       appendLog(`Hiba: ${error.message ?? error}`);
       alert(
         (error.message ?? "Chrome nem indult el") +
-          "\n\nTelepítve van a Google Chrome? Ha igen, engedélyezd a megnyitást."
+          "\n\nTelepítve van a Google Chrome?\n\nAlternatíva: kattints „Import indítása” — az is megnyit egy Chrome ablakot."
       );
     } finally {
       if (chromeBtn) {

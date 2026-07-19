@@ -1,3 +1,4 @@
+import { loadAdFormPartial } from "./load-ad-form.js";
 import { createAdForm } from "./form-core.js";
 import { initImportPanel } from "./import.js";
 import { enrichFormFromImportItem } from "./import-enrich.js";
@@ -11,35 +12,62 @@ const saveStatus = document.getElementById("import-save-status");
 const dbBadge = document.getElementById("import-db-badge");
 
 let currentListingId = null;
+let adForm = null;
+
+function showFormError(message) {
+  if (!formError) return;
+  formError.hidden = false;
+  formError.textContent = message;
+}
 
 function verifyFormLoaded() {
-  const ok = Boolean(document.getElementById("gyartasi_ev") && document.getElementById("km") && document.getElementById("equipment-sections"));
-  if (!ok && formError) {
-    formError.hidden = false;
-    formError.textContent =
-      "Az űrlap nem töltődött be — indítsd újra az Autosweb szervert (autosweb/mac/frissites.command), majd Cmd+Shift+R. Csak http://127.0.0.1:3456/import.html működik.";
+  const ok = Boolean(document.getElementById("gyartasi_ev") && document.getElementById("km"));
+  if (!ok) {
+    showFormError(
+      "Az űrlap nem töltődött be. Futtasd: autosweb/mac/frissites.command, indítsd újra az Autosweb-et, majd Cmd+Shift+R."
+    );
+  } else if (formError) {
+    formError.hidden = true;
   }
   return ok;
 }
 
-const adForm = createAdForm({
-  mode: "import",
-  onApplied: () => {
-    formSection?.scrollIntoView({ behavior: "smooth", block: "start" });
-  },
-});
+async function initPage() {
+  const loaded = await loadAdFormPartial();
+  if (!loaded) {
+    showFormError(
+      "Az űrlap fájl hiányzik. Frissíts (frissites.command), indítsd újra az Autosweb-et. URL: http://127.0.0.1:3456/import.html"
+    );
+    return;
+  }
 
-if (!verifyFormLoaded()) {
-  console.error("Import űrlap hiányos — szerver injektálás vagy cache hiba.");
+  adForm = createAdForm({
+    mode: "import",
+    onApplied: () => {
+      formSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+  });
+
+  verifyFormLoaded();
+  await refreshDbBadge();
+
+  initImportPanel({
+    alertOnApply: false,
+    onApply: (formData, item) => {
+      if (!verifyFormLoaded() || !adForm) return;
+      const enriched = enrichFormFromImportItem(formData, item);
+      currentListingId = null;
+      setStoredListingId(null);
+      adForm.resetForm();
+      formTitle.textContent = item?.cim || item?.url || "Importált hirdetés";
+      adForm.applyFormData(enriched, { fromImport: true });
+      saveStatus.textContent = "";
+    },
+  });
 }
 
 async function handleSave() {
-  if (!adForm) return;
-  if (!verifyFormLoaded()) {
-    saveStatus.textContent = "Az űrlap nincs betöltve — indítsd újra az Autosweb-et.";
-    saveStatus.className = "import-save-status import-save-status--err";
-    return;
-  }
+  if (!adForm || !verifyFormLoaded()) return;
   saveBtn.disabled = true;
   saveStatus.textContent = "Mentés…";
   saveStatus.className = "import-save-status";
@@ -72,18 +100,4 @@ async function refreshDbBadge() {
 }
 
 saveBtn?.addEventListener("click", handleSave);
-await refreshDbBadge();
-
-initImportPanel({
-  alertOnApply: false,
-  onApply: (formData, item) => {
-    if (!verifyFormLoaded()) return;
-    const enriched = enrichFormFromImportItem(formData, item);
-    currentListingId = null;
-    setStoredListingId(null);
-    adForm?.resetForm();
-    formTitle.textContent = item?.cim || item?.url || "Importált hirdetés";
-    adForm?.applyFormData(enriched, { fromImport: true });
-    saveStatus.textContent = "";
-  },
-});
+await initPage();

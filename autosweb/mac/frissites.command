@@ -20,10 +20,12 @@ if [ ! -d "$TARGET" ]; then
 fi
 
 cp "$SOURCE/package.json" "$SOURCE/server.mjs" "$TARGET/"
+cp -R "$SOURCE/scripts" "$TARGET/" 2>/dev/null || true
 rsync -a --delete "$SOURCE/lib/" "$TARGET/lib/"
 rsync -a --delete "$SOURCE/public/" "$TARGET/public/"
 
 cd "$TARGET"
+node scripts/embed-ad-form.mjs
 npm install
 npx playwright install chromium 2>/dev/null || true
 npx playwright install chrome 2>/dev/null || true
@@ -41,6 +43,13 @@ if grep -q 'theme-automax' "$TARGET/public/hirdetesfeladas.html"; then
   echo "  ✓ AUTOMAX téma OK"
 else
   echo "  ✗ HIBA: régi HTML!"
+  exit 1
+fi
+
+if grep -q 'id="gyartasi_ev"' "$TARGET/public/import.html" 2>/dev/null; then
+  echo "  ✓ Import űrlap OK"
+else
+  echo "  ✗ HIBA: import.html űrlap hiányzik!"
   exit 1
 fi
 

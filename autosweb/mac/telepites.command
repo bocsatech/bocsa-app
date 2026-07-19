@@ -30,8 +30,10 @@ else
   rm -rf "$TARGET/public"
   cp -R "$SOURCE/public" "$TARGET/public"
 fi
+cp -R "$SOURCE/scripts" "$TARGET/" 2>/dev/null || true
 
 cd "$TARGET"
+node scripts/embed-ad-form.mjs 2>/dev/null || true
 npm install
 npx playwright install chromium 2>/dev/null || true
 npx playwright install chrome 2>/dev/null || true
