@@ -1,84 +1,107 @@
 #!/bin/bash
-# Willhaben Agent — Mac telepítés v3 (tar.gz, unzip nélkül)
+# Willhaben Agent — Mac telepítés v4
+# Nincs zip, tar, git — csak fájlonkénti letöltés.
+#
 # Futtatás:
-#   curl -fL -o /tmp/wh-agent-install.command "https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command"
-#   bash /tmp/wh-agent-install.command
+#   curl -fL -o /tmp/wh-install.command "https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command"
+#   bash /tmp/wh-install.command
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 TARGET="${HOME}/Downloads/willhaben-agent"
-TMP="$(mktemp -d /tmp/willhaben-agent.XXXXXX)"
-TAR="${TMP}/package.tar.gz"
-ARCHIVE="https://github.com/bocsatech/bocsa-app/archive/refs/heads/main.tar.gz"
+RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
+
+url_for() {
+  echo "${RAW}/$(echo "$1" | sed 's/ /%20/g')"
+}
 
 get_desktop() {
   local d=""
   d="$(/usr/bin/osascript -e 'tell application "Finder" to get POSIX path of (desktop as alias)' 2>/dev/null || true)"
   d="${d%/}"
-  if [ -n "$d" ] && [ -d "$d" ]; then echo "$d"; return 0; fi
-  for d in "${HOME}/Desktop" "${HOME}/Asztal"; do
-    [ -d "$d" ] && echo "$d" && return 0
+  for d in "$d" "${HOME}/Desktop" "${HOME}/Asztal"; do
+    [ -n "$d" ] && [ -d "$d" ] && echo "$d" && return 0
   done
   mkdir -p "${HOME}/Desktop"
   echo "${HOME}/Desktop"
 }
 
-fail() {
-  echo ""
-  echo "❌ HIBA: $1"
-  exit 1
-}
-
-trap 'rm -rf "$TMP"' EXIT
+fail() { echo ""; echo "❌ $1"; exit 1; }
 
 echo ""
 echo "══════════════════════════════════════════"
-echo "  WILLHABEN AGENT — telepítő v3"
+echo "  WILLHABEN AGENT — telepítő v4"
+echo "  (fájlonkénti letöltés — nincs csomagolás)"
 echo "══════════════════════════════════════════"
 echo ""
 
-# 1. KÖNYVTÁR
-echo "【1/4】 Könyvtár…"
+echo "【1/4】 Könyvtár: ${TARGET}"
 mkdir -p "$TARGET/data"
-echo "  ✓ ${TARGET}"
-
 command -v node >/dev/null 2>&1 || fail "Node.js kell: https://nodejs.org/"
+command -v curl >/dev/null 2>&1 || fail "curl hiányzik."
 
-# 2. LETÖLTÉS (tar.gz — beépített macOS tar)
+FILES=(
+  package.json
+  package-lock.json
+  config.default.json
+  .gitignore
+  README.md
+  public/index.html
+  public/app.css
+  public/app.js
+  src/version.mjs
+  src/config.mjs
+  src/browser.mjs
+  src/consent.mjs
+  src/store.mjs
+  src/price-chart.mjs
+  src/inbox-sync.mjs
+  src/server.mjs
+  src/index.mjs
+  src/login.mjs
+  src/stop.mjs
+  src/instance-lock.mjs
+  src/sync-cli.mjs
+  scripts/test-price-chart.mjs
+  mac-launcher/Inditas.command
+  mac-launcher/run.sh
+  "mac/telepites.command"
+  "Willhaben Agent.app/Contents/Info.plist"
+  "Willhaben Agent.app/Contents/MacOS/run"
+)
+
 echo ""
-echo "【2/4】 Letöltés (tar.gz)…"
-if ! curl -fL "$ARCHIVE" -o "$TAR"; then
-  fail "Letöltés sikertelen — ellenőrizd az internetet."
+echo "【2/4】 Letöltés (${#FILES[@]} fájl)…"
+n=0
+for rel in "${FILES[@]}"; do
+  n=$((n + 1))
+  dest="${TARGET}/${rel}"
+  mkdir -p "$(dirname "$dest")"
+  url="$(url_for "$rel")"
+  printf "  [%2d/%2d] %s\r" "$n" "${#FILES[@]}" "$rel"
+  if ! curl -fsSL "$url" -o "$dest"; then
+    echo ""
+    fail "Letöltés sikertelen: $rel"
+  fi
+done
+echo ""
+echo "  ✓ Minden fájl letöltve"
+
+chmod +x "${TARGET}/mac-launcher/Inditas.command" 2>/dev/null || true
+chmod +x "${TARGET}/mac-launcher/run.sh" 2>/dev/null || true
+chmod +x "${TARGET}/Willhaben Agent.app/Contents/MacOS/run" 2>/dev/null || true
+chmod +x "${TARGET}/mac/telepites.command" 2>/dev/null || true
+
+if [ ! -f "${TARGET}/config.json" ] && [ -f "${TARGET}/config.default.json" ]; then
+  cp "${TARGET}/config.default.json" "${TARGET}/config.json"
 fi
-[ -s "$TAR" ] || fail "Üres letöltött fájl."
 
-echo "  → kicsomagolás (tar)…"
-if ! tar -xzf "$TAR" -C "$TMP" 2>/dev/null; then
-  fail "tar hiba. Futtasd kézzel: cd /tmp && curl -fL -o wa.tar.gz $ARCHIVE && tar -xzf wa.tar.gz"
-fi
-
-SOURCE="${TMP}/bocsa-app-main/willhaben-agent"
-[ -f "${SOURCE}/package.json" ] || fail "Hiányzó willhaben-agent a csomagban."
-
-echo "  → másolás…"
-if command -v ditto >/dev/null 2>&1; then
-  ditto "$SOURCE" "$TARGET"
-elif command -v rsync >/dev/null 2>&1; then
-  rsync -a --exclude node_modules --exclude .git --exclude data "$SOURCE/" "$TARGET/"
-else
-  cp -R "$SOURCE/." "$TARGET/"
-fi
-[ -f "$TARGET/package.json" ] || fail "Másolás sikertelen."
-echo "  ✓ Fájlok OK"
-
-# 3. NPM
 echo ""
 echo "【3/4】 npm install…"
 ( cd "$TARGET" && npm install --no-audit --no-fund ) || fail "npm install sikertelen."
 ( cd "$TARGET" && npx playwright install chromium ) 2>/dev/null || true
 echo "  ✓ npm OK"
 
-# 4. ASZTAL
 echo ""
 echo "【4/4】 Asztali indító…"
 DESKTOP="$(get_desktop)"
@@ -96,21 +119,21 @@ LAUNCH
 chmod +x "$LAUNCHER"
 xattr -cr "$LAUNCHER" 2>/dev/null || true
 
-if [ -d "$TARGET/Willhaben Agent.app" ]; then
-  chmod +x "$TARGET/Willhaben Agent.app/Contents/MacOS/run" 2>/dev/null || true
+if [ -d "${TARGET}/Willhaben Agent.app" ]; then
   rm -rf "${DESKTOP}/Willhaben Agent.app"
-  ditto "$TARGET/Willhaben Agent.app" "${DESKTOP}/Willhaben Agent.app" 2>/dev/null || \
-    cp -a "$TARGET/Willhaben Agent.app" "$DESKTOP/"
+  cp -a "${TARGET}/Willhaben Agent.app" "$DESKTOP/"
   xattr -cr "${DESKTOP}/Willhaben Agent.app" 2>/dev/null || true
 fi
 
 echo "  ✓ ${LAUNCHER}"
 echo ""
 echo "══════════════════════════════════════════"
-echo "  ✅ KÉSZ"
+echo "  ✅ KÉSZ — Willhaben Agent telepítve"
 echo "══════════════════════════════════════════"
 echo ""
 echo "  cd ${TARGET}"
 echo "  npm run login"
 echo "  npm start"
+echo ""
+echo "  Web: http://127.0.0.1:3860"
 echo ""
