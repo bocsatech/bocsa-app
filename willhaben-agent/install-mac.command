@@ -1,5 +1,5 @@
 #!/bin/bash
-# Willhaben Agent — telepítő 1.0.0
+# Willhaben Agent — telepítő 1.0.1
 # Letöltések/Willhaben Agent + asztali indító
 #
 # curl -fL -o /tmp/wh-install.command \
@@ -8,7 +8,7 @@
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-INSTALLER_VERSION="1.0.0"
+INSTALLER_VERSION="1.0.1"
 TARGET="${HOME}/Downloads/Willhaben Agent"
 RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
 
