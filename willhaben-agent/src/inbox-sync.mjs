@@ -16,12 +16,13 @@ import {
   fetchMessages,
   installNetworkCapture,
   isMessengerUrl,
+  saveSyncDebug,
   sendMessageViaApi,
 } from './messenger-api.mjs';
 
 async function isLoginPage(page) {
   const url = page.url();
-  if (/sso\.willhaben\.at|\/auth\/|\/login/i.test(url)) return true;
+  if (/sso\.willhaben\.at|\/auth\/|\/iad\/myprofile\/login/i.test(url)) return true;
 
   const hasLoginHeading = await page.getByRole('heading', { name: /einloggen|anmelden/i })
     .isVisible({ timeout: 1500 })
@@ -51,7 +52,7 @@ async function ensureLoggedIn(page) {
   }
 }
 
-async function waitForChatReady(page, chatUrl, timeoutMs = 45000) {
+async function waitForChatReady(page, chatUrl, timeoutMs = 60000) {
   const messengerResponse = page.waitForResponse(
     (response) => isMessengerUrl(response.url()) && response.status() === 200,
     { timeout: timeoutMs },
@@ -61,7 +62,7 @@ async function waitForChatReady(page, chatUrl, timeoutMs = 45000) {
   await dismissConsent(page);
   await page.waitForLoadState('networkidle', { timeout: timeoutMs }).catch(() => {});
   await messengerResponse;
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(2000);
 }
 
 async function saveDebugSnapshot(page, label) {
@@ -179,9 +180,9 @@ function normalizeConversation(thread) {
   };
 }
 
-export async function syncInbox({ onProgress } = {}) {
+async function runSyncAttempt({ headless, onProgress }) {
   const config = loadConfig();
-  const { context } = await launchBrowser(getProfileDir(), { headless: true });
+  const { context } = await launchBrowser(getProfileDir(), { headless });
   const page = context.pages()[0] || (await context.newPage());
   const captured = installNetworkCapture(page);
 
@@ -190,8 +191,8 @@ export async function syncInbox({ onProgress } = {}) {
     await waitForChatReady(page, config.chatUrl);
     await ensureLoggedIn(page);
 
-    onProgress?.('Beszélgetések lekérése…');
-    let { conversations, unauthorized, source } = await fetchConversations(context);
+    onProgress?.('Beszélgetések lekérése (API)…');
+    let { conversations, unauthorized, source, probes } = await fetchConversations(context, { page });
 
     if (unauthorized) {
       throw new Error('Nincs bejelentkezve. Futtasd: npm run login');
@@ -199,20 +200,32 @@ export async function syncInbox({ onProgress } = {}) {
 
     if (!conversations.length && captured.length) {
       conversations = attachCapturedPayloads(captured, []);
+      if (conversations.length) source = 'network-capture';
     }
 
     if (!conversations.length) {
       onProgress?.('DOM fallback…');
       conversations = await listThreadsFromDom(page);
+      if (conversations.length) source = 'dom';
     }
+
+    const debugFile = saveSyncDebug('sync-probe', {
+      headless,
+      pageUrl: page.url(),
+      capturedUrls: captured.map((c) => c.url),
+      probes,
+      conversationCount: conversations.length,
+      source,
+    });
 
     if (!conversations.length) {
       const debugDir = await saveDebugSnapshot(page, 'sync-empty');
-      const hint = debugDir
-        ? ` Mentett debug: ${debugDir}`
-        : '';
+      const statusLines = (probes || []).map((p) => `${p.path} → ${p.status} (${p.parsedCount})`).join('; ');
       throw new Error(
-        `Nem található beszélgetés. Ellenőrizd, hogy van-e üzenet a willhaben chatben, majd futtasd újra: npm run login${hint}`,
+        `Nem található beszélgetés. API: ${statusLines || 'nincs válasz'}. `
+        + 'Futtasd újra: npm run login'
+        + (debugDir ? ` Debug: ${debugDir}` : '')
+        + (debugFile ? ` Log: ${debugFile}` : ''),
       );
     }
 
@@ -223,7 +236,7 @@ export async function syncInbox({ onProgress } = {}) {
       const t = normalizeConversation(conversations[i]);
       onProgress?.(`${i + 1}/${conversations.length}: ${t.partnerName}`);
 
-      let messages = await fetchMessages(context, t.id);
+      let messages = await fetchMessages(context, t.id, { page });
       if (!messages.length) {
         try {
           await openThread(page, t, config.chatUrl);
@@ -242,15 +255,27 @@ export async function syncInbox({ onProgress } = {}) {
 
     store.lastSyncAt = new Date().toISOString();
     store.lastSyncError = null;
+    store.lastSyncDebug = { source, probes, debugFile };
     saveStore(store);
-    return { ok: true, count: conversations.length, source: source || (captured.length ? 'network-capture' : 'dom') };
+    return { ok: true, count: conversations.length, source };
   } catch (err) {
     const store = loadStore();
     store.lastSyncError = err.message;
+    saveSyncDebug('sync-error', { headless, message: err.message, stack: err.stack });
     saveStore(store);
     throw err;
   } finally {
     await context.close().catch(() => {});
+  }
+}
+
+export async function syncInbox({ onProgress } = {}) {
+  try {
+    return await runSyncAttempt({ headless: true, onProgress });
+  } catch (err) {
+    if (/bejelentkezve/i.test(err.message)) throw err;
+    onProgress?.('Újrapróbálás látható böngészővel…');
+    return runSyncAttempt({ headless: false, onProgress });
   }
 }
 
@@ -268,7 +293,7 @@ export async function sendReply(conversationId, text) {
     await openThread(page, conv, config.chatUrl);
     await ensureLoggedIn(page);
 
-    const sentViaApi = await sendMessageViaApi(context, conversationId, text.trim());
+    const sentViaApi = await sendMessageViaApi(context, conversationId, text.trim(), { page });
     if (!sentViaApi) {
       const selectors = [
         'textarea[placeholder*="Nachricht"]',

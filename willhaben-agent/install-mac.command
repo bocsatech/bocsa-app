@@ -1,5 +1,5 @@
 #!/bin/bash
-# Willhaben Agent — telepítő 1.0.4
+# Willhaben Agent — telepítő 1.0.5
 # Letöltések/Willhaben Agent + asztali indító
 #
 # curl -fL -o /tmp/wh-install.command \
@@ -8,7 +8,7 @@
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-INSTALLER_VERSION="1.0.4"
+INSTALLER_VERSION="1.0.5"
 TARGET="${HOME}/Downloads/Willhaben Agent"
 RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
 
@@ -63,6 +63,7 @@ FILES=(
   src/stop.mjs
   src/instance-lock.mjs
   src/sync-cli.mjs
+  src/sync-debug.mjs
   scripts/test-all.mjs
   mac-launcher/Inditas.command
   mac-launcher/run.sh

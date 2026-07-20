@@ -27,6 +27,7 @@ function emptyStore() {
   return {
     lastSyncAt: null,
     lastSyncError: null,
+    lastSyncDebug: null,
     conversations: [],
     templates: [...DEFAULT_TEMPLATES],
     priceChart: null,

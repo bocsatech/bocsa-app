@@ -103,6 +103,7 @@ export function startServer(port) {
             syncStatus,
             lastSyncAt: store.lastSyncAt,
             lastSyncError: store.lastSyncError,
+            lastSyncDebug: store.lastSyncDebug,
             conversationCount: store.conversations.length,
             hasPriceChart: Boolean(store.priceChart?.rows?.length),
             templateCount: store.templates?.length ?? 0,

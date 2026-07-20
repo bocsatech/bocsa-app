@@ -1,6 +1,6 @@
 {
   "name": "willhaben-agent",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "description": "Willhaben bejövő üzenetek — válasz, sablon, árajánlat (önálló program)",
   "type": "module",
@@ -10,6 +10,7 @@
     "stop": "node src/stop.mjs",
     "login": "node src/login.mjs",
     "sync": "node src/sync-cli.mjs",
+    "sync:debug": "node src/sync-debug.mjs",
     "test": "node scripts/test-all.mjs"
   },
   "engines": {
