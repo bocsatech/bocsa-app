@@ -1,14 +1,12 @@
 #!/bin/bash
-# Willhaben Agent — Mac telepítés (4 lépés: mappa → letöltés → telepítés → asztali ikon)
-# Terminálban:
+# Willhaben Agent — Mac telepítés
 #   curl -sfL https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command | bash
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 TARGET="${HOME}/Downloads/willhaben-agent"
-TMP="${HOME}/Downloads/.willhaben-agent-install"
-ZIP="${TMP}/package.zip"
-ARCHIVE="https://github.com/bocsatech/bocsa-app/archive/refs/heads/main.zip"
+TMP="$(mktemp -d /tmp/willhaben-agent.XXXXXX)"
+SOURCE=""
 
 get_desktop() {
   local d=""
@@ -25,76 +23,79 @@ get_desktop() {
 fail() {
   echo ""
   echo "❌ HIBA: $1"
-  echo ""
+  rm -rf "$TMP"
   exit 1
 }
+
+cleanup() { rm -rf "$TMP"; }
+trap cleanup EXIT
 
 echo ""
 echo "══════════════════════════════════════════"
 echo "  WILLHABEN AGENT — telepítés"
-echo "  (önálló program, semmi más nem kell hozzá)"
 echo "══════════════════════════════════════════"
 echo ""
 
 # ── 1. KÖNYVTÁR ─────────────────────────────
 echo "【1/4】 Könyvtár létrehozása…"
-mkdir -p "$TARGET"
-mkdir -p "${TARGET}/data"
+mkdir -p "$TARGET/data"
 echo "  ✓ ${TARGET}"
 echo ""
 
-if ! command -v node >/dev/null 2>&1; then
-  fail "Node.js nincs telepítve. Telepítsd: https://nodejs.org/ majd futtasd újra ezt a parancsot."
-fi
-if ! command -v unzip >/dev/null 2>&1; then
-  fail "unzip nincs telepítve. Telepítsd: xcode-select --install"
-fi
+command -v node >/dev/null 2>&1 || fail "Node.js kell: https://nodejs.org/"
 
 # ── 2. LETÖLTÉS ─────────────────────────────
-echo "【2/4】 Letöltés GitHub-ról…"
-rm -rf "$TMP"
-mkdir -p "$TMP"
+echo "【2/4】 Letöltés…"
 
-if ! curl -fL "$ARCHIVE" -o "$ZIP"; then
-  fail "Letöltés sikertelen. Ellenőrizd az internetkapcsolatot."
-fi
+download_with_git() {
+  command -v git >/dev/null 2>&1 || return 1
+  echo "  → git clone (gyors, csak a szükséges fájlok)…"
+  git clone --depth 1 --single-branch --branch main \
+    "https://github.com/bocsatech/bocsa-app.git" "${TMP}/repo" 2>&1 || return 1
+  SOURCE="${TMP}/repo/willhaben-agent"
+  [ -f "${SOURCE}/package.json" ]
+}
 
-if [ ! -s "$ZIP" ]; then
-  fail "Üres letöltött fájl."
-fi
+download_with_zip() {
+  command -v unzip >/dev/null 2>&1 || return 1
+  local zip="${TMP}/package.zip"
+  echo "  → zip letöltés…"
+  curl -fL "https://github.com/bocsatech/bocsa-app/archive/refs/heads/main.zip" -o "$zip" || return 1
+  [ -s "$zip" ] || return 1
+  echo "  → kicsomagolás ($(du -h "$zip" | cut -f1))…"
+  unzip -qo "$zip" -d "$TMP" 2>&1 || return 1
+  SOURCE="${TMP}/bocsa-app-main/willhaben-agent"
+  [ -f "${SOURCE}/package.json" ]
+}
 
-echo "  → kicsomagolás…"
-unzip -qo "$ZIP" -d "$TMP" || fail "Kicsomagolás sikertelen."
-
-SOURCE="${TMP}/bocsa-app-main/willhaben-agent"
-if [ ! -f "$SOURCE/package.json" ]; then
-  fail "A csomagban nincs willhaben-agent. Próbáld újra később."
+if download_with_git; then
+  echo "  ✓ Letöltve (git)"
+elif download_with_zip; then
+  echo "  ✓ Letöltve (zip)"
+else
+  fail "Letöltés sikertelen. Telepítsd a git-et: xcode-select --install — vagy ellenőrizd az internetet."
 fi
 
 echo "  → fájlok másolása…"
-# data/ megmarad, csak programfájlok
-RSYNC_EX=(--exclude node_modules --exclude .git --exclude data)
 if command -v rsync >/dev/null 2>&1; then
-  rsync -a "${RSYNC_EX[@]}" "$SOURCE/" "$TARGET/"
+  rsync -a --exclude node_modules --exclude .git --exclude data "$SOURCE/" "$TARGET/"
 else
-  find "$TARGET" -mindepth 1 -maxdepth 1 ! -name data -exec rm -rf {} + 2>/dev/null || true
+  find "$TARGET" -mindepth 1 -maxdepth 1 ! -name data ! -name . -exec rm -rf {} + 2>/dev/null || true
   cp -a "$SOURCE/." "$TARGET/"
 fi
 
-if [ ! -f "$TARGET/package.json" ]; then
-  fail "Másolás sikertelen — nincs package.json a cél mappában."
-fi
-echo "  ✓ Letöltés kész"
+[ -f "$TARGET/package.json" ] || fail "Másolás sikertelen."
 echo ""
 
-# ── 3. TELEPÍTÉS (npm) ──────────────────────
-echo "【3/4】 Telepítés (npm + Playwright)…"
+# ── 3. TELEPÍTÉS ─────────────────────────────
+echo "【3/4】 npm install…"
 ( cd "$TARGET" && npm install --no-audit --no-fund ) || fail "npm install sikertelen."
-( cd "$TARGET" && npx playwright install chromium ) || echo "  ⚠ Playwright figyelmeztetés (folytatás…)"
+echo "  → Playwright Chromium…"
+( cd "$TARGET" && npx playwright install chromium ) 2>/dev/null || true
 echo "  ✓ Telepítés kész"
 echo ""
 
-# ── 4. ASZTALI INDÍTÓIKON ───────────────────
+# ── 4. ASZTALI IKON ──────────────────────────
 echo "【4/4】 Asztali indítóikon…"
 DESKTOP="$(get_desktop)"
 LAUNCHER="${DESKTOP}/Willhaben Agent Inditas.command"
@@ -116,27 +117,18 @@ if [ -d "$TARGET/Willhaben Agent.app" ]; then
   rm -rf "${DESKTOP}/Willhaben Agent.app"
   cp -a "$TARGET/Willhaben Agent.app" "$DESKTOP/"
   xattr -cr "${DESKTOP}/Willhaben Agent.app" 2>/dev/null || true
-  echo "  ✓ ${DESKTOP}/Willhaben Agent.app"
+  echo "  ✓ Willhaben Agent.app"
 fi
 
-echo "  ✓ ${LAUNCHER}"
+echo "  ✓ Willhaben Agent Inditas.command"
 echo ""
-
-rm -rf "$TMP"
-
 echo "══════════════════════════════════════════"
 echo "  ✅ MINDEN KÉSZ"
 echo "══════════════════════════════════════════"
 echo ""
-echo "  Mappa:  ${TARGET}"
-echo "  Asztal: Willhaben Agent Inditas.command"
+echo "  cd ${TARGET}"
+echo "  npm run login"
+echo "  npm start"
 echo ""
-echo "  Következő (terminálban, egyesével):"
-echo ""
-echo "    cd ${TARGET}"
-echo "    npm run login"
-echo "    npm start"
-echo ""
-echo "  Vagy dupla kattintás: Willhaben Agent Inditas.command"
 echo "  Web: http://127.0.0.1:3860"
 echo ""
