@@ -29,7 +29,7 @@ mkdir -p "$TMP"
 
 echo "→ Letöltés…"
 curl -sfL "$ARCHIVE" -o "$ZIP"
-unzip -q "$ZIP" -d "$TMP"
+unzip -qo "$ZIP" -d "$TMP"
 
 SOURCE="${TMP}/bocsa-app-main/willhaben-agent"
 if [ ! -f "$SOURCE/package.json" ]; then

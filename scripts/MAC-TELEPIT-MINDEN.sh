@@ -25,7 +25,6 @@ DEST_WHW="$DL/willhaben-watcher"
 DEST_HAS="$DL/hasznaltauto-scraper"
 DEST_HIR="$DL/hirdetes-local"
 DEST_MEN="$DL/mentesmarka"
-DEST_WHA="$DL/willhaben agent"
 
 SKIP_DIRS="pro-orchestrator|willhaben-pro|willhaben-agent|hasznaltauto-pro|hasznaltauto-scraper|willhaben-watcher|hirdetes-local|mentesmarka|node_modules|.git|.next"
 
@@ -168,16 +167,6 @@ if [ -d "$SOURCE/mobilede-pro" ]; then
   copy_tree "$SOURCE/mobilede-pro" "$DEST_MD"
 fi
 
-# 4c. Willhaben Agent (független program)
-if [ -d "$SOURCE/willhaben-agent" ]; then
-  echo "📁 willhaben agent"
-  copy_tree "$SOURCE/willhaben-agent" "$DEST_WHA"
-  chmod +x "$DEST_WHA/mac-launcher/Inditas.command" 2>/dev/null || true
-  chmod +x "$DEST_WHA/Willhaben Agent.app/Contents/MacOS/run" 2>/dev/null || true
-  xattr -cr "$DEST_WHA/Willhaben Agent.app" 2>/dev/null || true
-  echo "  ✓ Willhaben Agent.app"
-fi
-
 # 5. Egyéb programok (ha vannak a forrásban)
 for pair in \
   "willhaben-watcher:$DEST_WHW" \
@@ -209,7 +198,7 @@ if [ -n "$NODE" ]; then
   ensure_crm_env_local 2>/dev/null || true
   echo ""
   echo "📥 npm install..."
-  for dir in "$DEST_CRM" "$DEST_ORCH" "$DEST_WH" "$DEST_HA" "$DEST_MD" "$DEST_WHA"; do
+  for dir in "$DEST_CRM" "$DEST_ORCH" "$DEST_WH" "$DEST_HA" "$DEST_MD"; do
     [ -f "$dir/package.json" ] || continue
     echo "  $dir"
     (cd "$dir" && npm install --no-audit --no-fund 2>&1 | tail -2) || true
@@ -235,8 +224,6 @@ willhaben pro                 → $DEST_WH
 hasznaltauto pro              → $DEST_HA
 mobilede pro                  → $DEST_MD
   FSBO keresés + SMS +49 15/16/17
-willhaben agent               → $DEST_WHA
-  Web: http://127.0.0.1:3860 — bejövő üzenetek + árdiagram
 willhaben-watcher             → $DEST_WHW
 hasznaltauto-scraper          → $DEST_HAS
 hirdetes-local                → $DEST_HIR
