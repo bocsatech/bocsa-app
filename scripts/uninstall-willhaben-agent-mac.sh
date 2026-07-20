@@ -17,6 +17,7 @@ pkill -f "node src/index.mjs" 2>/dev/null || true
 
 # mappák
 for dir in \
+  "${HOME}/Downloads/Willhaben Agent" \
   "${HOME}/Downloads/willhaben-agent" \
   "${HOME}/Downloads/willhaben agent" \
   "${HOME}/Downloads/.willhaben-agent-install" \

@@ -1,0 +1,6 @@
+{
+  "adminPort": 3860,
+  "syncIntervalMinutes": 0,
+  "sendDelayMs": 1500,
+  "chatUrl": "https://www.willhaben.at/iad/myprofile/chat"
+}

@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+PRO_DIR="${HOME}/Downloads/Willhaben Agent"
+if [ ! -f "$PRO_DIR/package.json" ]; then
+  APP_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+  CAND="$(dirname "$APP_ROOT")"
+  [ -f "$CAND/package.json" ] && PRO_DIR="$CAND"
+fi
+[ -f "$PRO_DIR/package.json" ] || { osascript -e 'display alert "Willhaben Agent nincs telepítve"'; exit 1; }
+CMD="cd $(printf '%q' "$PRO_DIR") && caffeinate -dims npm start"
+osascript -e "tell application \"Terminal\" to do script \"$CMD\""

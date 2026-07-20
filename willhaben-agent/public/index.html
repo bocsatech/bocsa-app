@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Willhaben Agent</title>
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <strong>Willhaben Agent</strong>
+      <span id="status" class="muted"></span>
+    </div>
+    <button type="button" id="btnSync" class="btn primary">↻ Bejövő üzenetek</button>
+  </header>
+
+  <main class="grid">
+    <aside class="panel">
+      <h2>Beszélgetések</h2>
+      <div id="convList" class="list"></div>
+    </aside>
+
+    <section class="panel thread">
+      <div id="empty" class="empty">Válassz beszélgetést, vagy frissítsd a bejövő üzeneteket.</div>
+      <div id="thread" class="hidden">
+        <header class="thread-head">
+          <div>
+            <h2 id="tTitle"></h2>
+            <p id="tAd" class="muted"></p>
+          </div>
+        </header>
+        <div id="msgs" class="msgs"></div>
+        <form id="replyForm" class="reply">
+          <div class="reply-toolbar">
+            <label>Sablon:
+              <select id="tplPick"></select>
+            </label>
+            <button type="button" id="btnInsertTpl" class="btn ghost">Beszúrás</button>
+            <button type="button" id="btnOfferMode" class="btn ghost">Árajánlat mód</button>
+          </div>
+          <textarea id="replyText" rows="5" placeholder="Válasz a bejövő üzenetre…"></textarea>
+          <div class="reply-actions">
+            <button type="submit" class="btn primary">Küldés</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <aside class="panel side">
+      <section>
+        <h2>Sablonüzenetek</h2>
+        <form id="tplForm" class="tpl-form">
+          <input id="tplName" placeholder="Sablon neve" required />
+          <textarea id="tplText" rows="4" placeholder="Szöveg — {partner}, {angebot_eur}, {autocim}" required></textarea>
+          <div class="row">
+            <button type="submit" class="btn primary">Mentés</button>
+            <button type="button" id="btnNewTpl" class="btn ghost">Új</button>
+          </div>
+        </form>
+        <ul id="tplList" class="tpl-list"></ul>
+      </section>
+
+      <section id="offerSection" class="offer hidden">
+        <h2>Árajánlat — árdiagram</h2>
+        <p class="muted small">Csak árajánlat írásakor. CSV: marke;modell;baujahr;km;wert</p>
+        <label class="btn ghost file-btn">
+          Feltöltés
+          <input type="file" id="chartFile" accept=".csv,.json,.txt" hidden />
+        </label>
+        <div id="chartMeta" class="muted"></div>
+        <div id="lookupResult" class="lookup"></div>
+        <button type="button" id="btnLookup" class="btn ghost hidden">Érték keresése</button>
+      </section>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
