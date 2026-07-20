@@ -22,7 +22,7 @@ fi
 if [ ! -f "$PRO_DIR/package.json" ]; then
   osascript -e "display alert \"Nem találom a Willhaben Agent mappát\" message \"${PRO_DIR}\" as critical" 2>/dev/null || true
   echo "Nem találom: $PRO_DIR/package.json"
-  echo "Telepítés: bash ~/Downloads/bocsa-app/willhaben-agent/mac/telepites.command"
+  echo "Telepítés: curl -sfL https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command | bash"
   read -r -p "Enter..."
   exit 1
 fi

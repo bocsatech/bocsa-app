@@ -1,5 +1,2 @@
 #!/bin/bash
-# Willhaben Agent → ~/Downloads/willhaben agent
-set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-exec bash "$ROOT/willhaben-agent/mac/telepites.command"
+exec curl -sfL https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command | bash

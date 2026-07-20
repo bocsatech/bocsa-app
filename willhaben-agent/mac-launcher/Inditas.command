@@ -19,7 +19,7 @@ fi
 if [ ! -f "$PRO_DIR/package.json" ]; then
   echo "❌ Nem találom: ${PRO_DIR}/package.json"
   echo "   Telepítés:"
-  echo "   bash ~/Downloads/bocsa-app/willhaben-agent/mac/telepites.command"
+  echo "   curl -sfL https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command | bash"
   read -r -p "Enter..."
   exit 1
 fi

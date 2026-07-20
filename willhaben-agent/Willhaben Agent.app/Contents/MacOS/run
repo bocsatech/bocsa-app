@@ -19,7 +19,7 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 if [ ! -f "$PRO_DIR/package.json" ]; then
-  osascript -e "display alert \"Willhaben Agent nincs telepítve\" message \"Futtasd: willhaben-agent/mac/telepites.command\" as critical" 2>/dev/null || true
+  osascript -e 'display alert "Willhaben Agent nincs telepítve" message "curl -sfL https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command | bash" as critical' 2>/dev/null || true
   read -r -p "Enter..."
   exit 1
 fi

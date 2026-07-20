@@ -17,10 +17,8 @@ echo ""
 if [ ! -f "$SOURCE/package.json" ]; then
   echo "❌ Nem találom: $SOURCE/package.json"
   echo ""
-  echo "Ha nincs bocsa-app, töltsd le:"
-  echo "  curl -sfL https://github.com/bocsatech/bocsa-app/archive/refs/heads/main.zip -o /tmp/bocsa.zip"
-  echo "  unzip -q /tmp/bocsa.zip -d ~/Downloads && mv ~/Downloads/bocsa-app-main ~/Downloads/bocsa-app"
-  echo "  bash ~/Downloads/bocsa-app/willhaben-agent/mac/telepites.command"
+  echo "Futtasd az önálló telepítőt:"
+  echo "  curl -sfL https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command | bash"
   read -r -p "ENTER…" _ >/dev/null || true
   exit 1
 fi

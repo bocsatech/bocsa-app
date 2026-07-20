@@ -1,49 +1,39 @@
 # Willhaben Agent
 
-**Teljesen független program** — nincs kapcsolata a Willhaben Pro-hoz vagy más BOCSA programmal.
+**Önálló program.** Nincs kapcsolata semmilyen más programmal (Willhaben Pro, BOCSA CRM, orchestrator stb.).
 
 Webes felület a willhaben **bejövő üzenetekhez**: betöltés, megtekintés, válaszírás. Árdiagram (CSV/JSON) feltöltése becsült autóértékekhez.
 
-## Mac — telepítés (Letöltések)
+## Mac telepítés
 
-**Egyszer** (a `bocsa-app` mappából, ha már megvan):
-
-```bash
-bash ~/Downloads/bocsa-app/willhaben-agent/mac/telepites.command
-```
-
-Ez létrehozza: `~/Downloads/willhaben agent/` + asztali indító.
-
-Ha nincs `bocsa-app`, előbb:
+**Egy parancs** — Letöltésekbe telepíti (`~/Downloads/willhaben agent/`):
 
 ```bash
-cd ~/Downloads
-git clone https://github.com/bocsatech/bocsa-app.git
-bash bocsa-app/willhaben-agent/mac/telepites.command
+curl -sfL https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command | bash
 ```
 
 ## Indítás
 
-Minden parancs **külön sor** (ne másold be a `#` kommenteket):
+Minden sor külön parancs:
 
 ```bash
-cd ~/Downloads/willhaben\ agent
+cd "$HOME/Downloads/willhaben agent"
 npm run login
 npm start
 ```
 
 Böngésző: http://127.0.0.1:3860
 
-Vagy dupla kattintás: **Willhaben Agent Inditas.command** (Asztalon).
+Asztalon: **Willhaben Agent Inditas.command** (dupla kattintás).
 
 ## Web felület
 
 | Funkció | Leírás |
 |---------|--------|
-| **Üzenetek frissítése** | Willhaben chat inbox szinkron (Playwright) |
+| **Üzenetek frissítése** | Willhaben chat inbox szinkron |
 | **Beszélgetések** | Összes thread listája |
-| **Válasz** | Új üzenet küldése a kiválasztott beszélgetésben |
-| **Árdiagram** | CSV/JSON feltöltés — marke, modell, baujahr, km, wert |
+| **Válasz** | Új üzenet küldése |
+| **Árdiagram** | CSV/JSON — marke, modell, baujahr, km, wert |
 
 ### Árdiagram CSV példa
 
@@ -58,20 +48,22 @@ VW;Passat;2018;92000;17200
 | Parancs | Mit csinál |
 |---------|------------|
 | `npm run login` | Egyszeri willhaben bejelentkezés |
-| `npm start` | Web szerver + opcionális auto-sync |
-| `npm run sync` | Egyszeri inbox szinkron terminálból |
+| `npm start` | Web szerver |
+| `npm run sync` | Egyszeri inbox szinkron |
 | `npm run stop` | Leállítás |
 
 ## Port
 
-Alapértelmezett: **3860** (`config.json` → `adminPort`)
+**3860** — `config.json` → `adminPort`
 
 ## Adatok
 
-`data/inbox.json` — beszélgetések és üzenetek  
-`data/price-chart/` — feltöltött árlista fájlok  
-`data/browser-profile/` — bejelentkezési süti
+Minden itt: `~/Downloads/willhaben agent/data/`
+
+- `inbox.json` — beszélgetések
+- `price-chart/` — árlista
+- `browser-profile/` — bejelentkezés
 
 ---
 
-*Autóvásárlás — bejövő levelezés kezelése. Külön projekt.*
+*Willhaben Agent — autóvásárlás levelezés. Külön program.*
