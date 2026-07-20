@@ -205,7 +205,7 @@ async function handleListingsApi(req, res, pathname) {
 
   if (listMatch && req.method === "GET") {
     const url = new URL(req.url ?? "", `http://${HOST}`);
-    const limit = Number(url.searchParams.get("limit") ?? 50);
+    const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 50), 1), 500);
     const status = url.searchParams.get("status");
     sendJson(res, 200, { listings: listListingsWithPreview({ limit, status }) });
     return;

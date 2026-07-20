@@ -18,6 +18,7 @@ const searchForm = document.getElementById("home-search-form");
 const filterForm = document.getElementById("home-filter-form");
 
 const VISIBLE_COUNT = 9;
+const LISTINGS_FETCH_LIMIT = 500;
 const AUTO_SCROLL_MS = 5000;
 
 let allItems = [];
@@ -54,6 +55,14 @@ function listingSearchHaystack(item) {
       .filter(Boolean)
       .join(" ")
   );
+}
+
+function sortForHome(items) {
+  return [...items].sort((a, b) => {
+    const ta = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+    const tb = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+    return tb - ta;
+  });
 }
 
 function filterItems(items) {
@@ -124,11 +133,12 @@ function updateCount(items, filtered) {
   const pages = Math.max(1, Math.ceil(filtered.length / VISIBLE_COUNT));
   const base =
     searchQuery.trim() || quickPreset || hasActiveSidebarFilters(sidebarFilters)
-      ? `${filtered.length} találat · ${published} közzétett · ${items.length} hirdetés`
-    : published > 0
-      ? `${published} közzétett · ${items.length} hirdetés összesen`
-    : `${items.length} hirdetés (még nincs közzétéve a főoldalon)`;
-  countEl.textContent = filtered.length > VISIBLE_COUNT ? `${base} · ${pages} oldal (9 / oldal)` : base;
+      ? `${filtered.length} találat · ${published} közzétett · ${items.length} hirdetés összesen`
+      : `${items.length} hirdetés · ${published} közzétett · legfrissebb elöl`;
+  countEl.textContent =
+    filtered.length > VISIBLE_COUNT
+      ? `${base} · ${pages} oldal (${VISIBLE_COUNT} / oldal, lapozz a pöttyökkel)`
+      : base;
 }
 
 function hasActiveSidebarFilters(filters) {
@@ -182,11 +192,8 @@ function renderCarousel(items) {
 }
 
 async function loadListings() {
-  const all = await fetchListings({ limit: 300 });
-  allItems = all.sort((a, b) => {
-    if (a.status === b.status) return 0;
-    return a.status === "feladott" ? -1 : 1;
-  });
+  const all = await fetchListings({ limit: LISTINGS_FETCH_LIMIT });
+  allItems = sortForHome(all);
   populateFilterOptions(allItems);
   populateYearOptions(allItems);
   renderCarousel(allItems);
@@ -256,4 +263,14 @@ import("./site-side-content.js")
 loadListings().catch((error) => {
   emptyEl.hidden = false;
   emptyEl.textContent = error.message ?? "Nem sikerült betölteni a hirdetéseket.";
+});
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) loadListings().catch(() => {});
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    loadListings().catch(() => {});
+  }
 });
