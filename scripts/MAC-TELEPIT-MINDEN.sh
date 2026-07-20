@@ -26,7 +26,7 @@ DEST_HAS="$DL/hasznaltauto-scraper"
 DEST_HIR="$DL/hirdetes-local"
 DEST_MEN="$DL/mentesmarka"
 
-SKIP_DIRS="pro-orchestrator|willhaben-pro|willhaben-agent|hasznaltauto-pro|hasznaltauto-scraper|willhaben-watcher|hirdetes-local|mentesmarka|node_modules|.git|.next"
+SKIP_DIRS="pro-orchestrator|willhaben-pro|hasznaltauto-pro|hasznaltauto-scraper|willhaben-watcher|hirdetes-local|mentesmarka|node_modules|.git|.next"
 
 copy_tree() {
   local src="$1" dest="$2"
