@@ -3,7 +3,7 @@ set -euo pipefail
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-PRO_DIR="${HOME}/Downloads/willhaben agent"
+PRO_DIR="${HOME}/Downloads/willhaben-agent"
 if [ ! -f "$PRO_DIR/package.json" ]; then
   APP_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
   CANDIDATE="$(dirname "$APP_ROOT")"
