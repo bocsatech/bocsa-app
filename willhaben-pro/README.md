@@ -33,7 +33,12 @@ Professzionális, helyi autó-hirdetés figyelő és üzenetküldő a **willhabe
 
 Ha még a bocsa-app mappában van, egyszer futtasd:
 ```bash
-bash ~/Downloads/bocsa-app/scripts/move-willhaben-pro-to-downloads.sh
+bash ~/Downloads/bocsa-app/willhaben-pro/mac/telepites.command
+```
+
+Vagy minden programmal együtt:
+```bash
+curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-TELEPIT-MINDEN.sh | bash
 ```
 
 ```bash

@@ -8,7 +8,7 @@ MIN_VERSION="0.9.0"
 ORCH="${HOME}/Downloads/bocsa-orchestrator"
 WH="${HOME}/Downloads/willhaben pro"
 ORCH_BASE="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/pro-orchestrator"
-WH_BASE="${ORCH_BASE}/vendor/willhaben-pro"
+WH_BASE="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-pro"
 
 if [ ! -f "${ORCH}/src/server.mjs" ]; then
   ORCH="${HOME}/Downloads/bocsa-app/pro-orchestrator"

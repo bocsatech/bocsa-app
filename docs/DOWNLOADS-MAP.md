@@ -6,7 +6,7 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 |---------|-------|---------|-----|
 | **BOCSA Tech CRM** | `bocsa-crm` | `cd ~/Downloads/bocsa-crm && npm run dev` | http://localhost:3000 |
 | **Pro Orchestrator** | `bocsa-orchestrator` | `cd ~/Downloads/bocsa-orchestrator && npm start` | http://localhost:3850 |
-| **Willhaben Pro** | `willhaben pro` | `cd ~/Downloads/willhaben\ pro && npm start` | slot / 3847 |
+| **Willhaben Pro** | `willhaben pro` | `cd ~/Downloads/willhaben\ pro && npm start` vagy **Willhaben Pro.app** | slot / 3847 |
 | **Hasznaltauto Pro** | `hasznaltauto pro` | `cd ~/Downloads/hasznaltauto\ pro && npm start` | slot / 3848 |
 | **Mobile.de Pro** | `mobilede pro` | `cd ~/Downloads/mobilede\ pro && npm start` | slot / SMS +49 |
 | Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
@@ -20,7 +20,13 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 curl -sf https://raw.githubusercontent.com/bocsatech/bocsa-app/main/scripts/MAC-TELEPIT-MINDEN.sh | bash
 ```
 
-Ez létrehozza a fenti mappákat, törli a programokat a régi `bocsa-app` almappáiból, és ír egy **`~/Downloads/BOCSA-PROGRAMOK.txt`** térképet.
+Ez létrehozza a fenti mappákat (Willhaben Pro-nál a **Willhaben Pro.app** is), törli a programokat a régi `bocsa-app` almappáiból, és ír egy **`~/Downloads/BOCSA-PROGRAMOK.txt`** térképet.
+
+Csak Willhaben Pro (Letöltések + .app):
+
+```bash
+bash ~/Downloads/bocsa-app/willhaben-pro/mac/telepites.command
+```
 
 ## Linux — BOCSA Pro (vékony kliens)
 
