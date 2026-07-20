@@ -1,0 +1,37 @@
+#!/bin/bash
+set -euo pipefail
+# Használat bárhonnan: wh-agent start | login | sync | stop | telepites
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=common.sh
+source "${SCRIPT_DIR}/common.sh"
+
+CMD="${1:-start}"
+shift || true
+
+wh_cd
+
+case "$CMD" in
+  start|inditas)
+    echo "Willhaben Agent — http://127.0.0.1:3860"
+    exec caffeinate -dims npm start
+    ;;
+  login|bejelentkezes)
+    exec npm run login
+    ;;
+  sync|szinkron)
+    exec npm run sync
+    ;;
+  sync-debug|debug)
+    exec npm run sync:debug
+    ;;
+  stop|leallitas)
+    exec npm run stop
+    ;;
+  telepites|install|update|frissites)
+    exec bash "${SCRIPT_DIR}/../install-mac.command"
+    ;;
+  *)
+    echo "wh-agent: start | login | sync | sync-debug | stop | telepites"
+    exit 1
+    ;;
+esac
