@@ -9,6 +9,7 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 | **Willhaben Pro** | `willhaben pro` | `cd ~/Downloads/willhaben\ pro && npm start` | slot / 3847 |
 | **Hasznaltauto Pro** | `hasznaltauto pro` | `cd ~/Downloads/hasznaltauto\ pro && npm start` | slot / 3848 |
 | **Mobile.de Pro** | `mobilede pro` | `cd ~/Downloads/mobilede\ pro && npm start` | slot / SMS +49 |
+| **Willhaben Agent** | `willhaben agent` | `cd ~/Downloads/willhaben\ agent && npm start` | http://127.0.0.1:3860 |
 | Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
 | **Autosweb** (hirdetésfeladás) | `autosweb` | Asztal: Autosweb-indito.command | http://127.0.0.1:3456 |
 | **BOCSA Pro Linux** (vékony kliens) | `bocsa Pro linux` | `~/Desktop/bocsa-pro-linux-indito.sh` | SSH tunell → szerver :3850 |
