@@ -4,15 +4,37 @@
 
 Webes felület a willhaben **bejövő üzenetekhez**: betöltés, megtekintés, válaszírás. Árdiagram (CSV/JSON) feltöltése becsült autóértékekhez.
 
-## Telepítés
+## Mac — telepítés (Letöltések)
+
+**Egyszer** (a `bocsa-app` mappából, ha már megvan):
 
 ```bash
-cd willhaben-agent
-npm install
-npx playwright install chromium
-npm run login    # egyszer — willhaben bejelentkezés
-npm start        # web: http://127.0.0.1:3860
+bash ~/Downloads/bocsa-app/willhaben-agent/mac/telepites.command
 ```
+
+Ez létrehozza: `~/Downloads/willhaben agent/` + asztali indító.
+
+Ha nincs `bocsa-app`, előbb:
+
+```bash
+cd ~/Downloads
+git clone https://github.com/bocsatech/bocsa-app.git
+bash bocsa-app/willhaben-agent/mac/telepites.command
+```
+
+## Indítás
+
+Minden parancs **külön sor** (ne másold be a `#` kommenteket):
+
+```bash
+cd ~/Downloads/willhaben\ agent
+npm run login
+npm start
+```
+
+Böngésző: http://127.0.0.1:3860
+
+Vagy dupla kattintás: **Willhaben Agent Inditas.command** (Asztalon).
 
 ## Web felület
 
