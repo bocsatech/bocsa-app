@@ -231,7 +231,13 @@ export function startServer(port) {
         return json(res, 500, { error: err.message || String(err) });
       }
     });
-    server.on('error', reject);
+    server.on('error', (err) => {
+      if (err?.code === 'EADDRINUSE') {
+        reject(new Error(`A ${port} port foglalt. Futtasd: npm run stop — majd npm start`));
+        return;
+      }
+      reject(err);
+    });
     server.listen(port, '127.0.0.1', () => resolve(server));
   });
 }

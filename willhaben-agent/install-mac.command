@@ -1,5 +1,5 @@
 #!/bin/bash
-# Willhaben Agent — telepítő 1.0.2
+# Willhaben Agent — telepítő 1.0.3
 # Letöltések/Willhaben Agent + asztali indító
 #
 # curl -fL -o /tmp/wh-install.command \
@@ -8,7 +8,7 @@
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-INSTALLER_VERSION="1.0.2"
+INSTALLER_VERSION="1.0.3"
 TARGET="${HOME}/Downloads/Willhaben Agent"
 RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
 
@@ -94,6 +94,7 @@ chmod +x "${TARGET}/Willhaben Agent.app/Contents/MacOS/run" 2>/dev/null || true
 
 echo ""
 echo "【3/4】 npm install"
+( cd "${TARGET}" && node src/stop.mjs ) 2>/dev/null || true
 ( cd "${TARGET}" && npm install --no-audit --no-fund ) || fail "npm install sikertelen"
 ( cd "${TARGET}" && npx playwright install chromium ) 2>/dev/null || true
 ( cd "${TARGET}" && npm test ) || fail "Belső teszt sikertelen — telepítés megáll."
@@ -132,5 +133,6 @@ echo "  cd \"${TARGET}\""
 echo "  npm run login"
 echo "  npm start"
 echo ""
+echo "  Ha a port foglalt: npm run stop"
 echo "  Web: http://127.0.0.1:3860"
 echo ""
