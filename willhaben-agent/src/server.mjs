@@ -53,7 +53,7 @@ function serve(res, filePath) {
   const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript' };
   res.writeHead(200, {
     'Content-Type': `${types[ext] || 'text/plain'}; charset=utf-8`,
-    'Cache-Control': ext === '.html' ? 'no-store' : 'public, max-age=60',
+    'Cache-Control': ext === '.html' || ext === '.js' ? 'no-store' : 'public, max-age=60',
   });
   res.end(fs.readFileSync(filePath));
 }

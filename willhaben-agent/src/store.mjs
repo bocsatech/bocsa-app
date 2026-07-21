@@ -41,6 +41,16 @@ export function loadStore() {
     const s = { ...emptyStore(), ...JSON.parse(fs.readFileSync(file, 'utf8')) };
     if (!s.templates?.length) s.templates = [...DEFAULT_TEMPLATES];
     s.conversations = purgeJunkConversations(s.conversations);
+    // Persistált üres history + preview → töltsd fel, hogy a középső panel ne legyen üres
+    let changed = false;
+    s.conversations = s.conversations.map((c) => {
+      const h = hydrateConversationMessages(c);
+      if ((h.messages?.length || 0) > (c.messages?.length || 0)) changed = true;
+      return h;
+    });
+    if (changed) {
+      try { saveStore(s); } catch { /* ignore */ }
+    }
     return s;
   } catch {
     return emptyStore();
@@ -57,7 +67,29 @@ export function makeConversationId(seed) {
 }
 
 export function getConversation(store, id) {
-  return store.conversations.find((c) => c.id === id) || null;
+  const conv = store.conversations.find((c) => c.id === id) || null;
+  return conv ? hydrateConversationMessages(conv) : null;
+}
+
+/** Ha a lista előnézete megvan, de a középső panel üres — töltsd fel. */
+export function hydrateConversationMessages(conv) {
+  if (!conv || typeof conv !== 'object') return conv;
+  const messages = Array.isArray(conv.messages) ? conv.messages : [];
+  if (messages.length) return { ...conv, messages: messages.map((m) => ({ ...m })) };
+
+  const preview = String(conv.lastPreview || '').trim();
+  if (preview && preview.length >= 2 && !/^(zuletzt online|willhaben-?code)/i.test(preview)) {
+    return {
+      ...conv,
+      messages: [{
+        id: 'preview-1',
+        direction: 'in',
+        text: preview,
+        at: conv.lastMessageAt || new Date().toISOString(),
+      }],
+    };
+  }
+  return { ...conv, messages: [] };
 }
 
 export function upsertConversation(store, conversation) {
