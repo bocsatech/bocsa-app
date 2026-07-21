@@ -40,6 +40,7 @@ export function loadStore() {
   try {
     const s = { ...emptyStore(), ...JSON.parse(fs.readFileSync(file, 'utf8')) };
     if (!s.templates?.length) s.templates = [...DEFAULT_TEMPLATES];
+    s.conversations = purgeJunkConversations(s.conversations);
     return s;
   } catch {
     return emptyStore();
@@ -60,13 +61,46 @@ export function getConversation(store, id) {
 }
 
 export function upsertConversation(store, conversation) {
+  if (!conversation?.id) return store;
+  if (/optimizely|audience|backwards.?compatibility/i.test(
+    `${conversation.partnerName || ''} ${conversation.adTitle || ''} ${conversation.lastPreview || ''}`,
+  )) {
+    return store;
+  }
+  // Ne mentsünk üres szemetet
+  if (
+    (!conversation.messages || !conversation.messages.length)
+    && !conversation.lastPreview
+    && !conversation.adTitle
+    && (!conversation.partnerName || conversation.partnerName === 'Ismeretlen' || conversation.partnerName === 'Beszélgetés')
+  ) {
+    return store;
+  }
+
   const idx = store.conversations.findIndex((c) => c.id === conversation.id);
   if (idx >= 0) store.conversations[idx] = { ...store.conversations[idx], ...conversation };
   else store.conversations.unshift(conversation);
+  store.conversations = purgeJunkConversations(store.conversations);
   store.conversations.sort(
     (a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
   );
   return store;
+}
+
+export function purgeJunkConversations(list) {
+  return (list || []).filter((c) => {
+    const blob = `${c.partnerName || ''} ${c.adTitle || ''} ${c.lastPreview || ''}`;
+    if (/optimizely|audience|backwards.?compatibility|feature.?flag/i.test(blob)) return false;
+    if (
+      (!c.messages || !c.messages.length)
+      && !c.lastPreview
+      && !c.adTitle
+      && (!c.partnerName || c.partnerName === 'Ismeretlen')
+    ) {
+      return false;
+    }
+    return true;
+  });
 }
 
 export function appendOutbound(store, conversationId, text) {

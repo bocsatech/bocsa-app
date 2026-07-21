@@ -18,28 +18,30 @@ function ensurePlaywrightBrowsers() {
 
 function unlockProfile(profileDir) {
   try {
-    const lock = `${profileDir}/SingletonLock`;
-    if (fs.existsSync(lock)) fs.unlinkSync(lock);
+    for (const name of ['SingletonLock', 'SingletonCookie', 'SingletonSocket', 'lockfile']) {
+      const lock = `${profileDir}/${name}`;
+      if (fs.existsSync(lock)) fs.unlinkSync(lock);
+    }
   } catch {
     /* ok */
   }
   try {
-    // Kill leftover Chromium using this profile (mac/linux)
-    execSync(
-      `pkill -f "${profileDir.replace(/"/g, '')}" 2>/dev/null || true`,
-      { stdio: 'ignore' },
-    );
+    execSync(`pkill -f "${profileDir.replace(/"/g, '')}" 2>/dev/null || true`, { stdio: 'ignore' });
   } catch {
     /* ok */
   }
 }
 
+/**
+ * System Chrome (channel:'chrome') often crashes with Playwright persistent profiles on Mac.
+ * Prefer bundled Playwright Chromium for headed login/sync.
+ */
 export async function launchBrowser(profileDir, { headless = true } = {}) {
   fs.mkdirSync(profileDir, { recursive: true });
   unlockProfile(profileDir);
 
   const baseOpts = {
-    viewport: headless ? { width: 1280, height: 900 } : null,
+    viewport: { width: 1280, height: 900 },
     locale: 'de-AT',
     headless,
     ignoreDefaultArgs: ['--enable-automation'],
@@ -47,14 +49,17 @@ export async function launchBrowser(profileDir, { headless = true } = {}) {
       '--disable-blink-features=AutomationControlled',
       '--no-first-run',
       '--no-default-browser-check',
-      ...(headless ? [] : ['--start-maximized', '--window-size=1280,900']),
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      ...(headless ? [] : ['--window-size=1280,900']),
     ],
   };
 
+  // Playwright Chromium FIRST — system Chrome crashes ("Page crashed")
   const attempts = [
+    { name: 'Chromium (Playwright)', opts: { ...baseOpts } },
     { name: 'Google Chrome', opts: { ...baseOpts, channel: 'chrome' } },
     { name: 'Microsoft Edge', opts: { ...baseOpts, channel: 'msedge' } },
-    { name: 'Chromium (Playwright)', opts: { ...baseOpts } },
   ];
 
   const errors = [];
@@ -62,10 +67,11 @@ export async function launchBrowser(profileDir, { headless = true } = {}) {
   for (const attempt of attempts) {
     try {
       const context = await chromium.launchPersistentContext(profileDir, attempt.opts);
+      context.on('page', (p) => {
+        p.on('crash', () => console.error('  ⚠ Oldal crash — újrapróbálás következhet'));
+      });
       const page = context.pages()[0] || (await context.newPage());
-      if (!headless) {
-        await page.bringToFront().catch(() => {});
-      }
+      if (!headless) await page.bringToFront().catch(() => {});
       console.log(`  ✓ Böngésző: ${attempt.name}`);
       return { context, browserName: attempt.name, page };
     } catch (err) {
@@ -73,7 +79,6 @@ export async function launchBrowser(profileDir, { headless = true } = {}) {
     }
   }
 
-  // Last resort: install chromium and retry once
   console.log('  → Playwright Chromium telepítése…');
   ensurePlaywrightBrowsers();
   unlockProfile(profileDir);
@@ -88,14 +93,13 @@ export async function launchBrowser(profileDir, { headless = true } = {}) {
     errors.push(`Chromium retry: ${err.message}`);
   }
 
-  const msg = [
+  throw new Error([
     'Nem sikerült böngészőt indítani.',
     ...errors.map((e) => `  - ${e}`),
     '',
-    'Próbáld Terminálban:',
-    `  cd "$HOME/Downloads/Willhaben Agent"`,
+    'Próbáld:',
+    '  cd "$HOME/Downloads/Willhaben Agent"',
     '  npx playwright install chromium',
     '  npm run login',
-  ].join('\n');
-  throw new Error(msg);
+  ].join('\n'));
 }

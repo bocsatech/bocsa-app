@@ -67,80 +67,88 @@ function findUuidLike(obj) {
   return null;
 }
 
+const JUNK_RE = /optimizely|audience|backwards.?compatibility|experiment|feature.?flag|segment.?id|cdn\.|google-analytics|gtm\.|hotjar|fullstory|datadog|sentry|newrelic|cookiebot|didomi|consent/i;
+
+function isJunkText(...parts) {
+  return parts.some((p) => p && JUNK_RE.test(String(p)));
+}
+
+function isJunkObject(obj) {
+  if (!obj || typeof obj !== 'object') return true;
+  const blob = JSON.stringify(obj).slice(0, 2000);
+  if (JUNK_RE.test(blob) && !pick(obj, ['conversation_uuid', 'conversationUuid', 'last_message_text', 'message_text'])) {
+    return true;
+  }
+  const name = pick(obj, ['name', 'title', 'displayName', 'display_name']);
+  if (name && JUNK_RE.test(name)) return true;
+  return false;
+}
+
 const ID_KEYS = [
-  'id', 'conversationId', 'threadId', 'uuid', 'chatId', 'messageThreadId',
+  'id', 'conversationId', 'threadId', 'chatId', 'messageThreadId',
   'messengerConversationId', 'conversationUuid', 'conversation_uuid',
 ];
 
+// NE használd a sima "name" mezőt elsőnek — Optimizely is "name"-et ad
 const PARTNER_KEYS = [
   'partnerName', 'counterpartName', 'buyerName', 'sellerName', 'participantName',
-  'userName', 'displayName', 'name', 'partnerDisplayName', 'contactName',
+  'userName', 'displayName', 'partnerDisplayName', 'contactName',
   'interlocutorName', 'seller_name', 'buyer_name', 'participant_name',
   'display_name', 'contact_name', 'partner_name', 'counterpart_name',
-  'first_name', 'last_name',
 ];
 
 const AD_TITLE_KEYS = [
   'adTitle', 'advertTitle', 'listingTitle', 'subject', 'advertHeading',
-  'heading', 'title', 'advertName', 'adHeading', 'itemTitle',
+  'heading', 'advertName', 'adHeading', 'itemTitle',
   'ad_title', 'advert_title', 'listing_title', 'ad_heading',
 ];
 
 const PREVIEW_KEYS = [
-  'lastPreview', 'lastMessage', 'preview', 'snippet', 'lastMessageText',
-  'messagePreview', 'lastMessagePreview', 'text', 'lastMessageContent',
+  'lastPreview', 'preview', 'snippet', 'lastMessageText',
+  'messagePreview', 'lastMessagePreview', 'lastMessageContent',
   'last_message_text', 'last_message_preview', 'message_preview',
   'preview_text', 'snippet_text', 'latest_message_text',
 ];
 
 const MESSAGE_TEXT_KEYS = [
-  'text', 'body', 'content', 'message', 'messageText', 'messageContent',
+  'text', 'body', 'message', 'messageText', 'messageContent',
   'message_text', 'message_body', 'message_content', 'body_text', 'content_text',
 ];
 
 function pickId(obj) {
-  return pick(obj, ID_KEYS) || findUuidLike(obj);
+  return pick(obj, ID_KEYS) || (
+    pick(obj, ['conversation_uuid', 'conversationUuid']) ? pick(obj, ['conversation_uuid', 'conversationUuid']) : null
+  ) || findUuidLike(obj);
 }
 
 function looksLikeConversation(obj) {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
-  if (pick(obj, ['conversation_uuid', 'conversationUuid', 'conversationId'])) return true;
-  if (pick(obj, ['ad_uuid', 'adUuid']) && (pick(obj, AD_TITLE_KEYS) || pick(obj, PARTNER_KEYS))) return true;
-  const id = pickId(obj);
-  if (!id) return false;
+  if (isJunkObject(obj)) return false;
 
-  const partner = pick(obj, PARTNER_KEYS) || pickNested(obj, [
-    ['partner', 'name'], ['partner', 'displayName'], ['counterpart', 'name'],
-    ['buyer', 'name'], ['seller', 'name'], ['participant', 'name'],
-    ['otherParticipant', 'name'], ['contact', 'name'], ['interlocutor', 'name'],
-    ['participant', 'display_name'],
-  ]);
-
-  const adTitle = pick(obj, AD_TITLE_KEYS) || pickNested(obj, [
-    ['advert', 'heading'], ['advert', 'title'], ['advert', 'ad_title'],
-    ['ad', 'title'], ['listing', 'title'], ['adDetail', 'heading'],
-  ]);
-
-  const preview = pick(obj, PREVIEW_KEYS) || pickNested(obj, [
-    ['lastMessage', 'text'], ['lastMessage', 'body'], ['lastMessage', 'content'],
-    ['last_message', 'text'], ['latestMessage', 'text'], ['mostRecentMessage', 'text'],
-    ['latest_message', 'text'],
-  ]);
-
-  return Boolean(
-    partner || adTitle || preview || obj.messages || obj.message_list
-    || obj.lastMessageAt || obj.last_message_at || obj.updatedAt || obj.updated_at
-    || obj.modifiedAt || obj.modified_at || obj.advertId || obj.advert_id
-    || obj.adId || obj.ad_id || obj.ad_uuid
+  const hasConvId = Boolean(pick(obj, ['conversation_uuid', 'conversationUuid', 'conversationId', 'messageThreadId']));
+  const hasAd = Boolean(pick(obj, ['ad_uuid', 'adUuid', 'ad_id', 'advertId', 'adId', ...AD_TITLE_KEYS]));
+  const hasMsg = Boolean(
+    pick(obj, PREVIEW_KEYS)
+    || obj.messages || obj.message_list
+    || pickNested(obj, [['lastMessage', 'text'], ['last_message', 'text'], ['latestMessage', 'text']])
   );
+
+  // Strict: real messenger threads have conversation id + (ad or message)
+  if (hasConvId && (hasAd || hasMsg || pick(obj, PARTNER_KEYS))) return true;
+  if (hasAd && hasMsg && pick(obj, PARTNER_KEYS)) return true;
+
+  return false;
 }
 
 function looksLikeMessage(obj) {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+  if (isJunkObject(obj)) return false;
   const text = pick(obj, MESSAGE_TEXT_KEYS) || pickNested(obj, [
     ['content', 'text'], ['payload', 'text'], ['message', 'text'], ['message', 'body'],
   ]);
-  return Boolean(text);
+  if (!text || isJunkText(text)) return false;
+  if (text.length > 5000) return false;
+  return true;
 }
 
 function findArrays(node, predicate, depth = 0, out = []) {
@@ -178,6 +186,7 @@ export function parseConversationsPayload(payload) {
   const seen = new Set();
 
   return best.map((raw) => {
+    if (isJunkObject(raw)) return null;
     const id = pickId(raw);
     if (!id || seen.has(id)) return null;
     seen.add(id);
@@ -194,7 +203,6 @@ export function parseConversationsPayload(payload) {
       const last = pick(raw, ['last_name', 'lastName']);
       if (first || last) partnerName = [first, last].filter(Boolean).join(' ');
     }
-    partnerName = partnerName || 'Ismeretlen';
 
     const adTitle = pick(raw, AD_TITLE_KEYS) || pickNested(raw, [
       ['advert', 'heading'], ['advert', 'title'], ['advert', 'ad_title'],
@@ -206,6 +214,13 @@ export function parseConversationsPayload(payload) {
       ['last_message', 'text'], ['latestMessage', 'text'], ['mostRecentMessage', 'text'],
       ['latest_message', 'text'],
     ]) || '';
+
+    if (isJunkText(partnerName, adTitle, lastPreview)) return null;
+
+    // Ha nincs partnernév: használd a hirdetés címét, ne "Ismeretlen"
+    if (!partnerName || partnerName === 'name') {
+      partnerName = adTitle || (lastPreview ? lastPreview.slice(0, 60) : 'Beszélgetés');
+    }
 
     const lastMessageAt = parseTimestamp(
       pick(raw, [
@@ -503,14 +518,16 @@ export function installNetworkCapture(page) {
     try {
       const url = response.url();
       if (!/willhaben\.at/i.test(url)) return;
+      if (JUNK_RE.test(url)) return;
       if (!response.ok()) return;
       const ct = (response.headers()['content-type'] || '').toLowerCase();
       if (!ct.includes('json') && !/webapi|messenger|chat|bff|graphql/i.test(url)) return;
 
       const json = await response.json().catch(() => null);
       if (!json) return;
+      if (isJunkObject(json) && !/webapi.*(messenger|chat|conversation)/i.test(url)) return;
 
-      const interesting = /webapi|messenger|chat|messaging|conversation|thread|nachricht|inbox|bff/i.test(url)
+      const interesting = /webapi.*(messenger|chat|messaging|conversation|thread|nachricht|inbox|bff)/i.test(url)
         || parseConversationsPayload(json).length > 0
         || parseMessagesPayload(json).length > 0;
 
@@ -528,6 +545,11 @@ export function installNetworkCapture(page) {
   });
 
   return captured;
+}
+
+export function isJunkConversation(conv) {
+  if (!conv) return true;
+  return isJunkText(conv.partnerName, conv.adTitle, conv.lastPreview, conv.id);
 }
 
 export function isMessengerUrl(url) {

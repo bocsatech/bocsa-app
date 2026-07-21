@@ -92,6 +92,15 @@ const whMessages = parseMessagesPayload({
 });
 if (whMessages.length !== 2) throw new Error('willhaben message_list fail');
 
+const junk = parseConversationsPayload({
+  conversations: [{
+    id: 'opt-1',
+    name: 'Optimizely-Generated Audience for Backwards Compatibility',
+    title: 'Optimizely segment',
+  }],
+});
+if (junk.length !== 0) throw new Error('optimizely junk should be filtered');
+
 // --- Szinkron integráció (Playwright API mock) ---
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const TEST_DATA = path.join(ROOT, 'data-test-integration');

@@ -6,7 +6,7 @@ import { extractAccessToken, installNetworkCapture, saveCapturedRaw } from './me
 const CHAT_URL = 'https://www.willhaben.at/iad/myprofile/chat';
 
 function pause(msg) {
-  console.log(msg);
+  if (msg) console.log(msg);
   console.log('\n  Nyomj Enter-t a bezáráshoz…');
   return new Promise((resolve) => {
     process.stdin.resume();
@@ -14,19 +14,7 @@ function pause(msg) {
   });
 }
 
-console.log('\n  Willhaben Agent — bejelentkezés\n');
-console.log('  1. Most megnyílik egy böngészőablak');
-console.log('  2. Jelentkezz be a willhaben.at-ra');
-console.log('  3. Várj, amíg LÁTOD a chat üzenetlistát');
-console.log('  4. Csak utána zárd be a böngészőt\n');
-
-let context;
-try {
-  const launched = await launchBrowser(getProfileDir(), { headless: false });
-  context = launched.context;
-  const page = launched.page || context.pages()[0] || (await context.newPage());
-  const captured = installNetworkCapture(page);
-
+async function doLogin(context, page, captured) {
   console.log('  → Chat oldal betöltése…');
   await page.goto(CHAT_URL, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.bringToFront().catch(() => {});
@@ -44,9 +32,7 @@ try {
   }).catch(() => false);
 
   if (!loggedIn) {
-    await pause('\n  ❌ Nem sikerült bejelentkezni, vagy nem értél a chat oldalra.');
-    await context.close().catch(() => {});
-    process.exit(1);
+    throw new Error('Nem sikerült bejelentkezni, vagy nem értél a chat oldalra.');
   }
 
   await page.waitForLoadState('networkidle', { timeout: 60000 }).catch(() => {});
@@ -71,6 +57,34 @@ try {
   console.log('\n  ✓ Kész — zárd be a böngészőablakot (piros X).\n');
   await new Promise((resolve) => context.on('close', resolve));
   console.log('  Bejelentkezés mentve. Következő: asztali SZINKRON ikon\n');
+}
+
+console.log('\n  Willhaben Agent — bejelentkezés\n');
+console.log('  1. Most megnyílik egy böngészőablak (Chromium)');
+console.log('  2. Jelentkezz be a willhaben.at-ra');
+console.log('  3. Várj, amíg LÁTOD a chat üzenetlistát');
+console.log('  4. Csak utána zárd be a böngészőt\n');
+
+let context;
+try {
+  const launched = await launchBrowser(getProfileDir(), { headless: false });
+  context = launched.context;
+  let page = launched.page || context.pages()[0] || (await context.newPage());
+  const captured = installNetworkCapture(page);
+
+  try {
+    await doLogin(context, page, captured);
+  } catch (err) {
+    if (!/crash|Target closed|Page crashed/i.test(err.message || '')) throw err;
+
+    console.log('\n  ⚠ Böngésző összeomlott — újraindítás Playwright Chromiummal…\n');
+    await context.close().catch(() => {});
+    const relaunch = await launchBrowser(getProfileDir(), { headless: false });
+    context = relaunch.context;
+    page = relaunch.page || context.pages()[0] || (await context.newPage());
+    const captured2 = installNetworkCapture(page);
+    await doLogin(context, page, captured2);
+  }
 } catch (err) {
   console.error('\n  ❌ HIBA:', err.message || err);
   await pause('');
