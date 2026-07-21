@@ -29,6 +29,8 @@ let selectedId = null;
 let editingTplId = null;
 let offerMode = false;
 let currentConv = null;
+let openSeq = 0;
+let lastGoodStatus = '';
 
 function toastMsg(m, err = false) {
   toast.textContent = m;
@@ -36,7 +38,9 @@ function toastMsg(m, err = false) {
   toast.style.borderColor = err ? '#ef4444' : varBorder();
   setTimeout(() => toast.classList.add('hidden'), 3500);
 }
-function varBorder() { return getComputedStyle(document.documentElement).getPropertyValue('--border'); }
+function varBorder() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--border');
+}
 
 async function api(path, opts = {}) {
   const res = await fetch(path, opts);
@@ -52,8 +56,15 @@ function esc(s) {
 function fmtTime(iso) {
   if (!iso) return '';
   try {
-    return new Date(iso).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  } catch { return ''; }
+    return new Date(iso).toLocaleString('hu-HU', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
 }
 
 async function refreshStatus() {
@@ -62,59 +73,74 @@ async function refreshStatus() {
   if (s.lastSyncAt) parts.push(`sync: ${fmtTime(s.lastSyncAt)}`);
   if (s.syncRunning) parts.push(s.syncStatus || 'szinkron…');
   else if (s.lastSyncError) parts.push(`⚠ ${s.lastSyncError}`);
-  statusEl.textContent = parts.join(' · ');
+  lastGoodStatus = parts.join(' · ');
+  statusEl.textContent = lastGoodStatus;
   btnSync.disabled = s.syncRunning;
 }
 
 async function loadConversations() {
   const { conversations } = await api('/api/conversations');
   convList.innerHTML = conversations.length
-    ? conversations.map((c) => `
+    ? conversations
+        .map(
+          (c) => `
       <button type="button" class="item${c.id === selectedId ? ' active' : ''}" data-id="${esc(c.id)}">
         <span class="name">${esc(c.partnerName)}</span>
         <span class="prev">${esc(c.lastPreview || c.adTitle || '')}</span>
-      </button>`).join('')
+      </button>`,
+        )
+        .join('')
     : '<p class="muted">Nincs beszélgetés. Frissítsd a bejövő üzeneteket.</p>';
   convList.querySelectorAll('.item[data-id]').forEach((btn) => {
     btn.addEventListener('click', () => openConv(btn.dataset.id));
   });
+  return conversations;
 }
 
 async function openConv(id) {
+  const seq = ++openSeq;
   selectedId = id;
-  // Azonnal ürítsd, hogy ne látszódjon a másik beszélgetés szövege
   msgs.innerHTML = '<p class="muted">Betöltés…</p>';
   tTitle.textContent = '…';
   tAd.textContent = '';
   empty.classList.add('hidden');
   thread.classList.remove('hidden');
 
+  // active class frissítés lista újratöltés nélkül
+  convList.querySelectorAll('.item[data-id]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.id === id);
+  });
+
   const { conversation: c } = await api(`/api/conversations/${encodeURIComponent(id)}`);
-  if (selectedId !== id) return; // közben másikra kattintott
+  if (seq !== openSeq || selectedId !== id) return;
+
   currentConv = c;
   tTitle.textContent = c.partnerName || '—';
   tAd.textContent = c.adTitle || '';
-  const list = c.messages || [];
+  const list = Array.isArray(c.messages) ? c.messages : [];
   msgs.innerHTML = list.length
-    ? list.map((m) =>
-      `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}">${esc(m.text)}</div>`
-    ).join('')
-    : '<p class="muted">Nincs üzenet ebben a beszélgetésben. Futtasd újra a szinkront.</p>';
+    ? list
+        .map((m) => `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}" data-mid="${esc(m.id || '')}">${esc(m.text)}</div>`)
+        .join('')
+    : '<p class="muted">Nincs üzenet ebben a beszélgetésben.</p>';
   msgs.scrollTop = msgs.scrollHeight;
-  await loadConversations();
 }
 
 async function loadTemplates() {
   const { templates } = await api('/api/templates');
   tplPick.innerHTML = templates.map((t) => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
-  tplList.innerHTML = templates.map((t) => `
+  tplList.innerHTML = templates
+    .map(
+      (t) => `
     <li>
       <span>${esc(t.name)}</span>
       <span>
         <button type="button" class="btn ghost" data-edit="${esc(t.id)}">Szerk</button>
         <button type="button" class="btn ghost" data-del="${esc(t.id)}">Töröl</button>
       </span>
-    </li>`).join('');
+    </li>`,
+    )
+    .join('');
   tplList.querySelectorAll('[data-edit]').forEach((b) => {
     b.addEventListener('click', () => {
       const t = templates.find((x) => x.id === b.dataset.edit);
@@ -155,7 +181,9 @@ btnSync.addEventListener('click', async () => {
   try {
     await api('/api/sync', { method: 'POST' });
     toastMsg('Szinkron indul…');
-  } catch (e) { toastMsg(e.message, true); }
+  } catch (e) {
+    toastMsg(e.message, true);
+  }
 });
 
 btnOfferMode.addEventListener('click', () => setOfferMode(!offerMode));
@@ -173,7 +201,7 @@ btnInsertTpl.addEventListener('click', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ templateId: id, vars }),
   });
-  replyText.value = (replyText.value ? replyText.value + '\n' : '') + text;
+  replyText.value = (replyText.value ? `${replyText.value}\n` : '') + text;
 });
 
 tplForm.addEventListener('submit', async (e) => {
@@ -205,7 +233,9 @@ chartFile.addEventListener('change', async () => {
     await api('/api/price-chart', { method: 'POST', body: fd });
     await refreshChartMeta();
     toastMsg('Árdiagram feltöltve');
-  } catch (e) { toastMsg(e.message, true); }
+  } catch (e) {
+    toastMsg(e.message, true);
+  }
   chartFile.value = '';
 });
 
@@ -248,23 +278,49 @@ replyForm.addEventListener('submit', async (e) => {
     replyText.value = '';
     toastMsg('Elküldve');
     await openConv(selectedId);
-  } catch (err) { toastMsg(err.message, true); }
-  finally { replyForm.querySelector('[type=submit]').disabled = false; }
+  } catch (err) {
+    toastMsg(err.message, true);
+  } finally {
+    replyForm.querySelector('[type=submit]').disabled = false;
+  }
 });
 
 async function tick() {
   try {
     await refreshStatus();
     await loadConversations();
-  } catch (e) {
-    statusEl.textContent = e.message;
+    // Ha van kiválasztott beszélgetés, frissítsd az üzeneteket is (szinkron után)
+    if (selectedId) {
+      const seq = openSeq;
+      const id = selectedId;
+      const { conversation: c } = await api(`/api/conversations/${encodeURIComponent(id)}`);
+      if (seq !== openSeq || selectedId !== id || c.id !== id) return;
+      currentConv = c;
+      const list = c.messages || [];
+      const html = list.length
+        ? list
+            .map((m) => `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}" data-mid="${esc(m.id || '')}">${esc(m.text)}</div>`)
+            .join('')
+        : '<p class="muted">Nincs üzenet ebben a beszélgetésben.</p>';
+      if (msgs.innerHTML !== html) {
+        msgs.innerHTML = html;
+        tTitle.textContent = c.partnerName || '—';
+        tAd.textContent = c.adTitle || '';
+      }
+    }
+  } catch {
+    if (lastGoodStatus) statusEl.textContent = `${lastGoodStatus} · (újracsatlakozás…)`;
   }
 }
 
 (async function init() {
-  await refreshStatus();
-  await loadConversations();
-  await loadTemplates();
-  await refreshChartMeta();
+  try {
+    await refreshStatus();
+    await loadConversations();
+    await loadTemplates();
+    await refreshChartMeta();
+  } catch (e) {
+    statusEl.textContent = e.message;
+  }
   setInterval(tick, 4000);
 })();

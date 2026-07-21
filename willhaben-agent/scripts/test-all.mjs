@@ -203,7 +203,59 @@ if (loadedMessages.length !== 2) throw new Error(`fetchMessages fail: ${loadedMe
 await browser.close();
 resetData();
 
-// --- Szerver API ---
+// --- DOM thread isolation (sidebar vs pane) ---
+{
+  const { messageFingerprint } = await import('../src/inbox-sync.mjs');
+  const fpA = messageFingerprint([{ direction: 'in', text: 'Angela msg' }]);
+  const fpB = messageFingerprint([{ direction: 'in', text: 'Sandra msg' }]);
+  if (fpA === fpB) throw new Error('fingerprint collision fail');
+  if (!fpA.includes('Angela')) throw new Error('fingerprint content fail');
+
+  const isoBrowser = await chromium.launch({ headless: true });
+  const isoPage = await isoBrowser.newPage();
+  const isoHtml = `<!DOCTYPE html><html><body>
+    <aside id="list">
+      <a href="#angela">Angela Müller<br>BMW 320d<br>Hallo Angela</a>
+      <a href="#sandra">Sandra Klein<br>VW Golf<br>Hallo Sandra</a>
+    </aside>
+    <main>
+      <div data-testid="thread">
+        <h2>Angela Müller</h2>
+        <p>BMW 320d</p>
+        <div role="log">
+          <div data-testid="message" class="incoming">Hallo Angela — Auto noch da?</div>
+          <div data-testid="message" class="outgoing own">Ja Angela, noch verfügbar.</div>
+        </div>
+      </div>
+    </main>
+  </body></html>`;
+  await isoPage.setContent(isoHtml);
+
+  // Body always contains BOTH partners — old verify would wrongly accept Sandra
+  const bodyHasSandra = await isoPage.evaluate(() => document.body.innerText.includes('Sandra Klein'));
+  if (!bodyHasSandra) throw new Error('fixture missing sidebar sandra');
+
+  const paneOkAngela = await isoPage.evaluate(() => {
+    const main = document.querySelector('main');
+    const clone = main.cloneNode(true);
+    clone.querySelectorAll('aside, nav').forEach((n) => n.remove());
+    const t = (clone.innerText || '').toLowerCase();
+    return t.includes('angela') && !t.includes('sandra');
+  });
+  if (!paneOkAngela) throw new Error('pane should be Angela-only');
+
+  const msgs = await isoPage.evaluate(() => {
+    const root = document.querySelector('[data-testid="thread"]') || document.querySelector('main');
+    return [...root.querySelectorAll('[data-testid="message"]')].map((n) => (n.innerText || '').trim());
+  });
+  if (msgs.length !== 2) throw new Error(`expected 2 thread msgs, got ${msgs.length}`);
+  if (!msgs.every((m) => /Angela/i.test(m))) throw new Error('sidebar bled into messages');
+  if (msgs.some((m) => /Sandra/i.test(m))) throw new Error('sandra leaked into thread scrape');
+
+  await isoBrowser.close();
+}
+
+// --- Szerver API: üzenet-izoláció ---
 const port = 3870;
 process.env.AGENT_PORT = String(port);
 const server = await startServer(port);
@@ -227,6 +279,39 @@ function httpRequest(method, reqPath) {
 
 const status = await httpRequest('GET', '/api/status');
 if (status.status !== 200 || !status.body.version) throw new Error('status fail');
+if (status.body.version !== '1.3.4') throw new Error(`version fail: ${status.body.version}`);
+
+// Seed distinct conversations — UI/API must keep messages isolated
+{
+  const s = loadStore();
+  upsertConversation(s, {
+    id: 'iso-angela',
+    partnerName: 'Angela Müller',
+    adTitle: 'BMW 320d',
+    messages: [{ id: 'a1', direction: 'in', text: 'Angela egyedi üzenet', at: new Date().toISOString() }],
+    syncedAt: new Date().toISOString(),
+  });
+  upsertConversation(s, {
+    id: 'iso-sandra',
+    partnerName: 'Sandra Klein',
+    adTitle: 'VW Golf',
+    messages: [{ id: 's1', direction: 'in', text: 'Sandra egyedi üzenet', at: new Date().toISOString() }],
+    syncedAt: new Date().toISOString(),
+  });
+  saveStore(s);
+
+  const angela = await httpRequest('GET', '/api/conversations/iso-angela');
+  const sandra = await httpRequest('GET', '/api/conversations/iso-sandra');
+  if (angela.body.conversation?.messages?.[0]?.text !== 'Angela egyedi üzenet') {
+    throw new Error('angela isolation fail');
+  }
+  if (sandra.body.conversation?.messages?.[0]?.text !== 'Sandra egyedi üzenet') {
+    throw new Error('sandra isolation fail');
+  }
+  if (angela.body.conversation.messages[0].text === sandra.body.conversation.messages[0].text) {
+    throw new Error('messages wrongly shared');
+  }
+}
 
 const syncStart = await httpRequest('POST', '/api/sync');
 if (syncStart.status !== 202 || !syncStart.body.ok) throw new Error('sync start fail');
@@ -238,4 +323,4 @@ if (typeof after.body.syncRunning !== 'boolean') throw new Error('sync status fa
 
 await new Promise((resolve) => server.close(resolve));
 
-console.log('✓ minden teszt OK (parser + szinkron mock + szerver API)');
+console.log('✓ minden teszt OK (parser + DOM izoláció + szinkron mock + szerver API)');
