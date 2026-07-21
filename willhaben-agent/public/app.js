@@ -118,8 +118,13 @@ async function openConv(id) {
   tTitle.textContent = c.partnerName || '—';
   tAd.textContent = c.adTitle || '';
   const list = Array.isArray(c.messages) ? c.messages : [];
-  msgs.innerHTML = list.length
+  const display = list.length
     ? list
+    : (c.lastPreview
+      ? [{ id: 'ui-preview', direction: 'in', text: c.lastPreview }]
+      : []);
+  msgs.innerHTML = display.length
+    ? display
         .map((m) => `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}" data-mid="${esc(m.id || '')}">${esc(m.text)}</div>`)
         .join('')
     : '<p class="muted">Nincs üzenet ebben a beszélgetésben.</p>';
@@ -297,8 +302,11 @@ async function tick() {
       if (seq !== openSeq || selectedId !== id || c.id !== id) return;
       currentConv = c;
       const list = c.messages || [];
-      const html = list.length
+      const display = list.length
         ? list
+        : (c.lastPreview ? [{ id: 'ui-preview', direction: 'in', text: c.lastPreview }] : []);
+      const html = display.length
+        ? display
             .map((m) => `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}" data-mid="${esc(m.id || '')}">${esc(m.text)}</div>`)
             .join('')
         : '<p class="muted">Nincs üzenet ebben a beszélgetésben.</p>';

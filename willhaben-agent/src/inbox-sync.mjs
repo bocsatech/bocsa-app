@@ -487,6 +487,36 @@ function messagesFromConversationRaw(conv) {
   return [];
 }
 
+/** Ha nincs message lista, legalább az előnézet jelenjen meg (lista ↔ részlet egyezés). */
+export function messagesFromPreview(conv) {
+  const text = String(conv?.lastPreview || '').trim();
+  if (!text || text.length < 2) return [];
+  if (/zuletzt online|willhaben-?code/i.test(text)) return [];
+  return [{
+    id: 'preview-1',
+    direction: 'in',
+    text,
+    at: conv.lastMessageAt || new Date().toISOString(),
+  }];
+}
+
+function ensureConversationMessages(t, messages, previousMessages) {
+  let out = sanitizeDomMessages(messages || []);
+  if (out.length && !domMessagesMatchPartner(out, t.partnerName)) {
+    out = [];
+  }
+  if (!out.length) {
+    out = messagesFromPreview(t);
+  }
+  if (!out.length && previousMessages?.length) {
+    const prev = sanitizeDomMessages(previousMessages.map((m) => ({ ...m })));
+    if (prev.length && domMessagesMatchPartner(prev, t.partnerName)) {
+      out = prev;
+    }
+  }
+  return out;
+}
+
 async function runSyncAttempt({ headless, onProgress }) {
   const config = loadConfig();
   const { context } = await launchBrowser(getProfileDir(), { headless });
@@ -574,10 +604,10 @@ async function runSyncAttempt({ headless, onProgress }) {
     }
 
     const store = loadStore();
-    // Új szinkron: töröld a régi (esetleg összezárt) üzeneteket, meta maradhat
-    for (const c of store.conversations) {
-      c.messages = [];
-    }
+    // Ne töröld előre az összes üzenetet — ha a fetch üres, megmaradhat a jó előző / preview
+    const previousById = new Map(
+      (store.conversations || []).map((c) => [c.id, Array.isArray(c.messages) ? c.messages : []]),
+    );
     onProgress?.(`${conversations.length} beszélgetés (${source})`);
 
     const seenFingerprints = new Map(); // fingerprint -> conversation id
@@ -612,25 +642,29 @@ async function runSyncAttempt({ headless, onProgress }) {
         } catch {
           /* keep empty */
         }
-      } else {
-        // API van: ne írd felül DOM dump-pal. Szálat se kell nyitni üzenethez.
       }
 
-      // Ha ugyanaz az üzenetkészlet, mint egy másik beszélgetésé → ne mentsük
+      // Ütközés / rossz partner → ne oszd szét, de preview / előző maradhat
       let fp = messageFingerprint(messages);
       if (fp && seenFingerprints.has(fp)) {
-        onProgress?.(`  ⚠ üzenetütközés, kihagyva: ${t.partnerName}`);
+        onProgress?.(`  ⚠ üzenetütközés, egyedi forrás nélkül: ${t.partnerName}`);
         messages = [];
         fp = '';
       }
-      if (fp) seenFingerprints.set(fp, t.id);
-
-      // Partner mismatch a végső listán is
       if (messages.length && !domMessagesMatchPartner(messages, t.partnerName)) {
-        onProgress?.(`  ⚠ rossz partnerüzenet, törölve: ${t.partnerName}`);
+        onProgress?.(`  ⚠ rossz partnerüzenet: ${t.partnerName}`);
         messages = [];
         fp = '';
       }
+
+      messages = ensureConversationMessages(t, messages, previousById.get(t.id));
+      fp = messageFingerprint(messages);
+      // Preview-only fingerprint (ugyanaz a szöveg több listában) — engedjük, de ne blokkoljuk a többit tévesen
+      if (fp && messages.length > 1 && seenFingerprints.has(fp)) {
+        messages = ensureConversationMessages(t, [], previousById.get(t.id));
+        fp = messageFingerprint(messages);
+      }
+      if (fp && messages.length > 1) seenFingerprints.set(fp, t.id);
 
       upsertConversation(store, {
         ...t,

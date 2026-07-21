@@ -222,6 +222,13 @@ resetData();
   if (domMessagesMatchPartner(dump, 'Sandra')) throw new Error('Sandra should reject Ingrid greetings');
   if (!domMessagesMatchPartner(dump, 'Ingrid')) throw new Error('Ingrid should accept own greetings');
 
+  const { messagesFromPreview } = await import('../src/inbox-sync.mjs');
+  const seeded = messagesFromPreview({
+    lastPreview: 'Ab 26.07 sind wir wieder vom Urlaub zurück',
+    lastMessageAt: '2026-07-21T10:00:00.000Z',
+  });
+  if (seeded.length !== 1 || !seeded[0].text.includes('26.07')) throw new Error('preview seed fail');
+
   const { purgeJunkConversations } = await import('../src/store.mjs');
   const purged = purgeJunkConversations([
     { id: '1', partnerName: 'Sandra', adTitle: 'Golf', messages: [], lastPreview: 'hi' },
@@ -313,7 +320,7 @@ function httpRequest(method, reqPath) {
 
 const status = await httpRequest('GET', '/api/status');
 if (status.status !== 200 || !status.body.version) throw new Error('status fail');
-if (status.body.version !== '1.3.5') throw new Error(`version fail: ${status.body.version}`);
+if (status.body.version !== '1.3.6') throw new Error(`version fail: ${status.body.version}`);
 
 // Seed distinct conversations — UI/API must keep messages isolated
 {
