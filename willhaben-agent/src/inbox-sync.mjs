@@ -245,16 +245,18 @@ async function importViaDomClicks(page, chatUrl, onProgress) {
 }
 
 function messagesFromCaptured(captured, conversationId) {
+  if (!conversationId) return [];
   const all = [];
   for (const item of captured) {
-    if (!item.json) continue;
-    if (conversationId && item.url && !item.url.includes(conversationId) && !/message/i.test(item.url)) {
-      // still try parse — some payloads nest everything
-    }
+    if (!item?.json) continue;
+    const url = item.url || '';
+    // CSAK az ehhez a beszélgetéshez tartozó válaszok — ne másoljuk az összes üzenetet mindenhova
+    const urlMatch = url.includes(encodeURIComponent(conversationId)) || url.includes(conversationId);
+    if (!urlMatch) continue;
+
     const msgs = parseMessagesPayload(item.json);
-    for (const m of msgs) all.push(m);
+    for (const m of msgs) all.push({ ...m });
   }
-  // de-dupe by text+direction
   const seen = new Set();
   return all.filter((m) => {
     const k = `${m.direction}:${m.text}`;
@@ -262,6 +264,18 @@ function messagesFromCaptured(captured, conversationId) {
     seen.add(k);
     return true;
   });
+}
+
+function messagesFromConversationRaw(conv) {
+  if (!conv) return [];
+  if (Array.isArray(conv.messages) && conv.messages.length) {
+    return conv.messages.map((m) => ({ ...m }));
+  }
+  if (conv._raw) {
+    const nested = parseMessagesPayload(conv._raw);
+    if (nested.length) return nested.map((m) => ({ ...m }));
+  }
+  return [];
 }
 
 async function runSyncAttempt({ headless, onProgress }) {
@@ -354,23 +368,37 @@ async function runSyncAttempt({ headless, onProgress }) {
     onProgress?.(`${conversations.length} beszélgetés (${source})`);
 
     for (let i = 0; i < conversations.length; i++) {
-      const t = normalizeConversation(conversations[i]);
+      const rawConv = conversations[i];
+      const t = normalizeConversation(rawConv);
       onProgress?.(`${i + 1}/${conversations.length}: ${t.partnerName}`);
 
-      let messages = await fetchMessages(context, t.id, { page, accessToken });
-      if (!messages.length) messages = messagesFromCaptured(captured, t.id);
+      // Üzenetek CSAK ebből a beszélgetésből — soha ne a globális capture dumpból mindenkinek
+      let messages = messagesFromConversationRaw(rawConv);
       if (!messages.length) {
-        try {
-          await openThread(page, conversations[i], config.chatUrl);
-          messages = await readMessagesFromDom(page);
-        } catch {
-          /* meta only */
+        messages = await fetchMessages(context, t.id, { page, accessToken });
+      }
+      if (!messages.length) {
+        messages = messagesFromCaptured(captured, t.id);
+      }
+
+      // Legmegbízhatóbb: nyisd meg a szálat és olvasd a DOM-ból
+      try {
+        const beforeUrl = page.url();
+        await openThread(page, rawConv, config.chatUrl);
+        await page.waitForTimeout(800);
+        const domMsgs = await readMessagesFromDom(page);
+        if (domMsgs.length) {
+          // Ha a DOM más oldalt mutat, ne használjuk
+          const stillSameThread = !t.url || page.url().includes(t.id) || page.url() !== beforeUrl;
+          if (stillSameThread) messages = domMsgs.map((m) => ({ ...m }));
         }
+      } catch {
+        /* keep previous */
       }
 
       upsertConversation(store, {
         ...t,
-        messages: messages.length ? messages : undefined,
+        messages: messages.length ? messages.map((m) => ({ ...m })) : [],
         syncedAt: new Date().toISOString(),
       });
     }

@@ -82,15 +82,24 @@ async function loadConversations() {
 
 async function openConv(id) {
   selectedId = id;
-  const { conversation: c } = await api(`/api/conversations/${encodeURIComponent(id)}`);
-  currentConv = c;
+  // Azonnal ürítsd, hogy ne látszódjon a másik beszélgetés szövege
+  msgs.innerHTML = '<p class="muted">Betöltés…</p>';
+  tTitle.textContent = '…';
+  tAd.textContent = '';
   empty.classList.add('hidden');
   thread.classList.remove('hidden');
+
+  const { conversation: c } = await api(`/api/conversations/${encodeURIComponent(id)}`);
+  if (selectedId !== id) return; // közben másikra kattintott
+  currentConv = c;
   tTitle.textContent = c.partnerName || '—';
   tAd.textContent = c.adTitle || '';
-  msgs.innerHTML = (c.messages || []).map((m) =>
-    `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}">${esc(m.text)}</div>`
-  ).join('');
+  const list = c.messages || [];
+  msgs.innerHTML = list.length
+    ? list.map((m) =>
+      `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}">${esc(m.text)}</div>`
+    ).join('')
+    : '<p class="muted">Nincs üzenet ebben a beszélgetésben. Futtasd újra a szinkront.</p>';
   msgs.scrollTop = msgs.scrollHeight;
   await loadConversations();
 }

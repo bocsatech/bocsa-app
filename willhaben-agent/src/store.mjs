@@ -78,8 +78,22 @@ export function upsertConversation(store, conversation) {
   }
 
   const idx = store.conversations.findIndex((c) => c.id === conversation.id);
-  if (idx >= 0) store.conversations[idx] = { ...store.conversations[idx], ...conversation };
-  else store.conversations.unshift(conversation);
+  const next = { ...conversation };
+  if (Array.isArray(next.messages)) {
+    next.messages = next.messages.map((m) => ({ ...m }));
+  } else {
+    // Ne töröljük a meglévő üzeneteket, ha most nincs új
+    delete next.messages;
+  }
+  if (idx >= 0) {
+    store.conversations[idx] = {
+      ...store.conversations[idx],
+      ...next,
+      ...(next.messages ? { messages: next.messages } : {}),
+    };
+  } else {
+    store.conversations.unshift({ ...next, messages: next.messages || [] });
+  }
   store.conversations = purgeJunkConversations(store.conversations);
   store.conversations.sort(
     (a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
