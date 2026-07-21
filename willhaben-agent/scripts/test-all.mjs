@@ -69,6 +69,29 @@ const merged = attachCapturedPayloads(
 );
 if (merged.length !== 2) throw new Error('capture merge fail');
 
+const willhabenApiShape = {
+  conversation_summaries: [{
+    conversation_uuid: 'wh-uuid-001',
+    ad_uuid: 'ad-999',
+    ad_title: 'VW Golf 2020 1.5 TSI',
+    seller_name: 'Franz Huber',
+    last_message_text: 'Guten Tag, ist der Wagen noch da?',
+    last_message_at: '2026-07-21T08:00:00.000Z',
+    unread_count: 1,
+  }],
+};
+const whParsed = parseConversationsPayload(willhabenApiShape);
+if (whParsed.length !== 1 || whParsed[0].id !== 'wh-uuid-001') throw new Error('willhaben conversation_uuid fail');
+if (whParsed[0].partnerName !== 'Franz Huber') throw new Error('seller_name fail');
+if (whParsed[0].adTitle !== 'VW Golf 2020 1.5 TSI') throw new Error('ad_title fail');
+const whMessages = parseMessagesPayload({
+  message_list: [
+    { message_id: 'x1', message_text: 'Hallo', from_self: false, sent_at: '2026-07-21T07:00:00.000Z' },
+    { message_id: 'x2', message_body: 'Servus', is_own_message: true, created_at: '2026-07-21T07:05:00.000Z' },
+  ],
+});
+if (whMessages.length !== 2) throw new Error('willhaben message_list fail');
+
 // --- Szinkron integráció (Playwright API mock) ---
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const TEST_DATA = path.join(ROOT, 'data-test-integration');

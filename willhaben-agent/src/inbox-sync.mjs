@@ -52,7 +52,29 @@ async function ensureLoggedIn(page) {
   }
 }
 
+async function warmSession(page) {
+  await page.goto('https://www.willhaben.at/', { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
+  await dismissConsent(page);
+  await page.waitForTimeout(800);
+}
+
+async function extractFromNextData(page) {
+  const data = await page.evaluate(() => {
+    const el = document.getElementById('__NEXT_DATA__');
+    if (!el?.textContent) return null;
+    try {
+      return JSON.parse(el.textContent);
+    } catch {
+      return null;
+    }
+  }).catch(() => null);
+  if (!data) return [];
+  return attachCapturedPayloads([{ url: '__NEXT_DATA__', json: data }], []);
+}
+
 async function waitForChatReady(page, chatUrl, timeoutMs = 60000) {
+  await warmSession(page);
+
   const messengerResponse = page.waitForResponse(
     (response) => isMessengerUrl(response.url()) && response.status() === 200,
     { timeout: timeoutMs },
@@ -62,7 +84,7 @@ async function waitForChatReady(page, chatUrl, timeoutMs = 60000) {
   await dismissConsent(page);
   await page.waitForLoadState('networkidle', { timeout: timeoutMs }).catch(() => {});
   await messengerResponse;
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(2500);
 }
 
 async function saveDebugSnapshot(page, label) {
@@ -192,7 +214,7 @@ async function runSyncAttempt({ headless, onProgress }) {
     await ensureLoggedIn(page);
 
     onProgress?.('Beszélgetések lekérése (API)…');
-    let { conversations, unauthorized, source, probes } = await fetchConversations(context, { page });
+    let { conversations, unauthorized, source, probes, rawSamples } = await fetchConversations(context, { page });
 
     if (unauthorized) {
       throw new Error('Nincs bejelentkezve. Futtasd: npm run login');
@@ -201,6 +223,12 @@ async function runSyncAttempt({ headless, onProgress }) {
     if (!conversations.length && captured.length) {
       conversations = attachCapturedPayloads(captured, []);
       if (conversations.length) source = 'network-capture';
+    }
+
+    if (!conversations.length) {
+      onProgress?.('__NEXT_DATA__…');
+      conversations = await extractFromNextData(page);
+      if (conversations.length) source = '__NEXT_DATA__';
     }
 
     if (!conversations.length) {
@@ -213,7 +241,12 @@ async function runSyncAttempt({ headless, onProgress }) {
       headless,
       pageUrl: page.url(),
       capturedUrls: captured.map((c) => c.url),
+      capturedSamples: captured.slice(0, 3).map((c) => ({
+        url: c.url,
+        topKeys: c.json && typeof c.json === 'object' ? Object.keys(c.json).slice(0, 15) : [],
+      })),
       probes,
+      rawSamples,
       conversationCount: conversations.length,
       source,
     });
@@ -271,11 +304,11 @@ async function runSyncAttempt({ headless, onProgress }) {
 
 export async function syncInbox({ onProgress } = {}) {
   try {
-    return await runSyncAttempt({ headless: true, onProgress });
+    return await runSyncAttempt({ headless: false, onProgress });
   } catch (err) {
     if (/bejelentkezve/i.test(err.message)) throw err;
-    onProgress?.('Újrapróbálás látható böngészővel…');
-    return runSyncAttempt({ headless: false, onProgress });
+    onProgress?.('Újrapróbálás headless módban…');
+    return runSyncAttempt({ headless: true, onProgress });
   }
 }
 

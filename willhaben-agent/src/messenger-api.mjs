@@ -26,8 +26,10 @@ function asString(value) {
 function pick(obj, keys) {
   if (!obj || typeof obj !== 'object') return null;
   for (const key of keys) {
-    const value = asString(obj[key]);
-    if (value) return value;
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = asString(obj[key]);
+      if (value) return value;
+    }
   }
   return null;
 }
@@ -58,35 +60,101 @@ function findUuidLike(obj) {
   return null;
 }
 
+const ID_KEYS = [
+  'id',
+  'conversationId',
+  'threadId',
+  'uuid',
+  'chatId',
+  'messageThreadId',
+  'messengerConversationId',
+  'conversationUuid',
+  'conversation_uuid',
+];
+
+const PARTNER_KEYS = [
+  'partnerName',
+  'counterpartName',
+  'buyerName',
+  'sellerName',
+  'participantName',
+  'userName',
+  'displayName',
+  'name',
+  'partnerDisplayName',
+  'contactName',
+  'interlocutorName',
+  'seller_name',
+  'buyer_name',
+  'participant_name',
+  'display_name',
+  'contact_name',
+  'partner_name',
+  'counterpart_name',
+];
+
+const AD_TITLE_KEYS = [
+  'adTitle',
+  'advertTitle',
+  'listingTitle',
+  'subject',
+  'advertHeading',
+  'heading',
+  'title',
+  'advertName',
+  'adHeading',
+  'itemTitle',
+  'ad_title',
+  'advert_title',
+  'listing_title',
+  'ad_heading',
+];
+
+const PREVIEW_KEYS = [
+  'lastPreview',
+  'lastMessage',
+  'preview',
+  'snippet',
+  'lastMessageText',
+  'messagePreview',
+  'lastMessagePreview',
+  'text',
+  'lastMessageContent',
+  'last_message_text',
+  'last_message_preview',
+  'message_preview',
+  'preview_text',
+  'snippet_text',
+  'latest_message_text',
+];
+
+const MESSAGE_TEXT_KEYS = [
+  'text',
+  'body',
+  'content',
+  'message',
+  'messageText',
+  'messageContent',
+  'message_text',
+  'message_body',
+  'message_content',
+  'body_text',
+  'content_text',
+];
+
+function pickId(obj) {
+  return pick(obj, ID_KEYS) || findUuidLike(obj);
+}
+
 function looksLikeConversation(obj) {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
 
-  const id = pick(obj, [
-    'id',
-    'conversationId',
-    'threadId',
-    'uuid',
-    'chatId',
-    'messageThreadId',
-    'messengerConversationId',
-    'conversationUuid',
-  ]) || findUuidLike(obj);
-
+  const id = pickId(obj);
+  if (pick(obj, ['conversation_uuid', 'conversationUuid', 'conversationId'])) return true;
+  if (pick(obj, ['ad_uuid', 'adUuid']) && (pick(obj, AD_TITLE_KEYS) || pick(obj, PARTNER_KEYS))) return true;
   if (!id) return false;
 
-  const partner = pick(obj, [
-    'partnerName',
-    'counterpartName',
-    'buyerName',
-    'sellerName',
-    'participantName',
-    'userName',
-    'displayName',
-    'name',
-    'partnerDisplayName',
-    'contactName',
-    'interlocutorName',
-  ]) || pickNested(obj, [
+  const partner = pick(obj, PARTNER_KEYS) || pickNested(obj, [
     ['partner', 'name'],
     ['partner', 'displayName'],
     ['counterpart', 'name'],
@@ -96,44 +164,27 @@ function looksLikeConversation(obj) {
     ['otherParticipant', 'name'],
     ['contact', 'name'],
     ['interlocutor', 'name'],
+    ['participant', 'display_name'],
+    ['seller', 'name'],
   ]);
 
-  const adTitle = pick(obj, [
-    'adTitle',
-    'advertTitle',
-    'listingTitle',
-    'subject',
-    'advertHeading',
-    'heading',
-    'title',
-    'advertName',
-    'adHeading',
-    'itemTitle',
-  ]) || pickNested(obj, [
+  const adTitle = pick(obj, AD_TITLE_KEYS) || pickNested(obj, [
     ['advert', 'heading'],
     ['advert', 'title'],
-    ['advert', 'description'],
+    ['advert', 'ad_title'],
     ['ad', 'title'],
     ['listing', 'title'],
     ['adDetail', 'heading'],
   ]);
 
-  const preview = pick(obj, [
-    'lastPreview',
-    'lastMessage',
-    'preview',
-    'snippet',
-    'lastMessageText',
-    'messagePreview',
-    'lastMessagePreview',
-    'text',
-    'lastMessageContent',
-  ]) || pickNested(obj, [
+  const preview = pick(obj, PREVIEW_KEYS) || pickNested(obj, [
     ['lastMessage', 'text'],
     ['lastMessage', 'body'],
     ['lastMessage', 'content'],
+    ['last_message', 'text'],
     ['latestMessage', 'text'],
     ['mostRecentMessage', 'text'],
+    ['latest_message', 'text'],
   ]);
 
   return Boolean(
@@ -141,27 +192,28 @@ function looksLikeConversation(obj) {
     || adTitle
     || preview
     || obj.messages
+    || obj.message_list
     || obj.lastMessageAt
+    || obj.last_message_at
     || obj.updatedAt
+    || obj.updated_at
     || obj.modifiedAt
+    || obj.modified_at
     || obj.advertId
+    || obj.advert_id
     || obj.adId
+    || obj.ad_id
+    || obj.ad_uuid
   );
 }
 
 function looksLikeMessage(obj) {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
-  const text = pick(obj, [
-    'text',
-    'body',
-    'content',
-    'message',
-    'messageText',
-    'messageContent',
-  ]) || pickNested(obj, [
+  const text = pick(obj, MESSAGE_TEXT_KEYS) || pickNested(obj, [
     ['content', 'text'],
     ['payload', 'text'],
     ['message', 'text'],
+    ['message', 'body'],
   ]);
   return Boolean(text);
 }
@@ -190,6 +242,9 @@ function findArrays(node, predicate, depth = 0, out = []) {
       'elements',
       'conversationSummaries',
       'summaries',
+      'conversation_summaries',
+      'message_list',
+      'messageList',
     ]) {
       if (Array.isArray(node[key]) && node[key].some(predicate)) {
         out.push(node[key]);
@@ -212,32 +267,11 @@ export function parseConversationsPayload(payload) {
   const seen = new Set();
 
   return best.map((raw) => {
-    const id = pick(raw, [
-      'id',
-      'conversationId',
-      'threadId',
-      'uuid',
-      'chatId',
-      'messageThreadId',
-      'messengerConversationId',
-      'conversationUuid',
-    ]) || findUuidLike(raw);
+    const id = pickId(raw);
     if (!id || seen.has(id)) return null;
     seen.add(id);
 
-    const partnerName = pick(raw, [
-      'partnerName',
-      'counterpartName',
-      'buyerName',
-      'sellerName',
-      'participantName',
-      'userName',
-      'displayName',
-      'name',
-      'partnerDisplayName',
-      'contactName',
-      'interlocutorName',
-    ]) || pickNested(raw, [
+    const partnerName = pick(raw, PARTNER_KEYS) || pickNested(raw, [
       ['partner', 'name'],
       ['partner', 'displayName'],
       ['counterpart', 'name'],
@@ -247,54 +281,56 @@ export function parseConversationsPayload(payload) {
       ['otherParticipant', 'name'],
       ['contact', 'name'],
       ['interlocutor', 'name'],
+      ['participant', 'display_name'],
     ]) || 'Ismeretlen';
 
-    const adTitle = pick(raw, [
-      'adTitle',
-      'advertTitle',
-      'listingTitle',
-      'subject',
-      'advertHeading',
-      'heading',
-      'title',
-      'advertName',
-      'adHeading',
-      'itemTitle',
-    ]) || pickNested(raw, [
+    const adTitle = pick(raw, AD_TITLE_KEYS) || pickNested(raw, [
       ['advert', 'heading'],
       ['advert', 'title'],
+      ['advert', 'ad_title'],
       ['ad', 'title'],
       ['listing', 'title'],
       ['adDetail', 'heading'],
     ]) || '';
 
-    const lastPreview = pick(raw, [
-      'lastPreview',
-      'lastMessage',
-      'preview',
-      'snippet',
-      'lastMessageText',
-      'messagePreview',
-      'lastMessagePreview',
-      'lastMessageContent',
-    ]) || pickNested(raw, [
+    const lastPreview = pick(raw, PREVIEW_KEYS) || pickNested(raw, [
       ['lastMessage', 'text'],
       ['lastMessage', 'body'],
       ['lastMessage', 'content'],
+      ['last_message', 'text'],
       ['latestMessage', 'text'],
       ['mostRecentMessage', 'text'],
+      ['latest_message', 'text'],
     ]) || '';
 
     const lastMessageAt = parseTimestamp(
-      pick(raw, ['lastMessageAt', 'updatedAt', 'modifiedAt', 'lastUpdated', 'timestamp', 'lastModified'])
-      || pickNested(raw, [['lastMessage', 'createdAt'], ['lastMessage', 'sentAt']])
+      pick(raw, [
+        'lastMessageAt',
+        'updatedAt',
+        'modifiedAt',
+        'lastUpdated',
+        'timestamp',
+        'lastModified',
+        'last_message_at',
+        'updated_at',
+        'modified_at',
+      ])
+      || pickNested(raw, [
+        ['lastMessage', 'createdAt'],
+        ['lastMessage', 'sentAt'],
+        ['last_message', 'sent_at'],
+        ['last_message', 'created_at'],
+      ])
     ) || new Date().toISOString();
 
     const unread = Boolean(
       raw.unread
       || raw.hasUnreadMessages
+      || raw.has_unread_messages
       || raw.unreadCount > 0
+      || raw.unread_count > 0
       || raw.isUnread
+      || raw.is_unread
     );
 
     const url = pick(raw, ['url', 'conversationUrl', 'chatUrl', 'link'])
@@ -318,38 +354,59 @@ export function parseMessagesPayload(payload) {
   const best = arrays.sort((a, b) => b.length - a.length)[0] || [];
 
   return best.map((raw, index) => {
-    const text = pick(raw, [
-      'text',
-      'body',
-      'content',
-      'message',
-      'messageText',
-      'messageContent',
-    ]) || pickNested(raw, [
+    const text = pick(raw, MESSAGE_TEXT_KEYS) || pickNested(raw, [
       ['content', 'text'],
       ['payload', 'text'],
       ['message', 'text'],
+      ['message', 'body'],
     ]);
     if (!text) return null;
 
     const directionRaw = (
-      pick(raw, ['direction', 'messageDirection', 'type', 'senderType', 'authorType', 'messageType']) || ''
+      pick(raw, [
+        'direction',
+        'messageDirection',
+        'type',
+        'senderType',
+        'authorType',
+        'messageType',
+        'message_type',
+        'sender_type',
+      ]) || ''
     ).toLowerCase();
 
     const fromSelf = raw.fromSelf
+      ?? raw.from_self
       ?? raw.isOwnMessage
+      ?? raw.is_own_message
       ?? raw.ownMessage
+      ?? raw.own_message
       ?? raw.sentByMe
+      ?? raw.sent_by_me
       ?? raw.outgoing
       ?? raw.mine
+      ?? raw.is_sender
+      ?? raw.isSender
       ?? /out|own|self|sent|seller|me|outgoing|author/.test(directionRaw);
 
     const at = parseTimestamp(
-      pick(raw, ['at', 'sentAt', 'createdAt', 'timestamp', 'messageDate', 'date', 'sentDate'])
+      pick(raw, [
+        'at',
+        'sentAt',
+        'sent_at',
+        'createdAt',
+        'created_at',
+        'timestamp',
+        'messageDate',
+        'message_date',
+        'date',
+        'sentDate',
+        'sent_date',
+      ])
     ) || new Date().toISOString();
 
     return {
-      id: pick(raw, ['id', 'messageId', 'uuid']) || `m${index}`,
+      id: pick(raw, ['id', 'messageId', 'message_id', 'uuid']) || `m${index}`,
       direction: fromSelf ? 'out' : 'in',
       text,
       at,
@@ -509,24 +566,33 @@ export async function probeConversationPaths(context, page) {
 
 export async function fetchConversations(context, { page } = {}) {
   const { probes, unauthorized } = await probeConversationPaths(context, page);
+  let best = null;
+  const rawSamples = [];
 
   for (const probe of probes) {
-    if (!probe.ok || !probe.parsedCount) continue;
+    if (!probe.ok) continue;
     const result = page
       ? await fetchJsonViaPage(page, probe.path)
       : await fetchJson(context, probe.path);
+    if (!result.data) continue;
+
     const conversations = parseConversationsPayload(result.data);
-    if (conversations.length) {
-      return {
-        conversations,
-        unauthorized: false,
-        source: probe.path,
-        probes,
-      };
+    rawSamples.push({
+      path: probe.path,
+      parsedCount: conversations.length,
+      keys: result.data && typeof result.data === 'object' ? Object.keys(result.data).slice(0, 20) : [],
+    });
+
+    if (conversations.length && (!best || conversations.length > best.conversations.length)) {
+      best = { conversations, source: probe.path, probes, rawSamples };
     }
   }
 
-  return { conversations: [], unauthorized, source: null, probes };
+  if (best) {
+    return { ...best, unauthorized: false };
+  }
+
+  return { conversations: [], unauthorized, source: null, probes, rawSamples };
 }
 
 export async function fetchMessages(context, conversationId, { page } = {}) {
