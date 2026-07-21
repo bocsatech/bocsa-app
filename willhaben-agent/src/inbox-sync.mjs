@@ -12,10 +12,13 @@ import {
 } from './store.mjs';
 import {
   attachCapturedPayloads,
+  extractAccessToken,
   fetchConversations,
   fetchMessages,
   installNetworkCapture,
   isMessengerUrl,
+  parseMessagesPayload,
+  saveCapturedRaw,
   saveSyncDebug,
   sendMessageViaApi,
 } from './messenger-api.mjs';
@@ -24,59 +27,36 @@ async function isLoginPage(page) {
   const url = page.url();
   if (/sso\.willhaben\.at|\/auth\/|\/iad\/myprofile\/login/i.test(url)) return true;
 
-  const hasLoginHeading = await page.getByRole('heading', { name: /einloggen|anmelden/i })
-    .isVisible({ timeout: 1500 })
-    .catch(() => false);
-  if (hasLoginHeading) return true;
-
   const hasPassword = await page.locator('input[type="password"]')
     .first()
     .isVisible({ timeout: 1500 })
     .catch(() => false);
   if (hasPassword) return true;
 
-  const hasEmailLogin = await page.locator('input[type="email"], input[name="username"]')
-    .first()
+  const hasLoginHeading = await page.getByRole('heading', { name: /einloggen|anmelden/i })
     .isVisible({ timeout: 1000 })
     .catch(() => false);
-  const hasLoginButton = await page.getByRole('button', { name: /einloggen|anmelden/i })
-    .first()
-    .isVisible({ timeout: 1000 })
-    .catch(() => false);
-  return hasEmailLogin && hasLoginButton;
+  return hasLoginHeading;
 }
 
 async function ensureLoggedIn(page) {
   if (await isLoginPage(page)) {
-    throw new Error('Nincs bejelentkezve. Futtasd: npm run login');
+    throw new Error('Nincs bejelentkezve. Futtasd az asztali LOGIN ikont, vagy: wh-agent login');
   }
 }
 
 async function warmSession(page) {
   await page.goto('https://www.willhaben.at/', { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
   await dismissConsent(page);
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1000);
 }
 
-async function extractFromNextData(page) {
-  const data = await page.evaluate(() => {
-    const el = document.getElementById('__NEXT_DATA__');
-    if (!el?.textContent) return null;
-    try {
-      return JSON.parse(el.textContent);
-    } catch {
-      return null;
-    }
-  }).catch(() => null);
-  if (!data) return [];
-  return attachCapturedPayloads([{ url: '__NEXT_DATA__', json: data }], []);
-}
-
-async function waitForChatReady(page, chatUrl, timeoutMs = 60000) {
+async function waitForChatReady(page, chatUrl, timeoutMs = 90000) {
   await warmSession(page);
 
   const messengerResponse = page.waitForResponse(
-    (response) => isMessengerUrl(response.url()) && response.status() === 200,
+    (response) => (isMessengerUrl(response.url()) || /webapi.*(conversation|thread|messenger|chat)/i.test(response.url()))
+      && response.status() === 200,
     { timeout: timeoutMs },
   ).catch(() => null);
 
@@ -84,7 +64,15 @@ async function waitForChatReady(page, chatUrl, timeoutMs = 60000) {
   await dismissConsent(page);
   await page.waitForLoadState('networkidle', { timeout: timeoutMs }).catch(() => {});
   await messengerResponse;
-  await page.waitForTimeout(2500);
+
+  // Give the SPA time to hydrate with OAuth token + load inbox
+  for (let i = 0; i < 8; i++) {
+    await page.waitForTimeout(1500);
+    const hasList = await page.locator(
+      'a[href*="/iad/myprofile/chat/"], [data-testid*="conversation"], [role="listitem"], main li, main button',
+    ).first().isVisible({ timeout: 500 }).catch(() => false);
+    if (hasList) break;
+  }
 }
 
 async function saveDebugSnapshot(page, label) {
@@ -101,94 +89,6 @@ async function saveDebugSnapshot(page, label) {
   }
 }
 
-async function threadMeta(el) {
-  const text = ((await el.innerText().catch(() => '')) || '').trim();
-  const link = el.locator('a[href*="/iad/myprofile/chat/"], a[href*="conversation"], a[href*="thread"]').first();
-  let href = (await link.getAttribute('href').catch(() => null)) || '';
-  if (href && !href.startsWith('http')) href = new URL(href, 'https://www.willhaben.at').href;
-  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-  return {
-    id: makeConversationId(href || text),
-    url: href || null,
-    partnerName: lines[0] || 'Ismeretlen',
-    adTitle: lines[1] || '',
-    lastPreview: lines.at(-1) || '',
-    unread: /ungelesen|neu\b|unread/i.test(text),
-    lastMessageAt: new Date().toISOString(),
-  };
-}
-
-async function listThreadsFromDom(page) {
-  await page.waitForTimeout(1500);
-
-  for (const sel of [
-    '[data-testid*="conversation-list"] [data-testid*="conversation"]',
-    '[data-testid*="conversation"]',
-    '[data-testid*="thread"]',
-    'a[href*="/iad/myprofile/chat/"]',
-    '[role="listitem"]',
-    'main li',
-  ]) {
-    const items = page.locator(sel);
-    const count = await items.count().catch(() => 0);
-    if (!count) continue;
-
-    const out = [];
-    for (let i = 0; i < Math.min(count, 60); i++) {
-      try {
-        const meta = await threadMeta(items.nth(i));
-        if (!meta.partnerName && !meta.adTitle && !meta.lastPreview) continue;
-        if (meta.url && meta.url.endsWith('/iad/myprofile/chat')) continue;
-        out.push(meta);
-      } catch {
-        /* skip */
-      }
-    }
-    if (out.length) return out;
-  }
-  return [];
-}
-
-async function readMessagesFromDom(page) {
-  await page.waitForTimeout(1000);
-  for (const sel of [
-    '[data-testid*="message-list"] [data-testid*="message"]',
-    '[data-testid*="message"]',
-    '[role="log"] > *',
-    'main [class*="message"]',
-  ]) {
-    const nodes = page.locator(sel);
-    const count = await nodes.count().catch(() => 0);
-    if (!count) continue;
-    const msgs = [];
-    for (let i = 0; i < count; i++) {
-      const node = nodes.nth(i);
-      const text = ((await node.innerText().catch(() => '')) || '').trim();
-      if (!text) continue;
-      const cls = ((await node.getAttribute('class')) || '').toLowerCase();
-      const aria = ((await node.getAttribute('aria-label')) || '').toLowerCase();
-      const direction = /outgoing|sent|own|self|outbound/.test(`${cls} ${aria}`) ? 'out' : 'in';
-      msgs.push({ id: `m${i}`, direction, text, at: new Date().toISOString() });
-    }
-    if (msgs.length) return msgs;
-  }
-  return [];
-}
-
-async function openThread(page, thread, chatUrl) {
-  if (thread.url) {
-    await page.goto(thread.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  } else if (thread.id) {
-    await page.goto(`${chatUrl}/${encodeURIComponent(thread.id)}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  } else {
-    await page.goto(chatUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    const link = page.getByText(thread.partnerName, { exact: false }).first();
-    if (await link.isVisible({ timeout: 3000 }).catch(() => false)) await link.click();
-  }
-  await dismissConsent(page);
-  await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
-}
-
 function normalizeConversation(thread) {
   const id = thread.id || makeConversationId(thread.url || `${thread.partnerName}:${thread.adTitle}`);
   return {
@@ -202,10 +102,174 @@ function normalizeConversation(thread) {
   };
 }
 
+/** Extract conversation list from the live DOM after SPA render. */
+async function listThreadsFromDom(page) {
+  const items = await page.evaluate(() => {
+    const out = [];
+    const seen = new Set();
+
+    const candidates = [
+      ...document.querySelectorAll('a[href*="/iad/myprofile/chat/"]'),
+      ...document.querySelectorAll('[data-testid*="conversation"]'),
+      ...document.querySelectorAll('[data-testid*="thread"]'),
+      ...document.querySelectorAll('[role="listitem"]'),
+      ...document.querySelectorAll('main li'),
+      ...document.querySelectorAll('aside button, nav button, [class*="conversation"] button, [class*="thread"] button'),
+    ];
+
+    for (const el of candidates) {
+      const href = el.getAttribute?.('href') || el.querySelector?.('a')?.getAttribute('href') || '';
+      const text = (el.innerText || el.textContent || '').trim();
+      if (!text || text.length < 2) continue;
+      if (/einloggen|anmelden|cookie|datenschutz|hilfe/i.test(text) && text.length < 40) continue;
+
+      const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+      const key = href || lines.slice(0, 2).join('|');
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      let fullHref = href;
+      if (fullHref && !fullHref.startsWith('http')) {
+        fullHref = new URL(fullHref, location.origin).href;
+      }
+      if (fullHref && /\/iad\/myprofile\/chat\/?$/.test(fullHref)) continue;
+
+      out.push({
+        href: fullHref || null,
+        lines,
+        text: text.slice(0, 400),
+      });
+    }
+    return out.slice(0, 80);
+  });
+
+  return items.map((item) => {
+    const seed = item.href || item.text;
+    return {
+      id: makeConversationId(seed),
+      url: item.href,
+      partnerName: item.lines[0] || 'Ismeretlen',
+      adTitle: item.lines[1] || '',
+      lastPreview: item.lines.at(-1) || '',
+      unread: /ungelesen|neu\b|unread/i.test(item.text),
+      lastMessageAt: new Date().toISOString(),
+      _dom: true,
+    };
+  });
+}
+
+async function readMessagesFromDom(page) {
+  const msgs = await page.evaluate(() => {
+    const nodes = [
+      ...document.querySelectorAll('[data-testid*="message"]'),
+      ...document.querySelectorAll('[role="log"] > *'),
+      ...document.querySelectorAll('[class*="message"]'),
+      ...document.querySelectorAll('main [class*="Message"]'),
+    ];
+    const out = [];
+    const seen = new Set();
+    for (const node of nodes) {
+      const text = (node.innerText || node.textContent || '').trim();
+      if (!text || text.length < 1 || text.length > 4000) continue;
+      if (seen.has(text)) continue;
+      seen.add(text);
+      const cls = `${node.className || ''} ${node.getAttribute('aria-label') || ''}`.toLowerCase();
+      const direction = /outgoing|sent|own|self|outbound|me\b/.test(cls) ? 'out' : 'in';
+      out.push({ text, direction });
+    }
+    return out.slice(0, 200);
+  });
+
+  return msgs.map((m, i) => ({
+    id: `m${i}`,
+    direction: m.direction,
+    text: m.text,
+    at: new Date().toISOString(),
+  }));
+}
+
+async function openThread(page, thread, chatUrl) {
+  if (thread.url) {
+    await page.goto(thread.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  } else if (thread.id && !thread._dom) {
+    await page.goto(`${chatUrl}/${encodeURIComponent(thread.id)}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  } else {
+    await page.goto(chatUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const link = page.getByText(thread.partnerName, { exact: false }).first();
+    if (await link.isVisible({ timeout: 4000 }).catch(() => false)) {
+      await link.click({ timeout: 8000 }).catch(() => {});
+    }
+  }
+  await dismissConsent(page);
+  await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(1200);
+}
+
+/** Click each conversation in the list and scrape messages — most reliable for SPA. */
+async function importViaDomClicks(page, chatUrl, onProgress) {
+  await page.goto(chatUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await dismissConsent(page);
+  await page.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(2000);
+
+  const threads = await listThreadsFromDom(page);
+  if (!threads.length) return [];
+
+  const results = [];
+  for (let i = 0; i < Math.min(threads.length, 40); i++) {
+    const t = threads[i];
+    onProgress?.(`DOM ${i + 1}/${threads.length}: ${t.partnerName}`);
+
+    try {
+      if (t.url) {
+        await page.goto(t.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      } else {
+        await page.goto(chatUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        const clickable = page.getByText(t.partnerName, { exact: false }).first();
+        if (await clickable.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await clickable.click({ timeout: 8000 });
+        }
+      }
+      await page.waitForTimeout(1500);
+      const messages = await readMessagesFromDom(page);
+      results.push({
+        ...normalizeConversation(t),
+        messages: messages.length ? messages : undefined,
+        syncedAt: new Date().toISOString(),
+      });
+    } catch {
+      results.push({ ...normalizeConversation(t), syncedAt: new Date().toISOString() });
+    }
+  }
+  return results;
+}
+
+function messagesFromCaptured(captured, conversationId) {
+  const all = [];
+  for (const item of captured) {
+    if (!item.json) continue;
+    if (conversationId && item.url && !item.url.includes(conversationId) && !/message/i.test(item.url)) {
+      // still try parse — some payloads nest everything
+    }
+    const msgs = parseMessagesPayload(item.json);
+    for (const m of msgs) all.push(m);
+  }
+  // de-dupe by text+direction
+  const seen = new Set();
+  return all.filter((m) => {
+    const k = `${m.direction}:${m.text}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 async function runSyncAttempt({ headless, onProgress }) {
   const config = loadConfig();
   const { context } = await launchBrowser(getProfileDir(), { headless });
   const page = context.pages()[0] || (await context.newPage());
+
+  // CRITICAL: capture SPA traffic BEFORE any navigation — SPA has OAuth token
   const captured = installNetworkCapture(page);
 
   try {
@@ -213,66 +277,91 @@ async function runSyncAttempt({ headless, onProgress }) {
     await waitForChatReady(page, config.chatUrl);
     await ensureLoggedIn(page);
 
-    onProgress?.('Beszélgetések lekérése (API)…');
-    let { conversations, unauthorized, source, probes, rawSamples } = await fetchConversations(context, { page });
+    const accessToken = await extractAccessToken(page);
+    onProgress?.(accessToken ? 'Token OK — API lekérés…' : 'Token nincs — SPA capture + DOM…');
 
-    if (unauthorized) {
-      throw new Error('Nincs bejelentkezve. Futtasd: npm run login');
-    }
+    let conversations = [];
+    let source = null;
+    let probes = [];
+    let rawSamples = [];
 
-    if (!conversations.length && captured.length) {
+    // 1) Network capture from SPA's own authenticated requests
+    if (captured.length) {
       conversations = attachCapturedPayloads(captured, []);
-      if (conversations.length) source = 'network-capture';
+      if (conversations.length) source = 'spa-network-capture';
     }
 
+    // 2) API with bearer token from localStorage
     if (!conversations.length) {
-      onProgress?.('__NEXT_DATA__…');
-      conversations = await extractFromNextData(page);
-      if (conversations.length) source = '__NEXT_DATA__';
+      const api = await fetchConversations(context, { page, accessToken });
+      conversations = api.conversations;
+      probes = api.probes;
+      rawSamples = api.rawSamples;
+      if (conversations.length) source = api.source;
+      if (api.unauthorized && !accessToken) {
+        // not fatal yet — try DOM
+      }
     }
 
+    // 3) DOM list
     if (!conversations.length) {
-      onProgress?.('DOM fallback…');
+      onProgress?.('DOM lista…');
       conversations = await listThreadsFromDom(page);
-      if (conversations.length) source = 'dom';
+      if (conversations.length) source = 'dom-list';
     }
 
+    const capturedFile = saveCapturedRaw(captured);
     const debugFile = saveSyncDebug('sync-probe', {
       headless,
       pageUrl: page.url(),
-      capturedUrls: captured.map((c) => c.url),
-      capturedSamples: captured.slice(0, 3).map((c) => ({
-        url: c.url,
-        topKeys: c.json && typeof c.json === 'object' ? Object.keys(c.json).slice(0, 15) : [],
-      })),
+      hasAccessToken: Boolean(accessToken),
+      capturedCount: captured.length,
+      capturedUrls: captured.map((c) => c.url).slice(0, 40),
+      capturedFile,
       probes,
       rawSamples,
       conversationCount: conversations.length,
       source,
     });
 
+    // 4) Full DOM click-through import (most reliable when API shape unknown)
+    if (!conversations.length) {
+      onProgress?.('DOM kattintásos import…');
+      const domConvs = await importViaDomClicks(page, config.chatUrl, onProgress);
+      if (domConvs.length) {
+        const store = loadStore();
+        for (const c of domConvs) upsertConversation(store, c);
+        store.lastSyncAt = new Date().toISOString();
+        store.lastSyncError = null;
+        store.lastSyncDebug = { source: 'dom-click', debugFile, capturedFile };
+        saveStore(store);
+        return { ok: true, count: domConvs.length, source: 'dom-click' };
+      }
+    }
+
     if (!conversations.length) {
       const debugDir = await saveDebugSnapshot(page, 'sync-empty');
-      const statusLines = (probes || []).map((p) => `${p.path} → ${p.status} (${p.parsedCount})`).join('; ');
       throw new Error(
-        `Nem található beszélgetés. API: ${statusLines || 'nincs válasz'}. `
-        + 'Futtasd újra: npm run login'
-        + (debugDir ? ` Debug: ${debugDir}` : '')
-        + (debugFile ? ` Log: ${debugFile}` : ''),
+        'Nem található beszélgetés. '
+        + '1) Asztali LOGIN → várj a chat listára → zárd be. '
+        + '2) SZINKRON újra. '
+        + (debugDir ? `Debug: ${debugDir}` : '')
+        + (capturedFile ? ` Capture: ${capturedFile}` : ''),
       );
     }
 
     const store = loadStore();
-    onProgress?.(`${conversations.length} beszélgetés${source ? ` (${source})` : ''}`);
+    onProgress?.(`${conversations.length} beszélgetés (${source})`);
 
     for (let i = 0; i < conversations.length; i++) {
       const t = normalizeConversation(conversations[i]);
       onProgress?.(`${i + 1}/${conversations.length}: ${t.partnerName}`);
 
-      let messages = await fetchMessages(context, t.id, { page });
+      let messages = await fetchMessages(context, t.id, { page, accessToken });
+      if (!messages.length) messages = messagesFromCaptured(captured, t.id);
       if (!messages.length) {
         try {
-          await openThread(page, t, config.chatUrl);
+          await openThread(page, conversations[i], config.chatUrl);
           messages = await readMessagesFromDom(page);
         } catch {
           /* meta only */
@@ -288,7 +377,7 @@ async function runSyncAttempt({ headless, onProgress }) {
 
     store.lastSyncAt = new Date().toISOString();
     store.lastSyncError = null;
-    store.lastSyncDebug = { source, probes, debugFile };
+    store.lastSyncDebug = { source, probes, debugFile, capturedFile, hasAccessToken: Boolean(accessToken) };
     saveStore(store);
     return { ok: true, count: conversations.length, source };
   } catch (err) {
@@ -303,11 +392,12 @@ async function runSyncAttempt({ headless, onProgress }) {
 }
 
 export async function syncInbox({ onProgress } = {}) {
+  // Visible browser first — same profile as login, SPA can load OAuth
   try {
     return await runSyncAttempt({ headless: false, onProgress });
   } catch (err) {
-    if (/bejelentkezve/i.test(err.message)) throw err;
-    onProgress?.('Újrapróbálás headless módban…');
+    if (/bejelentkezve|LOGIN/i.test(err.message)) throw err;
+    onProgress?.('Újrapróbálás headless…');
     return runSyncAttempt({ headless: true, onProgress });
   }
 }
@@ -319,14 +409,15 @@ export async function sendReply(conversationId, text) {
   if (!conv) throw new Error('Nincs ilyen beszélgetés');
   if (!text?.trim()) throw new Error('Üres üzenet');
 
-  const { context } = await launchBrowser(getProfileDir(), { headless: true });
+  const { context } = await launchBrowser(getProfileDir(), { headless: false });
   const page = context.pages()[0] || (await context.newPage());
 
   try {
     await openThread(page, conv, config.chatUrl);
     await ensureLoggedIn(page);
+    const accessToken = await extractAccessToken(page);
 
-    const sentViaApi = await sendMessageViaApi(context, conversationId, text.trim(), { page });
+    const sentViaApi = await sendMessageViaApi(context, conversationId, text.trim(), { page, accessToken });
     if (!sentViaApi) {
       const selectors = [
         'textarea[placeholder*="Nachricht"]',
@@ -342,7 +433,7 @@ export async function sendReply(conversationId, text) {
           break;
         }
       }
-      if (!input) throw new Error('Nincs üzenetmező — jelentkezz be újra: npm run login');
+      if (!input) throw new Error('Nincs üzenetmező — futtasd újra a LOGIN ikont');
 
       await input.fill(text.trim());
       const send = page.getByRole('button', { name: /senden|absenden|send/i }).first();

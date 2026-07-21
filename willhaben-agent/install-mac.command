@@ -1,11 +1,11 @@
 #!/bin/bash
-# Willhaben Agent — egygombos telepítő 1.2.0
+# Willhaben Agent — egygombos telepítő 1.3.0
 # BÁRHONNAN futtatható (nem kell cd):
 #   curl -fsSL "https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command" | bash
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-INSTALLER_VERSION="1.2.0"
+INSTALLER_VERSION="1.3.0"
 TARGET="${HOME}/Downloads/Willhaben Agent"
 RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
 
