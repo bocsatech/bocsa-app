@@ -1,11 +1,11 @@
 #!/bin/bash
-# Willhaben Agent — egygombos telepítő 1.3.0
+# Willhaben Agent — egygombos telepítő 1.3.1
 # BÁRHONNAN futtatható (nem kell cd):
 #   curl -fsSL "https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command" | bash
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-INSTALLER_VERSION="1.3.0"
+INSTALLER_VERSION="1.3.1"
 TARGET="${HOME}/Downloads/Willhaben Agent"
 RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
 
@@ -138,9 +138,19 @@ export PATH=\"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:\$PATH\"
 exec bash \"${TARGET}/install-mac.command\""
 
 write_launcher "${DESKTOP}/Willhaben Agent LOGIN.command" "#!/bin/bash
-set -euo pipefail
+set -uo pipefail
 export PATH=\"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:\$PATH\"
-exec bash \"${TARGET}/mac-launcher/Login.command\""
+cd \"${TARGET}\" || { echo \"Hiányzik: ${TARGET}\"; read -r; exit 1; }
+echo \"Willhaben Agent LOGIN\"
+echo \"Playwright böngésző…\"
+npx playwright install chromium 2>/dev/null || true
+echo \"Böngésző indítása — nézd a Dockot, ha nem látod az ablakot.\"
+node src/login.mjs
+CODE=\$?
+echo \"\"
+[ \$CODE -eq 0 ] && echo \"✅ Kész — következő: SZINKRON\" || echo \"❌ Hiba (\$CODE)\"
+read -r -p \"Enter…\" _
+exit \$CODE"
 
 write_launcher "${DESKTOP}/Willhaben Agent SZINKRON.command" "#!/bin/bash
 set -euo pipefail
