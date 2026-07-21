@@ -107,9 +107,11 @@ async function listThreadsFromDom(page) {
   const items = await page.evaluate(() => {
     const out = [];
     const seen = new Set();
+    const junkLine = (t) => /zuletzt online|willhaben-?code|vor \d|ungelesen|cookie|datenschutz|einloggen|anmelden|hilfe|^(heute|gestern|today|yesterday)$/i.test(String(t || '').trim());
 
     const candidates = [
       ...document.querySelectorAll('a[href*="/iad/myprofile/chat/"]'),
+      ...document.querySelectorAll('a[href*="/iad/messenger"]'),
       ...document.querySelectorAll('[data-testid*="conversation"]'),
       ...document.querySelectorAll('[data-testid*="thread"]'),
       ...document.querySelectorAll('[role="listitem"]'),
@@ -124,6 +126,10 @@ async function listThreadsFromDom(page) {
       if (/einloggen|anmelden|cookie|datenschutz|hilfe/i.test(text) && text.length < 40) continue;
 
       const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+      if (!lines.length || junkLine(lines[0])) continue;
+      // Metadata rows mistaken as conversations
+      if (lines.every((l) => junkLine(l) || /^\d{1,2}:\d{2}$/.test(l))) continue;
+
       const key = href || lines.slice(0, 2).join('|');
       if (seen.has(key)) continue;
       seen.add(key);
@@ -133,6 +139,7 @@ async function listThreadsFromDom(page) {
         fullHref = new URL(fullHref, location.origin).href;
       }
       if (fullHref && /\/iad\/myprofile\/chat\/?$/.test(fullHref)) continue;
+      if (fullHref && /\/iad\/messenger\/?(\?.*)?$/.test(fullHref)) continue;
 
       out.push({
         href: fullHref || null,
@@ -155,12 +162,17 @@ async function listThreadsFromDom(page) {
       lastMessageAt: new Date().toISOString(),
       _dom: true,
     };
-  });
+  }).filter((t) => !isJunkListPartner(t.partnerName, t.adTitle, t.lastPreview));
+}
+
+function isJunkListPartner(...parts) {
+  const blob = parts.filter(Boolean).join(' ');
+  return /zuletzt online|willhaben-?code|optimizely|audience|feature.?flag|^(heute|gestern)$/i.test(blob);
 }
 
 /**
- * Only scrape message bubbles from the active thread pane — never the sidebar list
- * (sidebar previews would otherwise bleed into every conversation).
+ * Leaf message bubbles only — never the whole thread container
+ * (which produced the grey "Heute + all messages" dump).
  */
 async function readMessagesFromDom(page) {
   const msgs = await page.evaluate(() => {
@@ -177,41 +189,112 @@ async function readMessagesFromDom(page) {
       return candidates[0] || document.body;
     };
     const root = pickRoot();
-    const nodes = [
-      ...root.querySelectorAll('[data-testid*="message"]'),
-      ...root.querySelectorAll('[role="log"] > *'),
-      ...root.querySelectorAll('[class*="message" i]'),
-      ...root.querySelectorAll('[class*="Message"]'),
-    ];
+    const selector = [
+      '[data-testid*="message"]',
+      '[class*="message" i]',
+      '[class*="Message"]',
+      '[role="log"] > *',
+    ].join(', ');
+    const nodes = [...root.querySelectorAll(selector)];
+
     const out = [];
     const seen = new Set();
+
     for (const node of nodes) {
-      // Skip sidebar / list rows nested accidentally
       if (node.closest('aside, nav, [role="navigation"], [class*="conversation-list" i]')) continue;
+
+      // Skip containers that wrap other message nodes (the dump bubble)
+      const childMsgs = [...node.querySelectorAll(selector)].filter((c) => c !== node);
+      if (childMsgs.length > 0) continue;
+
       const text = (node.innerText || node.textContent || '').trim();
-      if (!text || text.length < 1 || text.length > 4000) continue;
-      // Skip multi-line list previews (partner + ad + preview stacked)
-      if ((text.match(/\n/g) || []).length > 4) continue;
+      if (!text || text.length < 1 || text.length > 2000) continue;
+
+      // Date-header dumps: "Heute\n…\n09:43\n…" (newlines OR flattened to spaces)
+      const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+      if (/^(heute|gestern|today|yesterday)\b/i.test(text) && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) continue;
+      if (/^(heute|gestern|today|yesterday)$/i.test(lines[0] || '')) continue;
+      if (lines.length >= 4 && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) continue;
+      if (lines.length > 6) continue;
+
+      // Pure timestamps / metadata
+      if (/^(heute|gestern|\d{1,2}:\d{2}|zuletzt online)/i.test(text) && lines.length <= 2) continue;
+
       if (seen.has(text)) continue;
       seen.add(text);
+
       const cls = `${node.className || ''} ${node.getAttribute('aria-label') || ''}`.toLowerCase();
-      const direction = /outgoing|sent|own|self|outbound|me\b/.test(cls) ? 'out' : 'in';
+      let direction = /outgoing|sent|own|self|outbound|me\b|from-me|message--out/i.test(cls) ? 'out' : 'in';
+      // Heuristic: our offers often contain "Ich biete" / "Lg Robert"
+      if (/ich biete|lg\s+robert|würde ich|mein angebot/i.test(text)) direction = 'out';
       out.push({ text, direction });
     }
     return out.slice(0, 200);
   });
 
-  return msgs.map((m, i) => ({
+  return sanitizeDomMessages(msgs.map((m, i) => ({
     id: `m${i}`,
     direction: m.direction,
     text: m.text,
     at: new Date().toISOString(),
-  }));
+  })));
+}
+
+/** Drop dump-like / duplicate concatenated bubbles. */
+export function sanitizeDomMessages(messages) {
+  const list = Array.isArray(messages) ? messages : [];
+  const cleaned = list.filter((m) => {
+    const text = String(m?.text || '').trim();
+    if (!text) return false;
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (/^(heute|gestern|today|yesterday)\b/i.test(text) && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) return false;
+    if (/^(heute|gestern|today|yesterday)$/i.test(lines[0] || '') && lines.length > 1) return false;
+    if (lines.length >= 4 && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) return false;
+    if (lines.length > 8) return false;
+    return true;
+  });
+
+  // Drop a bubble whose text is just the concatenation of other bubbles
+  const texts = cleaned.map((m) => m.text.trim());
+  return cleaned.filter((m, idx) => {
+    const t = m.text.trim();
+    const others = texts.filter((_, i) => i !== idx);
+    if (others.length < 2) return true;
+    const joined = others.join('\n');
+    if (t === joined || t.replace(/\s+/g, ' ') === others.join(' ')) return false;
+    // Contains two+ other full messages → dump remnant
+    let hits = 0;
+    for (const o of others) {
+      if (o.length > 12 && t.includes(o)) hits += 1;
+    }
+    return hits < 2;
+  });
 }
 
 /**
- * Verify the *active thread pane* (not document.body / sidebar) matches the conversation.
- * Sidebar always lists every partner — body.includes(partner) was always true (root bug).
+ * Reject DOM messages that greet a different person than the conversation partner.
+ */
+export function domMessagesMatchPartner(messages, partnerName) {
+  const first = String(partnerName || '').trim().split(/\s+/)[0];
+  if (!first || first.length < 3) return true;
+  const want = first.toLowerCase();
+  const greets = [];
+  for (const m of messages || []) {
+    const re = /hallo\s+([A-Za-zÄÖÜäöüß]{2,40})/gi;
+    let match;
+    while ((match = re.exec(String(m.text || '')))) {
+      greets.push(match[1].toLowerCase());
+    }
+  }
+  if (!greets.length) return true;
+  // At least one greeting should match this partner; none may be only-others
+  if (greets.some((g) => g === want || want.startsWith(g) || g.startsWith(want))) return true;
+  return false;
+}
+
+/**
+ * Verify the *active thread pane header / message log* — not the sidebar list
+ * (list lives inside main on Willhaben, so main.innerText always has every name).
  */
 async function verifyActiveThread(page, thread) {
   const partner = String(thread.partnerName || '').trim();
@@ -225,38 +308,45 @@ async function verifyActiveThread(page, thread) {
       const a = norm(ad);
       const cid = norm(id);
       const href = norm(location.href);
+      const first = p.split(/\s+/)[0];
 
       if (cid && href.includes(cid)) return true;
 
-      const panes = [
-        document.querySelector('[data-testid*="thread"]'),
-        document.querySelector('[data-testid*="chat-thread"]'),
-        document.querySelector('[role="log"]')?.closest('section, div, main'),
-        document.querySelector('main'),
-        document.querySelector('[role="main"]'),
-      ].filter(Boolean);
+      // Prefer message log + its nearby header — NOT the whole main (contains list)
+      const log = document.querySelector('[role="log"]')
+        || document.querySelector('[data-testid*="message-list"]')
+        || document.querySelector('[data-testid*="thread"]');
 
-      // Strip aside/nav clones: only keep elements that are NOT the conversation list
-      const texts = [];
-      for (const el of panes) {
-        if (/aside|nav|list/i.test(el.tagName + (el.className || ''))) continue;
-        // Clone text without nested aside/nav
-        const clone = el.cloneNode(true);
-        clone.querySelectorAll('aside, nav, [role="navigation"], [class*="conversation-list" i]').forEach((n) => n.remove());
-        const t = norm(clone.innerText || clone.textContent || '');
-        if (t.length > 20) texts.push(t);
-      }
-
-      for (const t of texts) {
-        if (cid && t.includes(cid)) return true;
-        if (p && t.includes(p)) {
-          if (a && a.length > 6 && t.includes(a)) return true;
-          // Thread panes have several short bubble lines
-          const lines = t.split('\n').map((l) => l.trim()).filter(Boolean);
-          if (lines.length >= 2) return true;
+      const headerCandidates = [];
+      if (log) {
+        const pane = log.closest('section, article, [class*="thread" i], [class*="chat" i]') || log.parentElement;
+        if (pane) {
+          const heads = pane.querySelectorAll('h1, h2, h3, header, [class*="header" i], [class*="title" i]');
+          for (const h of heads) headerCandidates.push(norm(h.innerText || h.textContent || ''));
         }
-        if (a && a.length > 10 && t.includes(a) && (!p || t.includes(p))) return true;
+        // First few lines above the log
+        const prev = log.previousElementSibling;
+        if (prev) headerCandidates.push(norm(prev.innerText || '').slice(0, 200));
       }
+
+      for (const h of headerCandidates) {
+        if (!h || h.length < 2) continue;
+        if (first && h.includes(first)) return true;
+        if (p && h.includes(p)) return true;
+        if (a && a.length > 8 && h.includes(a)) return true;
+      }
+
+      // Fallback: only the log text (bubbles) — partner name rarely there, but id might be
+      if (log) {
+        const t = norm(log.innerText || '').slice(0, 3000);
+        if (cid && t.includes(cid)) return true;
+        // Greeting to this partner inside the open thread
+        if (first && first.length >= 3) {
+          const re = new RegExp(`hallo\\s+${first.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+          if (re.test(t)) return true;
+        }
+      }
+
       return false;
     },
     { partner, ad, id },
@@ -339,13 +429,16 @@ async function importViaDomClicks(page, chatUrl, onProgress) {
       const opened = await openThread(page, t, chatUrl);
       let messages = [];
       if (opened) {
-        messages = await readMessagesFromDom(page);
-        const fp = messageFingerprint(messages);
-        if (fp && seenFingerprints.has(fp)) {
-          onProgress?.(`  ⚠ DOM üzenetütközés, skip: ${t.partnerName}`);
-          messages = [];
-        } else if (fp) {
-          seenFingerprints.set(fp, t.id);
+        const domMsgs = await readMessagesFromDom(page);
+        if (domMsgs.length && domMessagesMatchPartner(domMsgs, t.partnerName)) {
+          messages = domMsgs;
+          const fp = messageFingerprint(messages);
+          if (fp && seenFingerprints.has(fp)) {
+            onProgress?.(`  ⚠ DOM üzenetütközés, skip: ${t.partnerName}`);
+            messages = [];
+          } else if (fp) {
+            seenFingerprints.set(fp, t.id);
+          }
         }
       }
       results.push({
@@ -501,42 +594,43 @@ async function runSyncAttempt({ headless, onProgress }) {
       if (!messages.length) {
         messages = messagesFromCaptured(captured, t.id);
       }
+      messages = sanitizeDomMessages(messages);
 
-      // DOM: csak ha a szál tényleg megnyílt
-      try {
-        const opened = await openThread(page, rawConv, config.chatUrl);
-        if (opened) {
-          const domMsgs = await readMessagesFromDom(page);
-          if (domMsgs.length) messages = domMsgs.map((m) => ({ ...m }));
-        }
-      } catch {
-        /* keep previous */
-      }
-
-      // Ha ugyanaz az üzenetkészlet, mint egy másik beszélgetésé → ne mentsük (régi bug)
-      let fp = messageFingerprint(messages);
-      if (fp && seenFingerprints.has(fp)) {
-        onProgress?.(`  ⚠ üzenetütközés, DOM újra: ${t.partnerName}`);
-        messages = [];
-        fp = '';
+      // DOM csak üres API esetén, és csak ha a szál + partner stimmel
+      if (!messages.length) {
         try {
-          await page.goto(config.chatUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-          await dismissConsent(page);
-          await page.waitForTimeout(1000);
           const opened = await openThread(page, rawConv, config.chatUrl);
           if (opened) {
             const domMsgs = await readMessagesFromDom(page);
-            const fp2 = messageFingerprint(domMsgs);
-            if (domMsgs.length && !seenFingerprints.has(fp2)) {
+            if (
+              domMsgs.length
+              && domMessagesMatchPartner(domMsgs, t.partnerName)
+            ) {
               messages = domMsgs.map((m) => ({ ...m }));
-              fp = fp2;
             }
           }
         } catch {
-          /* empty */
+          /* keep empty */
         }
+      } else {
+        // API van: ne írd felül DOM dump-pal. Szálat se kell nyitni üzenethez.
+      }
+
+      // Ha ugyanaz az üzenetkészlet, mint egy másik beszélgetésé → ne mentsük
+      let fp = messageFingerprint(messages);
+      if (fp && seenFingerprints.has(fp)) {
+        onProgress?.(`  ⚠ üzenetütközés, kihagyva: ${t.partnerName}`);
+        messages = [];
+        fp = '';
       }
       if (fp) seenFingerprints.set(fp, t.id);
+
+      // Partner mismatch a végső listán is
+      if (messages.length && !domMessagesMatchPartner(messages, t.partnerName)) {
+        onProgress?.(`  ⚠ rossz partnerüzenet, törölve: ${t.partnerName}`);
+        messages = [];
+        fp = '';
+      }
 
       upsertConversation(store, {
         ...t,

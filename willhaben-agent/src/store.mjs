@@ -102,9 +102,40 @@ export function upsertConversation(store, conversation) {
 }
 
 export function purgeJunkConversations(list) {
-  return (list || []).filter((c) => {
+  const junkName = (s) => /zuletzt online|willhaben-?code|optimizely|audience|backwards.?compatibility|feature.?flag|^(heute|gestern)$/i.test(String(s || '').trim());
+
+  const filtered = (list || []).filter((c) => {
     const blob = `${c.partnerName || ''} ${c.adTitle || ''} ${c.lastPreview || ''}`;
     if (/optimizely|audience|backwards.?compatibility|feature.?flag/i.test(blob)) return false;
+    if (junkName(c.partnerName) || junkName(c.adTitle) || junkName(c.lastPreview)) return false;
+    // Strip dump messages in-place
+    if (Array.isArray(c.messages)) {
+      c.messages = c.messages.filter((m) => {
+        const text = String(m?.text || '');
+        const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+        if (/^(heute|gestern|today|yesterday)\b/i.test(text) && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) return false;
+        if (/^(heute|gestern|today|yesterday)$/i.test(lines[0] || '') && lines.length > 1) return false;
+        if (lines.length >= 4 && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) return false;
+        return true;
+      });
+      // Clear messages that greet a different person (Angela chat showing "Hallo Ingrid")
+      const first = String(c.partnerName || '').trim().split(/\s+/)[0];
+      if (first && first.length >= 3 && c.messages.length) {
+        const want = first.toLowerCase();
+        const greets = [];
+        for (const m of c.messages) {
+          const re = /hallo\s+([A-Za-zÄÖÜäöüß]{2,40})/gi;
+          let match;
+          while ((match = re.exec(String(m.text || '')))) greets.push(match[1].toLowerCase());
+        }
+        if (
+          greets.length
+          && !greets.some((g) => g === want || want.startsWith(g) || g.startsWith(want))
+        ) {
+          c.messages = [];
+        }
+      }
+    }
     if (
       (!c.messages || !c.messages.length)
       && !c.lastPreview
@@ -115,6 +146,20 @@ export function purgeJunkConversations(list) {
     }
     return true;
   });
+
+  // Deduplicate: keep richest entry per partner+ad (prefer one with real messages / uuid-looking id)
+  const byKey = new Map();
+  for (const c of filtered) {
+    const key = `${String(c.partnerName || '').toLowerCase()}|${String(c.adTitle || '').toLowerCase().slice(0, 40)}`;
+    const prev = byKey.get(key);
+    if (!prev) {
+      byKey.set(key, c);
+      continue;
+    }
+    const score = (x) => (x.messages?.length || 0) * 10 + (x.lastPreview ? 2 : 0) + (String(x.id || '').length > 20 ? 1 : 0);
+    byKey.set(key, score(c) >= score(prev) ? c : prev);
+  }
+  return [...byKey.values()];
 }
 
 export function appendOutbound(store, conversationId, text) {

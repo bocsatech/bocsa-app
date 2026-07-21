@@ -205,11 +205,33 @@ resetData();
 
 // --- DOM thread isolation (sidebar vs pane) ---
 {
-  const { messageFingerprint } = await import('../src/inbox-sync.mjs');
+  const { messageFingerprint, sanitizeDomMessages, domMessagesMatchPartner } = await import('../src/inbox-sync.mjs');
   const fpA = messageFingerprint([{ direction: 'in', text: 'Angela msg' }]);
   const fpB = messageFingerprint([{ direction: 'in', text: 'Sandra msg' }]);
   if (fpA === fpB) throw new Error('fingerprint collision fail');
   if (!fpA.includes('Angela')) throw new Error('fingerprint content fail');
+
+  const dump = sanitizeDomMessages([
+    { direction: 'in', text: 'Heute\nHallo Ingrid, Ich biete Ihnen für das Auto 2400€. Lg Robert 09:43\nLeider zu wenig ! 11:19' },
+    { direction: 'out', text: 'Hallo Ingrid, Ich biete Ihnen für das Auto 2400€. Lg Robert 09:43' },
+    { direction: 'in', text: 'Leider zu wenig ! 11:19' },
+  ]);
+  if (dump.length !== 2) throw new Error(`sanitize dump fail: ${dump.length}`);
+  if (dump.some((m) => /^Heute/i.test(m.text))) throw new Error('Heute dump survived');
+
+  if (domMessagesMatchPartner(dump, 'Sandra')) throw new Error('Sandra should reject Ingrid greetings');
+  if (!domMessagesMatchPartner(dump, 'Ingrid')) throw new Error('Ingrid should accept own greetings');
+
+  const { purgeJunkConversations } = await import('../src/store.mjs');
+  const purged = purgeJunkConversations([
+    { id: '1', partnerName: 'Sandra', adTitle: 'Golf', messages: [], lastPreview: 'hi' },
+    { id: '2', partnerName: 'Zuletzt online: Vor 8 Stunden', adTitle: '', messages: [] },
+    { id: '3', partnerName: 'willhaben-Code: 2023814886', adTitle: '', messages: [] },
+    { id: '4', partnerName: 'Ingrid', adTitle: 'Audi', messages: [{ text: 'a' }], lastPreview: 'a' },
+    { id: '5', partnerName: 'Ingrid', adTitle: 'Audi', messages: [], lastPreview: 'b' },
+  ]);
+  if (purged.some((c) => /zuletzt|willhaben-Code/i.test(c.partnerName))) throw new Error('junk partners survived');
+  if (purged.filter((c) => c.partnerName === 'Ingrid').length !== 1) throw new Error('Ingrid not deduped');
 
   const isoBrowser = await chromium.launch({ headless: true });
   const isoPage = await isoBrowser.newPage();
@@ -223,34 +245,46 @@ resetData();
         <h2>Angela Müller</h2>
         <p>BMW 320d</p>
         <div role="log">
-          <div data-testid="message" class="incoming">Hallo Angela — Auto noch da?</div>
-          <div data-testid="message" class="outgoing own">Ja Angela, noch verfügbar.</div>
+          <div class="thread-messages message-list">
+            <div data-testid="message" class="incoming">Heute
+Hallo Angela — Auto noch da?
+09:00
+Ja Angela, noch verfügbar.
+09:05</div>
+            <div data-testid="message" class="incoming">Hallo Angela — Auto noch da?</div>
+            <div data-testid="message" class="outgoing own">Ja Angela, noch verfügbar.</div>
+          </div>
         </div>
       </div>
     </main>
   </body></html>`;
   await isoPage.setContent(isoHtml);
 
-  // Body always contains BOTH partners — old verify would wrongly accept Sandra
   const bodyHasSandra = await isoPage.evaluate(() => document.body.innerText.includes('Sandra Klein'));
   if (!bodyHasSandra) throw new Error('fixture missing sidebar sandra');
 
-  const paneOkAngela = await isoPage.evaluate(() => {
-    const main = document.querySelector('main');
-    const clone = main.cloneNode(true);
-    clone.querySelectorAll('aside, nav').forEach((n) => n.remove());
-    const t = (clone.innerText || '').toLowerCase();
-    return t.includes('angela') && !t.includes('sandra');
-  });
-  if (!paneOkAngela) throw new Error('pane should be Angela-only');
-
-  const msgs = await isoPage.evaluate(() => {
+  // Simulate leaf-only scrape + sanitize (mirrors readMessagesFromDom)
+  const scraped = await isoPage.evaluate(() => {
     const root = document.querySelector('[data-testid="thread"]') || document.querySelector('main');
-    return [...root.querySelectorAll('[data-testid="message"]')].map((n) => (n.innerText || '').trim());
+    const selector = '[data-testid*="message"], [class*="message" i]';
+    const nodes = [...root.querySelectorAll(selector)];
+    const out = [];
+    for (const node of nodes) {
+      const childMsgs = [...node.querySelectorAll(selector)].filter((c) => c !== node);
+      if (childMsgs.length > 0) continue;
+      const text = (node.innerText || '').trim();
+      if (!text) continue;
+      const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+      if (/^(heute|gestern)\b/i.test(text) && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) continue;
+      if (/^(heute|gestern)$/i.test(lines[0] || '')) continue;
+      if (lines.length >= 4 && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) continue;
+      out.push(text);
+    }
+    return out;
   });
-  if (msgs.length !== 2) throw new Error(`expected 2 thread msgs, got ${msgs.length}`);
-  if (!msgs.every((m) => /Angela/i.test(m))) throw new Error('sidebar bled into messages');
-  if (msgs.some((m) => /Sandra/i.test(m))) throw new Error('sandra leaked into thread scrape');
+  if (scraped.length !== 2) throw new Error(`expected 2 leaf msgs, got ${scraped.length}: ${JSON.stringify(scraped)}`);
+  if (scraped.some((m) => /Sandra/i.test(m))) throw new Error('sandra leaked');
+  if (!scraped.every((m) => /Angela/i.test(m))) throw new Error('expected Angela texts');
 
   await isoBrowser.close();
 }
@@ -279,7 +313,7 @@ function httpRequest(method, reqPath) {
 
 const status = await httpRequest('GET', '/api/status');
 if (status.status !== 200 || !status.body.version) throw new Error('status fail');
-if (status.body.version !== '1.3.4') throw new Error(`version fail: ${status.body.version}`);
+if (status.body.version !== '1.3.5') throw new Error(`version fail: ${status.body.version}`);
 
 // Seed distinct conversations — UI/API must keep messages isolated
 {
