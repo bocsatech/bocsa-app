@@ -40,6 +40,9 @@ wh_auto_update() {
     src/server.mjs
     src/inbox-sync.mjs
     src/messenger-api.mjs
+    src/browser.mjs
+    src/login.mjs
+    src/stop.mjs
     public/app.js
     public/index.html
     public/app.css
