@@ -356,50 +356,74 @@ async function verifyActiveThread(page, thread) {
   ).catch(() => false);
 }
 
+async function isWillhaben404(page) {
+  return page.evaluate(() => {
+    const t = (document.body?.innerText || '').slice(0, 2000);
+    return /Die Seite wurde nicht gefunden|page was not found|Bring mich zur Startseite/i.test(t);
+  }).catch(() => false);
+}
+
+/**
+ * Opens a conversation safely via the inbox list.
+ * Avoids /iad/messenger?conversation=… and /chat/{id} deep-links that 404.
+ */
 async function openThread(page, thread, chatUrl) {
-  if (thread.url) {
-    await page.goto(thread.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  } else if (thread.id && !thread._dom) {
-    // Prefer messenger deep-link when available
-    const deep = `https://www.willhaben.at/iad/messenger?conversation=${encodeURIComponent(thread.id)}`;
-    try {
-      await page.goto(deep, { waitUntil: 'domcontentloaded', timeout: 25000 });
-    } catch {
-      await page.goto(`${chatUrl}/${encodeURIComponent(thread.id)}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    }
-  } else {
-    await page.goto(chatUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  const inbox = chatUrl || 'https://www.willhaben.at/iad/myprofile/chat';
+  const partner = String(thread.partnerName || '').trim();
+  const realUrl = thread.url
+    && /\/iad\/myprofile\/chat\//i.test(thread.url)
+    && !/\/iad\/myprofile\/chat\/?$/i.test(thread.url)
+    ? thread.url
+    : null;
+
+  if (realUrl) {
+    await page.goto(realUrl, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
     await dismissConsent(page);
-    await page.waitForTimeout(800);
-    const link = page.getByText(thread.partnerName, { exact: false }).first();
-    if (await link.isVisible({ timeout: 4000 }).catch(() => false)) {
-      await link.click({ timeout: 8000 }).catch(() => {});
+    await page.waitForTimeout(1000);
+    if (!(await isWillhaben404(page)) && (await verifyActiveThread(page, thread))) {
+      return true;
     }
   }
+
+  await page.goto(inbox, { waitUntil: 'domcontentloaded', timeout: 45000 });
   await dismissConsent(page);
-  await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+  await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(1200);
 
-  if (await verifyActiveThread(page, thread)) return true;
+  if (await isWillhaben404(page)) {
+    // Rare: inbox itself broken
+    return false;
+  }
 
-  // Fallback: click partner in list, then re-verify pane
-  const partner = String(thread.partnerName || '').trim();
   if (partner) {
     const clicked = await page.evaluate((n) => {
       const want = String(n).toLowerCase();
-      const nodes = [...document.querySelectorAll('a, button, [role="button"], [role="link"], li')];
+      const nodes = [...document.querySelectorAll('a, button, [role="button"], [role="link"], li, [role="listitem"]')];
       for (const el of nodes) {
         const t = (el.innerText || el.textContent || '').trim().toLowerCase();
-        if (!t || t.length < 2 || t.length > 180) continue;
+        if (!t || t.length < 2 || t.length > 220) continue;
         if (!t.includes(want)) continue;
-        (el.closest('a, button, [role="button"], [role="link"]') || el).click();
+        // Prefer short list rows
+        if (t.split('\n').length > 8) continue;
+        (el.closest('a, button, [role="button"], [role="link"], li') || el).click();
         return true;
       }
       return false;
     }, partner).catch(() => false);
+
     if (clicked) {
       await page.waitForTimeout(1800);
+      if (await isWillhaben404(page)) {
+        await page.goto(inbox, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
+        return false;
+      }
       if (await verifyActiveThread(page, thread)) return true;
+      // Soft accept: partner name visible after click and not on 404
+      const soft = await page.evaluate((n) => {
+        const main = document.querySelector('main') || document.body;
+        return (main?.innerText || '').toLowerCase().includes(String(n).toLowerCase());
+      }, partner).catch(() => false);
+      if (soft) return true;
     }
   }
 
@@ -765,53 +789,96 @@ export async function sendReply(conversationId, text) {
 /** DOM: menü → Löschen / Delete a nyitott beszélgetésen. */
 async function deleteOpenThreadViaDom(page) {
   const menuSelectors = [
+    'main button[aria-label*="Mehr" i]',
+    'main button[aria-label*="Option" i]',
+    'main button[aria-label*="Menü" i]',
+    'main button[aria-label*="menu" i]',
+    'main button[aria-label*="More" i]',
+    'main [data-testid*="more" i]',
+    'main [data-testid*="menu" i]',
+    'main button[aria-haspopup="menu"]',
+    'header button[aria-haspopup="menu"]',
     'button[aria-label*="Mehr" i]',
-    'button[aria-label*="Option" i]',
-    'button[aria-label*="Menü" i]',
-    'button[aria-label*="menu" i]',
-    'button[aria-label*="More" i]',
-    '[data-testid*="more" i]',
-    '[data-testid*="menu" i]',
     'button[aria-haspopup="menu"]',
   ];
 
   for (const sel of menuSelectors) {
-    const btn = page.locator(sel).first();
-    if (await btn.isVisible({ timeout: 800 }).catch(() => false)) {
-      await btn.click({ timeout: 5000 }).catch(() => {});
+    const buttons = page.locator(sel);
+    const n = await buttons.count().catch(() => 0);
+    for (let i = 0; i < Math.min(n, 5); i++) {
+      const btn = buttons.nth(i);
+      if (!(await btn.isVisible({ timeout: 400 }).catch(() => false))) continue;
+      await btn.click({ timeout: 4000 }).catch(() => {});
       await page.waitForTimeout(500);
-      break;
+      const deleteBtn = page.getByRole('menuitem', { name: /löschen|delete|entfernen|archivieren/i }).first()
+        .or(page.getByRole('button', { name: /löschen|delete|entfernen|chat löschen|konversation löschen/i }).first())
+        .or(page.locator('[role="menuitem"], button, a').filter({ hasText: /löschen|delete|archivieren/i }).first());
+      if (await deleteBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+        await deleteBtn.click({ timeout: 5000 });
+        await page.waitForTimeout(500);
+        const confirm = page.getByRole('button', { name: /löschen|bestätigen|ja|ok|delete|confirm|entfernen/i }).last();
+        if (await confirm.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await confirm.click({ timeout: 5000 }).catch(() => {});
+        }
+        await page.waitForTimeout(1500);
+        return true;
+      }
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.waitForTimeout(300);
+    }
+  }
+  return false;
+}
+
+/** Lista soron: partner → menü → Löschen */
+async function deleteFromInboxListViaDom(page, partnerName) {
+  const partner = String(partnerName || '').trim();
+  if (!partner) return false;
+
+  const openedMenu = await page.evaluate((n) => {
+    const want = String(n).toLowerCase();
+    const rows = [...document.querySelectorAll('a, button, [role="button"], [role="listitem"], li')];
+    for (const el of rows) {
+      const t = (el.innerText || el.textContent || '').trim().toLowerCase();
+      if (!t || !t.includes(want) || t.length > 280) continue;
+      const row = el.closest('li, [role="listitem"], a, button') || el;
+      const menu = row.querySelector('button[aria-haspopup="menu"], button[aria-label*="Mehr" i], button[aria-label*="More" i], button[aria-label*="Option" i], [data-testid*="more" i]');
+      if (menu) {
+        menu.click();
+        return 'menu';
+      }
+      row.click();
+      return 'open';
+    }
+    return null;
+  }, partner).catch(() => null);
+
+  await page.waitForTimeout(800);
+
+  if (openedMenu === 'menu') {
+    const deleteBtn = page.getByRole('menuitem', { name: /löschen|delete|entfernen|archiv/i }).first()
+      .or(page.locator('[role="menuitem"], button').filter({ hasText: /löschen|delete|archivieren/i }).first());
+    if (await deleteBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await deleteBtn.click({ timeout: 5000 });
+      await page.waitForTimeout(400);
+      const confirm = page.getByRole('button', { name: /löschen|bestätigen|ja|ok|delete|confirm/i }).last();
+      if (await confirm.isVisible({ timeout: 1500 }).catch(() => false)) {
+        await confirm.click({ timeout: 4000 }).catch(() => {});
+      }
+      await page.waitForTimeout(1200);
+      return true;
     }
   }
 
-  const deleteBtn = page.getByRole('button', { name: /löschen|delete|entfernen|archiv/i }).first()
-    .or(page.getByRole('menuitem', { name: /löschen|delete|entfernen|archiv/i }).first())
-    .or(page.locator('button, [role="menuitem"]').filter({ hasText: /löschen|delete|chat löschen|konversation/i }).first());
-
-  if (await deleteBtn.isVisible({ timeout: 2500 }).catch(() => false)) {
-    await deleteBtn.click({ timeout: 5000 });
-    await page.waitForTimeout(600);
-    const confirm = page.getByRole('button', { name: /löschen|bestätigen|ja|ok|delete|confirm/i }).last();
-    if (await confirm.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await confirm.click({ timeout: 5000 }).catch(() => {});
-    }
-    await page.waitForTimeout(1200);
-    return true;
-  }
-
-  // Fallback: bármely látható "Löschen" a pane-ben
-  const anyDel = page.locator('button, a, [role="button"]').filter({ hasText: /^löschen$/i }).first();
-  if (await anyDel.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await anyDel.click({ timeout: 5000 });
-    await page.waitForTimeout(1000);
-    return true;
+  if (openedMenu === 'open') {
+    return deleteOpenThreadViaDom(page);
   }
   return false;
 }
 
 /**
  * Törlés Willhabenről + helyi store.
- * Előbb API, ha nem megy → DOM.
+ * Inbox + API → lista DOM → thread DOM. Nincs /iad/messenger deep-link (404).
  */
 export async function deleteConversationRemote(conversationId) {
   const config = loadConfig();
@@ -819,25 +886,49 @@ export async function deleteConversationRemote(conversationId) {
   const conv = store.conversations.find((c) => c.id === conversationId);
   if (!conv) throw new Error('Nincs ilyen beszélgetés');
 
+  const inbox = config.chatUrl || 'https://www.willhaben.at/iad/myprofile/chat';
   const { context } = await launchBrowser(getProfileDir(), { headless: false });
   const page = context.pages()[0] || (await context.newPage());
 
   try {
-    await openThread(page, conv, config.chatUrl);
+    await page.goto(inbox, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await dismissConsent(page);
+    await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+    await page.waitForTimeout(1000);
     await ensureLoggedIn(page);
-    const accessToken = await extractAccessToken(page);
 
+    if (await isWillhaben404(page)) {
+      throw new Error('Willhaben chat oldal 404 — nem érhető el a messenger.');
+    }
+
+    const accessToken = await extractAccessToken(page);
     let remote = await deleteConversationViaApi(context, conversationId, { page, accessToken });
+
     if (!remote.ok) {
-      const opened = await openThread(page, conv, config.chatUrl);
-      if (opened) {
+      const listOk = await deleteFromInboxListViaDom(page, conv.partnerName);
+      if (listOk) remote = { ok: true, via: 'dom-list' };
+    }
+
+    if (!remote.ok) {
+      const opened = await openThread(page, conv, inbox);
+      if (opened && !(await isWillhaben404(page))) {
         const domOk = await deleteOpenThreadViaDom(page);
-        if (domOk) remote = { ok: true, via: 'dom' };
+        if (domOk) remote = { ok: true, via: 'dom-thread' };
       }
     }
 
     if (!remote.ok) {
-      throw new Error('Willhaben törlés sikertelen (API + DOM). Ellenőrizd a bejelentkezést / menüt.');
+      // Legalább az agentről töröljük — Willhaben UI gyakran nem ad törlés API-t
+      const { deleteConversation } = await import('./store.mjs');
+      deleteConversation(store, conversationId);
+      saveStore(store);
+      return {
+        ok: true,
+        remote,
+        warning: `Agentől törölve. Willhabenről nem sikerült automatikusan `
+          + `(partner: ${conv.partnerName || conversationId}). `
+          + 'A Willhaben chat listán manuálisan is töröld, ha még látszik.',
+      };
     }
 
     const { deleteConversation } = await import('./store.mjs');
@@ -855,16 +946,17 @@ export async function deleteMessageRemote(conversationId, messageId) {
   const conv = store.conversations.find((c) => c.id === conversationId);
   if (!conv) throw new Error('Nincs ilyen beszélgetés');
 
+  const inbox = config.chatUrl || 'https://www.willhaben.at/iad/myprofile/chat';
   const { context } = await launchBrowser(getProfileDir(), { headless: false });
   const page = context.pages()[0] || (await context.newPage());
 
   try {
-    await openThread(page, conv, config.chatUrl);
+    await page.goto(inbox, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await dismissConsent(page);
     await ensureLoggedIn(page);
     const accessToken = await extractAccessToken(page);
 
     const remote = await deleteMessageViaApi(context, conversationId, messageId, { page, accessToken });
-    // Üzenet-törlés Willhaben UI-n ritkán elérhető — ha API nem megy, helyi törlés + figyelmeztetés
     const { deleteMessage } = await import('./store.mjs');
     if (!deleteMessage(store, conversationId, messageId)) {
       throw new Error('Nincs ilyen üzenet');
@@ -875,7 +967,7 @@ export async function deleteMessageRemote(conversationId, messageId) {
       return {
         ok: true,
         remote,
-        warning: 'Helyben törölve. Willhaben API nem fogadta az üzenet-törlést — a beszélgetést töröld, ha teljesen el kell tüntetni.',
+        warning: 'Helyben törölve. Willhaben üzenet-törlés API nem elérhető — beszélgetést töröld, ha teljesen kell.',
       };
     }
     return { ok: true, remote };

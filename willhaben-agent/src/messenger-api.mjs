@@ -555,15 +555,20 @@ export async function deleteConversationViaApi(context, conversationId, { page, 
   const id = encodeURIComponent(conversationId);
   const attempts = [
     { method: 'DELETE', path: `/webapi/bff/messenger/conversations/${id}` },
+    { method: 'DELETE', path: `/webapi/bff/messenger/conversation/${id}` },
     { method: 'DELETE', path: `/webapi/messenger/conversations/${id}` },
     { method: 'DELETE', path: `/webapi/messenger/v1/conversations/${id}` },
     { method: 'DELETE', path: `/webapi/bff/messenger/threads/${id}` },
+    { method: 'DELETE', path: `/webapi/bff/messenger/conversation-summaries/${id}` },
     { method: 'POST', path: `/webapi/bff/messenger/conversations/${id}/delete`, body: {} },
     { method: 'POST', path: `/webapi/messenger/conversations/${id}/delete`, body: {} },
     { method: 'POST', path: `/webapi/bff/messenger/conversations/${id}/archive`, body: {} },
+    { method: 'POST', path: `/webapi/bff/messenger/conversations/${id}/hide`, body: {} },
     { method: 'PUT', path: `/webapi/bff/messenger/conversations/${id}`, body: { deleted: true } },
     { method: 'PATCH', path: `/webapi/bff/messenger/conversations/${id}`, body: { status: 'DELETED' } },
     { method: 'PATCH', path: `/webapi/messenger/conversations/${id}`, body: { deleted: true } },
+    { method: 'POST', path: `/webapi/bff/messenger/conversations/delete`, body: { conversationId, conversation_uuid: conversationId } },
+    { method: 'POST', path: `/webapi/bff/messenger/conversations/archive`, body: { conversationId, conversation_uuid: conversationId } },
   ];
 
   for (const attempt of attempts) {

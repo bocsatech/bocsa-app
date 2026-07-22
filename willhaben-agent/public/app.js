@@ -97,20 +97,20 @@ async function deleteSelectedConversation() {
   const name = currentConv?.partnerName || 'ez a beszélgetés';
   if (!confirm(`Törlöd: ${name}?\n(Willhabenről is törlődik.)`)) return;
   try {
-    toastMsg('Törlés Willhabenről…');
-    btnDelConv.disabled = true;
-    await api(`/api/conversations/${encodeURIComponent(selectedId)}`, { method: 'DELETE' });
-    selectedId = null;
-    currentConv = null;
-    thread.classList.add('hidden');
-    empty.classList.remove('hidden');
-    await loadConversations();
-    toastMsg('Törölve (Willhaben + agent)');
-  } catch (err) {
-    toastMsg(err.message, true);
-  } finally {
-    btnDelConv.disabled = false;
-  }
+        toastMsg('Törlés Willhabenről…');
+        btnDelConv.disabled = true;
+        const result = await api(`/api/conversations/${encodeURIComponent(selectedId)}`, { method: 'DELETE' });
+        selectedId = null;
+        currentConv = null;
+        thread.classList.add('hidden');
+        empty.classList.remove('hidden');
+        await loadConversations();
+        toastMsg(result.warning || 'Törölve (Willhaben + agent)', Boolean(result.warning));
+      } catch (err) {
+        toastMsg(err.message, true);
+      } finally {
+        btnDelConv.disabled = false;
+      }
 }
 
 function fmtTime(iso) {
@@ -177,7 +177,7 @@ async function loadConversations() {
       if (!confirm(`Törlöd: ${name}?\n(Willhabenről is törlődik.)`)) return;
       try {
         toastMsg('Törlés Willhabenről…');
-        await api(`/api/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        const result = await api(`/api/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' });
         if (selectedId === id) {
           selectedId = null;
           currentConv = null;
@@ -185,7 +185,7 @@ async function loadConversations() {
           empty.classList.remove('hidden');
         }
         await loadConversations();
-        toastMsg('Törölve (Willhaben + agent)');
+        toastMsg(result.warning || 'Törölve (Willhaben + agent)', Boolean(result.warning));
       } catch (err) {
         toastMsg(err.message, true);
       }

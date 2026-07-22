@@ -173,7 +173,11 @@ export function startServer(port) {
               return json(res, 200, { ok: true });
             }
             const result = await deleteConversationRemote(id);
-            return json(res, 200, { ok: true, remote: result.remote || null });
+            return json(res, 200, {
+              ok: true,
+              remote: result.remote || null,
+              warning: result.warning || null,
+            });
           } catch (e) {
             return json(res, 400, { error: e.message });
           }
