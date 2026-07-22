@@ -320,7 +320,7 @@ function httpRequest(method, reqPath) {
 
 const status = await httpRequest('GET', '/api/status');
 if (status.status !== 200 || !status.body.version) throw new Error('status fail');
-if (status.body.version !== '1.3.9') throw new Error(`version fail: ${status.body.version}`);
+if (status.body.version !== '1.4.0') throw new Error(`version fail: ${status.body.version}`);
 
 // Seed distinct conversations — UI/API must keep messages isolated
 {

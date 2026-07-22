@@ -510,6 +510,90 @@ export async function sendMessageViaApi(context, conversationId, text, { page, a
   return false;
 }
 
+/** Mutating fetch (DELETE/POST/PATCH) via SPA session. */
+async function mutateViaPage(page, apiPath, { method = 'DELETE', accessToken, body = null } = {}) {
+  return page.evaluate(async ({ base, path, token, method, body }) => {
+    const readCookie = (name) => {
+      const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}=([^;]*)`));
+      return match ? decodeURIComponent(match[1]) : '';
+    };
+    const csrf = readCookie('x-bbx-csrf-token');
+    const headers = { accept: 'application/json' };
+    if (csrf) headers['x-bbx-csrf-token'] = csrf;
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (body) headers['content-type'] = 'application/json';
+    const response = await fetch(`${base}${path}`, {
+      method,
+      credentials: 'include',
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return { ok: response.ok || response.status === 204, status: response.status };
+  }, {
+    base: BASE,
+    path: apiPath,
+    token: accessToken || null,
+    method,
+    body,
+  }).catch(() => ({ ok: false, status: 0 }));
+}
+
+async function mutateViaContext(context, apiPath, { method = 'DELETE', accessToken, body = null } = {}) {
+  const csrfToken = await getCsrfToken(context);
+  const headers = { ...buildHeaders(csrfToken, accessToken) };
+  if (body) headers['content-type'] = 'application/json';
+  const response = await context.request.fetch(`${BASE}${apiPath}`, {
+    method,
+    headers,
+    data: body || undefined,
+  });
+  const status = response.status();
+  return { ok: response.ok() || status === 204, status };
+}
+
+export async function deleteConversationViaApi(context, conversationId, { page, accessToken } = {}) {
+  const id = encodeURIComponent(conversationId);
+  const attempts = [
+    { method: 'DELETE', path: `/webapi/bff/messenger/conversations/${id}` },
+    { method: 'DELETE', path: `/webapi/messenger/conversations/${id}` },
+    { method: 'DELETE', path: `/webapi/messenger/v1/conversations/${id}` },
+    { method: 'DELETE', path: `/webapi/bff/messenger/threads/${id}` },
+    { method: 'POST', path: `/webapi/bff/messenger/conversations/${id}/delete`, body: {} },
+    { method: 'POST', path: `/webapi/messenger/conversations/${id}/delete`, body: {} },
+    { method: 'POST', path: `/webapi/bff/messenger/conversations/${id}/archive`, body: {} },
+    { method: 'PUT', path: `/webapi/bff/messenger/conversations/${id}`, body: { deleted: true } },
+    { method: 'PATCH', path: `/webapi/bff/messenger/conversations/${id}`, body: { status: 'DELETED' } },
+    { method: 'PATCH', path: `/webapi/messenger/conversations/${id}`, body: { deleted: true } },
+  ];
+
+  for (const attempt of attempts) {
+    const result = page
+      ? await mutateViaPage(page, attempt.path, { method: attempt.method, accessToken, body: attempt.body || null })
+      : await mutateViaContext(context, attempt.path, { method: attempt.method, accessToken, body: attempt.body || null });
+    if (result.ok) return { ok: true, via: 'api', path: attempt.path, status: result.status };
+  }
+  return { ok: false, via: 'api' };
+}
+
+export async function deleteMessageViaApi(context, conversationId, messageId, { page, accessToken } = {}) {
+  const cid = encodeURIComponent(conversationId);
+  const mid = encodeURIComponent(messageId);
+  const attempts = [
+    { method: 'DELETE', path: `/webapi/bff/messenger/conversations/${cid}/messages/${mid}` },
+    { method: 'DELETE', path: `/webapi/messenger/conversations/${cid}/messages/${mid}` },
+    { method: 'DELETE', path: `/webapi/messenger/v1/conversations/${cid}/messages/${mid}` },
+    { method: 'POST', path: `/webapi/bff/messenger/conversations/${cid}/messages/${mid}/delete`, body: {} },
+    { method: 'DELETE', path: `/webapi/bff/messenger/messages/${mid}` },
+  ];
+  for (const attempt of attempts) {
+    const result = page
+      ? await mutateViaPage(page, attempt.path, { method: attempt.method, accessToken, body: attempt.body || null })
+      : await mutateViaContext(context, attempt.path, { method: attempt.method, accessToken, body: attempt.body || null });
+    if (result.ok) return { ok: true, via: 'api', path: attempt.path, status: result.status };
+  }
+  return { ok: false, via: 'api' };
+}
+
 /** Capture ALL JSON responses from willhaben — the SPA has the OAuth token. */
 export function installNetworkCapture(page) {
   const captured = [];

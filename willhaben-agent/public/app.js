@@ -74,16 +74,16 @@ function renderMessages(list) {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       if (!selectedId || !btn.dataset.mid) return;
-      if (!confirm('Üzenet törlése a web agentről?')) return;
+      if (!confirm('Üzenet törlése?\n(Willhaben API-n is megpróbáljuk.)')) return;
       try {
-        const { conversation: c } = await api(
+        const result = await api(
           `/api/conversations/${encodeURIComponent(selectedId)}/messages/${encodeURIComponent(btn.dataset.mid)}`,
           { method: 'DELETE' },
         );
-        currentConv = c;
-        renderMessages(c.messages || []);
+        currentConv = result.conversation;
+        renderMessages(result.conversation?.messages || []);
         await loadConversations();
-        toastMsg('Üzenet törölve');
+        toastMsg(result.warning || 'Üzenet törölve');
       } catch (err) {
         toastMsg(err.message, true);
       }
@@ -95,17 +95,21 @@ function renderMessages(list) {
 async function deleteSelectedConversation() {
   if (!selectedId) return;
   const name = currentConv?.partnerName || 'ez a beszélgetés';
-  if (!confirm(`Törlöd: ${name}?\n(Csak a web agentről — a Willhabenről nem.)`)) return;
+  if (!confirm(`Törlöd: ${name}?\n(Willhabenről is törlődik.)`)) return;
   try {
+    toastMsg('Törlés Willhabenről…');
+    btnDelConv.disabled = true;
     await api(`/api/conversations/${encodeURIComponent(selectedId)}`, { method: 'DELETE' });
     selectedId = null;
     currentConv = null;
     thread.classList.add('hidden');
     empty.classList.remove('hidden');
     await loadConversations();
-    toastMsg('Beszélgetés törölve');
+    toastMsg('Törölve (Willhaben + agent)');
   } catch (err) {
     toastMsg(err.message, true);
+  } finally {
+    btnDelConv.disabled = false;
   }
 }
 
@@ -170,8 +174,9 @@ async function loadConversations() {
       e.stopPropagation();
       const id = btn.dataset.del;
       const name = btn.closest('.item')?.querySelector('.name')?.textContent || 'beszélgetés';
-      if (!confirm(`Törlöd: ${name}?\n(Csak a web agentről.)`)) return;
+      if (!confirm(`Törlöd: ${name}?\n(Willhabenről is törlődik.)`)) return;
       try {
+        toastMsg('Törlés Willhabenről…');
         await api(`/api/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' });
         if (selectedId === id) {
           selectedId = null;
@@ -180,7 +185,7 @@ async function loadConversations() {
           empty.classList.remove('hidden');
         }
         await loadConversations();
-        toastMsg('Beszélgetés törölve');
+        toastMsg('Törölve (Willhaben + agent)');
       } catch (err) {
         toastMsg(err.message, true);
       }

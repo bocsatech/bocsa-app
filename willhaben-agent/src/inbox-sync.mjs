@@ -22,6 +22,8 @@ import {
   saveCapturedRaw,
   saveSyncDebug,
   sendMessageViaApi,
+  deleteConversationViaApi,
+  deleteMessageViaApi,
 } from './messenger-api.mjs';
 
 async function isLoginPage(page) {
@@ -755,6 +757,128 @@ export async function sendReply(conversationId, text) {
     appendOutbound(store, conversationId, text.trim());
     saveStore(store);
     return { ok: true };
+  } finally {
+    await context.close().catch(() => {});
+  }
+}
+
+/** DOM: menü → Löschen / Delete a nyitott beszélgetésen. */
+async function deleteOpenThreadViaDom(page) {
+  const menuSelectors = [
+    'button[aria-label*="Mehr" i]',
+    'button[aria-label*="Option" i]',
+    'button[aria-label*="Menü" i]',
+    'button[aria-label*="menu" i]',
+    'button[aria-label*="More" i]',
+    '[data-testid*="more" i]',
+    '[data-testid*="menu" i]',
+    'button[aria-haspopup="menu"]',
+  ];
+
+  for (const sel of menuSelectors) {
+    const btn = page.locator(sel).first();
+    if (await btn.isVisible({ timeout: 800 }).catch(() => false)) {
+      await btn.click({ timeout: 5000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      break;
+    }
+  }
+
+  const deleteBtn = page.getByRole('button', { name: /löschen|delete|entfernen|archiv/i }).first()
+    .or(page.getByRole('menuitem', { name: /löschen|delete|entfernen|archiv/i }).first())
+    .or(page.locator('button, [role="menuitem"]').filter({ hasText: /löschen|delete|chat löschen|konversation/i }).first());
+
+  if (await deleteBtn.isVisible({ timeout: 2500 }).catch(() => false)) {
+    await deleteBtn.click({ timeout: 5000 });
+    await page.waitForTimeout(600);
+    const confirm = page.getByRole('button', { name: /löschen|bestätigen|ja|ok|delete|confirm/i }).last();
+    if (await confirm.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await confirm.click({ timeout: 5000 }).catch(() => {});
+    }
+    await page.waitForTimeout(1200);
+    return true;
+  }
+
+  // Fallback: bármely látható "Löschen" a pane-ben
+  const anyDel = page.locator('button, a, [role="button"]').filter({ hasText: /^löschen$/i }).first();
+  if (await anyDel.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await anyDel.click({ timeout: 5000 });
+    await page.waitForTimeout(1000);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Törlés Willhabenről + helyi store.
+ * Előbb API, ha nem megy → DOM.
+ */
+export async function deleteConversationRemote(conversationId) {
+  const config = loadConfig();
+  const store = loadStore();
+  const conv = store.conversations.find((c) => c.id === conversationId);
+  if (!conv) throw new Error('Nincs ilyen beszélgetés');
+
+  const { context } = await launchBrowser(getProfileDir(), { headless: false });
+  const page = context.pages()[0] || (await context.newPage());
+
+  try {
+    await openThread(page, conv, config.chatUrl);
+    await ensureLoggedIn(page);
+    const accessToken = await extractAccessToken(page);
+
+    let remote = await deleteConversationViaApi(context, conversationId, { page, accessToken });
+    if (!remote.ok) {
+      const opened = await openThread(page, conv, config.chatUrl);
+      if (opened) {
+        const domOk = await deleteOpenThreadViaDom(page);
+        if (domOk) remote = { ok: true, via: 'dom' };
+      }
+    }
+
+    if (!remote.ok) {
+      throw new Error('Willhaben törlés sikertelen (API + DOM). Ellenőrizd a bejelentkezést / menüt.');
+    }
+
+    const { deleteConversation } = await import('./store.mjs');
+    deleteConversation(store, conversationId);
+    saveStore(store);
+    return { ok: true, remote };
+  } finally {
+    await context.close().catch(() => {});
+  }
+}
+
+export async function deleteMessageRemote(conversationId, messageId) {
+  const config = loadConfig();
+  const store = loadStore();
+  const conv = store.conversations.find((c) => c.id === conversationId);
+  if (!conv) throw new Error('Nincs ilyen beszélgetés');
+
+  const { context } = await launchBrowser(getProfileDir(), { headless: false });
+  const page = context.pages()[0] || (await context.newPage());
+
+  try {
+    await openThread(page, conv, config.chatUrl);
+    await ensureLoggedIn(page);
+    const accessToken = await extractAccessToken(page);
+
+    const remote = await deleteMessageViaApi(context, conversationId, messageId, { page, accessToken });
+    // Üzenet-törlés Willhaben UI-n ritkán elérhető — ha API nem megy, helyi törlés + figyelmeztetés
+    const { deleteMessage } = await import('./store.mjs');
+    if (!deleteMessage(store, conversationId, messageId)) {
+      throw new Error('Nincs ilyen üzenet');
+    }
+    saveStore(store);
+
+    if (!remote.ok) {
+      return {
+        ok: true,
+        remote,
+        warning: 'Helyben törölve. Willhaben API nem fogadta az üzenet-törlést — a beszélgetést töröld, ha teljesen el kell tüntetni.',
+      };
+    }
+    return { ok: true, remote };
   } finally {
     await context.close().catch(() => {});
   }

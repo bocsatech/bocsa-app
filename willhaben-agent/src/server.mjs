@@ -15,8 +15,11 @@ import {
   applyTemplate,
 } from './store.mjs';
 import { parsePriceChart, lookupPrice, saveChartFile } from './price-chart.mjs';
-import { syncInbox, sendReply } from './inbox-sync.mjs';
+import { syncInbox, sendReply, deleteConversationRemote, deleteMessageRemote } from './inbox-sync.mjs';
 import { APP_VERSION } from './version.mjs';
+
+const skipRemoteDelete = () => process.env.AGENT_SKIP_REMOTE_DELETE === '1'
+  || process.env.AGENT_DATA_DIR?.includes('data-test');
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -138,22 +141,42 @@ export function startServer(port) {
           const parts = url.pathname.split('/');
           const convId = decodeURIComponent(parts[3]);
           const msgId = decodeURIComponent(parts[5]);
-          const store = loadStore();
-          if (!deleteMessage(store, convId, msgId)) {
-            return json(res, 404, { error: 'Nincs ilyen üzenet' });
+          try {
+            if (skipRemoteDelete() || url.searchParams.get('local') === '1') {
+              const store = loadStore();
+              if (!deleteMessage(store, convId, msgId)) {
+                return json(res, 404, { error: 'Nincs ilyen üzenet' });
+              }
+              saveStore(store);
+              return json(res, 200, { ok: true, conversation: getConversation(store, convId) });
+            }
+            const result = await deleteMessageRemote(convId, msgId);
+            return json(res, 200, {
+              ok: true,
+              warning: result.warning || null,
+              conversation: getConversation(loadStore(), convId),
+            });
+          } catch (e) {
+            return json(res, 400, { error: e.message });
           }
-          saveStore(store);
-          return json(res, 200, { ok: true, conversation: getConversation(store, convId) });
         }
 
         if (req.method === 'DELETE' && url.pathname.startsWith('/api/conversations/')) {
           const id = decodeURIComponent(url.pathname.split('/').pop());
-          const store = loadStore();
-          if (!deleteConversation(store, id)) {
-            return json(res, 404, { error: 'Nincs ilyen beszélgetés' });
+          try {
+            if (skipRemoteDelete() || url.searchParams.get('local') === '1') {
+              const store = loadStore();
+              if (!deleteConversation(store, id)) {
+                return json(res, 404, { error: 'Nincs ilyen beszélgetés' });
+              }
+              saveStore(store);
+              return json(res, 200, { ok: true });
+            }
+            const result = await deleteConversationRemote(id);
+            return json(res, 200, { ok: true, remote: result.remote || null });
+          } catch (e) {
+            return json(res, 400, { error: e.message });
           }
-          saveStore(store);
-          return json(res, 200, { ok: true });
         }
 
         if (req.method === 'POST' && url.pathname === '/api/sync') {
