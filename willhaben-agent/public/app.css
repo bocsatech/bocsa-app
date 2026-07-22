@@ -31,18 +31,34 @@ body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; 
 .btn.ghost { background: transparent; }
 .btn:disabled { opacity: 0.5; }
 .list .item {
-  display: block; width: 100%; text-align: left; background: transparent; border: 0;
+  display: grid; grid-template-columns: 1fr auto; gap: 0.35rem; align-items: start;
+  width: 100%; text-align: left; background: transparent; border: 0;
   border-bottom: 1px solid var(--border); color: inherit; padding: 0.65rem 0.25rem; cursor: pointer;
 }
 .list .item:hover, .list .item.active { background: #232d3b; }
+.list .item .meta { min-width: 0; }
 .list .item .name { font-weight: 600; display: block; }
 .list .item .prev { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list .item .del {
+  opacity: 0.35; border: 0; background: transparent; color: var(--muted);
+  cursor: pointer; font-size: 0.85rem; padding: 0.15rem 0.35rem; border-radius: 6px;
+}
+.list .item:hover .del, .list .item.active .del { opacity: 0.9; }
+.list .item .del:hover { color: #fca5a5; background: #3f1d1d; }
 .empty { padding: 2rem; text-align: center; color: var(--muted); }
 .thread { display: flex; flex-direction: column; padding: 0; }
-.thread-head { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+.thread-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
 .thread-head h2 { margin: 0; font-size: 1rem; }
 .msgs { flex: 1; overflow: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
-.msg { max-width: 80%; padding: 0.55rem 0.75rem; border-radius: 10px; white-space: pre-wrap; line-height: 1.4; }
+.btn.danger { color: #fca5a5; border-color: #7f1d1d; }
+.btn.danger:hover { background: #3f1d1d; }
+.msg { max-width: 80%; padding: 0.55rem 0.75rem 0.55rem 0.75rem; border-radius: 10px; white-space: pre-wrap; line-height: 1.4; position: relative; padding-right: 1.6rem; }
+.msg .msg-del {
+  position: absolute; top: 0.2rem; right: 0.3rem; opacity: 0; border: 0; background: transparent;
+  color: var(--muted); cursor: pointer; font-size: 0.75rem; padding: 0.1rem 0.3rem; border-radius: 4px;
+}
+.msg:hover .msg-del { opacity: 0.85; }
+.msg .msg-del:hover { color: #fca5a5; background: #3f1d1d; }
 .msg.in { align-self: flex-start; background: #1e293b; border: 1px solid var(--border); }
 .msg.out { align-self: flex-end; background: #1e3a5f; border: 1px solid #1d4ed8; }
 .reply { border-top: 1px solid var(--border); padding: 0.75rem 1rem; background: var(--panel); }

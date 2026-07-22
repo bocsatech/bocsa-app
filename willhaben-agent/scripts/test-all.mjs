@@ -320,7 +320,7 @@ function httpRequest(method, reqPath) {
 
 const status = await httpRequest('GET', '/api/status');
 if (status.status !== 200 || !status.body.version) throw new Error('status fail');
-if (status.body.version !== '1.3.8') throw new Error(`version fail: ${status.body.version}`);
+if (status.body.version !== '1.3.9') throw new Error(`version fail: ${status.body.version}`);
 
 // Seed distinct conversations — UI/API must keep messages isolated
 {
@@ -354,6 +354,57 @@ if (status.body.version !== '1.3.8') throw new Error(`version fail: ${status.bod
   }
 }
 
+// Törlés API
+{
+  const delMsg = await new Promise((resolve, reject) => {
+    const req = http.request({
+      method: 'DELETE', hostname: '127.0.0.1', port,
+      path: '/api/conversations/iso-angela/messages/a1',
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => resolve({
+        status: res.statusCode,
+        body: JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'),
+      }));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+  if (delMsg.status !== 200 || delMsg.body.conversation?.messages?.length !== 0) {
+    throw new Error('delete message fail');
+  }
+
+  const delConv = await new Promise((resolve, reject) => {
+    const req = http.request({
+      method: 'DELETE', hostname: '127.0.0.1', port,
+      path: '/api/conversations/iso-sandra',
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => resolve({
+        status: res.statusCode,
+        body: JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'),
+      }));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+  if (delConv.status !== 200 || !delConv.body.ok) throw new Error('delete conversation fail');
+
+  const { pruneMissingConversations, loadStore: ls, saveStore: ss } = await import('../src/store.mjs');
+  const st = ls();
+  upsertConversation(st, {
+    id: 'gone-1', partnerName: 'Gone', lastPreview: 'x',
+    messages: [{ id: 'g1', direction: 'in', text: 'x' }],
+  });
+  ss(st);
+  const st2 = ls();
+  const n = pruneMissingConversations(st2, ['iso-angela']);
+  if (n < 1) throw new Error('prune fail');
+  ss(st2);
+}
+
 const syncStart = await httpRequest('POST', '/api/sync');
 if (syncStart.status !== 202 || !syncStart.body.ok) throw new Error('sync start fail');
 
@@ -364,4 +415,4 @@ if (typeof after.body.syncRunning !== 'boolean') throw new Error('sync status fa
 
 await new Promise((resolve) => server.close(resolve));
 
-console.log('✓ minden teszt OK (parser + DOM izoláció + szinkron mock + szerver API)');
+console.log('✓ minden teszt OK (parser + DOM izoláció + törlés + szinkron mock + szerver API)');

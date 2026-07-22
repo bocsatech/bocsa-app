@@ -10,6 +10,8 @@ import {
   listTemplates,
   saveTemplate,
   deleteTemplate,
+  deleteConversation,
+  deleteMessage,
   applyTemplate,
 } from './store.mjs';
 import { parsePriceChart, lookupPrice, saveChartFile } from './price-chart.mjs';
@@ -130,6 +132,28 @@ export function startServer(port) {
           const conv = getConversation(loadStore(), id);
           if (!conv) return json(res, 404, { error: 'Nincs ilyen beszélgetés' });
           return json(res, 200, { conversation: conv });
+        }
+
+        if (req.method === 'DELETE' && url.pathname.match(/^\/api\/conversations\/[^/]+\/messages\/[^/]+$/)) {
+          const parts = url.pathname.split('/');
+          const convId = decodeURIComponent(parts[3]);
+          const msgId = decodeURIComponent(parts[5]);
+          const store = loadStore();
+          if (!deleteMessage(store, convId, msgId)) {
+            return json(res, 404, { error: 'Nincs ilyen üzenet' });
+          }
+          saveStore(store);
+          return json(res, 200, { ok: true, conversation: getConversation(store, convId) });
+        }
+
+        if (req.method === 'DELETE' && url.pathname.startsWith('/api/conversations/')) {
+          const id = decodeURIComponent(url.pathname.split('/').pop());
+          const store = loadStore();
+          if (!deleteConversation(store, id)) {
+            return json(res, 404, { error: 'Nincs ilyen beszélgetés' });
+          }
+          saveStore(store);
+          return json(res, 200, { ok: true });
         }
 
         if (req.method === 'POST' && url.pathname === '/api/sync') {

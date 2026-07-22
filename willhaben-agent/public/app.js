@@ -23,6 +23,7 @@ const chartFile = $('#chartFile');
 const chartMeta = $('#chartMeta');
 const lookupResult = $('#lookupResult');
 const btnLookup = $('#btnLookup');
+const btnDelConv = $('#btnDelConv');
 const toast = $('#toast');
 
 let selectedId = null;
@@ -50,7 +51,62 @@ async function api(path, opts = {}) {
 }
 
 function esc(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(s ?? '').replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+function renderMessages(list) {
+  if (!list.length) {
+    msgs.innerHTML = '<p class="muted">Nincs üzenet ebben a beszélgetésben.</p>';
+    return;
+  }
+  msgs.innerHTML = list
+    .map((m) => {
+      const mid = m.id || '';
+      const del = mid && mid !== 'ui-preview' && mid !== 'preview-1'
+        ? `<button type="button" class="msg-del" data-mid="${esc(mid)}" title="Üzenet törlése">×</button>`
+        : '';
+      return `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}" data-mid="${esc(mid)}">${del}${esc(m.text)}</div>`;
+    })
+    .join('');
+  msgs.querySelectorAll('.msg-del').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!selectedId || !btn.dataset.mid) return;
+      if (!confirm('Üzenet törlése a web agentről?')) return;
+      try {
+        const { conversation: c } = await api(
+          `/api/conversations/${encodeURIComponent(selectedId)}/messages/${encodeURIComponent(btn.dataset.mid)}`,
+          { method: 'DELETE' },
+        );
+        currentConv = c;
+        renderMessages(c.messages || []);
+        await loadConversations();
+        toastMsg('Üzenet törölve');
+      } catch (err) {
+        toastMsg(err.message, true);
+      }
+    });
+  });
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function deleteSelectedConversation() {
+  if (!selectedId) return;
+  const name = currentConv?.partnerName || 'ez a beszélgetés';
+  if (!confirm(`Törlöd: ${name}?\n(Csak a web agentről — a Willhabenről nem.)`)) return;
+  try {
+    await api(`/api/conversations/${encodeURIComponent(selectedId)}`, { method: 'DELETE' });
+    selectedId = null;
+    currentConv = null;
+    thread.classList.add('hidden');
+    empty.classList.remove('hidden');
+    await loadConversations();
+    toastMsg('Beszélgetés törölve');
+  } catch (err) {
+    toastMsg(err.message, true);
+  }
 }
 
 function fmtTime(iso) {
@@ -86,16 +142,49 @@ async function loadConversations() {
           (c) => {
             const prev = c.lastPreview || c.adTitle || '';
             return `
-      <button type="button" class="item${c.id === selectedId ? ' active' : ''}" data-id="${esc(c.id)}" data-preview="${esc(prev)}">
-        <span class="name">${esc(c.partnerName)}</span>
-        <span class="prev">${esc(prev)}</span>
-      </button>`;
+      <div class="item${c.id === selectedId ? ' active' : ''}" data-id="${esc(c.id)}" data-preview="${esc(prev)}" role="button" tabindex="0">
+        <span class="meta">
+          <span class="name">${esc(c.partnerName)}</span>
+          <span class="prev">${esc(prev)}</span>
+        </span>
+        <button type="button" class="del" data-del="${esc(c.id)}" title="Törlés">×</button>
+      </div>`;
           },
         )
         .join('')
     : '<p class="muted">Nincs beszélgetés. Frissítsd a bejövő üzeneteket.</p>';
   convList.querySelectorAll('.item[data-id]').forEach((btn) => {
-    btn.addEventListener('click', () => openConv(btn.dataset.id));
+    btn.addEventListener('click', (e) => {
+      if (e.target.closest('.del')) return;
+      openConv(btn.dataset.id);
+    });
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openConv(btn.dataset.id);
+      }
+    });
+  });
+  convList.querySelectorAll('.del[data-del]').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.del;
+      const name = btn.closest('.item')?.querySelector('.name')?.textContent || 'beszélgetés';
+      if (!confirm(`Törlöd: ${name}?\n(Csak a web agentről.)`)) return;
+      try {
+        await api(`/api/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        if (selectedId === id) {
+          selectedId = null;
+          currentConv = null;
+          thread.classList.add('hidden');
+          empty.classList.remove('hidden');
+        }
+        await loadConversations();
+        toastMsg('Beszélgetés törölve');
+      } catch (err) {
+        toastMsg(err.message, true);
+      }
+    });
   });
   return conversations;
 }
@@ -129,12 +218,7 @@ async function openConv(id) {
     : (fallbackText && !/^\d{1,2}:\d{2}$/.test(fallbackText)
       ? [{ id: 'ui-preview', direction: 'in', text: fallbackText }]
       : []);
-  msgs.innerHTML = display.length
-    ? display
-        .map((m) => `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}" data-mid="${esc(m.id || '')}">${esc(m.text)}</div>`)
-        .join('')
-    : '<p class="muted">Nincs üzenet ebben a beszélgetésben.</p>';
-  msgs.scrollTop = msgs.scrollHeight;
+  renderMessages(display);
 }
 
 async function loadTemplates() {
@@ -316,13 +400,10 @@ async function tick() {
         : (fallbackText && !/^\d{1,2}:\d{2}$/.test(fallbackText)
           ? [{ id: 'ui-preview', direction: 'in', text: fallbackText }]
           : []);
-      const html = display.length
-        ? display
-            .map((m) => `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}" data-mid="${esc(m.id || '')}">${esc(m.text)}</div>`)
-            .join('')
-        : '<p class="muted">Nincs üzenet ebben a beszélgetésben.</p>';
-      if (msgs.innerHTML !== html) {
-        msgs.innerHTML = html;
+      const signature = display.map((m) => `${m.id}:${m.text}`).join('|');
+      if (msgs.dataset.sig !== signature) {
+        msgs.dataset.sig = signature;
+        renderMessages(display);
         tTitle.textContent = c.partnerName || '—';
         tAd.textContent = c.adTitle || '';
       }
@@ -333,6 +414,7 @@ async function tick() {
 }
 
 (async function init() {
+  btnDelConv?.addEventListener('click', () => deleteSelectedConversation());
   try {
     await refreshStatus();
     await loadConversations();

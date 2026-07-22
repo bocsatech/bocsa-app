@@ -29,6 +29,7 @@ function emptyStore() {
     lastSyncError: null,
     lastSyncDebug: null,
     conversations: [],
+    dismissedConversationIds: [],
     templates: [...DEFAULT_TEMPLATES],
     priceChart: null,
   };
@@ -77,20 +78,15 @@ export function hydrateConversationMessages(conv) {
   const messages = Array.isArray(conv.messages) ? conv.messages : [];
   if (messages.length) return { ...conv, messages: messages.map((m) => ({ ...m })) };
 
-  const candidates = [
-    String(conv.lastPreview || '').trim(),
-    String(conv.adTitle || '').trim(),
-  ].filter(Boolean);
-
-  for (const preview of candidates) {
-    if (preview.length < 2) continue;
-    if (/^(zuletzt online|willhaben-?code)/i.test(preview)) continue;
-    // Ne időpont / dátum legyen az „üzenet”
-    if (/^\d{1,2}:\d{2}$/.test(preview)) continue;
-    if (/^\d{1,2}\.\d{2}\.\d{2,4}$/.test(preview)) continue;
+  const preview = String(conv.lastPreview || '').trim();
+  if (
+    preview.length >= 2
+    && !/^(zuletzt online|willhaben-?code)/i.test(preview)
+    && !/^\d{1,2}:\d{2}$/.test(preview)
+    && !/^\d{1,2}\.\d{2}\.\d{2,4}$/.test(preview)
+  ) {
     return {
       ...conv,
-      lastPreview: conv.lastPreview || preview,
       messages: [{
         id: 'preview-1',
         direction: 'in',
@@ -104,6 +100,9 @@ export function hydrateConversationMessages(conv) {
 
 export function upsertConversation(store, conversation) {
   if (!conversation?.id) return store;
+  if ((store.dismissedConversationIds || []).includes(conversation.id)) {
+    return store;
+  }
   if (/optimizely|audience|backwards.?compatibility/i.test(
     `${conversation.partnerName || ''} ${conversation.adTitle || ''} ${conversation.lastPreview || ''}`,
   )) {
@@ -229,8 +228,50 @@ export function purgeJunkConversations(list) {
   return [...byKey.values()];
 }
 
+/** Web agenten törölt beszélgetés — sync nem hozza vissza. */
+export function deleteConversation(store, id) {
+  if (!id) return false;
+  const before = store.conversations.length;
+  store.conversations = store.conversations.filter((c) => c.id !== id);
+  store.dismissedConversationIds = store.dismissedConversationIds || [];
+  if (!store.dismissedConversationIds.includes(id)) {
+    store.dismissedConversationIds.push(id);
+  }
+  return store.conversations.length < before;
+}
+
+/** Egy üzenet törlése a helyi store-ból. */
+export function deleteMessage(store, conversationId, messageId) {
+  const conv = store.conversations.find((c) => c.id === conversationId);
+  if (!conv || !messageId) return false;
+  const before = conv.messages?.length || 0;
+  conv.messages = (conv.messages || []).filter((m) => m.id !== messageId);
+  if (conv.messages.length === before) return false;
+  if (conv.messages.length) {
+    const last = conv.messages[conv.messages.length - 1];
+    conv.lastPreview = String(last.text || '').slice(0, 120);
+    conv.lastMessageAt = last.at || conv.lastMessageAt;
+  } else {
+    conv.lastPreview = '';
+  }
+  return true;
+}
+
+/**
+ * Willhabenről eltűnt beszélgetések törlése.
+ * Csak sikeres, nem üres remote lista után hívd.
+ */
+export function pruneMissingConversations(store, remoteIds) {
+  const remote = new Set((remoteIds || []).filter(Boolean));
+  if (!remote.size) return 0;
+  const before = store.conversations.length;
+  store.conversations = store.conversations.filter((c) => remote.has(c.id));
+  store.dismissedConversationIds = (store.dismissedConversationIds || []).filter((id) => remote.has(id));
+  return before - store.conversations.length;
+}
+
 export function appendOutbound(store, conversationId, text) {
-  const conv = getConversation(store, conversationId);
+  const conv = store.conversations.find((c) => c.id === conversationId);
   if (!conv) return null;
   const msg = {
     id: crypto.randomUUID(),

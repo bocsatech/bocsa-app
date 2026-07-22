@@ -9,6 +9,7 @@ import {
   upsertConversation,
   makeConversationId,
   appendOutbound,
+  pruneMissingConversations,
 } from './store.mjs';
 import {
   attachCapturedPayloads,
@@ -673,11 +674,16 @@ async function runSyncAttempt({ headless, onProgress }) {
       });
     }
 
+    // Willhabenről törölt / eltűnt beszélgetések → helyi törlés
+    const remoteIds = conversations.map((raw) => normalizeConversation(raw).id).filter(Boolean);
+    const pruned = pruneMissingConversations(store, remoteIds);
+    if (pruned) onProgress?.(`${pruned} eltűnt beszélgetés törölve`);
+
     store.lastSyncAt = new Date().toISOString();
     store.lastSyncError = null;
-    store.lastSyncDebug = { source, probes, debugFile, capturedFile, hasAccessToken: Boolean(accessToken) };
+    store.lastSyncDebug = { source, probes, debugFile, capturedFile, hasAccessToken: Boolean(accessToken), pruned };
     saveStore(store);
-    return { ok: true, count: conversations.length, source };
+    return { ok: true, count: conversations.length, source, pruned };
   } catch (err) {
     const store = loadStore();
     store.lastSyncError = err.message;
