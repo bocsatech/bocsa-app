@@ -1,6 +1,6 @@
 import { getProfileDir } from './config.mjs';
 import { dismissConsent } from './consent.mjs';
-import { launchBrowser } from './browser.mjs';
+import { launchBrowser, closeBrowserCleanly } from './browser.mjs';
 import { extractAccessToken, installNetworkCapture, saveCapturedRaw } from './messenger-api.mjs';
 
 const CHAT_URL = 'https://www.willhaben.at/iad/myprofile/chat';

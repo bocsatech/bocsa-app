@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { loadConfig, resolvePort, getDataDir } from './config.mjs';
+import { loadConfig, resolvePort, getDataDir, getProfileDir } from './config.mjs';
+import { unlockProfile } from './browser.mjs';
 
 const LOCK = path.join(getDataDir(), 'agent.pid');
 
@@ -86,6 +87,12 @@ if (still.length) {
   console.error(`A ${port} port még foglalt (PID: ${still.join(', ')}).`);
   console.error('Próbáld: kill -9 ' + still.join(' '));
   process.exit(1);
+}
+
+try {
+  unlockProfile(getProfileDir());
+} catch {
+  /* ok */
 }
 
 if (stopped > 0) {

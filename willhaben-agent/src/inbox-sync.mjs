@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { loadConfig, getProfileDir, getDataDir } from './config.mjs';
 import { dismissConsent } from './consent.mjs';
-import { launchBrowser } from './browser.mjs';
+import { launchBrowser, closeBrowserCleanly, unlockProfile } from './browser.mjs';
 import {
   loadStore,
   saveStore,
@@ -717,7 +717,7 @@ async function runSyncAttempt({ headless, onProgress }) {
     saveStore(store);
     throw err;
   } finally {
-    await context.close().catch(() => {});
+    await closeBrowserCleanly(context);
   }
 }
 
@@ -782,7 +782,7 @@ export async function sendReply(conversationId, text) {
     saveStore(store);
     return { ok: true };
   } finally {
-    await context.close().catch(() => {});
+    await closeBrowserCleanly(context);
   }
 }
 
@@ -935,7 +935,7 @@ export async function deleteConversationRemote(conversationId) {
     saveStore(store);
     return { ok: true, remote };
   } finally {
-    await context.close().catch(() => {});
+    await closeBrowserCleanly(context);
   }
 }
 
@@ -946,11 +946,14 @@ export async function deleteMessageRemote(conversationId, messageId) {
   if (!conv) throw new Error('Nincs ilyen beszélgetés');
 
   const inbox = config.chatUrl || 'https://www.willhaben.at/iad/myprofile/chat';
+  unlockProfile(getProfileDir());
   const { context } = await launchBrowser(getProfileDir(), { headless: false });
   const page = context.pages()[0] || (await context.newPage());
 
   try {
+    await page.keyboard.press('Escape').catch(() => {});
     await page.goto(inbox, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.keyboard.press('Escape').catch(() => {});
     await dismissConsent(page);
     await ensureLoggedIn(page);
     const accessToken = await extractAccessToken(page);
@@ -971,6 +974,6 @@ export async function deleteMessageRemote(conversationId, messageId) {
     }
     return { ok: true, remote };
   } finally {
-    await context.close().catch(() => {});
+    await closeBrowserCleanly(context);
   }
 }
