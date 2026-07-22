@@ -918,16 +918,15 @@ export async function deleteConversationRemote(conversationId) {
     }
 
     if (!remote.ok) {
-      // Legalább az agentről töröljük — Willhaben UI gyakran nem ad törlés API-t
+      // Ne rejtsük el örökre — sync visszahozza Willhabenről
       const { deleteConversation } = await import('./store.mjs');
       deleteConversation(store, conversationId);
       saveStore(store);
       return {
         ok: true,
         remote,
-        warning: `Agentől törölve. Willhabenről nem sikerült automatikusan `
-          + `(partner: ${conv.partnerName || conversationId}). `
-          + 'A Willhaben chat listán manuálisan is töröld, ha még látszik.',
+        warning: `Agentől ideiglenesen törölve, Willhabenről NEM. `
+          + 'Szinkron után visszajön. Töröld manuálisan a Willhaben chaten, vagy próbáld újra.',
       };
     }
 

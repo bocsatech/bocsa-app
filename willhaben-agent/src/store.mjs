@@ -41,6 +41,10 @@ export function loadStore() {
   try {
     const s = { ...emptyStore(), ...JSON.parse(fs.readFileSync(file, 'utf8')) };
     if (!s.templates?.length) s.templates = [...DEFAULT_TEMPLATES];
+    // Régi „dismiss” miatt eltűnt chatek: engedd vissza a syncnek
+    if (Array.isArray(s.dismissedConversationIds) && s.dismissedConversationIds.length) {
+      s.dismissedConversationIds = [];
+    }
     s.conversations = purgeJunkConversations(s.conversations);
     // Persistált üres history + preview → töltsd fel, hogy a középső panel ne legyen üres
     let changed = false;
@@ -100,9 +104,6 @@ export function hydrateConversationMessages(conv) {
 
 export function upsertConversation(store, conversation) {
   if (!conversation?.id) return store;
-  if ((store.dismissedConversationIds || []).includes(conversation.id)) {
-    return store;
-  }
   if (/optimizely|audience|backwards.?compatibility/i.test(
     `${conversation.partnerName || ''} ${conversation.adTitle || ''} ${conversation.lastPreview || ''}`,
   )) {
@@ -228,15 +229,13 @@ export function purgeJunkConversations(list) {
   return [...byKey.values()];
 }
 
-/** Web agenten törölt beszélgetés — sync nem hozza vissza. */
+/** Helyi beszélgetés törlés. Nem tiltja a későbbi sync visszatöltését. */
 export function deleteConversation(store, id) {
   if (!id) return false;
   const before = store.conversations.length;
   store.conversations = store.conversations.filter((c) => c.id !== id);
-  store.dismissedConversationIds = store.dismissedConversationIds || [];
-  if (!store.dismissedConversationIds.includes(id)) {
-    store.dismissedConversationIds.push(id);
-  }
+  // Régi dismissed lista ürítése — a Willhaben a forrás
+  store.dismissedConversationIds = (store.dismissedConversationIds || []).filter((x) => x !== id);
   return store.conversations.length < before;
 }
 
@@ -266,7 +265,8 @@ export function pruneMissingConversations(store, remoteIds) {
   if (!remote.size) return 0;
   const before = store.conversations.length;
   store.conversations = store.conversations.filter((c) => remote.has(c.id));
-  store.dismissedConversationIds = (store.dismissedConversationIds || []).filter((id) => remote.has(id));
+  // dismissed többé nem blokkol — ürítjük
+  store.dismissedConversationIds = [];
   return before - store.conversations.length;
 }
 
