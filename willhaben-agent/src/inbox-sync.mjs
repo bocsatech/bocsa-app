@@ -887,11 +887,14 @@ export async function deleteConversationRemote(conversationId) {
   if (!conv) throw new Error('Nincs ilyen beszélgetés');
 
   const inbox = config.chatUrl || 'https://www.willhaben.at/iad/myprofile/chat';
+  unlockProfile(getProfileDir());
   const { context } = await launchBrowser(getProfileDir(), { headless: false });
   const page = context.pages()[0] || (await context.newPage());
 
   try {
+    await page.keyboard.press('Escape').catch(() => {});
     await page.goto(inbox, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.keyboard.press('Escape').catch(() => {});
     await dismissConsent(page);
     await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
     await page.waitForTimeout(1000);
