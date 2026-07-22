@@ -12,16 +12,20 @@ wh_cd
 
 case "$CMD" in
   start|inditas)
+    wh_auto_update || true
     echo "Willhaben Agent — http://127.0.0.1:3860"
     exec caffeinate -dims npm start
     ;;
   login|bejelentkezes)
+    wh_auto_update || true
     exec npm run login
     ;;
   sync|szinkron)
+    wh_auto_update || true
     exec npm run sync
     ;;
   sync-debug|debug)
+    wh_auto_update || true
     exec npm run sync:debug
     ;;
   stop|leallitas)

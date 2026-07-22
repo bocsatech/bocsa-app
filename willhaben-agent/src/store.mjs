@@ -77,10 +77,20 @@ export function hydrateConversationMessages(conv) {
   const messages = Array.isArray(conv.messages) ? conv.messages : [];
   if (messages.length) return { ...conv, messages: messages.map((m) => ({ ...m })) };
 
-  const preview = String(conv.lastPreview || '').trim();
-  if (preview && preview.length >= 2 && !/^(zuletzt online|willhaben-?code)/i.test(preview)) {
+  const candidates = [
+    String(conv.lastPreview || '').trim(),
+    String(conv.adTitle || '').trim(),
+  ].filter(Boolean);
+
+  for (const preview of candidates) {
+    if (preview.length < 2) continue;
+    if (/^(zuletzt online|willhaben-?code)/i.test(preview)) continue;
+    // Ne időpont / dátum legyen az „üzenet”
+    if (/^\d{1,2}:\d{2}$/.test(preview)) continue;
+    if (/^\d{1,2}\.\d{2}\.\d{2,4}$/.test(preview)) continue;
     return {
       ...conv,
+      lastPreview: conv.lastPreview || preview,
       messages: [{
         id: 'preview-1',
         direction: 'in',
@@ -114,17 +124,42 @@ export function upsertConversation(store, conversation) {
   if (Array.isArray(next.messages)) {
     next.messages = next.messages.map((m) => ({ ...m }));
   } else {
-    // Ne töröljük a meglévő üzeneteket, ha most nincs új
     delete next.messages;
   }
+
   if (idx >= 0) {
-    store.conversations[idx] = {
-      ...store.conversations[idx],
-      ...next,
-      ...(next.messages ? { messages: next.messages } : {}),
-    };
+    const prev = store.conversations[idx];
+    const merged = { ...prev, ...next };
+
+    // Üres lastPreview / adTitle ne törölje a jót
+    if (!String(next.lastPreview || '').trim() && prev.lastPreview) {
+      merged.lastPreview = prev.lastPreview;
+    }
+    if (!String(next.adTitle || '').trim() && prev.adTitle) {
+      merged.adTitle = prev.adTitle;
+    }
+    // Időpont ne legyen adTitle („09:44”)
+    if (/^\d{1,2}:\d{2}$/.test(String(merged.adTitle || '').trim()) && prev.adTitle
+      && !/^\d{1,2}:\d{2}$/.test(String(prev.adTitle || '').trim())) {
+      merged.adTitle = prev.adTitle;
+    }
+
+    if (Array.isArray(next.messages)) {
+      if (next.messages.length > 0) {
+        merged.messages = next.messages;
+      } else if (Array.isArray(prev.messages) && prev.messages.length > 0) {
+        // Új sync üres history-t hozott — tartsd a régit, amíg van preview/hydratálás
+        merged.messages = prev.messages.map((m) => ({ ...m }));
+      } else {
+        merged.messages = [];
+      }
+    }
+
+    // Ha még mindig üres: lastPreview → egy üzenet
+    const hydrated = hydrateConversationMessages(merged);
+    store.conversations[idx] = hydrated;
   } else {
-    store.conversations.unshift({ ...next, messages: next.messages || [] });
+    store.conversations.unshift(hydrateConversationMessages({ ...next, messages: next.messages || [] }));
   }
   store.conversations = purgeJunkConversations(store.conversations);
   store.conversations.sort(

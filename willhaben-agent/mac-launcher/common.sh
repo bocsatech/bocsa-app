@@ -30,3 +30,30 @@ wh_cd() {
   }
   cd "$dir" || exit 1
 }
+
+# Indításkor húzd le a friss forrást a mainről (üzenet-javítások azonnal)
+wh_auto_update() {
+  local raw="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
+  local files=(
+    src/version.mjs
+    src/store.mjs
+    src/server.mjs
+    src/inbox-sync.mjs
+    src/messenger-api.mjs
+    public/app.js
+    public/index.html
+    public/app.css
+    package.json
+  )
+  local f
+  echo "Frissítés ellenőrzése…"
+  for f in "${files[@]}"; do
+    curl -fsSL "${raw}/${f}" -o "${f}.tmp" 2>/dev/null || { rm -f "${f}.tmp"; continue; }
+    if ! cmp -s "${f}.tmp" "$f" 2>/dev/null; then
+      mv "${f}.tmp" "$f"
+      echo "  ✓ ${f}"
+    else
+      rm -f "${f}.tmp"
+    fi
+  done
+}

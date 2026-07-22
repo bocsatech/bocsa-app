@@ -83,11 +83,14 @@ async function loadConversations() {
   convList.innerHTML = conversations.length
     ? conversations
         .map(
-          (c) => `
-      <button type="button" class="item${c.id === selectedId ? ' active' : ''}" data-id="${esc(c.id)}">
+          (c) => {
+            const prev = c.lastPreview || c.adTitle || '';
+            return `
+      <button type="button" class="item${c.id === selectedId ? ' active' : ''}" data-id="${esc(c.id)}" data-preview="${esc(prev)}">
         <span class="name">${esc(c.partnerName)}</span>
-        <span class="prev">${esc(c.lastPreview || c.adTitle || '')}</span>
-      </button>`,
+        <span class="prev">${esc(prev)}</span>
+      </button>`;
+          },
         )
         .join('')
     : '<p class="muted">Nincs beszélgetés. Frissítsd a bejövő üzeneteket.</p>';
@@ -106,7 +109,9 @@ async function openConv(id) {
   empty.classList.add('hidden');
   thread.classList.remove('hidden');
 
-  // active class frissítés lista újratöltés nélkül
+  const listBtn = convList.querySelector(`.item[data-id="${CSS.escape(id)}"]`);
+  const listPreview = (listBtn?.dataset?.preview || listBtn?.querySelector('.prev')?.textContent || '').trim();
+
   convList.querySelectorAll('.item[data-id]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.id === id);
   });
@@ -118,10 +123,11 @@ async function openConv(id) {
   tTitle.textContent = c.partnerName || '—';
   tAd.textContent = c.adTitle || '';
   const list = Array.isArray(c.messages) ? c.messages : [];
+  const fallbackText = c.lastPreview || listPreview || '';
   const display = list.length
     ? list
-    : (c.lastPreview
-      ? [{ id: 'ui-preview', direction: 'in', text: c.lastPreview }]
+    : (fallbackText && !/^\d{1,2}:\d{2}$/.test(fallbackText)
+      ? [{ id: 'ui-preview', direction: 'in', text: fallbackText }]
       : []);
   msgs.innerHTML = display.length
     ? display
@@ -302,9 +308,14 @@ async function tick() {
       if (seq !== openSeq || selectedId !== id || c.id !== id) return;
       currentConv = c;
       const list = c.messages || [];
+      const listBtn = convList.querySelector(`.item[data-id="${CSS.escape(id)}"]`);
+      const listPreview = (listBtn?.dataset?.preview || '').trim();
+      const fallbackText = c.lastPreview || listPreview || '';
       const display = list.length
         ? list
-        : (c.lastPreview ? [{ id: 'ui-preview', direction: 'in', text: c.lastPreview }] : []);
+        : (fallbackText && !/^\d{1,2}:\d{2}$/.test(fallbackText)
+          ? [{ id: 'ui-preview', direction: 'in', text: fallbackText }]
+          : []);
       const html = display.length
         ? display
             .map((m) => `<div class="msg ${m.direction === 'out' ? 'out' : 'in'}" data-mid="${esc(m.id || '')}">${esc(m.text)}</div>`)
