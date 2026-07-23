@@ -40,6 +40,7 @@ wh_auto_update() {
     src/server.mjs
     src/inbox-sync.mjs
     src/messenger-api.mjs
+    src/import-inbox.mjs
     src/browser.mjs
     src/login.mjs
     src/stop.mjs
@@ -47,10 +48,18 @@ wh_auto_update() {
     public/index.html
     public/app.css
     package.json
+    browser-extension/manifest.json
+    browser-extension/content.js
+    browser-extension/page-bridge.js
+    browser-extension/popup.html
+    browser-extension/willhaben-sync.user.js
+    browser-extension/README.md
   )
   local f
   echo "Frissítés ellenőrzése…"
+  mkdir -p browser-extension
   for f in "${files[@]}"; do
+    mkdir -p "$(dirname "$f")"
     curl -fsSL "${raw}/${f}" -o "${f}.tmp" 2>/dev/null || { rm -f "${f}.tmp"; continue; }
     if ! cmp -s "${f}.tmp" "$f" 2>/dev/null; then
       mv "${f}.tmp" "$f"

@@ -1,8 +1,8 @@
 {
   "name": "willhaben-agent",
-  "version": "1.4.3",
+  "version": "2.0.0",
   "private": true,
-  "description": "Willhaben bejövő üzenetek — válasz, sablon, árajánlat (önálló program)",
+  "description": "Willhaben bejövő üzenetek — böngésző helper + válasz, sablon, árajánlat",
   "type": "module",
   "scripts": {
     "prestart": "node src/stop.mjs",

@@ -320,7 +320,60 @@ function httpRequest(method, reqPath) {
 
 const status = await httpRequest('GET', '/api/status');
 if (status.status !== 200 || !status.body.version) throw new Error('status fail');
-if (status.body.version !== '1.4.3') throw new Error(`version fail: ${status.body.version}`);
+if (status.body.version !== '2.0.0') throw new Error(`version fail: ${status.body.version}`);
+
+// Browser-helper import API
+{
+  const { importConversationsPayload } = await import('../src/import-inbox.mjs');
+  const imported = importConversationsPayload({
+    source: 'test',
+    replaceAll: false,
+    conversations: [{
+      id: 'imp-1',
+      partnerName: 'Import Partner',
+      adTitle: 'Audi A4',
+      lastPreview: 'Hallo',
+      messages: [
+        { id: 'im1', direction: 'in', text: 'Hallo aus Browser' },
+        { id: 'im2', direction: 'out', text: 'Antwort' },
+      ],
+    }],
+  });
+  if (!imported.ok || imported.count !== 1) throw new Error('importConversationsPayload fail');
+
+  const impPost = await new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      source: 'test-http',
+      conversations: [{
+        id: 'imp-http',
+        partnerName: 'Http Partner',
+        adTitle: 'Golf',
+        lastPreview: 'Hi',
+        messages: [{ id: 'h1', direction: 'in', text: 'Http import üzenet' }],
+      }],
+    });
+    const req = http.request({
+      method: 'POST', hostname: '127.0.0.1', port,
+      path: '/api/import',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => resolve({
+        status: res.statusCode,
+        body: JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'),
+      }));
+    });
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+  if (impPost.status !== 200 || impPost.body.count !== 1) throw new Error('POST /api/import fail');
+  const got = await httpRequest('GET', '/api/conversations/imp-http');
+  if (got.body.conversation?.messages?.[0]?.text !== 'Http import üzenet') {
+    throw new Error('import messages not stored');
+  }
+}
 
 // Seed distinct conversations — UI/API must keep messages isolated
 {
@@ -415,4 +468,4 @@ if (typeof after.body.syncRunning !== 'boolean') throw new Error('sync status fa
 
 await new Promise((resolve) => server.close(resolve));
 
-console.log('✓ minden teszt OK (parser + DOM izoláció + törlés + szinkron mock + szerver API)');
+console.log('✓ minden teszt OK (parser + import API + DOM izoláció + törlés + szinkron mock + szerver API)');

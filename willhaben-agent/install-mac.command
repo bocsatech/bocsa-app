@@ -1,11 +1,11 @@
 #!/bin/bash
-# Willhaben Agent — egygombos telepítő 1.4.3
+# Willhaben Agent — egygombos telepítő 2.0.0
 # BÁRHONNAN futtatható (nem kell cd):
 #   curl -fsSL "https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent/install-mac.command" | bash
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-INSTALLER_VERSION="1.4.3"
+INSTALLER_VERSION="2.0.0"
 TARGET="${HOME}/Downloads/Willhaben Agent"
 RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
 
@@ -70,6 +70,7 @@ FILES=(
   src/instance-lock.mjs
   src/sync-cli.mjs
   src/sync-debug.mjs
+  src/import-inbox.mjs
   scripts/test-all.mjs
   install-mac.command
   mac-launcher/common.sh
@@ -78,6 +79,12 @@ FILES=(
   mac-launcher/Login.command
   mac-launcher/Szinkron.command
   mac-launcher/run.sh
+  browser-extension/manifest.json
+  browser-extension/content.js
+  browser-extension/page-bridge.js
+  browser-extension/popup.html
+  browser-extension/willhaben-sync.user.js
+  browser-extension/README.md
   "Willhaben Agent.app/Contents/Info.plist"
   "Willhaben Agent.app/Contents/MacOS/run"
 )
@@ -180,18 +187,16 @@ echo "  ✓ Willhaben Agent INDITAS.command"
 
 echo ""
 echo "══════════════════════════════════════════"
-echo "  ✅ KÉSZ — nem kell cd, nem kell npm a home-ból"
+echo "  ✅ KÉSZ — böngésző helper (v2)"
 echo "══════════════════════════════════════════"
 echo ""
-echo "  Asztalon dupla katt:"
-echo "    1. Willhaben Agent LOGIN"
-echo "    2. Willhaben Agent SZINKRON"
-echo "    3. Willhaben Agent INDITAS"
+echo "  1) Indítsd: Willhaben Agent INDITAS (http://127.0.0.1:3860)"
+echo "  2) Chrome: chrome://extensions → Fejlesztői mód"
+echo "     → Csomagolatlan betöltése →"
+echo "       ${TARGET}/browser-extension"
+echo "  3) Nyisd meg a Willhaben chatet, kattints: ⇢ Agent szinkron"
 echo ""
-echo "  Vagy Terminálból bárhonnan (új ablak után):"
-echo "    wh-agent login"
-echo "    wh-agent sync"
-echo "    wh-agent start"
+echo "  (Régi Playwright login/sync opcionális háttérút.)"
 echo ""
 echo "  Web: http://127.0.0.1:3860"
 echo ""

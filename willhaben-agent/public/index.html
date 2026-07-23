@@ -12,7 +12,11 @@
       <strong>Willhaben Agent</strong>
       <span id="status" class="muted"></span>
     </div>
-    <button type="button" id="btnSync" class="btn primary">↻ Bejövő üzenetek</button>
+    <div class="top-actions">
+      <button type="button" id="btnHelp" class="btn ghost">Helper telepítés</button>
+      <button type="button" id="btnOpenWh" class="btn ghost">Willhaben chat</button>
+      <button type="button" id="btnSync" class="btn primary">↻ Szinkron (böngésző)</button>
+    </div>
   </header>
 
   <main class="grid">
@@ -22,7 +26,18 @@
     </aside>
 
     <section class="panel thread">
-      <div id="empty" class="empty">Válassz beszélgetést, vagy frissítsd a bejövő üzeneteket.</div>
+      <div id="empty" class="empty">
+        <p>A szinkron a <b>saját Chrome</b> ablakodban fut — nem a régi Playwright böngészőben.</p>
+        <ol class="help-steps">
+          <li>Telepítsd a bővítményt (<b>Helper telepítés</b>)</li>
+          <li>Nyisd meg a Willhaben chatet (bejelentkezve)</li>
+          <li>Kattints a kék <b>⇢ Agent szinkron</b> gombra</li>
+        </ol>
+        <div class="row" style="gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px">
+          <button type="button" class="btn primary" id="btnEmptySync">Willhaben megnyitása</button>
+          <button type="button" class="btn ghost" id="btnEmptyHelp">Helper telepítés</button>
+        </div>
+      </div>
       <div id="thread" class="hidden">
         <header class="thread-head">
           <div>
@@ -76,7 +91,30 @@
     </aside>
   </main>
 
+  <div id="modalHelp" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2>Böngésző helper</h2>
+      <p class="muted">
+        A szinkron a te Chrome ablakodban fut — a Willhaben saját munkameneteddel.
+        Így nincs külön Playwright profil / zárolás.
+      </p>
+      <ol class="help-steps">
+        <li>Chrome: <code>chrome://extensions</code> → Fejlesztői mód BE</li>
+        <li>„Csomagolatlan bővítmény betöltése”</li>
+        <li>Mappa: <code>~/Downloads/Willhaben Agent/browser-extension</code></li>
+        <li>Nyisd meg a <a href="https://www.willhaben.at/iad/myprofile/chat" target="_blank" rel="noopener">Willhaben chatet</a></li>
+        <li>Nyomd meg a bal alsó <b>⇢ Agent szinkron</b> gombot</li>
+      </ol>
+      <p class="muted small">
+        Alternatíva: Tampermonkey + <code>browser-extension/willhaben-sync.user.js</code>
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn primary" id="btnHelpClose">Értem</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
-  <script src="/app.js?v=1.4.3" type="module"></script>
+  <script src="/app.js?v=2.0.0" type="module"></script>
 </body>
 </html>

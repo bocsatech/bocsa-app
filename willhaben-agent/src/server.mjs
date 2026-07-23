@@ -16,6 +16,7 @@ import {
 } from './store.mjs';
 import { parsePriceChart, lookupPrice, saveChartFile } from './price-chart.mjs';
 import { syncInbox, sendReply, deleteConversationRemote, deleteMessageRemote } from './inbox-sync.mjs';
+import { importConversationsPayload } from './import-inbox.mjs';
 import { APP_VERSION } from './version.mjs';
 
 const skipRemoteDelete = () => process.env.AGENT_SKIP_REMOTE_DELETE === '1'
@@ -49,8 +50,23 @@ function readBody(req, max = 8 * 1024 * 1024) {
 }
 
 function json(res, status, obj) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  });
   res.end(JSON.stringify(obj, null, 2));
+}
+
+function corsPreflight(res) {
+  res.writeHead(204, {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+  });
+  res.end();
 }
 
 function serve(res, filePath) {
@@ -91,6 +107,10 @@ export function startServer(port) {
     const server = http.createServer(async (req, res) => {
       try {
         const url = new URL(req.url, `http://127.0.0.1:${port}`);
+
+        if (req.method === 'OPTIONS') {
+          return corsPreflight(res);
+        }
 
         if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
           return serve(res, path.join(PUBLIC, 'index.html'));
@@ -181,6 +201,12 @@ export function startServer(port) {
           } catch (e) {
             return json(res, 400, { error: e.message });
           }
+        }
+
+        if (req.method === 'POST' && url.pathname === '/api/import') {
+          const body = JSON.parse((await readBody(req)).toString('utf8') || '{}');
+          const result = importConversationsPayload(body);
+          return json(res, 200, result);
         }
 
         if (req.method === 'POST' && url.pathname === '/api/sync') {

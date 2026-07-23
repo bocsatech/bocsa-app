@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Willhaben Agent Sync",
+  "version": "2.0.0",
+  "description": "Willhaben chat → helyi Agent (127.0.0.1:3860). A saját böngésződben fut, bejelentkezés után.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://www.willhaben.at/*",
+    "http://127.0.0.1:3860/*",
+    "http://localhost:3860/*"
+  ],
+  "action": {
+    "default_title": "Willhaben Agent Sync",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.willhaben.at/iad/myprofile/chat*",
+        "https://www.willhaben.at/iad/messenger*",
+        "https://www.willhaben.at/*/messenger*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["page-bridge.js"],
+      "matches": ["https://www.willhaben.at/*"]
+    }
+  ]
+}

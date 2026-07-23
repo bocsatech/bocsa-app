@@ -24,7 +24,23 @@ const chartMeta = $('#chartMeta');
 const lookupResult = $('#lookupResult');
 const btnLookup = $('#btnLookup');
 const btnDelConv = $('#btnDelConv');
+const btnOpenWh = $('#btnOpenWh');
+const btnHelp = $('#btnHelp');
+const btnEmptySync = $('#btnEmptySync');
+const btnEmptyHelp = $('#btnEmptyHelp');
+const modalHelp = $('#modalHelp');
+const btnHelpClose = $('#btnHelpClose');
 const toast = $('#toast');
+
+const WH_CHAT = 'https://www.willhaben.at/iad/myprofile/chat';
+
+function openWillhabenChat() {
+  window.open(WH_CHAT, '_blank', 'noopener');
+}
+
+function showHelp(on = true) {
+  modalHelp?.classList.toggle('hidden', !on);
+}
 
 let selectedId = null;
 let editingTplId = null;
@@ -74,10 +90,10 @@ function renderMessages(list) {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       if (!selectedId || !btn.dataset.mid) return;
-      if (!confirm('Üzenet törlése?\n(Willhaben API-n is megpróbáljuk.)')) return;
+      if (!confirm('Üzenet törlése az Agentből?')) return;
       try {
         const result = await api(
-          `/api/conversations/${encodeURIComponent(selectedId)}/messages/${encodeURIComponent(btn.dataset.mid)}`,
+          `/api/conversations/${encodeURIComponent(selectedId)}/messages/${encodeURIComponent(btn.dataset.mid)}?local=1`,
           { method: 'DELETE' },
         );
         currentConv = result.conversation;
@@ -95,22 +111,22 @@ function renderMessages(list) {
 async function deleteSelectedConversation() {
   if (!selectedId) return;
   const name = currentConv?.partnerName || 'ez a beszélgetés';
-  if (!confirm(`Törlöd: ${name}?\n(Willhabenről is törlődik.)`)) return;
+  if (!confirm(`Törlöd: ${name}?\n(Csak az Agentből — Willhaben érintetlen.)`)) return;
   try {
-        toastMsg('Törlés Willhabenről…');
-        btnDelConv.disabled = true;
-        const result = await api(`/api/conversations/${encodeURIComponent(selectedId)}`, { method: 'DELETE' });
-        selectedId = null;
-        currentConv = null;
-        thread.classList.add('hidden');
-        empty.classList.remove('hidden');
-        await loadConversations();
-        toastMsg(result.warning || 'Törölve (Willhaben + agent)', Boolean(result.warning));
-      } catch (err) {
-        toastMsg(err.message, true);
-      } finally {
-        btnDelConv.disabled = false;
-      }
+    toastMsg('Törlés…');
+    btnDelConv.disabled = true;
+    const result = await api(`/api/conversations/${encodeURIComponent(selectedId)}?local=1`, { method: 'DELETE' });
+    selectedId = null;
+    currentConv = null;
+    thread.classList.add('hidden');
+    empty.classList.remove('hidden');
+    await loadConversations();
+    toastMsg(result.warning || 'Törölve az Agentből');
+  } catch (err) {
+    toastMsg(err.message, true);
+  } finally {
+    btnDelConv.disabled = false;
+  }
 }
 
 function fmtTime(iso) {
@@ -135,7 +151,6 @@ async function refreshStatus() {
   else if (s.lastSyncError) parts.push(`⚠ ${s.lastSyncError}`);
   lastGoodStatus = parts.join(' · ');
   statusEl.textContent = lastGoodStatus;
-  btnSync.disabled = s.syncRunning;
 }
 
 async function loadConversations() {
@@ -156,7 +171,7 @@ async function loadConversations() {
           },
         )
         .join('')
-    : '<p class="muted">Nincs beszélgetés. Frissítsd a bejövő üzeneteket.</p>';
+    : '<p class="muted">Nincs beszélgetés. Nyisd meg a Willhabent → ⇢ Agent szinkron.</p>';
   convList.querySelectorAll('.item[data-id]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       if (e.target.closest('.del')) return;
@@ -174,10 +189,10 @@ async function loadConversations() {
       e.stopPropagation();
       const id = btn.dataset.del;
       const name = btn.closest('.item')?.querySelector('.name')?.textContent || 'beszélgetés';
-      if (!confirm(`Törlöd: ${name}?\n(Willhabenről is törlődik.)`)) return;
+      if (!confirm(`Törlöd: ${name}?\n(Csak az Agentből.)`)) return;
       try {
-        toastMsg('Törlés Willhabenről…');
-        const result = await api(`/api/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        toastMsg('Törlés…');
+        const result = await api(`/api/conversations/${encodeURIComponent(id)}?local=1`, { method: 'DELETE' });
         if (selectedId === id) {
           selectedId = null;
           currentConv = null;
@@ -185,7 +200,7 @@ async function loadConversations() {
           empty.classList.remove('hidden');
         }
         await loadConversations();
-        toastMsg(result.warning || 'Törölve (Willhaben + agent)', Boolean(result.warning));
+        toastMsg(result.warning || 'Törölve az Agentből');
       } catch (err) {
         toastMsg(err.message, true);
       }
@@ -277,13 +292,18 @@ async function refreshChartMeta() {
   chartMeta.textContent = `${priceChart.filename} — ${priceChart.rowCount} sor`;
 }
 
-btnSync.addEventListener('click', async () => {
-  try {
-    await api('/api/sync', { method: 'POST' });
-    toastMsg('Szinkron indul…');
-  } catch (e) {
-    toastMsg(e.message, true);
-  }
+btnSync.addEventListener('click', () => {
+  openWillhabenChat();
+  toastMsg('Willhaben chat → kattints: ⇢ Agent szinkron');
+});
+
+btnOpenWh?.addEventListener('click', () => openWillhabenChat());
+btnEmptySync?.addEventListener('click', () => openWillhabenChat());
+btnHelp?.addEventListener('click', () => showHelp(true));
+btnEmptyHelp?.addEventListener('click', () => showHelp(true));
+btnHelpClose?.addEventListener('click', () => showHelp(false));
+modalHelp?.addEventListener('click', (e) => {
+  if (e.target === modalHelp) showHelp(false);
 });
 
 btnOfferMode.addEventListener('click', () => setOfferMode(!offerMode));
