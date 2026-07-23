@@ -5,7 +5,7 @@
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-INSTALLER_VERSION="2.0.0"
+INSTALLER_VERSION="2.0.1"
 TARGET="${HOME}/Downloads/Willhaben Agent"
 RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/main/willhaben-agent"
 

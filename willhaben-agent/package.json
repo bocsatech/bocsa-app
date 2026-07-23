@@ -1,6 +1,6 @@
 {
   "name": "willhaben-agent",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "description": "Willhaben bejövő üzenetek — böngésző helper + válasz, sablon, árajánlat",
   "type": "module",

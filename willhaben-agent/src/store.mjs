@@ -102,6 +102,26 @@ export function hydrateConversationMessages(conv) {
   return { ...conv, messages: [] };
 }
 
+/** Üzenetek egyesítése id / szöveg alapján — soha ne veszítsünk el meglévő sort. */
+function mergeMessageLists(prevList = [], nextList = []) {
+  const out = [];
+  const seen = new Set();
+  const keyOf = (m) => {
+    const id = String(m?.id || '').trim();
+    if (id && id !== 'preview-1' && id !== 'ui-preview' && id !== 'p1') return `id:${id}`;
+    return `t:${String(m?.text || '').trim().toLowerCase()}|${m?.direction || ''}`;
+  };
+  for (const m of [...prevList, ...nextList]) {
+    if (!m?.text) continue;
+    const k = keyOf(m);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push({ ...m });
+  }
+  out.sort((a, b) => new Date(a.at || 0) - new Date(b.at || 0));
+  return out;
+}
+
 export function upsertConversation(store, conversation) {
   if (!conversation?.id) return store;
   if (/optimizely|audience|backwards.?compatibility/i.test(
@@ -145,11 +165,17 @@ export function upsertConversation(store, conversation) {
     }
 
     if (Array.isArray(next.messages)) {
-      if (next.messages.length > 0) {
-        merged.messages = next.messages;
-      } else if (Array.isArray(prev.messages) && prev.messages.length > 0) {
-        // Új sync üres history-t hozott — tartsd a régit, amíg van preview/hydratálás
-        merged.messages = prev.messages.map((m) => ({ ...m }));
+      const prevMsgs = Array.isArray(prev.messages) ? prev.messages : [];
+      const nextMsgs = next.messages;
+      if (nextMsgs.length === 0 && prevMsgs.length > 0) {
+        // Üres sync ne törölje a meglévő üzeneteket
+        merged.messages = prevMsgs.map((m) => ({ ...m }));
+      } else if (prevMsgs.length > nextMsgs.length) {
+        // Gyengébb (rövidebb) import ne írja felül a gazdagabb előzményt
+        // — pl. csak lastPreview / 1 üzenet a teljes thread helyett
+        merged.messages = mergeMessageLists(prevMsgs, nextMsgs);
+      } else if (nextMsgs.length > 0) {
+        merged.messages = mergeMessageLists(prevMsgs, nextMsgs);
       } else {
         merged.messages = [];
       }
@@ -185,23 +211,9 @@ export function purgeJunkConversations(list) {
         if (lines.length >= 4 && (text.match(/\d{1,2}:\d{2}/g) || []).length >= 2) return false;
         return true;
       });
-      // Clear messages that greet a different person (Angela chat showing "Hallo Ingrid")
-      const first = String(c.partnerName || '').trim().split(/\s+/)[0];
-      if (first && first.length >= 3 && c.messages.length) {
-        const want = first.toLowerCase();
-        const greets = [];
-        for (const m of c.messages) {
-          const re = /hallo\s+([A-Za-zÄÖÜäöüß]{2,40})/gi;
-          let match;
-          while ((match = re.exec(String(m.text || '')))) greets.push(match[1].toLowerCase());
-        }
-        if (
-          greets.length
-          && !greets.some((g) => g === want || want.startsWith(g) || g.startsWith(want))
-        ) {
-          c.messages = [];
-        }
-      }
+      // Ne ürítsük az egész threadet „másik név” köszönés miatt —
+      // a partner név DOM/API-ból gyakran pontatlan, és ez törölte az üzeneteket.
+      // (A téves szálakat a sync izoláció / id kezeli.)
     }
     if (
       (!c.messages || !c.messages.length)
@@ -214,8 +226,12 @@ export function purgeJunkConversations(list) {
     return true;
   });
 
-  // Deduplicate: keep richest entry per partner+ad (prefer one with real messages / uuid-looking id)
+  // Deduplicate: ugyanaz a partner+hirdetés — tartsd a gazdagabbat.
+  // Ha mindkettő uuid-szerű és különbözik, NE vonjuk össze (külön thread).
   const byKey = new Map();
+  const kept = [];
+  const isUuid = (id) => /^[0-9a-f]{8}-[0-9a-f-]{4,}$/i.test(String(id || ''))
+    || (String(id || '').length > 20 && !String(id).startsWith('dom-'));
   for (const c of filtered) {
     const key = `${String(c.partnerName || '').toLowerCase()}|${String(c.adTitle || '').toLowerCase().slice(0, 40)}`;
     const prev = byKey.get(key);
@@ -223,10 +239,16 @@ export function purgeJunkConversations(list) {
       byKey.set(key, c);
       continue;
     }
+    if (isUuid(prev.id) && isUuid(c.id) && prev.id !== c.id) {
+      kept.push(prev);
+      byKey.set(key, c);
+      continue;
+    }
     const score = (x) => (x.messages?.length || 0) * 10 + (x.lastPreview ? 2 : 0) + (String(x.id || '').length > 20 ? 1 : 0);
+    // Mindig a gazdagabb marad — soha ne cseréld le üzeneteset üresre
     byKey.set(key, score(c) >= score(prev) ? c : prev);
   }
-  return [...byKey.values()];
+  return [...kept, ...byKey.values()];
 }
 
 /** Helyi beszélgetés törlés. Nem tiltja a későbbi sync visszatöltését. */

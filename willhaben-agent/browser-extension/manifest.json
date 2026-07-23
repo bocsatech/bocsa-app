@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Willhaben Agent Sync",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Willhaben chat → helyi Agent (127.0.0.1:3860). A saját böngésződben fut, bejelentkezés után.",
   "permissions": ["storage"],
   "host_permissions": [

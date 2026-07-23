@@ -7,7 +7,7 @@ import { parseConversationsPayload, parseMessagesPayload } from './messenger-api
 
 function asMessages(raw) {
   if (!raw) return [];
-  if (Array.isArray(raw) && raw.length && raw[0]?.text) {
+  if (Array.isArray(raw) && raw.length && (raw[0]?.text || raw[0]?.body || raw[0]?.message_text)) {
     return raw.map((m, i) => ({
       id: m.id || `imp-${i}`,
       direction: m.direction === 'out' || m.outgoing || m.from_self || m.fromSelf ? 'out' : 'in',
@@ -18,6 +18,15 @@ function asMessages(raw) {
   return parseMessagesPayload(raw);
 }
 
+function looksLikeUuid(id) {
+  return /^[0-9a-f]{8}-[0-9a-f-]{4,}$/i.test(String(id || ''))
+    || (/^[0-9a-f-]{20,}$/i.test(String(id || '')) && !String(id).startsWith('dom-'));
+}
+
+/**
+ * body.conversations — normalized list from browser helper
+ * body.replaceAll — ONLY prune local threads missing from import when safe
+ */
 export function importConversationsPayload(body) {
   const store = loadStore();
   let list = [];
@@ -31,10 +40,11 @@ export function importConversationsPayload(body) {
   }
 
   const normalized = [];
+  let withMessages = 0;
   for (const raw of list) {
     if (!raw) continue;
     let conv;
-    if (raw.id && (raw.partnerName || raw.messages)) {
+    if (raw.id && (raw.partnerName || raw.messages || raw.lastPreview)) {
       conv = {
         id: String(raw.id),
         partnerName: raw.partnerName || 'Beszélgetés',
@@ -64,12 +74,20 @@ export function importConversationsPayload(body) {
     if (!conv.lastPreview && conv.messages?.length) {
       conv.lastPreview = conv.messages[conv.messages.length - 1].text.slice(0, 120);
     }
+    if (conv.messages?.length) withMessages += 1;
     upsertConversation(store, { ...conv, syncedAt: new Date().toISOString() });
     normalized.push(conv.id);
   }
 
-  if (body?.replaceAll && normalized.length) {
-    pruneMissingConversations(store, normalized);
+  // Csak akkor töröljünk „hiányzó” chateket, ha az import erős (uuid lista),
+  // különben a DOM / részleges sync kitörölte a localhost üzeneteket.
+  let pruned = 0;
+  const allowPrune = Boolean(body?.replaceAll)
+    && normalized.length > 0
+    && normalized.every(looksLikeUuid)
+    && withMessages >= Math.max(1, Math.floor(normalized.length * 0.3));
+  if (allowPrune) {
+    pruned = pruneMissingConversations(store, normalized);
   }
 
   store.lastSyncAt = new Date().toISOString();
@@ -77,7 +95,18 @@ export function importConversationsPayload(body) {
   store.lastSyncDebug = {
     source: body?.source || 'browser-helper',
     count: normalized.length,
+    withMessages,
+    pruned,
+    replaceAll: Boolean(body?.replaceAll),
+    pruneApplied: allowPrune,
   };
   saveStore(store);
-  return { ok: true, count: normalized.length, ids: normalized };
+  return {
+    ok: true,
+    count: normalized.length,
+    ids: normalized,
+    withMessages,
+    pruned,
+    pruneApplied: allowPrune,
+  };
 }

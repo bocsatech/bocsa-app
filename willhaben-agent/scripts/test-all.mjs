@@ -320,7 +320,7 @@ function httpRequest(method, reqPath) {
 
 const status = await httpRequest('GET', '/api/status');
 if (status.status !== 200 || !status.body.version) throw new Error('status fail');
-if (status.body.version !== '2.0.0') throw new Error(`version fail: ${status.body.version}`);
+if (status.body.version !== '2.0.1') throw new Error(`version fail: ${status.body.version}`);
 
 // Browser-helper import API
 {
@@ -372,6 +372,67 @@ if (status.body.version !== '2.0.0') throw new Error(`version fail: ${status.bod
   const got = await httpRequest('GET', '/api/conversations/imp-http');
   if (got.body.conversation?.messages?.[0]?.text !== 'Http import üzenet') {
     throw new Error('import messages not stored');
+  }
+
+  // Gyengébb import NE törölje a meglévő üzeneteket
+  {
+    const s = loadStore();
+    upsertConversation(s, {
+      id: 'keep-msgs',
+      partnerName: 'Keep Partner',
+      adTitle: 'BMW',
+      lastPreview: 'régi 3',
+      messages: [
+        { id: 'k1', direction: 'in', text: 'első üzenet', at: '2026-07-20T10:00:00.000Z' },
+        { id: 'k2', direction: 'out', text: 'második üzenet', at: '2026-07-20T10:01:00.000Z' },
+        { id: 'k3', direction: 'in', text: 'harmadik üzenet', at: '2026-07-20T10:02:00.000Z' },
+      ],
+    });
+    saveStore(s);
+    const weak = importConversationsPayload({
+      source: 'test-weak',
+      replaceAll: true, // még replaceAll mellett se veszítsen üzenetet ugyanarra az id-re
+      conversations: [{
+        id: 'keep-msgs',
+        partnerName: 'Keep Partner',
+        adTitle: 'BMW',
+        lastPreview: 'csak preview',
+        messages: [{ id: 'preview-1', direction: 'in', text: 'csak preview' }],
+      }],
+    });
+    if (!weak.ok) throw new Error('weak import fail');
+    const kept = loadStore().conversations.find((c) => c.id === 'keep-msgs');
+    if ((kept?.messages?.length || 0) < 3) {
+      throw new Error(`weak import wiped messages: ${kept?.messages?.length}`);
+    }
+    if (!kept.messages.some((m) => m.text === 'első üzenet')) {
+      throw new Error('first message lost after weak import');
+    }
+  }
+
+  // replaceAll + dom- id NE prune-oljon (ez törölte a localhostot)
+  {
+    const s = loadStore();
+    upsertConversation(s, {
+      id: 'real-uuid-aaaa-bbbb-cccc-ddddeeee',
+      partnerName: 'Old Real',
+      messages: [{ id: 'r1', direction: 'in', text: 'maradjon' }],
+    });
+    saveStore(s);
+    const r = importConversationsPayload({
+      source: 'test-dom',
+      replaceAll: true,
+      conversations: [{
+        id: 'dom-Someone-title',
+        partnerName: 'DOM Partner',
+        lastPreview: 'hi',
+        messages: [{ id: 'd1', direction: 'in', text: 'hi' }],
+      }],
+    });
+    if (r.pruneApplied) throw new Error('dom replaceAll should not prune');
+    if (!loadStore().conversations.find((c) => c.id === 'real-uuid-aaaa-bbbb-cccc-ddddeeee')) {
+      throw new Error('real conversation was pruned by dom sync');
+    }
   }
 }
 

@@ -353,7 +353,8 @@
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           source: 'browser-extension',
-          replaceAll: true,
+          // Ne törölje a meglévő localhost chateket / üzeneteket részleges syncnél
+          replaceAll: false,
           conversations,
         }),
       });

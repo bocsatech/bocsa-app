@@ -179,7 +179,7 @@
         }
         const res = await origFetch(AGENT + '/api/import', {
           method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ source: 'userscript', replaceAll: true, conversations }),
+          body: JSON.stringify({ source: 'userscript', replaceAll: false, conversations }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || res.statusText);
