@@ -30,6 +30,10 @@ else
   exit 1
 fi
 
+cp "$(dirname "$0")/Autosweb-indito.command" "$HOME/Desktop/Autosweb-indito.command" 2>/dev/null || true
+chmod +x "$HOME/Desktop/Autosweb-indito.command" 2>/dev/null || true
+echo "  ✓ Asztali indító frissítve"
+
 echo ""
 echo "Következő lépések:"
 echo "  1) Állítsd le a futó Autosweb-et (Ctrl+C)"

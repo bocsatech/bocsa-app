@@ -108,3 +108,10 @@ echo "  3) Böngésző: http://127.0.0.1:3456/  (NEM a Vercel weboldal!)"
 echo "  4) Cmd+Shift+R (kemény frissítés)"
 echo ""
 echo "Jó verzió = világos háttér, nincs fejléc keresősáv, bal oldalon „Új hirdetések a közeledben”."
+
+DESKTOP="$HOME/Desktop/Autosweb-indito.command"
+if [ -f "$SOURCE/mac/Autosweb-indito.command" ]; then
+  cp "$SOURCE/mac/Autosweb-indito.command" "$DESKTOP"
+  chmod +x "$DESKTOP"
+  echo "  ✓ Asztali indító frissítve: $DESKTOP"
+fi
