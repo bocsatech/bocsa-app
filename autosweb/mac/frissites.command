@@ -51,6 +51,16 @@ if [ ! -f "$TARGET/public/css/site-app.css" ]; then
   exit 1
 fi
 
+if [ ! -f "$TARGET/public/fugveny.html" ]; then
+  echo "  ✗ HIBA: fugveny.html hiányzik — git pull / frissítés sikertelen?"
+  exit 1
+fi
+if [ ! -f "$TARGET/lib/fugveny-api.mjs" ]; then
+  echo "  ✗ HIBA: fugveny-api.mjs hiányzik"
+  exit 1
+fi
+echo "  ✓ Függvény oldal OK (/fugveny.html)"
+
 if grep -q 'id="gyartasi_ev"' "$TARGET/public/import.html" 2>/dev/null; then
   echo "  ✓ Import űrlap OK"
 else
