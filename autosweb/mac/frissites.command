@@ -82,10 +82,10 @@ else
   exit 1
 fi
 
-if [ -f "$TARGET/public/js/home-nearby.js" ] && [ -f "$TARGET/public/images/home-nearby-map.svg" ]; then
-  echo "  ✓ home-nearby.js + térkép OK"
+if [ -f "$TARGET/public/js/home-nearby.js" ] && grep -q 'class="home-nearby-map"' "$TARGET/public/index.html"; then
+  echo "  ✓ home-nearby.js + beágyazott térkép OK"
 else
-  echo "  ✗ HIBA: hiányzik home-nearby.js vagy a térkép"
+  echo "  ✗ HIBA: hiányzik home-nearby.js vagy a beágyazott térkép"
   exit 1
 fi
 

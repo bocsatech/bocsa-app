@@ -47,5 +47,6 @@ test("index.html: közelben widget magyar felirattal", () => {
   assert.ok(html.includes("home-nearby"));
   assert.ok(html.includes("Új hirdetések a közeledben"));
   assert.ok(html.includes("Helymeghatározás engedélyezése"));
-  assert.ok(html.includes("home-nearby-map"));
+  assert.ok(html.includes('class="home-nearby-map"'));
+  assert.ok(html.includes("<svg"));
 });

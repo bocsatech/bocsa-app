@@ -43,6 +43,7 @@ chmod +x "$HOME/Desktop/Autosweb-indito.command"
 
 echo ""
 grep -q 'home-nearby' "$TARGET/public/index.html" && echo "✓ home-nearby VAN" || { echo "✗ home-nearby HIÁNYZIK"; exit 1; }
+grep -q 'class="home-nearby-map"' "$TARGET/public/index.html" && echo "✓ beágyazott térkép VAN" || { echo "✗ beágyazott térkép HIÁNYZIK"; exit 1; }
 grep -q 'home-search-form' "$TARGET/public/index.html" && { echo "✗ home-search-form MÉG VAN"; exit 1; } || echo "✓ keresősáv NINCS"
 
 echo ""

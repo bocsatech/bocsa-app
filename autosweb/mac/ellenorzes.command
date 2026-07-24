@@ -19,6 +19,12 @@ else
   echo "✗ Közelben widget: NINCS (régi index.html)"
 fi
 
+if grep -q 'class="home-nearby-map"' "$HTML"; then
+  echo "✓ Térkép: beágyazva az index.html-ben"
+else
+  echo "✗ Térkép: HIÁNYZIK (régi index.html vagy hiányzó SVG fájl)"
+fi
+
 if grep -q 'home-search-form' "$HTML"; then
   echo "✗ Fejléc keresősáv: MÉG VAN (régi)"
 else

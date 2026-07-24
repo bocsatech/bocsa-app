@@ -38,12 +38,6 @@ npm install
 npx playwright install chromium 2>/dev/null || true
 npx playwright install chrome 2>/dev/null || true
 
-cat > "$DESKTOP" << 'LAUNCHER'
-#!/bin/bash
-exec "$(dirname "$0")/../bocsa-app/autosweb/mac/Autosweb-indito.command" 2>/dev/null || exec "$HOME/bocsa-app/autosweb/mac/Autosweb-indito.command"
-LAUNCHER
-
-# Ha a fenti relatív út nem jó, másoljuk a teljes indítót
 cp "$SOURCE/mac/Autosweb-indito.command" "$DESKTOP"
 chmod +x "$DESKTOP"
 

@@ -241,13 +241,14 @@ body.home-page .local-banner {
 .home-nearby-map-wrap {
   background: #eef4fb;
   border-bottom: 1px solid #e3e6ea;
+  min-height: 180px;
 }
 
 .home-nearby-map {
   display: block;
   width: 100%;
   height: auto;
-  object-fit: cover;
+  aspect-ratio: 640 / 360;
 }
 
 .home-nearby-body {
