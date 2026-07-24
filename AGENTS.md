@@ -5,3 +5,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- END:nextjs-agent-rules -->
 
 Menü-fejlesztés jegyzetek: `docs/menu/README.md` (menüpontonként külön fájl).
+
+Átlag számolás / hasznaltauto lista export: `fugveny/` (kimenet: `~/Downloads/fugveny`).

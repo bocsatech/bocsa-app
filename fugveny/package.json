@@ -1,0 +1,20 @@
+{
+  "name": "fugveny",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hasznaltauto.hu talalatilista → átlagszámoláshoz (CSV/JSON export)",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "scrape": "node src/index.mjs",
+    "atlag": "node src/atlag.mjs",
+    "chrome": "node src/start-chrome.mjs",
+    "test:parse": "node src/test-parse.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "playwright": "1.61.1"
+  }
+}
