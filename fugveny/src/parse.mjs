@@ -127,10 +127,70 @@ function titleCaseMake(make) {
     .join("");
 }
 
+const BODY_STYLES =
+  "Sportback|Avant|Allroad|Limousine|Coupé|Coupe|Cabrio|Cabriolet|Sedan|Citycarver|Crossback|Granback|Shooting Brake";
+
+/** Audi: A6 / A1 Sportback — a 40/50 teljesítménykód a Tipusba tartozik. */
+const AUDI_MODEL_RE = new RegExp(
+  `^(A[1-8]|Q[2-8]|TT|R8|e-tron)(?:\\s+(${BODY_STYLES}))?\\b`,
+  "i"
+);
+
+function normalizeModell(modell, gyartmany) {
+  if (!modell) return null;
+  let m = cleanText(modell);
+  if (/^audi$/i.test(gyartmany || "")) {
+    // A6 / A1 sportback
+    m = m.replace(/\bSportback\b/gi, "sportback");
+    const audi = m.match(AUDI_MODEL_RE);
+    if (audi) {
+      const base = audi[1].toUpperCase().replace(/^E-TRON$/i, "e-tron");
+      const body = audi[2] ? ` ${audi[2].toLowerCase() === "sportback" ? "sportback" : audi[2]}` : "";
+      return `${base}${body}`.replace(/\s+/g, " ").trim();
+    }
+  }
+  return m.replace(/\bSportback\b/gi, "sportback");
+}
+
+/**
+ * Ha a Modell "A6 40", a 40 menjen a Tipus elejére.
+ * Export javításához is (régi CSV/JSON).
+ */
+export function fixAudiModellTipus(row) {
+  const gyartmany = row.Gyartmany || row.gyartmany;
+  if (!/^audi$/i.test(String(gyartmany || ""))) return row;
+
+  let modell = cleanText(row.Modell || row.modell);
+  let tipus = cleanText(row.Tipus || row.tipus);
+
+  // "A6 40" / "A6 50" → Modell A6, Tipus "40 …"
+  const split = modell.match(
+    new RegExp(`^(A[1-8]|Q[2-8]|TT|R8|e-tron)(?:\\s+(${BODY_STYLES}))?\\s+(\\d{2})\\b(.*)$`, "i")
+  );
+  if (split) {
+    const base = split[1].toUpperCase().replace(/^E-TRON$/i, "e-tron");
+    const body = split[2] ? ` ${split[2].toLowerCase() === "sportback" ? "sportback" : split[2]}` : "";
+    modell = `${base}${body}`.trim();
+    const code = split[3];
+    const tail = cleanText(split[4]);
+    const prefix = [code, tail].filter(Boolean).join(" ");
+    tipus = normalizeTipus([prefix, tipus].filter(Boolean).join(" "));
+  } else {
+    modell = normalizeModell(modell, gyartmany);
+  }
+
+  return {
+    ...row,
+    Gyartmany: titleCaseMake(gyartmany) || gyartmany,
+    Modell: modell || null,
+    Tipus: tipus || null,
+  };
+}
+
 export function splitTitle(title) {
   const cleaned = cleanText(title)
     .replace(/\s+[—–-]\s+.*$/, "")
-    .replace(/\s+(MAGYARORSZÁGI|1\.\s*TULAJ|FÉNYEZÉS|GARANCIA|ELADÓ).*$/i, "")
+    .replace(/\s+(MAGYARORSZÁGI|1\.\s*TULAJ|FÉNYEZÉS|GARANCIA|ELADÓ|ÁFA).*$/i, "")
     .trim();
 
   if (!cleaned) {
@@ -155,16 +215,26 @@ export function splitTitle(title) {
     rest = rest.slice(first.length).trim();
   }
 
-  // Tipus starts at engine size: 1.6 / 1,6 / 2.0 / 116i style kept with modell if no size
-  const engineMatch = rest.match(/^(.*?)(\d+[.,]\d+\b.*)$/);
   let modell = null;
   let tipus = null;
+
+  // Audi: modell = A6 / A1 Sportback; a többi (40 TDI…) = tipus
+  if (/^audi$/i.test(gyartmany || "")) {
+    const audi = rest.match(AUDI_MODEL_RE);
+    if (audi) {
+      modell = normalizeModell(audi[0], gyartmany);
+      tipus = normalizeTipus(rest.slice(audi[0].length).trim());
+      return { gyartmany, modell, tipus };
+    }
+  }
+
+  // Tipus starts at engine size: 1.6 / 1,6 / 2.0
+  const engineMatch = rest.match(/^(.*?)(\d+[.,]\d+\b.*)$/);
 
   if (engineMatch) {
     modell = cleanText(engineMatch[1]) || null;
     tipus = normalizeTipus(engineMatch[2]);
   } else {
-    // Fallback: first 2 tokens = modell, rest = tipus
     const tokens = rest.split(/\s+/).filter(Boolean);
     if (tokens.length <= 2) {
       modell = tokens.join(" ") || null;
@@ -175,10 +245,7 @@ export function splitTitle(title) {
     }
   }
 
-  if (modell) {
-    // "A1 Sportback" → keep casing mostly as-is, lightly normalize Sportback
-    modell = modell.replace(/\bSportback\b/gi, "sportback");
-  }
+  modell = normalizeModell(modell, gyartmany);
 
   return { gyartmany, modell, tipus };
 }
