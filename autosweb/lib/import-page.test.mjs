@@ -38,8 +38,9 @@ test("index.html: főoldal kereső oldalsávval", () => {
   assert.ok(html.includes("home-quick-filters"));
   assert.ok(html.includes('data-quick-preset="under10m"'));
   assert.ok(html.includes("home-trust-block"));
-  assert.ok(html.includes("home-search-form"));
   assert.ok(html.includes("home-filter-form"));
+  assert.doesNotMatch(html, /home-search-form/);
+  assert.doesNotMatch(html, /home-result-count/);
   assert.ok(html.includes("home-filter-fuel-btns"));
   assert.ok(html.includes('data-fuel-quick="benzin"'));
   assert.ok(html.includes('data-site-side="left"'));

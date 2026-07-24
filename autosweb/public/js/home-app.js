@@ -12,9 +12,6 @@ const gridTrack = document.getElementById("home-grid-track");
 const gridViewport = document.getElementById("home-grid-viewport");
 const gridIndicators = document.getElementById("home-grid-indicators");
 const emptyEl = document.getElementById("home-empty");
-const countEl = document.getElementById("home-result-count");
-const searchInput = document.getElementById("home-search");
-const searchForm = document.getElementById("home-search-form");
 const filterForm = document.getElementById("home-filter-form");
 
 const VISIBLE_COUNT = 9;
@@ -23,39 +20,11 @@ const AUTO_SCROLL_MS = 5000;
 
 let allItems = [];
 let sidebarFilters = emptyFilters();
-let searchQuery = "";
 let quickPreset = null;
 let currentPage = 0;
 let pageCount = 0;
 let carouselTimer = null;
 let quickFilterUi = null;
-
-function normalizeSearch(value) {
-  return String(value ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function listingSearchHaystack(item) {
-  const preview = item.preview ?? {};
-  return normalizeSearch(
-    [
-      preview.title,
-      preview.price,
-      preview.specLine,
-      preview.km,
-      preview.location,
-      preview.leiras,
-      preview.hirdeteskod,
-      item.hirdetes_cime,
-      ...(preview.badges ?? []),
-    ]
-      .filter(Boolean)
-      .join(" ")
-  );
-}
 
 function sortForHome(items) {
   return [...items].sort((a, b) => {
@@ -67,12 +36,7 @@ function sortForHome(items) {
 
 function filterItems(items) {
   let result = filterListingsBySidebar(items, sidebarFilters);
-  result = filterByQuickPreset(result, quickPreset);
-  const q = normalizeSearch(searchQuery);
-  if (q) {
-    result = result.filter((item) => listingSearchHaystack(item).includes(q));
-  }
-  return result;
+  return filterByQuickPreset(result, quickPreset);
 }
 
 function chunkItems(items, size) {
@@ -127,41 +91,6 @@ function renderIndicators(totalPages) {
   }
 }
 
-function updateCount(items, filtered) {
-  if (!countEl) return;
-  const published = items.filter((item) => item.status === "feladott").length;
-  const pages = Math.max(1, Math.ceil(filtered.length / VISIBLE_COUNT));
-  const base =
-    searchQuery.trim() || quickPreset || hasActiveSidebarFilters(sidebarFilters)
-      ? `${filtered.length} találat · ${published} közzétett · ${items.length} hirdetés összesen`
-      : `${items.length} hirdetés · ${published} közzétett · legfrissebb elöl`;
-  countEl.textContent =
-    filtered.length > VISIBLE_COUNT
-      ? `${base} · ${pages} oldal (${VISIBLE_COUNT} / oldal, lapozz a pöttyökkel)`
-      : base;
-}
-
-function hasActiveSidebarFilters(filters) {
-  return Boolean(
-    filters.gyartmany ||
-      filters.modell ||
-      filters.kivitel ||
-      filters.uzemanyag ||
-      filters.uzemanyagQuick ||
-      filters.allapot ||
-      filters.tipus ||
-      filters.features?.length ||
-      filters.ev_tol != null ||
-      filters.ev_ig != null ||
-      filters.ar_tol != null ||
-      filters.ar_ig != null ||
-      filters.km_tol != null ||
-      filters.km_ig != null ||
-      filters.ccm_tol != null ||
-      filters.ccm_ig != null
-  );
-}
-
 function renderCarousel(items) {
   if (!gridTrack) return;
 
@@ -172,7 +101,6 @@ function renderCarousel(items) {
 
   const filtered = filterItems(items);
   emptyEl.hidden = filtered.length > 0;
-  updateCount(items, filtered);
 
   const pages = chunkItems(filtered, VISIBLE_COUNT);
   pageCount = pages.length;
@@ -224,16 +152,26 @@ function applyFilters() {
   renderCarousel(allItems);
 }
 
-searchForm?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  searchQuery = searchInput?.value ?? "";
-  applyFilters();
-});
-
-searchInput?.addEventListener("input", () => {
-  searchQuery = searchInput.value;
-  applyFilters();
-});
+function hasActiveSidebarFilters(filters) {
+  return Boolean(
+    filters.gyartmany ||
+      filters.modell ||
+      filters.kivitel ||
+      filters.uzemanyag ||
+      filters.uzemanyagQuick ||
+      filters.allapot ||
+      filters.tipus ||
+      filters.features?.length ||
+      filters.ev_tol != null ||
+      filters.ev_ig != null ||
+      filters.ar_tol != null ||
+      filters.ar_ig != null ||
+      filters.km_tol != null ||
+      filters.km_ig != null ||
+      filters.ccm_tol != null ||
+      filters.ccm_ig != null
+  );
+}
 
 gridViewport?.addEventListener("mouseenter", stopCarousel);
 gridViewport?.addEventListener("mouseleave", startCarousel);
