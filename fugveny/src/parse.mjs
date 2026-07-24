@@ -76,7 +76,6 @@ export const CSV_HEADERS = [
   "Teljesitmeny_LE",
   "Kmora_allas",
   "Vetelar",
-  "Hirdeteskod",
 ];
 
 export function cleanText(value) {
@@ -238,7 +237,6 @@ export function parseListingCard(card) {
   const { gyartmany, modell, tipus } = splitTitle(title || text);
   const specs = parseSpecsFromText(source);
   const vetelar = parsePriceFromText(source);
-  const hirdeteskod = parseHirdeteskod(source);
 
   return {
     Gyartmany: gyartmany,
@@ -255,7 +253,6 @@ export function parseListingCard(card) {
       : null,
     Kmora_allas: specs.kmora_allas,
     Vetelar: vetelar,
-    Hirdeteskod: hirdeteskod,
   };
 }
 

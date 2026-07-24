@@ -25,9 +25,10 @@ const row = parseListingCard({
   text,
 });
 assert.equal(row.Vetelar, "2970000 Ft");
-assert.equal(row.Hirdeteskod, "23288177");
 assert.equal(row.Teljesitmeny_kW, "66 KW");
 assert.equal(row.Teljesitmeny_LE, "90 LE");
+assert.equal(row.Hirdeteskod, undefined);
+assert.equal(row.Url, undefined);
 
 console.log("test:parse OK");
 console.log(row);

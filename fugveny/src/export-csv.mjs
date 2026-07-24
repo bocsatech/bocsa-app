@@ -17,7 +17,7 @@ if (!existsSync(jsonPath)) {
 
 const data = JSON.parse(readFileSync(jsonPath, "utf8"));
 const rows = (data.hirdetesek || data).map((row) => {
-  const { Url, url, ...rest } = row;
+  const { Url, url, Hirdeteskod, hirdeteskod, ...rest } = row;
   return rest;
 });
 
