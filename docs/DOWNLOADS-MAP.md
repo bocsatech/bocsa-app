@@ -14,6 +14,7 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 | **BOCSA Pro Linux** (vékony kliens) | `bocsa Pro linux` | `~/Desktop/bocsa-pro-linux-indito.sh` | SSH tunell → szerver :3850 |
 | Hasznaltauto scraper | `hasznaltauto-scraper` | `npm start` | — |
 | **Függvény / átlagszámolás** | `fugveny` | `cd ~/Downloads/fugveny/program && npm start` | CSV/JSON export |
+| **Függvény CatBoost** | `fugveny/uj lista/catboost` | `~/Downloads/fugveny/Catboost-tanitas.command` | ár-modell |
 
 ## Telepítés / szétválasztás (Mac, egyszer)
 

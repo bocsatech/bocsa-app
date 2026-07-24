@@ -20,6 +20,13 @@ if [ -f "$SRC/uj-lista-url.txt" ]; then
   cp -f "$SRC/uj-lista-url.txt" "$DEST/uj lista/lista-url.txt"
 fi
 
+# CatBoost forrás + indító
+mkdir -p "$DEST/catboost-src"
+rm -rf "$DEST/catboost-src"
+cp -a "$SRC/catboost" "$DEST/catboost-src"
+cp -f "$SRC/mac/Catboost-tanitas.command" "$DEST/Catboost-tanitas.command"
+chmod +x "$DEST/Catboost-tanitas.command"
+
 cd "$DEST/program"
 npm install
 npx playwright install chromium || true
@@ -42,10 +49,13 @@ chmod +x "$DEST/Inditas.command"
 if [ -d "$HOME/Desktop" ]; then
   ln -sf "$DEST/Inditas.command" "$HOME/Desktop/Fugveny-indito.command" || true
   ln -sf "$DEST/Inditas-uj-lista.command" "$HOME/Desktop/Fugveny-uj-lista.command" || true
+  ln -sf "$DEST/Catboost-tanitas.command" "$HOME/Desktop/Fugveny-catboost.command" || true
 fi
 
 echo ""
 echo "Kész: $DEST"
 echo "  Régi lista:  $DEST/Inditas.command"
 echo "  Új lista:    $DEST/Inditas-uj-lista.command"
+echo "  CatBoost:    $DEST/Catboost-tanitas.command"
 echo "  Mentés ide:  $DEST/uj lista/"
+echo "  Modell ide:  $DEST/uj lista/catboost/"

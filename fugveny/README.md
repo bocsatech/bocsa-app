@@ -42,6 +42,20 @@ npm start -- --connect --name "uj lista" --from-page 500
 Gyártmány, Modell, Típus, Üzemanyag, Gyártási év, Hengerűrtartalom, kW, LE, Km, Vételár  
 (URL és hirdetéskód **nincs**)
 
+## CatBoost ár-függvény
+
+A listából tanult modell becsli a vételárat.
+
+```bash
+~/Downloads/fugveny/Catboost-tanitas.command
+# vagy:
+cd ~/bocsa-app/fugveny/catboost && python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt && python train.py && python predict.py
+```
+
+Kimenet: `~/Downloads/fugveny/uj lista/catboost/model.cbm`  
+Részletek: [`catboost/README.md`](./catboost/README.md)
+
 ## Régi lista
 
 `~/Downloads/fugveny/hirdetesek.csv` — `Inditas.command`

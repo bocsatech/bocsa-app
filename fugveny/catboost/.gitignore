@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+*.cbm
+metrics.json
+feature_importance.csv
+test_predictions.csv
+scored.csv
