@@ -7,6 +7,7 @@ import {
   initHomeSearchSidebar,
 } from "./home-search-filter.js";
 import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.js";
+import { filterListingsNearby, initHomeNearby } from "./home-nearby.js";
 
 const gridTrack = document.getElementById("home-grid-track");
 const gridViewport = document.getElementById("home-grid-viewport");
@@ -25,6 +26,8 @@ let currentPage = 0;
 let pageCount = 0;
 let carouselTimer = null;
 let quickFilterUi = null;
+let nearbyUi = null;
+let nearbyFilter = null;
 
 function sortForHome(items) {
   return [...items].sort((a, b) => {
@@ -36,7 +39,11 @@ function sortForHome(items) {
 
 function filterItems(items) {
   let result = filterListingsBySidebar(items, sidebarFilters);
-  return filterByQuickPreset(result, quickPreset);
+  result = filterByQuickPreset(result, quickPreset);
+  if (nearbyFilter) {
+    result = filterListingsNearby(result, nearbyFilter.lat, nearbyFilter.lon);
+  }
+  return result;
 }
 
 function chunkItems(items, size) {
@@ -101,6 +108,14 @@ function renderCarousel(items) {
 
   const filtered = filterItems(items);
   emptyEl.hidden = filtered.length > 0;
+  if (!filtered.length && nearbyFilter) {
+    emptyEl.hidden = false;
+    emptyEl.textContent =
+      "Nincs hirdetés a közeledben ezen a térképen. Kapcsold ki a közeli szűrést, vagy ments több hirdetést településsel.";
+  } else if (!filtered.length) {
+    emptyEl.textContent =
+      "Még nincs hirdetés. Importálj, mentsd az adatbázisba (Import oldal), majd frissítsd a főoldalt — a legfrissebb mentések itt jelennek meg.";
+  }
 
   const pages = chunkItems(filtered, VISIBLE_COUNT);
   pageCount = pages.length;
@@ -179,9 +194,21 @@ gridViewport?.addEventListener("mouseleave", startCarousel);
 quickFilterUi = initHomeQuickFilters({
   onChange: (preset) => {
     quickPreset = preset;
+    if (preset) nearbyUi?.clear();
     applyFilters();
   },
   getForm: () => filterForm,
+});
+
+nearbyUi = initHomeNearby({
+  onChange: (active) => {
+    nearbyFilter = active;
+    if (active) {
+      quickPreset = null;
+      quickFilterUi?.clear();
+    }
+    applyFilters();
+  },
 });
 
 const readSidebarFilters = initHomeSearchSidebar((filters) => {
@@ -189,6 +216,8 @@ const readSidebarFilters = initHomeSearchSidebar((filters) => {
   if (hasActiveSidebarFilters(filters)) {
     quickPreset = null;
     quickFilterUi?.clear();
+    nearbyUi?.clear();
+    nearbyFilter = null;
   }
   applyFilters();
 });

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="home20260724nosearch" />
+    <meta name="autosweb-version" content="home20260724nearby" />
     <title>Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -46,6 +46,37 @@
               <a class="home-trust-link" href="/import.html">Vásárlási checklist →</a>
             </div>
           </div>
+
+          <section class="home-nearby" id="home-nearby" aria-labelledby="home-nearby-title">
+            <h2 class="home-nearby-heading" id="home-nearby-title">
+              <span class="home-nearby-pin" aria-hidden="true"></span>
+              Új hirdetések a közeledben
+            </h2>
+            <div class="home-nearby-card">
+              <div class="home-nearby-map-wrap">
+                <img
+                  class="home-nearby-map"
+                  src="/images/home-nearby-map.svg"
+                  alt="Térkép: Székesfehérvár, Velencei-tó és Dabas környéke"
+                  width="640"
+                  height="360"
+                  loading="lazy"
+                />
+              </div>
+              <div class="home-nearby-body">
+                <p class="home-nearby-lead">
+                  Add meg a tartózkodási helyedet, és találj autóhirdetéseket a közeledben!
+                </p>
+                <button type="button" class="home-nearby-btn" id="home-nearby-btn">
+                  Helymeghatározás engedélyezése
+                </button>
+                <p class="home-nearby-status" id="home-nearby-status" hidden></p>
+                <button type="button" class="home-nearby-clear" id="home-nearby-clear" hidden>
+                  Közeli szűrés kikapcsolása
+                </button>
+              </div>
+            </div>
+          </section>
         </aside>
 
         <section class="site-center home-center" aria-label="Hirdetések">
@@ -171,6 +202,6 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=home20260724nosearch" type="module"></script>
+    <script src="/js/home-app.js?v=home20260724nearby" type="module"></script>
   </body>
 </html>
