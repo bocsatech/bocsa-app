@@ -40,5 +40,8 @@ npm run atlag
 npm start -- --url "https://www.hasznaltauto.hu/talalatilista/..."
 npm start -- --headed
 npm start -- --connect
+npm start -- --from-page 24   # folytatás adott oldaltól
 npm run chrome   # csak Chrome debug port
 ```
+
+Ha megszakad: a program **újrapróbál**, kihagyja a problematikus oldalt, és közben `hirdetesek.csv`-be ment.

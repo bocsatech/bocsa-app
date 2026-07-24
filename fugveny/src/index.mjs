@@ -19,6 +19,7 @@ function parseArgs(argv) {
     outDir: null,
     headless: true,
     connect: false,
+    startPage: 1,
     help: false,
   };
 
@@ -29,6 +30,7 @@ function parseArgs(argv) {
     else if (a === "--connect") args.connect = true;
     else if (a === "--url" && argv[i + 1]) args.url = argv[++i];
     else if (a === "--out" && argv[i + 1]) args.outDir = argv[++i];
+    else if (a === "--from-page" && argv[i + 1]) args.startPage = Number.parseInt(argv[++i], 10) || 1;
     else if (/^https?:\/\//i.test(a)) args.url = a;
   }
   return args;
@@ -37,8 +39,6 @@ function parseArgs(argv) {
 function resolveOutDir(requested) {
   if (requested) return resolve(requested);
   const downloads = join(homedir(), "Downloads", "fugveny");
-  const letoltesek = join(homedir(), "Letöltések", "fugveny");
-  // Prefer Downloads/fugveny (user: letoltesek/fugveny)
   mkdirSync(downloads, { recursive: true });
   return downloads;
 }
@@ -60,36 +60,10 @@ function copyProgram(outDir) {
   return dest;
 }
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  if (args.help) {
-    console.log(`Usage: npm start -- [--url URL] [--out DIR] [--headed] [--connect]
-
-Default URL: a mentett hasznaltauto talalatilista.
-Kimenet: ~/Downloads/fugveny/ (CSV + JSON + program)
-
-Mac / Cloudflare esetén:
-  npm start -- --connect
-`);
-    return;
-  }
-
-  const outDir = resolveOutDir(args.outDir);
-  mkdirSync(outDir, { recursive: true });
-  writeFileSync(join(outDir, "lista-url.txt"), `${args.url}\n`, "utf8");
-  const onProgress = (msg) => console.log(msg);
-
-  onProgress(`Kimenet: ${outDir}`);
-  const { listUrl, pagesScraped, maxPage, results } = await scrapeListUrl(args.url, {
-    onProgress,
-    headless: args.headless,
-    connect: args.connect,
-    profileDir: join(outDir, ".browser-profile"),
-  });
-
+function saveResults(outDir, { listUrl, pagesScraped, maxPage, results, partial = false, error = null }) {
   const id = stamp();
-  const csvPath = join(outDir, `hirdetesek-${id}.csv`);
-  const jsonPath = join(outDir, `hirdetesek-${id}.json`);
+  const csvPath = join(outDir, partial ? `hirdetesek-reszleges-${id}.csv` : `hirdetesek-${id}.csv`);
+  const jsonPath = join(outDir, partial ? `hirdetesek-reszleges-${id}.json` : `hirdetesek-${id}.json`);
   const latestCsv = join(outDir, "hirdetesek.csv");
   const latestJson = join(outDir, "hirdetesek.json");
 
@@ -99,6 +73,8 @@ Mac / Cloudflare esetén:
     oldalak: pagesScraped,
     maxOldal: maxPage,
     darabszam: results.length,
+    reszleges: partial,
+    hiba: error,
     mezok: [
       "Gyartmany",
       "Modell",
@@ -120,15 +96,66 @@ Mac / Cloudflare esetén:
   writeFileSync(jsonPath, JSON.stringify(payload, null, 2), "utf8");
   writeFileSync(latestJson, JSON.stringify(payload, null, 2), "utf8");
 
+  return { csvPath, jsonPath, latestCsv, latestJson };
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.help) {
+    console.log(`Usage: npm start -- [--url URL] [--out DIR] [--headed] [--connect] [--from-page N]
+
+Default URL: a mentett hasznaltauto talalatilista.
+Kimenet: ~/Downloads/fugveny/ (CSV + JSON + program)
+
+Mac / Cloudflare esetén:
+  npm start -- --connect
+`);
+    return;
+  }
+
+  const outDir = resolveOutDir(args.outDir);
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(join(outDir, "lista-url.txt"), `${args.url}\n`, "utf8");
+  const onProgress = (msg) => console.log(msg);
+
+  let lastPartialSave = 0;
+  const onPartial = (partial) => {
+    // Mentés kb. minden 5. oldal után, hogy hiba esetén se vesszen el
+    if (partial.pagesScraped - lastPartialSave < 5 && partial.pagesScraped < (partial.maxPage || 99)) {
+      return;
+    }
+    lastPartialSave = partial.pagesScraped;
+    saveResults(outDir, { ...partial, partial: true });
+    onProgress?.(`  💾 részeredmény mentve (${partial.results.length} db)`);
+  };
+
+  onProgress(`Kimenet: ${outDir}`);
+  const result = await scrapeListUrl(args.url, {
+    onProgress,
+    onPartial,
+    headless: args.headless,
+    connect: args.connect,
+    profileDir: join(outDir, ".browser-profile"),
+    startPage: args.startPage,
+  });
+
+  const saved = saveResults(outDir, {
+    ...result,
+    partial: Boolean(result.error),
+    error: result.error || null,
+  });
   const programDir = copyProgram(outDir);
 
   console.log("");
-  console.log("Kész.");
-  console.log(`  Hirdetések: ${results.length} db`);
-  console.log(`  Oldalak:    ${pagesScraped} / max ${maxPage}`);
-  console.log(`  CSV:        ${latestCsv}`);
-  console.log(`  JSON:       ${latestJson}`);
+  console.log(result.error ? "Kész (részleges — volt hiba)." : "Kész.");
+  console.log(`  Hirdetések: ${result.results.length} db`);
+  console.log(`  Oldalak:    ${result.pagesScraped} / max ${result.maxPage}`);
+  console.log(`  CSV:        ${saved.latestCsv}`);
+  console.log(`  JSON:       ${saved.latestJson}`);
   console.log(`  Program:    ${programDir}`);
+  if (result.error) {
+    console.log(`  Hiba:       ${result.error}`);
+  }
 }
 
 main().catch((error) => {
