@@ -1,47 +1,47 @@
 # Függvény / átlagszámolás — hasznaltauto lista export
 
-Hasznaltauto.hu **találati lista** összes oldalának beolvasása → CSV/JSON → átlag számolás.
+## Új nagy lista (~78566 / ~3143 oldal)
 
-## Mezők (listakártyáról)
+Mentés: `~/Downloads/fugveny/uj lista/`
 
-Gyártmány, Modell, Típus, Üzemanyag, Gyártási év, Hengerűrtartalom, Teljesítmény kW/LE, Km, Vételár
+| Fájl | Szerep |
+|------|--------|
+| `uj-lista.csv` / `.json` | aktuális teljes / legfrissebb |
+| `uj-lista-reszleges.csv` | részeredmény (10 oldanként) |
+| `uj-lista-progress.json` | hol tart (folytatáshoz) |
 
-## Telepítés (Mac)
+### Indítás (Mac)
 
 ```bash
-cd ~/bocsa-app/fugveny/mac
-chmod +x telepites.command
-./telepites.command
+cd ~/bocsa-app && git pull
+cd fugveny/mac && ./telepites.command
 ```
 
-Cél: `~/Downloads/fugveny/` (+ asztali `Fugveny-indito.command`)
+Majd:
 
-## Futtatás
+1. Másold a list URL-t  
+2. Dupla katt: `~/Downloads/fugveny/Inditas-uj-lista.command`  
+   (vagy asztal: `Fugveny-uj-lista.command`)  
+3. Chrome-ban nyisd meg a listát, Cloudflare → kattints, Enter  
+
+Vagy kézzel:
 
 ```bash
 cd ~/Downloads/fugveny/program
-npm start -- --connect
+npm start -- --connect --name "uj lista" --url "https://www.hasznaltauto.hu/talalatilista/..."
 ```
 
-1. Megnyílik a Chrome a listával  
-2. Ha Cloudflare jön → kattints / oldd meg  
-3. A program végigmegy az összes oldalon (1…30)  
-4. Mentés: `~/Downloads/fugveny/hirdetesek.csv` + `.json`
-
-Átlagok:
+Megszakítás után automatikusan folytat a progress alapján, vagy:
 
 ```bash
-npm run atlag
+npm start -- --connect --name "uj lista" --from-page 500
 ```
 
-## Opciók
+## Mezők
 
-```bash
-npm start -- --url "https://www.hasznaltauto.hu/talalatilista/..."
-npm start -- --headed
-npm start -- --connect
-npm start -- --from-page 24   # folytatás adott oldaltól
-npm run chrome   # csak Chrome debug port
-```
+Gyártmány, Modell, Típus, Üzemanyag, Gyártási év, Hengerűrtartalom, kW, LE, Km, Vételár  
+(URL és hirdetéskód **nincs**)
 
-Ha megszakad: a program **újrapróbál**, kihagyja a problematikus oldalt, és közben `hirdetesek.csv`-be ment.
+## Régi lista
+
+`~/Downloads/fugveny/hirdetesek.csv` — `Inditas.command`
