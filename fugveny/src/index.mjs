@@ -52,10 +52,18 @@ function stamp() {
 function copyProgram(outDir) {
   const dest = join(outDir, "program");
   mkdirSync(dest, { recursive: true });
+
+  // Ha már a Downloads/fugveny/program-ból futunk, ne másoljunk magunkra
+  if (resolve(ROOT) === resolve(dest)) {
+    return dest;
+  }
+
   for (const name of ["package.json", "README.md", "src"]) {
     const from = join(ROOT, name);
+    const to = join(dest, name);
     if (!existsSync(from)) continue;
-    cpSync(from, join(dest, name), { recursive: true });
+    if (resolve(from) === resolve(to)) continue;
+    cpSync(from, to, { recursive: true });
   }
   return dest;
 }
