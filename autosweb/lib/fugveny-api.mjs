@@ -43,11 +43,41 @@ export function resolveCatboostDir() {
 }
 
 function pythonBin(catboostDir) {
-  const venvPy = join(catboostDir, ".venv", "bin", "python");
-  if (existsSync(venvPy)) return venvPy;
   const venvPy3 = join(catboostDir, ".venv", "bin", "python3");
   if (existsSync(venvPy3)) return venvPy3;
+  const venvPy = join(catboostDir, ".venv", "bin", "python");
+  if (existsSync(venvPy)) return venvPy;
   return "python3";
+}
+
+function runCmd(bin, args, { cwd, timeoutMs = 600_000 } = {}) {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(bin, args, { cwd, env: { ...process.env, PYTHONUNBUFFERED: "1" } });
+    let stdout = "";
+    let stderr = "";
+    const timer = setTimeout(() => {
+      child.kill("SIGTERM");
+      reject(new Error(`Időtúllépés: ${bin} ${args.join(" ")}`));
+    }, timeoutMs);
+    child.stdout.on("data", (d) => {
+      stdout += d.toString();
+    });
+    child.stderr.on("data", (d) => {
+      stderr += d.toString();
+    });
+    child.on("error", (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      if (code !== 0) {
+        reject(new Error(stderr || stdout || `${bin} exit ${code}`));
+        return;
+      }
+      resolvePromise({ stdout, stderr, code });
+    });
+  });
 }
 
 function walkCsvFiles(dir, depth = 0, acc = []) {
@@ -146,69 +176,55 @@ export function decodeListId(id) {
 }
 
 function runPython(args, { cwd, timeoutMs = 600_000 } = {}) {
-  return new Promise((resolvePromise, reject) => {
-    const catboostDir = cwd || resolveCatboostDir();
-    const bin = pythonBin(catboostDir);
-    const child = spawn(bin, args, {
-      cwd: catboostDir,
-      env: { ...process.env, PYTHONUNBUFFERED: "1" },
-    });
-    let stdout = "";
-    let stderr = "";
-    const timer = setTimeout(() => {
-      child.kill("SIGTERM");
-      reject(new Error("Időtúllépés."));
-    }, timeoutMs);
-    child.stdout.on("data", (d) => {
-      stdout += d.toString();
-    });
-    child.stderr.on("data", (d) => {
-      stderr += d.toString();
-    });
-    child.on("error", (err) => {
-      clearTimeout(timer);
-      reject(err);
-    });
-    child.on("close", (code) => {
-      clearTimeout(timer);
-      if (code !== 0) {
-        reject(new Error(stderr || stdout || `python exit ${code}`));
-        return;
-      }
-      resolvePromise({ stdout, stderr, code });
-    });
-  });
+  const catboostDir = cwd || resolveCatboostDir();
+  const bin = pythonBin(catboostDir);
+  return runCmd(bin, args, { cwd: catboostDir, timeoutMs });
+}
+
+async function packagesOk(dir) {
+  try {
+    await runCmd(
+      pythonBin(dir),
+      ["-c", "import numpy, pandas, sklearn, catboost; print('ok')"],
+      { cwd: dir, timeoutMs: 60_000 }
+    );
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function ensureCatboostVenv() {
   const dir = resolveCatboostDir();
-  const venvPy = join(dir, ".venv", "bin", "python3");
-  const venvPyAlt = join(dir, ".venv", "bin", "python");
-  const hasVenv = existsSync(venvPy) || existsSync(venvPyAlt);
+  const hasVenv =
+    existsSync(join(dir, ".venv", "bin", "python3")) ||
+    existsSync(join(dir, ".venv", "bin", "python"));
 
   if (!hasVenv) {
-    await new Promise((resolvePromise, reject) => {
-      const child = spawn("python3", ["-m", "venv", ".venv"], { cwd: dir });
-      child.on("error", reject);
-      child.on("close", (code) => (code === 0 ? resolvePromise() : reject(new Error("venv hiba"))));
-    });
+    await runCmd("python3", ["-m", "venv", ".venv"], { cwd: dir, timeoutMs: 120_000 });
   }
 
-  // Mindig telepítjük / frissítjük a függőségeket (hiányzó joblib stb.)
-  await new Promise((resolvePromise, reject) => {
-    const pip = existsSync(join(dir, ".venv", "bin", "pip"))
-      ? join(dir, ".venv", "bin", "pip")
-      : join(dir, ".venv", "bin", "pip3");
-    const child = spawn(pip, ["install", "-q", "-r", "requirements.txt"], { cwd: dir });
-    let err = "";
-    child.stderr.on("data", (d) => {
-      err += d.toString();
-    });
-    child.on("error", reject);
-    child.on("close", (code) =>
-      code === 0 ? resolvePromise() : reject(new Error(err || "pip install hiba"))
-    );
+  if (await packagesOk(dir)) {
+    return dir;
+  }
+
+  const py = pythonBin(dir);
+  // python -m pip megbízhatóbb, mint a pip bináris
+  await runCmd(py, ["-m", "pip", "install", "--upgrade", "pip"], {
+    cwd: dir,
+    timeoutMs: 180_000,
   });
+  await runCmd(py, ["-m", "pip", "install", "-r", "requirements.txt"], {
+    cwd: dir,
+    timeoutMs: 600_000,
+  });
+
+  if (!(await packagesOk(dir))) {
+    throw new Error(
+      "CatBoost függőségek telepítése sikertelen. Terminálban:\n" +
+        `cd "${dir}" && source .venv/bin/activate && python -m pip install -r requirements.txt`
+    );
+  }
   return dir;
 }
 

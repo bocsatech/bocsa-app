@@ -25,7 +25,8 @@ mkdir -p "$DEST/catboost-src"
 rm -rf "$DEST/catboost-src"
 cp -a "$SRC/catboost" "$DEST/catboost-src"
 cp -f "$SRC/mac/Catboost-tanitas.command" "$DEST/Catboost-tanitas.command"
-chmod +x "$DEST/Catboost-tanitas.command"
+cp -f "$SRC/mac/Catboost-setup.command" "$DEST/Catboost-setup.command"
+chmod +x "$DEST/Catboost-tanitas.command" "$DEST/Catboost-setup.command"
 
 cd "$DEST/program"
 npm install
