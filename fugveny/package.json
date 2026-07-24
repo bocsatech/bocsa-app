@@ -8,6 +8,7 @@
     "start": "node src/index.mjs",
     "scrape": "node src/index.mjs",
     "atlag": "node src/atlag.mjs",
+    "export-csv": "node src/export-csv.mjs",
     "chrome": "node src/start-chrome.mjs",
     "test:parse": "node src/test-parse.mjs"
   },

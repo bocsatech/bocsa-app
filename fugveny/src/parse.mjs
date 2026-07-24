@@ -77,7 +77,6 @@ export const CSV_HEADERS = [
   "Kmora_allas",
   "Vetelar",
   "Hirdeteskod",
-  "Url",
 ];
 
 export function cleanText(value) {
@@ -257,7 +256,6 @@ export function parseListingCard(card) {
     Kmora_allas: specs.kmora_allas,
     Vetelar: vetelar,
     Hirdeteskod: hirdeteskod,
-    Url: cleanText(card.url) || null,
   };
 }
 
