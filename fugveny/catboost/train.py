@@ -6,7 +6,6 @@ import argparse
 import json
 from pathlib import Path
 
-import joblib
 import numpy as np
 import pandas as pd
 from catboost import CatBoostRegressor
@@ -100,7 +99,14 @@ def main() -> None:
     pred_path = out_dir / "test_predictions.csv"
 
     model.save_model(str(model_path))
-    joblib.dump({"features": FEATURE_COLS, "cat": CAT_COLS, "target": TARGET}, out_dir / "meta.joblib")
+    (out_dir / "meta.json").write_text(
+        json.dumps(
+            {"features": FEATURE_COLS, "cat": CAT_COLS, "target": TARGET},
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
 
     imp = pd.DataFrame(
         {
