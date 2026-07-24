@@ -16,6 +16,10 @@ cp -a "$SRC/src" "$DEST/program/src"
 cp -f "$SRC/mac/Inditas-uj-lista.command" "$DEST/Inditas-uj-lista.command"
 chmod +x "$DEST/Inditas-uj-lista.command"
 
+if [ -f "$SRC/uj-lista-url.txt" ]; then
+  cp -f "$SRC/uj-lista-url.txt" "$DEST/uj lista/lista-url.txt"
+fi
+
 cd "$DEST/program"
 npm install
 npx playwright install chromium || true
