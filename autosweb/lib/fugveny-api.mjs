@@ -183,16 +183,22 @@ function runPython(args, { cwd, timeoutMs = 600_000 } = {}) {
 export async function ensureCatboostVenv() {
   const dir = resolveCatboostDir();
   const venvPy = join(dir, ".venv", "bin", "python3");
-  if (existsSync(venvPy) || existsSync(join(dir, ".venv", "bin", "python"))) {
-    return dir;
+  const venvPyAlt = join(dir, ".venv", "bin", "python");
+  const hasVenv = existsSync(venvPy) || existsSync(venvPyAlt);
+
+  if (!hasVenv) {
+    await new Promise((resolvePromise, reject) => {
+      const child = spawn("python3", ["-m", "venv", ".venv"], { cwd: dir });
+      child.on("error", reject);
+      child.on("close", (code) => (code === 0 ? resolvePromise() : reject(new Error("venv hiba"))));
+    });
   }
+
+  // Mindig telepítjük / frissítjük a függőségeket (hiányzó joblib stb.)
   await new Promise((resolvePromise, reject) => {
-    const child = spawn("python3", ["-m", "venv", ".venv"], { cwd: dir });
-    child.on("error", reject);
-    child.on("close", (code) => (code === 0 ? resolvePromise() : reject(new Error("venv hiba"))));
-  });
-  await new Promise((resolvePromise, reject) => {
-    const pip = join(dir, ".venv", "bin", "pip");
+    const pip = existsSync(join(dir, ".venv", "bin", "pip"))
+      ? join(dir, ".venv", "bin", "pip")
+      : join(dir, ".venv", "bin", "pip3");
     const child = spawn(pip, ["install", "-q", "-r", "requirements.txt"], { cwd: dir });
     let err = "";
     child.stderr.on("data", (d) => {
