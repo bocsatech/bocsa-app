@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-/** Újraírja a hirdetesek.csv-t a JSON-ból (URL nélkül). */
+/** Újraírja a hirdetesek.csv-t a JSON-ból (URL/kód nélkül, Audi modell javítva). */
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-import { rowsToCsv } from "./parse.mjs";
+import { CSV_HEADERS, fixAudiModellTipus, rowsToCsv } from "./parse.mjs";
 
 const dir = process.argv[2] || join(homedir(), "Downloads", "fugveny");
 const jsonPath = join(dir, "hirdetesek.json");
@@ -18,9 +18,19 @@ if (!existsSync(jsonPath)) {
 const data = JSON.parse(readFileSync(jsonPath, "utf8"));
 const rows = (data.hirdetesek || data).map((row) => {
   const { Url, url, Hirdeteskod, hirdeteskod, ...rest } = row;
-  return rest;
+  const fixed = fixAudiModellTipus(rest);
+  const slim = {};
+  for (const key of CSV_HEADERS) {
+    slim[key] = fixed[key] ?? null;
+  }
+  return slim;
 });
 
 writeFileSync(csvPath, rowsToCsv(rows), "utf8");
-writeFileSync(jsonPath, JSON.stringify({ ...data, hirdetesek: rows, darabszam: rows.length }, null, 2), "utf8");
-console.log(`OK: ${rows.length} db → ${csvPath} (URL nélkül)`);
+writeFileSync(
+  jsonPath,
+  JSON.stringify({ ...data, hirdetesek: rows, darabszam: rows.length, mezok: CSV_HEADERS }, null, 2),
+  "utf8"
+);
+console.log(`OK: ${rows.length} db → ${csvPath}`);
+console.log("Mezők:", CSV_HEADERS.join(", "));
