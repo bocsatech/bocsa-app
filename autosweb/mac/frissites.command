@@ -68,6 +68,30 @@ else
   exit 1
 fi
 
+if grep -q 'home-nearby' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ Főoldal: közelben widget OK"
+else
+  echo "  ✗ HIBA: index.html régi — nincs home-nearby (git pull + frissites újra)"
+  exit 1
+fi
+
+if ! grep -q 'home-search-form' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ Főoldal: fejléc keresősáv törölve"
+else
+  echo "  ✗ HIBA: index.html még tartalmazza a fejléc keresőt"
+  exit 1
+fi
+
+if [ -f "$TARGET/public/js/home-nearby.js" ] && [ -f "$TARGET/public/images/home-nearby-map.svg" ]; then
+  echo "  ✓ home-nearby.js + térkép OK"
+else
+  echo "  ✗ HIBA: hiányzik home-nearby.js vagy a térkép"
+  exit 1
+fi
+
+INDEX_VER=$(grep -o 'autosweb-version" content="[^"]*' "$TARGET/public/index.html" | head -1 | sed 's/.*"//')
+echo "  Főoldal verzió: ${INDEX_VER:-?}"
+
 echo ""
 echo "  1) Állítsd le a futó Autosweb-et (Ctrl+C a terminálban)"
 if command -v lsof >/dev/null 2>&1; then
@@ -80,6 +104,7 @@ if command -v lsof >/dev/null 2>&1; then
   fi
 fi
 echo "  2) Indítsd újra: ~/Desktop/Autosweb-indito.command"
-echo "  3) Böngésző: Cmd+Shift+R (kemény frissítés)"
+echo "  3) Böngésző: http://127.0.0.1:3456/  (NEM a Vercel weboldal!)"
+echo "  4) Cmd+Shift+R (kemény frissítés)"
 echo ""
-echo "Jó verzió = világos háttér, fekete nav-pill (Add el autod.hu). Sötét = régi."
+echo "Jó verzió = világos háttér, nincs fejléc keresősáv, bal oldalon „Új hirdetések a közeledben”."
