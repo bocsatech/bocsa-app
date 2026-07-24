@@ -31,6 +31,17 @@ function isContextDestroyed(error) {
   );
 }
 
+function isNavBlocked(error) {
+  const msg = String(error?.message ?? error ?? "");
+  return /ERR_BLOCKED_BY_RESPONSE|ERR_HTTP_RESPONSE_CODE_FAILURE|ERR_CONNECTION|net::ERR_|blocked by|403|Access denied/i.test(
+    msg
+  );
+}
+
+function isGotoFailure(error) {
+  return isContextDestroyed(error) || isNavBlocked(error);
+}
+
 function isBlocked(title, html, url) {
   const t = `${title} ${url}`.toLowerCase();
   return (
@@ -186,6 +197,84 @@ export async function extractCards(page) {
   });
 }
 
+/** Prefer a tab that already shows listing cards. */
+async function pickWorkingPage(context, fallbackPage) {
+  const pages = context.pages().filter((p) => !p.isClosed());
+  let best = fallbackPage;
+  let bestCount = 0;
+
+  for (const page of pages) {
+    try {
+      const url = page.url();
+      if (!/hasznaltauto\.hu/i.test(url)) continue;
+      const cards = await extractCards(page);
+      const score = cards.length + (/talalatilista/i.test(url) ? 10 : 0);
+      if (score > bestCount) {
+        best = page;
+        bestCount = score;
+      }
+    } catch {
+      /* skip tab */
+    }
+  }
+
+  return best;
+}
+
+async function clickPaginationPage(page, pageNum) {
+  const clicked = await page.evaluate((num) => {
+    const want = String(num);
+    const links = [...document.querySelectorAll("a[href]")];
+    const byText = links.find((a) => String(a.textContent || "").trim() === want);
+    if (byText) {
+      byText.click();
+      return true;
+    }
+    const byHref = links.find((a) => new RegExp(`/page${num}(?:/|$|\\?)`, "i").test(a.getAttribute("href") || ""));
+    if (byHref) {
+      byHref.click();
+      return true;
+    }
+    if (num === 2) {
+      const next = links.find((a) => {
+        const t = `${a.textContent || ""} ${a.getAttribute("rel") || ""}`;
+        return /next|következ|→|›|»/i.test(t) || a.getAttribute("rel") === "next";
+      });
+      if (next) {
+        next.click();
+        return true;
+      }
+    }
+    return false;
+  }, pageNum);
+
+  if (!clicked) return false;
+  await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(800);
+  return true;
+}
+
+async function ensureListVisible(page, { onProgress, timeoutMs = 180000 } = {}) {
+  onProgress?.(
+    "Nyisd meg Chrome-ban a hasznaltauto találati listát (ha még nincs), majd várj..."
+  );
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    try {
+      if (/hasznaltauto\.hu/i.test(page.url())) {
+        const cards = await extractCards(page);
+        if (cards.length > 0) return cards;
+      }
+    } catch {
+      /* retry */
+    }
+    await page.waitForTimeout(2000);
+  }
+  throw new Error(
+    "Nem látszik a találati lista a Chrome-ban. Nyisd meg a listát kézzel, majd futtasd újra."
+  );
+}
+
 async function waitForListOrThrow(page, { onProgress, timeoutMs = 90000 } = {}) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
@@ -219,17 +308,41 @@ async function waitForListOrThrow(page, { onProgress, timeoutMs = 90000 } = {}) 
   throw new Error("Nem töltődött be a találati lista időben (Cloudflare?).");
 }
 
-async function loadListPage(page, targetUrl, { onProgress } = {}) {
+async function loadListPage(page, targetUrl, pageNum, { onProgress } = {}) {
   let lastError = null;
 
   for (let attempt = 1; attempt <= PAGE_RETRIES; attempt += 1) {
     try {
-      await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+      // Először lapozó kattintás (kevésbé blokkolódik, mint a goto)
+      let navigated = false;
+      try {
+        navigated = await clickPaginationPage(page, pageNum);
+      } catch (error) {
+        if (!isGotoFailure(error)) throw error;
+      }
+
+      if (!navigated) {
+        try {
+          await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+          navigated = true;
+        } catch (error) {
+          if (isNavBlocked(error)) {
+            onProgress?.(
+              `  goto blokkolva — kattints Chrome-ban a(z) ${pageNum}. oldalra (próba ${attempt}/${PAGE_RETRIES})...`
+            );
+            await page.waitForTimeout(4000);
+            // hátha a felhasználó / előző click már odavitt
+          } else if (isContextDestroyed(error)) {
+            await page.waitForLoadState("domcontentloaded", { timeout: 30000 }).catch(() => {});
+          } else {
+            throw error;
+          }
+        }
+      }
+
       await page.waitForTimeout(600);
       await dismissCookies(page);
-
-      // Várjuk meg, amíg a navigáció / redirect leülepszik
-      await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
+      await page.waitForLoadState("networkidle", { timeout: 12000 }).catch(() => {});
       await page.waitForTimeout(400);
 
       if (isBlocked(await page.title(), await page.content(), page.url())) {
@@ -239,7 +352,7 @@ async function loadListPage(page, targetUrl, { onProgress } = {}) {
       }
 
       await scrollPage(page);
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(400);
 
       let cards = await extractCards(page);
       if (cards.length === 0) {
@@ -254,9 +367,8 @@ async function loadListPage(page, targetUrl, { onProgress } = {}) {
       await page.waitForTimeout(1500 * attempt);
     } catch (error) {
       lastError = error;
-      if (isContextDestroyed(error)) {
-        onProgress?.(`  Navigáció közben megszakadt — újra (próba ${attempt}/${PAGE_RETRIES})...`);
-        await page.waitForLoadState("domcontentloaded", { timeout: 30000 }).catch(() => {});
+      if (isGotoFailure(error)) {
+        onProgress?.(`  Navigáció hiba — újra (próba ${attempt}/${PAGE_RETRIES})...`);
         await page.waitForTimeout(1500 * attempt);
         continue;
       }
@@ -277,11 +389,11 @@ export async function scrapeListUrl(
     connect,
     headless,
     profileDir,
-    startUrl,
+    startUrl: connect ? "https://www.hasznaltauto.hu/" : startUrl,
     onProgress,
   });
   const { context, external } = session;
-  const page = context.pages().find((p) => !p.isClosed()) || (await context.newPage());
+  let page = context.pages().find((p) => !p.isClosed()) || (await context.newPage());
 
   const close = async () => {
     if (external) return;
@@ -305,41 +417,69 @@ export async function scrapeListUrl(
   };
 
   try {
-    const firstTarget =
-      startPage > 1 ? buildListPageUrl(startUrl, startPage) : startUrl;
+    page = await pickWorkingPage(context, page);
 
-    onProgress?.(`Megnyitás: ${firstTarget.slice(0, 80)}…`);
+    // Ha a megnyitott Chrome-ban már van lista → ne goto-zzunk (Cloudflare blokkolhatja)
+    let firstCards = [];
     try {
-      await page.goto(firstTarget, { waitUntil: "domcontentloaded", timeout: 120000 });
-    } catch (error) {
-      if (!isContextDestroyed(error)) throw error;
-      await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
+      firstCards = await extractCards(page);
+    } catch {
+      firstCards = [];
     }
-    await dismissCookies(page);
 
-    let firstCards;
-    try {
-      firstCards = await waitForListOrThrow(page, {
-        onProgress,
-        timeoutMs: connect ? 180000 : 90000,
-      });
-    } catch (error) {
-      if (!connect && headless) {
-        onProgress?.("Headless nem ment — újrapróbál headed módban...");
-        await close();
-        return scrapeListUrl(listUrl, {
-          onProgress,
-          onPartial,
-          headless: false,
-          profileDir,
-          connect: false,
-          startPage,
-        });
+    if (firstCards.length === 0) {
+      const firstTarget =
+        startPage > 1 ? buildListPageUrl(startUrl, startPage) : startUrl;
+      onProgress?.(`Megnyitás: ${firstTarget.slice(0, 80)}…`);
+
+      let gotoOk = false;
+      try {
+        await page.goto(firstTarget, { waitUntil: "domcontentloaded", timeout: 120000 });
+        gotoOk = true;
+      } catch (error) {
+        if (isGotoFailure(error)) {
+          onProgress?.(
+            "A linket a böngésző blokkolta. Nyisd meg kézzel a listát Chrome-ban (másold be a linket), amíg látod a hirdetéseket."
+          );
+          firstCards = await ensureListVisible(page, {
+            onProgress,
+            timeoutMs: connect ? 240000 : 90000,
+          });
+        } else {
+          throw error;
+        }
       }
-      if (!connect) {
-        onProgress?.("Próbáld Mac-en: npm start -- --connect");
+
+      if (gotoOk) {
+        await dismissCookies(page);
+        try {
+          firstCards = await waitForListOrThrow(page, {
+            onProgress,
+            timeoutMs: connect ? 180000 : 90000,
+          });
+        } catch (error) {
+          if (connect) {
+            firstCards = await ensureListVisible(page, { onProgress, timeoutMs: 180000 });
+          } else if (!headless) {
+            throw error;
+          } else {
+            onProgress?.("Headless nem ment — újrapróbál headed módban...");
+            await close();
+            return scrapeListUrl(listUrl, {
+              onProgress,
+              onPartial,
+              headless: false,
+              profileDir,
+              connect: false,
+              startPage,
+            });
+          }
+        }
       }
-      throw error;
+    } else {
+      onProgress?.(
+        `Már van lista a Chrome-ban (${firstCards.length} hirdetés) — folytatás goto nélkül.`
+      );
     }
 
     try {
@@ -378,7 +518,7 @@ export async function scrapeListUrl(
       onProgress?.(`Oldal ${pageNum}/${maxPage}…`);
 
       try {
-        const cards = await loadListPage(page, target, { onProgress });
+        const cards = await loadListPage(page, target, pageNum, { onProgress });
         for (const card of cards) {
           if (!byUrl.has(card.url)) byUrl.set(card.url, card);
         }
@@ -389,7 +529,6 @@ export async function scrapeListUrl(
       } catch (error) {
         onProgress?.(`  → oldal kihagyva: ${error.message ?? error}`);
         emitPartial(pageNum - 1);
-        // Folytatás következő oldallal, ne álljon meg teljesen
         await sleep(1500);
       }
     }
@@ -402,7 +541,6 @@ export async function scrapeListUrl(
       results,
     };
   } catch (error) {
-    // Mentünk amit eddig sikerült
     if (byUrl.size > 0) {
       onProgress?.(`Hiba, de ${byUrl.size} hirdetés megvan — mentés...`);
       const results = [...byUrl.values()].map(parseListingCard);

@@ -21,7 +21,11 @@ cat > "$DEST/Inditas.command" <<'EOF'
 cd "$(dirname "$0")/program" || exit 1
 export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 echo "Függvény / átlagszámolás — hasznaltauto lista"
-echo "Cloudflare esetén a Chrome ablakban kattints, amíg betölt a lista."
+echo ""
+echo "1) Chrome-ban legyen megnyitva a találati lista (hirdetések látszanak)."
+echo "2) Ha Cloudflare jön → kattints."
+echo "3) Utána Enter itt a terminálban..."
+read -r -p ""
 npm start -- --connect
 echo ""
 echo "Átlagok:"
