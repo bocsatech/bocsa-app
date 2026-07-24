@@ -49,7 +49,7 @@ def main() -> None:
     model_path = find_model(args.model)
     model = CatBoostRegressor()
     model.load_model(str(model_path))
-    print(f"Modell: {model_path}")
+    print(f"Modell: {model_path}", file=__import__("sys").stderr)
 
     if args.csv or (args.gyartmany is None and args.modell is None):
         csv_path = resolve_csv(args.csv)
@@ -65,12 +65,30 @@ def main() -> None:
         out = Path(args.out).expanduser() if args.out else csv_path.parent / "catboost" / "scored.csv"
         out.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(out, index=False)
-        print(f"Pontozott: {out} ({len(df)} db)")
+        print(f"Pontozott: {out} ({len(df)} db)", file=__import__("sys").stderr)
         if TARGET in df.columns:
             undervalued = df.sort_values("Elteres_pct").head(20)
-            print("\nTop 20: piaci ár < becsült (potenciálisan olcsó):")
-            cols = [c for c in ["Gyartmany", "Modell", "Tipus", "Ev", "Kmora_allas", TARGET, "Becsult_ar_Ft", "Elteres_pct"] if c in undervalued.columns]
-            print(undervalued[cols].to_string(index=False))
+            print("\nTop 20: piaci ár < becsült (potenciálisan olcsó):", file=__import__("sys").stderr)
+            cols = [
+                c
+                for c in [
+                    "Gyartmany",
+                    "Modell",
+                    "Tipus",
+                    "Ev",
+                    "Kmora_allas",
+                    TARGET,
+                    "Becsult_ar_Ft",
+                    "Elteres_pct",
+                ]
+                if c in undervalued.columns
+            ]
+            print(undervalued[cols].to_string(index=False), file=__import__("sys").stderr)
+        print(
+            __import__("json").dumps(
+                {"ok": True, "out": str(out), "count": int(len(df))}, ensure_ascii=False
+            )
+        )
         return
 
     row = {

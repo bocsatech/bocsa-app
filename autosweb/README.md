@@ -31,6 +31,7 @@ Asztalon: **Autosweb-indito.command**
 ## Import hasznaltauto.hu-ról
 
 1. Indítsd az Autosweb-et → http://127.0.0.1:3456
+2. **Függvény** (CatBoost): http://127.0.0.1:3456/fugveny.html
 2. Illeszd be a **lista URL-t** (találatilista vagy keresés) vagy **egy hirdetés linkjét**
 3. **Import indítása** — megnyílik a böngésző; Cloudflare esetén jelöld meg ott
 4. Max. **50 hirdetés** betöltődik (képek nélkül)

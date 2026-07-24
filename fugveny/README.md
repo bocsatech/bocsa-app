@@ -46,6 +46,18 @@ Gyártmány, Modell, Típus, Üzemanyag, Gyártási év, Hengerűrtartalom, kW, 
 
 A listából tanult modell becsli a vételárat.
 
+### Webes felület (Autosweb)
+
+http://127.0.0.1:3456/fugveny.html
+
+- listák betöltése (`~/Downloads/fugveny`)
+- CatBoost tanítás / lista pontozás
+- árbecslés + mentett lekérdezések
+
+Autosweb indítás után nyisd meg a **Függvény** menüpontot.
+
+### Parancssor
+
 ```bash
 ~/Downloads/fugveny/Catboost-tanitas.command
 # vagy:

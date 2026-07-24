@@ -16,11 +16,23 @@ import {
   findListingBySourceUrl,
 } from "./lib/db.mjs";
 import { getSiteBlocks, saveSiteBlocks } from "./lib/site-blocks.mjs";
+import {
+  deleteQuery,
+  listFugvenyLists,
+  loadQueries,
+  predictOne,
+  runSavedQuery,
+  saveQuery,
+  scoreList,
+  trainFugvenyModel,
+} from "./lib/fugveny-api.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
 const PORT = 3456;
 const HOST = "127.0.0.1";
+
+let fugvenyBusy = false;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -255,6 +267,100 @@ async function handleListingsApi(req, res, pathname) {
   sendJson(res, 405, { error: "Nem támogatott művelet." });
 }
 
+async function handleFugvenyApi(req, res, pathname) {
+  try {
+    if (pathname === "/api/fugveny/lists" && req.method === "GET") {
+      sendJson(res, 200, listFugvenyLists());
+      return;
+    }
+
+    if (pathname === "/api/fugveny/queries" && req.method === "GET") {
+      sendJson(res, 200, { queries: loadQueries() });
+      return;
+    }
+
+    if (pathname === "/api/fugveny/queries" && req.method === "POST") {
+      const body = await readBody(req);
+      sendJson(res, 200, { query: saveQuery(body) });
+      return;
+    }
+
+    const delMatch = pathname.match(/^\/api\/fugveny\/queries\/([^/]+)$/);
+    if (delMatch && req.method === "DELETE") {
+      sendJson(res, 200, deleteQuery(decodeURIComponent(delMatch[1])));
+      return;
+    }
+
+    if (pathname === "/api/fugveny/queries/run" && req.method === "POST") {
+      const body = await readBody(req);
+      const id = body.id;
+      if (!id) {
+        sendJson(res, 400, { error: "Hiányzó lekérdezés id." });
+        return;
+      }
+      const result = runSavedQuery(id);
+      if (result.mode === "estimate") {
+        const pred = await predictOne(result.params || {});
+        sendJson(res, 200, { ...result, prediction: pred });
+        return;
+      }
+      sendJson(res, 200, result);
+      return;
+    }
+
+    if (pathname === "/api/fugveny/predict" && req.method === "POST") {
+      const body = await readBody(req);
+      const pred = await predictOne(body);
+      sendJson(res, 200, pred);
+      return;
+    }
+
+    if (pathname === "/api/fugveny/train" && req.method === "POST") {
+      if (fugvenyBusy) {
+        sendJson(res, 409, { error: "Már fut egy tanítás / pontozás." });
+        return;
+      }
+      const body = await readBody(req);
+      if (!body.listId) {
+        sendJson(res, 400, { error: "Válassz listát (listId)." });
+        return;
+      }
+      fugvenyBusy = true;
+      try {
+        const result = await trainFugvenyModel(body);
+        sendJson(res, 200, result);
+      } finally {
+        fugvenyBusy = false;
+      }
+      return;
+    }
+
+    if (pathname === "/api/fugveny/score" && req.method === "POST") {
+      if (fugvenyBusy) {
+        sendJson(res, 409, { error: "Már fut egy tanítás / pontozás." });
+        return;
+      }
+      const body = await readBody(req);
+      if (!body.listId) {
+        sendJson(res, 400, { error: "Válassz listát (listId)." });
+        return;
+      }
+      fugvenyBusy = true;
+      try {
+        const result = await scoreList(body);
+        sendJson(res, 200, result);
+      } finally {
+        fugvenyBusy = false;
+      }
+      return;
+    }
+
+    sendJson(res, 404, { error: "Ismeretlen fugveny API." });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message ?? String(error) });
+  }
+}
+
 const server = createServer(async (req, res) => {
   const pathname = req.url?.split("?")[0] || "/";
 
@@ -304,6 +410,11 @@ const server = createServer(async (req, res) => {
     pathname.startsWith("/api/listings/")
   ) {
     await handleListingsApi(req, res, pathname);
+    return;
+  }
+
+  if (pathname.startsWith("/api/fugveny")) {
+    await handleFugvenyApi(req, res, pathname);
     return;
   }
 

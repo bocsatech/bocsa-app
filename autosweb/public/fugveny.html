@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="autosweb-version" content="fugveny20260724" />
+    <title>Függvény — CatBoost ár</title>
+    <link rel="stylesheet" href="/css/style.css?v=fugveny20260724" />
+    <link rel="stylesheet" href="/css/site-app.css?v=fugveny20260724" />
+    <link rel="stylesheet" href="/css/fugveny.css?v=fugveny20260724" />
+  </head>
+  <body class="site-app fugveny-page">
+    <div class="local-banner">LOCALHOST — Függvény / CatBoost (listák · tanítás · árlekérdezés)</div>
+
+    <header class="site-header site-app-header">
+      <div class="site-app-header-inner">
+        <a class="site-app-logo" href="/">Add el autod.hu</a>
+        <nav class="import-nav site-app-nav" aria-label="Oldalak">
+          <a class="import-nav-link" href="/">Főoldal</a>
+          <a class="import-nav-link" href="/import.html">Import</a>
+          <a class="import-nav-link" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
+          <a class="import-nav-link" href="/listings.html">Hirdetések</a>
+          <a class="import-nav-link active" href="/fugveny.html">Függvény</a>
+        </nav>
+        <div class="header-actions"></div>
+      </div>
+    </header>
+
+    <main class="fugveny-main">
+      <section class="fugveny-hero">
+        <h1>Függvény</h1>
+        <p>
+          Töltsd be a scrapelt listákat a <code>~/Downloads/fugveny</code> mappából, tanítsd a CatBoost
+          ár-modellt, majd ments árlekérdezéseket (becslés / olcsó találatok).
+        </p>
+      </section>
+
+      <div class="fugveny-grid">
+        <section class="fugveny-panel">
+          <h2>1. Listák</h2>
+          <p id="fugveny-lists-empty" class="fugveny-empty">Listák betöltése…</p>
+          <div id="fugveny-lists" class="fugveny-list" hidden></div>
+          <div class="fugveny-actions">
+            <button type="button" class="fugveny-btn secondary" id="fugveny-refresh">Frissítés</button>
+            <button type="button" class="fugveny-btn" id="fugveny-train" disabled>Tanítás (CatBoost)</button>
+            <button type="button" class="fugveny-btn secondary" id="fugveny-score" disabled>Lista pontozása</button>
+          </div>
+          <p id="fugveny-train-status" class="fugveny-status"></p>
+          <div id="fugveny-metrics" class="fugveny-metrics"></div>
+          <pre id="fugveny-log" class="fugveny-log" hidden></pre>
+        </section>
+
+        <section class="fugveny-panel">
+          <h2>2. Árlekérdezés</h2>
+          <form id="fugveny-estimate-form" class="fugveny-form">
+            <label>Gyártmány <input name="gyartmany" placeholder="Audi" required /></label>
+            <label>Modell <input name="modell" placeholder="A6" required /></label>
+            <label class="wide">Típus <input name="tipus" placeholder="40 TDI Design" /></label>
+            <label
+              >Üzemanyag
+              <select name="uzemanyag">
+                <option>Diesel</option>
+                <option>Benzin</option>
+                <option>Hibrid</option>
+                <option>Elektromos</option>
+                <option>LPG</option>
+              </select>
+            </label>
+            <label>Év <input name="ev" type="number" placeholder="2019" /></label>
+            <label>Hónap <input name="honap" type="number" min="1" max="12" placeholder="5" /></label>
+            <label>cm³ <input name="ccm" type="number" placeholder="1968" /></label>
+            <label>kW <input name="kw" type="number" placeholder="150" /></label>
+            <label>LE <input name="le" type="number" placeholder="204" /></label>
+            <label>Km <input name="km" type="number" placeholder="120000" /></label>
+            <div class="fugveny-actions" style="grid-column: 1 / -1">
+              <button type="submit" class="fugveny-btn">Becslés</button>
+              <button type="button" class="fugveny-btn secondary" id="fugveny-save-estimate">Mentés lekérdezésként</button>
+            </div>
+          </form>
+          <div id="fugveny-estimate-result" class="fugveny-result" hidden></div>
+        </section>
+
+        <section class="fugveny-panel" style="grid-column: 1 / -1">
+          <h2>3. Mentett lekérdezések</h2>
+          <form id="fugveny-filter-form" class="fugveny-form">
+            <label>Név <input name="name" placeholder="Audi A6 olcsó &lt; −8%" required /></label>
+            <label
+              >Típus
+              <select name="type">
+                <option value="undervalued">Olcsó a piachoz képest</option>
+                <option value="filter">Szűrés scored listán</option>
+                <option value="estimate">Egyedi becslés (űrlap)</option>
+              </select>
+            </label>
+            <label>Gyártmány <input name="gyartmany" placeholder="Audi" /></label>
+            <label>Modell <input name="modell" placeholder="A6" /></label>
+            <label>Max km <input name="maxKm" type="number" placeholder="200000" /></label>
+            <label>Min év <input name="minEv" type="number" placeholder="2016" /></label>
+            <label>Max év <input name="maxEv" type="number" placeholder="2022" /></label>
+            <label>Max eltérés % <input name="maxElteresPct" type="number" step="0.1" placeholder="-5" value="-5" /></label>
+            <label>Limit <input name="limit" type="number" value="30" /></label>
+            <div class="fugveny-actions" style="grid-column: 1 / -1">
+              <button type="submit" class="fugveny-btn">Lekérdezés mentése</button>
+            </div>
+          </form>
+
+          <h3>Mentett</h3>
+          <div id="fugveny-queries" class="fugveny-queries"></div>
+          <p id="fugveny-queries-empty" class="fugveny-empty">Még nincs mentett lekérdezés.</p>
+
+          <div id="fugveny-query-table-wrap" class="fugveny-table-wrap" hidden>
+            <table class="fugveny-table" id="fugveny-query-table">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p id="fugveny-query-status" class="fugveny-status"></p>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="/js/fugveny-app.js?v=fugveny20260724"></script>
+  </body>
+</html>
