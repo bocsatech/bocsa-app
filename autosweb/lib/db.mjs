@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { DatabaseSync } from "node:sqlite";
 import { formDataToCells, cellsToFormData, FORM_FIELD_CATALOG } from "./form-field-catalog.mjs";
 import { buildPreviewFromCells } from "./listing-preview.mjs";
+import { initPartnerSchema } from "./partner-schema.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, "..", "data");
@@ -69,6 +70,7 @@ function initSchema(db) {
   });
 
   migrateListingsStatus(db);
+  initPartnerSchema(db);
 }
 
 function migrateListingsStatus(db) {
@@ -89,6 +91,8 @@ export function getDbPath() {
   getDb();
   return resolveDbPath();
 }
+
+export { getDb };
 
 export function listFieldDefs() {
   const db = getDb();

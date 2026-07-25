@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260725adbottom" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260725partners" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
@@ -246,6 +246,34 @@
                 </button>
               </div>
             </div>
+          </section>
+
+          <section
+            class="home-partner-rec"
+            id="home-partner-recommendations"
+            aria-labelledby="home-partner-rec-title"
+          >
+            <h2 class="home-partner-rec-title" id="home-partner-rec-title">Szolgáltatók a közeledben</h2>
+            <p class="home-partner-rec-lead">Add meg az irányítószámod, és ajánlunk fizetős partnereket 30 km-en belül.</p>
+            <form id="home-partner-postal-form" class="home-partner-postal-form">
+              <label class="home-partner-postal-field">
+                <span class="home-partner-postal-label">Irányítószám</span>
+                <input
+                  id="home-partner-postal-input"
+                  class="home-partner-postal-input"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="4"
+                  pattern="[0-9]{4}"
+                  placeholder="pl. 8000"
+                  required
+                  autocomplete="postal-code"
+                />
+              </label>
+              <button type="submit" class="home-partner-postal-btn">Ajánlások</button>
+            </form>
+            <p id="home-partner-postal-status" class="home-partner-postal-status" hidden></p>
+            <div id="home-partner-results" class="home-partner-results"></div>
           </section>
 
           <div class="site-side-card home-info-card">

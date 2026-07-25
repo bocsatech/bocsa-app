@@ -11,6 +11,7 @@
     "test:map": "node --test lib/map-to-form.test.mjs",
     "test:links": "node --test lib/links.test.mjs",
     "test": "node --test lib/*.test.mjs",
+    "seed:partners": "node scripts/seed-partners.mjs",
     "build:html": "node scripts/embed-ad-form.mjs",
     "prestart": "node scripts/embed-ad-form.mjs"
   },

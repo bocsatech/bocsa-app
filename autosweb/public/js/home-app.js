@@ -240,6 +240,10 @@ import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())
   .catch((error) => console.error("Oldalsáv betöltés:", error));
 
+import("./partner-recommendations.js")
+  .then((mod) => mod.initPartnerRecommendations())
+  .catch((error) => console.error("Partner ajánló:", error));
+
 loadListings().catch((error) => {
   emptyEl.hidden = false;
   emptyEl.textContent = error.message ?? "Nem sikerült betölteni a hirdetéseket.";

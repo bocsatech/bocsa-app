@@ -112,6 +112,200 @@ body.home-page .local-banner {
   background: transparent;
 }
 
+/* —— Partner ajánló (bal oldalsáv) —— */
+.home-partner-rec {
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.home-partner-rec-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.home-partner-rec-lead {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #666;
+}
+
+.home-partner-postal-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.45rem;
+  align-items: end;
+}
+
+.home-partner-postal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.home-partner-postal-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.home-partner-postal-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #cfd4dc;
+  border-radius: 8px;
+  font-size: 0.92rem;
+}
+
+.home-partner-postal-btn {
+  padding: 0.48rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: #1565c0;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.home-partner-postal-btn:hover {
+  background: #0d47a1;
+}
+
+.home-partner-postal-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: #555;
+}
+
+.home-partner-postal-status[data-status-type="ok"] {
+  color: #2e7d32;
+}
+
+.home-partner-postal-status[data-status-type="err"] {
+  color: #c62828;
+}
+
+.home-partner-results {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: 42vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.home-partner-category {
+  border-top: 1px solid #eef0f3;
+  padding-top: 0.55rem;
+}
+
+.home-partner-category:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.home-partner-category-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.home-partner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.home-partner-card {
+  padding: 0.5rem 0.55rem;
+  border-radius: 8px;
+  background: #f7f9fb;
+  border: 1px solid #e8ebef;
+}
+
+.home-partner-name {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.home-partner-meta {
+  margin: 0.15rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: #666;
+}
+
+.home-partner-distance {
+  font-weight: 600;
+  color: #1565c0;
+}
+
+.home-partner-rating {
+  color: #e65100;
+}
+
+.home-partner-address,
+.home-partner-hours {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #666;
+}
+
+.home-partner-actions {
+  margin-top: 0.35rem;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.home-partner-call,
+.home-partner-map {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home-partner-call {
+  background: #1565c0;
+  color: #fff;
+}
+
+.home-partner-map {
+  background: #fff;
+  color: #444;
+  border: 1px solid #cfd4dc;
+}
+
+.home-partner-empty {
+  margin: 0;
+  font-size: 0.74rem;
+  color: #888;
+  font-style: italic;
+}
+
 .home-header-top,
 .home-header-inner {
   width: 100%;

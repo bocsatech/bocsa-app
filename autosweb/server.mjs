@@ -26,6 +26,17 @@ import {
   scoreList,
   trainFugvenyModel,
 } from "./lib/fugveny-api.mjs";
+import {
+  deletePartner,
+  getPartner,
+  getPartnerRecommendations,
+  importPartners,
+  listPartners,
+  partnerStats,
+  savePartner,
+  upsertPostalCodes,
+} from "./lib/partners.mjs";
+import { PARTNER_CATEGORIES } from "./lib/partner-categories.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -361,6 +372,116 @@ async function handleFugvenyApi(req, res, pathname) {
   }
 }
 
+async function handlePartnersApi(req, res, pathname) {
+  try {
+    const recommendMatch = pathname === "/api/partners/recommendations";
+
+    if (recommendMatch && req.method === "GET") {
+      const url = new URL(req.url ?? "", `http://${HOST}`);
+      const postalCode = url.searchParams.get("postal_code") ?? url.searchParams.get("iranyitoszam");
+      if (!postalCode) {
+        sendJson(res, 400, { error: "Hiányzó irányítószám." });
+        return;
+      }
+      sendJson(res, 200, getPartnerRecommendations(postalCode));
+      return;
+    }
+
+    if (pathname === "/api/partners/categories" && req.method === "GET") {
+      sendJson(res, 200, { categories: PARTNER_CATEGORIES });
+      return;
+    }
+
+    if (pathname === "/api/partners/stats" && req.method === "GET") {
+      sendJson(res, 200, partnerStats());
+      return;
+    }
+
+    if (pathname === "/api/partners" && req.method === "GET") {
+      sendJson(res, 200, { partners: listPartners() });
+      return;
+    }
+
+    if (pathname === "/api/partners/import" && req.method === "POST") {
+      let body;
+      try {
+        body = await readBody(req);
+      } catch {
+        sendJson(res, 400, { error: "Érvénytelen JSON." });
+        return;
+      }
+      const rows = body.partners ?? body.rows ?? body;
+      if (!Array.isArray(rows)) {
+        sendJson(res, 400, { error: "Hiányzó partners tömb." });
+        return;
+      }
+      sendJson(res, 200, { results: importPartners(rows) });
+      return;
+    }
+
+    if (pathname === "/api/postal-codes/import" && req.method === "POST") {
+      let body;
+      try {
+        body = await readBody(req);
+      } catch {
+        sendJson(res, 400, { error: "Érvénytelen JSON." });
+        return;
+      }
+      const rows = body.postal_codes ?? body.rows ?? body;
+      if (!Array.isArray(rows)) {
+        sendJson(res, 400, { error: "Hiányzó postal_codes tömb." });
+        return;
+      }
+      sendJson(res, 200, upsertPostalCodes(rows));
+      return;
+    }
+
+    const idMatch = pathname.match(/^\/api\/partners\/(\d+)$/);
+
+    if (idMatch && req.method === "GET") {
+      const partner = getPartner(Number(idMatch[1]));
+      if (!partner) {
+        sendJson(res, 404, { error: "Nincs ilyen partner." });
+        return;
+      }
+      sendJson(res, 200, { partner });
+      return;
+    }
+
+    if (pathname === "/api/partners" && req.method === "POST") {
+      let body;
+      try {
+        body = await readBody(req);
+      } catch {
+        sendJson(res, 400, { error: "Érvénytelen JSON." });
+        return;
+      }
+      const partnerId = body.id != null ? Number(body.id) : null;
+      try {
+        const saved = savePartner(body, partnerId);
+        if (!saved) {
+          sendJson(res, 404, { error: "Nincs ilyen partner." });
+          return;
+        }
+        sendJson(res, 200, { partner: saved });
+      } catch (error) {
+        sendJson(res, 400, { error: error.message ?? String(error) });
+      }
+      return;
+    }
+
+    if (idMatch && req.method === "DELETE") {
+      deletePartner(Number(idMatch[1]));
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+
+    sendJson(res, 404, { error: "Ismeretlen partners API." });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message ?? String(error) });
+  }
+}
+
 const server = createServer(async (req, res) => {
   const pathname = req.url?.split("?")[0] || "/";
 
@@ -415,6 +536,11 @@ const server = createServer(async (req, res) => {
 
   if (pathname.startsWith("/api/fugveny")) {
     await handleFugvenyApi(req, res, pathname);
+    return;
+  }
+
+  if (pathname.startsWith("/api/partners") || pathname === "/api/postal-codes/import") {
+    await handlePartnersApi(req, res, pathname);
     return;
   }
 

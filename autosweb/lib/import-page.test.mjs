@@ -50,6 +50,8 @@ test("index.html: főoldal kereső oldalsávval", () => {
   assert.ok(html.includes('data-ad-slot="header-left"'));
   assert.ok(html.includes('data-site-page="home"'));
   assert.ok(html.includes("home-nearby"));
+  assert.ok(html.includes("home-partner-recommendations"));
+  assert.ok(html.includes("home-partner-postal-input"));
   assert.ok(html.includes("Új hirdetések a közeledben"));
   assert.ok(html.includes("site-content-bar"));
   assert.ok(html.includes("site-side-edit"));
@@ -70,6 +72,13 @@ test("import.html: videó oldalsávok", () => {
   assert.match(html, /site-app-nav/);
   assert.match(html, /site-app-header/);
   assert.doesNotMatch(html, /theme-automax/);
+});
+
+test("partners.html: partner admin oldal", () => {
+  const html = readFileSync(join(PUBLIC, "partners.html"), "utf8");
+  assert.ok(html.includes('data-site-page="partners"'));
+  assert.ok(html.includes("partner-form"));
+  assert.ok(html.includes("partners-app.js"));
 });
 
 test("listings.html: hirdetések oldal", () => {
