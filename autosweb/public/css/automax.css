@@ -446,8 +446,12 @@ body.theme-automax .local-banner {
 }
 
 .theme-automax .field-row.full:has(.labeled-field:nth-child(3):last-child),
-.theme-automax .field-row--vehicle-top {
+.theme-automax .field-row--vehicle-dates {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.theme-automax .field-row--vehicle-top {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .theme-automax .field-row--km,
@@ -741,7 +745,8 @@ body.theme-automax .local-banner {
     padding: 6px 24px;
   }
 
-  .theme-automax .field-row--vehicle-top {
+  .theme-automax .field-row--vehicle-top,
+  .theme-automax .field-row--vehicle-dates {
     grid-template-columns: 1fr;
   }
 
