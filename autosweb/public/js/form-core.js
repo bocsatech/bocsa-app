@@ -263,13 +263,13 @@ function updateLeDisplay() {
 }
 
 function updateTitle() {
-  if (hirdetesCime?.dataset.userEdited === "1") return;
+  if (!hirdetesCime || hirdetesCime?.dataset.userEdited === "1") return;
   const parts = [gyartmany.value, modell.value, tipus.value].filter(Boolean);
   const year = gyartasiEv.value;
   hirdetesCime.value = parts.length
     ? `Eladó ${parts.join(" ")}${year ? ` (${year})` : ""}`
     : "";
-  fitInputWidth(hirdetesCime);
+  if (hirdetesCime.type !== "hidden") fitInputWidth(hirdetesCime);
 }
 
 function measureTextWidth(text, font) {
@@ -482,7 +482,7 @@ function applyFormData(data, { fromImport = false } = {}) {
     if (box) box.checked = true;
   }
 
-  if (data.hirdetes_cime) {
+  if (data.hirdetes_cime && hirdetesCime) {
     hirdetesCime.dataset.userEdited = "1";
   }
 
