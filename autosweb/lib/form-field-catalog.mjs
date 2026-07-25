@@ -1,6 +1,6 @@
 /** Látható űrlapmezők címkéi — segéd-, jogi és instrukciós szövegek NINCSENEK benne. */
 export const FORM_FIELD_CATALOG = [
-  { field_key: "uzemanyag", label: "Üzemanyag", step: 1 },
+  { field_key: "uzemanyag", label: "Üzemanyag", step: 2 },
   { field_key: "hirdetes_cime", label: "Hirdetés címe", step: 1 },
   { field_key: "gyartasi_ev", label: "Gyártási év", step: 1 },
   { field_key: "gyartasi_honap", label: "Gyártási hónap", step: 1 },

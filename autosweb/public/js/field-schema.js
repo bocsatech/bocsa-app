@@ -1,7 +1,6 @@
 /** Hasznaltauto.hu személyautó — mezőlista import egyeztetéshez (csak olvasás, nincs feladás). */
 export const HASZNALTAUTO_FIELD_GROUPS = {
   alapadatok: [
-    "uzemanyag",
     "hirdetes_cime",
     "gyartasi_ev",
     "gyartasi_honap",
@@ -25,6 +24,7 @@ export const HASZNALTAUTO_FIELD_GROUPS = {
     "tulajdonosok_szama",
   ],
   muszaki: [
+    "uzemanyag",
     "hengerurtartalom",
     "teljesitmeny_kw",
     "teljesitmeny_le",

@@ -53,14 +53,7 @@
           <h2 class="import-step-label">Alapadatok</h2>
           <div class="card">
             <div class="card-body">
-              <div class="autofelvitele">
-                <span class="autofelvitele-label">Autofelvitele: <span class="req">*</span></span>
-                <input type="hidden" id="uzemanyag" name="uzemanyag" required />
-                <div id="fuel-main" class="fuel-buttons"></div>
-                <div id="fuel-subpanels"></div>
-                <p id="fuel-selected" class="fuel-selected hint"></p>
-                <input type="hidden" id="hirdetes_cime" name="hirdetes_cime" />
-              </div>
+              <input type="hidden" id="hirdetes_cime" name="hirdetes_cime" />
 
               <div class="form-grid">
                 <div class="field-row full field-row--vehicle-year">
@@ -245,6 +238,14 @@
           <h2 class="import-step-label">Műszaki adatok</h2>
           <div class="card">
             <div class="card-body">
+              <div class="field-row full">
+                <div class="labeled-field">
+                  <label for="uzemanyag">Üzemanyag: <span class="req">*</span></label>
+                  <select id="uzemanyag" name="uzemanyag" required>
+                    <option value="">Válasszon</option>
+                  </select>
+                </div>
+              </div>
               <div class="form-grid">
                 <label for="hengerurtartalom">Hengerűrtartalom:</label>
                 <div class="suffix-field">
@@ -747,6 +748,6 @@
       requireAuthForPage();
       initSiteAuth();
     </script>
-    <script src="/js/app.js?v=vehicle20260725identfix" type="module"></script>
+    <script src="/js/app.js?v=fuelselect20260725" type="module"></script>
   </body>
 </html>

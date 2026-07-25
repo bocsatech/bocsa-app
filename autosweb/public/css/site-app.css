@@ -698,6 +698,14 @@ body.site-app .field-row--vehicle-dates {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+body.site-app .step-panel[data-step="2"] > .card > .card-body > .field-row.full:first-child {
+  margin-bottom: 1rem;
+}
+
+body.site-app .step-panel[data-step="2"] > .card > .card-body > .field-row.full:first-child .labeled-field {
+  max-width: min(100%, 360px);
+}
+
 body.site-app .field-row--tipus {
   grid-template-columns: 1fr;
 }

@@ -66,8 +66,40 @@ function fillYearSelect(select) {
   }
 }
 
+function renderFuelDropdown() {
+  if (!uzemanyag || uzemanyag.tagName !== "SELECT") return;
+
+  const current = uzemanyag.value;
+  uzemanyag.innerHTML = "";
+
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = "Válasszon";
+  uzemanyag.appendChild(empty);
+
+  for (const category of UZEMANYAG_CATEGORIES) {
+    if (category.value) {
+      const option = document.createElement("option");
+      option.value = category.value;
+      option.textContent = category.label;
+      uzemanyag.appendChild(option);
+    }
+
+    if (!category.children) continue;
+
+    for (const child of category.children) {
+      const option = document.createElement("option");
+      option.value = child.value;
+      option.textContent = `${category.label} — ${child.label}`;
+      uzemanyag.appendChild(option);
+    }
+  }
+
+  if (current) uzemanyag.value = current;
+}
+
 function renderFuelSelector() {
-  if (!fuelMain || !fuelSubpanels) return;
+  if (!fuelMain || !fuelSubpanels || uzemanyag?.tagName === "SELECT") return;
 
   fuelMain.innerHTML = "";
   fuelSubpanels.innerHTML = "";
@@ -146,18 +178,28 @@ function selectFuel(value, categoryId, subLabel = null) {
   if (!uzemanyag) return;
   uzemanyag.value = value;
   uzemanyag.dataset.userEdited = "1";
-  closeFuelPanels();
-  syncFuelButtonState(categoryId, subLabel);
 
-  const category = UZEMANYAG_CATEGORIES.find((item) => item.id === categoryId);
-  const display = subLabel ? `${category?.label ?? ""} — ${subLabel}` : value;
-  if (fuelSelected) fuelSelected.textContent = `Kiválasztva: ${display}`;
+  if (fuelMain && uzemanyag.tagName !== "SELECT") {
+    closeFuelPanels();
+    syncFuelButtonState(categoryId, subLabel);
+
+    const category = UZEMANYAG_CATEGORIES.find((item) => item.id === categoryId);
+    const display = subLabel ? `${category?.label ?? ""} — ${subLabel}` : value;
+    if (fuelSelected) fuelSelected.textContent = `Kiválasztva: ${display}`;
+  }
+
   syncFuelDependentFields();
   saveDraft();
 }
 
 function restoreFuelSelection(value) {
   if (!value) return;
+
+  if (uzemanyag?.tagName === "SELECT") {
+    uzemanyag.value = value;
+    syncFuelDependentFields();
+    return;
+  }
 
   for (const category of UZEMANYAG_CATEGORIES) {
     if (category.value === value) {
@@ -238,6 +280,7 @@ function applyAutoFill() {
     if (name !== "uzemanyag") field.classList.add("auto-filled");
   }
   modell?.classList.remove("auto-filled");
+  syncFuelDependentFields();
   updateLeDisplay();
   fitAllFormFields();
 }
@@ -563,7 +606,6 @@ function validateFields(names) {
 
 function validateStep(step) {
   const basicRequired = [
-    "uzemanyag",
     "gyartasi_ev",
     "gyartmany",
     "modell",
@@ -574,6 +616,7 @@ function validateStep(step) {
     "okmany_ervenyesseg",
     "km",
   ];
+  const techRequired = ["uzemanyag"];
   const adRequired = [
     "vetelar",
     "megye",
@@ -590,10 +633,23 @@ function validateStep(step) {
     return true;
   }
 
+  if (step === 2) {
+    if (!validateFields(techRequired)) {
+      alert("Kérjük, válassz üzemanyagot a Műszaki adatoknál.");
+      return false;
+    }
+    return true;
+  }
+
   if (step === TOTAL_STEPS) {
     if (!validateFields(basicRequired)) {
       alert("Kérjük, töltsd ki a kötelező (*) mezőket az Alapadatok fülön.");
       goToStep(1);
+      return false;
+    }
+    if (!validateFields(techRequired)) {
+      alert("Kérjük, válassz üzemanyagot a Műszaki adatoknál.");
+      goToStep(2);
       return false;
     }
     if (!validateFields(adRequired)) {
@@ -753,6 +809,7 @@ document.querySelectorAll(".package").forEach((card) => {
 fillYearSelect(gyartasiEv);
 fillYearSelect(muszakiEv);
 fillYearSelect(forgalombaHelyezesEv);
+renderFuelDropdown();
 renderFuelSelector();
 renderKlimaOptions();
 renderEquipment();
@@ -760,6 +817,13 @@ renderEgyebInfo();
 wrapMdOutlinedFields();
 syncFuelDependentFields();
 fitAllFormFields();
+
+uzemanyag?.addEventListener("change", () => {
+  if (uzemanyag.tagName !== "SELECT") return;
+  uzemanyag.dataset.userEdited = "1";
+  syncFuelDependentFields();
+  saveDraft();
+});
 
 if (mode === "wizard") {
   restoreDraft();
