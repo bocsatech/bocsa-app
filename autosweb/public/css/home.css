@@ -35,13 +35,15 @@ body.home-page .local-banner {
 
 .home-header-top,
 .home-header-inner {
-  max-width: 1320px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   padding: 0.85rem 1.25rem;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 1rem;
+  box-sizing: border-box;
 }
 
 .home-logo {
@@ -128,7 +130,8 @@ body.home-page .local-banner {
 }
 
 .home-layout.site-layout {
-  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) calc(260px + 1cm);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(260px, 320px);
+  width: 100%;
 }
 
 .home-info-sidebar {
@@ -528,10 +531,12 @@ body.home-page .local-banner {
 }
 
 .home-main {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 1.25rem;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 1rem 1.25rem 1.5rem;
   position: relative;
+  box-sizing: border-box;
 }
 
 .home-center {
@@ -566,6 +571,20 @@ body.home-page .local-banner {
   grid-template-rows: repeat(3, minmax(0, auto));
   gap: 0.75rem;
   align-content: start;
+}
+
+@media (min-width: 1500px) {
+  .home-grid-page {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, auto));
+  }
+}
+
+@media (min-width: 1900px) {
+  .home-grid-page {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, auto));
+  }
 }
 
 .home-grid-indicators {

@@ -15,9 +15,9 @@ const gridIndicators = document.getElementById("home-grid-indicators");
 const emptyEl = document.getElementById("home-empty");
 const filterForm = document.getElementById("home-filter-form");
 
-const VISIBLE_COUNT = 9;
 const LISTINGS_FETCH_LIMIT = 500;
 const AUTO_SCROLL_MS = 5000;
+const GRID_ROWS = 3;
 
 let allItems = [];
 let sidebarFilters = emptyFilters();
@@ -44,6 +44,13 @@ function filterItems(items) {
     result = filterListingsNearby(result, nearbyFilter.lat, nearbyFilter.lon);
   }
   return result;
+}
+
+function getVisibleCount() {
+  const w = window.innerWidth;
+  if (w >= 1900) return GRID_ROWS * 5;
+  if (w >= 1500) return GRID_ROWS * 4;
+  return GRID_ROWS * 3;
 }
 
 function chunkItems(items, size) {
@@ -117,7 +124,7 @@ function renderCarousel(items) {
       "Még nincs hirdetés. Importálj, mentsd az adatbázisba (Import oldal), majd frissítsd a főoldalt — a legfrissebb mentések itt jelennek meg.";
   }
 
-  const pages = chunkItems(filtered, VISIBLE_COUNT);
+  const pages = chunkItems(filtered, getVisibleCount());
   pageCount = pages.length;
 
   for (const pageItems of pages) {
@@ -240,4 +247,12 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     loadListings().catch(() => {});
   }
+});
+
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (allItems.length) renderCarousel(allItems);
+  }, 150);
 });

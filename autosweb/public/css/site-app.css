@@ -162,6 +162,20 @@ body.site-app main {
   color: #202124;
 }
 
+body.site-app .home-main {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 1rem 1.25rem 1.5rem;
+  box-sizing: border-box;
+}
+
+body.site-app .home-header-inner {
+  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 body.site-app .page-import,
 body.site-app .page-listings,
 body.site-app .page-automax {
