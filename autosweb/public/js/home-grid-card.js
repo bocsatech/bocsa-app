@@ -8,14 +8,6 @@ function buildCardTitle(preview, item) {
   return formatListingDisplayTitle(raw) || raw;
 }
 
-function pickDealBadge(preview) {
-  const badges = preview.badges ?? [];
-  if (!badges.length) return null;
-  const label = badges[0];
-  const tone = /garanc|extra|automata|full/i.test(label) ? "great" : "good";
-  return { label, tone };
-}
-
 export function createHomeGridCard(item) {
   const preview = item.preview ?? {};
   const card = document.createElement("a");
@@ -26,10 +18,6 @@ export function createHomeGridCard(item) {
   const title = buildCardTitle(preview, item);
   const price = preview.price || "—";
   const km = preview.km || "—";
-  const deal = pickDealBadge(preview);
-  const status = item.status || "mentett";
-  const statusLabel = status === "feladott" ? "Közzétéve" : "Mentett";
-  const statusClass = status === "feladott" ? "published" : "draft";
 
   card.innerHTML = `
     <div class="home-grid-card-media">
@@ -55,8 +43,6 @@ export function createHomeGridCard(item) {
         </span>
       </div>
       <h2 class="home-grid-card-title">${escapeHtml(title)}</h2>
-      <span class="home-grid-card-status home-grid-card-status--${statusClass}">${escapeHtml(statusLabel)}</span>
-      ${deal ? `<span class="home-grid-card-deal home-grid-card-deal--${deal.tone}">${escapeHtml(deal.label)}</span>` : ""}
     </div>
   `;
 
