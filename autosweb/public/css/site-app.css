@@ -584,18 +584,26 @@ body.site-app .field-row.full .labeled-field {
   min-width: 0;
 }
 
-body.site-app .field-row--vehicle-ident {
-  display: flex;
-  flex-wrap: nowrap;
+body.site-app .field-row.full.field-row--vehicle-ident {
+  display: flex !important;
+  flex-flow: row nowrap;
   gap: 1rem 1.25rem;
-  width: 100%;
+  width: 100% !important;
+  max-width: 100%;
   align-items: end;
 }
 
-body.site-app .field-row--vehicle-ident .labeled-field {
+body.site-app .field-row.full.field-row--vehicle-ident .labeled-field {
   flex: 1 1 0;
   min-width: 0;
-  width: auto;
+  width: auto !important;
+  max-width: none;
+}
+
+body.site-app .field-row.full.field-row--vehicle-ident .labeled-field > input,
+body.site-app .field-row.full.field-row--vehicle-ident .labeled-field > select {
+  width: 100% !important;
+  max-width: 100%;
 }
 
 body.site-app .field-row--vehicle-year {
@@ -872,12 +880,25 @@ body.site-app .package.selected {
   }
 
   body.site-app .field-row--vehicle-ident {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  body.site-app .field-row.full.field-row--vehicle-ident .labeled-field {
+    flex: 1 1 calc(33.333% - 0.85rem);
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  body.site-app .field-row.full.field-row--vehicle-ident {
     flex-direction: column;
   }
 
-  body.site-app .field-row--vehicle-ident .labeled-field {
+  body.site-app .field-row.full.field-row--vehicle-ident .labeled-field {
     flex: 1 1 auto;
-    width: 100%;
+    width: 100% !important;
+    min-width: 0;
   }
 
   body.site-app .field-row--vehicle-year .labeled-field {

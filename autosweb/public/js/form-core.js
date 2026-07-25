@@ -283,9 +283,17 @@ function measureTextWidth(text, font) {
   return width;
 }
 
+function shouldUseFluidFieldWidths() {
+  return (
+    document.body.classList.contains("theme-m7") ||
+    document.body.classList.contains("theme-automax") ||
+    document.body.classList.contains("site-app")
+  );
+}
+
 function fitSelectWidth(select) {
   if (!select || select.tagName !== "SELECT") return;
-  if (document.body.classList.contains("theme-automax")) return;
+  if (shouldUseFluidFieldWidths()) return;
   const style = getComputedStyle(select);
   const option = select.options[select.selectedIndex];
   const text = option?.text?.trim() || "—";
@@ -294,7 +302,7 @@ function fitSelectWidth(select) {
 
 function fitInputWidth(input) {
   if (!input || input.tagName !== "INPUT") return;
-  if (document.body.classList.contains("theme-automax")) return;
+  if (shouldUseFluidFieldWidths()) return;
   if (input.type === "checkbox" || input.type === "radio" || input.type === "file") return;
   const style = getComputedStyle(input);
   const text = input.value?.trim() || input.placeholder?.trim() || " ";
@@ -304,7 +312,7 @@ function fitInputWidth(input) {
 }
 
 function fitAllFormFields() {
-  if (document.body.classList.contains("theme-m7") || document.body.classList.contains("theme-automax")) {
+  if (shouldUseFluidFieldWidths()) {
     form.querySelectorAll("select, input, textarea").forEach((el) => {
       el.style.width = "";
     });
