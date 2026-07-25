@@ -584,6 +584,20 @@ body.site-app .field-row.full .labeled-field {
   min-width: 0;
 }
 
+body.site-app .field-row--vehicle-ident {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1rem 1.25rem;
+  width: 100%;
+  align-items: end;
+}
+
+body.site-app .field-row--vehicle-ident .labeled-field {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
 body.site-app .field-row--vehicle-year {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -592,7 +606,6 @@ body.site-app .field-row--vehicle-year .labeled-field {
   max-width: min(100%, 320px);
 }
 
-body.site-app .field-row--vehicle-ident,
 body.site-app .field-row--vehicle-dates {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -854,9 +867,17 @@ body.site-app .package.selected {
 
   body.site-app .field-row.full,
   body.site-app .field-row--vehicle-year,
-  body.site-app .field-row--vehicle-ident,
   body.site-app .field-row--vehicle-dates {
     grid-template-columns: 1fr;
+  }
+
+  body.site-app .field-row--vehicle-ident {
+    flex-direction: column;
+  }
+
+  body.site-app .field-row--vehicle-ident .labeled-field {
+    flex: 1 1 auto;
+    width: 100%;
   }
 
   body.site-app .field-row--vehicle-year .labeled-field {
