@@ -11,32 +11,15 @@ import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
 import { filterListingsNearby, initHomeNearby } from "./home-nearby.js";
 
 const gridTrack = document.getElementById("home-grid-track");
-const gridViewport = document.getElementById("home-grid-viewport");
-const gridIndicators = document.getElementById("home-grid-indicators");
 const emptyEl = document.getElementById("home-empty");
 const filterForm = document.getElementById("home-filter-form");
 
 const LISTINGS_FETCH_LIMIT = 500;
-const AUTO_SCROLL_MS = 5000;
-const GRID_ROWS = 2;
-const GRID_COLS_DESKTOP = 4;
 
-function getGridCols() {
-  const w = window.innerWidth;
-  if (w <= 620) return 1;
-  if (w <= 980) return 2;
-  return GRID_COLS_DESKTOP;
-}
-
-function getVisibleCount() {
-  return GRID_ROWS * getGridCols();
-}
+let allItems = [];
 let sidebarFilters = emptyFilters();
 let quickPreset = null;
 let categoryFilter = null;
-let currentPage = 0;
-let pageCount = 0;
-let carouselTimer = null;
 let quickFilterUi = null;
 let categoryUi = null;
 let nearbyUi = null;
@@ -60,66 +43,9 @@ function filterItems(items) {
   return result;
 }
 
-function chunkItems(items, size) {
-  const pages = [];
-  for (let i = 0; i < items.length; i += size) {
-    pages.push(items.slice(i, i + size));
-  }
-  return pages.length ? pages : [[]];
-}
-
-let allItems = [];
-
-function stopCarousel() {
-  if (carouselTimer) {
-    clearInterval(carouselTimer);
-    carouselTimer = null;
-  }
-}
-
-function goToPage(index) {
-  if (!pageCount) return;
-  currentPage = ((index % pageCount) + pageCount) % pageCount;
-  gridTrack.style.transform = `translateX(-${currentPage * 100}%)`;
-  gridIndicators?.querySelectorAll("[data-carousel-page]").forEach((dot) => {
-    dot.classList.toggle("is-active", Number(dot.dataset.carouselPage) === currentPage);
-  });
-}
-
-function startCarousel() {
-  stopCarousel();
-  if (pageCount <= 1) return;
-  carouselTimer = setInterval(() => {
-    goToPage(currentPage + 1);
-  }, AUTO_SCROLL_MS);
-}
-
-function renderIndicators(totalPages) {
-  if (!gridIndicators) return;
-  gridIndicators.innerHTML = "";
-  gridIndicators.hidden = totalPages <= 1;
-
-  for (let index = 0; index < totalPages; index += 1) {
-    const dot = document.createElement("button");
-    dot.type = "button";
-    dot.className = "home-grid-dot";
-    dot.dataset.carouselPage = String(index);
-    dot.setAttribute("aria-label", `${index + 1}. oldal`);
-    if (index === 0) dot.classList.add("is-active");
-    dot.addEventListener("click", () => {
-      goToPage(index);
-      startCarousel();
-    });
-    gridIndicators.appendChild(dot);
-  }
-}
-
-function renderCarousel(items) {
+function renderListings(items) {
   if (!gridTrack) return;
 
-  stopCarousel();
-  currentPage = 0;
-  pageCount = 0;
   gridTrack.innerHTML = "";
 
   const filtered = filterItems(items);
@@ -133,21 +59,9 @@ function renderCarousel(items) {
       "Még nincs hirdetés. Importálj, mentsd az adatbázisba (Import oldal), majd frissítsd a főoldalt — a legfrissebb mentések itt jelennek meg.";
   }
 
-  const pages = chunkItems(filtered, getVisibleCount());
-  pageCount = pages.length;
-
-  for (const pageItems of pages) {
-    const pageEl = document.createElement("div");
-    pageEl.className = "home-grid-page";
-    for (const item of pageItems) {
-      pageEl.appendChild(createHomeGridCard(item));
-    }
-    gridTrack.appendChild(pageEl);
+  for (const item of filtered) {
+    gridTrack.appendChild(createHomeGridCard(item));
   }
-
-  goToPage(0);
-  renderIndicators(pageCount);
-  startCarousel();
 }
 
 async function loadListings() {
@@ -155,7 +69,7 @@ async function loadListings() {
   allItems = sortForHome(all);
   populateFilterOptions(allItems);
   populateYearOptions(allItems);
-  renderCarousel(allItems);
+  renderListings(allItems);
 }
 
 function populateYearOptions(items) {
@@ -180,7 +94,7 @@ function populateYearOptions(items) {
 }
 
 function applyFilters() {
-  renderCarousel(allItems);
+  renderListings(allItems);
 }
 
 function hasActiveSidebarFilters(filters) {
@@ -203,9 +117,6 @@ function hasActiveSidebarFilters(filters) {
       filters.ccm_ig != null
   );
 }
-
-gridViewport?.addEventListener("mouseenter", stopCarousel);
-gridViewport?.addEventListener("mouseleave", startCarousel);
 
 quickFilterUi = initHomeQuickFilters({
   onChange: (preset) => {
@@ -278,12 +189,4 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     loadListings().catch(() => {});
   }
-});
-
-let resizeTimer = null;
-window.addEventListener("resize", () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    if (allItems.length) renderCarousel(allItems);
-  }, 150);
 });
