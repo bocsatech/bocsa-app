@@ -46,6 +46,8 @@ test("index.html: főoldal kereső oldalsávval", () => {
   assert.ok(html.includes("Hasznos információ"));
   assert.ok(!html.includes("data-center-content"));
   assert.ok(html.includes("home-grid-track"));
+  assert.ok(html.includes("home-ad-strip"));
+  assert.ok(html.includes('data-ad-slot="header-left"'));
   assert.ok(html.includes('data-site-page="home"'));
   assert.ok(html.includes("home-nearby"));
   assert.ok(html.includes("Új hirdetések a közeledben"));
