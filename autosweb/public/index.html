@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="home20260725nearbytop" />
+    <meta name="autosweb-version" content="home20260725categories" />
     <title>Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260725grid4" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260725categories" />
     <link rel="stylesheet" href="/css/site-app.css?v=home20260725fullwidth" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
@@ -32,6 +32,83 @@
     </header>
 
     <main class="home-main">
+      <section class="home-category-bar" aria-label="Kategóriák">
+        <div class="home-category-track" role="group" aria-label="Gyors kategóriák">
+          <button type="button" class="home-category-card home-category-card--uj" data-category="uj">
+            <span class="home-category-visual" aria-hidden="true">
+              <svg class="home-category-car" viewBox="0 0 120 48" fill="none"><path d="M8 32h8l6-12h36l8 12h18l4-8H8v8Z" fill="currentColor" opacity="0.9"/><circle cx="32" cy="34" r="6" fill="currentColor"/><circle cx="84" cy="34" r="6" fill="currentColor"/></svg>
+            </span>
+            <span class="home-category-foot">
+              <span class="home-category-icon" aria-hidden="true">✨</span>
+              <span class="home-category-text"><strong>Új</strong><span>Friss modell</span></span>
+            </span>
+          </button>
+          <button type="button" class="home-category-card home-category-card--benzin" data-category="benzin">
+            <span class="home-category-visual" aria-hidden="true">
+              <svg class="home-category-car" viewBox="0 0 120 48" fill="none"><path d="M8 32h8l6-12h36l8 12h18l4-8H8v8Z" fill="currentColor" opacity="0.9"/><circle cx="32" cy="34" r="6" fill="currentColor"/><circle cx="84" cy="34" r="6" fill="currentColor"/></svg>
+            </span>
+            <span class="home-category-foot">
+              <span class="home-category-icon" aria-hidden="true">⛽</span>
+              <span class="home-category-text"><strong>Benzin</strong><span>Otto motor</span></span>
+            </span>
+          </button>
+          <button type="button" class="home-category-card home-category-card--diesel" data-category="diesel">
+            <span class="home-category-visual" aria-hidden="true">
+              <svg class="home-category-car" viewBox="0 0 120 48" fill="none"><path d="M8 32h8l6-12h36l8 12h18l4-8H8v8Z" fill="currentColor" opacity="0.9"/><circle cx="32" cy="34" r="6" fill="currentColor"/><circle cx="84" cy="34" r="6" fill="currentColor"/></svg>
+            </span>
+            <span class="home-category-foot">
+              <span class="home-category-icon" aria-hidden="true">🛢</span>
+              <span class="home-category-text"><strong>Diesel</strong><span>Dízelmotor</span></span>
+            </span>
+          </button>
+          <button type="button" class="home-category-card home-category-card--elektromos" data-category="elektromos">
+            <span class="home-category-visual" aria-hidden="true">
+              <svg class="home-category-car" viewBox="0 0 120 48" fill="none"><path d="M8 32h8l6-12h36l8 12h18l4-8H8v8Z" fill="currentColor" opacity="0.9"/><circle cx="32" cy="34" r="6" fill="currentColor"/><circle cx="84" cy="34" r="6" fill="currentColor"/></svg>
+            </span>
+            <span class="home-category-foot">
+              <span class="home-category-icon" aria-hidden="true">⚡</span>
+              <span class="home-category-text"><strong>Elektromos</strong><span>Zöld hajtás</span></span>
+            </span>
+          </button>
+          <button type="button" class="home-category-card home-category-card--hybrid" data-category="hybrid">
+            <span class="home-category-visual" aria-hidden="true">
+              <svg class="home-category-car" viewBox="0 0 120 48" fill="none"><path d="M8 32h8l6-12h36l8 12h18l4-8H8v8Z" fill="currentColor" opacity="0.9"/><circle cx="32" cy="34" r="6" fill="currentColor"/><circle cx="84" cy="34" r="6" fill="currentColor"/></svg>
+            </span>
+            <span class="home-category-foot">
+              <span class="home-category-icon" aria-hidden="true">🔋</span>
+              <span class="home-category-text"><strong>Hybrid</strong><span>Kombinált</span></span>
+            </span>
+          </button>
+          <button type="button" class="home-category-card home-category-card--leasing" data-category="leasing">
+            <span class="home-category-visual" aria-hidden="true">
+              <svg class="home-category-car" viewBox="0 0 120 48" fill="none"><path d="M8 32h8l6-12h36l8 12h18l4-8H8v8Z" fill="currentColor" opacity="0.9"/><circle cx="32" cy="34" r="6" fill="currentColor"/><circle cx="84" cy="34" r="6" fill="currentColor"/></svg>
+            </span>
+            <span class="home-category-foot">
+              <span class="home-category-icon" aria-hidden="true">📄</span>
+              <span class="home-category-text"><strong>Leasing</strong><span>Havi díj</span></span>
+            </span>
+          </button>
+          <button type="button" class="home-category-card home-category-card--berelheto" data-category="berelheto">
+            <span class="home-category-visual" aria-hidden="true">
+              <svg class="home-category-car" viewBox="0 0 120 48" fill="none"><path d="M8 32h8l6-12h36l8 12h18l4-8H8v8Z" fill="currentColor" opacity="0.9"/><circle cx="32" cy="34" r="6" fill="currentColor"/><circle cx="84" cy="34" r="6" fill="currentColor"/></svg>
+            </span>
+            <span class="home-category-foot">
+              <span class="home-category-icon" aria-hidden="true">🔑</span>
+              <span class="home-category-text"><strong>Bérelhető</strong><span>Rövid táv</span></span>
+            </span>
+          </button>
+          <button type="button" class="home-category-card home-category-card--ot" data-category="ot">
+            <span class="home-category-visual" aria-hidden="true">
+              <svg class="home-category-car" viewBox="0 0 120 48" fill="none"><path d="M8 32h8l6-12h36l8 12h18l4-8H8v8Z" fill="currentColor" opacity="0.9"/><circle cx="32" cy="34" r="6" fill="currentColor"/><circle cx="84" cy="34" r="6" fill="currentColor"/></svg>
+            </span>
+            <span class="home-category-foot">
+              <span class="home-category-icon" aria-hidden="true">🏛</span>
+              <span class="home-category-text"><strong>OT</strong><span>Oldtimer</span></span>
+            </span>
+          </button>
+        </div>
+      </section>
+
       <div class="site-layout home-layout">
         <aside class="site-side site-side--left home-info-sidebar" data-site-side="left" aria-label="Hasznos információ">
           <section class="home-nearby" id="home-nearby" aria-labelledby="home-nearby-title">
@@ -243,6 +320,6 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=home20260725nodealer" type="module"></script>
+    <script src="/js/home-app.js?v=home20260725categories" type="module"></script>
   </body>
 </html>

@@ -323,6 +323,169 @@ body.home-page .local-banner {
   box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.12);
 }
 
+/* —— Kategória sáv (CarGurus-szerű kártyák) —— */
+.home-category-bar {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.home-category-track {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: thin;
+}
+
+.home-category-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid #e3e6ea;
+  border-radius: 16px;
+  background: #f4f6f8;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s, background 0.15s;
+}
+
+.home-category-card:hover {
+  border-color: #c5cad3;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+  transform: translateY(-1px);
+}
+
+.home-category-card.is-active {
+  border-color: #1565c0;
+  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.15);
+}
+
+.home-category-visual {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 72px;
+  padding: 0.65rem 0.5rem 0.35rem;
+  background: linear-gradient(180deg, #eef2f7 0%, #f8fafc 100%);
+}
+
+.home-category-car {
+  width: 88%;
+  max-width: 110px;
+  height: auto;
+  color: #5c6773;
+}
+
+.home-category-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.7rem 0.75rem;
+  background: #fff;
+  border-top: 1px solid #eef0f3;
+}
+
+.home-category-icon {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  background: #eef0f3;
+}
+
+.home-category-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.home-category-text strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.2;
+}
+
+.home-category-text span {
+  font-size: 0.72rem;
+  color: #666;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-category-card.is-active .home-category-visual {
+  background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 100%);
+}
+
+.home-category-card.is-active .home-category-car {
+  color: #1565c0;
+}
+
+.home-category-card.is-active .home-category-icon {
+  background: #1565c0;
+  color: #fff;
+}
+
+.home-category-card.is-active .home-category-text span {
+  color: #1565c0;
+}
+
+.home-category-card--elektromos.is-active .home-category-visual {
+  background: linear-gradient(180deg, #d1fae5 0%, #ecfdf5 100%);
+}
+
+.home-category-card--elektromos.is-active .home-category-car,
+.home-category-card--elektromos.is-active .home-category-text span {
+  color: #047857;
+}
+
+.home-category-card--elektromos.is-active .home-category-icon {
+  background: #059669;
+}
+
+.home-category-card--hybrid.is-active {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+.home-category-card--hybrid.is-active .home-category-icon {
+  background: #7c3aed;
+}
+
+@media (max-width: 1400px) {
+  .home-category-track {
+    grid-template-columns: repeat(8, minmax(128px, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .home-category-track {
+    grid-template-columns: repeat(8, minmax(118px, 140px));
+  }
+}
+
+@media (max-width: 620px) {
+  .home-category-track {
+    grid-template-columns: repeat(8, minmax(108px, 130px));
+  }
+
+  .home-category-visual {
+    min-height: 60px;
+  }
+}
+
 .home-quick-filters {
   display: flex;
   flex-wrap: wrap;

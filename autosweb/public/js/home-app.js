@@ -7,6 +7,7 @@ import {
   initHomeSearchSidebar,
 } from "./home-search-filter.js";
 import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.js";
+import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
 import { filterListingsNearby, initHomeNearby } from "./home-nearby.js";
 
 const gridTrack = document.getElementById("home-grid-track");
@@ -32,10 +33,12 @@ function getVisibleCount() {
 }
 let sidebarFilters = emptyFilters();
 let quickPreset = null;
+let categoryFilter = null;
 let currentPage = 0;
 let pageCount = 0;
 let carouselTimer = null;
 let quickFilterUi = null;
+let categoryUi = null;
 let nearbyUi = null;
 let nearbyFilter = null;
 
@@ -50,6 +53,7 @@ function sortForHome(items) {
 function filterItems(items) {
   let result = filterListingsBySidebar(items, sidebarFilters);
   result = filterByQuickPreset(result, quickPreset);
+  result = filterByCategory(result, categoryFilter);
   if (nearbyFilter) {
     result = filterListingsNearby(result, nearbyFilter.lat, nearbyFilter.lon);
   }
@@ -206,7 +210,25 @@ gridViewport?.addEventListener("mouseleave", startCarousel);
 quickFilterUi = initHomeQuickFilters({
   onChange: (preset) => {
     quickPreset = preset;
-    if (preset) nearbyUi?.clear();
+    if (preset) {
+      nearbyUi?.clear();
+      categoryUi?.clear();
+      categoryFilter = null;
+    }
+    applyFilters();
+  },
+  getForm: () => filterForm,
+});
+
+categoryUi = initHomeCategoryBar({
+  onChange: (category) => {
+    categoryFilter = category;
+    if (category) {
+      quickPreset = null;
+      quickFilterUi?.clear();
+      nearbyUi?.clear();
+      nearbyFilter = null;
+    }
     applyFilters();
   },
   getForm: () => filterForm,
@@ -218,6 +240,8 @@ nearbyUi = initHomeNearby({
     if (active) {
       quickPreset = null;
       quickFilterUi?.clear();
+      categoryUi?.clear();
+      categoryFilter = null;
     }
     applyFilters();
   },
@@ -228,6 +252,8 @@ const readSidebarFilters = initHomeSearchSidebar((filters) => {
   if (hasActiveSidebarFilters(filters)) {
     quickPreset = null;
     quickFilterUi?.clear();
+    categoryUi?.clear();
+    categoryFilter = null;
     nearbyUi?.clear();
     nearbyFilter = null;
   }
