@@ -15,6 +15,8 @@ export const HASZNALTAUTO_FIELD_GROUPS = {
     "tipus",
     "egyeb_tipus",
     "kivitel",
+    "ajtok",
+    "szemelyek",
     "okmany_jelleg",
     "okmany_ervenyesseg",
     "km",
@@ -23,8 +25,6 @@ export const HASZNALTAUTO_FIELD_GROUPS = {
     "tulajdonosok_szama",
   ],
   muszaki: [
-    "ajtok",
-    "szemelyek",
     "hengerurtartalom",
     "teljesitmeny_kw",
     "teljesitmeny_le",

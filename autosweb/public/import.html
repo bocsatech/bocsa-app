@@ -208,6 +208,23 @@
                   </div>
                 </div>
 
+                <div class="field-row full field-row--pair">
+                  <div class="labeled-field">
+                    <label for="ajtok">Ajtók száma:</label>
+                    <select id="ajtok" name="ajtok">
+                      <option value="">—</option>
+                      <option>2</option><option>3</option><option>4</option><option>5</option>
+                    </select>
+                  </div>
+                  <div class="labeled-field">
+                    <label for="szemelyek">Szállítható szem. száma:</label>
+                    <div class="suffix-field">
+                      <input id="szemelyek" name="szemelyek" type="number" min="1" max="9" />
+                      <span>fő</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="field-row full">
                   <div class="labeled-field">
                     <label for="okmany_jelleg">Okmányok jellege: <span class="req">*</span></label>
@@ -257,18 +274,6 @@
           <div class="card">
             <div class="card-body">
               <div class="form-grid">
-                <label for="ajtok">Ajtók száma:</label>
-                <select id="ajtok" name="ajtok">
-                  <option value="">—</option>
-                  <option>2</option><option>3</option><option>4</option><option>5</option>
-                </select>
-
-                <label for="szemelyek">Szállítható szem. száma:</label>
-                <div class="suffix-field">
-                  <input id="szemelyek" name="szemelyek" type="number" min="1" max="9" />
-                  <span>fő</span>
-                </div>
-
                 <label for="hengerurtartalom">Hengerűrtartalom:</label>
                 <div class="suffix-field">
                   <input id="hengerurtartalom" name="hengerurtartalom" type="number" class="auto-filled" />
