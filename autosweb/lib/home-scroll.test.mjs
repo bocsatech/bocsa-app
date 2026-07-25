@@ -13,8 +13,8 @@ test("index.html: nincs külön grid viewport scroll", () => {
   assert.doesNotMatch(html, /home-grid-viewport/);
 });
 
-test("home.css: főoldal egyetlen görgetés", () => {
-  const css = readFileSync(join(PUBLIC, "css", "home.css"), "utf8");
-  assert.doesNotMatch(css, /\.home-grid-viewport\s*\{[^}]*max-height/s);
-  assert.doesNotMatch(css, /\.home-grid-viewport\s*\{[^}]*overflow-y:\s*auto/s);
+test("index.html: inline scroll fix a head-ben", () => {
+  const html = readFileSync(join(PUBLIC, "index.html"), "utf8");
+  assert.ok(html.includes('id="home-scroll-fix"'));
+  assert.ok(html.includes("overflow: visible !important"));
 });

@@ -1376,3 +1376,13 @@ body.home-page .home-info-card {
   overflow: visible;
   overscroll-behavior: auto;
 }
+
+/* !important: felülírja a site-side.css későbbi sticky/overflow szabályait is */
+body.home-page .home-info-sidebar,
+body.home-page .home-filter-sidebar,
+body.home-page .home-filter-card,
+body.home-page .home-filter-form {
+  position: static !important;
+  max-height: none !important;
+  overflow: visible !important;
+}

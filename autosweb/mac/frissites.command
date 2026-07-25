@@ -109,6 +109,18 @@ echo "  4) Cmd+Shift+R (kemény frissítés)"
 echo ""
 echo "Jó verzió = világos háttér, nincs fejléc keresősáv, bal oldalon „Új hirdetések a közeledben”."
 
+if grep -q 'home-scroll-fix' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ Főoldal: egyetlen görgetés (inline scroll fix) OK"
+else
+  echo "  ✗ HIBA: index.html régi — nincs home-scroll-fix (git pull + frissites újra)"
+  exit 1
+fi
+
+if grep -q 'max-height: calc(100vh' "$TARGET/public/css/home.css" 2>/dev/null; then
+  echo "  ✗ HIBA: home.css még tartalmazza a külön oldalsáv scrollt"
+  exit 1
+fi
+
 DESKTOP="$HOME/Desktop/Autosweb-indito.command"
 if [ -f "$SOURCE/mac/Autosweb-indito.command" ]; then
   cp "$SOURCE/mac/Autosweb-indito.command" "$DESKTOP"

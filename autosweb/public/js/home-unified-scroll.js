@@ -1,31 +1,60 @@
-/** Főoldal: oldalsáv felett a görgetés mindig az egész oldalt mozgatja. */
+/** Főoldal: minden görgetés az egész oldalt mozgatja (Safari + régi CSS cache ellen is). */
 
-function isNestedScrollContainer(element) {
-  let node = element;
-  while (node && node !== document.body) {
-    const style = getComputedStyle(node);
-    const overflowY = style.overflowY;
-    if (/(auto|scroll|overlay)/.test(overflowY) && node.scrollHeight > node.clientHeight + 1) {
-      return true;
-    }
-    node = node.parentElement;
+const SIDEBAR_SELECTOR =
+  ".home-info-sidebar, .home-filter-sidebar, .home-filter-card, .home-filter-form, .home-partner-results";
+
+function stripSidebarScrollContainers() {
+  for (const el of document.querySelectorAll(SIDEBAR_SELECTOR)) {
+    el.style.setProperty("overflow", "visible", "important");
+    el.style.setProperty("max-height", "none", "important");
+    el.style.setProperty("height", "auto", "important");
+    el.style.setProperty("position", "static", "important");
   }
-  return false;
 }
 
 export function initHomeUnifiedScroll() {
-  const layout = document.querySelector(".home-layout");
-  if (!layout) return;
+  if (!document.body.classList.contains("home-page")) return;
 
-  layout.addEventListener(
+  stripSidebarScrollContainers();
+
+  // Partner ajánlók betöltése után is (dinamikus tartalom)
+  const observer = new MutationObserver(() => stripSidebarScrollContainers());
+  for (const sidebar of document.querySelectorAll(".home-info-sidebar, .home-filter-sidebar")) {
+    observer.observe(sidebar, { childList: true, subtree: true, attributes: true });
+  }
+
+  document.addEventListener(
     "wheel",
     (event) => {
-      const inSidebar = event.target.closest(".home-info-sidebar, .home-filter-sidebar");
-      if (!inSidebar) return;
-      if (isNestedScrollContainer(event.target)) return;
+      if (event.target.closest(".home-category-track")) return;
 
-      window.scrollBy({ top: event.deltaY, left: 0, behavior: "auto" });
-      event.preventDefault();
+      const inSidebar = event.target.closest(SIDEBAR_SELECTOR);
+      if (inSidebar) {
+        window.scrollBy({ top: event.deltaY, left: 0, behavior: "auto" });
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+
+      let node = event.target;
+      while (node && node !== document.body) {
+        if (node.id === "home-grid-viewport" || node.classList?.contains("home-grid-viewport")) {
+          window.scrollBy({ top: event.deltaY, left: 0, behavior: "auto" });
+          event.preventDefault();
+          return;
+        }
+        const style = getComputedStyle(node);
+        if (
+          /(auto|scroll|overlay)/.test(style.overflowY) &&
+          node.scrollHeight > node.clientHeight + 2 &&
+          node.closest(".home-layout")
+        ) {
+          window.scrollBy({ top: event.deltaY, left: 0, behavior: "auto" });
+          event.preventDefault();
+          return;
+        }
+        node = node.parentElement;
+      }
     },
     { passive: false, capture: true }
   );

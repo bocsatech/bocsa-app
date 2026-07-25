@@ -11,7 +11,34 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260725unifiedscroll" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260726scrollfix" />
+    <style id="home-scroll-fix">
+      /* Inline: cache-biztos — egyetlen oldalgörgetés, nincs oldalsáv scroll */
+      html:has(body.home-page) {
+        overflow-x: hidden !important;
+        overflow-y: scroll !important;
+        height: auto !important;
+      }
+      body.home-page {
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
+      }
+      body.home-page .home-info-sidebar,
+      body.home-page .home-filter-sidebar,
+      body.home-page .home-filter-card,
+      body.home-page .home-filter-form,
+      body.home-page .home-partner-results,
+      body.home-page .home-listings-panel,
+      body.home-page .site-side,
+      body.home-page .site-side-card {
+        position: static !important;
+        top: auto !important;
+        max-height: none !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+    </style>
   </head>
   <body class="home-page site-page site-app" data-site-page="home">
     <div class="local-banner">LOCALHOST — mentett és közzétett hirdetések (legfrissebb elöl)</div>
@@ -433,7 +460,7 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=home20260725unifiedscroll" type="module"></script>
+    <script src="/js/home-app.js?v=home20260726scrollfix" type="module"></script>
     <script src="/js/site-auth.js?v=auth20260725reg" type="module"></script>
   </body>
 </html>
