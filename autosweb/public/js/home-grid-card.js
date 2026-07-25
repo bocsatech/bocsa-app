@@ -25,7 +25,6 @@ export function createHomeGridCard(item) {
   const title = buildCardTitle(preview, item);
   const price = preview.price || "—";
   const km = preview.km || "—";
-  const location = preview.location || "Magyarország";
   const deal = pickDealBadge(preview);
   const status = item.status || "mentett";
   const statusLabel = status === "feladott" ? "Közzétéve" : "Mentett";
@@ -57,16 +56,6 @@ export function createHomeGridCard(item) {
       <h2 class="home-grid-card-title">${escapeHtml(title)}</h2>
       <span class="home-grid-card-status home-grid-card-status--${statusClass}">${escapeHtml(statusLabel)}</span>
       ${deal ? `<span class="home-grid-card-deal home-grid-card-deal--${deal.tone}">${escapeHtml(deal.label)}</span>` : ""}
-      <p class="home-grid-card-dealer">
-        <span class="home-grid-card-dealer-name">Autosweb</span>
-        <span class="home-grid-card-dealer-loc">
-          <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true">
-            <path d="M6 1a4 4 0 0 1 4 4c0 3-4 8-4 8S2 8 2 5a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="1.2"/>
-            <circle cx="6" cy="5" r="1.3" fill="currentColor"/>
-          </svg>
-          ${escapeHtml(location)}
-        </span>
-      </p>
       <div class="home-grid-card-actions">
         <a class="home-grid-card-cta" href="/listings.html?id=${item.id}">Részletek</a>
         <a class="home-grid-card-quick" href="/listings.html?id=${item.id}">Gyors nézet</a>
