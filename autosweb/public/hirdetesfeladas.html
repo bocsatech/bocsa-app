@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/site-app.css?v=fieldheight20260725" />
+    <link rel="stylesheet" href="/css/site-app.css?v=techtop20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
@@ -238,29 +238,31 @@
           <h2 class="import-step-label">Műszaki adatok</h2>
           <div class="card">
             <div class="card-body">
-              <div class="field-row full">
-                <div class="labeled-field">
+              <div class="field-row full field-row--tech-top">
+                <div class="labeled-field labeled-field--fuel">
                   <label for="uzemanyag">Üzemanyag: <span class="req">*</span></label>
                   <select id="uzemanyag" name="uzemanyag" required>
                     <option value="">Válasszon</option>
                   </select>
                 </div>
+                <div class="labeled-field">
+                  <label for="hengerurtartalom">Hengerűrtartalom:</label>
+                  <div class="suffix-field">
+                    <input id="hengerurtartalom" name="hengerurtartalom" type="number" class="auto-filled" />
+                    <span>cm³</span>
+                  </div>
+                </div>
+                <div class="labeled-field">
+                  <label for="teljesitmeny_kw">Teljesítmény:</label>
+                  <div class="suffix-field">
+                    <input id="teljesitmeny_kw" name="teljesitmeny_kw" type="number" class="auto-filled" />
+                    <span>kW</span>
+                    <span id="le-display" class="hint-inline">(= 0 LE)</span>
+                    <input type="hidden" id="teljesitmeny_le" name="teljesitmeny_le" />
+                  </div>
+                </div>
               </div>
               <div class="form-grid">
-                <label for="hengerurtartalom">Hengerűrtartalom:</label>
-                <div class="suffix-field">
-                  <input id="hengerurtartalom" name="hengerurtartalom" type="number" class="auto-filled" />
-                  <span>cm³</span>
-                </div>
-
-                <label for="teljesitmeny_kw">Teljesítmény:</label>
-                <div class="suffix-field">
-                  <input id="teljesitmeny_kw" name="teljesitmeny_kw" type="number" class="auto-filled" />
-                  <span>kW</span>
-                  <span id="le-display" class="hint-inline">(= 0 LE)</span>
-                  <input type="hidden" id="teljesitmeny_le" name="teljesitmeny_le" />
-                </div>
-
                 <label for="kornyezetvedelmi">Környezetvédelmi oszt.: <a href="#" class="help-link">Segítség</a></label>
                 <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" />
 
