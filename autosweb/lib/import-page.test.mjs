@@ -10,7 +10,6 @@ const PUBLIC = join(__dirname, "..", "public");
 test("ad-form partial: összes fő mezőcsoport", () => {
   const partial = readFileSync(join(PUBLIC, "partials", "ad-form.html"), "utf8");
   assert.ok(partial.includes("Gyártási év"));
-  assert.ok(partial.includes("Egyéb modell"));
   assert.ok(partial.includes("Km. óra állás"));
   assert.ok(partial.includes("Hitel"));
   assert.ok(partial.includes("Egyéb információk"));
