@@ -698,27 +698,48 @@ body.site-app .field-row--vehicle-dates {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-body.site-app .field-row--tech-top {
-  display: grid !important;
-  grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) minmax(0, 1.15fr);
+body.site-app .field-row.full.field-row--tech-top {
+  display: flex !important;
+  flex-flow: row nowrap;
+  align-items: end;
   gap: 1rem 1.25rem;
   width: 100%;
   max-width: 100%;
-  align-items: end;
   margin-bottom: 1rem;
 }
 
-body.site-app .field-row--tech-top .labeled-field {
-  width: 100%;
+body.site-app .field-row.full.field-row--tech-top .labeled-field {
+  width: auto;
   min-width: 0;
+  flex: 0 0 auto;
 }
 
-body.site-app .field-row--tech-top .labeled-field--fuel {
+body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel {
+  flex: 0 1 190px;
+  width: 190px;
   max-width: 190px;
 }
 
-body.site-app .field-row--tech-top .suffix-field .hint-inline {
-  font-size: 0.75rem;
+body.site-app .field-row.full.field-row--tech-top .labeled-field--henger {
+  flex: 0 0 auto;
+  width: 128px;
+  max-width: 128px;
+}
+
+body.site-app .field-row.full.field-row--tech-top .labeled-field--power {
+  flex: 0 0 auto;
+  width: 196px;
+  max-width: 196px;
+}
+
+body.site-app .field-row.full.field-row--tech-top .labeled-field > select,
+body.site-app .field-row.full.field-row--tech-top .labeled-field > .suffix-field {
+  width: 100%;
+  max-width: 100%;
+}
+
+body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
+  font-size: 0.72rem;
   color: #666;
   white-space: nowrap;
 }
@@ -984,11 +1005,15 @@ body.site-app .package.selected {
     grid-template-columns: 1fr;
   }
 
-  body.site-app .field-row--tech-top {
-    grid-template-columns: 1fr;
+  body.site-app .field-row.full.field-row--tech-top {
+    flex-wrap: wrap;
   }
 
-  body.site-app .field-row--tech-top .labeled-field--fuel {
+  body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel,
+  body.site-app .field-row.full.field-row--tech-top .labeled-field--henger,
+  body.site-app .field-row.full.field-row--tech-top .labeled-field--power {
+    flex: 1 1 140px;
+    width: auto;
     max-width: none;
   }
 
