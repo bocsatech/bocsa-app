@@ -9,8 +9,6 @@ import {
 import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.js";
 import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
 import { filterListingsNearby, initHomeNearby } from "./home-nearby.js";
-import { createHomeAdStrip } from "./home-ad-slots.js";
-
 const gridViewport = document.getElementById("home-grid-viewport");
 const gridTrack = document.getElementById("home-grid-track");
 const emptyEl = document.getElementById("home-empty");
@@ -19,7 +17,6 @@ const filterForm = document.getElementById("home-filter-form");
 const LISTINGS_FETCH_LIMIT = 500;
 const AUTO_SCROLL_SPEED = 0.55;
 const AUTO_SCROLL_BOTTOM_PAUSE_MS = 2500;
-const GRID_CARDS_PER_ROW = 4;
 
 let autoScrollRaf = null;
 let autoScrollPaused = false;
@@ -110,15 +107,8 @@ function renderListings(items) {
       "Még nincs hirdetés. Importálj, mentsd az adatbázisba (Import oldal), majd frissítsd a főoldalt — a legfrissebb mentések itt jelennek meg.";
   }
 
-  for (let index = 0; index < filtered.length; index += 1) {
-    gridTrack.appendChild(createHomeGridCard(filtered[index]));
-
-    const rowNumber = Math.floor((index + 1) / GRID_CARDS_PER_ROW);
-    if ((index + 1) % GRID_CARDS_PER_ROW === 0 && rowNumber > 0) {
-      gridTrack.appendChild(
-        createHomeAdStrip(`grid-row-${rowNumber}-left`, `grid-row-${rowNumber}-right`, { inline: true })
-      );
-    }
+  for (const item of filtered) {
+    gridTrack.appendChild(createHomeGridCard(item));
   }
 
   if (filtered.length) {

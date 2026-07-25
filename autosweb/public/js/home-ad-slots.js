@@ -1,4 +1,4 @@
-/** Főoldali banner hirdetési cellák (fejléc alatt + grid sorok között). */
+/** Főoldali banner hirdetési cellák (fejléc alatt, lista alatt). */
 
 export function createHomeAdSlot(slotId) {
   const article = document.createElement("article");
@@ -18,9 +18,9 @@ export function createHomeAdSlot(slotId) {
   return article;
 }
 
-export function createHomeAdStrip(leftSlotId, rightSlotId, { inline = false } = {}) {
+export function createHomeAdStrip(leftSlotId, rightSlotId, { bottom = false } = {}) {
   const strip = document.createElement("section");
-  strip.className = inline ? "home-ad-strip home-ad-strip--inline" : "home-ad-strip";
+  strip.className = bottom ? "home-ad-strip home-ad-strip--bottom" : "home-ad-strip";
   strip.setAttribute("aria-label", "Banner hirdetések");
 
   const inner = document.createElement("div");
