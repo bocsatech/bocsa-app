@@ -18,9 +18,10 @@ function pickDealBadge(preview) {
 
 export function createHomeGridCard(item) {
   const preview = item.preview ?? {};
-  const card = document.createElement("article");
+  const card = document.createElement("a");
   card.className = "home-grid-card";
-  card.dataset.listingId = String(item.id);
+  card.href = `/listings.html?id=${item.id}`;
+  card.setAttribute("role", "listitem");
 
   const title = buildCardTitle(preview, item);
   const price = preview.price || "—";
@@ -33,11 +34,11 @@ export function createHomeGridCard(item) {
   card.innerHTML = `
     <div class="home-grid-card-media">
       <div class="home-grid-card-photo" aria-hidden="true"></div>
-      <button type="button" class="home-grid-card-save" aria-label="Mentés" disabled>
+      <span class="home-grid-card-save" aria-hidden="true">
         <svg width="18" height="16" viewBox="0 0 18 16" fill="none" aria-hidden="true">
           <path d="M9 14.5 1.8 8.2a4.2 4.2 0 0 1 0-5.9 4 4 0 0 1 5.7 0L9 3.3l1.5-1.5a4 4 0 0 1 5.7 5.9L9 14.5Z" stroke="currentColor" stroke-width="1.4"/>
         </svg>
-      </button>
+      </span>
       <div class="home-grid-card-dots" aria-hidden="true">
         <span class="is-active"></span><span></span><span></span><span></span>
       </div>
@@ -56,10 +57,6 @@ export function createHomeGridCard(item) {
       <h2 class="home-grid-card-title">${escapeHtml(title)}</h2>
       <span class="home-grid-card-status home-grid-card-status--${statusClass}">${escapeHtml(statusLabel)}</span>
       ${deal ? `<span class="home-grid-card-deal home-grid-card-deal--${deal.tone}">${escapeHtml(deal.label)}</span>` : ""}
-      <div class="home-grid-card-actions">
-        <a class="home-grid-card-cta" href="/listings.html?id=${item.id}">Részletek</a>
-        <a class="home-grid-card-quick" href="/listings.html?id=${item.id}">Gyors nézet</a>
-      </div>
     </div>
   `;
 
