@@ -381,6 +381,24 @@ body.home-page .local-banner {
   color: #5c6773;
 }
 
+.home-category-card--has-photo .home-category-visual {
+  align-items: center;
+  justify-content: center;
+  min-height: 84px;
+  padding: 0.35rem 0.4rem 0.15rem;
+  overflow: hidden;
+}
+
+.home-category-photo {
+  display: block;
+  width: 100%;
+  max-width: 148px;
+  height: auto;
+  max-height: 72px;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
 .home-category-foot {
   display: flex;
   align-items: center;

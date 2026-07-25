@@ -42,4 +42,5 @@ test("index.html: kategória sáv 8 gombbal", () => {
   for (const id of HOME_CATEGORY_IDS) {
     assert.ok(html.includes(`data-category="${id}"`), `hiányzik: ${id}`);
   }
+  assert.ok(html.includes("/images/categories/elektromos.jpg"));
 });
