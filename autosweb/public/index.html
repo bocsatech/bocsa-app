@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="home20260725vscroll" />
+    <meta name="autosweb-version" content="home20260725vautoscroll" />
     <title>Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260725vscroll" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260725vautoscroll" />
     <link rel="stylesheet" href="/css/site-app.css?v=home20260725fullwidth" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
@@ -206,7 +206,9 @@
             <button type="button" class="home-quick-pill" data-quick-preset="firstCar">Első autó</button>
           </div>
           <div class="home-listings-panel">
-            <div id="home-grid-track" class="home-grid-track" role="list"></div>
+            <div id="home-grid-viewport" class="home-grid-viewport">
+              <div id="home-grid-track" class="home-grid-track" role="list"></div>
+            </div>
             <p id="home-empty" class="home-empty" hidden>
               Még nincs hirdetés. Importálj, mentsd az adatbázisba (Import oldal), majd frissítsd a főoldalt — a legfrissebb mentések itt jelennek meg.
             </p>
@@ -317,6 +319,6 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=home20260725vscroll" type="module"></script>
+    <script src="/js/home-app.js?v=home20260725vautoscroll" type="module"></script>
   </body>
 </html>
