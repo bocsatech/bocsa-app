@@ -44,4 +44,5 @@ test("index.html: kategória sáv 8 gombbal", () => {
   }
   assert.ok(html.includes("/images/categories/elektromos.jpg"));
   assert.ok(html.includes("/images/categories/benzin.jpg"));
+  assert.ok(html.includes("/images/categories/ot.jpg"));
 });
