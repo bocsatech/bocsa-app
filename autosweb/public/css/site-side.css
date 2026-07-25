@@ -30,6 +30,9 @@ body.site-page .page-automax.site-page-main {
   border-radius: 12px;
   padding: 0.85rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+body:not(.home-page) .site-side-card {
   position: sticky;
   top: 1rem;
 }
