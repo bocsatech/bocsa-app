@@ -210,6 +210,16 @@ body.site-app .login-hint {
   color: #888;
 }
 
+body.site-app .login-hint a {
+  color: #1565c0;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+body.site-app .login-hint a:hover {
+  text-decoration: underline;
+}
+
 body.site-app .home-nav-link,
 body.site-app .site-app-nav-link,
 body.site-app .import-nav-link {

@@ -14,7 +14,15 @@ test("index.html: fejléc jobb oldali gombok", () => {
   assert.ok(html.includes('data-auth-login'));
   assert.ok(html.includes(">Hirdetésfeladás</a>"));
   assert.ok(html.includes(">Belépés</a>"));
+  assert.ok(html.includes('data-auth-register'));
+  assert.ok(html.includes("/regisztracio.html"));
   assert.doesNotMatch(html, /home-nav-link[^>]*>Hirdetésfeladás/);
+});
+
+test("regisztracio.html: regisztrációs űrlap", () => {
+  const html = readFileSync(join(PUBLIC, "regisztracio.html"), "utf8");
+  assert.ok(html.includes('id="register-form"'));
+  assert.ok(html.includes('name="password_confirm"'));
 });
 
 test("belepes.html: belépő űrlap", () => {

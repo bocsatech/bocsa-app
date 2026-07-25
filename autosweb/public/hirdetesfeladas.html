@@ -27,6 +27,7 @@
         </nav>
         <div class="header-actions site-header-actions">
           <a class="site-header-btn site-header-btn--primary" href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás</a>
+          <a class="site-header-btn site-header-btn--ghost" href="/regisztracio.html" data-auth-register>Regisztráció</a>
           <a class="site-header-btn site-header-btn--ghost" href="/belepes.html" data-auth-login>Belépés</a>
         </div>
       </div>
@@ -756,7 +757,7 @@
     </footer>
 
     <script type="module">
-      import { requireAuthForPage, initSiteAuth } from "/js/site-auth.js?v=auth20260725";
+      import { requireAuthForPage, initSiteAuth } from "/js/site-auth.js?v=auth20260725reg";
       requireAuthForPage();
       initSiteAuth();
     </script>
