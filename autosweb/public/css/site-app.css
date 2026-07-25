@@ -76,6 +76,140 @@ body.site-app .header-actions {
   transform: none;
 }
 
+body.site-app .site-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+body.site-app .site-header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+body.site-app .site-header-btn--primary {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+body.site-app .site-header-btn--primary:hover {
+  background: #333;
+  border-color: #333;
+  color: #fff;
+}
+
+body.site-app .site-header-btn--ghost {
+  background: #fff;
+  color: #111;
+  border-color: #d5d9e0;
+}
+
+body.site-app .site-header-btn--ghost:hover {
+  border-color: #111;
+  color: #111;
+}
+
+body.site-app .site-header-btn--outline {
+  background: #fff;
+  color: #444;
+  border-color: #d5d9e0;
+}
+
+body.site-app .site-header-btn--outline:hover {
+  border-color: #111;
+  color: #111;
+}
+
+body.site-app .login-main {
+  max-width: 420px;
+  margin: 2rem auto;
+  padding: 0 1.25rem 2rem;
+}
+
+body.site-app .login-card {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 16px;
+  padding: 1.35rem 1.25rem 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+body.site-app .login-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111;
+}
+
+body.site-app .login-lead {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+body.site-app .login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+body.site-app .login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+body.site-app .login-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #444;
+}
+
+body.site-app .login-field input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.92rem;
+  border: 1px solid #d5d9e0;
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  background: #fff;
+  color: #111;
+  box-sizing: border-box;
+}
+
+body.site-app .login-error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #c62828;
+}
+
+body.site-app .login-submit {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+body.site-app .login-hint {
+  margin: 0.85rem 0 0;
+  font-size: 0.78rem;
+  color: #888;
+}
+
 body.site-app .home-nav-link,
 body.site-app .site-app-nav-link,
 body.site-app .import-nav-link {
@@ -548,5 +682,10 @@ body.site-app .package.selected {
   body.site-app .home-nav,
   body.site-app .import-nav {
     justify-self: start;
+  }
+
+  body.site-app .site-header-actions {
+    justify-self: stretch;
+    width: 100%;
   }
 }

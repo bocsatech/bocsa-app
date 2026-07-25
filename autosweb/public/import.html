@@ -21,12 +21,13 @@
         <nav class="import-nav site-app-nav" aria-label="Oldalak">
           <a class="import-nav-link" href="/">Főoldal</a>
           <a class="import-nav-link active" href="/import.html">Import</a>
-          <a class="import-nav-link" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
           <a class="import-nav-link" href="/listings.html">Hirdetések</a>
           <a class="import-nav-link" href="/fugveny.html">Függvény</a>
         </nav>
-        <div class="header-actions">
+        <div class="header-actions site-header-actions">
           <span class="import-db-badge" id="import-db-badge" hidden></span>
+          <a class="site-header-btn site-header-btn--primary" href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás</a>
+          <a class="site-header-btn site-header-btn--ghost" href="/belepes.html" data-auth-login>Belépés</a>
         </div>
       </div>
     </header>
@@ -699,5 +700,6 @@
     </main>
 
     <script src="/js/import-app.js?v=automax20260720homelist" type="module"></script>
+    <script src="/js/site-auth.js?v=auth20260725" type="module"></script>
   </body>
 </html>

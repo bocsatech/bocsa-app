@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/css/site-app.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
-  <body class="site-app site-page" data-site-page="hirdetesfeladas">
+  <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
     <div class="local-banner" id="local-banner">LOCALHOST — hirdetésfeladás varázsló</div>
 
     <header class="site-header site-app-header">
@@ -22,11 +22,13 @@
         <nav class="import-nav site-app-nav" aria-label="Oldalak">
           <a class="import-nav-link" href="/">Főoldal</a>
           <a class="import-nav-link" href="/import.html">Import</a>
-          <a class="import-nav-link active" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
           <a class="import-nav-link" href="/listings.html">Hirdetések</a>
           <a class="import-nav-link" href="/fugveny.html">Függvény</a>
         </nav>
-        <div class="site-app-header-spacer" aria-hidden="true"></div>
+        <div class="header-actions site-header-actions">
+          <a class="site-header-btn site-header-btn--primary" href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás</a>
+          <a class="site-header-btn site-header-btn--ghost" href="/belepes.html" data-auth-login>Belépés</a>
+        </div>
       </div>
     </header>
 
@@ -753,6 +755,11 @@
       </div>
     </footer>
 
+    <script type="module">
+      import { requireAuthForPage, initSiteAuth } from "/js/site-auth.js?v=auth20260725";
+      requireAuthForPage();
+      initSiteAuth();
+    </script>
     <script src="/js/app.js?v=automax20260720homelist" type="module"></script>
   </body>
 </html>

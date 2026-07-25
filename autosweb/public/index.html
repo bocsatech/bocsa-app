@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="home20260725cathybrid" />
+    <meta name="autosweb-version" content="auth20260725" />
     <title>Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/home.css?v=home20260725catev" />
-    <link rel="stylesheet" href="/css/site-app.css?v=home20260725fullwidth" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="home-page site-page site-app" data-site-page="home">
@@ -23,11 +23,13 @@
         <nav class="home-nav" aria-label="Oldalak">
           <a class="home-nav-link active" href="/">Főoldal</a>
           <a class="home-nav-link" href="/import.html">Import</a>
-          <a class="home-nav-link" href="/hirdetesfeladas.html">Hirdetésfeladás</a>
           <a class="home-nav-link" href="/listings.html">Hirdetések</a>
           <a class="home-nav-link" href="/fugveny.html">Függvény</a>
         </nav>
-        <div class="home-header-spacer" aria-hidden="true"></div>
+        <div class="header-actions site-header-actions">
+          <a class="site-header-btn site-header-btn--primary" href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás</a>
+          <a class="site-header-btn site-header-btn--ghost" href="/belepes.html" data-auth-login>Belépés</a>
+        </div>
       </div>
     </header>
 
@@ -360,5 +362,6 @@
     </footer>
 
     <script src="/js/home-app.js?v=home20260725vautoscroll" type="module"></script>
+    <script src="/js/site-auth.js?v=auth20260725" type="module"></script>
   </body>
 </html>
