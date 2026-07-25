@@ -9,18 +9,13 @@ import {
 import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.js";
 import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
 import { filterListingsNearby, initHomeNearby } from "./home-nearby.js";
-const gridViewport = document.getElementById("home-grid-viewport");
+import { initHomeUnifiedScroll } from "./home-unified-scroll.js";
+
 const gridTrack = document.getElementById("home-grid-track");
 const emptyEl = document.getElementById("home-empty");
 const filterForm = document.getElementById("home-filter-form");
 
 const LISTINGS_FETCH_LIMIT = 500;
-const AUTO_SCROLL_SPEED = 0.55;
-const AUTO_SCROLL_BOTTOM_PAUSE_MS = 2500;
-
-let autoScrollRaf = null;
-let autoScrollPaused = false;
-let autoScrollBottomUntil = 0;
 
 let allItems = [];
 let sidebarFilters = emptyFilters();
@@ -49,49 +44,9 @@ function filterItems(items) {
   return result;
 }
 
-function stopAutoScroll() {
-  if (autoScrollRaf) {
-    cancelAnimationFrame(autoScrollRaf);
-    autoScrollRaf = null;
-  }
-}
-
-function autoScrollTick() {
-  if (!gridViewport || autoScrollPaused) {
-    autoScrollRaf = requestAnimationFrame(autoScrollTick);
-    return;
-  }
-
-  const maxScroll = gridViewport.scrollHeight - gridViewport.clientHeight;
-  if (maxScroll <= 4) {
-    autoScrollRaf = requestAnimationFrame(autoScrollTick);
-    return;
-  }
-
-  if (Date.now() < autoScrollBottomUntil) {
-    autoScrollRaf = requestAnimationFrame(autoScrollTick);
-    return;
-  }
-
-  if (gridViewport.scrollTop >= maxScroll - 2) {
-    autoScrollBottomUntil = Date.now() + AUTO_SCROLL_BOTTOM_PAUSE_MS;
-    gridViewport.scrollTop = 0;
-  } else {
-    gridViewport.scrollTop += AUTO_SCROLL_SPEED;
-  }
-
-  autoScrollRaf = requestAnimationFrame(autoScrollTick);
-}
-
-function startAutoScroll() {
-  stopAutoScroll();
-  /* Teljes oldal görgetés: nincs külön lista-viewport auto-scroll. */
-}
-
 function renderListings(items) {
   if (!gridTrack) return;
 
-  stopAutoScroll();
   gridTrack.innerHTML = "";
 
   const filtered = filterItems(items);
@@ -107,10 +62,6 @@ function renderListings(items) {
 
   for (const item of filtered) {
     gridTrack.appendChild(createHomeGridCard(item));
-  }
-
-  if (filtered.length) {
-    requestAnimationFrame(() => startAutoScroll());
   }
 }
 
@@ -168,6 +119,8 @@ function hasActiveSidebarFilters(filters) {
   );
 }
 
+initHomeUnifiedScroll();
+
 quickFilterUi = initHomeQuickFilters({
   onChange: (preset) => {
     quickPreset = preset;
@@ -222,20 +175,6 @@ const readSidebarFilters = initHomeSearchSidebar((filters) => {
 });
 sidebarFilters = readSidebarFilters?.() ?? emptyFilters();
 
-gridViewport?.addEventListener("mouseenter", () => {
-  autoScrollPaused = true;
-});
-
-gridViewport?.addEventListener("mouseleave", () => {
-  autoScrollPaused = false;
-});
-
-gridViewport?.addEventListener("wheel", () => {
-  autoScrollBottomUntil = Date.now() + AUTO_SCROLL_BOTTOM_PAUSE_MS;
-}, { passive: true });
-
-// auto-scroll kikapcsolva teljes oldalas görgetésnél
-
 import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())
   .catch((error) => console.error("Oldalsáv betöltés:", error));
@@ -256,8 +195,5 @@ window.addEventListener("pageshow", (event) => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     loadListings().catch(() => {});
-    startAutoScroll();
-  } else {
-    stopAutoScroll();
   }
 });

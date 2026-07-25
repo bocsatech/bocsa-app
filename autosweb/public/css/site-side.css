@@ -188,6 +188,21 @@ body.site-page {
   padding-bottom: 5rem;
 }
 
+body.home-page.site-page {
+  overflow: visible;
+}
+
+body.home-page .site-side,
+body.home-page .home-info-sidebar,
+body.home-page .home-filter-sidebar,
+body.home-page .home-filter-card,
+body.home-page .site-side-card {
+  position: static;
+  top: auto;
+  max-height: none;
+  overflow: visible;
+}
+
 .site-side-toolbar {
   display: flex;
   gap: 0.5rem;

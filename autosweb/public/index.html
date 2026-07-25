@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
-    <link rel="stylesheet" href="/css/site-side.css?v=home20260725scrollfix" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260725scrollfix" />
+    <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260725unifiedscroll" />
   </head>
   <body class="home-page site-page site-app" data-site-page="home">
     <div class="local-banner">LOCALHOST — mentett és közzétett hirdetések (legfrissebb elöl)</div>
@@ -299,9 +299,7 @@
             <button type="button" class="home-quick-pill" data-quick-preset="firstCar">Első autó</button>
           </div>
           <div class="home-listings-panel">
-            <div id="home-grid-viewport" class="home-grid-viewport">
-              <div id="home-grid-track" class="home-grid-track" role="list"></div>
-            </div>
+            <div id="home-grid-track" class="home-grid-track" role="list"></div>
             <p id="home-empty" class="home-empty" hidden>
               Még nincs hirdetés. Importálj, mentsd az adatbázisba (Import oldal), majd frissítsd a főoldalt — a legfrissebb mentések itt jelennek meg.
             </p>
@@ -435,7 +433,7 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=home20260725scrollfix" type="module"></script>
+    <script src="/js/home-app.js?v=home20260725unifiedscroll" type="module"></script>
     <script src="/js/site-auth.js?v=auth20260725reg" type="module"></script>
   </body>
 </html>
