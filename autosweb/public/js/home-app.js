@@ -17,9 +17,19 @@ const filterForm = document.getElementById("home-filter-form");
 
 const LISTINGS_FETCH_LIMIT = 500;
 const AUTO_SCROLL_MS = 5000;
-const GRID_ROWS = 3;
+const GRID_ROWS = 2;
+const GRID_COLS_DESKTOP = 4;
 
-let allItems = [];
+function getGridCols() {
+  const w = window.innerWidth;
+  if (w <= 620) return 1;
+  if (w <= 980) return 2;
+  return GRID_COLS_DESKTOP;
+}
+
+function getVisibleCount() {
+  return GRID_ROWS * getGridCols();
+}
 let sidebarFilters = emptyFilters();
 let quickPreset = null;
 let currentPage = 0;
@@ -46,13 +56,6 @@ function filterItems(items) {
   return result;
 }
 
-function getVisibleCount() {
-  const w = window.innerWidth;
-  if (w >= 1900) return GRID_ROWS * 5;
-  if (w >= 1500) return GRID_ROWS * 4;
-  return GRID_ROWS * 3;
-}
-
 function chunkItems(items, size) {
   const pages = [];
   for (let i = 0; i < items.length; i += size) {
@@ -60,6 +63,8 @@ function chunkItems(items, size) {
   }
   return pages.length ? pages : [[]];
 }
+
+let allItems = [];
 
 function stopCarousel() {
   if (carouselTimer) {
