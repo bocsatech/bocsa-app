@@ -219,7 +219,7 @@ body.theme-automax .local-banner {
 /* —— Jobb panel —— */
 .automax-panel {
   position: relative;
-  background: #000 url("/images/automax-panel-bg.png") center center / cover no-repeat;
+  background: #000;
   overflow: hidden;
   border-left: 1px solid #1a1a1a;
 }
