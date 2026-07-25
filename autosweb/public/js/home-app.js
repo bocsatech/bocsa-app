@@ -85,9 +85,7 @@ function autoScrollTick() {
 
 function startAutoScroll() {
   stopAutoScroll();
-  autoScrollBottomUntil = 0;
-  if (gridViewport) gridViewport.scrollTop = 0;
-  autoScrollRaf = requestAnimationFrame(autoScrollTick);
+  /* Teljes oldal görgetés: nincs külön lista-viewport auto-scroll. */
 }
 
 function renderListings(items) {
@@ -235,6 +233,8 @@ gridViewport?.addEventListener("mouseleave", () => {
 gridViewport?.addEventListener("wheel", () => {
   autoScrollBottomUntil = Date.now() + AUTO_SCROLL_BOTTOM_PAUSE_MS;
 }, { passive: true });
+
+// auto-scroll kikapcsolva teljes oldalas görgetésnél
 
 import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())
