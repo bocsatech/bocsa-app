@@ -2,6 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { buildListingPreview, buildPreviewFromCells } from "./listing-preview.mjs";
 
+test("formatListingDisplayTitle eltávolítja az Eladó prefixet", async () => {
+  const { formatListingDisplayTitle } = await import("./listing-preview.mjs");
+  assert.equal(
+    formatListingDisplayTitle("Eladó MERCEDES-BENZ C 220 d 4Matic"),
+    "MERCEDES-BENZ C 220 d 4Matic"
+  );
+  assert.equal(formatListingDisplayTitle("Hirdetés #18"), "Hirdetés #18");
+});
+
 test("buildListingPreview összeállítja a hasznaltauto stílusú mezőket", () => {
   const preview = buildListingPreview(
     {
@@ -24,6 +33,10 @@ test("buildListingPreview összeállítja a hasznaltauto stílusú mezőket", ()
   );
 
   assert.equal(preview.title, "Mercedes-Benz C 220 d 4Matic");
+  assert.equal(
+    buildListingPreview({ hirdetes_cime: "Eladó BMW X5" }).title,
+    "BMW X5"
+  );
   assert.equal(preview.price.replace(/\u00a0/g, " "), "17 799 000 Ft");
   assert.match(preview.specLine, /Dízel/);
   assert.match(preview.specLine, /2019\/3/);

@@ -11,6 +11,14 @@ export function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
+/** Megjelenítéshez: „Eladó …” prefix nélkül */
+export function formatListingDisplayTitle(value) {
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^eladó\s+/i, "");
+}
+
 function formatSpecLine(preview) {
   const spec = preview.specLine ?? "";
   const km = preview.km ?? "";
@@ -48,10 +56,9 @@ export function createListingCard(item, { selected = false, formatDate = (v) => 
   if (selected) card.classList.add("ha-card--selected");
   card.dataset.listingId = String(item.id);
 
-  const title =
-    preview.title ||
-    item.hirdetes_cime ||
-    `Hirdetés #${item.id}`;
+  const title = formatListingDisplayTitle(
+    preview.title || item.hirdetes_cime || `Hirdetés #${item.id}`
+  ) || `Hirdetés #${item.id}`;
   const price = preview.price || "—";
   const code = preview.hirdeteskod;
   const location = preview.location;

@@ -1,6 +1,6 @@
 import { fetchListings, fetchListing, deleteListingFromDb, fetchDbStats, saveListingToDb } from "./db-client.js";
 import { renderListingCells } from "./cells-view.js";
-import { createListingCard } from "./listing-card.js";
+import { createListingCard, formatListingDisplayTitle } from "./listing-card.js";
 
 const listEl = document.getElementById("listings-list");
 const detailEl = document.getElementById("listings-detail");
@@ -88,7 +88,8 @@ async function selectListing(id) {
 
   currentListing = listing;
 
-  detailTitle.textContent = listing.hirdetes_cime || `Hirdetés #${listing.id}`;
+  detailTitle.textContent =
+    formatListingDisplayTitle(listing.hirdetes_cime) || `Hirdetés #${listing.id}`;
   const parts = [
     STATUS_LABELS[listing.status] || listing.status,
     `Frissítve: ${formatDate(listing.updated_at)}`,

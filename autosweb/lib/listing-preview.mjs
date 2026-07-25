@@ -30,6 +30,11 @@ function cleanText(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
 }
 
+/** Megjelenítéshez: „Eladó MERCEDES…” → „MERCEDES…” */
+export function formatListingDisplayTitle(value) {
+  return cleanText(value).replace(/^eladó\s+/i, "");
+}
+
 function formatPriceFt(value) {
   const digits = String(value ?? "").replace(/\D/g, "");
   if (!digits) return "";
@@ -97,8 +102,8 @@ export function buildListingPreview(form, meta = {}) {
 
   const location = [data.telepules, data.megye].filter(Boolean).join(", ");
   const title =
-    cleanText(data.hirdetes_cime) ||
-    cleanText(meta.hirdetes_cime) ||
+    formatListingDisplayTitle(data.hirdetes_cime) ||
+    formatListingDisplayTitle(meta.hirdetes_cime) ||
     cleanText([data.gyartmany, data.modell, data.tipus].filter(Boolean).join(" ")) ||
     `Hirdetés #${meta.id ?? "?"}`;
 

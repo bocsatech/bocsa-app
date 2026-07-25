@@ -1,11 +1,11 @@
-import { escapeHtml } from "./listing-card.js";
+import { escapeHtml, formatListingDisplayTitle } from "./listing-card.js";
 
 function buildCardTitle(preview, item) {
   const raw =
     preview.title ||
     item.hirdetes_cime ||
     `Hirdetés #${item.id}`;
-  return raw;
+  return formatListingDisplayTitle(raw) || raw;
 }
 
 function pickDealBadge(preview) {
