@@ -203,9 +203,6 @@ body.home-page .local-banner {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  max-height: 42vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
 }
 
 .home-partner-category {
@@ -408,11 +405,7 @@ body.home-page .local-banner {
 }
 
 .home-info-sidebar {
-  position: sticky;
-  top: 1rem;
   align-self: start;
-  max-height: calc(100vh - 2rem);
-  overflow: auto;
 }
 
 .home-info-sidebar .site-side-card {
@@ -811,8 +804,6 @@ body.home-page .local-banner {
 }
 
 .home-filter-sidebar {
-  position: sticky;
-  top: 1rem;
   align-self: start;
 }
 
@@ -822,8 +813,6 @@ body.home-page .local-banner {
   border-radius: 12px;
   padding: 0.85rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  max-height: calc(100vh - 2rem);
-  overflow: auto;
 }
 
 .home-filter-title {
