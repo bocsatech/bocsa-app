@@ -22,10 +22,16 @@ function inferFuel(text) {
   const v = String(text ?? "").toLowerCase();
   if (!v) return "";
   if (/phev|plug-in|plugin|hibrid.*benzin|benzin.*hibrid/.test(v)) return "Benzin/elektromos";
-  if (/hibrid.*diesel|diesel.*hibrid/.test(v)) return "Diesel/elektromos";
+  if (/hibrid.*diesel|diesel.*hibrid|hibrid.*dízel|dízel.*hibrid/.test(v)) return "Dízel/elektromos";
   if (/elektromos| e-tron|\be\d{2,3}\b/.test(v)) return "Elektromos";
-  if (/\b\d{2,3}\s*d\b|diesel|tdi|cdi|cdti|multijet|220 d|250 d|350 d/.test(v)) return "Diesel";
+  if (/\b\d{2,3}\s*d\b|diesel|dízel|tdi|cdi|cdti|multijet|220 d|250 d|350 d/.test(v)) return "Dízel";
+  if (/lpg.*dízel|lpg.*diesel|dízel.*lpg|diesel.*lpg/.test(v)) return "LPG/dízel";
+  if (/cng.*dízel|cng.*diesel|dízel.*cng|diesel.*cng/.test(v)) return "CNG/dízel";
   if (/lpg|gáz/.test(v)) return "LPG/benzin";
+  if (/cng/.test(v)) return "CNG/benzin";
+  if (/etanol/.test(v)) return "Etanol";
+  if (/biodízel|biodizel/.test(v)) return "Biodízel";
+  if (/hidrogén|hidrogen/.test(v)) return "Hidrogén/elektromos";
   if (/hibrid/.test(v)) return "Benzin/elektromos";
   if (/benzin|tsi|tfsi|mpi|ecoboost/.test(v)) return "Benzin";
   return "";

@@ -1,23 +1,34 @@
 export const UZEMANYAG_CATEGORIES = [
   { id: "benzin", label: "Benzin", value: "Benzin" },
-  { id: "diesel", label: "Diesel", value: "Diesel" },
+  { id: "dizel", label: "Dízel", value: "Dízel" },
   {
-    id: "hybrid",
-    label: "Hybrid",
+    id: "hibrid",
+    label: "Hibrid",
     children: [
-      { label: "Benzin", value: "Benzin/elektromos" },
-      { label: "Diesel", value: "Diesel/elektromos" },
+      { label: "Benzin/elektromos", value: "Benzin/elektromos" },
+      { label: "Dízel/elektromos", value: "Dízel/elektromos" },
     ],
   },
   {
     id: "benzin-gaz",
     label: "Benzin/Gáz",
     children: [
-      { label: "LPG", value: "LPG/benzin" },
-      { label: "CNG", value: "CNG/benzin" },
+      { label: "LPG/benzin", value: "LPG/benzin" },
+      { label: "CNG/benzin", value: "CNG/benzin" },
+    ],
+  },
+  {
+    id: "dizel-gaz",
+    label: "Dízel/Gáz",
+    children: [
+      { label: "LPG/dízel", value: "LPG/dízel" },
+      { label: "CNG/dízel", value: "CNG/dízel" },
     ],
   },
   { id: "elektromos", label: "Elektromos", value: "Elektromos" },
+  { id: "etanol", label: "Etanol", value: "Etanol" },
+  { id: "biodizel", label: "Biodízel", value: "Biodízel" },
+  { id: "hidrogen", label: "Hidrogén/elektromos", value: "Hidrogén/elektromos" },
 ];
 
 export const EQUIPMENT_SECTIONS = {

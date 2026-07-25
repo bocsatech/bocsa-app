@@ -106,14 +106,14 @@ test("parseBodyTextAttributes: új layout — címke sor + érték sor", () => {
   assert.equal(map["Sebességváltó"], "Automata (9 f.)");
 });
 
-test("inferFuelFromHints: 220 d → Diesel", async () => {
+test("inferFuelFromHints: 220 d → Dízel", async () => {
   const { mapListingToFormWithSummary } = await import("./map-to-form.mjs");
   const { form } = mapListingToFormWithSummary({
     url: "https://www.hasznaltauto.hu/szemelyauto/mercedes-benz/glc/test-12345678",
     cim: "Eladó MERCEDES-BENZ GLC 220 d 4Matic 9G-TRONIC",
     nyersAdatok: {},
   });
-  assert.equal(form.uzemanyag, "Diesel");
+  assert.equal(form.uzemanyag, "Dízel");
   assert.equal(form.kivitel, "SUV / Crossover");
   assert.equal(form.allapot, "Normál");
 });

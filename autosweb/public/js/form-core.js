@@ -47,7 +47,7 @@ export function createAdForm(options = {}) {
 
 const AUTO_FILL_PRESETS = {
   TESLA: { tipus: "Long Range AWD", hengerurtartalom: "", uzemanyag: "Elektromos", sebessegvalto: "Automata", hajtas: "Összkerék", teljesitmeny_kw: "258" },
-  VOLKSWAGEN: { tipus: "1.6 TDI", hengerurtartalom: "1598", uzemanyag: "Diesel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
+  VOLKSWAGEN: { tipus: "1.6 TDI", hengerurtartalom: "1598", uzemanyag: "Dízel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
   TOYOTA: { tipus: "1.8 Hybrid", hengerurtartalom: "1798", uzemanyag: "Benzin/elektromos", sebessegvalto: "Fokozatmentes automata", hajtas: "Első kerék", teljesitmeny_kw: "72" },
 };
 
@@ -66,33 +66,47 @@ function fillYearSelect(select) {
   }
 }
 
+function normalizeFuelValue(value) {
+  const aliases = {
+    Diesel: "Dízel",
+    "Diesel/elektromos": "Dízel/elektromos",
+  };
+  return aliases[value] ?? value;
+}
+
 function renderFuelDropdown() {
   if (!uzemanyag || uzemanyag.tagName !== "SELECT") return;
 
-  const current = uzemanyag.value;
+  const current = normalizeFuelValue(uzemanyag.value);
   uzemanyag.innerHTML = "";
 
   const empty = document.createElement("option");
   empty.value = "";
-  empty.textContent = "Válasszon";
+  empty.textContent = "Válasszon!";
   uzemanyag.appendChild(empty);
 
   for (const category of UZEMANYAG_CATEGORIES) {
-    if (category.value) {
-      const option = document.createElement("option");
-      option.value = category.value;
-      option.textContent = category.label;
-      uzemanyag.appendChild(option);
+    if (category.children?.length) {
+      const group = document.createElement("optgroup");
+      group.label = category.label;
+
+      for (const child of category.children) {
+        const option = document.createElement("option");
+        option.value = child.value;
+        option.textContent = child.label;
+        group.appendChild(option);
+      }
+
+      uzemanyag.appendChild(group);
+      continue;
     }
 
-    if (!category.children) continue;
+    if (!category.value) continue;
 
-    for (const child of category.children) {
-      const option = document.createElement("option");
-      option.value = child.value;
-      option.textContent = `${category.label} — ${child.label}`;
-      uzemanyag.appendChild(option);
-    }
+    const option = document.createElement("option");
+    option.value = category.value;
+    option.textContent = category.label;
+    uzemanyag.appendChild(option);
   }
 
   if (current) uzemanyag.value = current;
@@ -196,7 +210,7 @@ function restoreFuelSelection(value) {
   if (!value) return;
 
   if (uzemanyag?.tagName === "SELECT") {
-    uzemanyag.value = value;
+    uzemanyag.value = normalizeFuelValue(value);
     syncFuelDependentFields();
     return;
   }

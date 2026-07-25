@@ -120,13 +120,18 @@ function inferFuelFromHints(...texts) {
   const v = normalizeKey(texts.filter(Boolean).join(" "));
   if (!v) return "";
   if (v.includes("phev") || (v.includes("hibrid") && v.includes("benzin"))) return "Benzin/elektromos";
-  if (v.includes("hibrid") && v.includes("diesel")) return "Diesel/elektromos";
+  if (v.includes("hibrid") && (v.includes("diesel") || v.includes("dizel"))) return "Dízel/elektromos";
   if (/\belektromos\b|\be-tron\b|\be\s*\d{2,3}\b|\btfsi e\b/.test(v)) return "Elektromos";
-  if (/\b\d{2,3}\s*d\b|\bdiesel\b|\btdi\b|\bcdi\b|\bcdti\b|\bmultijet\b|\b220\s*d\b|\b250\s*d\b|\b350\s*d\b/.test(v)) {
-    return "Diesel";
+  if (/\b\d{2,3}\s*d\b|\bdiesel\b|\bdizel\b|\btdi\b|\bcdi\b|\bcdti\b|\bmultijet\b|\b220\s*d\b|\b250\s*d\b|\b350\s*d\b/.test(v)) {
+    return "Dízel";
   }
+  if (v.includes("lpg") && (v.includes("dizel") || v.includes("diesel"))) return "LPG/dízel";
+  if (v.includes("cng") && (v.includes("dizel") || v.includes("diesel"))) return "CNG/dízel";
   if (v.includes("lpg") || v.includes("gaz")) return "LPG/benzin";
   if (v.includes("cng")) return "CNG/benzin";
+  if (v.includes("etanol")) return "Etanol";
+  if (v.includes("biodizel")) return "Biodízel";
+  if (v.includes("hidrogen")) return "Hidrogén/elektromos";
   if (v.includes("hibrid")) return "Benzin/elektromos";
   if (/\bbenzin\b|\btsi\b|\btfsi\b|\bmpi\b|\becoboost\b|\bpuretech\b/.test(v)) return "Benzin";
   return "";
@@ -136,13 +141,18 @@ function mapFuel(value) {
   const v = normalizeKey(value);
   if (!v) return "";
   if (v.includes("phev") || (v.includes("hibrid") && v.includes("benzin"))) return "Benzin/elektromos";
-  if (v.includes("hibrid") && v.includes("diesel")) return "Diesel/elektromos";
-  if (v.includes("elektromos") && v.includes("benzin")) return "Benzin/elektromos";
-  if (v.includes("elektromos") && v.includes("diesel")) return "Diesel/elektromos";
+  if (v.includes("hibrid") && (v.includes("diesel") || v.includes("dizel"))) return "Dízel/elektromos";
+  if (v.includes("elektromos") && (v.includes("benzin"))) return "Benzin/elektromos";
+  if (v.includes("elektromos") && (v.includes("diesel") || v.includes("dizel"))) return "Dízel/elektromos";
+  if (v.includes("hidrogen") && v.includes("elektromos")) return "Hidrogén/elektromos";
   if (v.includes("elektromos")) return "Elektromos";
-  if (v.includes("diesel")) return "Diesel";
+  if (v.includes("diesel") || v.includes("dizel")) return "Dízel";
+  if (v.includes("lpg") && (v.includes("dizel") || v.includes("diesel"))) return "LPG/dízel";
+  if (v.includes("cng") && (v.includes("dizel") || v.includes("diesel"))) return "CNG/dízel";
   if (v.includes("lpg") || v.includes("gaz")) return "LPG/benzin";
   if (v.includes("cng")) return "CNG/benzin";
+  if (v.includes("etanol")) return "Etanol";
+  if (v.includes("biodizel")) return "Biodízel";
   if (v.includes("hibrid")) return "Benzin/elektromos";
   if (v.includes("benzin")) return "Benzin";
   return cleanText(value);
