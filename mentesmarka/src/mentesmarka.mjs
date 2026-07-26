@@ -810,7 +810,8 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
       await waitForSelectOptions(typeSelect, { minCount: 0, timeoutMs: 12000 });
 
       if (!(await typeSelect.count())) {
-        saveOutputs(options, catalog, onProgress);
+        appendModelTypes(options, brand.text, model.text, [], onProgress);
+        saveOutputs(options, catalog, onProgress, { quiet: true });
         continue;
       }
       const types = await readSelectOptions(typeSelect);
@@ -968,6 +969,7 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
   // Induláskor azonnal létrehozza a fájlokat — látszik a pontos útvonal.
   const bootPaths = saveOutputs(options, catalog, onProgress);
   onProgress(`DATA MAPPA: ${dirname(bootPaths.csv)}`);
+  onProgress(`DOWNLOADS: ${DOWNLOADS_DIR}`);
 
   const saveNow = () => {
     try {
