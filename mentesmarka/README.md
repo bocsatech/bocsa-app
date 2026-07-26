@@ -60,12 +60,19 @@ A program **nem navigál el** — a meglévő lapot használja.
 
 ```
 ~/bocsa-app/mentesmarka/data/jarmu-katalogus.csv
+~/bocsa-app/mentesmarka/data/jarmu-katalogus.append.csv   ← soronként azonnal
 ~/bocsa-app/mentesmarka/data/jarmu-katalogus.json
-~/bocsa-app/mentesmarka/data/LEGUTOBBI-MENTES.txt   ← hol van + hány sor
+~/bocsa-app/mentesmarka/data/LEGUTOBBI-MENTES.txt
+
+Másolat (könnyebb megtalálni):
+
+~/Downloads/mentesmarka/jarmu-katalogus.csv
+~/Downloads/mentesmarka/jarmu-katalogus.append.csv
 ```
 
-A mentés **nem** a terminál mappájától függ — mindig a `mentesmarka/data/` alá ír.
-Ha félbeszakad: a részlista megmarad. Újraindításkor a meglevő modelleket kihagyja.
+Minden modell után azonnal ment (atomikus fájlcsere + append).
+Ha félbeszakad: nézd az `.append.csv`-t — az a legbiztosabb részlista.
+Újraindításkor a meglevő modelleket kihagyja.
 
 CSV oszlopok:
 
