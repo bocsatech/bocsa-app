@@ -59,9 +59,11 @@ A program **nem navigál el** — a meglévő lapot használja.
 ## Kimenet
 
 ```
-mentesmarka/data/jarmu-katalogus.csv
-mentesmarka/data/jarmu-katalogus.json   ← resume / belső állapot
+~/bocsa-app/mentesmarka/data/jarmu-katalogus.csv
+~/bocsa-app/mentesmarka/data/jarmu-katalogus.json   ← resume / belső állapot
 ```
+
+Ha félbeszakad: a részlista már a `data/` mappában van. Újraindításkor a meglevő modelleket kihagyja.
 
 CSV oszlopok:
 

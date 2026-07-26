@@ -517,6 +517,73 @@ async function readSelectOptions(select) {
   ).filter((option) => option.value && option.text && !/válasszon|mindegy|^--$/i.test(option.text));
 }
 
+async function waitForSelectOptions(select, { minCount = 1, timeoutMs = 15000, settleMs = 250 } = {}) {
+  const started = Date.now();
+  let lastCount = -1;
+  let stableSince = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const count = await select
+      .evaluate((el) =>
+        [...el.options].filter((option) => {
+          const text = option.textContent?.trim() ?? "";
+          return option.value && text && !/válasszon|mindegy|^--$/i.test(text);
+        }).length
+      )
+      .catch(() => 0);
+
+    if (count !== lastCount) {
+      lastCount = count;
+      stableSince = Date.now();
+    }
+
+    if (count >= minCount && Date.now() - stableSince >= settleMs) {
+      return count;
+    }
+
+    await sleep(150);
+  }
+
+  return lastCount;
+}
+
+async function safeSelectOption(select, option, onProgress) {
+  const attempts = [
+    { value: option.value },
+    { label: option.text },
+  ];
+
+  for (const attempt of attempts) {
+    try {
+      await select.selectOption(attempt, { timeout: 8000 });
+      return true;
+    } catch {
+      /* try next */
+    }
+  }
+
+  // Utolsó esély: közvetlen value állítás + change esemény (AJAX űrlapokhoz).
+  const ok = await select
+    .evaluate((el, value) => {
+      const match = [...el.options].find((item) => item.value === value);
+      if (!match) return false;
+      el.value = value;
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      return el.value === value;
+    }, option.value)
+    .catch(() => false);
+
+  if (!ok) {
+    onProgress?.(`    Figyelmeztetés: nem választható: ${option.text}`);
+  }
+  return ok;
+}
+
+function modelAlreadyDone(modelEntry) {
+  return Boolean(modelEntry?.tipusok && Object.keys(modelEntry.tipusok).length > 0);
+}
+
 async function readFieldValues(page) {
   const values = {};
   for (const [key, aliases] of Object.entries(PROFILE_FIELD_MAP)) {
@@ -587,8 +654,13 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     }
 
     onProgress?.(`Márka: ${brand.text}`);
-    await brandSelect.selectOption(brand.value);
+    const brandOk = await safeSelectOption(brandSelect, brand, onProgress);
+    if (!brandOk) {
+      onProgress?.(`  Márka kihagyva (nem választható): ${brand.text}`);
+      continue;
+    }
     await sleep(options.delayMs);
+    await waitForSelectOptions(modelSelect, { minCount: 1, timeoutMs: 20000 });
 
     if (!(await modelSelect.count())) {
       onProgress?.(`  Modell select nem található — szabad szöveg? (${brand.text})`);
@@ -604,9 +676,16 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         catalog.gyartmanyok[brandKey].modellek[modelKey] = { nev: model.text, value: model.value, tipusok: {} };
       }
 
+      if (!options.deep && modelAlreadyDone(catalog.gyartmanyok[brandKey].modellek[modelKey])) {
+        onProgress?.(`  Modell (már megvan): ${model.text}`);
+        continue;
+      }
+
       onProgress?.(`  Modell: ${model.text}`);
-      await modelSelect.selectOption(model.value);
+      const modelOk = await safeSelectOption(modelSelect, model, onProgress);
+      if (!modelOk) continue;
       await sleep(options.delayMs);
+      await waitForSelectOptions(typeSelect, { minCount: 0, timeoutMs: 12000 });
 
       if (!(await typeSelect.count())) continue;
       const types = await readSelectOptions(typeSelect);
@@ -626,7 +705,8 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         // Alap: csak 3 szint — típus lista elég, nem kell kivitel/profil.
         if (!options.deep) continue;
 
-        await typeSelect.selectOption(type.value);
+        const typeOk = await safeSelectOption(typeSelect, type, onProgress);
+        if (!typeOk) continue;
         await sleep(options.delayMs);
 
         const bodies = (await bodySelect.count()) ? await readSelectOptions(bodySelect) : [];
@@ -640,7 +720,8 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok[typeKey].kivitel = bodies.map((item) => item.text);
 
         for (const body of bodies) {
-          await bodySelect.selectOption(body.value);
+          const bodyOk = await safeSelectOption(bodySelect, body, onProgress);
+          if (!bodyOk) continue;
           await sleep(options.delayMs);
           const bodyKey = slugify(body.text);
           catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok[typeKey].profilok[bodyKey] = {
@@ -649,12 +730,17 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
           };
         }
       }
+
+      // Modell után is mentsünk — ha félbeszakad, megmarad a részlista.
+      catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
+      catalog.meta.scrapedAt = new Date().toISOString();
+      saveOutputs(options, catalog);
     }
 
     catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
     catalog.meta.scrapedAt = new Date().toISOString();
     const paths = saveOutputs(options, catalog);
-    onProgress?.(`  Mentve: ${options.format === "json" ? paths.json : paths.csv}`);
+    onProgress?.(`  Mentve: ${paths.csv}`);
   }
 }
 
@@ -790,7 +876,7 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
   const rowCount = Math.max(0, catalogToCsvRows(catalog).length - 1);
   onProgress(`Kész — ${catalog.meta.brandCount} márka, ${rowCount} sor`);
   if (options.format === "csv" || options.format === "both") onProgress(`CSV: ${paths.csv}`);
-  if (options.format === "json" || options.format === "both") onProgress(`JSON: ${paths.json}`);
+  onProgress(`JSON: ${paths.json}`);
   return catalog;
 }
 
