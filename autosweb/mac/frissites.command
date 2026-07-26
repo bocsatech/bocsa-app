@@ -89,17 +89,24 @@ else
   exit 1
 fi
 
-if grep -q 'partner-categories-data.js' "$TARGET/public/js/partner-recommendations.js" 2>/dev/null; then
-  echo "  ✓ partner ajánló JS OK"
+if grep -q 'partner-recommendations-init.js' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ partner accordion init OK"
+else
+  echo "  ✗ HIBA: partner-recommendations-init.js hiányzik — git pull + frissites újra"
+  exit 1
+fi
+
+if grep -q 'home-partner-accordion' "$TARGET/public/js/partner-recommendations.js" 2>/dev/null; then
+  echo "  ✓ partner accordion JS OK"
 else
   echo "  ✗ HIBA: partner-recommendations.js régi — git pull + frissites újra"
   exit 1
 fi
 
-if grep -q 'partners20260726b' "$TARGET/public/index.html" 2>/dev/null; then
+if grep -q 'partners20260726acc3' "$TARGET/public/index.html" 2>/dev/null; then
   echo "  ✓ főoldal partner verzió OK"
 else
-  echo "  ✗ HIBA: index.html régi — partner javítás hiányzik"
+  echo "  ✗ HIBA: index.html régi — partner accordion javítás hiányzik"
   exit 1
 fi
 

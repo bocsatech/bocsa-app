@@ -6,11 +6,11 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-test("home-app.js: partner ajánló statikus import", () => {
-  const js = readFileSync(join(__dirname, "..", "public", "js", "home-app.js"), "utf8");
-  assert.ok(js.includes('from "./partner-recommendations.js"'));
-  assert.ok(js.includes("initPartnerRecommendations()"));
-  assert.ok(!js.includes('import("./partner-recommendations.js'));
+test("home-app.js: partner ajánló külön init scriptben", () => {
+  const homeApp = readFileSync(join(__dirname, "..", "public", "js", "home-app.js"), "utf8");
+  assert.ok(!homeApp.includes("initPartnerRecommendations"));
+  const html = readFileSync(join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.ok(html.includes("partner-recommendations-init.js"));
 });
 
 test("partner-recommendations.js: böngészőben elérhető kategória import", () => {
@@ -22,6 +22,8 @@ test("partner-recommendations.js: böngészőben elérhető kategória import", 
   assert.ok(js.includes("home-partner-accordion"));
   assert.ok(js.includes("home-partner-collapse-all"));
   assert.ok(js.includes("bindPartnerAccordion"));
+  assert.ok(js.includes("dismissCategories"));
+  assert.ok(js.includes("partnerUiInitialized"));
 });
 
 test("getPartnerRecommendations: 8000 környékén van találat demo adattal", async () => {

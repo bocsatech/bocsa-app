@@ -1,10 +1,12 @@
-import { PARTNER_CATEGORIES } from "./partner-categories-data.js";
+import { PARTNER_CATEGORIES } from "./partner-categories-data.js?v=partners20260726acc3";
 
 const STORAGE_KEY = "autosweb_partner_postal_code";
+const PARTNER_UI_VERSION = "partners20260726acc3";
+let partnerUiInitialized = false;
 
 function isLocalAutoswebHost() {
   const host = window.location.hostname;
-  return host === "127.0.0.1" || host === "localhost";
+  return host === "127.0.0.1" || host === "localhost" || host === "[::1]";
 }
 
 function partnerApiErrorMessage(response, data) {
@@ -155,7 +157,7 @@ function bindPartnerAccordion(accordionEl) {
   function setOpen(categoryId) {
     openId = categoryId;
     accordionEl.querySelectorAll(".home-partner-category").forEach((section) => {
-      const isOpen = section.dataset.category === categoryId;
+      const isOpen = Boolean(categoryId && section.dataset.category === categoryId);
       const toggle = section.querySelector(".home-partner-category-toggle");
       const panel = section.querySelector(".home-partner-category-panel");
       section.classList.toggle("is-open", isOpen);
@@ -220,12 +222,15 @@ async function verifyPartnerApi(statusEl) {
 }
 
 export function initPartnerRecommendations(rootId = "home-partner-recommendations") {
+  if (partnerUiInitialized) return;
   const root = document.getElementById(rootId);
   const form = document.getElementById("home-partner-postal-form");
   const input = document.getElementById("home-partner-postal-input");
   const statusEl = document.getElementById("home-partner-postal-status");
   const resultsEl = document.getElementById("home-partner-results");
   if (!root || !form || !input || !resultsEl) return;
+  partnerUiInitialized = true;
+  root.dataset.partnerUiVersion = PARTNER_UI_VERSION;
 
   let apiReady = false;
   let collapseAccordion = () => {};
@@ -233,10 +238,14 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
   const saved = loadSavedPostalCode();
   if (saved) input.value = saved;
 
-  function hideResults() {
+  function clearResults() {
     collapseAccordion();
     resultsEl.innerHTML = "";
     resultsEl.hidden = true;
+  }
+
+  function dismissCategories() {
+    clearResults();
   }
 
   function renderResults(categories) {
@@ -262,7 +271,7 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
     collapseAccordion = bindPartnerAccordion(accordion);
 
     collapseBtn.addEventListener("click", () => {
-      hideResults();
+      dismissCategories();
     });
   }
 
@@ -273,7 +282,7 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
     }
 
     setStatus(statusEl, "Ajánlások betöltése…", "info");
-    hideResults();
+    clearResults();
 
     try {
       const data = await fetchPartnerRecommendations(postalCode);

@@ -51,7 +51,7 @@ test("index.html: főoldal kereső oldalsávval", () => {
   assert.ok(html.includes('data-site-page="home"'));
   assert.ok(!html.includes("home-nearby"));
   assert.ok(html.includes("home-partner-recommendations"));
-  assert.ok(html.includes("partners20260726acc"));
+  assert.ok(html.includes("partners20260726acc3"));
   assert.ok(html.includes("home-partner-postal-input"));
   assert.ok(html.includes("home-bottom-extra"));
   assert.ok(html.includes("home-stats-bar"));

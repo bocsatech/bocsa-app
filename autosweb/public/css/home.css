@@ -214,6 +214,18 @@ body.home-page .local-banner {
   gap: 0.45rem;
 }
 
+.home-partner-results[hidden] {
+  display: none !important;
+}
+
+.home-partner-category-panel[hidden] {
+  display: none !important;
+}
+
+.home-partner-category-panel:not([hidden]) {
+  display: block;
+}
+
 .home-partner-accordion {
   display: flex;
   flex-direction: column;

@@ -10,7 +10,6 @@ import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.
 import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
 import { initHomeUnifiedScroll } from "./home-unified-scroll.js";
 import { initHomeStatsBar } from "./home-stats-bar.js";
-import { initPartnerRecommendations } from "./partner-recommendations.js";
 
 const gridTrack = document.getElementById("home-grid-track");
 const emptyEl = document.getElementById("home-empty");
@@ -169,8 +168,6 @@ const readSidebarFilters = initHomeSearchSidebar((filters) => {
   applyFilters();
 });
 sidebarFilters = readSidebarFilters?.() ?? emptyFilters();
-
-initPartnerRecommendations();
 
 import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())
