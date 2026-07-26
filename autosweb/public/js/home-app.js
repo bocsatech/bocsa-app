@@ -72,34 +72,20 @@ async function loadListings() {
   const all = await fetchListings({ limit: LISTINGS_FETCH_LIMIT });
   allItems = sortForHome(all);
   populateFilterOptions(allItems);
-  populateYearOptions(allItems);
   renderListings(allItems);
+  updateFilterResultCount();
   statsUi?.refreshActiveCount?.();
-}
-
-function populateYearOptions(items) {
-  const years = [
-    ...new Set(
-      items.map((item) => item.preview?.filter?.gyartasi_ev).filter((y) => y && y > 1900)
-    ),
-  ].sort((a, b) => a - b);
-
-  for (const select of document.querySelectorAll('[name="ev_tol"], [name="ev_ig"]')) {
-    const current = select.value;
-    const empty = select.name === "ev_tol" ? "-tól" : "-ig";
-    select.innerHTML = `<option value="">${empty}</option>`;
-    for (const year of years) {
-      const opt = document.createElement("option");
-      opt.value = String(year);
-      opt.textContent = String(year);
-      select.appendChild(opt);
-    }
-    if (current) select.value = current;
-  }
 }
 
 function applyFilters() {
   renderListings(allItems);
+  updateFilterResultCount();
+}
+
+function updateFilterResultCount() {
+  const el = document.getElementById("filter-result-count");
+  if (!el) return;
+  el.textContent = filterItems(allItems).length.toLocaleString("hu-HU");
 }
 
 function hasActiveSidebarFilters(filters) {
@@ -112,6 +98,7 @@ function hasActiveSidebarFilters(filters) {
       filters.allapot ||
       filters.tipus ||
       filters.features?.length ||
+      filters.ev_jarat != null ||
       filters.ev_tol != null ||
       filters.ev_ig != null ||
       filters.ar_tol != null ||

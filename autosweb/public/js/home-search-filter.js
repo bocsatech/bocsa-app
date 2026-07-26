@@ -48,6 +48,7 @@ function readFilters(form) {
     modell: data.get("modell")?.toString() ?? "",
     kivitel: data.get("kivitel")?.toString() ?? "",
     uzemanyag: data.get("uzemanyag")?.toString() ?? "",
+    ev_jarat: numOrNull(data.get("ev_jarat")),
     ev_tol: numOrNull(data.get("ev_tol")),
     ev_ig: numOrNull(data.get("ev_ig")),
     ar_tol: numOrNull(data.get("ar_tol")),
@@ -99,7 +100,11 @@ export function filterListingsBySidebar(items, filters) {
       if (!hay.includes(filters.tipus.toLowerCase())) return false;
     }
 
-    if (!inRange(f.gyartasi_ev, filters.ev_tol, filters.ev_ig)) return false;
+    if (filters.ev_jarat != null) {
+      if (f.gyartasi_ev !== filters.ev_jarat) return false;
+    } else if (!inRange(f.gyartasi_ev, filters.ev_tol, filters.ev_ig)) {
+      return false;
+    }
     if (!inRange(preview.priceNum, filters.ar_tol, filters.ar_ig)) return false;
     if (!inRange(preview.kmNum, filters.km_tol, filters.km_ig)) return false;
     if (!inRange(f.hengerurtartalom, filters.ccm_tol, filters.ccm_ig)) return false;
@@ -139,6 +144,15 @@ export function populateFilterOptions(items) {
   fillSelect(document.getElementById("filter-allapot"), uniqueSorted(filters.map((f) => f.allapot)));
   fillSelect(document.getElementById("filter-ajtok"), uniqueSorted(filters.map((f) => f.ajtok)));
   fillSelect(document.getElementById("filter-ulesek"), uniqueSorted(filters.map((f) => f.ulesek)));
+
+  const years = [
+    ...new Set(
+      filters.map((f) => f.gyartasi_ev).filter((year) => year && year > 1900)
+    ),
+  ]
+    .sort((a, b) => b - a)
+    .map(String);
+  fillSelect(document.getElementById("filter-ev-jarat"), years);
 }
 
 export function emptyFilters() {
@@ -147,6 +161,7 @@ export function emptyFilters() {
     modell: "",
     kivitel: "",
     uzemanyag: "",
+    ev_jarat: null,
     ev_tol: null,
     ev_ig: null,
     ar_tol: null,
@@ -171,18 +186,46 @@ export function initHomeSearchSidebar(onChange) {
   const trigger = () => onChange(readFilters(form));
 
   initFuelQuickButtons(form, trigger);
+  initMoreFiltersToggle(form);
 
   form.addEventListener("input", trigger);
   form.addEventListener("change", trigger);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    trigger();
+    document.getElementById("home-grid-track")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   document.getElementById("filter-reset")?.addEventListener("click", (event) => {
     event.preventDefault();
     form.reset();
     syncFuelQuickButtons(form, "");
+    closeMoreFilters(form);
     trigger();
   });
 
   return () => readFilters(form);
+}
+
+function initMoreFiltersToggle(form) {
+  const toggle = form.querySelector("#filter-more-toggle");
+  const panel = form.querySelector("#filter-more");
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener("click", () => {
+    const willOpen = panel.hidden;
+    panel.hidden = !willOpen;
+    toggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  });
+}
+
+function closeMoreFilters(form) {
+  const toggle = form.querySelector("#filter-more-toggle");
+  const panel = form.querySelector("#filter-more");
+  if (!panel || !toggle) return;
+  panel.hidden = true;
+  toggle.setAttribute("aria-expanded", "false");
 }
 
 function syncFuelQuickButtons(form, quickValue) {
@@ -212,6 +255,26 @@ function initFuelQuickButtons(form, trigger) {
       syncFuelQuickButtons(form, "");
     }
   });
+
+  form.querySelector("#filter-ev-jarat")?.addEventListener("change", (event) => {
+    const value = event.target.value;
+    const evTol = form.querySelector('[name="ev_tol"]');
+    const evIg = form.querySelector('[name="ev_ig"]');
+    if (value && evTol && evIg) {
+      evTol.value = "";
+      evIg.value = "";
+    }
+  });
+
+  for (const input of form.querySelectorAll('[name="ev_tol"], [name="ev_ig"]')) {
+    input.addEventListener("input", () => {
+      const evJarat = form.querySelector("#filter-ev-jarat");
+      if (!evJarat) return;
+      if (form.querySelector('[name="ev_tol"]')?.value || form.querySelector('[name="ev_ig"]')?.value) {
+        evJarat.value = "";
+      }
+    });
+  }
 }
 
 export { FEATURE_CHECKS, FUEL_QUICK_FILTERS };

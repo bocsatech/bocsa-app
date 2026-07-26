@@ -38,8 +38,12 @@ test("index.html: főoldal kereső oldalsávval", () => {
   assert.ok(html.includes('data-quick-preset="under10m"'));
   assert.ok(html.includes("home-trust-block"));
   assert.ok(html.includes("home-filter-form"));
+  assert.ok(html.includes(">Szűrés</h2>"));
+  assert.ok(html.includes("filter-submit"));
+  assert.ok(html.includes("filter-result-count"));
+  assert.ok(html.includes("filter-more-toggle"));
+  assert.ok(html.includes("Futott km"));
   assert.doesNotMatch(html, /home-search-form/);
-  assert.doesNotMatch(html, /home-result-count/);
   assert.ok(html.includes("home-filter-fuel-btns"));
   assert.ok(html.includes('data-fuel-quick="benzin"'));
   assert.ok(html.includes('data-site-side="left"'));
