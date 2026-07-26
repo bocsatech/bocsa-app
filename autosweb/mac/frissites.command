@@ -68,10 +68,10 @@ else
   exit 1
 fi
 
-if grep -q 'home-nearby' "$TARGET/public/index.html" 2>/dev/null; then
-  echo "  ✓ Főoldal: közelben widget OK"
+if grep -q 'home-stats-bar' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ Főoldal: stats sáv OK"
 else
-  echo "  ✗ HIBA: index.html régi — nincs home-nearby (git pull + frissites újra)"
+  echo "  ✗ HIBA: index.html régi — nincs home-stats-bar (git pull + frissites újra)"
   exit 1
 fi
 
@@ -82,10 +82,10 @@ else
   exit 1
 fi
 
-if [ -f "$TARGET/public/js/home-nearby.js" ] && grep -q 'class="home-nearby-map"' "$TARGET/public/index.html"; then
-  echo "  ✓ home-nearby.js + beágyazott térkép OK"
+if grep -q 'home-stats-postal' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ stats irányítószám mező OK"
 else
-  echo "  ✗ HIBA: hiányzik home-nearby.js vagy a beágyazott térkép"
+  echo "  ✗ HIBA: hiányzik a stats irányítószám mező"
   exit 1
 fi
 
@@ -107,7 +107,7 @@ echo "  2) Indítsd újra: ~/Desktop/Autosweb-indito.command"
 echo "  3) Böngésző: http://127.0.0.1:3456/  (NEM a Vercel weboldal!)"
 echo "  4) Cmd+Shift+R (kemény frissítés)"
 echo ""
-echo "Jó verzió = világos háttér, nincs fejléc keresősáv, bal oldalon „Új hirdetések a közeledben”."
+echo "Jó verzió = világos háttér, nincs fejléc keresősáv, stats sáv a kategóriák alatt."
 
 if grep -q 'home-scroll-fix' "$TARGET/public/index.html" 2>/dev/null; then
   echo "  ✓ Főoldal: egyetlen görgetés (inline scroll fix) OK"

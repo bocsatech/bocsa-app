@@ -476,128 +476,6 @@ body.home-page .local-banner {
   text-decoration: underline;
 }
 
-.home-nearby {
-  margin-top: 0;
-}
-
-.home-nearby-heading {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0 0 0.55rem;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #1565c0;
-}
-
-.home-nearby-pin {
-  width: 1rem;
-  height: 1rem;
-  border-radius: 50%;
-  background: #1565c0;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.home-nearby-pin::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -0.28rem;
-  transform: translateX(-50%);
-  border: 0.28rem solid transparent;
-  border-top-color: #1565c0;
-}
-
-.home-nearby-card {
-  border: 1px solid #e3e6ea;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-.home-nearby-map-wrap {
-  background: #eef4fb;
-  border-bottom: 1px solid #e3e6ea;
-  min-height: 180px;
-}
-
-.home-nearby-map {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 640 / 360;
-}
-
-.home-nearby-body {
-  padding: 0.85rem 0.9rem 0.95rem;
-  background: #f3f7fb;
-}
-
-.home-nearby-lead {
-  margin: 0 0 0.75rem;
-  font-size: 0.78rem;
-  line-height: 1.45;
-  color: #333;
-}
-
-.home-nearby-btn {
-  width: 100%;
-  border: none;
-  border-radius: 999px;
-  padding: 0.65rem 1rem;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #fff;
-  background: #1565c0;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.home-nearby-btn:hover:not(:disabled) {
-  background: #0d47a1;
-}
-
-.home-nearby-btn:disabled {
-  opacity: 0.75;
-  cursor: wait;
-}
-
-.home-nearby-status {
-  margin: 0.65rem 0 0;
-  font-size: 0.74rem;
-  line-height: 1.4;
-  color: #555;
-}
-
-.home-nearby-status[data-status-type="ok"] {
-  color: #2e7d32;
-}
-
-.home-nearby-status[data-status-type="err"] {
-  color: #c62828;
-}
-
-.home-nearby-clear {
-  margin-top: 0.55rem;
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: #1565c0;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.home-nearby.is-active .home-nearby-card {
-  border-color: #90caf9;
-  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.12);
-}
-
 /* —— Kategória sáv (CarGurus-szerű kártyák) —— */
 .home-category-bar {
   width: 100%;
@@ -1643,7 +1521,6 @@ body.home-page .home-listings-panel,
 body.home-page .home-grid-track,
 body.home-page .home-partner-results,
 body.home-page .home-partner-rec,
-body.home-page .home-nearby,
 body.home-page .site-side,
 body.home-page .site-side-card,
 body.home-page .home-side-card,

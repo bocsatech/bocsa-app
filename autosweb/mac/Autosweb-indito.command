@@ -36,8 +36,8 @@ if [ ! -f "$INDEX" ]; then
   exit 1
 fi
 
-if ! grep -q 'home-nearby' "$INDEX" 2>/dev/null; then
-  osascript -e 'display alert "Régi főoldal!" message "Nincs „Új hirdetések a közeledben” widget.\\n\\n1) cd ~/bocsa-app && git pull\\n2) autosweb/mac/frissites.command\\n3) indítsd újra"'
+if ! grep -q 'home-stats-bar' "$INDEX" 2>/dev/null; then
+  osascript -e 'display alert "Régi főoldal!" message "Nincs stats sáv a főoldalon.\\n\\n1) cd ~/bocsa-app && git pull\\n2) autosweb/mac/frissites.command\\n3) indítsd újra"'
   exit 1
 fi
 
@@ -48,7 +48,7 @@ fi
 
 INDEX_VER=$(grep 'autosweb-version' "$INDEX" | head -1 | sed 's/.*content="//;s/".*//')
 echo "Autosweb főoldal: ${INDEX_VER:-?}"
-echo "✓ Nincs fejléc keresősáv, van közelben widget"
+echo "✓ Stats sáv a főoldalon"
 echo "URL: http://127.0.0.1:3456/"
 
 if [ ! -d node_modules ]; then

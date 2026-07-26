@@ -13,16 +13,16 @@ if [ ! -f "$HTML" ]; then
   exit 1
 fi
 
-if grep -q 'home-nearby' "$HTML"; then
-  echo "✓ Közelben widget: VAN"
+if grep -q 'home-stats-bar' "$HTML"; then
+  echo "✓ Stats sáv: VAN"
 else
-  echo "✗ Közelben widget: NINCS (régi index.html)"
+  echo "✗ Stats sáv: NINCS (régi index.html)"
 fi
 
-if grep -q 'class="home-nearby-map"' "$HTML"; then
-  echo "✓ Térkép: beágyazva az index.html-ben"
+if grep -q 'home-nearby' "$HTML"; then
+  echo "✗ Közelben widget: MÉG VAN (régi)"
 else
-  echo "✗ Térkép: HIÁNYZIK (régi index.html vagy hiányzó SVG fájl)"
+  echo "✓ Közelben widget: törölve"
 fi
 
 if grep -q 'home-search-form' "$HTML"; then

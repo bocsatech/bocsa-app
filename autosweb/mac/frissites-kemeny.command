@@ -42,8 +42,8 @@ cp "$SOURCE/mac/Autosweb-indito.command" "$HOME/Desktop/Autosweb-indito.command"
 chmod +x "$HOME/Desktop/Autosweb-indito.command"
 
 echo ""
-grep -q 'home-nearby' "$TARGET/public/index.html" && echo "✓ home-nearby VAN" || { echo "✗ home-nearby HIÁNYZIK"; exit 1; }
-grep -q 'class="home-nearby-map"' "$TARGET/public/index.html" && echo "✓ beágyazott térkép VAN" || { echo "✗ beágyazott térkép HIÁNYZIK"; exit 1; }
+grep -q 'home-stats-bar' "$TARGET/public/index.html" && echo "✓ home-stats-bar VAN" || { echo "✗ home-stats-bar HIÁNYZIK"; exit 1; }
+grep -q 'home-nearby' "$TARGET/public/index.html" && { echo "✗ home-nearby MÉG VAN"; exit 1; } || echo "✓ home-nearby NINCS"
 grep -q 'home-search-form' "$TARGET/public/index.html" && { echo "✗ home-search-form MÉG VAN"; exit 1; } || echo "✓ keresősáv NINCS"
 
 echo ""

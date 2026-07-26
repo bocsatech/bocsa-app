@@ -8,7 +8,6 @@ import {
 } from "./home-search-filter.js";
 import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.js";
 import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
-import { filterListingsNearby, initHomeNearby } from "./home-nearby.js";
 import { initHomeUnifiedScroll } from "./home-unified-scroll.js";
 import { initHomeStatsBar } from "./home-stats-bar.js";
 
@@ -24,8 +23,6 @@ let quickPreset = null;
 let categoryFilter = null;
 let quickFilterUi = null;
 let categoryUi = null;
-let nearbyUi = null;
-let nearbyFilter = null;
 let statsUi = null;
 let statsFilter = null;
 
@@ -41,9 +38,6 @@ function filterItems(items) {
   let result = filterListingsBySidebar(items, sidebarFilters);
   result = filterByQuickPreset(result, quickPreset);
   result = filterByCategory(result, categoryFilter);
-  if (nearbyFilter) {
-    result = filterListingsNearby(result, nearbyFilter.lat, nearbyFilter.lon);
-  }
   if (statsFilter) {
     result = result.filter((item) => statsFilter.listingIds.has(item.id));
   }
@@ -64,10 +58,6 @@ function renderListings(items) {
     } else {
       emptyEl.textContent = `Nincs hirdetés ${statsFilter.origin.city} ${statsFilter.radiusKm} km-es körzetében.`;
     }
-  } else if (!filtered.length && nearbyFilter) {
-    emptyEl.hidden = false;
-    emptyEl.textContent =
-      "Nincs hirdetés a közeledben ezen a térképen. Kapcsold ki a közeli szűrést, vagy ments több hirdetést településsel.";
   } else if (!filtered.length) {
     emptyEl.textContent =
       "Még nincs hirdetés. Importálj, mentsd az adatbázisba (Import oldal), majd frissítsd a főoldalt — a legfrissebb mentések itt jelennek meg.";
@@ -139,7 +129,6 @@ quickFilterUi = initHomeQuickFilters({
   onChange: (preset) => {
     quickPreset = preset;
     if (preset) {
-      nearbyUi?.clear();
       categoryUi?.clear();
       categoryFilter = null;
     }
@@ -154,25 +143,10 @@ categoryUi = initHomeCategoryBar({
     if (category) {
       quickPreset = null;
       quickFilterUi?.clear();
-      nearbyUi?.clear();
-      nearbyFilter = null;
     }
     applyFilters();
   },
   getForm: () => filterForm,
-});
-
-nearbyUi = initHomeNearby({
-  onChange: (active) => {
-    nearbyFilter = active;
-    if (active) {
-      quickPreset = null;
-      quickFilterUi?.clear();
-      categoryUi?.clear();
-      categoryFilter = null;
-    }
-    applyFilters();
-  },
 });
 
 statsUi = initHomeStatsBar({
@@ -190,8 +164,6 @@ const readSidebarFilters = initHomeSearchSidebar((filters) => {
     quickFilterUi?.clear();
     categoryUi?.clear();
     categoryFilter = null;
-    nearbyUi?.clear();
-    nearbyFilter = null;
   }
   applyFilters();
 });

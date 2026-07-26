@@ -4,6 +4,7 @@ import {
   buildCityIndex,
   filterListingsInRadius,
   filterListingsRecentInRadius,
+  haversineKm,
   isListingWithinHours,
   listingCityName,
 } from "../public/js/listing-radius.js";
@@ -19,6 +20,11 @@ test("listingCityName: település a filterből", () => {
     listingCityName({ preview: { filter: { telepules: "Miskolc" }, location: "Miskolc, Borsod" } }),
     "Miskolc"
   );
+});
+
+test("haversineKm: Székesfehérvár – Dabas távolság", () => {
+  const km = haversineKm(47.186, 18.413, 47.186, 19.308);
+  assert.ok(km > 60 && km < 80);
 });
 
 test("filterListingsInRadius: csak a sugáron belüli települések", () => {
