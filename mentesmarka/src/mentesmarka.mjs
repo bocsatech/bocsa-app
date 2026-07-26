@@ -66,6 +66,11 @@ const BRAND_MATCH_ALIASES = {
 const FORM_URL = "https://admin.hasznaltauto.hu/hirdetesfeladas/szemelyauto";
 const KATALOGUS_URL = "https://katalogus.hasznaltauto.hu/";
 
+/** Gyártási év: lépésenként, nem minden év (gyorsabb). Találatnál ±1 finomítás. */
+const YEAR_MIN = 1990;
+const YEAR_MAX = 2026;
+const YEAR_STEP = 3;
+
 const PROFILE_FIELD_MAP = {
   ajtok: ["ajtok", "ajtók", "doors"],
   szemelyek: ["szemelyek", "szállítható", "passengers"],
@@ -255,7 +260,7 @@ function csvEscape(value) {
 }
 
 function catalogToCsvRows(catalog) {
-  const rows = [["Gyartmany", "Modell", "Tipus"]];
+  const rows = [["Gyartmany", "Modell", "EvTol", "EvIg", "Tipus"]];
   const brands = Object.values(catalog.gyartmanyok ?? {}).sort((a, b) =>
     String(a.nev).localeCompare(String(b.nev), "hu")
   );
@@ -265,7 +270,7 @@ function catalogToCsvRows(catalog) {
       String(a.nev).localeCompare(String(b.nev), "hu")
     );
     if (!models.length) {
-      rows.push([brand.nev, "", ""]);
+      rows.push([brand.nev, "", "", "", ""]);
       continue;
     }
     for (const model of models) {
@@ -273,11 +278,17 @@ function catalogToCsvRows(catalog) {
         String(a.nev).localeCompare(String(b.nev), "hu")
       );
       if (!types.length) {
-        rows.push([brand.nev, model.nev, ""]);
+        rows.push([brand.nev, model.nev, "", "", ""]);
         continue;
       }
       for (const type of types) {
-        rows.push([brand.nev, model.nev, type.nev]);
+        rows.push([
+          brand.nev,
+          model.nev,
+          type.evTol ?? "",
+          type.evIg ?? "",
+          type.nev,
+        ]);
       }
     }
   }
@@ -373,13 +384,19 @@ function appendModelTypes(options, brandName, modelName, types, onProgress) {
   try {
     mkdirSync(paths.root, { recursive: true });
     if (!existsSync(paths.appendCsv)) {
-      writeFileSync(paths.appendCsv, "Gyartmany,Modell,Tipus\n", "utf8");
+      writeFileSync(paths.appendCsv, "Gyartmany,Modell,EvTol,EvIg,Tipus\n", "utf8");
     }
 
     const rows =
       types.length > 0
-        ? types.map((type) => [brandName, modelName, type.nev ?? type.text ?? ""])
-        : [[brandName, modelName, ""]];
+        ? types.map((type) => [
+            brandName,
+            modelName,
+            type.evTol ?? "",
+            type.evIg ?? "",
+            type.nev ?? type.text ?? "",
+          ])
+        : [[brandName, modelName, "", "", ""]];
 
     const chunk = `${rows.map((row) => row.map(csvEscape).join(",")).join("\n")}\n`;
     appendFileSync(paths.appendCsv, chunk, "utf8");
@@ -394,6 +411,37 @@ function appendModelTypes(options, brandName, modelName, types, onProgress) {
   } catch (error) {
     onProgress?.(`Append hiba (folytatom): ${error.message}`);
   }
+}
+
+function yearProbeList() {
+  const years = [];
+  for (let y = YEAR_MIN; y <= YEAR_MAX; y += YEAR_STEP) years.push(y);
+  if (!years.includes(YEAR_MAX)) years.push(YEAR_MAX);
+  return years;
+}
+
+function mergeTypeYear(typeEntry, year) {
+  const y = Number(year);
+  if (!Number.isFinite(y)) return;
+  if (typeEntry.evTol == null || y < typeEntry.evTol) typeEntry.evTol = y;
+  if (typeEntry.evIg == null || y > typeEntry.evIg) typeEntry.evIg = y;
+}
+
+function upsertTypeWithYear(modelEntry, type, year) {
+  const typeKey = slugify(type.text);
+  if (!modelEntry.tipusok[typeKey]) {
+    modelEntry.tipusok[typeKey] = {
+      nev: type.text,
+      value: type.value,
+      evTol: year,
+      evIg: year,
+      kivitel: [],
+      profilok: {},
+    };
+    return true;
+  }
+  mergeTypeYear(modelEntry.tipusok[typeKey], year);
+  return false;
 }
 
 function normalizeOption(option) {
@@ -762,10 +810,132 @@ async function safeSelectOption(select, option, onProgress) {
 
 function modelAlreadyDone(modelEntry) {
   const types = Object.values(modelEntry?.tipusok ?? {});
+  // Évjáratos scrape lefutott (üres típuslista is lehet érvényes)
+  if (modelEntry?.evjaratKesz) {
+    if (types.length && types.every((item) => isEgyebType(item.nev))) return false;
+    return true;
+  }
   if (!types.length) return false;
   // Csak EGYÉB = hibás / korai olvasás → újra kell scrape-elni
   if (types.every((item) => isEgyebType(item.nev))) return false;
+  // Régi mentés év nélkül → évjáratos újrafuttatás kell (--resume esetén is)
+  if (types.every((item) => item.evTol == null && item.evIg == null)) return false;
   return true;
+}
+
+async function setGyartasiEvHonap(page, year, onProgress) {
+  const yearSelect = page.locator('#gyartasi_ev, select[name="gyartasi_ev"]').first();
+  const monthSelect = page.locator('#gyartasi_honap, select[name="gyartasi_honap"]').first();
+
+  if (!(await yearSelect.count())) {
+    onProgress?.("    Figyelem: gyartasi_ev select nem található");
+    return false;
+  }
+
+  const yearStr = String(year);
+  let ok = false;
+  try {
+    await yearSelect.selectOption(yearStr, { timeout: 5000 });
+    ok = true;
+  } catch {
+    try {
+      await yearSelect.selectOption({ label: yearStr }, { timeout: 5000 });
+      ok = true;
+    } catch {
+      ok = await yearSelect
+        .evaluate((el, value) => {
+          const match = [...el.options].find(
+            (item) => item.value === value || item.textContent?.trim() === value
+          );
+          if (!match) return false;
+          el.value = match.value;
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          return true;
+        }, yearStr)
+        .catch(() => false);
+    }
+  }
+
+  if (!ok) {
+    onProgress?.(`    Figyelmeztetés: gyártási év nem állítható: ${year}`);
+    return false;
+  }
+
+  if (await monthSelect.count()) {
+    const monthTries = ["6", "06", "1", "01"];
+    let monthOk = false;
+    for (const m of monthTries) {
+      try {
+        await monthSelect.selectOption(m, { timeout: 2000 });
+        monthOk = true;
+        break;
+      } catch {
+        /* next */
+      }
+    }
+    if (!monthOk) {
+      await monthSelect
+        .evaluate((el) => {
+          const match = [...el.options].find((item) => item.value && !/válasszon|^--$/i.test(item.textContent ?? ""));
+          if (!match) return false;
+          el.value = match.value;
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+          return true;
+        })
+        .catch(() => false);
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Modell + évjárat lépéses Tipus gyűjtés.
+ * 1990→2026, lépés 3; ha van valódi típus, próbálja year±1-et is.
+ * Üres / csak EGYÉB évek kihagyva.
+ */
+async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, options, onProgress) {
+  const foundByYear = new Map();
+  const probeYears = yearProbeList();
+
+  async function collectYear(year) {
+    if (foundByYear.has(year)) return foundByYear.get(year);
+    const yearOk = await setGyartasiEvHonap(page, year, onProgress);
+    if (!yearOk) return [];
+    await sleep(Math.max(600, Math.floor(options.delayMs * 0.7)));
+    // Modell néha resetelődik évváltáskor
+    await safeSelectOption(modelSelect, model, onProgress);
+    await sleep(800);
+    let types = await waitForTypeOptions(typeSelect, {
+      timeoutMs: 25000,
+      minWaitMs: 1200,
+      settleMs: 1200,
+    });
+    types = preferRealTypes(types).filter((item) => !isEgyebType(item.text));
+    if (types.length) {
+      foundByYear.set(year, types);
+    }
+    return types;
+  }
+
+  for (const year of probeYears) {
+    onProgress?.(`    Év: ${year}…`);
+    const types = await collectYear(year);
+    if (!types.length) continue;
+
+    onProgress?.(`    Év ${year}: ${types.length} típus — ±1 finomítás`);
+    for (const neighbor of [year - 1, year + 1]) {
+      if (neighbor < YEAR_MIN || neighbor > YEAR_MAX) continue;
+      if (foundByYear.has(neighbor)) continue;
+      // Ha a szomszéd amúgy is probe év, a fő ciklus majd megnézi — de ±1 gyakran
+      // nem esik egybe a 3-as lépéssel (pl. 2015→2014,2016).
+      onProgress?.(`    Év: ${neighbor} (±1)…`);
+      await collectYear(neighbor);
+    }
+  }
+
+  return foundByYear;
 }
 
 async function readFieldValues(page) {
@@ -890,86 +1060,90 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         saveOutputs(options, catalog, onProgress);
         continue;
       }
-      // Idő a Tipus AJAX-nak (Tipus(this.value,...))
-      await sleep(Math.max(options.delayMs, 1200));
+      await sleep(Math.max(options.delayMs, 1000));
+
+      const modelEntry = catalog.gyartmanyok[brandKey].modellek[modelKey];
 
       if (!(await typeSelect.count())) {
+        modelEntry.evjaratKesz = true;
         appendModelTypes(options, brand.text, model.text, [], onProgress);
         saveOutputs(options, catalog, onProgress, { quiet: true });
         continue;
       }
 
-      onProgress?.(`    Várakozás Tipus listára…`);
-      let types = await waitForTypeOptions(typeSelect, {
-        timeoutMs: 35000,
-        minWaitMs: 1500,
-        settleMs: 1500,
-      });
-      // Ha csak EGYÉB jött (AJAX még nem töltött), modell újraválasztás + újra várás
-      if (!types.length || typesAreOnlyEgyeb(types)) {
-        onProgress?.(`    Típus lista gyenge (${types.map((t) => t.text).join(", ") || "üres"}) — újrapróbál`);
+      onProgress?.(
+        `    Évjárat scrape: ${YEAR_MIN}–${YEAR_MAX}, lépés ${YEAR_STEP} (+±1 találatnál)`
+      );
+      // Új scrape: töröljük a régi (év nélküli / EGYÉB) típusokat
+      modelEntry.tipusok = {};
+
+      const foundByYear = await scrapeModelTypesByYear(
+        page,
+        typeSelect,
+        modelSelect,
+        model,
+        options,
+        onProgress
+      );
+
+      const yearsSorted = [...foundByYear.keys()].sort((a, b) => a - b);
+      for (const year of yearsSorted) {
+        let types = foundByYear.get(year) ?? [];
+        if (options.maxTypes) types = types.slice(0, options.maxTypes);
+        for (const type of types) {
+          upsertTypeWithYear(modelEntry, type, year);
+        }
+      }
+
+      modelEntry.evjaratKesz = true;
+
+      // --deep: egy jó évjáraton végigmegy a kivitel/profilokon
+      if (options.deep && yearsSorted.length) {
+        const deepYear = yearsSorted[Math.floor(yearsSorted.length / 2)];
+        await setGyartasiEvHonap(page, deepYear, onProgress);
         await safeSelectOption(modelSelect, model, onProgress);
-        await sleep(1500);
-        types = await waitForTypeOptions(typeSelect, {
-          timeoutMs: 30000,
-          minWaitMs: 2000,
-          settleMs: 1800,
-        });
-      }
-
-      types = preferRealTypes(types);
-      const limitedTypes = options.maxTypes ? types.slice(0, options.maxTypes) : types;
-
-      // Hibás EGYÉB-only mentés felülírása, ha most vannak valódi típusok
-      if (limitedTypes.length && !typesAreOnlyEgyeb(limitedTypes)) {
-        catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok = {};
-      }
-
-      const freshTypes = [];
-
-      for (const type of limitedTypes) {
-        const typeKey = slugify(type.text);
-        if (!catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok[typeKey]) {
-          catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok[typeKey] = {
-            nev: type.text,
-            value: type.value,
-            kivitel: [],
-            profilok: {},
-          };
-          freshTypes.push(type);
-        }
-
-        // Alap: csak 3 szint — típus lista elég, nem kell kivitel/profil.
-        if (!options.deep) continue;
-
-        const typeOk = await safeSelectOption(typeSelect, type, onProgress);
-        if (!typeOk) continue;
-        await sleep(options.delayMs);
-
-        const bodies = (await bodySelect.count()) ? await readSelectOptions(bodySelect) : [];
-        const profileBase = await readFieldValues(page);
-
-        if (bodies.length === 0) {
-          catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok[typeKey].profilok.default = profileBase;
-          continue;
-        }
-
-        catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok[typeKey].kivitel = bodies.map((item) => item.text);
-
-        for (const body of bodies) {
-          const bodyOk = await safeSelectOption(bodySelect, body, onProgress);
-          if (!bodyOk) continue;
+        await sleep(1000);
+        const deepTypes = Object.values(modelEntry.tipusok);
+        for (const typeEntry of deepTypes) {
+          const typeOpt = { value: typeEntry.value, text: typeEntry.nev };
+          const typeOk = await safeSelectOption(typeSelect, typeOpt, onProgress);
+          if (!typeOk) continue;
           await sleep(options.delayMs);
-          const bodyKey = slugify(body.text);
-          catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok[typeKey].profilok[bodyKey] = {
-            kivitel: body.text,
-            ...(await readFieldValues(page)),
-          };
+
+          const bodies = (await bodySelect.count()) ? await readSelectOptions(bodySelect) : [];
+          const profileBase = await readFieldValues(page);
+
+          if (bodies.length === 0) {
+            typeEntry.profilok.default = profileBase;
+            continue;
+          }
+
+          typeEntry.kivitel = bodies.map((item) => item.text);
+          for (const body of bodies) {
+            const bodyOk = await safeSelectOption(bodySelect, body, onProgress);
+            if (!bodyOk) continue;
+            await sleep(options.delayMs);
+            const bodyKey = slugify(body.text);
+            typeEntry.profilok[bodyKey] = {
+              kivitel: body.text,
+              ...(await readFieldValues(page)),
+            };
+          }
         }
       }
 
-      // Azonnali append + teljes mentés — kill / timeout esetén is megmarad.
-      appendModelTypes(options, brand.text, model.text, freshTypes.length ? freshTypes : limitedTypes, onProgress);
+      const appendRows = Object.values(modelEntry.tipusok);
+      onProgress?.(
+        `    Kész: ${appendRows.length} típus, ${yearsSorted.length} évjárat` +
+          (yearsSorted.length ? ` (${yearsSorted[0]}–${yearsSorted[yearsSorted.length - 1]})` : "")
+      );
+      appendModelTypes(
+        options,
+        brand.text,
+        model.text,
+        appendRows.length ? appendRows : [],
+        onProgress
+      );
       catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
       catalog.meta.scrapedAt = new Date().toISOString();
       saveOutputs(options, catalog, onProgress, { quiet: true });

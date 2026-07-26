@@ -1,6 +1,6 @@
 /**
  * Járműkatalógus: ~/Letöltések/mentesmarka/jarmu-katalogus.csv
- * Gyartmany → Modell → Tipus (mint a hasznaltauto.hu)
+ * Gyartmany → Modell → Tipus (EvTol/EvIg opcionális; legördülőkhöz unió)
  */
 import { existsSync, mkdirSync, readFileSync, statSync } from "fs";
 import { homedir } from "os";
@@ -98,9 +98,12 @@ export function parseCatalogCsv(text) {
   let iGy = header.findIndex((h) => h === "gyartmany" || h === "marka" || h === "gyarto");
   let iMo = header.findIndex((h) => h === "modell");
   let iTi = header.findIndex((h) => h === "tipus");
+  // Új formátum: Gyartmany,Modell,EvTol,EvIg,Tipus — régi: Gyartmany,Modell,Tipus
+  const iEvTol = header.findIndex((h) => h === "evtol" || h === "ev_tol");
+  const iEvIg = header.findIndex((h) => h === "evig" || h === "ev_ig");
   if (iGy < 0) iGy = 0;
   if (iMo < 0) iMo = 1;
-  if (iTi < 0) iTi = 2;
+  if (iTi < 0) iTi = iEvTol >= 0 || iEvIg >= 0 ? 4 : 2;
 
   const tree = {};
   let rowCount = 0;
@@ -110,12 +113,13 @@ export function parseCatalogCsv(text) {
     const brand = String(cells[iGy] ?? "").trim();
     const model = String(cells[iMo] ?? "").trim();
     const type = String(cells[iTi] ?? "").trim();
+    // EvTol/EvIg: legördülőkhöz unió — minden évjárat típusa megjelenik
     if (!brand) continue;
     rowCount += 1;
     if (!tree[brand]) tree[brand] = {};
     if (!model) continue;
     if (!tree[brand][model]) tree[brand][model] = [];
-    if (type && !tree[brand][model].includes(type)) {
+    if (type && !/^egy[eé]b\b/i.test(type) && !tree[brand][model].includes(type)) {
       tree[brand][model].push(type);
     }
   }

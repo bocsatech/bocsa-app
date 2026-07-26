@@ -69,14 +69,19 @@ A program **nem navigál el** — a meglévő lapot használja.
 
 A program **létrehozza** a `mentesmarka` almappát a Letöltésekben, ha még nincs.
 
-CSV oszlopok:
+CSV oszlopok (v0.4+):
 
-| Gyartmany | Modell | Tipus |
-|-----------|--------|-------|
-| AUDI      | A6     | A6 1.8 20V … |
+| Gyartmany | Modell | EvTol | EvIg | Tipus |
+|-----------|--------|-------|------|-------|
+| AUDI      | A6     | 2012  | 2018 | A6 1.8 20V … |
 
-Ha a Tipus oszlopban mindenütt csak `EGYÉB` van: a program túl korán olvasta a listát.
-Töröld a hibás fájlokat és futtasd újra (v0.3.6+ megvárja a Tipus AJAX-ot):
+**Gyártási év kell** a Tipus listához (üres év → gyakran csak `EGYÉB`).
+A program ezért modellnél végigmegy az évekén:
+
+- **1990–2026**, lépés **3** (1990, 1993, …)
+- ha van valódi típus: **±1 év** finomítás
+- üres / csak `EGYÉB` évek kihagyva
+- típusonként mentett tartomány: `EvTol`–`EvIg`
 
 ```bash
 rm -f ~/Letöltések/mentesmarka/jarmu-katalogus.csv \
