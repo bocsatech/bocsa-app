@@ -19,7 +19,9 @@ test("partner-recommendations.js: böngészőben elérhető kategória import", 
     "utf8"
   );
   assert.ok(js.includes("./partner-categories-data.js"));
-  assert.ok(!js.includes("../lib/partner-categories.mjs"));
+  assert.ok(js.includes("home-partner-accordion"));
+  assert.ok(js.includes("home-partner-collapse-all"));
+  assert.ok(js.includes("bindPartnerAccordion"));
 });
 
 test("getPartnerRecommendations: 8000 környékén van találat demo adattal", async () => {

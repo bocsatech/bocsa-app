@@ -62,6 +62,14 @@ function formatRating(partner) {
   return `★ ${Number(partner.google_rating).toFixed(1)}${count}`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function renderPartnerCard(partner) {
   const article = document.createElement("article");
   article.className = "home-partner-card";
@@ -91,23 +99,11 @@ function renderPartnerCard(partner) {
   return article;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function renderCategoryBlock(category) {
-  const section = document.createElement("section");
-  section.className = "home-partner-category";
-  section.dataset.category = category.id;
-
-  const heading = document.createElement("h3");
-  heading.className = "home-partner-category-title";
-  heading.textContent = category.label;
-  section.append(heading);
+function renderCategoryPanel(category) {
+  const panel = document.createElement("div");
+  panel.className = "home-partner-category-panel";
+  panel.hidden = true;
+  panel.id = `home-partner-panel-${category.id}`;
 
   const list = document.createElement("div");
   list.className = "home-partner-list";
@@ -123,8 +119,61 @@ function renderCategoryBlock(category) {
     list.append(empty);
   }
 
-  section.append(list);
+  panel.append(list);
+  return panel;
+}
+
+function renderCategoryAccordionItem(category) {
+  const section = document.createElement("section");
+  section.className = "home-partner-category";
+  section.dataset.category = category.id;
+
+  const count = category.partners?.length ?? 0;
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "home-partner-category-toggle";
+  toggle.setAttribute("aria-expanded", "false");
+  toggle.setAttribute("aria-controls", `home-partner-panel-${category.id}`);
+  toggle.innerHTML = `
+    <span class="home-partner-category-label">${escapeHtml(category.label)}</span>
+    <span class="home-partner-category-meta">
+      <span class="home-partner-category-count">${count > 0 ? count : "—"}</span>
+      <span class="home-partner-category-chevron" aria-hidden="true"></span>
+    </span>
+  `;
+
+  const panel = renderCategoryPanel(category);
+  section.append(toggle, panel);
   return section;
+}
+
+function bindPartnerAccordion(accordionEl) {
+  if (!accordionEl) return () => {};
+
+  let openId = null;
+
+  function setOpen(categoryId) {
+    openId = categoryId;
+    accordionEl.querySelectorAll(".home-partner-category").forEach((section) => {
+      const isOpen = section.dataset.category === categoryId;
+      const toggle = section.querySelector(".home-partner-category-toggle");
+      const panel = section.querySelector(".home-partner-category-panel");
+      section.classList.toggle("is-open", isOpen);
+      if (toggle) toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      if (panel) panel.hidden = !isOpen;
+    });
+  }
+
+  accordionEl.addEventListener("click", (event) => {
+    const toggle = event.target.closest(".home-partner-category-toggle");
+    if (!toggle) return;
+    const section = toggle.closest(".home-partner-category");
+    const categoryId = section?.dataset.category;
+    if (!categoryId) return;
+    setOpen(openId === categoryId ? null : categoryId);
+  });
+
+  return () => setOpen(null);
 }
 
 function setStatus(statusEl, message, type = "") {
@@ -179,9 +228,43 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
   if (!root || !form || !input || !resultsEl) return;
 
   let apiReady = false;
+  let collapseAccordion = () => {};
 
   const saved = loadSavedPostalCode();
   if (saved) input.value = saved;
+
+  function hideResults() {
+    collapseAccordion();
+    resultsEl.innerHTML = "";
+    resultsEl.hidden = true;
+  }
+
+  function renderResults(categories) {
+    resultsEl.innerHTML = "";
+
+    const accordion = document.createElement("div");
+    accordion.className = "home-partner-accordion";
+    accordion.id = "home-partner-accordion";
+
+    for (const category of categories) {
+      accordion.append(renderCategoryAccordionItem(category));
+    }
+
+    const collapseBtn = document.createElement("button");
+    collapseBtn.type = "button";
+    collapseBtn.className = "home-partner-collapse-all";
+    collapseBtn.id = "home-partner-collapse-all";
+    collapseBtn.textContent = "Összes becsukása";
+
+    resultsEl.append(accordion, collapseBtn);
+    resultsEl.hidden = false;
+
+    collapseAccordion = bindPartnerAccordion(accordion);
+
+    collapseBtn.addEventListener("click", () => {
+      hideResults();
+    });
+  }
 
   async function loadRecommendations(postalCode) {
     if (!apiReady) {
@@ -190,20 +273,17 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
     }
 
     setStatus(statusEl, "Ajánlások betöltése…", "info");
-    resultsEl.innerHTML = "";
+    hideResults();
 
     try {
       const data = await fetchPartnerRecommendations(postalCode);
       savePostalCode(postalCode);
       setStatus(
         statusEl,
-        `${data.city} (${data.postal_code}) — legfeljebb ${data.max_results} partner / kategória`,
+        `${data.city} (${data.postal_code}) — válassz kategóriát`,
         "ok"
       );
-
-      for (const category of data.categories ?? PARTNER_CATEGORIES) {
-        resultsEl.append(renderCategoryBlock(category));
-      }
+      renderResults(data.categories ?? PARTNER_CATEGORIES);
     } catch (error) {
       setStatus(statusEl, error.message ?? "Nem sikerült betölteni az ajánlásokat.", "err");
     }
