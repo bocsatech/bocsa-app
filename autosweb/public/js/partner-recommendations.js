@@ -1,7 +1,7 @@
-import { PARTNER_CATEGORIES } from "./partner-categories-data.js?v=partners20260726acc3";
+import { PARTNER_CATEGORIES } from "./partner-categories-data.js?v=partners20260726acc4";
 
 const STORAGE_KEY = "autosweb_partner_postal_code";
-const PARTNER_UI_VERSION = "partners20260726acc3";
+const PARTNER_UI_VERSION = "partners20260726acc4";
 let partnerUiInitialized = false;
 
 function isLocalAutoswebHost() {
@@ -224,11 +224,13 @@ async function verifyPartnerApi(statusEl) {
 export function initPartnerRecommendations(rootId = "home-partner-recommendations") {
   if (partnerUiInitialized) return;
   const root = document.getElementById(rootId);
+  const toggleBtn = document.getElementById("home-partner-rec-toggle");
+  const bodyEl = document.getElementById("home-partner-rec-body");
   const form = document.getElementById("home-partner-postal-form");
   const input = document.getElementById("home-partner-postal-input");
   const statusEl = document.getElementById("home-partner-postal-status");
   const resultsEl = document.getElementById("home-partner-results");
-  if (!root || !form || !input || !resultsEl) return;
+  if (!root || !toggleBtn || !bodyEl || !form || !input || !resultsEl) return;
   partnerUiInitialized = true;
   root.dataset.partnerUiVersion = PARTNER_UI_VERSION;
 
@@ -238,6 +240,18 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
   const saved = loadSavedPostalCode();
   if (saved) input.value = saved;
 
+  function setWidgetExpanded(expanded) {
+    root.classList.toggle("is-collapsed", !expanded);
+    bodyEl.hidden = !expanded;
+    toggleBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+  }
+
+  function collapseWidget() {
+    clearResults();
+    setStatus(statusEl, "", "");
+    setWidgetExpanded(false);
+  }
+
   function clearResults() {
     collapseAccordion();
     resultsEl.innerHTML = "";
@@ -245,7 +259,7 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
   }
 
   function dismissCategories() {
-    clearResults();
+    collapseWidget();
   }
 
   function renderResults(categories) {
@@ -306,13 +320,18 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
       setStatus(statusEl, "Adj meg érvényes 4 számjegyű irányítószámot.", "err");
       return;
     }
+    setWidgetExpanded(true);
     loadRecommendations(postalCode);
   });
 
-  verifyPartnerApi(statusEl).then((ok) => {
-    apiReady = ok;
-    if (ok && saved.length === 4) {
-      loadRecommendations(saved);
+  toggleBtn.addEventListener("click", () => {
+    const willExpand = root.classList.contains("is-collapsed");
+    if (willExpand) {
+      setWidgetExpanded(true);
+      return;
     }
+    collapseWidget();
   });
+
+  setWidgetExpanded(false);
 }

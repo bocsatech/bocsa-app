@@ -104,7 +104,7 @@ else
   exit 1
 fi
 
-if grep -q 'partners20260726acc3' "$TARGET/public/index.html" 2>/dev/null; then
+if grep -q 'partners20260726acc4' "$TARGET/public/index.html" 2>/dev/null; then
   echo "  ✓ főoldal partner verzió OK"
 else
   echo "  ✗ HIBA: index.html régi — partner accordion javítás hiányzik"

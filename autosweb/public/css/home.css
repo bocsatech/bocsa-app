@@ -131,11 +131,57 @@ body.home-page .local-banner {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
+.home-partner-rec.is-collapsed {
+  padding-bottom: 0.85rem;
+}
+
+.home-partner-rec-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.home-partner-rec-toggle:hover .home-partner-rec-title {
+  color: #1565c0;
+}
+
 .home-partner-rec-title {
-  margin: 0 0 0.35rem;
+  margin: 0;
   font-size: 0.95rem;
   font-weight: 700;
   color: #111;
+}
+
+.home-partner-rec-chevron {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid #667085;
+  border-bottom: 2px solid #667085;
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.home-partner-rec:not(.is-collapsed) .home-partner-rec-chevron {
+  transform: rotate(-135deg);
+  margin-top: 0.15rem;
+}
+
+.home-partner-rec-body[hidden] {
+  display: none !important;
+}
+
+.home-partner-rec-body {
+  margin-top: 0.65rem;
 }
 
 .home-partner-rec-lead {

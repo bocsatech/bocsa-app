@@ -22,8 +22,8 @@ test("partner-recommendations.js: böngészőben elérhető kategória import", 
   assert.ok(js.includes("home-partner-accordion"));
   assert.ok(js.includes("home-partner-collapse-all"));
   assert.ok(js.includes("bindPartnerAccordion"));
-  assert.ok(js.includes("dismissCategories"));
-  assert.ok(js.includes("partnerUiInitialized"));
+  assert.ok(js.includes("setWidgetExpanded"));
+  assert.ok(js.includes("collapseWidget"));
 });
 
 test("getPartnerRecommendations: 8000 környékén van találat demo adattal", async () => {

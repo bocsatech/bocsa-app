@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="partners20260726acc3" />
+    <meta name="autosweb-version" content="partners20260726acc4" />
     <title>Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260726partneracc3" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260726partneracc4" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — egyetlen oldalgörgetés, nincs oldalsáv scroll */
       html:has(body.home-page) {
@@ -334,11 +334,21 @@
       <div class="site-layout home-layout">
         <aside class="site-side site-side--left home-info-sidebar" data-site-side="left" aria-label="Hasznos információ">
           <section
-            class="home-partner-rec"
+            class="home-partner-rec is-collapsed"
             id="home-partner-recommendations"
             aria-labelledby="home-partner-rec-title"
           >
-            <h2 class="home-partner-rec-title" id="home-partner-rec-title">Szolgáltatók a közeledben</h2>
+            <button
+              type="button"
+              class="home-partner-rec-toggle"
+              id="home-partner-rec-toggle"
+              aria-expanded="false"
+              aria-controls="home-partner-rec-body"
+            >
+              <span class="home-partner-rec-title" id="home-partner-rec-title">Szolgáltatók a közeledben</span>
+              <span class="home-partner-rec-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="home-partner-rec-body" id="home-partner-rec-body" hidden>
             <p class="home-partner-rec-lead">Add meg az irányítószámod, és ajánlunk fizetős partnereket 30 km-en belül.</p>
             <form id="home-partner-postal-form" class="home-partner-postal-form">
               <label class="home-partner-postal-field">
@@ -359,6 +369,7 @@
             </form>
             <p id="home-partner-postal-status" class="home-partner-postal-status" hidden></p>
             <div id="home-partner-results" class="home-partner-results" hidden></div>
+            </div>
           </section>
 
           <div class="site-side-card home-info-card">
@@ -519,8 +530,8 @@
       </div>
     </footer>
 
-    <script src="/js/partner-recommendations-init.js?v=partners20260726acc3" type="module"></script>
-    <script src="/js/home-app.js?v=partners20260726acc3" type="module"></script>
+    <script src="/js/partner-recommendations-init.js?v=partners20260726acc4" type="module"></script>
+    <script src="/js/home-app.js?v=partners20260726acc4" type="module"></script>
     <script src="/js/site-auth.js?v=auth20260725reg" type="module"></script>
   </body>
 </html>
