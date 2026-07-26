@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260726filter1" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260726filter2" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — egyetlen oldalgörgetés, nincs oldalsáv scroll */
       html:has(body.home-page) {
@@ -435,6 +435,14 @@
             <form id="home-filter-form" class="home-filter-form">
               <input type="hidden" name="uzemanyag_quick" id="filter-uzemanyag-quick" value="" />
 
+              <div class="home-filter-fuel-btns" role="group" aria-label="Üzemanyag gyorsválasztó">
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="benzin">Benzin</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="diesel">Diesel</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="hybrid">Hybrid</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="benzin-gaz">Benzin/Gáz</button>
+                <button type="button" class="home-filter-fuel-btn" data-fuel-quick="elektromos">Elektromos</button>
+              </div>
+
               <label class="home-filter-field">
                 <span class="home-filter-label">Márka</span>
                 <select id="filter-gyartmany" name="gyartmany"><option value="">Mindegy</option></select>
@@ -489,13 +497,6 @@
               </button>
 
               <div class="home-filter-more" id="filter-more" hidden>
-                <div class="home-filter-fuel-btns" role="group" aria-label="Üzemanyag gyorsválasztó">
-                  <button type="button" class="home-filter-fuel-btn" data-fuel-quick="benzin">Benzin</button>
-                  <button type="button" class="home-filter-fuel-btn" data-fuel-quick="diesel">Diesel</button>
-                  <button type="button" class="home-filter-fuel-btn" data-fuel-quick="hybrid">Hybrid</button>
-                  <button type="button" class="home-filter-fuel-btn" data-fuel-quick="benzin-gaz">Benzin/Gáz</button>
-                  <button type="button" class="home-filter-fuel-btn" data-fuel-quick="elektromos">Elektromos</button>
-                </div>
                 <label class="home-filter-field">
                   <span class="home-filter-label">Kivitel</span>
                   <select id="filter-kivitel" name="kivitel"><option value="">Mindegy</option></select>

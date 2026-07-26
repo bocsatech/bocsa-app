@@ -1168,8 +1168,8 @@ body.home-page .local-banner {
 .home-filter-fuel-btns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.35rem;
-  margin-bottom: 0.15rem;
+  gap: 0.4rem;
+  margin: 0 0 0.1rem;
 }
 
 .home-filter-fuel-btn {
