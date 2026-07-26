@@ -189,7 +189,7 @@ body.site-page {
 }
 
 body.home-page.site-page {
-  overflow: visible;
+  overflow: hidden;
 }
 
 body.home-page .site-side,
