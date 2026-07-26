@@ -30,6 +30,7 @@ npm install
 npx playwright install chromium 2>/dev/null || true
 npx playwright install chrome 2>/dev/null || true
 
+VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
 echo "  ✓ Kategória képek: lokális fájlok megmaradtak (public/images/categories/)"
 echo ""
 echo "✓ Frissítve: $TARGET"
