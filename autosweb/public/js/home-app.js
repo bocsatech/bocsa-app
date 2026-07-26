@@ -5,6 +5,7 @@ import {
   filterListingsBySidebar,
   populateFilterOptions,
   initHomeSearchSidebar,
+  initHomeFilterCatalog,
 } from "./home-search-filter.js";
 import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.js";
 import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
@@ -155,6 +156,17 @@ const readSidebarFilters = initHomeSearchSidebar((filters) => {
   applyFilters();
 });
 sidebarFilters = readSidebarFilters?.() ?? emptyFilters();
+
+initHomeFilterCatalog(() => {
+  sidebarFilters = readSidebarFilters?.() ?? emptyFilters();
+  if (hasActiveSidebarFilters(sidebarFilters)) {
+    quickPreset = null;
+    quickFilterUi?.clear();
+    categoryUi?.clear();
+    categoryFilter = null;
+  }
+  applyFilters();
+}).catch((error) => console.error("Járműkatalógus (szűrő):", error));
 
 import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())

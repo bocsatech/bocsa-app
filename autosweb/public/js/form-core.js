@@ -1,5 +1,6 @@
 import { UZEMANYAG_CATEGORIES, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
 import { EGYEB_INFO_OPTIONS } from "./egyeb-info-data.js";
+import { initVehicleCatalogSelects } from "./vehicle-catalog-client.js";
 
 export function createAdForm(options = {}) {
   const mode = options.mode ?? "wizard";
@@ -823,6 +824,17 @@ document.querySelectorAll(".package").forEach((card) => {
 fillYearSelect(gyartasiEv);
 fillYearSelect(muszakiEv);
 fillYearSelect(forgalombaHelyezesEv);
+initVehicleCatalogSelects({
+  brandSelect: gyartmany,
+  modelSelect: modell,
+  brandEmptyLabel: "Válasszon",
+  modelEmptyLabel: "Válasszon",
+  onChange: () => {
+    applyAutoFill();
+    updateTitle();
+    fitAllFormFields();
+  },
+}).catch(() => {});
 renderFuelDropdown();
 renderFuelSelector();
 renderKlimaOptions();

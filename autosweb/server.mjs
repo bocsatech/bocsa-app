@@ -40,6 +40,7 @@ import {
 } from "./lib/partners.mjs";
 import { PARTNER_CATEGORIES } from "./lib/partner-categories.mjs";
 import { estimateValuation, valuationOptions } from "./lib/valuation.mjs";
+import { ensureVehicleCatalog, loadVehicleCatalog } from "./lib/vehicle-catalog.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -375,6 +376,21 @@ async function handleFugvenyApi(req, res, pathname) {
   }
 }
 
+async function handleVehicleCatalogApi(req, res, pathname) {
+  if (pathname === "/api/vehicle-catalog" && req.method === "GET") {
+    const catalog = ensureVehicleCatalog();
+    if (!catalog?.gyartmanyok?.length) {
+      sendJson(res, 404, {
+        error: "Nincs járműkatalógus. Futtasd: npm run import:catalog -- ~/Desktop/lista.csv",
+      });
+      return;
+    }
+    sendJson(res, 200, catalog);
+    return;
+  }
+  sendJson(res, 404, { error: "Ismeretlen katalógus API." });
+}
+
 async function handleValuationApi(req, res, pathname) {
   try {
     if (pathname === "/api/valuation/options" && req.method === "GET") {
@@ -593,6 +609,11 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (pathname.startsWith("/api/vehicle-catalog")) {
+    await handleVehicleCatalogApi(req, res, pathname);
+    return;
+  }
+
   if (pathname.startsWith("/api/partners") || pathname.startsWith("/api/postal-codes")) {
     await handlePartnersApi(req, res, pathname);
     return;
@@ -614,6 +635,24 @@ server.listen(PORT, HOST, async () => {
     console.log(`SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella)`);
   } catch (error) {
     console.warn("SQLite inicializálás:", error.message ?? error);
+  }
+  try {
+    const catalog = ensureVehicleCatalog();
+    if (catalog?.gyartmanyok?.length) {
+      const modelCount = Object.values(catalog.modellek ?? {}).reduce(
+        (n, arr) => n + arr.length,
+        0
+      );
+      console.log(
+        `Járműkatalógus: ${catalog.gyartmanyok.length} márka, ${modelCount} modell (${catalog.source ?? "?"})`
+      );
+    } else {
+      console.warn(
+        "Járműkatalógus: nincs — futtasd: npm run import:catalog -- ~/Desktop/lista.csv"
+      );
+    }
+  } catch (error) {
+    console.warn("Járműkatalógus:", error.message ?? error);
   }
   try {
     const { seedDemoPartnersIfEmpty } = await import("./scripts/seed-partners.mjs");

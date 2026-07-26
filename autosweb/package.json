@@ -12,6 +12,7 @@
     "test:links": "node --test lib/links.test.mjs",
     "test": "node --test lib/*.test.mjs",
     "seed:partners": "node scripts/seed-partners.mjs",
+    "import:catalog": "node scripts/import-vehicle-catalog.mjs",
     "build:html": "node scripts/embed-ad-form.mjs",
     "prestart": "node scripts/embed-ad-form.mjs"
   },

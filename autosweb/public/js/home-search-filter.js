@@ -1,3 +1,5 @@
+import { initVehicleCatalogSelects } from "./vehicle-catalog-client.js";
+
 const FUEL_QUICK_FILTERS = [
   { id: "benzin", label: "Benzin", match: (value) => value === "Benzin" },
   { id: "diesel", label: "Diesel", match: (value) => value === "Diesel" || value === "Dízel" },
@@ -137,8 +139,6 @@ function fillSelect(select, values, emptyLabel = "Mindegy") {
 
 export function populateFilterOptions(items) {
   const filters = items.map((item) => item.preview?.filter ?? {});
-  fillSelect(document.getElementById("filter-gyartmany"), uniqueSorted(filters.map((f) => f.gyartmany)));
-  fillSelect(document.getElementById("filter-modell"), uniqueSorted(filters.map((f) => f.modell)));
   fillSelect(document.getElementById("filter-kivitel"), uniqueSorted(filters.map((f) => f.kivitel)));
   fillSelect(document.getElementById("filter-allapot"), uniqueSorted(filters.map((f) => f.allapot)));
   fillSelect(document.getElementById("filter-ajtok"), uniqueSorted(filters.map((f) => f.ajtok)));
@@ -265,6 +265,20 @@ function initFuelQuickButtons(form, trigger) {
       }
     });
   }
+}
+
+export async function initHomeFilterCatalog(onChange = () => {}) {
+  const brandSelect = document.getElementById("filter-gyartmany");
+  const modelSelect = document.getElementById("filter-modell");
+  if (!brandSelect || !modelSelect) return null;
+
+  return initVehicleCatalogSelects({
+    brandSelect,
+    modelSelect,
+    brandEmptyLabel: "Mindegy",
+    modelEmptyLabel: "Mindegy",
+    onChange,
+  });
 }
 
 export { FEATURE_CHECKS, FUEL_QUICK_FILTERS };
