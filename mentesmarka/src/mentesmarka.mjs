@@ -8,6 +8,7 @@ import {
   openSync,
   readFileSync,
   renameSync,
+  unlinkSync,
   writeFileSync,
 } from "fs";
 import { homedir } from "os";
@@ -100,8 +101,9 @@ function parseArgs(argv) {
     connect: true,
     headed: false,
     source: "form",
-    delayMs: 400,
+    delayMs: 900,
     deep: false,
+    fresh: true,
     maxBrands: null,
     maxModels: null,
     maxTypes: null,
@@ -148,8 +150,16 @@ function parseArgs(argv) {
       continue;
     }
     if (arg === "--delay") {
-      options.delayMs = Number(argv[i + 1] ?? 400);
+      options.delayMs = Number(argv[i + 1] ?? 900);
       i += 1;
+      continue;
+    }
+    if (arg === "--fresh") {
+      options.fresh = true;
+      continue;
+    }
+    if (arg === "--resume") {
+      options.fresh = false;
       continue;
     }
     if (arg === "--deep") {
@@ -668,12 +678,16 @@ async function waitForSelectOptions(select, { minCount = 1, timeoutMs = 15000, s
 
 /**
  * Tipus AJAX után vár: ne az első "EGYÉB" opciót mentse, hanem a teljes listát.
+ * Minimum várakozás + stabil lista (hosszabb settle).
  */
-async function waitForTypeOptions(select, { timeoutMs = 22000 } = {}) {
+async function waitForTypeOptions(select, { timeoutMs = 35000, minWaitMs = 1500, settleMs = 1500 } = {}) {
   const started = Date.now();
   let lastSig = "";
   let stableSince = Date.now();
   let best = [];
+
+  // Mindig adj időt az AJAX-nak indulni.
+  await sleep(minWaitMs);
 
   while (Date.now() - started < timeoutMs) {
     const options = await readSelectOptions(select);
@@ -688,14 +702,29 @@ async function waitForTypeOptions(select, { timeoutMs = 22000 } = {}) {
     }
 
     const hasReal = real.length > 0 && !typesAreOnlyEgyeb(real);
-    if (hasReal && Date.now() - stableSince >= 700) {
+    // Stabil + van valódi típus (nem csak EGYÉB)
+    if (hasReal && Date.now() - stableSince >= settleMs) {
       return real;
     }
 
-    await sleep(200);
+    await sleep(250);
   }
 
   return preferRealTypes(best);
+}
+
+function clearCatalogOutputs(options, onProgress) {
+  const paths = outputPaths(options);
+  for (const filePath of [paths.csv, paths.json, paths.appendCsv, paths.status]) {
+    try {
+      if (existsSync(filePath)) {
+        unlinkSync(filePath);
+        onProgress?.(`Törölve (fresh): ${filePath}`);
+      }
+    } catch (error) {
+      onProgress?.(`Nem törölhető: ${filePath} (${error.message})`);
+    }
+  }
 }
 
 async function safeSelectOption(select, option, onProgress) {
@@ -846,7 +875,11 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     for (const model of limitedModels) {
       const modelKey = slugify(model.text);
 
-      if (!options.deep && modelAlreadyDone(catalog.gyartmanyok[brandKey].modellek[modelKey])) {
+      if (
+        !options.fresh &&
+        !options.deep &&
+        modelAlreadyDone(catalog.gyartmanyok[brandKey].modellek[modelKey])
+      ) {
         onProgress?.(`  Modell (már megvan): ${model.text}`);
         continue;
       }
@@ -857,7 +890,8 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         saveOutputs(options, catalog, onProgress);
         continue;
       }
-      await sleep(Math.max(options.delayMs, 500));
+      // Idő a Tipus AJAX-nak (Tipus(this.value,...))
+      await sleep(Math.max(options.delayMs, 1200));
 
       if (!(await typeSelect.count())) {
         appendModelTypes(options, brand.text, model.text, [], onProgress);
@@ -865,13 +899,22 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         continue;
       }
 
-      let types = await waitForTypeOptions(typeSelect);
+      onProgress?.(`    Várakozás Tipus listára…`);
+      let types = await waitForTypeOptions(typeSelect, {
+        timeoutMs: 35000,
+        minWaitMs: 1500,
+        settleMs: 1500,
+      });
       // Ha csak EGYÉB jött (AJAX még nem töltött), modell újraválasztás + újra várás
       if (!types.length || typesAreOnlyEgyeb(types)) {
         onProgress?.(`    Típus lista gyenge (${types.map((t) => t.text).join(", ") || "üres"}) — újrapróbál`);
         await safeSelectOption(modelSelect, model, onProgress);
-        await sleep(900);
-        types = await waitForTypeOptions(typeSelect, { timeoutMs: 18000 });
+        await sleep(1500);
+        types = await waitForTypeOptions(typeSelect, {
+          timeoutMs: 30000,
+          minWaitMs: 2000,
+          settleMs: 1800,
+        });
       }
 
       types = preferRealTypes(types);
@@ -1020,16 +1063,23 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   options.output = resolveOutputPath(options.output);
 
-  const catalog = loadCatalog(options);
+  const onProgress = (message) => console.log(`[mentesmarka] ${message}`);
+  console.log(`mentesmarka v${PKG.version} — saját Chrome port: 9223`);
+
+  if (options.fresh) {
+    onProgress("FRESH mód — előző mentés figyelmen kívül, üres katalógustól indul");
+    clearCatalogOutputs(options, onProgress);
+  }
+
+  const catalog = options.fresh ? createEmptyCatalog(options.brands) : loadCatalog(options);
   catalog.meta.brands = options.brands?.length ? [...options.brands] : ["*"];
   catalog.meta.source =
     options.source === "katalogus" ? "katalogus.hasznaltauto.hu" : "admin.hasznaltauto.hu/hirdetesfeladas";
   catalog.meta.levels = options.deep ? "gyartmany-modell-tipus-kivitel" : "gyartmany-modell-tipus";
+  catalog.meta.fresh = Boolean(options.fresh);
 
-  const onProgress = (message) => console.log(`[mentesmarka] ${message}`);
-  console.log(`mentesmarka v${PKG.version} — saját Chrome port: 9223`);
   console.log(
-    `[mentesmarka] Formátum: ${options.format} | Márkák: ${options.brands?.length ? options.brands.join(", ") : "MINDEN"} | Szintek: ${catalog.meta.levels}`
+    `[mentesmarka] Formátum: ${options.format} | Márkák: ${options.brands?.length ? options.brands.join(", ") : "MINDEN"} | Szintek: ${catalog.meta.levels} | ${options.fresh ? "FRESH" : "RESUME"}`
   );
 
   // Induláskor azonnal létrehozza a fájlokat — látszik a pontos útvonal.
