@@ -10,7 +10,7 @@ import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.
 import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
 import { filterListingsNearby, initHomeNearby } from "./home-nearby.js";
 import { initHomeUnifiedScroll } from "./home-unified-scroll.js";
-import { initHomeStatsRadius } from "./home-stats-radius.js";
+import { initHomeStatsBar } from "./home-stats-bar.js";
 
 const gridTrack = document.getElementById("home-grid-track");
 const emptyEl = document.getElementById("home-empty");
@@ -26,8 +26,8 @@ let quickFilterUi = null;
 let categoryUi = null;
 let nearbyUi = null;
 let nearbyFilter = null;
-let radiusUi = null;
-let radiusFilter = null;
+let statsUi = null;
+let statsFilter = null;
 
 function sortForHome(items) {
   return [...items].sort((a, b) => {
@@ -44,8 +44,8 @@ function filterItems(items) {
   if (nearbyFilter) {
     result = filterListingsNearby(result, nearbyFilter.lat, nearbyFilter.lon);
   }
-  if (radiusFilter) {
-    result = result.filter((item) => radiusFilter.listingIds.has(item.id));
+  if (statsFilter) {
+    result = result.filter((item) => statsFilter.listingIds.has(item.id));
   }
   return result;
 }
@@ -57,9 +57,13 @@ function renderListings(items) {
 
   const filtered = filterItems(items);
   emptyEl.hidden = filtered.length > 0;
-  if (!filtered.length && radiusFilter) {
+  if (!filtered.length && statsFilter) {
     emptyEl.hidden = false;
-    emptyEl.textContent = `Nincs hirdetés ${radiusFilter.origin.city} ${radiusFilter.radiusKm} km-es körzetében.`;
+    if (statsFilter.mode === "recent24h") {
+      emptyEl.textContent = `Nincs új hirdetés ${statsFilter.origin.city} ${statsFilter.radiusKm} km-es körzetében az elmúlt 24 órában.`;
+    } else {
+      emptyEl.textContent = `Nincs hirdetés ${statsFilter.origin.city} ${statsFilter.radiusKm} km-es körzetében.`;
+    }
   } else if (!filtered.length && nearbyFilter) {
     emptyEl.hidden = false;
     emptyEl.textContent =
@@ -80,7 +84,7 @@ async function loadListings() {
   populateFilterOptions(allItems);
   populateYearOptions(allItems);
   renderListings(allItems);
-  radiusUi?.refreshActiveCount?.();
+  statsUi?.refreshActiveCount?.();
 }
 
 function populateYearOptions(items) {
@@ -171,9 +175,9 @@ nearbyUi = initHomeNearby({
   },
 });
 
-radiusUi = initHomeStatsRadius({
+statsUi = initHomeStatsBar({
   onChange: (active) => {
-    radiusFilter = active;
+    statsFilter = active;
     applyFilters();
   },
   getItems: () => allItems,

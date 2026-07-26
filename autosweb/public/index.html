@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260726statsradius" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260726statsbar" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — egyetlen oldalgörgetés, nincs oldalsáv scroll */
       html:has(body.home-page) {
@@ -204,13 +204,13 @@
       <section class="home-stats-bar" aria-label="Összesítő">
         <div class="home-stats-track">
           <article
-            class="home-stats-card home-stats-card--primary"
+            class="home-stats-card home-stats-card--filter home-stats-card--inputs"
             id="home-stats-total-card"
             tabindex="0"
             role="button"
             aria-label="Összes hirdetés a megadott körzetben"
           >
-            <span class="home-stats-icon home-stats-icon--primary" aria-hidden="true">
+            <span class="home-stats-icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
                 <path d="M4 8.5h3l1.2-2.2h7.6L16 8.5h2a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 4 8.5Z" stroke="currentColor" stroke-width="1.5"/>
                 <path d="M7.5 14.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -248,7 +248,13 @@
             </div>
           </article>
 
-          <article class="home-stats-card">
+          <article
+            class="home-stats-card home-stats-card--filter"
+            id="home-stats-recent-card"
+            tabindex="0"
+            role="button"
+            aria-label="Új hirdetések az elmúlt 24 órában a megadott körzetben"
+          >
             <span class="home-stats-icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
                 <path d="M3.5 10.5h2.4l1.4-2.6h7.2l1.4 2.6H18a1.8 1.8 0 0 1 1.8 1.8v4.4a1.8 1.8 0 0 1-1.8 1.8H3.5a1.8 1.8 0 0 1-1.8-1.8v-4.4a1.8 1.8 0 0 1 1.8-1.8Z" stroke="currentColor" stroke-width="1.5"/>
@@ -258,8 +264,8 @@
             </span>
             <div class="home-stats-copy">
               <p class="home-stats-label">Új hirdetések</p>
-              <p class="home-stats-value">48</p>
-              <p class="home-stats-meta">az elmúlt 24 órában</p>
+              <p class="home-stats-value" id="home-stats-recent-count">—</p>
+              <p class="home-stats-meta" id="home-stats-recent-meta">Kattints — az első kockában megadott körzetben.</p>
             </div>
           </article>
 
@@ -568,7 +574,7 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=home20260726statsradius" type="module"></script>
+    <script src="/js/home-app.js?v=home20260726statsbar" type="module"></script>
     <script src="/js/site-auth.js?v=auth20260725reg" type="module"></script>
   </body>
 </html>

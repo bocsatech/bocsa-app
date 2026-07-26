@@ -628,23 +628,26 @@ body.home-page .local-banner {
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
-.home-stats-card--primary {
-  background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 8px 22px rgba(21, 101, 192, 0.22);
+.home-stats-card--filter {
   cursor: pointer;
 }
 
-.home-stats-card--primary.is-active {
+.home-stats-card--filter.is-active {
+  background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
+  border-color: transparent;
+  color: #fff;
   box-shadow:
     0 0 0 2px rgba(255, 255, 255, 0.35),
     0 8px 22px rgba(21, 101, 192, 0.28);
 }
 
-.home-stats-card--primary:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.85);
+.home-stats-card--filter:focus-visible {
+  outline: 2px solid #1565c0;
   outline-offset: 2px;
+}
+
+.home-stats-card--filter.is-active:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
 }
 
 .home-stats-icon {
@@ -664,6 +667,46 @@ body.home-page .local-banner {
   color: #fff;
 }
 
+.home-stats-card--inputs .home-stats-radius-field span {
+  color: #667085;
+}
+
+.home-stats-card--inputs.is-active .home-stats-radius-field span {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.home-stats-card--inputs .home-stats-radius-input {
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  color: #111;
+}
+
+.home-stats-card--inputs .home-stats-radius-input::placeholder {
+  color: #98a2b3;
+}
+
+.home-stats-card--inputs .home-stats-radius-input:focus {
+  outline: none;
+  border-color: #1565c0;
+  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.15);
+}
+
+.home-stats-card--inputs.is-active .home-stats-radius-input {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.home-stats-card--inputs.is-active .home-stats-radius-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.home-stats-card--inputs.is-active .home-stats-radius-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
 .home-stats-copy {
   min-width: 0;
 }
@@ -675,7 +718,7 @@ body.home-page .local-banner {
   color: #667085;
 }
 
-.home-stats-card--primary .home-stats-label {
+.home-stats-card--filter.is-active .home-stats-label {
   color: rgba(255, 255, 255, 0.82);
 }
 
@@ -688,7 +731,7 @@ body.home-page .local-banner {
   color: #111;
 }
 
-.home-stats-card--primary .home-stats-value {
+.home-stats-card--filter.is-active .home-stats-value {
   color: #fff;
 }
 
@@ -698,8 +741,13 @@ body.home-page .local-banner {
   color: #8a9199;
 }
 
-.home-stats-card--primary .home-stats-meta {
+.home-stats-card--filter.is-active .home-stats-meta {
   color: rgba(255, 255, 255, 0.78);
+}
+
+.home-stats-card--filter.is-active .home-stats-icon {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 
 .home-stats-meta--positive {
@@ -707,19 +755,19 @@ body.home-page .local-banner {
   font-weight: 600;
 }
 
-.home-stats-meta[data-status-type="err"] {
+.home-stats-card--filter.is-active .home-stats-meta[data-status-type="err"] {
   color: #ffcdd2;
 }
 
-.home-stats-meta[data-status-type="ok"] {
+.home-stats-card--filter.is-active .home-stats-meta[data-status-type="ok"] {
   color: rgba(255, 255, 255, 0.88);
 }
 
-.home-stats-card:not(.home-stats-card--primary) .home-stats-meta[data-status-type="err"] {
+.home-stats-card--filter:not(.is-active) .home-stats-meta[data-status-type="err"] {
   color: #c62828;
 }
 
-.home-stats-card:not(.home-stats-card--primary) .home-stats-meta[data-status-type="ok"] {
+.home-stats-card--filter:not(.is-active) .home-stats-meta[data-status-type="ok"] {
   color: #2e7d32;
 }
 
@@ -740,29 +788,15 @@ body.home-page .local-banner {
 .home-stats-radius-field span {
   font-size: 0.68rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.78);
 }
 
 .home-stats-radius-input {
   width: 100%;
   min-height: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
   padding: 0.3rem 0.45rem;
   font: inherit;
   font-size: 0.84rem;
-}
-
-.home-stats-radius-input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.home-stats-radius-input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.65);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
 }
 
 .home-stats-card--app {

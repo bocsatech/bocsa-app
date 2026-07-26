@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   buildCityIndex,
   filterListingsInRadius,
+  filterListingsRecentInRadius,
+  isListingWithinHours,
   listingCityName,
 } from "../public/js/listing-radius.js";
 
@@ -36,4 +38,28 @@ test("filterListingsInRadius: nagy sugár több települést is elér", () => {
   ];
   const filtered = filterListingsInRadius(items, 47.186, 18.413, 280, cityIndex);
   assert.equal(filtered.length, 2);
+});
+
+test("isListingWithinHours: friss hirdetés az elmúlt 24 órában", () => {
+  const recent = {
+    updated_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+  };
+  const old = {
+    updated_at: new Date(Date.now() - 48 * 3600000).toISOString(),
+  };
+  assert.equal(isListingWithinHours(recent, 24), true);
+  assert.equal(isListingWithinHours(old, 24), false);
+});
+
+test("filterListingsRecentInRadius: sugár + 24 óra együtt", () => {
+  const now = new Date().toISOString();
+  const old = new Date(Date.now() - 48 * 3600000).toISOString();
+  const items = [
+    { id: 1, preview: { filter: { telepules: "Székesfehérvár" } }, updated_at: now },
+    { id: 2, preview: { filter: { telepules: "Székesfehérvár" } }, updated_at: old },
+    { id: 3, preview: { filter: { telepules: "Debrecen" } }, updated_at: now },
+  ];
+  const filtered = filterListingsRecentInRadius(items, 47.186, 18.413, 30, cityIndex, 24);
+  assert.equal(filtered.length, 1);
+  assert.equal(filtered[0].id, 1);
 });

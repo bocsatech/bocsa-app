@@ -53,3 +53,29 @@ export function filterListingsInRadius(items, originLat, originLon, radiusKm, ci
 export function countListingsInRadius(items, originLat, originLon, radiusKm, cityIndex) {
   return filterListingsInRadius(items, originLat, originLon, radiusKm, cityIndex).length;
 }
+
+export function listingTimestamp(item) {
+  const raw = item.updated_at ?? item.created_at;
+  if (!raw) return null;
+  const time = new Date(raw).getTime();
+  return Number.isFinite(time) ? time : null;
+}
+
+export function isListingWithinHours(item, hours) {
+  const timestamp = listingTimestamp(item);
+  if (timestamp == null) return false;
+  const cutoff = Date.now() - Number(hours) * 3600000;
+  return timestamp >= cutoff;
+}
+
+export function filterListingsRecentInRadius(
+  items,
+  originLat,
+  originLon,
+  radiusKm,
+  cityIndex,
+  hours = 24
+) {
+  const inRadius = filterListingsInRadius(items, originLat, originLon, radiusKm, cityIndex);
+  return inRadius.filter((item) => isListingWithinHours(item, hours));
+}
