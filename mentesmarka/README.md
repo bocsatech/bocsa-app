@@ -75,6 +75,21 @@ CSV oszlopok:
 |-----------|--------|-------|
 | AUDI      | A6     | A6 1.8 20V … |
 
+Ha a Tipus oszlopban mindenütt csak `EGYÉB` van: a program túl korán olvasta a listát.
+Töröld a hibás fájlokat és futtasd újra (v0.3.6+ megvárja a Tipus AJAX-ot):
+
+```bash
+rm -f ~/Letöltések/mentesmarka/jarmu-katalogus.csv \
+      ~/Letöltések/mentesmarka/jarmu-katalogus.append.csv \
+      ~/Letöltések/mentesmarka/jarmu-katalogus.json
+# Downloads másolat is, ha van:
+rm -f ~/Downloads/mentesmarka/jarmu-katalogus.*
+
+cd ~/bocsa-app/mentesmarka
+git pull origin cursor/mentesmarka-csv-katalogus-2aa0
+npm run mentesmarka
+```
+
 Alapértelmezés: **minden gyártmány**. Szűrés:
 
 ```bash
