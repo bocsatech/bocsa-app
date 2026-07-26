@@ -1,6 +1,6 @@
 # BOCSA programok — Letöltések mappák
 
-Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
+Minden program **külön mappa** a `~/Letöltések/` (magyar Mac) / `~/Downloads/` alatt.
 
 | Program | Mappa | Indítás | URL |
 |---------|-------|---------|-----|
@@ -11,6 +11,7 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 | **Mobile.de Pro** | `mobilede pro` | `cd ~/Downloads/mobilede\ pro && npm start` | slot / SMS +49 |
 | Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
 | **Autosweb** (hirdetésfeladás) | `autosweb` | Asztal: Autosweb-indito.command | http://127.0.0.1:3456 |
+| **mentesmarka** (Gyártmány/Modell/Típus) | `mentesmarka` | `cd ~/bocsa-app/mentesmarka && npm run mentesmarka` | CSV → Autosweb legördülők |
 | **BOCSA Pro Linux** (vékony kliens) | `bocsa Pro linux` | `~/Desktop/bocsa-pro-linux-indito.sh` | SSH tunell → szerver :3850 |
 | Hasznaltauto scraper | `hasznaltauto-scraper` | `npm start` | — |
 | **Függvény / átlagszámolás** | `fugveny` | `cd ~/Downloads/fugveny/program && npm start` | CSV/JSON export |

@@ -1,22 +1,34 @@
 #!/bin/bash
-# Frissítés: GitHub-ról CSAK autosweb → ~/Downloads/autosweb
+# Frissítés: helyi bocsa-app/autosweb → ~/Letöltések/autosweb
+# Fontos: NEM kényszerít main ágat — a repo aktuális állapotát másolja.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 SOURCE="$REPO/autosweb"
-TARGET="$HOME/Downloads/autosweb"
+# shellcheck source=/dev/null
+source "$(dirname "$0")/_target.sh"
+TARGET="$(autosweb_target)"
 
-echo "Autosweb frissítés (GitHub main → Letöltések)…"
+echo "Autosweb frissítés (helyi repo → Letöltések)…"
 echo "  Repo: $REPO"
+echo "  Cél:  $TARGET"
 echo ""
 
 cd "$REPO"
-git fetch origin main
-git pull origin main -- autosweb/ 2>/dev/null || git checkout origin/main -- autosweb/
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+echo "  Ág: $BRANCH"
+git fetch origin 2>/dev/null || true
+# Ne írjuk felül a feature ágat main-nel — a felhasználó pull-ozzon előtte.
+
+if [ ! -f "$SOURCE/lib/jarmu-katalogus.mjs" ]; then
+  echo "✗ Nincs járműkatalógus a forrásban."
+  echo "  Futtasd: git pull origin cursor/mentesmarka-csv-katalogus-2aa0"
+  exit 1
+fi
 
 if [ ! -d "$TARGET" ]; then
-  echo "Nincs telepítve. Futtasd: ./telepites.command"
-  exit 1
+  echo "Nincs telepítve — létrehozom: $TARGET"
+  mkdir -p "$TARGET"
 fi
 
 cp "$SOURCE/package.json" "$SOURCE/server.mjs" "$TARGET/"
@@ -31,121 +43,44 @@ npx playwright install chromium 2>/dev/null || true
 npx playwright install chrome 2>/dev/null || true
 
 VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
-echo "  ✓ Kategória képek: lokális fájlok megmaradtak (public/images/categories/)"
 echo ""
 echo "✓ Frissítve: $TARGET"
 echo "  Verzió: $VER"
 
-if [ ! -f "$TARGET/public/css/automax.css" ]; then
-  echo "  ✗ HIBA: automax.css hiányzik — git pull sikertelen?"
+if [ ! -f "$TARGET/lib/jarmu-katalogus.mjs" ]; then
+  echo "  ✗ HIBA: jarmu-katalogus.mjs hiányzik"
   exit 1
 fi
-if grep -q 'site-app' "$TARGET/public/hirdetesfeladas.html"; then
-  echo "  ✓ site-app téma OK"
-else
-  echo "  ✗ HIBA: régi HTML — nincs site-app!"
+if ! grep -q '<select id="modell"' "$TARGET/public/hirdetesfeladas.html" 2>/dev/null; then
+  echo "  ✗ HIBA: modell nem select"
   exit 1
 fi
+if ! grep -q 'jarmu-katalogus-ui' "$TARGET/public/js/form-core.js" 2>/dev/null; then
+  echo "  ✗ HIBA: form-core nincs bekötve"
+  exit 1
+fi
+echo "  ✓ Járműkatalógus OK"
 
-if [ ! -f "$TARGET/public/css/site-app.css" ]; then
-  echo "  ✗ HIBA: site-app.css hiányzik — git pull sikertelen?"
-  exit 1
-fi
-
-if [ ! -f "$TARGET/public/fugveny.html" ]; then
-  echo "  ✗ HIBA: fugveny.html hiányzik — git pull / frissítés sikertelen?"
-  exit 1
-fi
-if [ ! -f "$TARGET/lib/fugveny-api.mjs" ]; then
-  echo "  ✗ HIBA: fugveny-api.mjs hiányzik"
-  exit 1
-fi
-echo "  ✓ Függvény oldal OK (/fugveny.html)"
-
-if grep -q 'id="gyartasi_ev"' "$TARGET/public/import.html" 2>/dev/null; then
-  echo "  ✓ Import űrlap OK"
-else
-  echo "  ✗ HIBA: import.html űrlap hiányzik!"
-  exit 1
-fi
-
-if grep -q 'home-stats-bar' "$TARGET/public/index.html" 2>/dev/null; then
-  echo "  ✓ Főoldal: stats sáv OK"
-else
-  echo "  ✗ HIBA: index.html régi — nincs home-stats-bar (git pull + frissites újra)"
-  exit 1
-fi
-
-if ! grep -q 'home-search-form' "$TARGET/public/index.html" 2>/dev/null; then
-  echo "  ✓ Főoldal: fejléc keresősáv törölve"
-else
-  echo "  ✗ HIBA: index.html még tartalmazza a fejléc keresőt"
-  exit 1
-fi
-
-if grep -q 'home-stats-postal' "$TARGET/public/index.html" 2>/dev/null; then
-  echo "  ✓ stats irányítószám mező OK"
-else
-  echo "  ✗ HIBA: hiányzik a stats irányítószám mező"
-  exit 1
-fi
-
-if grep -q 'partner-recommendations-init.js' "$TARGET/public/index.html" 2>/dev/null; then
-  echo "  ✓ partner accordion init OK"
-else
-  echo "  ✗ HIBA: partner-recommendations-init.js hiányzik — git pull + frissites újra"
-  exit 1
-fi
-
-if grep -q 'home-partner-accordion' "$TARGET/public/js/partner-recommendations.js" 2>/dev/null; then
-  echo "  ✓ partner accordion JS OK"
-else
-  echo "  ✗ HIBA: partner-recommendations.js régi — git pull + frissites újra"
-  exit 1
-fi
-
-if grep -q 'partners20260726acc4' "$TARGET/public/index.html" 2>/dev/null; then
-  echo "  ✓ főoldal partner verzió OK"
-else
-  echo "  ✗ HIBA: index.html régi — partner accordion javítás hiányzik"
-  exit 1
-fi
-
-INDEX_VER=$(grep -o 'autosweb-version" content="[^"]*' "$TARGET/public/index.html" | head -1 | sed 's/.*"//')
-echo "  Főoldal verzió: ${INDEX_VER:-?}"
-
-echo ""
-echo "  1) Állítsd le a futó Autosweb-et (Ctrl+C a terminálban)"
 if command -v lsof >/dev/null 2>&1; then
   PIDS=$(lsof -ti:3456 2>/dev/null || true)
   if [ -n "$PIDS" ]; then
-    echo "  ⚠ Port 3456 foglalt — régi szerver fut. Leállítás…"
+    echo "  ⚠ Port 3456 foglalt — leállítás…"
     kill -9 $PIDS 2>/dev/null || true
     sleep 1
-    echo "  ✓ Régi szerver leállítva"
   fi
-fi
-echo "  2) Indítsd újra: ~/Desktop/Autosweb-indito.command"
-echo "  3) Böngésző: http://127.0.0.1:3456/  (NEM a Vercel weboldal!)"
-echo "  4) Cmd+Shift+R (kemény frissítés)"
-echo ""
-echo "Jó verzió = világos háttér, nincs fejléc keresősáv, stats sáv a kategóriák alatt."
-
-if grep -q 'home-scroll-fix' "$TARGET/public/index.html" 2>/dev/null; then
-  echo "  ✓ Főoldal: egyetlen görgetés (inline scroll fix) OK"
-else
-  echo "  ✗ HIBA: index.html régi — nincs home-scroll-fix (git pull + frissites újra)"
-  exit 1
-fi
-
-if grep -q 'max-height: calc(100vh' "$TARGET/public/css/home.css" 2>/dev/null; then
-  echo "  ✗ HIBA: home.css még tartalmazza a külön oldalsáv scrollt"
-  exit 1
 fi
 
 DESKTOP="$HOME/Desktop/Autosweb-indito.command"
-if [ -f "$SOURCE/mac/Autosweb-indito.command" ]; then
-  cp "$SOURCE/mac/Autosweb-indito.command" "$DESKTOP"
-  chmod +x "$DESKTOP"
-  echo "  ✓ Asztali indító frissítve: $DESKTOP"
-fi
+cp "$SOURCE/mac/Autosweb-indito.command" "$DESKTOP"
+chmod +x "$DESKTOP"
+# Az indító mellé kell a _target.sh hivatkozás — másoljuk a mac mappát is a célba
+mkdir -p "$TARGET/mac"
+cp "$SOURCE/mac/_target.sh" "$SOURCE/mac/Autosweb-indito.command" "$TARGET/mac/" 2>/dev/null || true
+echo "  ✓ Asztali indító frissítve"
+
+echo ""
+echo "  1) Indítsd: ~/Desktop/Autosweb-indito.command"
+echo "  2) http://127.0.0.1:3456/hirdetesfeladas.html"
+echo "  3) Cmd+Shift+R"
+echo ""
+echo "CSV: ~/Letöltések/mentesmarka/jarmu-katalogus.csv"

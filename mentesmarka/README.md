@@ -2,7 +2,9 @@
 
 Önálló program a hasznaltauto.hu **járműkatalógus** mentéséhez.
 
-Gyártmány → Modell → Típus → Kivitel + automatikus (zöld) mezők.
+**Gyártmány → Modell → Típus** → CSV → Autosweb legördülők (feltöltés + keresés).
+
+Forrás: `https://admin.hasznaltauto.hu/hirdetesfeladas/szemelyauto`
 
 **Teljesen külön** a `hasznaltauto-scraper` hirdetés-lista programtól — saját mappa, saját Chrome profil, saját kimenet.
 
@@ -38,11 +40,13 @@ cd ~/bocsa-app/mentesmarka
 npm run chrome
 ```
 
-Chrome-ban: Cloudflare megoldása, hirdetésfeladás űrlap betöltése (bejelentkezés ha kell).
+Chrome-ban: Cloudflare megoldása, bejelentkezés, majd nyisd meg:
+
+`https://admin.hasznaltauto.hu/hirdetesfeladas/szemelyauto`
 
 **Fontos:** a **mentesmarka Chrome ablakában** (9223) legyen az űrlap — nem a sima Chrome-ban és nem a scraper Chrome-ban (9222).
 
-**2. terminál** — katalógus mentés:
+**2. terminál** — katalógus mentés (alapból **minden márka**, CSV):
 
 ```bash
 cd ~/bocsa-app/mentesmarka
@@ -54,15 +58,39 @@ A program **nem navigál el** — a meglévő lapot használja.
 
 ## Kimenet
 
+**Csak ide** (magyar Mac — Letöltések mappa):
+
 ```
-mentesmarka/data/jarmu-katalogus.json
+~/Letöltések/mentesmarka/jarmu-katalogus.csv
+~/Letöltések/mentesmarka/jarmu-katalogus.append.csv
+~/Letöltések/mentesmarka/jarmu-katalogus.json
+~/Letöltések/mentesmarka/LEGUTOBBI-MENTES.txt
 ```
 
-Alapértelmezett márkák (csak ezek mentődnek):
+A program **létrehozza** a `mentesmarka` almappát a Letöltésekben, ha még nincs.
 
-Audi, BMW, Mercedes, Ford, KIA, Toyota, Mazda, OPEL, Alfa, Suzuki, Skoda, Volkswagen
+CSV oszlopok:
 
-Más lista:
+| Gyartmany | Modell | Tipus |
+|-----------|--------|-------|
+| AUDI      | A6     | A6 1.8 20V … |
+
+Ha a Tipus oszlopban mindenütt csak `EGYÉB` van: a program túl korán olvasta a listát.
+Töröld a hibás fájlokat és futtasd újra (v0.3.6+ megvárja a Tipus AJAX-ot):
+
+```bash
+rm -f ~/Letöltések/mentesmarka/jarmu-katalogus.csv \
+      ~/Letöltések/mentesmarka/jarmu-katalogus.append.csv \
+      ~/Letöltések/mentesmarka/jarmu-katalogus.json
+# Downloads másolat is, ha van:
+rm -f ~/Downloads/mentesmarka/jarmu-katalogus.*
+
+cd ~/bocsa-app/mentesmarka
+git pull origin cursor/mentesmarka-csv-katalogus-2aa0
+npm run mentesmarka
+```
+
+Alapértelmezés: **minden gyártmány**. Szűrés:
 
 ```bash
 node src/mentesmarka.mjs --connect --brands "Audi,BMW,Ford"
@@ -72,21 +100,22 @@ node src/mentesmarka.mjs --connect --brands "Audi,BMW,Ford"
 
 ```bash
 node src/mentesmarka.mjs --connect --max-brands 1
+node src/mentesmarka.mjs --connect --brands all
+node src/mentesmarka.mjs --connect --format both
+node src/mentesmarka.mjs --connect --deep          # + Kivitel / zöld mezők (lassabb)
 node src/mentesmarka.mjs --connect --source katalogus
-node src/mentesmarka.mjs --connect -o data/proba.json
+node src/mentesmarka.mjs --connect -o proba.csv
 ```
 
 ## Mappastruktúra
 
 ```
-mentesmarka/
+mentesmarka/          — program kód (bocsa-app-ban)
   package.json
   src/
-    mentesmarka.mjs   — fő program
-    browser.mjs       — Chrome kapcsolat
-    chrome.mjs        — Chrome indító
-  data/               — mentett JSON (teszt, törölhető)
-  .chrome-profile/    — saját böngésző profil
-```
+    mentesmarka.mjs
+    browser.mjs
+    chrome.mjs
 
-Teszt adat — élesítés előtt a `data/*.json` törölhető.
+~/Letöltések/mentesmarka/   — minden kimenet + Chrome profil
+```

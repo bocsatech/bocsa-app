@@ -1,14 +1,22 @@
 #!/bin/bash
-# Indító — ~/Downloads/autosweb (site-app téma, 2026-07 főoldal)
+# Indító — ~/Letöltések/autosweb (vagy ~/Downloads/autosweb)
 set -euo pipefail
 
-TARGET="$HOME/Downloads/autosweb"
+if [ -d "${HOME}/Letöltések/autosweb" ]; then
+  TARGET="${HOME}/Letöltések/autosweb"
+elif [ -d "${HOME}/Downloads/autosweb" ]; then
+  TARGET="${HOME}/Downloads/autosweb"
+else
+  TARGET="${HOME}/Letöltések/autosweb"
+fi
+
 INDEX="$TARGET/public/index.html"
 HTML="$TARGET/public/hirdetesfeladas.html"
 CSS="$TARGET/public/css/site-app.css"
 
 cd "$TARGET" || {
-  osascript -e 'display alert "Autosweb" message "Először telepítsd: bocsa-app/autosweb/mac/telepites.command"'
+  osascript -e 'display alert "Autosweb" message "Először: bocsa-app/autosweb/mac/masol.command (vagy frissites.command)"' 2>/dev/null || true
+  echo "Nincs telepítve: $TARGET"
   exit 1
 }
 
@@ -22,38 +30,24 @@ if command -v lsof >/dev/null 2>&1; then
 fi
 
 if [ ! -f "$CSS" ]; then
-  osascript -e 'display alert "Régi verzió!" message "Hiányzik site-app.css. Futtasd: autosweb/mac/frissites.command"'
+  osascript -e 'display alert "Régi verzió!" message "Hiányzik site-app.css. Futtasd: autosweb/mac/masol.command"' 2>/dev/null || true
   exit 1
 fi
 
-if ! grep -q 'site-app' "$HTML" 2>/dev/null; then
-  osascript -e 'display alert "Régi verzió!" message "Régi HTML. Futtasd: autosweb/mac/frissites.command"'
+if [ ! -f "$TARGET/lib/jarmu-katalogus.mjs" ]; then
+  osascript -e 'display alert "Hiányzik a katalógus!" message "1) cd ~/bocsa-app && git pull origin cursor/mentesmarka-csv-katalogus-2aa0\\n2) autosweb/mac/masol.command\\n3) indítsd újra"' 2>/dev/null || true
+  echo "✗ Nincs jarmu-katalogus.mjs — futtasd a masol.command-ot a feature ágról."
   exit 1
 fi
 
-if [ ! -f "$INDEX" ]; then
-  osascript -e 'display alert "Hiányzik a főoldal!" message "public/index.html nincs. Futtasd: frissites.command"'
+if ! grep -q '<select id="modell"' "$HTML" 2>/dev/null; then
+  osascript -e 'display alert "Régi űrlap!" message "A Modell még nem legördülő. Futtasd: autosweb/mac/masol.command"' 2>/dev/null || true
   exit 1
 fi
 
-if ! grep -q 'home-stats-bar' "$INDEX" 2>/dev/null; then
-  osascript -e 'display alert "Régi főoldal!" message "Nincs stats sáv a főoldalon.\\n\\n1) cd ~/bocsa-app && git pull\\n2) autosweb/mac/frissites.command\\n3) indítsd újra"'
-  exit 1
-fi
-
-if grep -q 'home-search-form' "$INDEX" 2>/dev/null; then
-  osascript -e 'display alert "Régi főoldal!" message "Még van fejléc keresősáv — frissíts:\\nautosweb/mac/frissites.command"'
-  exit 1
-fi
-
-if ! grep -q 'partner-recommendations-init.js' "$INDEX" 2>/dev/null; then
-  osascript -e 'display alert "Régi főoldal!" message "Partner accordion init hiányzik.\\n\\n1) cd ~/bocsa-app && git pull\\n2) autosweb/mac/frissites.command\\n3) indítsd újra"'
-  exit 1
-fi
-
-INDEX_VER=$(grep 'autosweb-version' "$INDEX" | head -1 | sed 's/.*content="//;s/".*//')
-echo "Autosweb főoldal: ${INDEX_VER:-?}"
-echo "✓ Stats sáv a főoldalon"
+VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "?")
+echo "Autosweb: $TARGET"
+echo "Verzió: $VER"
 echo "URL: http://127.0.0.1:3456/"
 
 if [ ! -d node_modules ]; then

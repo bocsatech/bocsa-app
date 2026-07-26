@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260720homelist" />
+    <meta name="autosweb-version" content="katalogus20260726c" />
     <title>Hirdetésfeladás — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -75,31 +75,20 @@
                   <div class="labeled-field">
                     <label for="gyartmany">Gyártmány: <span class="req">*</span></label>
                     <select id="gyartmany" name="gyartmany" required>
-                      <option value="">Válasszon</option>
-                      <option value="VOLKSWAGEN">VOLKSWAGEN</option>
-                      <option value="OPEL">OPEL</option>
-                      <option value="SUZUKI">SUZUKI</option>
-                      <option value="AUDI">AUDI</option>
-                      <option value="TOYOTA">TOYOTA</option>
-                      <option value="KIA">KIA</option>
-                      <option value="RENAULT">RENAULT</option>
-                      <option value="PEUGEOT">PEUGEOT</option>
-                      <option value="FORD">FORD</option>
-                      <option value="BMW">BMW</option>
-                      <option value="FIAT">FIAT</option>
-                      <option value="TESLA">TESLA</option>
-                      <option value="SKODA">SKODA</option>
-                      <option value="MERCEDES-BENZ">MERCEDES-BENZ</option>
-                      <option value="HYUNDAI">HYUNDAI</option>
+                      <option value="">Válasszon!</option>
                     </select>
                   </div>
                   <div class="labeled-field">
                     <label for="modell">Modell: <span class="req">*</span></label>
-                    <input id="modell" name="modell" type="text" required />
+                    <select id="modell" name="modell" required disabled>
+                      <option value="">Válasszon!</option>
+                    </select>
                   </div>
                   <div class="labeled-field">
                     <label for="tipus">Típus: <span class="req">*</span></label>
-                    <input id="tipus" name="tipus" type="text" class="auto-filled" required />
+                    <select id="tipus" name="tipus" required disabled>
+                      <option value="">Válasszon!</option>
+                    </select>
                   </div>
                 </div>
 
@@ -750,6 +739,6 @@
       requireAuthForPage();
       initSiteAuth();
     </script>
-    <script src="/js/app.js?v=fuellist20260725" type="module"></script>
+    <script src="/js/app.js?v=katalogus20260726c" type="module"></script>
   </body>
 </html>

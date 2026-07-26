@@ -1,5 +1,6 @@
 import { UZEMANYAG_CATEGORIES, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
 import { EGYEB_INFO_OPTIONS } from "./egyeb-info-data.js";
+import { bindVehicleCatalogSelects } from "./jarmu-katalogus-ui.js";
 
 export function createAdForm(options = {}) {
   const mode = options.mode ?? "wizard";
@@ -27,9 +28,35 @@ export function createAdForm(options = {}) {
   const gyartasiEv = document.getElementById("gyartasi_ev");
   const muszakiEv = document.getElementById("muszaki_ev");
   const forgalombaHelyezesEv = document.getElementById("forgalomba_helyezes_ev");
-  const gyartmany = document.getElementById("gyartmany");
-  const modell = document.getElementById("modell");
-  const tipus = document.getElementById("tipus");
+
+  /** Régi HTML input → select (ha a cache még szöveget ad). */
+  function ensureSelectElement(id, { required = false, disabled = false, emptyLabel = "Válasszon!" } = {}) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    if (el.tagName === "SELECT") {
+      if (required) el.required = true;
+      // A katalógus JS kezeli az enabled/disabled állapotot.
+      el.disabled = Boolean(disabled);
+      if (!disabled) el.removeAttribute("disabled");
+      return el;
+    }
+    const select = document.createElement("select");
+    select.id = el.id;
+    select.name = el.name || id;
+    if (required || el.required) select.required = true;
+    if (disabled) select.disabled = true;
+    select.className = el.className.replace(/\bauto-filled\b/g, "").trim();
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = emptyLabel;
+    select.appendChild(opt);
+    el.replaceWith(select);
+    return select;
+  }
+
+  const gyartmany = ensureSelectElement("gyartmany", { required: true });
+  const modell = ensureSelectElement("modell", { required: true, disabled: true });
+  const tipus = ensureSelectElement("tipus", { required: true, disabled: true });
   const hirdetesCime = document.getElementById("hirdetes_cime");
   const teljesitmenyKw = document.getElementById("teljesitmeny_kw");
   const teljesitmenyLe = document.getElementById("teljesitmeny_le");
@@ -45,10 +72,11 @@ export function createAdForm(options = {}) {
 
   let currentStep = 1;
 
+/** Csak műszaki tippek — tipus/modell NEM (az a katalógusból jön). */
 const AUTO_FILL_PRESETS = {
-  TESLA: { tipus: "Long Range AWD", hengerurtartalom: "", uzemanyag: "Elektromos", sebessegvalto: "Automata", hajtas: "Összkerék", teljesitmeny_kw: "258" },
-  VOLKSWAGEN: { tipus: "1.6 TDI", hengerurtartalom: "1598", uzemanyag: "Dízel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
-  TOYOTA: { tipus: "1.8 Hybrid", hengerurtartalom: "1798", uzemanyag: "Benzin/elektromos", sebessegvalto: "Fokozatmentes automata", hajtas: "Első kerék", teljesitmeny_kw: "72" },
+  TESLA: { hengerurtartalom: "", uzemanyag: "Elektromos", sebessegvalto: "Automata", hajtas: "Összkerék", teljesitmeny_kw: "258" },
+  VOLKSWAGEN: { hengerurtartalom: "1598", uzemanyag: "Dízel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
+  TOYOTA: { hengerurtartalom: "1798", uzemanyag: "Benzin/elektromos", sebessegvalto: "Fokozatmentes automata", hajtas: "Első kerék", teljesitmeny_kw: "72" },
 };
 
 function fillYearSelect(select) {
@@ -280,6 +308,8 @@ function renderEquipment() {
 function applyAutoFill() {
   const preset = AUTO_FILL_PRESETS[gyartmany.value];
   document.querySelectorAll(".auto-filled").forEach((field) => {
+    // Gyártmány/modell/típus a katalógusból jön — ne töröljük brand váltáskor.
+    if (field === gyartmany || field === modell || field === tipus) return;
     field.classList.remove("auto-filled");
     if (!field.dataset.userEdited) field.value = "";
   });
@@ -287,7 +317,7 @@ function applyAutoFill() {
   if (!preset) return;
 
   for (const [name, value] of Object.entries(preset)) {
-    if (name === "modell") continue;
+    if (name === "modell" || name === "tipus") continue;
     const field = form.elements.namedItem(name);
     if (!field || field.dataset.userEdited === "1") continue;
     field.value = value;
@@ -511,6 +541,8 @@ function applyFormData(data, { fromImport = false } = {}) {
 
   for (const [key, value] of Object.entries(data)) {
     if (key === "felszereltseg" || key === "egyeb_info") continue;
+    // Katalógus selectek külön, cascading sorrendben.
+    if (catalogApi && (key === "gyartmany" || key === "modell" || key === "tipus")) continue;
     const field = form.elements.namedItem(key);
     if (!field) continue;
     const appliedValue = key === "gyartmany" && value ? String(value).toUpperCase() : value;
@@ -529,6 +561,10 @@ function applyFormData(data, { fromImport = false } = {}) {
       field.dataset.userEdited = "1";
       field.classList.remove("auto-filled");
     }
+  }
+
+  if (catalogApi) {
+    void catalogApi.setValues(data.gyartmany, data.modell, data.tipus);
   }
 
   for (const item of data.felszereltseg ?? []) {
@@ -832,6 +868,8 @@ wrapMdOutlinedFields();
 syncFuelDependentFields();
 fitAllFormFields();
 
+let catalogApi = null;
+
 uzemanyag?.addEventListener("change", () => {
   if (uzemanyag.tagName !== "SELECT") return;
   uzemanyag.dataset.userEdited = "1";
@@ -839,13 +877,36 @@ uzemanyag?.addEventListener("change", () => {
   saveDraft();
 });
 
-if (mode === "wizard") {
-  restoreDraft();
-  renderPhotoPreview([]);
-  showStep(1);
-} else {
-  showAllSteps();
+function finishVehicleInit() {
+  if (mode === "wizard") {
+    restoreDraft();
+    renderPhotoPreview([]);
+    showStep(1);
+  } else {
+    showAllSteps();
+  }
+  fitAllFormFields();
 }
+
+void bindVehicleCatalogSelects({
+  brandSelect: gyartmany,
+  modelSelect: modell,
+  typeSelect: tipus,
+  emptyBrand: "Válasszon!",
+  emptyModel: "Válasszon!",
+  emptyType: "Válasszon!",
+  onChange: () => {
+    updateTitle();
+    fitAllFormFields();
+    saveDraft();
+  },
+}).then((api) => {
+  catalogApi = api;
+  finishVehicleInit();
+}).catch((error) => {
+  console.warn("Járműkatalógus UI:", error);
+  finishVehicleInit();
+});
 
 return {
   applyFormData,
