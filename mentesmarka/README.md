@@ -2,7 +2,7 @@
 
 Önálló program a hasznaltauto.hu **járműkatalógus** mentéséhez.
 
-**Gyártmány → Modell → Típus** → CSV tábla (később az Autos oldalra).
+**Gyártmány → Modell → Típus** → CSV → Autosweb legördülők (feltöltés + keresés).
 
 Forrás: `https://admin.hasznaltauto.hu/hirdetesfeladas/szemelyauto`
 

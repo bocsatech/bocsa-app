@@ -39,6 +39,7 @@ import {
   upsertPostalCodes,
 } from "./lib/partners.mjs";
 import { PARTNER_CATEGORIES } from "./lib/partner-categories.mjs";
+import { getModels, getTypes, loadJarmuKatalogus } from "./lib/jarmu-katalogus.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -278,6 +279,36 @@ async function handleListingsApi(req, res, pathname) {
   }
 
   sendJson(res, 405, { error: "Nem támogatott művelet." });
+}
+
+async function handleJarmuKatalogusApi(req, res, pathname) {
+  try {
+    if (pathname === "/api/jarmu-katalogus" && req.method === "GET") {
+      const url = new URL(req.url ?? "", `http://${HOST}`);
+      const force = url.searchParams.get("force") === "1";
+      sendJson(res, 200, loadJarmuKatalogus({ force }));
+      return;
+    }
+
+    if (pathname === "/api/jarmu-katalogus/models" && req.method === "GET") {
+      const url = new URL(req.url ?? "", `http://${HOST}`);
+      const gyartmany = url.searchParams.get("gyartmany") ?? "";
+      sendJson(res, 200, { gyartmany, models: getModels(gyartmany) });
+      return;
+    }
+
+    if (pathname === "/api/jarmu-katalogus/types" && req.method === "GET") {
+      const url = new URL(req.url ?? "", `http://${HOST}`);
+      const gyartmany = url.searchParams.get("gyartmany") ?? "";
+      const modell = url.searchParams.get("modell") ?? "";
+      sendJson(res, 200, { gyartmany, modell, types: getTypes(gyartmany, modell) });
+      return;
+    }
+
+    sendJson(res, 405, { error: "Nem támogatott művelet." });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message ?? String(error) });
+  }
 }
 
 async function handleFugvenyApi(req, res, pathname) {
@@ -558,6 +589,11 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (pathname.startsWith("/api/jarmu-katalogus")) {
+    await handleJarmuKatalogusApi(req, res, pathname);
+    return;
+  }
+
   if (pathname.startsWith("/api/partners") || pathname.startsWith("/api/postal-codes")) {
     await handlePartnersApi(req, res, pathname);
     return;
@@ -574,6 +610,18 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, HOST, async () => {
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
+  try {
+    const catalog = loadJarmuKatalogus();
+    if (catalog.ok) {
+      console.log(
+        `Járműkatalógus: ${catalog.rowCount} sor, ${catalog.brands.length} gyártmány ← ${catalog.path}`
+      );
+    } else {
+      console.log(`Járműkatalógus: még nincs (${catalog.path})`);
+    }
+  } catch (error) {
+    console.warn("Járműkatalógus:", error.message ?? error);
+  }
   try {
     const stats = dbStats();
     console.log(`SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella)`);

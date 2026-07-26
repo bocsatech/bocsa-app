@@ -16,12 +16,16 @@
       </div>
 
       <label class="home-filter-field">
-        <span class="home-filter-label">Márka</span>
+        <span class="home-filter-label">Gyártmány</span>
         <select id="filter-gyartmany" name="gyartmany"><option value="">Mindegy</option></select>
       </label>
       <label class="home-filter-field">
         <span class="home-filter-label">Modell</span>
-        <select id="filter-modell" name="modell"><option value="">Mindegy</option></select>
+        <select id="filter-modell" name="modell" disabled><option value="">Mindegy</option></select>
+      </label>
+      <label class="home-filter-field">
+        <span class="home-filter-label">Típus</span>
+        <select id="filter-tipus" name="tipus" disabled><option value="">Mindegy</option></select>
       </label>
       <label class="home-filter-field">
         <span class="home-filter-label">Évjárat</span>
@@ -68,10 +72,6 @@
         <label class="home-filter-field">
           <span class="home-filter-label">Kivitel</span>
           <select id="filter-kivitel" name="kivitel"><option value="">Mindegy</option></select>
-        </label>
-        <label class="home-filter-field">
-          <span class="home-filter-label">Típusjel</span>
-          <input type="text" name="tipus" placeholder="pl. 320d" />
         </label>
         <div class="home-filter-field">
           <span class="home-filter-label">Heng. tart. (cm³)</span>

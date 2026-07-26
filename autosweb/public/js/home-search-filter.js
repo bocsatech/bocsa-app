@@ -137,8 +137,7 @@ function fillSelect(select, values, emptyLabel = "Mindegy") {
 
 export function populateFilterOptions(items) {
   const filters = items.map((item) => item.preview?.filter ?? {});
-  fillSelect(document.getElementById("filter-gyartmany"), uniqueSorted(filters.map((f) => f.gyartmany)));
-  fillSelect(document.getElementById("filter-modell"), uniqueSorted(filters.map((f) => f.modell)));
+  // Gyártmány / Modell / Típus: jarmu-katalogus (bindVehicleCatalogSelects a home-app-ban).
   fillSelect(document.getElementById("filter-kivitel"), uniqueSorted(filters.map((f) => f.kivitel)));
   fillSelect(document.getElementById("filter-allapot"), uniqueSorted(filters.map((f) => f.allapot)));
   fillSelect(document.getElementById("filter-ajtok"), uniqueSorted(filters.map((f) => f.ajtok)));
