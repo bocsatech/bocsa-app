@@ -620,6 +620,22 @@ async function readSelectOptions(select) {
   ).filter((option) => option.value && option.text && !/válasszon|mindegy|^--$/i.test(option.text));
 }
 
+function isEgyebType(text) {
+  return /^egy[eé]b\b/i.test(String(text ?? "").trim());
+}
+
+function typesAreOnlyEgyeb(types) {
+  const list = types ?? [];
+  return list.length > 0 && list.every((item) => isEgyebType(item.text ?? item.nev ?? item));
+}
+
+/** Valódi típusok: EGYÉB nélkül, ha van más is. */
+function preferRealTypes(types) {
+  const list = types ?? [];
+  const real = list.filter((item) => !isEgyebType(item.text ?? item.nev ?? item));
+  return real.length ? real : list;
+}
+
 async function waitForSelectOptions(select, { minCount = 1, timeoutMs = 15000, settleMs = 250 } = {}) {
   const started = Date.now();
   let lastCount = -1;
@@ -648,6 +664,38 @@ async function waitForSelectOptions(select, { minCount = 1, timeoutMs = 15000, s
   }
 
   return lastCount;
+}
+
+/**
+ * Tipus AJAX után vár: ne az első "EGYÉB" opciót mentse, hanem a teljes listát.
+ */
+async function waitForTypeOptions(select, { timeoutMs = 22000 } = {}) {
+  const started = Date.now();
+  let lastSig = "";
+  let stableSince = Date.now();
+  let best = [];
+
+  while (Date.now() - started < timeoutMs) {
+    const options = await readSelectOptions(select);
+    const real = preferRealTypes(options);
+    const sig = options.map((item) => `${item.value}:${item.text}`).join("|");
+
+    if (sig !== lastSig) {
+      lastSig = sig;
+      stableSince = Date.now();
+      if (real.length) best = real;
+      else if (options.length) best = options;
+    }
+
+    const hasReal = real.length > 0 && !typesAreOnlyEgyeb(real);
+    if (hasReal && Date.now() - stableSince >= 700) {
+      return real;
+    }
+
+    await sleep(200);
+  }
+
+  return preferRealTypes(best);
 }
 
 async function safeSelectOption(select, option, onProgress) {
@@ -684,7 +732,11 @@ async function safeSelectOption(select, option, onProgress) {
 }
 
 function modelAlreadyDone(modelEntry) {
-  return Boolean(modelEntry?.tipusok && Object.keys(modelEntry.tipusok).length > 0);
+  const types = Object.values(modelEntry?.tipusok ?? {});
+  if (!types.length) return false;
+  // Csak EGYÉB = hibás / korai olvasás → újra kell scrape-elni
+  if (types.every((item) => isEgyebType(item.nev))) return false;
+  return true;
 }
 
 async function readFieldValues(page) {
@@ -805,16 +857,31 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         saveOutputs(options, catalog, onProgress);
         continue;
       }
-      await sleep(options.delayMs);
-      await waitForSelectOptions(typeSelect, { minCount: 0, timeoutMs: 12000 });
+      await sleep(Math.max(options.delayMs, 500));
 
       if (!(await typeSelect.count())) {
         appendModelTypes(options, brand.text, model.text, [], onProgress);
         saveOutputs(options, catalog, onProgress, { quiet: true });
         continue;
       }
-      const types = await readSelectOptions(typeSelect);
+
+      let types = await waitForTypeOptions(typeSelect);
+      // Ha csak EGYÉB jött (AJAX még nem töltött), modell újraválasztás + újra várás
+      if (!types.length || typesAreOnlyEgyeb(types)) {
+        onProgress?.(`    Típus lista gyenge (${types.map((t) => t.text).join(", ") || "üres"}) — újrapróbál`);
+        await safeSelectOption(modelSelect, model, onProgress);
+        await sleep(900);
+        types = await waitForTypeOptions(typeSelect, { timeoutMs: 18000 });
+      }
+
+      types = preferRealTypes(types);
       const limitedTypes = options.maxTypes ? types.slice(0, options.maxTypes) : types;
+
+      // Hibás EGYÉB-only mentés felülírása, ha most vannak valódi típusok
+      if (limitedTypes.length && !typesAreOnlyEgyeb(limitedTypes)) {
+        catalog.gyartmanyok[brandKey].modellek[modelKey].tipusok = {};
+      }
+
       const freshTypes = [];
 
       for (const type of limitedTypes) {
