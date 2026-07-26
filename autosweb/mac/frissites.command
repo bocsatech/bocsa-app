@@ -22,7 +22,7 @@ fi
 cp "$SOURCE/package.json" "$SOURCE/server.mjs" "$TARGET/"
 cp -R "$SOURCE/scripts" "$TARGET/" 2>/dev/null || true
 rsync -a --delete "$SOURCE/lib/" "$TARGET/lib/"
-rsync -a --delete "$SOURCE/public/" "$TARGET/public/"
+"$(dirname "$0")/rsync-public-preserve-images.sh" "$SOURCE" "$TARGET"
 
 cd "$TARGET"
 node scripts/embed-ad-form.mjs
@@ -30,7 +30,7 @@ npm install
 npx playwright install chromium 2>/dev/null || true
 npx playwright install chrome 2>/dev/null || true
 
-VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
+echo "  ✓ Kategória képek: lokális fájlok megmaradtak (public/images/categories/)"
 echo ""
 echo "✓ Frissítve: $TARGET"
 echo "  Verzió: $VER"

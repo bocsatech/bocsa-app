@@ -12,7 +12,7 @@ fi
 
 cp "$SOURCE/package.json" "$SOURCE/server.mjs" "$TARGET/"
 rsync -a --delete "$SOURCE/lib/" "$TARGET/lib/"
-rsync -a --delete "$SOURCE/public/" "$TARGET/public/"
+"$(dirname "$0")/rsync-public-preserve-images.sh" "$SOURCE" "$TARGET"
 
 VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
 echo ""
