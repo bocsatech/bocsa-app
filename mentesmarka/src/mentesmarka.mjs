@@ -647,6 +647,11 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     );
   }
 
+  catalog.meta.pendingBrands = brands.map((b) => b.text);
+  catalog.meta.scrapedAt = new Date().toISOString();
+  const startPaths = saveOutputs(options, catalog);
+  onProgress?.(`Kimenet: ${startPaths.csv}`);
+
   for (const brand of brands) {
     const brandKey = slugify(brand.text);
     if (!catalog.gyartmanyok[brandKey]) {
@@ -661,6 +666,7 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     }
     await sleep(options.delayMs);
     await waitForSelectOptions(modelSelect, { minCount: 1, timeoutMs: 20000 });
+    saveOutputs(options, catalog);
 
     if (!(await modelSelect.count())) {
       onProgress?.(`  Modell select nem található — szabad szöveg? (${brand.text})`);
