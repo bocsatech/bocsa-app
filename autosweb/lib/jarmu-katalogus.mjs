@@ -166,24 +166,59 @@ function fileMtime(path) {
   }
 }
 
+function mergeTrees(into, from) {
+  for (const [brand, models] of Object.entries(from ?? {})) {
+    if (!into[brand]) into[brand] = {};
+    for (const [model, types] of Object.entries(models ?? {})) {
+      if (!into[brand][model]) into[brand][model] = [];
+      for (const type of types ?? []) {
+        if (type && !into[brand][model].includes(type)) {
+          into[brand][model].push(type);
+        }
+      }
+    }
+  }
+}
+
+function finalizeTree(tree) {
+  for (const brand of Object.keys(tree)) {
+    for (const model of Object.keys(tree[brand])) {
+      tree[brand][model].sort((a, b) => a.localeCompare(b, "hu"));
+    }
+  }
+  const brands = Object.keys(tree).sort((a, b) => a.localeCompare(b, "hu"));
+  let rowCount = 0;
+  for (const brand of brands) {
+    for (const model of Object.keys(tree[brand])) {
+      const n = tree[brand][model].length;
+      rowCount += n > 0 ? n : 1;
+    }
+  }
+  return { brands, tree, rowCount };
+}
+
+function listCatalogFiles() {
+  const files = [];
+  for (const dir of catalogCandidateDirs()) {
+    for (const name of ["jarmu-katalogus.csv", "jarmu-katalogus.append.csv", "jarmu-katalogus.json"]) {
+      const path = join(dir, name);
+      if (existsSync(path)) files.push(path);
+    }
+  }
+  return files;
+}
+
 export function loadJarmuKatalogus({ force = false } = {}) {
   const paths = catalogPaths();
-  const candidates = [];
-  for (const dir of catalogCandidateDirs()) {
-    candidates.push(
-      join(dir, "jarmu-katalogus.csv"),
-      join(dir, "jarmu-katalogus.append.csv"),
-      join(dir, "jarmu-katalogus.json")
-    );
-  }
-  const sourcePath = candidates.find((p) => existsSync(p)) ?? null;
-  const mtime = sourcePath ? fileMtime(sourcePath) : 0;
+  const files = listCatalogFiles();
+  const mtime = files.reduce((max, path) => Math.max(max, fileMtime(path)), 0);
+  const cacheKey = files.join("|");
 
-  if (!force && cache && cache.sourcePath === sourcePath && cache.mtime === mtime) {
+  if (!force && cache && cache.cacheKey === cacheKey && cache.mtime === mtime) {
     return cache.payload;
   }
 
-  if (!sourcePath) {
+  if (!files.length) {
     const payload = {
       ok: false,
       error:
@@ -194,41 +229,64 @@ export function loadJarmuKatalogus({ force = false } = {}) {
       tree: {},
       rowCount: 0,
       source: null,
+      files: [],
     };
-    cache = { sourcePath: null, mtime: 0, payload };
+    cache = { cacheKey: "", mtime: 0, payload };
     return payload;
   }
 
-  const raw = readFileSync(sourcePath, "utf8");
-  const parsed = sourcePath.endsWith(".json") ? parseCatalogJson(raw) : parseCatalogCsv(raw);
+  const tree = {};
+  for (const filePath of files) {
+    const raw = readFileSync(filePath, "utf8");
+    const parsed = filePath.endsWith(".json") ? parseCatalogJson(raw) : parseCatalogCsv(raw);
+    mergeTrees(tree, parsed.tree);
+  }
 
+  const finalized = finalizeTree(tree);
   const payload = {
-    ok: true,
-    path: sourcePath,
+    ok: finalized.brands.length > 0,
+    path: files[0],
     dir: paths.dir,
-    brands: parsed.brands,
-    tree: parsed.tree,
-    rowCount: parsed.rowCount,
-    source: sourcePath.endsWith(".json") ? "json" : "csv",
-    updatedAt: new Date(mtime).toISOString(),
+    brands: finalized.brands,
+    tree: finalized.tree,
+    rowCount: finalized.rowCount,
+    source: "merged",
+    files,
+    updatedAt: new Date(mtime || Date.now()).toISOString(),
+    error:
+      finalized.brands.length > 0
+        ? undefined
+        : "A katalógus fájlok üresek. Futtasd újra a mentesmarka programot.",
   };
-  cache = { sourcePath, mtime, payload };
+  cache = { cacheKey, mtime, payload };
   return payload;
+}
+
+function resolveBrandInTree(tree, brand) {
+  if (!brand) return "";
+  if (tree[brand]) return brand;
+  if (tree[brand.toUpperCase()]) return brand.toUpperCase();
+  return Object.keys(tree).find((key) => key.toLowerCase() === brand.toLowerCase()) ?? "";
+}
+
+function resolveModelInTree(models, model) {
+  if (!model || !models) return "";
+  if (models[model]) return model;
+  return Object.keys(models).find((key) => key.toLowerCase() === model.toLowerCase()) ?? "";
 }
 
 export function getModels(gyartmany) {
   const catalog = loadJarmuKatalogus();
-  const brand = String(gyartmany ?? "").trim();
+  const brand = resolveBrandInTree(catalog.tree, String(gyartmany ?? "").trim());
   if (!brand) return [];
-  const models = catalog.tree[brand] ?? catalog.tree[brand.toUpperCase()] ?? {};
-  return Object.keys(models).sort((a, b) => a.localeCompare(b, "hu"));
+  return Object.keys(catalog.tree[brand] ?? {}).sort((a, b) => a.localeCompare(b, "hu"));
 }
 
 export function getTypes(gyartmany, modell) {
   const catalog = loadJarmuKatalogus();
-  const brand = String(gyartmany ?? "").trim();
-  const model = String(modell ?? "").trim();
-  if (!brand || !model) return [];
-  const models = catalog.tree[brand] ?? catalog.tree[brand.toUpperCase()] ?? {};
-  return [...(models[model] ?? [])];
+  const brand = resolveBrandInTree(catalog.tree, String(gyartmany ?? "").trim());
+  if (!brand) return [];
+  const model = resolveModelInTree(catalog.tree[brand], String(modell ?? "").trim());
+  if (!model) return [];
+  return [...(catalog.tree[brand][model] ?? [])];
 }

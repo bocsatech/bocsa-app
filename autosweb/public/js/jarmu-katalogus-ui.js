@@ -40,13 +40,40 @@ function fillSelect(select, values, emptyLabel, { preserve = true } = {}) {
   }
 }
 
+function setSelectEnabled(select, enabled) {
+  if (!select) return;
+  select.disabled = !enabled;
+  if (enabled) select.removeAttribute("disabled");
+  else select.setAttribute("disabled", "disabled");
+}
+
 function resolveBrandKey(tree, brand) {
   if (!brand) return "";
   if (tree[brand]) return brand;
   const upper = brand.toUpperCase();
   if (tree[upper]) return upper;
   const found = Object.keys(tree).find((key) => key.toLowerCase() === brand.toLowerCase());
-  return found ?? brand;
+  return found ?? "";
+}
+
+function resolveModelKey(models, model) {
+  if (!model || !models) return "";
+  if (models[model]) return model;
+  const found = Object.keys(models).find((key) => key.toLowerCase() === model.toLowerCase());
+  return found ?? "";
+}
+
+function listModels(tree, brandKey) {
+  if (!brandKey || !tree[brandKey]) return [];
+  return Object.keys(tree[brandKey]).sort((a, b) => a.localeCompare(b, "hu"));
+}
+
+function listTypes(tree, brandKey, modelKey) {
+  if (!brandKey || !modelKey) return [];
+  const models = tree[brandKey] ?? {};
+  const key = resolveModelKey(models, modelKey);
+  if (!key) return [];
+  return [...(models[key] ?? [])];
 }
 
 /**
@@ -81,6 +108,8 @@ export async function bindVehicleCatalogSelects(options) {
     fillSelect(brandSelect, [], emptyBrand, { preserve: false });
     fillSelect(modelSelect, [], emptyModel, { preserve: false });
     fillSelect(typeSelect, [], emptyType, { preserve: false });
+    setSelectEnabled(modelSelect, false);
+    setSelectEnabled(typeSelect, false);
     return null;
   }
 
@@ -91,75 +120,114 @@ export async function bindVehicleCatalogSelects(options) {
   const tree = catalog.tree ?? {};
   fillSelect(brandSelect, catalog.brands ?? [], emptyBrand);
 
-  function refreshModels({ resetType = true } = {}) {
+  function refreshModels({ keepModel = false } = {}) {
     const brandKey = resolveBrandKey(tree, brandSelect.value);
-    const models = brandKey && tree[brandKey] ? Object.keys(tree[brandKey]).sort((a, b) => a.localeCompare(b, "hu")) : [];
+    const prevModel = keepModel ? modelSelect?.value ?? "" : "";
+    const models = listModels(tree, brandKey);
     fillSelect(modelSelect, models, emptyModel, { preserve: false });
-    if (resetType) fillSelect(typeSelect, [], emptyType, { preserve: false });
-    modelSelect && (modelSelect.disabled = !brandKey);
-    typeSelect && (typeSelect.disabled = true);
+    setSelectEnabled(modelSelect, Boolean(brandKey));
+
+    if (prevModel) {
+      const modelKey = resolveModelKey(tree[brandKey] ?? {}, prevModel);
+      if (modelKey) modelSelect.value = modelKey;
+    }
+
+    if (modelSelect?.value) {
+      refreshTypes();
+    } else {
+      fillSelect(typeSelect, [], emptyType, { preserve: false });
+      setSelectEnabled(typeSelect, false);
+    }
   }
 
   function refreshTypes() {
     const brandKey = resolveBrandKey(tree, brandSelect.value);
-    const model = modelSelect?.value ?? "";
-    const types = brandKey && model && tree[brandKey]?.[model] ? [...tree[brandKey][model]] : [];
-    fillSelect(typeSelect, types, emptyType, { preserve: false });
-    typeSelect && (typeSelect.disabled = !model);
+    const rawModel = modelSelect?.value ?? "";
+    const modelKey = resolveModelKey(tree[brandKey] ?? {}, rawModel);
+    const types = listTypes(tree, brandKey, modelKey);
+
+    if (!rawModel) {
+      fillSelect(typeSelect, [], emptyType, { preserve: false });
+      setSelectEnabled(typeSelect, false);
+      return;
+    }
+
+    // Előbb engedélyezünk, aztán töltünk (WebKit: disabled select option bug).
+    setSelectEnabled(typeSelect, true);
+
+    if (types.length) {
+      fillSelect(typeSelect, types, emptyType, { preserve: false });
+    } else {
+      fillSelect(typeSelect, [], "Nincs típus a listában", { preserve: false });
+      console.warn(`[katalogus] Nincs típus: ${brandKey} / ${modelKey || rawModel}`);
+    }
+
+    setSelectEnabled(typeSelect, true);
   }
 
   brandSelect.addEventListener("change", () => {
-    refreshModels({ resetType: true });
+    refreshModels({ keepModel: false });
     onChange?.();
   });
 
-  modelSelect?.addEventListener("change", () => {
+  const onModelChange = () => {
     refreshTypes();
     onChange?.();
-  });
+  };
+  modelSelect?.addEventListener("change", onModelChange);
+  modelSelect?.addEventListener("input", onModelChange);
 
   typeSelect?.addEventListener("change", () => {
     onChange?.();
   });
 
-  // form.reset() visszateszi az eredeti üres HTML-t — katalógust újra kell tölteni.
   brandSelect.form?.addEventListener("reset", () => {
     requestAnimationFrame(() => {
       fillSelect(brandSelect, catalog.brands ?? [], emptyBrand, { preserve: false });
-      refreshModels({ resetType: true });
+      refreshModels({ keepModel: false });
       onChange?.();
     });
   });
 
-  // Kezdeti állapot a meglévő value alapján (draft / import).
   if (brandSelect.value) {
-    refreshModels({ resetType: false });
-    if (modelSelect?.value) refreshTypes();
+    refreshModels({ keepModel: true });
   } else {
-    refreshModels({ resetType: true });
+    refreshModels({ keepModel: false });
   }
 
   return {
     catalog,
     async setValues(brand, model, type) {
       const brandKey = resolveBrandKey(tree, brand);
-      if (brandKey && (catalog.brands ?? []).includes(brandKey)) {
+      if (brandKey) {
         brandSelect.value = brandKey;
       } else if (brand) {
-        // Ha nincs a katalógusban, ideiglenes option
         ensureOption(brandSelect, brand);
         brandSelect.value = brand;
+      } else {
+        brandSelect.value = "";
       }
-      refreshModels({ resetType: false });
+
+      refreshModels({ keepModel: false });
+
       if (model) {
-        ensureOption(modelSelect, model);
-        modelSelect.value = model;
+        const modelKey = resolveModelKey(tree[resolveBrandKey(tree, brandSelect.value)] ?? {}, model);
+        if (modelKey) {
+          modelSelect.value = modelKey;
+        } else {
+          ensureOption(modelSelect, model);
+          modelSelect.value = model;
+        }
       }
+
       refreshTypes();
+
       if (type) {
         ensureOption(typeSelect, type);
         typeSelect.value = type;
+        setSelectEnabled(typeSelect, true);
       }
+
       onChange?.();
     },
   };

@@ -35,6 +35,9 @@ export function createAdForm(options = {}) {
     if (!el) return null;
     if (el.tagName === "SELECT") {
       if (required) el.required = true;
+      // A katalógus JS kezeli az enabled/disabled állapotot.
+      el.disabled = Boolean(disabled);
+      if (!disabled) el.removeAttribute("disabled");
       return el;
     }
     const select = document.createElement("select");
