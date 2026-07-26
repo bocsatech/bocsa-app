@@ -113,7 +113,7 @@ export function initHomeStatsBar({ onChange, getItems }) {
   function resetCardUi() {
     setCount(totalCountEl, null);
     setCount(recentCountEl, null);
-    setMeta(totalMetaEl, "Add meg az irányítószámot és a sugarat, majd kattints.");
+    setMeta(totalMetaEl, "");
     setMeta(recentMetaEl, "Kattints — az első kockában megadott körzetben.");
     filterCards.forEach((card) => card.classList.remove("is-active"));
   }
@@ -129,7 +129,7 @@ export function initHomeStatsBar({ onChange, getItems }) {
       setCount(recentCountEl, filter.count);
       setMeta(recentMetaEl, metaText, "ok");
       setCount(totalCountEl, null);
-      setMeta(totalMetaEl, "Add meg az irányítószámot és a sugarat, majd kattints.");
+      setMeta(totalMetaEl, "");
     }
   }
 
