@@ -60,10 +60,12 @@ A program **nem navigál el** — a meglévő lapot használja.
 
 ```
 ~/bocsa-app/mentesmarka/data/jarmu-katalogus.csv
-~/bocsa-app/mentesmarka/data/jarmu-katalogus.json   ← resume / belső állapot
+~/bocsa-app/mentesmarka/data/jarmu-katalogus.json
+~/bocsa-app/mentesmarka/data/LEGUTOBBI-MENTES.txt   ← hol van + hány sor
 ```
 
-Ha félbeszakad: a részlista már a `data/` mappában van. Újraindításkor a meglevő modelleket kihagyja.
+A mentés **nem** a terminál mappájától függ — mindig a `mentesmarka/data/` alá ír.
+Ha félbeszakad: a részlista megmarad. Újraindításkor a meglevő modelleket kihagyja.
 
 CSV oszlopok:
 

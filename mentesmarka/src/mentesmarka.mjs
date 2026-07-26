@@ -1,14 +1,14 @@
 import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "./browser.mjs";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
-import { dirname, join } from "path";
+import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 import { waitForUserReady } from "./ready.mjs";
 
-const PKG = JSON.parse(
-  readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8")
-);
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const PKG = JSON.parse(readFileSync(join(PACKAGE_ROOT, "package.json"), "utf8"));
 
-const DEFAULT_OUTPUT = join(process.cwd(), "data", "jarmu-katalogus.csv");
+/** Mindig a mentesmarka/data alá ment — nem a terminál cwd-jétől függ. */
+const DEFAULT_OUTPUT = join(PACKAGE_ROOT, "data", "jarmu-katalogus.csv");
 
 /** null = minden márka. Szűréshez: --brands "Audi,BMW" */
 const DEFAULT_BRANDS = null;
@@ -248,25 +248,58 @@ function catalogToCsv(catalog) {
     .join("\n")}\n`;
 }
 
+function resolveOutputPath(output) {
+  const text = String(output ?? "").trim();
+  if (!text) return DEFAULT_OUTPUT;
+  if (text.startsWith("/") || /^[A-Za-z]:[\\/]/.test(text)) return resolve(text);
+  return resolve(PACKAGE_ROOT, text.replace(/^\.\//, ""));
+}
+
 function outputPaths(options) {
-  const base = options.output.replace(/\.(csv|json)$/i, "");
+  const absolute = resolveOutputPath(options.output);
+  const base = absolute.replace(/\.(csv|json)$/i, "");
   return {
     csv: `${base}.csv`,
     json: `${base}.json`,
+    status: join(dirname(`${base}.csv`), "LEGUTOBBI-MENTES.txt"),
   };
 }
 
-function saveOutputs(options, catalog) {
+function saveOutputs(options, catalog, onProgress) {
   const paths = outputPaths(options);
-  mkdirSync(dirname(paths.csv), { recursive: true });
+  try {
+    mkdirSync(dirname(paths.csv), { recursive: true });
 
-  // JSON mindig mentve (folytatás / resume). CSV a fő kimenet az Autos oldalhoz.
-  writeFileSync(paths.json, `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
-  if (options.format === "csv" || options.format === "both") {
-    writeFileSync(paths.csv, catalogToCsv(catalog), "utf8");
+    // apiEndpoints ne fújja fel a mentést / ne akadályozza a resume-ot
+    const toSave = {
+      ...catalog,
+      apiEndpoints: Array.isArray(catalog.apiEndpoints) ? catalog.apiEndpoints.slice(-20) : [],
+    };
+
+    writeFileSync(paths.json, `${JSON.stringify(toSave, null, 2)}\n`, "utf8");
+    if (options.format === "csv" || options.format === "both") {
+      writeFileSync(paths.csv, catalogToCsv(catalog), "utf8");
+    }
+
+    const rowCount = Math.max(0, catalogToCsvRows(catalog).length - 1);
+    const status = [
+      `mentesmarka v${PKG.version}`,
+      `ido: ${new Date().toISOString()}`,
+      `csv: ${paths.csv}`,
+      `json: ${paths.json}`,
+      `markak: ${Object.keys(catalog.gyartmanyok ?? {}).length}`,
+      `sorok: ${rowCount}`,
+    ].join("\n");
+    writeFileSync(paths.status, `${status}\n`, "utf8");
+
+    onProgress?.(`Mentve (${rowCount} sor): ${paths.csv}`);
+    return paths;
+  } catch (error) {
+    const message = `MENTÉSI HIBA: ${error.message}`;
+    console.error(`[mentesmarka] ${message}`);
+    onProgress?.(message);
+    throw error;
   }
-
-  return paths;
 }
 
 function normalizeOption(option) {
@@ -649,8 +682,7 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
 
   catalog.meta.pendingBrands = brands.map((b) => b.text);
   catalog.meta.scrapedAt = new Date().toISOString();
-  const startPaths = saveOutputs(options, catalog);
-  onProgress?.(`Kimenet: ${startPaths.csv}`);
+  saveOutputs(options, catalog, onProgress);
 
   for (const brand of brands) {
     const brandKey = slugify(brand.text);
@@ -662,11 +694,14 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     const brandOk = await safeSelectOption(brandSelect, brand, onProgress);
     if (!brandOk) {
       onProgress?.(`  Márka kihagyva (nem választható): ${brand.text}`);
+      saveOutputs(options, catalog, onProgress);
       continue;
     }
     await sleep(options.delayMs);
     await waitForSelectOptions(modelSelect, { minCount: 1, timeoutMs: 20000 });
-    saveOutputs(options, catalog);
+    catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
+    catalog.meta.scrapedAt = new Date().toISOString();
+    saveOutputs(options, catalog, onProgress);
 
     if (!(await modelSelect.count())) {
       onProgress?.(`  Modell select nem található — szabad szöveg? (${brand.text})`);
@@ -676,11 +711,18 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     const models = await readSelectOptions(modelSelect);
     const limitedModels = options.maxModels ? models.slice(0, options.maxModels) : models;
 
+    // Modellnevek azonnal bekerülnek — típusok később töltődnek.
     for (const model of limitedModels) {
       const modelKey = slugify(model.text);
       if (!catalog.gyartmanyok[brandKey].modellek[modelKey]) {
         catalog.gyartmanyok[brandKey].modellek[modelKey] = { nev: model.text, value: model.value, tipusok: {} };
       }
+    }
+    catalog.meta.scrapedAt = new Date().toISOString();
+    saveOutputs(options, catalog, onProgress);
+
+    for (const model of limitedModels) {
+      const modelKey = slugify(model.text);
 
       if (!options.deep && modelAlreadyDone(catalog.gyartmanyok[brandKey].modellek[modelKey])) {
         onProgress?.(`  Modell (már megvan): ${model.text}`);
@@ -689,11 +731,17 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
 
       onProgress?.(`  Modell: ${model.text}`);
       const modelOk = await safeSelectOption(modelSelect, model, onProgress);
-      if (!modelOk) continue;
+      if (!modelOk) {
+        saveOutputs(options, catalog, onProgress);
+        continue;
+      }
       await sleep(options.delayMs);
       await waitForSelectOptions(typeSelect, { minCount: 0, timeoutMs: 12000 });
 
-      if (!(await typeSelect.count())) continue;
+      if (!(await typeSelect.count())) {
+        saveOutputs(options, catalog, onProgress);
+        continue;
+      }
       const types = await readSelectOptions(typeSelect);
       const limitedTypes = options.maxTypes ? types.slice(0, options.maxTypes) : types;
 
@@ -737,16 +785,14 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         }
       }
 
-      // Modell után is mentsünk — ha félbeszakad, megmarad a részlista.
       catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
       catalog.meta.scrapedAt = new Date().toISOString();
-      saveOutputs(options, catalog);
+      saveOutputs(options, catalog, onProgress);
     }
 
     catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
     catalog.meta.scrapedAt = new Date().toISOString();
-    const paths = saveOutputs(options, catalog);
-    onProgress?.(`  Mentve: ${paths.csv}`);
+    saveOutputs(options, catalog, onProgress);
   }
 }
 
@@ -824,12 +870,14 @@ async function scrapeKatalogusCatalog(page, options, catalog, onProgress) {
 
     catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
     catalog.meta.scrapedAt = new Date().toISOString();
-    saveOutputs(options, catalog);
+    saveOutputs(options, catalog, onProgress);
   }
 }
 
 export async function runMentesmarka(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
+  options.output = resolveOutputPath(options.output);
+
   const catalog = loadCatalog(options);
   catalog.meta.brands = options.brands?.length ? [...options.brands] : ["*"];
   catalog.meta.source =
@@ -842,6 +890,28 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
     `[mentesmarka] Formátum: ${options.format} | Márkák: ${options.brands?.length ? options.brands.join(", ") : "MINDEN"} | Szintek: ${catalog.meta.levels}`
   );
 
+  // Induláskor azonnal létrehozza a fájlokat — látszik a pontos útvonal.
+  const bootPaths = saveOutputs(options, catalog, onProgress);
+  onProgress(`DATA MAPPA: ${dirname(bootPaths.csv)}`);
+
+  const saveNow = () => {
+    try {
+      catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
+      catalog.meta.scrapedAt = new Date().toISOString();
+      saveOutputs(options, catalog, onProgress);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const onSignal = (signal) => {
+    onProgress(`${signal} — részlista mentése...`);
+    saveNow();
+    process.exit(130);
+  };
+  process.once("SIGINT", () => onSignal("SIGINT"));
+  process.once("SIGTERM", () => onSignal("SIGTERM"));
+
   if (options.connect && options.source === "form") {
     await waitForUserReady(
       [
@@ -849,6 +919,7 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
         `2) ABBAN a Chrome ablakban: Cloudflare + bejelentkezés + űrlap: ${FORM_URL}`,
         "3) Látszik a Gyártmány legördülő? Ha igen, nyomj ENTER-t itt",
         "",
+        `Részlista ide mentődik: ${bootPaths.csv}`,
         "NEM a sima Chrome és NEM a scraper Chrome (9222) — csak a mentesmarka Chrome (9223)!",
       ].join("\n")
     );
@@ -872,17 +943,21 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
     } else {
       await scrapeFormCatalog(session, page, options, catalog, onProgress);
     }
+  } catch (error) {
+    onProgress(`Hiba — részlista mentése: ${error.message}`);
+    saveNow();
+    throw error;
   } finally {
+    saveNow();
     await close().catch(() => {});
   }
 
-  catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
-  catalog.meta.scrapedAt = new Date().toISOString();
-  const paths = saveOutputs(options, catalog);
+  const paths = outputPaths(options);
   const rowCount = Math.max(0, catalogToCsvRows(catalog).length - 1);
   onProgress(`Kész — ${catalog.meta.brandCount} márka, ${rowCount} sor`);
-  if (options.format === "csv" || options.format === "both") onProgress(`CSV: ${paths.csv}`);
+  onProgress(`CSV: ${paths.csv}`);
   onProgress(`JSON: ${paths.json}`);
+  onProgress(`Státusz: ${paths.status}`);
   return catalog;
 }
 
