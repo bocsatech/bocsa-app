@@ -23,6 +23,15 @@ export function mentesmarkaDir() {
   return join(letoltesekRoot(), "mentesmarka");
 }
 
+export function catalogCandidateDirs() {
+  const home = homedir();
+  const dirs = [
+    join(home, "Letöltések", "mentesmarka"),
+    join(home, "Downloads", "mentesmarka"),
+  ];
+  return [...new Set(dirs)];
+}
+
 export function catalogPaths() {
   const dir = mentesmarkaDir();
   return {
@@ -159,7 +168,15 @@ function fileMtime(path) {
 
 export function loadJarmuKatalogus({ force = false } = {}) {
   const paths = catalogPaths();
-  const sourcePath = [paths.csv, paths.appendCsv, paths.json].find((p) => existsSync(p)) ?? null;
+  const candidates = [];
+  for (const dir of catalogCandidateDirs()) {
+    candidates.push(
+      join(dir, "jarmu-katalogus.csv"),
+      join(dir, "jarmu-katalogus.append.csv"),
+      join(dir, "jarmu-katalogus.json")
+    );
+  }
+  const sourcePath = candidates.find((p) => existsSync(p)) ?? null;
   const mtime = sourcePath ? fileMtime(sourcePath) : 0;
 
   if (!force && cache && cache.sourcePath === sourcePath && cache.mtime === mtime) {
