@@ -82,6 +82,7 @@ A program ezért modellnél végigmegy az évekén:
 - ha van valódi típus: **±1 év** finomítás
 - üres / csak `EGYÉB` évek kihagyva
 - típusonként mentett tartomány: `EvTol`–`EvIg`
+- **üres Tipus sort nem ment** (v0.4.1+) — ha nincs típus, később újrapróbálja
 
 ```bash
 rm -f ~/Letöltések/mentesmarka/jarmu-katalogus.csv \

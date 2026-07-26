@@ -422,25 +422,27 @@ function yearProbeList() {
 
 function mergeTypeYear(typeEntry, year) {
   const y = Number(year);
-  if (!Number.isFinite(y)) return;
+  if (!Number.isFinite(y) || y <= 0) return;
   if (typeEntry.evTol == null || y < typeEntry.evTol) typeEntry.evTol = y;
   if (typeEntry.evIg == null || y > typeEntry.evIg) typeEntry.evIg = y;
 }
 
 function upsertTypeWithYear(modelEntry, type, year) {
   const typeKey = slugify(type.text);
+  const y = Number(year);
+  const hasYear = Number.isFinite(y) && y > 0;
   if (!modelEntry.tipusok[typeKey]) {
     modelEntry.tipusok[typeKey] = {
       nev: type.text,
       value: type.value,
-      evTol: year,
-      evIg: year,
+      evTol: hasYear ? y : undefined,
+      evIg: hasYear ? y : undefined,
       kivitel: [],
       profilok: {},
     };
     return true;
   }
-  mergeTypeYear(modelEntry.tipusok[typeKey], year);
+  if (hasYear) mergeTypeYear(modelEntry.tipusok[typeKey], y);
   return false;
 }
 
@@ -823,64 +825,95 @@ function modelAlreadyDone(modelEntry) {
   return true;
 }
 
-async function setGyartasiEvHonap(page, year, onProgress) {
-  const yearSelect = page.locator('#gyartasi_ev, select[name="gyartasi_ev"]').first();
-  const monthSelect = page.locator('#gyartasi_honap, select[name="gyartasi_honap"]').first();
+async function resolveYearMonthSelects(page) {
+  let yearSelect =
+    (await findSelectByLabel(page, ["Gyártási év", "Gyartasi ev", "Évjárat"])) ??
+    page.locator('#gyartasi_ev, select[name="gyartasi_ev"], select[id*="gyartasi_ev" i]').first();
+  let monthSelect =
+    (await findSelectByLabel(page, ["Gyártási hónap", "Gyartasi honap", "Hónap"])) ??
+    page.locator('#gyartasi_honap, select[name="gyartasi_honap"], select[id*="gyartasi_honap" i]').first();
 
   if (!(await yearSelect.count())) {
-    onProgress?.("    Figyelem: gyartasi_ev select nem található");
-    return false;
+    // Utolsó esély: select, aminek az optionjei évszámok
+    const candidate = page.locator("select").filter({
+      has: page.locator('option[value="2015"], option[value="2020"]'),
+    }).first();
+    if (await candidate.count()) yearSelect = candidate;
   }
 
-  const yearStr = String(year);
-  let ok = false;
+  return {
+    yearSelect: (await yearSelect.count()) ? yearSelect : null,
+    monthSelect: (await monthSelect.count()) ? monthSelect : null,
+  };
+}
+
+async function selectOptionFlexible(select, value, onProgress, label) {
+  const valueStr = String(value);
   try {
-    await yearSelect.selectOption(yearStr, { timeout: 5000 });
-    ok = true;
+    await select.selectOption(valueStr, { timeout: 4000 });
+    return true;
   } catch {
-    try {
-      await yearSelect.selectOption({ label: yearStr }, { timeout: 5000 });
-      ok = true;
-    } catch {
-      ok = await yearSelect
-        .evaluate((el, value) => {
-          const match = [...el.options].find(
-            (item) => item.value === value || item.textContent?.trim() === value
-          );
-          if (!match) return false;
-          el.value = match.value;
-          el.dispatchEvent(new Event("change", { bubbles: true }));
-          el.dispatchEvent(new Event("input", { bubbles: true }));
-          return true;
-        }, yearStr)
-        .catch(() => false);
-    }
+    /* next */
   }
+  try {
+    await select.selectOption({ label: valueStr }, { timeout: 4000 });
+    return true;
+  } catch {
+    /* next */
+  }
+  const ok = await select
+    .evaluate((el, v) => {
+      const match = [...el.options].find(
+        (item) => item.value === v || item.textContent?.trim() === v || item.textContent?.trim() === `${v}.`
+      );
+      if (!match) return false;
+      el.value = match.value;
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      if (typeof window.jQuery === "function") {
+        window.jQuery(el).trigger("change");
+      }
+      return true;
+    }, valueStr)
+    .catch(() => false);
+  if (!ok) onProgress?.(`    Figyelmeztetés: ${label} nem állítható: ${value}`);
+  return ok;
+}
 
-  if (!ok) {
-    onProgress?.(`    Figyelmeztetés: gyártási év nem állítható: ${year}`);
+async function ensureModelSelected(modelSelect, model) {
+  const current = await modelSelect
+    .evaluate((el) => ({ value: el.value, text: el.options[el.selectedIndex]?.textContent?.trim() ?? "" }))
+    .catch(() => ({ value: "", text: "" }));
+  if (current.value === model.value || current.text === model.text) return true;
+  return safeSelectOption(modelSelect, model, null);
+}
+
+async function setGyartasiEvHonap(page, year, onProgress) {
+  const { yearSelect, monthSelect } = await resolveYearMonthSelects(page);
+  if (!yearSelect) {
+    onProgress?.("    Figyelem: gyártási év select nem található");
     return false;
   }
 
-  if (await monthSelect.count()) {
-    const monthTries = ["6", "06", "1", "01"];
+  const ok = await selectOptionFlexible(yearSelect, year, onProgress, "gyártási év");
+  if (!ok) return false;
+
+  if (monthSelect) {
     let monthOk = false;
-    for (const m of monthTries) {
-      try {
-        await monthSelect.selectOption(m, { timeout: 2000 });
-        monthOk = true;
-        break;
-      } catch {
-        /* next */
-      }
+    for (const m of ["6", "06", "1", "01"]) {
+      monthOk = await selectOptionFlexible(monthSelect, m, null, "hónap");
+      if (monthOk) break;
     }
     if (!monthOk) {
       await monthSelect
         .evaluate((el) => {
-          const match = [...el.options].find((item) => item.value && !/válasszon|^--$/i.test(item.textContent ?? ""));
+          const match = [...el.options].find(
+            (item) => item.value && !/válasszon|^--$/i.test(item.textContent ?? "")
+          );
           if (!match) return false;
           el.value = match.value;
           el.dispatchEvent(new Event("change", { bubbles: true }));
+          if (typeof window.jQuery === "function") window.jQuery(el).trigger("change");
           return true;
         })
         .catch(() => false);
@@ -890,31 +923,87 @@ async function setGyartasiEvHonap(page, year, onProgress) {
   return true;
 }
 
+/** Gyors Tipus olvasás: üres / csak EGYÉB évnél ne várjon 25 mp-et. */
+async function waitForRealTypeOptions(select, { timeoutMs = 12000, minWaitMs = 900, settleMs = 900 } = {}) {
+  const started = Date.now();
+  let lastSig = "";
+  let stableSince = Date.now();
+  let bestReal = [];
+  let sawOnlyEgyeb = false;
+
+  await sleep(minWaitMs);
+
+  while (Date.now() - started < timeoutMs) {
+    const options = await readSelectOptions(select);
+    const real = options.filter((item) => !isEgyebType(item.text));
+    const sig = options.map((item) => `${item.value}:${item.text}`).join("|");
+
+    if (sig !== lastSig) {
+      lastSig = sig;
+      stableSince = Date.now();
+      if (real.length) bestReal = real;
+      if (options.length && !real.length) sawOnlyEgyeb = true;
+    }
+
+    if (real.length && Date.now() - stableSince >= settleMs) {
+      return real;
+    }
+
+    // Csak EGYÉB / üres és stabil → ez az év üres, lépj tovább
+    if (
+      Date.now() - started >= Math.min(4500, timeoutMs) &&
+      Date.now() - stableSince >= settleMs &&
+      !real.length
+    ) {
+      return [];
+    }
+
+    await sleep(200);
+  }
+
+  return bestReal.length ? bestReal : sawOnlyEgyeb ? [] : preferRealTypes(await readSelectOptions(select)).filter((t) => !isEgyebType(t.text));
+}
+
 /**
  * Modell + évjárat lépéses Tipus gyűjtés.
- * 1990→2026, lépés 3; ha van valódi típus, próbálja year±1-et is.
- * Üres / csak EGYÉB évek kihagyva.
+ * Sorrend: modell (megtart) → év → Tipus AJAX.
+ * 1990→2026, lépés 3; találatnál ±1. Üres/EGYÉB kihagyva.
  */
 async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, options, onProgress) {
   const foundByYear = new Map();
   const probeYears = yearProbeList();
+  let yearSelectOk = false;
 
-  async function collectYear(year) {
+  async function collectYear(year, { longWait = false } = {}) {
     if (foundByYear.has(year)) return foundByYear.get(year);
+
+    // Először modell, aztán év — a Tipus mindkettőre kell
+    await ensureModelSelected(modelSelect, model);
     const yearOk = await setGyartasiEvHonap(page, year, onProgress);
+    if (yearOk) yearSelectOk = true;
     if (!yearOk) return [];
-    await sleep(Math.max(600, Math.floor(options.delayMs * 0.7)));
-    // Modell néha resetelődik évváltáskor
-    await safeSelectOption(modelSelect, model, onProgress);
-    await sleep(800);
-    let types = await waitForTypeOptions(typeSelect, {
-      timeoutMs: 25000,
-      minWaitMs: 1200,
-      settleMs: 1200,
+
+    // Évváltás után modell megmaradt-e?
+    await ensureModelSelected(modelSelect, model);
+    // Modell change újra triggerelheti a Tipus AJAX-ot év + modell mellett
+    await modelSelect
+      .evaluate((el) => {
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+        if (typeof window.jQuery === "function") window.jQuery(el).trigger("change");
+      })
+      .catch(() => {});
+
+    await sleep(Math.max(700, Math.floor(options.delayMs * 0.6)));
+
+    const types = await waitForRealTypeOptions(typeSelect, {
+      timeoutMs: longWait ? 28000 : 10000,
+      minWaitMs: longWait ? 1500 : 800,
+      settleMs: longWait ? 1200 : 800,
     });
-    types = preferRealTypes(types).filter((item) => !isEgyebType(item.text));
+
     if (types.length) {
       foundByYear.set(year, types);
+      onProgress?.(`    Év ${year}: ${types.length} típus`);
     }
     return types;
   }
@@ -924,15 +1013,34 @@ async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, opti
     const types = await collectYear(year);
     if (!types.length) continue;
 
-    onProgress?.(`    Év ${year}: ${types.length} típus — ±1 finomítás`);
     for (const neighbor of [year - 1, year + 1]) {
       if (neighbor < YEAR_MIN || neighbor > YEAR_MAX) continue;
       if (foundByYear.has(neighbor)) continue;
-      // Ha a szomszéd amúgy is probe év, a fő ciklus majd megnézi — de ±1 gyakran
-      // nem esik egybe a 3-as lépéssel (pl. 2015→2014,2016).
       onProgress?.(`    Év: ${neighbor} (±1)…`);
       await collectYear(neighbor);
     }
+  }
+
+  // Ha semmi: tipikus évek hosszabb várakozással (pl. Giulietta ~2010–2020)
+  if (!foundByYear.size && yearSelectOk) {
+    onProgress?.("    Nincs típus a lépéses éveknél — újrapróba kulcsévekkel…");
+    for (const year of [2010, 2012, 2014, 2015, 2016, 2018, 2020]) {
+      if (foundByYear.has(year)) continue;
+      await collectYear(year, { longWait: true });
+    }
+  }
+
+  // Ha a gyártási év select egyáltalán nem működött: egyszeri Tipus olvasás modell után
+  if (!foundByYear.size && !yearSelectOk) {
+    onProgress?.("    Gyártási év nélkül próbálom a Tipus listát…");
+    await ensureModelSelected(modelSelect, model);
+    await sleep(1500);
+    const types = await waitForRealTypeOptions(typeSelect, {
+      timeoutMs: 30000,
+      minWaitMs: 2000,
+      settleMs: 1500,
+    });
+    if (types.length) foundByYear.set(0, types);
   }
 
   return foundByYear;
@@ -1065,8 +1173,7 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
       const modelEntry = catalog.gyartmanyok[brandKey].modellek[modelKey];
 
       if (!(await typeSelect.count())) {
-        modelEntry.evjaratKesz = true;
-        appendModelTypes(options, brand.text, model.text, [], onProgress);
+        onProgress?.(`    Tipus select nincs — modell kihagyva (nem jelölöm késznek)`);
         saveOutputs(options, catalog, onProgress, { quiet: true });
         continue;
       }
@@ -1076,6 +1183,7 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
       );
       // Új scrape: töröljük a régi (év nélküli / EGYÉB) típusokat
       modelEntry.tipusok = {};
+      delete modelEntry.evjaratKesz;
 
       const foundByYear = await scrapeModelTypesByYear(
         page,
@@ -1086,13 +1194,22 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         onProgress
       );
 
-      const yearsSorted = [...foundByYear.keys()].sort((a, b) => a - b);
-      for (const year of yearsSorted) {
+      const yearsSorted = [...foundByYear.keys()].filter((y) => y > 0).sort((a, b) => a - b);
+      for (const year of [...foundByYear.keys()].sort((a, b) => a - b)) {
         let types = foundByYear.get(year) ?? [];
         if (options.maxTypes) types = types.slice(0, options.maxTypes);
         for (const type of types) {
           upsertTypeWithYear(modelEntry, type, year);
         }
+      }
+
+      const appendRows = Object.values(modelEntry.tipusok);
+
+      // Üres Tipus = hiba — NE jelöld késznek, NE írj üres sort (resume újrapróbálja)
+      if (!appendRows.length) {
+        onProgress?.(`    HIBA: nincs Tipus ehhez a modellhez — később újra`);
+        saveOutputs(options, catalog, onProgress, { quiet: true });
+        continue;
       }
 
       modelEntry.evjaratKesz = true;
@@ -1101,7 +1218,7 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
       if (options.deep && yearsSorted.length) {
         const deepYear = yearsSorted[Math.floor(yearsSorted.length / 2)];
         await setGyartasiEvHonap(page, deepYear, onProgress);
-        await safeSelectOption(modelSelect, model, onProgress);
+        await ensureModelSelected(modelSelect, model);
         await sleep(1000);
         const deepTypes = Object.values(modelEntry.tipusok);
         for (const typeEntry of deepTypes) {
@@ -1132,18 +1249,11 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
         }
       }
 
-      const appendRows = Object.values(modelEntry.tipusok);
       onProgress?.(
-        `    Kész: ${appendRows.length} típus, ${yearsSorted.length} évjárat` +
-          (yearsSorted.length ? ` (${yearsSorted[0]}–${yearsSorted[yearsSorted.length - 1]})` : "")
+        `    Kész: ${appendRows.length} típus` +
+          (yearsSorted.length ? `, év ${yearsSorted[0]}–${yearsSorted[yearsSorted.length - 1]}` : "")
       );
-      appendModelTypes(
-        options,
-        brand.text,
-        model.text,
-        appendRows.length ? appendRows : [],
-        onProgress
-      );
+      appendModelTypes(options, brand.text, model.text, appendRows, onProgress);
       catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
       catalog.meta.scrapedAt = new Date().toISOString();
       saveOutputs(options, catalog, onProgress, { quiet: true });
