@@ -1,4 +1,4 @@
 node_modules/
 .chrome-profile/
-data/*.json
-data/*.csv
+data/*
+!data/.gitkeep
