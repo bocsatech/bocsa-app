@@ -1,4 +1,4 @@
-import { PARTNER_CATEGORIES } from "../lib/partner-categories.mjs";
+import { PARTNER_CATEGORIES } from "./partner-categories-data.js";
 
 const STORAGE_KEY = "autosweb_partner_postal_code";
 

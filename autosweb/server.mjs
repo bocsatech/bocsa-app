@@ -571,7 +571,7 @@ const server = createServer(async (req, res) => {
   serveStatic(pathname, res);
 });
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, async () => {
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
   try {
@@ -579,5 +579,16 @@ server.listen(PORT, HOST, () => {
     console.log(`SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella)`);
   } catch (error) {
     console.warn("SQLite inicializálás:", error.message ?? error);
+  }
+  try {
+    const { seedDemoPartnersIfEmpty } = await import("./scripts/seed-partners.mjs");
+    const seedResult = seedDemoPartnersIfEmpty();
+    if (seedResult.seeded) {
+      console.log(
+        `Partnerek: demo adatok betöltve (${seedResult.stats.activePaid} fizetős aktív)`
+      );
+    }
+  } catch (error) {
+    console.warn("Partner seed:", error.message ?? error);
   }
 });

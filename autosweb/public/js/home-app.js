@@ -173,7 +173,7 @@ import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())
   .catch((error) => console.error("Oldalsáv betöltés:", error));
 
-import("./partner-recommendations.js")
+import("./partner-recommendations.js?v=partners20260726fix")
   .then((mod) => mod.initPartnerRecommendations())
   .catch((error) => console.error("Partner ajánló:", error));
 

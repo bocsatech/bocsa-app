@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /** Demo fizetős partnerek betöltése az adatbázisba. */
+import { fileURLToPath } from "url";
 import { savePartner, partnerStats } from "../lib/partners.mjs";
 
-const demoPartners = [
+export const demoPartners = [
   {
     name: "Fejér Autószerviz Kft.",
     address: "Fő utca 12.",
@@ -117,8 +118,24 @@ const demoPartners = [
   },
 ];
 
-for (const row of demoPartners) {
-  savePartner(row);
+export function seedDemoPartnersIfEmpty() {
+  const before = partnerStats();
+  if (before.total > 0) {
+    return { seeded: false, stats: before };
+  }
+  for (const row of demoPartners) {
+    savePartner(row);
+  }
+  return { seeded: true, stats: partnerStats() };
 }
 
-console.log("Demo partnerek betöltve:", partnerStats());
+export function seedDemoPartners() {
+  for (const row of demoPartners) {
+    savePartner(row);
+  }
+  return partnerStats();
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  console.log("Demo partnerek betöltve:", seedDemoPartners());
+}

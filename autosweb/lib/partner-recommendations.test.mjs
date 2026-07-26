@@ -1,0 +1,31 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+test("partner-recommendations.js: böngészőben elérhető kategória import", () => {
+  const js = readFileSync(
+    join(__dirname, "..", "public", "js", "partner-recommendations.js"),
+    "utf8"
+  );
+  assert.ok(js.includes('./partner-categories-data.js'));
+  assert.ok(!js.includes("../lib/partner-categories.mjs"));
+});
+
+test("getPartnerRecommendations: 8000 környékén van találat demo adattal", async () => {
+  process.env.AUTOSWEB_DB_PATH = join(__dirname, "..", "data", "autosweb.db");
+  const { getPartnerRecommendations, partnerStats } = await import("./partners.mjs");
+  const stats = partnerStats();
+  if (stats.activePaid === 0) {
+    const { seedDemoPartnersIfEmpty } = await import("../scripts/seed-partners.mjs");
+    seedDemoPartnersIfEmpty();
+  }
+  const result = getPartnerRecommendations("8000");
+  assert.equal(result.postal_code, "8000");
+  assert.equal(result.city, "Székesfehérvár");
+  const withPartners = result.categories.filter((c) => c.partners.length > 0);
+  assert.ok(withPartners.length > 0, "legalább egy kategóriában legyen partner");
+});
