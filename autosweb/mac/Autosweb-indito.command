@@ -46,6 +46,11 @@ if grep -q 'home-search-form' "$INDEX" 2>/dev/null; then
   exit 1
 fi
 
+if ! grep -q 'partner-categories-data.js' "$TARGET/public/js/partner-recommendations.js" 2>/dev/null; then
+  osascript -e 'display alert "Régi főoldal!" message "Partner ajánló JS régi.\\n\\n1) cd ~/bocsa-app && git pull\\n2) autosweb/mac/frissites.command\\n3) indítsd újra"'
+  exit 1
+fi
+
 INDEX_VER=$(grep 'autosweb-version' "$INDEX" | head -1 | sed 's/.*content="//;s/".*//')
 echo "Autosweb főoldal: ${INDEX_VER:-?}"
 echo "✓ Stats sáv a főoldalon"

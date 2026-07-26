@@ -6,12 +6,19 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+test("home-app.js: partner ajánló statikus import", () => {
+  const js = readFileSync(join(__dirname, "..", "public", "js", "home-app.js"), "utf8");
+  assert.ok(js.includes('from "./partner-recommendations.js"'));
+  assert.ok(js.includes("initPartnerRecommendations()"));
+  assert.ok(!js.includes('import("./partner-recommendations.js'));
+});
+
 test("partner-recommendations.js: böngészőben elérhető kategória import", () => {
   const js = readFileSync(
     join(__dirname, "..", "public", "js", "partner-recommendations.js"),
     "utf8"
   );
-  assert.ok(js.includes('./partner-categories-data.js'));
+  assert.ok(js.includes("./partner-categories-data.js"));
   assert.ok(!js.includes("../lib/partner-categories.mjs"));
 });
 

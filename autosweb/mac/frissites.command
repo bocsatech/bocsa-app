@@ -89,6 +89,20 @@ else
   exit 1
 fi
 
+if grep -q 'partner-categories-data.js' "$TARGET/public/js/partner-recommendations.js" 2>/dev/null; then
+  echo "  ✓ partner ajánló JS OK"
+else
+  echo "  ✗ HIBA: partner-recommendations.js régi — git pull + frissites újra"
+  exit 1
+fi
+
+if grep -q 'partners20260726b' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ főoldal partner verzió OK"
+else
+  echo "  ✗ HIBA: index.html régi — partner javítás hiányzik"
+  exit 1
+fi
+
 INDEX_VER=$(grep -o 'autosweb-version" content="[^"]*' "$TARGET/public/index.html" | head -1 | sed 's/.*"//')
 echo "  Főoldal verzió: ${INDEX_VER:-?}"
 

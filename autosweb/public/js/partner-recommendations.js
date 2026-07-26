@@ -2,11 +2,40 @@ import { PARTNER_CATEGORIES } from "./partner-categories-data.js";
 
 const STORAGE_KEY = "autosweb_partner_postal_code";
 
+function isLocalAutoswebHost() {
+  const host = window.location.hostname;
+  return host === "127.0.0.1" || host === "localhost";
+}
+
+function partnerApiErrorMessage(response, data) {
+  if (response.status === 404 && data?.error === "Ismeretlen API.") {
+    return "Régi Autosweb szerver fut — állítsd le, futtasd: autosweb/mac/frissites.command, majd indítsd újra.";
+  }
+  if (!isLocalAutoswebHost()) {
+    return "A szolgáltatók csak a lokális Autosweben működnek: http://127.0.0.1:3456/ (nem a Vercel weboldalon).";
+  }
+  return data?.error ?? "Ajánlások betöltése sikertelen.";
+}
+
 export async function fetchPartnerRecommendations(postalCode) {
   const params = new URLSearchParams({ postal_code: String(postalCode).trim() });
-  const response = await fetch(`/api/partners/recommendations?${params}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error ?? "Ajánlások betöltése sikertelen.");
+  let response;
+  try {
+    response = await fetch(`/api/partners/recommendations?${params}`);
+  } catch {
+    if (!isLocalAutoswebHost()) {
+      throw new Error(
+        "A szolgáltatók csak a lokális Autosweben működnek: http://127.0.0.1:3456/ (indítsd: Autosweb-indito.command)."
+      );
+    }
+    throw new Error(
+      "Nem érhető el az Autosweb szerver — indítsd: ~/Desktop/Autosweb-indito.command (http://127.0.0.1:3456/)."
+    );
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(partnerApiErrorMessage(response, data));
+  }
   return data;
 }
 
@@ -98,6 +127,49 @@ function renderCategoryBlock(category) {
   return section;
 }
 
+function setStatus(statusEl, message, type = "") {
+  if (!statusEl) return;
+  statusEl.hidden = !message;
+  statusEl.textContent = message ?? "";
+  statusEl.dataset.statusType = type;
+}
+
+async function verifyPartnerApi(statusEl) {
+  if (!isLocalAutoswebHost()) {
+    setStatus(
+      statusEl,
+      "A szolgáltatók csak lokálisan működnek: http://127.0.0.1:3456/ (Autosweb-indito.command).",
+      "err"
+    );
+    return false;
+  }
+
+  try {
+    const response = await fetch("/api/partners/stats");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setStatus(statusEl, partnerApiErrorMessage(response, data), "err");
+      return false;
+    }
+    if (!data.activePaid) {
+      setStatus(
+        statusEl,
+        "Nincs fizetős partner az adatbázisban. Futtasd: cd ~/Downloads/autosweb && npm run seed:partners",
+        "err"
+      );
+      return false;
+    }
+    return true;
+  } catch {
+    setStatus(
+      statusEl,
+      "Az Autosweb szerver nem fut — indítsd: ~/Desktop/Autosweb-indito.command",
+      "err"
+    );
+    return false;
+  }
+}
+
 export function initPartnerRecommendations(rootId = "home-partner-recommendations") {
   const root = document.getElementById(rootId);
   const form = document.getElementById("home-partner-postal-form");
@@ -106,27 +178,34 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
   const resultsEl = document.getElementById("home-partner-results");
   if (!root || !form || !input || !resultsEl) return;
 
+  let apiReady = false;
+
   const saved = loadSavedPostalCode();
   if (saved) input.value = saved;
 
   async function loadRecommendations(postalCode) {
-    statusEl.hidden = false;
-    statusEl.textContent = "Ajánlások betöltése…";
-    statusEl.dataset.statusType = "info";
+    if (!apiReady) {
+      apiReady = await verifyPartnerApi(statusEl);
+      if (!apiReady) return;
+    }
+
+    setStatus(statusEl, "Ajánlások betöltése…", "info");
     resultsEl.innerHTML = "";
 
     try {
       const data = await fetchPartnerRecommendations(postalCode);
       savePostalCode(postalCode);
-      statusEl.textContent = `${data.city} (${data.postal_code}) — legfeljebb ${data.max_results} partner / kategória`;
-      statusEl.dataset.statusType = "ok";
+      setStatus(
+        statusEl,
+        `${data.city} (${data.postal_code}) — legfeljebb ${data.max_results} partner / kategória`,
+        "ok"
+      );
 
       for (const category of data.categories ?? PARTNER_CATEGORIES) {
         resultsEl.append(renderCategoryBlock(category));
       }
     } catch (error) {
-      statusEl.textContent = error.message ?? "Nem sikerült betölteni az ajánlásokat.";
-      statusEl.dataset.statusType = "err";
+      setStatus(statusEl, error.message ?? "Nem sikerült betölteni az ajánlásokat.", "err");
     }
   }
 
@@ -135,15 +214,16 @@ export function initPartnerRecommendations(rootId = "home-partner-recommendation
     const postalCode = input.value.replace(/\D/g, "").slice(0, 4);
     input.value = postalCode;
     if (postalCode.length !== 4) {
-      statusEl.hidden = false;
-      statusEl.textContent = "Adj meg érvényes 4 számjegyű irányítószámot.";
-      statusEl.dataset.statusType = "err";
+      setStatus(statusEl, "Adj meg érvényes 4 számjegyű irányítószámot.", "err");
       return;
     }
     loadRecommendations(postalCode);
   });
 
-  if (saved.length === 4) {
-    loadRecommendations(saved);
-  }
+  verifyPartnerApi(statusEl).then((ok) => {
+    apiReady = ok;
+    if (ok && saved.length === 4) {
+      loadRecommendations(saved);
+    }
+  });
 }
