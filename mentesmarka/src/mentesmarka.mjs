@@ -2,7 +2,6 @@ import { connectToOpenBrowser, DEFAULT_CDP_URL, launchBrowser } from "./browser.
 import {
   appendFileSync,
   closeSync,
-  copyFileSync,
   existsSync,
   fsyncSync,
   mkdirSync,
@@ -19,10 +18,30 @@ import { waitForUserReady } from "./ready.mjs";
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PKG = JSON.parse(readFileSync(join(PACKAGE_ROOT, "package.json"), "utf8"));
 
-/** Mindig a mentesmarka/data alá ment — nem a terminál cwd-jétől függ. */
-const DEFAULT_OUTPUT = join(PACKAGE_ROOT, "data", "jarmu-katalogus.csv");
-/** Másolat ide is — könnyebb megtalálni (mint a fugveny). */
-const DOWNLOADS_DIR = join(homedir(), "Downloads", "mentesmarka");
+/**
+ * Magyar Mac: ~/Letöltések
+ * Angol Mac: ~/Downloads
+ * Először a létező mappát használjuk; ha egyik sincs, Letöltések-et hozunk létre.
+ */
+function letoltesekRoot() {
+  const home = homedir();
+  const candidates = [join(home, "Letöltések"), join(home, "Downloads")];
+  for (const dir of candidates) {
+    if (existsSync(dir)) return dir;
+  }
+  const created = join(home, "Letöltések");
+  mkdirSync(created, { recursive: true });
+  return created;
+}
+
+/** Minden kimenet: ~/Letöltések/mentesmarka/ */
+function mentesmarkaRoot() {
+  const root = join(letoltesekRoot(), "mentesmarka");
+  mkdirSync(root, { recursive: true });
+  return root;
+}
+
+const DEFAULT_OUTPUT = join(mentesmarkaRoot(), "jarmu-katalogus.csv");
 
 /** null = minden márka. Szűréshez: --brands "Audi,BMW" */
 const DEFAULT_BRANDS = null;
@@ -266,7 +285,8 @@ function resolveOutputPath(output) {
   const text = String(output ?? "").trim();
   if (!text) return DEFAULT_OUTPUT;
   if (text.startsWith("/") || /^[A-Za-z]:[\\/]/.test(text)) return resolve(text);
-  return resolve(PACKAGE_ROOT, text.replace(/^\.\//, ""));
+  // Relatív path is mindig a Downloads/mentesmarka alá
+  return resolve(mentesmarkaRoot(), text.replace(/^\.\//, ""));
 }
 
 function outputPaths(options) {
@@ -274,13 +294,11 @@ function outputPaths(options) {
   const base = absolute.replace(/\.(csv|json)$/i, "");
   const dir = dirname(`${base}.csv`);
   return {
+    root: mentesmarkaRoot(),
     csv: `${base}.csv`,
     json: `${base}.json`,
     appendCsv: `${base}.append.csv`,
     status: join(dir, "LEGUTOBBI-MENTES.txt"),
-    downloadsCsv: join(DOWNLOADS_DIR, "jarmu-katalogus.csv"),
-    downloadsJson: join(DOWNLOADS_DIR, "jarmu-katalogus.json"),
-    downloadsStatus: join(DOWNLOADS_DIR, "LEGUTOBBI-MENTES.txt"),
   };
 }
 
@@ -297,21 +315,11 @@ function atomicWriteFile(filePath, content) {
   renameSync(tmp, filePath);
 }
 
-function safeCopy(from, to) {
-  try {
-    mkdirSync(dirname(to), { recursive: true });
-    copyFileSync(from, to);
-  } catch {
-    /* mirror hiba nem állíthatja meg a scrape-et */
-  }
-}
-
-/** NEM dob hibát — a scrape továbbmegy, a mentés a legjobb tudása szerint megpróbál. */
+/** NEM dob hibát — a scrape továbbmegy. CSAK ~/Downloads/mentesmarka/ */
 function saveOutputs(options, catalog, onProgress, { quiet = false } = {}) {
   const paths = outputPaths(options);
   try {
-    mkdirSync(dirname(paths.csv), { recursive: true });
-    mkdirSync(DOWNLOADS_DIR, { recursive: true });
+    mkdirSync(paths.root, { recursive: true });
 
     const toSave = {
       meta: catalog.meta ?? {},
@@ -328,25 +336,17 @@ function saveOutputs(options, catalog, onProgress, { quiet = false } = {}) {
     const status = [
       `mentesmarka v${PKG.version}`,
       `ido: ${new Date().toISOString()}`,
+      `mappa: ${paths.root}`,
       `csv: ${paths.csv}`,
       `json: ${paths.json}`,
       `append: ${paths.appendCsv}`,
-      `downloads: ${paths.downloadsCsv}`,
       `markak: ${Object.keys(catalog.gyartmanyok ?? {}).length}`,
       `sorok: ${rowCount}`,
     ].join("\n");
     atomicWriteFile(paths.status, `${status}\n`);
 
-    safeCopy(paths.csv, paths.downloadsCsv);
-    safeCopy(paths.json, paths.downloadsJson);
-    safeCopy(paths.status, paths.downloadsStatus);
-    if (existsSync(paths.appendCsv)) {
-      safeCopy(paths.appendCsv, join(DOWNLOADS_DIR, "jarmu-katalogus.append.csv"));
-    }
-
     if (!quiet) {
       onProgress?.(`Mentve (${rowCount} sor): ${paths.csv}`);
-      onProgress?.(`Másolat: ${paths.downloadsCsv}`);
     }
     return paths;
   } catch (error) {
@@ -361,7 +361,7 @@ function saveOutputs(options, catalog, onProgress, { quiet = false } = {}) {
 function appendModelTypes(options, brandName, modelName, types, onProgress) {
   const paths = outputPaths(options);
   try {
-    mkdirSync(dirname(paths.appendCsv), { recursive: true });
+    mkdirSync(paths.root, { recursive: true });
     if (!existsSync(paths.appendCsv)) {
       writeFileSync(paths.appendCsv, "Gyartmany,Modell,Tipus\n", "utf8");
     }
@@ -380,8 +380,7 @@ function appendModelTypes(options, brandName, modelName, types, onProgress) {
       closeSync(fd);
     }
 
-    safeCopy(paths.appendCsv, join(DOWNLOADS_DIR, "jarmu-katalogus.append.csv"));
-    onProgress?.(`  +${rows.length} típus append → ${paths.appendCsv}`);
+    onProgress?.(`  +${rows.length} típus → ${paths.appendCsv}`);
   } catch (error) {
     onProgress?.(`Append hiba (folytatom): ${error.message}`);
   }

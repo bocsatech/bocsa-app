@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import { existsSync, mkdirSync } from "fs";
+import { homedir } from "os";
 import { join } from "path";
 
 const CHROME_PATHS = [
@@ -13,8 +14,22 @@ export function findChromeExecutable() {
   return CHROME_PATHS.find((path) => existsSync(path)) ?? null;
 }
 
+function letoltesekRoot() {
+  const home = homedir();
+  const candidates = [join(home, "Letöltések"), join(home, "Downloads")];
+  for (const dir of candidates) {
+    if (existsSync(dir)) return dir;
+  }
+  const created = join(home, "Letöltések");
+  mkdirSync(created, { recursive: true });
+  return created;
+}
+
+/** Chrome profil is a Letöltések/mentesmarka alá kerül. */
 export function getChromeProfileDir() {
-  return join(process.cwd(), ".chrome-profile");
+  const dir = join(letoltesekRoot(), "mentesmarka", ".chrome-profile");
+  mkdirSync(dir, { recursive: true });
+  return dir;
 }
 
 export function startChromeWithDebugging(startUrl, port = 9223) {

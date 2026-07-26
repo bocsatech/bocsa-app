@@ -58,21 +58,16 @@ A program **nem navigál el** — a meglévő lapot használja.
 
 ## Kimenet
 
+**Csak ide** (magyar Mac — Letöltések mappa):
+
 ```
-~/bocsa-app/mentesmarka/data/jarmu-katalogus.csv
-~/bocsa-app/mentesmarka/data/jarmu-katalogus.append.csv   ← soronként azonnal
-~/bocsa-app/mentesmarka/data/jarmu-katalogus.json
-~/bocsa-app/mentesmarka/data/LEGUTOBBI-MENTES.txt
-
-Másolat (könnyebb megtalálni):
-
-~/Downloads/mentesmarka/jarmu-katalogus.csv
-~/Downloads/mentesmarka/jarmu-katalogus.append.csv
+~/Letöltések/mentesmarka/jarmu-katalogus.csv
+~/Letöltések/mentesmarka/jarmu-katalogus.append.csv
+~/Letöltések/mentesmarka/jarmu-katalogus.json
+~/Letöltések/mentesmarka/LEGUTOBBI-MENTES.txt
 ```
 
-Minden modell után azonnal ment (atomikus fájlcsere + append).
-Ha félbeszakad: nézd az `.append.csv`-t — az a legbiztosabb részlista.
-Újraindításkor a meglevő modelleket kihagyja.
+A program **létrehozza** a `mentesmarka` almappát a Letöltésekben, ha még nincs.
 
 CSV oszlopok:
 
@@ -94,18 +89,18 @@ node src/mentesmarka.mjs --connect --brands all
 node src/mentesmarka.mjs --connect --format both
 node src/mentesmarka.mjs --connect --deep          # + Kivitel / zöld mezők (lassabb)
 node src/mentesmarka.mjs --connect --source katalogus
-node src/mentesmarka.mjs --connect -o data/proba.csv
+node src/mentesmarka.mjs --connect -o proba.csv
 ```
 
 ## Mappastruktúra
 
 ```
-mentesmarka/
+mentesmarka/          — program kód (bocsa-app-ban)
   package.json
   src/
-    mentesmarka.mjs   — fő program
-    browser.mjs       — Chrome kapcsolat
-    chrome.mjs        — Chrome indító
-  data/               — mentett CSV/JSON
-  .chrome-profile/    — saját böngésző profil
+    mentesmarka.mjs
+    browser.mjs
+    chrome.mjs
+
+~/Letöltések/mentesmarka/   — minden kimenet + Chrome profil
 ```
