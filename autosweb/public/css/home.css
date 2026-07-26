@@ -601,7 +601,185 @@ body.home-page .local-banner {
 /* —— Kategória sáv (CarGurus-szerű kártyák) —— */
 .home-category-bar {
   width: 100%;
+  margin-bottom: 0.85rem;
+}
+
+/* —— Összesítő sáv (statikus mockup) —— */
+.home-stats-bar {
+  width: 100%;
   margin-bottom: 1rem;
+}
+
+.home-stats-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(220px, 1.35fr);
+  gap: 0.75rem;
+}
+
+.home-stats-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1rem 1.05rem;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e8ebf0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.home-stats-card--primary {
+  background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(21, 101, 192, 0.22);
+}
+
+.home-stats-icon {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef4ff;
+  color: #1565c0;
+}
+
+.home-stats-icon--primary {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.home-stats-copy {
+  min-width: 0;
+}
+
+.home-stats-label {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #667085;
+}
+
+.home-stats-card--primary .home-stats-label {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.home-stats-value {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #111;
+}
+
+.home-stats-card--primary .home-stats-value {
+  color: #fff;
+}
+
+.home-stats-meta {
+  margin: 0.28rem 0 0;
+  font-size: 0.76rem;
+  color: #8a9199;
+}
+
+.home-stats-card--primary .home-stats-meta {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.home-stats-meta--positive {
+  color: #7fe3a8;
+  font-weight: 600;
+}
+
+.home-stats-card--app {
+  position: relative;
+  overflow: hidden;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+.home-stats-app-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.home-stats-app-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.home-stats-app-text {
+  margin: 0 0 0.65rem;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.home-stats-app-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.home-stats-store-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.65rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.home-stats-app-phone {
+  position: relative;
+  flex-shrink: 0;
+  width: 4.6rem;
+  height: 5.6rem;
+  border-radius: 14px;
+  padding: 0.28rem;
+  background: linear-gradient(180deg, #2a2a2a 0%, #111 100%);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.home-stats-app-phone-screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 11px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+    linear-gradient(135deg, #1e88e5 0%, #1565c0 45%, #0d47a1 100%);
+}
+
+@media (max-width: 1180px) {
+  .home-stats-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-stats-card--app {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .home-stats-track {
+    grid-template-columns: 1fr;
+  }
 }
 
 .home-category-track {
