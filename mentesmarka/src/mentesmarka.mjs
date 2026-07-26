@@ -8,22 +8,10 @@ const PKG = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8")
 );
 
-const DEFAULT_OUTPUT = join(process.cwd(), "data", "jarmu-katalogus.json");
+const DEFAULT_OUTPUT = join(process.cwd(), "data", "jarmu-katalogus.csv");
 
-const DEFAULT_BRANDS = [
-  "Audi",
-  "BMW",
-  "Mercedes",
-  "Ford",
-  "KIA",
-  "Toyota",
-  "Mazda",
-  "OPEL",
-  "Alfa",
-  "Suzuki",
-  "Skoda",
-  "Volkswagen",
-];
+/** null = minden márka. Szűréshez: --brands "Audi,BMW" */
+const DEFAULT_BRANDS = null;
 
 /** Normalizált aliasok — egyezés a hasznaltauto.hu legördülő szövegeivel (pl. MERCEDES-BENZ, ALFA ROMEO). */
 const BRAND_MATCH_ALIASES = {
@@ -41,7 +29,7 @@ const BRAND_MATCH_ALIASES = {
   volkswagen: ["volkswagen", "vw"],
 };
 
-const FORM_URL = "https://www.hasznaltauto.hu/hirdetesfeladas/szemelyauto";
+const FORM_URL = "https://admin.hasznaltauto.hu/hirdetesfeladas/szemelyauto";
 const KATALOGUS_URL = "https://katalogus.hasznaltauto.hu/";
 
 const PROFILE_FIELD_MAP = {
@@ -62,14 +50,25 @@ const PROFILE_FIELD_MAP = {
   gumi_nyari_atmero: ["nyari_gumi_atmero", "gumi_atmero"],
 };
 
+function parseBrandsArg(raw) {
+  const text = String(raw ?? "").trim();
+  if (!text || /^all|mind|minden$/i.test(text)) return null;
+  return text
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function parseArgs(argv) {
   const options = {
-    brands: [...DEFAULT_BRANDS],
+    brands: DEFAULT_BRANDS,
     output: DEFAULT_OUTPUT,
+    format: "csv",
     connect: true,
     headed: false,
     source: "form",
     delayMs: 400,
+    deep: false,
     maxBrands: null,
     maxModels: null,
     maxTypes: null,
@@ -78,10 +77,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--brands") {
-      options.brands = String(argv[i + 1] ?? "")
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
+      options.brands = parseBrandsArg(argv[i + 1]);
       i += 1;
       continue;
     }
@@ -92,6 +88,15 @@ function parseArgs(argv) {
     }
     if (arg === "--output" || arg === "-o") {
       options.output = argv[i + 1];
+      i += 1;
+      continue;
+    }
+    if (arg === "--format") {
+      const format = String(argv[i + 1] ?? "csv").toLowerCase();
+      if (!["csv", "json", "both"].includes(format)) {
+        throw new Error(`Ismeretlen --format: ${format} (csv|json|both)`);
+      }
+      options.format = format;
       i += 1;
       continue;
     }
@@ -114,6 +119,10 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
+    if (arg === "--deep") {
+      options.deep = true;
+      continue;
+    }
     if (arg === "--max-brands") {
       options.maxBrands = Number(argv[i + 1]);
       i += 1;
@@ -129,6 +138,13 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
+  }
+
+  if (options.format === "csv" && options.output.endsWith(".json")) {
+    options.output = options.output.replace(/\.json$/i, ".csv");
+  }
+  if (options.format === "json" && options.output.endsWith(".csv")) {
+    options.output = options.output.replace(/\.csv$/i, ".json");
   }
 
   return options;
@@ -172,6 +188,8 @@ function brandMatchesAllowlist(brandText, allowedBrand) {
 }
 
 function filterAllowedBrands(allBrands, allowedBrands) {
+  if (!allowedBrands?.length) return allBrands;
+
   const matched = allBrands.filter((brand) =>
     allowedBrands.some((allowed) => brandMatchesAllowlist(brand.text, allowed))
   );
@@ -185,6 +203,70 @@ function filterAllowedBrands(allBrands, allowedBrands) {
   });
 
   return matched;
+}
+
+function csvEscape(value) {
+  const text = String(value ?? "");
+  if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
+}
+
+function catalogToCsvRows(catalog) {
+  const rows = [["Gyartmany", "Modell", "Tipus"]];
+  const brands = Object.values(catalog.gyartmanyok ?? {}).sort((a, b) =>
+    String(a.nev).localeCompare(String(b.nev), "hu")
+  );
+
+  for (const brand of brands) {
+    const models = Object.values(brand.modellek ?? {}).sort((a, b) =>
+      String(a.nev).localeCompare(String(b.nev), "hu")
+    );
+    if (!models.length) {
+      rows.push([brand.nev, "", ""]);
+      continue;
+    }
+    for (const model of models) {
+      const types = Object.values(model.tipusok ?? {}).sort((a, b) =>
+        String(a.nev).localeCompare(String(b.nev), "hu")
+      );
+      if (!types.length) {
+        rows.push([brand.nev, model.nev, ""]);
+        continue;
+      }
+      for (const type of types) {
+        rows.push([brand.nev, model.nev, type.nev]);
+      }
+    }
+  }
+
+  return rows;
+}
+
+function catalogToCsv(catalog) {
+  return `${catalogToCsvRows(catalog)
+    .map((row) => row.map(csvEscape).join(","))
+    .join("\n")}\n`;
+}
+
+function outputPaths(options) {
+  const base = options.output.replace(/\.(csv|json)$/i, "");
+  return {
+    csv: `${base}.csv`,
+    json: `${base}.json`,
+  };
+}
+
+function saveOutputs(options, catalog) {
+  const paths = outputPaths(options);
+  mkdirSync(dirname(paths.csv), { recursive: true });
+
+  // JSON mindig mentve (folytatás / resume). CSV a fő kimenet az Autos oldalhoz.
+  writeFileSync(paths.json, `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
+  if (options.format === "csv" || options.format === "both") {
+    writeFileSync(paths.csv, catalogToCsv(catalog), "utf8");
+  }
+
+  return paths;
 }
 
 function normalizeOption(option) {
@@ -216,28 +298,25 @@ function uniqueOptions(items) {
 function createEmptyCatalog(brands) {
   return {
     meta: {
-      brands: [...brands],
-      source: "hasznaltauto.hu",
+      brands: brands?.length ? [...brands] : ["*"],
+      source: "admin.hasznaltauto.hu",
       scrapedAt: null,
       brandCount: 0,
-      note: "Teszt katalógus — élesítés előtt törölendő",
+      levels: "gyartmany-modell-tipus",
+      note: "Hasznaltauto gyártmány/modell/típus katalógus — Autos oldalhoz",
     },
     apiEndpoints: [],
     gyartmanyok: {},
   };
 }
 
-function saveCatalog(path, catalog) {
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
-}
-
-function loadCatalog(path, brands) {
+function loadCatalog(options) {
+  const paths = outputPaths(options);
+  const brands = options.brands;
   try {
-    const catalog = JSON.parse(readFileSync(path, "utf8"));
-    if (!catalog.meta?.brands?.length) {
-      catalog.meta = { ...catalog.meta, brands: [...brands] };
-    }
+    const catalog = JSON.parse(readFileSync(paths.json, "utf8"));
+    if (!catalog.meta) catalog.meta = {};
+    catalog.meta.brands = brands?.length ? [...brands] : ["*"];
     return catalog;
   } catch {
     return createEmptyCatalog(brands);
@@ -348,8 +427,8 @@ async function resolveFormPage(session, onProgress) {
 
   await waitForUserReady(
     [
-      "Chrome-ban legyen nyitva a hirdetésfeladás űrlap (bejelentkezve).",
-      "Látnod kell a Gyártmány legördülő mezőt.",
+      `Chrome-ban legyen nyitva: ${FORM_URL}`,
+      "Látnod kell a Gyártmány legördülő mezőt (bejelentkezve).",
       "Ha másik lapon van, kattints rá, hogy aktív legyen.",
       "A program NEM navigál el — a meglévő lapot használja.",
     ].join("\n")
@@ -359,7 +438,7 @@ async function resolveFormPage(session, onProgress) {
 
   if (!page) {
     throw new Error(
-      "Gyártmány legördülő nem található. Nyisd meg: https://www.hasznaltauto.hu/hirdetesfeladas/szemelyauto"
+      `Gyártmány legördülő nem található. Nyisd meg: ${FORM_URL}`
     );
   }
 
@@ -488,10 +567,16 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
 
   const allBrands = filterAllowedBrands(await readSelectOptions(brandSelect), options.brands);
   const brands = options.maxBrands ? allBrands.slice(0, options.maxBrands) : allBrands;
-  onProgress?.(`Kiválasztott márkák (${brands.length}): ${brands.map((b) => b.text).join(", ") || "—"}`);
+  onProgress?.(
+    options.brands?.length
+      ? `Szűrt márkák (${brands.length}): ${brands.map((b) => b.text).join(", ") || "—"}`
+      : `Összes márka (${brands.length})`
+  );
   if (!brands.length) {
     throw new Error(
-      `Egyetlen márka sem található a listából: ${options.brands.join(", ")}. Ellenőrizd a legördülő szövegeit.`
+      options.brands?.length
+        ? `Egyetlen márka sem található a listából: ${options.brands.join(", ")}. Ellenőrizd a legördülő szövegeit.`
+        : "Egyetlen gyártmány sem található a legördülőben."
     );
   }
 
@@ -538,6 +623,9 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
           };
         }
 
+        // Alap: csak 3 szint — típus lista elég, nem kell kivitel/profil.
+        if (!options.deep) continue;
+
         await typeSelect.selectOption(type.value);
         await sleep(options.delayMs);
 
@@ -565,7 +653,8 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
 
     catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
     catalog.meta.scrapedAt = new Date().toISOString();
-    saveCatalog(options.output, catalog);
+    const paths = saveOutputs(options, catalog);
+    onProgress?.(`  Mentve: ${options.format === "json" ? paths.json : paths.csv}`);
   }
 }
 
@@ -583,10 +672,16 @@ async function scrapeKatalogusCatalog(page, options, catalog, onProgress) {
 
   const brands = filterAllowedBrands(await readSelectOptions(brandSelect), options.brands);
   const limitedBrands = options.maxBrands ? brands.slice(0, options.maxBrands) : brands;
-  onProgress?.(`Katalógus — kiválasztott márkák (${limitedBrands.length}): ${limitedBrands.map((b) => b.text).join(", ") || "—"}`);
+  onProgress?.(
+    options.brands?.length
+      ? `Katalógus — szűrt márkák (${limitedBrands.length}): ${limitedBrands.map((b) => b.text).join(", ") || "—"}`
+      : `Katalógus — összes márka (${limitedBrands.length})`
+  );
   if (!limitedBrands.length) {
     throw new Error(
-      `Egyetlen márka sem található a listából: ${options.brands.join(", ")}. Ellenőrizd a legördülő szövegeit.`
+      options.brands?.length
+        ? `Egyetlen márka sem található a listából: ${options.brands.join(", ")}. Ellenőrizd a legördülő szövegeit.`
+        : "Egyetlen gyártmány sem található a katalógusban."
     );
   }
 
@@ -624,6 +719,8 @@ async function scrapeKatalogusCatalog(page, options, catalog, onProgress) {
           forras: "katalogus",
         };
 
+        if (!options.deep) continue;
+
         await typeSelect.selectOption(type.value);
         await sleep(options.delayMs);
 
@@ -635,24 +732,29 @@ async function scrapeKatalogusCatalog(page, options, catalog, onProgress) {
 
     catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
     catalog.meta.scrapedAt = new Date().toISOString();
-    saveCatalog(options.output, catalog);
+    saveOutputs(options, catalog);
   }
 }
 
 export async function runMentesmarka(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
-  const catalog = loadCatalog(options.output, options.brands);
-  catalog.meta.brands = [...options.brands];
-  catalog.meta.source = options.source === "katalogus" ? "katalogus.hasznaltauto.hu" : "hasznaltauto.hu/hirdetesfeladas";
+  const catalog = loadCatalog(options);
+  catalog.meta.brands = options.brands?.length ? [...options.brands] : ["*"];
+  catalog.meta.source =
+    options.source === "katalogus" ? "katalogus.hasznaltauto.hu" : "admin.hasznaltauto.hu/hirdetesfeladas";
+  catalog.meta.levels = options.deep ? "gyartmany-modell-tipus-kivitel" : "gyartmany-modell-tipus";
 
   const onProgress = (message) => console.log(`[mentesmarka] ${message}`);
   console.log(`mentesmarka v${PKG.version} — saját Chrome port: 9223`);
+  console.log(
+    `[mentesmarka] Formátum: ${options.format} | Márkák: ${options.brands?.length ? options.brands.join(", ") : "MINDEN"} | Szintek: ${catalog.meta.levels}`
+  );
 
   if (options.connect && options.source === "form") {
     await waitForUserReady(
       [
         "1) Másik terminálban futtasd: npm run chrome  (mentesmarka saját Chrome, port 9223)",
-        "2) ABBAN a Chrome ablakban: Cloudflare + bejelentkezés + hirdetésfeladás űrlap",
+        `2) ABBAN a Chrome ablakban: Cloudflare + bejelentkezés + űrlap: ${FORM_URL}`,
         "3) Látszik a Gyártmány legördülő? Ha igen, nyomj ENTER-t itt",
         "",
         "NEM a sima Chrome és NEM a scraper Chrome (9222) — csak a mentesmarka Chrome (9223)!",
@@ -684,8 +786,11 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
 
   catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
   catalog.meta.scrapedAt = new Date().toISOString();
-  saveCatalog(options.output, catalog);
-  onProgress(`Kész: ${options.output}`);
+  const paths = saveOutputs(options, catalog);
+  const rowCount = Math.max(0, catalogToCsvRows(catalog).length - 1);
+  onProgress(`Kész — ${catalog.meta.brandCount} márka, ${rowCount} sor`);
+  if (options.format === "csv" || options.format === "both") onProgress(`CSV: ${paths.csv}`);
+  if (options.format === "json" || options.format === "both") onProgress(`JSON: ${paths.json}`);
   return catalog;
 }
 

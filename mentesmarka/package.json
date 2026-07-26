@@ -1,8 +1,8 @@
 {
   "name": "mentesmarka",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Önálló program — hasznaltauto.hu járműkatalógus mentés (Gyártmány/Modell/Típus/Kivitel)",
+  "description": "Önálló program — hasznaltauto.hu járműkatalógus mentés (Gyártmány/Modell/Típus → CSV)",
   "type": "module",
   "scripts": {
     "chrome": "node src/chrome.mjs",
