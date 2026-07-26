@@ -285,7 +285,7 @@ function resolveOutputPath(output) {
   const text = String(output ?? "").trim();
   if (!text) return DEFAULT_OUTPUT;
   if (text.startsWith("/") || /^[A-Za-z]:[\\/]/.test(text)) return resolve(text);
-  // Relatív path is mindig a Downloads/mentesmarka alá
+  // Relatív path is mindig a Letöltések/mentesmarka alá
   return resolve(mentesmarkaRoot(), text.replace(/^\.\//, ""));
 }
 
@@ -315,7 +315,7 @@ function atomicWriteFile(filePath, content) {
   renameSync(tmp, filePath);
 }
 
-/** NEM dob hibát — a scrape továbbmegy. CSAK ~/Downloads/mentesmarka/ */
+/** NEM dob hibát — a scrape továbbmegy. CSAK ~/Letöltések/mentesmarka/ */
 function saveOutputs(options, catalog, onProgress, { quiet = false } = {}) {
   const paths = outputPaths(options);
   try {
@@ -967,8 +967,8 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
 
   // Induláskor azonnal létrehozza a fájlokat — látszik a pontos útvonal.
   const bootPaths = saveOutputs(options, catalog, onProgress);
-  onProgress(`DATA MAPPA: ${dirname(bootPaths.csv)}`);
-  onProgress(`DOWNLOADS: ${DOWNLOADS_DIR}`);
+  onProgress(`Kimenet mappa: ${bootPaths.root}`);
+  onProgress(`CSV: ${bootPaths.csv}`);
 
   const saveNow = () => {
     try {
