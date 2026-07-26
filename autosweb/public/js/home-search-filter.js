@@ -140,7 +140,6 @@ export function populateFilterOptions(items) {
   fillSelect(document.getElementById("filter-gyartmany"), uniqueSorted(filters.map((f) => f.gyartmany)));
   fillSelect(document.getElementById("filter-modell"), uniqueSorted(filters.map((f) => f.modell)));
   fillSelect(document.getElementById("filter-kivitel"), uniqueSorted(filters.map((f) => f.kivitel)));
-  fillSelect(document.getElementById("filter-uzemanyag"), uniqueSorted(filters.map((f) => f.uzemanyag)));
   fillSelect(document.getElementById("filter-allapot"), uniqueSorted(filters.map((f) => f.allapot)));
   fillSelect(document.getElementById("filter-ajtok"), uniqueSorted(filters.map((f) => f.ajtok)));
   fillSelect(document.getElementById("filter-ulesek"), uniqueSorted(filters.map((f) => f.ulesek)));
@@ -236,7 +235,6 @@ function syncFuelQuickButtons(form, quickValue) {
 
 function initFuelQuickButtons(form, trigger) {
   const quickInput = form.querySelector("#filter-uzemanyag-quick");
-  const uzemanyagSelect = form.querySelector("#filter-uzemanyag");
   if (!quickInput) return;
 
   form.querySelectorAll("[data-fuel-quick]").forEach((button) => {
@@ -244,16 +242,8 @@ function initFuelQuickButtons(form, trigger) {
       const next = quickInput.value === button.dataset.fuelQuick ? "" : button.dataset.fuelQuick;
       quickInput.value = next;
       syncFuelQuickButtons(form, next);
-      if (next && uzemanyagSelect) uzemanyagSelect.value = "";
       trigger();
     });
-  });
-
-  uzemanyagSelect?.addEventListener("change", () => {
-    if (uzemanyagSelect.value) {
-      quickInput.value = "";
-      syncFuelQuickButtons(form, "");
-    }
   });
 
   form.querySelector("#filter-ev-jarat")?.addEventListener("change", (event) => {
