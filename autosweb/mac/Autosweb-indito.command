@@ -2,26 +2,21 @@
 # Indító — ~/Letöltések/autosweb (vagy ~/Downloads/autosweb)
 set -euo pipefail
 
-# shellcheck source=/dev/null
-source "$(cd "$(dirname "$0")" && pwd)/_target.sh" 2>/dev/null || true
-if ! command -v autosweb_target >/dev/null 2>&1; then
-  # Asztalról indítva: a script a Desktopen van, a _target a bocsa-app-ban
-  if [ -f "$HOME/bocsa-app/autosweb/mac/_target.sh" ]; then
-    # shellcheck source=/dev/null
-    source "$HOME/bocsa-app/autosweb/mac/_target.sh"
-  elif [ -d "$HOME/Letöltések/autosweb" ]; then
-    TARGET="$HOME/Letöltések/autosweb"
-  else
-    TARGET="$HOME/Downloads/autosweb"
-  fi
+if [ -d "${HOME}/Letöltések/autosweb" ]; then
+  TARGET="${HOME}/Letöltések/autosweb"
+elif [ -d "${HOME}/Downloads/autosweb" ]; then
+  TARGET="${HOME}/Downloads/autosweb"
+else
+  TARGET="${HOME}/Letöltések/autosweb"
 fi
-TARGET="${TARGET:-$(autosweb_target)}"
+
 INDEX="$TARGET/public/index.html"
 HTML="$TARGET/public/hirdetesfeladas.html"
 CSS="$TARGET/public/css/site-app.css"
 
 cd "$TARGET" || {
-  osascript -e 'display alert "Autosweb" message "Először telepítsd / másold: bocsa-app/autosweb/mac/masol.command"'
+  osascript -e 'display alert "Autosweb" message "Először: bocsa-app/autosweb/mac/masol.command (vagy frissites.command)"' 2>/dev/null || true
+  echo "Nincs telepítve: $TARGET"
   exit 1
 }
 
@@ -35,22 +30,18 @@ if command -v lsof >/dev/null 2>&1; then
 fi
 
 if [ ! -f "$CSS" ]; then
-  osascript -e 'display alert "Régi verzió!" message "Hiányzik site-app.css. Futtasd: autosweb/mac/masol.command"'
-  exit 1
-fi
-
-if ! grep -q 'site-app' "$HTML" 2>/dev/null; then
-  osascript -e 'display alert "Régi verzió!" message "Régi HTML. Futtasd: autosweb/mac/masol.command"'
+  osascript -e 'display alert "Régi verzió!" message "Hiányzik site-app.css. Futtasd: autosweb/mac/masol.command"' 2>/dev/null || true
   exit 1
 fi
 
 if [ ! -f "$TARGET/lib/jarmu-katalogus.mjs" ]; then
-  osascript -e 'display alert "Hiányzik a katalógus!" message "Nincs jarmu-katalogus.mjs.\\n\\n1) git pull a cursor/mentesmarka-csv-katalogus-2aa0 ágról\\n2) autosweb/mac/masol.command\\n3) indítsd újra"'
+  osascript -e 'display alert "Hiányzik a katalógus!" message "1) cd ~/bocsa-app && git pull origin cursor/mentesmarka-csv-katalogus-2aa0\\n2) autosweb/mac/masol.command\\n3) indítsd újra"' 2>/dev/null || true
+  echo "✗ Nincs jarmu-katalogus.mjs — futtasd a masol.command-ot a feature ágról."
   exit 1
 fi
 
 if ! grep -q '<select id="modell"' "$HTML" 2>/dev/null; then
-  osascript -e 'display alert "Régi űrlap!" message "A Modell még nem legördülő.\\nFuttasd: autosweb/mac/masol.command"'
+  osascript -e 'display alert "Régi űrlap!" message "A Modell még nem legördülő. Futtasd: autosweb/mac/masol.command"' 2>/dev/null || true
   exit 1
 fi
 

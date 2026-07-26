@@ -28,9 +28,32 @@ export function createAdForm(options = {}) {
   const gyartasiEv = document.getElementById("gyartasi_ev");
   const muszakiEv = document.getElementById("muszaki_ev");
   const forgalombaHelyezesEv = document.getElementById("forgalomba_helyezes_ev");
-  const gyartmany = document.getElementById("gyartmany");
-  const modell = document.getElementById("modell");
-  const tipus = document.getElementById("tipus");
+
+  /** Régi HTML input → select (ha a cache még szöveget ad). */
+  function ensureSelectElement(id, { required = false, disabled = false, emptyLabel = "Válasszon!" } = {}) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    if (el.tagName === "SELECT") {
+      if (required) el.required = true;
+      return el;
+    }
+    const select = document.createElement("select");
+    select.id = el.id;
+    select.name = el.name || id;
+    if (required || el.required) select.required = true;
+    if (disabled) select.disabled = true;
+    select.className = el.className.replace(/\bauto-filled\b/g, "").trim();
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = emptyLabel;
+    select.appendChild(opt);
+    el.replaceWith(select);
+    return select;
+  }
+
+  const gyartmany = ensureSelectElement("gyartmany", { required: true });
+  const modell = ensureSelectElement("modell", { required: true, disabled: true });
+  const tipus = ensureSelectElement("tipus", { required: true, disabled: true });
   const hirdetesCime = document.getElementById("hirdetes_cime");
   const teljesitmenyKw = document.getElementById("teljesitmeny_kw");
   const teljesitmenyLe = document.getElementById("teljesitmeny_le");
@@ -46,10 +69,11 @@ export function createAdForm(options = {}) {
 
   let currentStep = 1;
 
+/** Csak műszaki tippek — tipus/modell NEM (az a katalógusból jön). */
 const AUTO_FILL_PRESETS = {
-  TESLA: { tipus: "Long Range AWD", hengerurtartalom: "", uzemanyag: "Elektromos", sebessegvalto: "Automata", hajtas: "Összkerék", teljesitmeny_kw: "258" },
-  VOLKSWAGEN: { tipus: "1.6 TDI", hengerurtartalom: "1598", uzemanyag: "Dízel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
-  TOYOTA: { tipus: "1.8 Hybrid", hengerurtartalom: "1798", uzemanyag: "Benzin/elektromos", sebessegvalto: "Fokozatmentes automata", hajtas: "Első kerék", teljesitmeny_kw: "72" },
+  TESLA: { hengerurtartalom: "", uzemanyag: "Elektromos", sebessegvalto: "Automata", hajtas: "Összkerék", teljesitmeny_kw: "258" },
+  VOLKSWAGEN: { hengerurtartalom: "1598", uzemanyag: "Dízel", sebessegvalto: "Manuális (6 seb.)", hajtas: "Első kerék", teljesitmeny_kw: "77" },
+  TOYOTA: { hengerurtartalom: "1798", uzemanyag: "Benzin/elektromos", sebessegvalto: "Fokozatmentes automata", hajtas: "Első kerék", teljesitmeny_kw: "72" },
 };
 
 function fillYearSelect(select) {
