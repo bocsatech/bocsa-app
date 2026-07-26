@@ -633,6 +633,18 @@ body.home-page .local-banner {
   border-color: transparent;
   color: #fff;
   box-shadow: 0 8px 22px rgba(21, 101, 192, 0.22);
+  cursor: pointer;
+}
+
+.home-stats-card--primary.is-active {
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.35),
+    0 8px 22px rgba(21, 101, 192, 0.28);
+}
+
+.home-stats-card--primary:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 2px;
 }
 
 .home-stats-icon {
@@ -693,6 +705,64 @@ body.home-page .local-banner {
 .home-stats-meta--positive {
   color: #7fe3a8;
   font-weight: 600;
+}
+
+.home-stats-meta[data-status-type="err"] {
+  color: #ffcdd2;
+}
+
+.home-stats-meta[data-status-type="ok"] {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.home-stats-card:not(.home-stats-card--primary) .home-stats-meta[data-status-type="err"] {
+  color: #c62828;
+}
+
+.home-stats-card:not(.home-stats-card--primary) .home-stats-meta[data-status-type="ok"] {
+  color: #2e7d32;
+}
+
+.home-stats-radius-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0.2rem 0 0.45rem;
+}
+
+.home-stats-radius-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.home-stats-radius-field span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.home-stats-radius-input {
+  width: 100%;
+  min-height: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 0.3rem 0.45rem;
+  font: inherit;
+  font-size: 0.84rem;
+}
+
+.home-stats-radius-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.home-stats-radius-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
 }
 
 .home-stats-card--app {

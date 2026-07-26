@@ -46,6 +46,23 @@ export function getPostalCode(postalCode) {
   return db.prepare("SELECT postal_code, city, lat, lon FROM postal_codes WHERE postal_code = ?").get(code) ?? null;
 }
 
+export function listPostalCities() {
+  const db = getDb();
+  return db
+    .prepare(
+      `SELECT city, AVG(lat) AS lat, AVG(lon) AS lon
+       FROM postal_codes
+       GROUP BY city
+       ORDER BY city`
+    )
+    .all()
+    .map((row) => ({
+      city: row.city,
+      lat: Number(row.lat),
+      lon: Number(row.lon),
+    }));
+}
+
 function isPartnerPaid(partner) {
   if (!partner.is_active || !partner.is_paid) return false;
   if (!partner.paid_until) return true;

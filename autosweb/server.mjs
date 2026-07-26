@@ -30,8 +30,10 @@ import {
   deletePartner,
   getPartner,
   getPartnerRecommendations,
+  getPostalCode,
   importPartners,
   listPartners,
+  listPostalCities,
   partnerStats,
   savePartner,
   upsertPostalCodes,
@@ -419,6 +421,23 @@ async function handlePartnersApi(req, res, pathname) {
       return;
     }
 
+    if (pathname === "/api/postal-codes/lookup" && req.method === "GET") {
+      const url = new URL(req.url ?? "", `http://${HOST}`);
+      const postalCode = url.searchParams.get("postal_code") ?? url.searchParams.get("iranyitoszam");
+      const origin = getPostalCode(postalCode);
+      if (!origin) {
+        sendJson(res, 404, { error: `Ismeretlen irányítószám: ${postalCode ?? ""}`.trim() });
+        return;
+      }
+      sendJson(res, 200, origin);
+      return;
+    }
+
+    if (pathname === "/api/postal-codes/cities" && req.method === "GET") {
+      sendJson(res, 200, { cities: listPostalCities() });
+      return;
+    }
+
     if (pathname === "/api/postal-codes/import" && req.method === "POST") {
       let body;
       try {
@@ -539,7 +558,7 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  if (pathname.startsWith("/api/partners") || pathname === "/api/postal-codes/import") {
+  if (pathname.startsWith("/api/partners") || pathname.startsWith("/api/postal-codes")) {
     await handlePartnersApi(req, res, pathname);
     return;
   }

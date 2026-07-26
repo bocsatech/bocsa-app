@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260726stats" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260726statsradius" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — egyetlen oldalgörgetés, nincs oldalsáv scroll */
       html:has(body.home-page) {
@@ -203,7 +203,13 @@
 
       <section class="home-stats-bar" aria-label="Összesítő">
         <div class="home-stats-track">
-          <article class="home-stats-card home-stats-card--primary">
+          <article
+            class="home-stats-card home-stats-card--primary"
+            id="home-stats-total-card"
+            tabindex="0"
+            role="button"
+            aria-label="Összes hirdetés a megadott körzetben"
+          >
             <span class="home-stats-icon home-stats-icon--primary" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
                 <path d="M4 8.5h3l1.2-2.2h7.6L16 8.5h2a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 4 8.5Z" stroke="currentColor" stroke-width="1.5"/>
@@ -212,8 +218,33 @@
             </span>
             <div class="home-stats-copy">
               <p class="home-stats-label">Összes hirdetés</p>
-              <p class="home-stats-value">1&nbsp;248</p>
-              <p class="home-stats-meta home-stats-meta--positive">+23 ma</p>
+              <div class="home-stats-radius-fields">
+                <label class="home-stats-radius-field">
+                  <span>Irányítószám</span>
+                  <input
+                    id="home-stats-postal"
+                    class="home-stats-radius-input"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="4"
+                    placeholder="pl. 8000"
+                    autocomplete="postal-code"
+                  />
+                </label>
+                <label class="home-stats-radius-field">
+                  <span>Sugár (km)</span>
+                  <input
+                    id="home-stats-radius-km"
+                    class="home-stats-radius-input"
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="km"
+                  />
+                </label>
+              </div>
+              <p class="home-stats-value" id="home-stats-total-count">—</p>
+              <p class="home-stats-meta" id="home-stats-total-meta">Add meg az irányítószámot és a sugarat, majd kattints.</p>
             </div>
           </article>
 
@@ -537,7 +568,7 @@
       </div>
     </footer>
 
-    <script src="/js/home-app.js?v=home20260726cardmock" type="module"></script>
+    <script src="/js/home-app.js?v=home20260726statsradius" type="module"></script>
     <script src="/js/site-auth.js?v=auth20260725reg" type="module"></script>
   </body>
 </html>

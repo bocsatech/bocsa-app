@@ -54,6 +54,8 @@ test("index.html: főoldal kereső oldalsávval", () => {
   assert.ok(html.includes("home-partner-postal-input"));
   assert.ok(html.includes("home-bottom-extra"));
   assert.ok(html.includes("home-stats-bar"));
+  assert.ok(html.includes("home-stats-postal"));
+  assert.ok(html.includes("home-stats-radius-km"));
   assert.ok(html.includes("Összes hirdetés"));
   assert.ok(html.includes("Új hirdetések a közeledben"));
   assert.ok(html.includes("site-content-bar"));

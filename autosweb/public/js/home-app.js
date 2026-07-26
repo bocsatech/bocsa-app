@@ -10,6 +10,7 @@ import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.
 import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
 import { filterListingsNearby, initHomeNearby } from "./home-nearby.js";
 import { initHomeUnifiedScroll } from "./home-unified-scroll.js";
+import { initHomeStatsRadius } from "./home-stats-radius.js";
 
 const gridTrack = document.getElementById("home-grid-track");
 const emptyEl = document.getElementById("home-empty");
@@ -25,6 +26,8 @@ let quickFilterUi = null;
 let categoryUi = null;
 let nearbyUi = null;
 let nearbyFilter = null;
+let radiusUi = null;
+let radiusFilter = null;
 
 function sortForHome(items) {
   return [...items].sort((a, b) => {
@@ -41,6 +44,9 @@ function filterItems(items) {
   if (nearbyFilter) {
     result = filterListingsNearby(result, nearbyFilter.lat, nearbyFilter.lon);
   }
+  if (radiusFilter) {
+    result = result.filter((item) => radiusFilter.listingIds.has(item.id));
+  }
   return result;
 }
 
@@ -51,7 +57,10 @@ function renderListings(items) {
 
   const filtered = filterItems(items);
   emptyEl.hidden = filtered.length > 0;
-  if (!filtered.length && nearbyFilter) {
+  if (!filtered.length && radiusFilter) {
+    emptyEl.hidden = false;
+    emptyEl.textContent = `Nincs hirdetés ${radiusFilter.origin.city} ${radiusFilter.radiusKm} km-es körzetében.`;
+  } else if (!filtered.length && nearbyFilter) {
     emptyEl.hidden = false;
     emptyEl.textContent =
       "Nincs hirdetés a közeledben ezen a térképen. Kapcsold ki a közeli szűrést, vagy ments több hirdetést településsel.";
@@ -71,6 +80,7 @@ async function loadListings() {
   populateFilterOptions(allItems);
   populateYearOptions(allItems);
   renderListings(allItems);
+  radiusUi?.refreshActiveCount?.();
 }
 
 function populateYearOptions(items) {
@@ -159,6 +169,14 @@ nearbyUi = initHomeNearby({
     }
     applyFilters();
   },
+});
+
+radiusUi = initHomeStatsRadius({
+  onChange: (active) => {
+    radiusFilter = active;
+    applyFilters();
+  },
+  getItems: () => allItems,
 });
 
 const readSidebarFilters = initHomeSearchSidebar((filters) => {
