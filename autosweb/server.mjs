@@ -39,6 +39,7 @@ import {
   upsertPostalCodes,
 } from "./lib/partners.mjs";
 import { PARTNER_CATEGORIES } from "./lib/partner-categories.mjs";
+import { estimateValuation, valuationOptions } from "./lib/valuation.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -374,6 +375,35 @@ async function handleFugvenyApi(req, res, pathname) {
   }
 }
 
+async function handleValuationApi(req, res, pathname) {
+  try {
+    if (pathname === "/api/valuation/options" && req.method === "GET") {
+      sendJson(res, 200, valuationOptions());
+      return;
+    }
+
+    if (pathname === "/api/valuation/estimate" && req.method === "GET") {
+      const url = new URL(req.url ?? "", `http://${HOST}`);
+      const result = estimateValuation({
+        gyartmany: url.searchParams.get("gyartmany"),
+        modell_tipus: url.searchParams.get("modell_tipus"),
+        gyartasi_ev: url.searchParams.get("gyartasi_ev"),
+        km: url.searchParams.get("km"),
+      });
+      if (result.error) {
+        sendJson(res, 400, result);
+        return;
+      }
+      sendJson(res, 200, result);
+      return;
+    }
+
+    sendJson(res, 404, { error: "Ismeretlen értékbecslő API." });
+  } catch (error) {
+    sendJson(res, 500, { error: error.message ?? String(error) });
+  }
+}
+
 async function handlePartnersApi(req, res, pathname) {
   try {
     const recommendMatch = pathname === "/api/partners/recommendations";
@@ -555,6 +585,11 @@ const server = createServer(async (req, res) => {
 
   if (pathname.startsWith("/api/fugveny")) {
     await handleFugvenyApi(req, res, pathname);
+    return;
+  }
+
+  if (pathname.startsWith("/api/valuation")) {
+    await handleValuationApi(req, res, pathname);
     return;
   }
 

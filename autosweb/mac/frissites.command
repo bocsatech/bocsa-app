@@ -129,7 +129,7 @@ echo "  2) Indítsd újra: ~/Desktop/Autosweb-indito.command"
 echo "  3) Böngésző: http://127.0.0.1:3456/  (NEM a Vercel weboldal!)"
 echo "  4) Cmd+Shift+R (kemény frissítés)"
 echo ""
-echo "Jó verzió = világos háttér, nincs fejléc keresősáv, stats sáv a kategóriák alatt."
+echo "Jó verzió = világos háttér, nincs fejléc keresősáv, stats sáv a kategóriák alatt, középső hirdetésrács görget."
 
 if grep -q 'home-scroll-fix' "$TARGET/public/index.html" 2>/dev/null; then
   echo "  ✓ Főoldal: egyetlen görgetés (inline scroll fix) OK"

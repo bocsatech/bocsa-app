@@ -456,6 +456,182 @@ body.home-page .local-banner {
   font-style: italic;
 }
 
+/* —— Értékbecslő (bal oldalsáv) —— */
+.home-valuation-rec {
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.home-valuation-rec.is-collapsed {
+  padding-bottom: 0.85rem;
+}
+
+.home-valuation-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.home-valuation-toggle:hover .home-valuation-title {
+  color: #1565c0;
+}
+
+.home-valuation-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.home-valuation-chevron {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid #667085;
+  border-bottom: 2px solid #667085;
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.home-valuation-rec:not(.is-collapsed) .home-valuation-chevron {
+  transform: rotate(-135deg);
+  margin-top: 0.15rem;
+}
+
+.home-valuation-body[hidden] {
+  display: none !important;
+}
+
+.home-valuation-body {
+  margin-top: 0.65rem;
+}
+
+.home-valuation-lead {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #666;
+}
+
+.home-valuation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.home-valuation-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.home-valuation-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.home-valuation-field select,
+.home-valuation-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #cfd4dc;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font: inherit;
+}
+
+.home-valuation-field select {
+  appearance: none;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23667085' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.65rem center;
+  padding-right: 1.8rem;
+}
+
+.home-valuation-btn {
+  margin-top: 0.15rem;
+  padding: 0.48rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: #1565c0;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.home-valuation-btn:hover {
+  background: #0d47a1;
+}
+
+.home-valuation-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: #555;
+}
+
+.home-valuation-status[data-status-type="err"] {
+  color: #c62828;
+}
+
+.home-valuation-result {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: 10px;
+  background: #f7f9fb;
+  border: 1px solid #e8ebef;
+}
+
+.home-valuation-result--empty {
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.home-valuation-result-label {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.home-valuation-result-price {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.home-valuation-result-meta,
+.home-valuation-result-range {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #555;
+  line-height: 1.35;
+}
+
+.home-valuation-result-range {
+  margin-top: 0.2rem;
+  color: #666;
+}
+
 .home-header-top,
 .home-header-inner {
   width: 100%;
@@ -555,6 +731,10 @@ body.home-page .local-banner {
 .home-layout.site-layout {
   grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(260px, 320px);
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
 }
 
 .home-info-sidebar {
@@ -1385,13 +1565,6 @@ body.home-page .local-banner {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.home-layout.site-layout {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  align-items: stretch;
 }
 
 .home-center {

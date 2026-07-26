@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260726center1" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260726valuation1" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — csak a középső hirdetéslista görget */
       html:has(body.home-page) {
@@ -396,6 +396,70 @@
             </div>
           </section>
 
+          <section
+            class="home-valuation-rec is-collapsed"
+            id="home-valuation"
+            aria-labelledby="home-valuation-title"
+          >
+            <button
+              type="button"
+              class="home-valuation-toggle"
+              id="home-valuation-toggle"
+              aria-expanded="false"
+              aria-controls="home-valuation-body"
+            >
+              <span class="home-valuation-title" id="home-valuation-title">Értékbecslő</span>
+              <span class="home-valuation-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="home-valuation-body" id="home-valuation-body" hidden>
+              <p class="home-valuation-lead">Márka, modell típus, évjárat és km alapján átlagár a mentett hirdetésekből.</p>
+              <form id="home-valuation-form" class="home-valuation-form">
+                <label class="home-valuation-field">
+                  <span class="home-valuation-label">Márka</span>
+                  <select id="valuation-gyartmany" name="gyartmany" required>
+                    <option value="">Válassz márkát</option>
+                  </select>
+                </label>
+                <label class="home-valuation-field">
+                  <span class="home-valuation-label">Modell típus</span>
+                  <input
+                    id="valuation-modell-tipus"
+                    name="modell_tipus"
+                    type="text"
+                    placeholder="pl. Kuga 2.0 TDCi"
+                    autocomplete="off"
+                  />
+                </label>
+                <label class="home-valuation-field">
+                  <span class="home-valuation-label">Évjárat</span>
+                  <input
+                    name="gyartasi_ev"
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    step="1"
+                    placeholder="2019"
+                    inputmode="numeric"
+                  />
+                </label>
+                <label class="home-valuation-field">
+                  <span class="home-valuation-label">Futott km</span>
+                  <input
+                    name="km"
+                    type="number"
+                    min="0"
+                    step="1000"
+                    placeholder="120 000"
+                    inputmode="numeric"
+                  />
+                </label>
+                <button type="submit" class="home-valuation-btn">Átlagár</button>
+              </form>
+              <p id="home-valuation-status" class="home-valuation-status" hidden></p>
+              <div id="home-valuation-result" class="home-valuation-result" hidden></div>
+            </div>
+          </section>
+
           <div class="site-side-card home-info-card">
             <h2 class="site-side-title" data-side-title>Hasznos információ</h2>
             <div class="site-video-list" data-side-videos></div>
@@ -580,6 +644,7 @@
     </footer>
 
     <script src="/js/partner-recommendations-init.js?v=partners20260726acc4" type="module"></script>
+    <script src="/js/home-valuation-init.js?v=valuation20260726" type="module"></script>
     <script src="/js/home-app.js?v=home20260726filter3" type="module"></script>
     <script src="/js/site-auth.js?v=auth20260725reg" type="module"></script>
   </body>
