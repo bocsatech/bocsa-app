@@ -1,6 +1,6 @@
 {
   "name": "mentesmarka",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "private": true,
   "description": "Önálló program — hasznaltauto.hu járműkatalógus mentés (Gyártmány/Modell/Évjárat/Típus → CSV)",
   "type": "module",
@@ -8,6 +8,7 @@
     "chrome": "node src/chrome.mjs",
     "start": "node src/run-a.mjs",
     "mentesmarka": "node src/run-a.mjs",
+    "test": "node src/test-from.mjs",
     "setup": "bash scripts/setup.sh"
   },
   "engines": {

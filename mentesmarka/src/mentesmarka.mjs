@@ -109,6 +109,8 @@ function parseArgs(argv) {
     delayMs: 900,
     deep: false,
     fresh: true,
+    fromBrand: null,
+    fromModel: null,
     maxBrands: null,
     maxModels: null,
     maxTypes: null,
@@ -165,6 +167,19 @@ function parseArgs(argv) {
     }
     if (arg === "--resume") {
       options.fresh = false;
+      continue;
+    }
+    if (arg === "--from-brand") {
+      options.fromBrand = String(argv[i + 1] ?? "").trim() || null;
+      // Folytatás egy adott pontról: a korábbi mentés kell, nem törölhető.
+      if (options.fromBrand) options.fresh = false;
+      i += 1;
+      continue;
+    }
+    if (arg === "--from-model") {
+      options.fromModel = String(argv[i + 1] ?? "").trim() || null;
+      if (options.fromModel) options.fresh = false;
+      i += 1;
       continue;
     }
     if (arg === "--deep") {
@@ -251,6 +266,30 @@ function filterAllowedBrands(allBrands, allowedBrands) {
   });
 
   return matched;
+}
+
+function optionMatchesName(optionText, wanted) {
+  const norm = normalizeBrandName(optionText);
+  const pattern = normalizeBrandName(wanted);
+  if (!pattern) return false;
+  return norm === pattern || norm.startsWith(pattern);
+}
+
+/**
+ * Folytatás egy adott márkától/modelltől: az előtte lévők teljesen kimaradnak,
+ * a félkész modelljeikkel együtt. Nincs találat → az elejétől megy.
+ */
+function sliceFromName(items, wanted, label, onProgress) {
+  if (!wanted) return items;
+  const index = items.findIndex((item) => optionMatchesName(item.text, wanted));
+  if (index === -1) {
+    onProgress?.(`${label} nem található a listában: ${wanted} — az elejétől indul`);
+    return items;
+  }
+  if (index > 0) {
+    onProgress?.(`${label} ugrás: ${items[index].text} (előtte ${index} kihagyva)`);
+  }
+  return items.slice(index);
 }
 
 function csvEscape(value) {
@@ -1094,8 +1133,14 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     throw new Error("Gyártmány legördülő nem található. Lehet, hogy be kell jelentkezni a hirdetésfeladáshoz.");
   }
 
-  const allBrands = filterAllowedBrands(await readSelectOptions(brandSelect), options.brands);
+  const allBrands = sliceFromName(
+    filterAllowedBrands(await readSelectOptions(brandSelect), options.brands),
+    options.fromBrand,
+    "Márka",
+    onProgress
+  );
   const brands = options.maxBrands ? allBrands.slice(0, options.maxBrands) : allBrands;
+  let pendingFromModel = options.fromModel;
   onProgress?.(
     options.brands?.length
       ? `Szűrt márkák (${brands.length}): ${brands.map((b) => b.text).join(", ") || "—"}`
@@ -1137,7 +1182,8 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
       continue;
     }
 
-    const models = await readSelectOptions(modelSelect);
+    const models = sliceFromName(await readSelectOptions(modelSelect), pendingFromModel, "  Modell", onProgress);
+    pendingFromModel = null;
     const limitedModels = options.maxModels ? models.slice(0, options.maxModels) : models;
 
     // Modellnevek azonnal bekerülnek — típusok később töltődnek.
@@ -1350,6 +1396,12 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
   const onProgress = (message) => console.log(`[mentesmarka] ${message}`);
   console.log(`mentesmarka v${PKG.version} — saját Chrome port: 9223`);
 
+  // --from-brand/--from-model mellett a FRESH törölné a folytatáshoz kellő mentést.
+  if (options.fresh && (options.fromBrand || options.fromModel)) {
+    options.fresh = false;
+    onProgress("--from-brand/--from-model → RESUME (a meglévő mentés megmarad)");
+  }
+
   if (options.fresh) {
     onProgress("FRESH mód — előző mentés figyelmen kívül, üres katalógustól indul");
     clearCatalogOutputs(options, onProgress);
@@ -1362,8 +1414,15 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
   catalog.meta.levels = options.deep ? "gyartmany-modell-tipus-kivitel" : "gyartmany-modell-tipus";
   catalog.meta.fresh = Boolean(options.fresh);
 
+  const startInfo = [
+    options.fromBrand ? `márka: ${options.fromBrand}` : null,
+    options.fromModel ? `modell: ${options.fromModel}` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   console.log(
-    `[mentesmarka] Formátum: ${options.format} | Márkák: ${options.brands?.length ? options.brands.join(", ") : "MINDEN"} | Szintek: ${catalog.meta.levels} | ${options.fresh ? "FRESH" : "RESUME"}`
+    `[mentesmarka] Formátum: ${options.format} | Márkák: ${options.brands?.length ? options.brands.join(", ") : "MINDEN"} | Szintek: ${catalog.meta.levels} | ${options.fresh ? "FRESH" : "RESUME"}${startInfo ? ` | Indulás innen — ${startInfo}` : ""}`
   );
 
   // Induláskor azonnal létrehozza a fájlokat — látszik a pontos útvonal.
@@ -1437,6 +1496,8 @@ export async function runMentesmarka(argv = process.argv.slice(2)) {
   onProgress(`Státusz: ${paths.status}`);
   return catalog;
 }
+
+export { parseArgs, sliceFromName, optionMatchesName };
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
   runMentesmarka().catch((error) => {

@@ -102,11 +102,49 @@ Alapértelmezés: **minden gyártmány**. Szűrés:
 node src/mentesmarka.mjs --connect --brands "Audi,BMW,Ford"
 ```
 
+## Folytatás megszakadás után
+
+`npm run mentesmarka` alapból **`--fresh`**: törli az előző mentést és elölről kezdi.
+Megszakadt futás után **ne ezt** használd.
+
+| Kapcsoló | Mit csinál |
+|----------|------------|
+| `--resume` | Betölti a mentést, a kész modelleket kihagyja, a félkészeket újrapróbálja |
+| `--from-brand "Citroen"` | A megadott márkától indul — az előtte lévők teljesen kimaradnak |
+| `--from-model "C4"` | Az első feldolgozott márkán belül innen indul |
+
+`--from-brand` / `--from-model` **automatikusan RESUME** — nem törli a meglévő mentést.
+
+```bash
+# ott folytatja, ahol megállt (pl. CITROEN), a korábbi márkákhoz nem nyúl
+node src/mentesmarka.mjs --connect --from-brand "Citroen"
+```
+
+Induláskor a logban látszik: `RESUME | Indulás innen — márka: Citroen`,
+majd `Márka ugrás: CITROEN (előtte 17 kihagyva)`.
+
+Hol tart a mentés:
+
+```bash
+node -e "
+const c=require(process.env.HOME+'/Downloads/mentesmarka/jarmu-katalogus.json');
+let kesz=0, ossz=0;
+for (const b of Object.values(c.gyartmanyok||{})) {
+  const m=Object.values(b.modellek||{});
+  ossz+=m.length; kesz+=m.filter(x=>x.evjaratKesz).length;
+}
+console.log('Kész modellek:', kesz, '/', ossz);
+"
+```
+
 ## Opciók
 
 ```bash
 node src/mentesmarka.mjs --connect --max-brands 1
 node src/mentesmarka.mjs --connect --brands all
+node src/mentesmarka.mjs --connect --resume
+node src/mentesmarka.mjs --connect --from-brand "Citroen"
+node src/mentesmarka.mjs --connect --from-brand "Citroen" --from-model "C4"
 node src/mentesmarka.mjs --connect --format both
 node src/mentesmarka.mjs --connect --deep          # + Kivitel / zöld mezők (lassabb)
 node src/mentesmarka.mjs --connect --source katalogus
