@@ -30,6 +30,38 @@ npm install
 npx playwright install chromium 2>/dev/null || true
 npx playwright install chrome 2>/dev/null || true
 
+if [ -f "$HOME/Desktop/lista.csv" ]; then
+  echo ""
+  echo "Járműkatalógus import (~/Desktop/lista.csv)…"
+  if npm run import:catalog -- "$HOME/Desktop/lista.csv"; then
+    echo "  ✓ lista.csv → data/vehicle-catalog.json"
+  else
+    echo "  ✗ Import sikertelen — ellenőrizd a CSV fejlécét (Gyartmany, Modell, Tipus)"
+  fi
+elif [ -f "$HOME/Downloads/lista.csv" ]; then
+  echo ""
+  echo "Járműkatalógus import (~/Downloads/lista.csv)…"
+  npm run import:catalog -- "$HOME/Downloads/lista.csv" && echo "  ✓ lista.csv importálva"
+else
+  echo ""
+  echo "  ⚠ Nincs lista.csv az Asztalon — márka/modell legördülők üresek maradhatnak."
+  echo "    Import kézzel: cd ~/Downloads/autosweb && npm run import:catalog -- ~/Desktop/lista.csv"
+fi
+
+if grep -q 'vehicle-catalog-client.js' "$TARGET/public/js/form-core.js" 2>/dev/null; then
+  echo "  ✓ járműkatalógus JS OK"
+else
+  echo "  ✗ HIBA: vehicle-catalog hiányzik — git pull + frissites újra"
+  exit 1
+fi
+
+if [ -f "$TARGET/data/vehicle-catalog.json" ]; then
+  MODEL_COUNT=$(node -e "const c=require('./data/vehicle-catalog.json'); console.log(Object.values(c.modellek||{}).reduce((n,a)=>n+a.length,0))" 2>/dev/null || echo 0)
+  echo "  ✓ vehicle-catalog.json ($MODEL_COUNT modell)"
+else
+  echo "  ⚠ Nincs vehicle-catalog.json — tedd az Asztalra a lista.csv-t, majd frissites újra"
+fi
+
 VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
 echo "  ✓ Kategória képek: lokális fájlok megmaradtak (public/images/categories/)"
 echo ""
