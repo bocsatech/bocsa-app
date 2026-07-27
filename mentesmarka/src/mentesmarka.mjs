@@ -976,12 +976,53 @@ async function selectOptionFlexible(select, value, onProgress, label) {
   return ok;
 }
 
+async function ensureBrandSelected(brandSelect, brand) {
+  if (!brandSelect || !brand) return true;
+  const current = await brandSelect
+    .evaluate((el) => ({
+      value: el.value,
+      text: el.options[el.selectedIndex]?.textContent?.trim() ?? "",
+    }))
+    .catch(() => ({ value: "", text: "" }));
+  if (!current.value || /válasszon|^--$/i.test(current.text)) {
+    return safeSelectOption(brandSelect, brand, null);
+  }
+  if (current.value === brand.value || current.text === brand.text) return true;
+  return safeSelectOption(brandSelect, brand, null);
+}
+
 async function ensureModelSelected(modelSelect, model) {
   const current = await modelSelect
-    .evaluate((el) => ({ value: el.value, text: el.options[el.selectedIndex]?.textContent?.trim() ?? "" }))
+    .evaluate((el) => ({
+      value: el.value,
+      text: el.options[el.selectedIndex]?.textContent?.trim() ?? "",
+    }))
     .catch(() => ({ value: "", text: "" }));
+  if (!current.value || /válasszon|^--$/i.test(current.text)) {
+    return safeSelectOption(modelSelect, model, null);
+  }
   if (current.value === model.value || current.text === model.text) return true;
   return safeSelectOption(modelSelect, model, null);
+}
+
+/**
+ * Évváltás után az admin űrlap gyakran nullázza a Gyártmány/Modell mezőket.
+ * Visszaállítjuk: év → márka → modell → Tipus AJAX.
+ */
+async function restoreBrandModelAfterYear(page, brandSelect, brand, modelSelect, model, onProgress) {
+  const brandOk = await ensureBrandSelected(brandSelect, brand);
+  if (!brandOk) {
+    onProgress?.("    Figyelem: gyártmány reset után nem áll vissza");
+    return false;
+  }
+  await sleep(400);
+  await waitForSelectOptions(modelSelect, { minCount: 1, timeoutMs: 8000 });
+  const modelOk = await ensureModelSelected(modelSelect, model);
+  if (!modelOk) {
+    onProgress?.("    Figyelem: modell reset után nem áll vissza");
+    return false;
+  }
+  return true;
 }
 
 async function setGyartasiEvHonap(page, year, onProgress) {
@@ -1095,8 +1136,8 @@ async function triggerTipusAjax(page, modelSelect, typeSelect) {
   }
 }
 
-/** Gyors Tipus olvasás: üres / csak EGYÉB évnél ne várjon túl sokat, de AJAX-nak adjon időt. */
-async function waitForRealTypeOptions(select, { timeoutMs = 16000, minWaitMs = 1200, settleMs = 1000 } = {}) {
+/** Tipus várás: üres évnél rövid, ne fagyjon Chrome-ra várva. */
+async function waitForRealTypeOptions(select, { timeoutMs = 9000, minWaitMs = 700, settleMs = 700 } = {}) {
   if (!select || !(await select.count().catch(() => 0))) return [];
 
   const started = Date.now();
@@ -1123,16 +1164,16 @@ async function waitForRealTypeOptions(select, { timeoutMs = 16000, minWaitMs = 1
       return real;
     }
 
-    // Üres/EGYÉB: legalább ~8 mp az AJAX-nak, utána lépj tovább
+    // Üres/EGYÉB: ~3.5 mp után tovább (ne álljon 15+ mp-ig)
     if (
-      Date.now() - started >= Math.min(8000, timeoutMs) &&
+      Date.now() - started >= Math.min(3500, timeoutMs) &&
       Date.now() - stableSince >= settleMs &&
       !real.length
     ) {
       return [];
     }
 
-    await sleep(250);
+    await sleep(200);
   }
 
   if (bestReal.length) return bestReal;
@@ -1141,15 +1182,26 @@ async function waitForRealTypeOptions(select, { timeoutMs = 16000, minWaitMs = 1
 }
 
 /**
- * Modell + évjárat lépéses Tipus gyűjtés.
- * Sorrend: év → hónap → modell → Tipus AJAX.
- * Újabb évek előbb; találatnál ±1. Üres/EGYÉB kihagyva.
+ * Modell + évjárat Tipus gyűjtés.
+ * Fontos: évváltás nullázza a márkát/modellt → mindig visszaállítjuk.
+ * Találat után 2 üres lépésév → megáll (ne fagyjon 2014–2026-on).
  */
-async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, options, onProgress) {
+async function scrapeModelTypesByYear(
+  page,
+  typeSelect,
+  brandSelect,
+  brand,
+  modelSelect,
+  model,
+  options,
+  onProgress
+) {
   const foundByYear = new Map();
   const probeYears = yearProbeList();
   let yearSelectOk = false;
   let lastDump = "";
+  let hadHit = false;
+  let emptyAfterHit = 0;
 
   async function currentTypeSelect() {
     return (await resolveTypeSelect(page)) ?? typeSelect;
@@ -1158,12 +1210,12 @@ async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, opti
   async function dumpTypes(select, year) {
     const opts = await readSelectOptions(select).catch(() => []);
     const preview = opts
-      .slice(0, 8)
+      .slice(0, 6)
       .map((o) => o.text)
       .join(" | ");
     const msg = `év=${year} tipusszám=${opts.length}${preview ? ` (${preview})` : " (üres)"}`;
     if (msg !== lastDump) {
-      onProgress?.(`    Tipus debug: ${msg}`);
+      onProgress?.(`    Tipus: ${msg}`);
       lastDump = msg;
     }
   }
@@ -1171,25 +1223,32 @@ async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, opti
   async function collectYear(year, { longWait = false } = {}) {
     if (foundByYear.has(year)) return foundByYear.get(year);
 
-    // Év előbb (Tipus gyakran ehhez kötött), aztán modell
     const yearOk = await setGyartasiEvHonap(page, year, onProgress);
     if (yearOk) yearSelectOk = true;
     if (!yearOk) return [];
 
-    await ensureModelSelected(modelSelect, model);
+    // Évváltás után Gyártmány/Modell gyakran "Válasszon!" — vissza kell tenni
+    const restored = await restoreBrandModelAfterYear(
+      page,
+      brandSelect,
+      brand,
+      modelSelect,
+      model,
+      onProgress
+    );
+    if (!restored) return [];
+
     const select = await currentTypeSelect();
     await triggerTipusAjax(page, modelSelect, select);
-    await sleep(Math.max(900, Math.floor(options.delayMs * 0.7)));
+    await sleep(500);
 
     const types = await waitForRealTypeOptions(select, {
-      timeoutMs: longWait ? 30000 : 16000,
-      minWaitMs: longWait ? 1800 : 1200,
-      settleMs: longWait ? 1200 : 1000,
+      timeoutMs: longWait ? 20000 : 8000,
+      minWaitMs: longWait ? 1200 : 600,
+      settleMs: longWait ? 1000 : 600,
     });
 
-    if (!types.length) {
-      await dumpTypes(select, year);
-    }
+    if (!types.length) await dumpTypes(select, year);
 
     if (types.length) {
       foundByYear.set(year, types);
@@ -1201,7 +1260,20 @@ async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, opti
   for (const year of probeYears) {
     onProgress?.(`    Év: ${year}…`);
     const types = await collectYear(year);
-    if (!types.length) continue;
+
+    if (!types.length) {
+      if (hadHit) {
+        emptyAfterHit += 1;
+        if (emptyAfterHit >= 2) {
+          onProgress?.("    Üres évek a tartomány után — következő modell");
+          break;
+        }
+      }
+      continue;
+    }
+
+    hadHit = true;
+    emptyAfterHit = 0;
 
     for (const neighbor of [year - 1, year + 1]) {
       if (neighbor < YEAR_MIN || neighbor > YEAR_MAX) continue;
@@ -1212,26 +1284,26 @@ async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, opti
   }
 
   if (!foundByYear.size && yearSelectOk) {
-    onProgress?.("    Nincs típus a lépéses éveknél — újrapróba kulcsévekkel…");
-    for (const year of [2016, 2014, 2018, 2012, 2020, 2010, 2008, 2005, 2000]) {
+    onProgress?.("    Kulcsévek újrapróba…");
+    for (const year of [2016, 2014, 2012, 2010, 2008, 2005, 2000, 2018, 2020]) {
       if (foundByYear.has(year)) continue;
-      await collectYear(year, { longWait: true });
-      if (foundByYear.size) break;
+      const types = await collectYear(year, { longWait: true });
+      if (types.length) break;
     }
   }
 
   if (!foundByYear.size) {
-    onProgress?.("    Gyártási év utáni Tipus üres — modell-only újrapróba…");
-    await ensureModelSelected(modelSelect, model);
+    onProgress?.("    Modell-only Tipus próba…");
+    await restoreBrandModelAfterYear(page, brandSelect, brand, modelSelect, model, onProgress);
     const select = await currentTypeSelect();
     await triggerTipusAjax(page, modelSelect, select);
-    await sleep(2000);
+    await sleep(1500);
     const types = await waitForRealTypeOptions(select, {
-      timeoutMs: 30000,
-      minWaitMs: 2500,
-      settleMs: 1500,
+      timeoutMs: 20000,
+      minWaitMs: 1500,
+      settleMs: 1000,
     });
-    await dumpTypes(select, yearSelectOk ? "modell-only" : "no-year");
+    await dumpTypes(select, "modell-only");
     if (types.length) foundByYear.set(0, types);
   }
 
@@ -1388,6 +1460,8 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
       const foundByYear = await scrapeModelTypesByYear(
         page,
         typeSelect,
+        brandSelect,
+        brand,
         modelSelect,
         model,
         options,
@@ -1418,7 +1492,7 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
       if (options.deep && yearsSorted.length) {
         const deepYear = yearsSorted[Math.floor(yearsSorted.length / 2)];
         await setGyartasiEvHonap(page, deepYear, onProgress);
-        await ensureModelSelected(modelSelect, model);
+        await restoreBrandModelAfterYear(page, brandSelect, brand, modelSelect, model, onProgress);
         await sleep(1000);
         const deepTypes = Object.values(modelEntry.tipusok);
         for (const typeEntry of deepTypes) {
