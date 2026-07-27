@@ -22,24 +22,43 @@ const PKG = JSON.parse(readFileSync(join(PACKAGE_ROOT, "package.json"), "utf8"))
 /**
  * Magyar Mac: ~/Letöltések
  * Angol Mac: ~/Downloads
- * Először a létező mappát használjuk; ha egyik sincs, Letöltések-et hozunk létre.
+ * Ha már van mentesmarka valamelyikben, azt preferáljuk (ne máshova írjon).
  */
-function letoltesekRoot() {
+function downloadRoots() {
   const home = homedir();
-  const candidates = [join(home, "Letöltések"), join(home, "Downloads")];
-  for (const dir of candidates) {
-    if (existsSync(dir)) return dir;
-  }
-  const created = join(home, "Letöltések");
-  mkdirSync(created, { recursive: true });
-  return created;
+  return [join(home, "Downloads"), join(home, "Letöltések")].filter((dir) => existsSync(dir));
 }
 
-/** Minden kimenet: ~/Letöltések/mentesmarka/ */
+function letoltesekRoot() {
+  const home = homedir();
+  const downloads = join(home, "Downloads");
+  const letolt = join(home, "Letöltések");
+
+  // Már létező mentesmarka mappa — ahova a user nézi
+  if (existsSync(join(downloads, "mentesmarka"))) return downloads;
+  if (existsSync(join(letolt, "mentesmarka"))) return letolt;
+  if (existsSync(downloads)) return downloads;
+  if (existsSync(letolt)) return letolt;
+
+  mkdirSync(letolt, { recursive: true });
+  return letolt;
+}
+
+/** Minden kimenet: ~/Downloads|Letöltések/mentesmarka/ (+ tükör a másikba) */
 function mentesmarkaRoot() {
   const root = join(letoltesekRoot(), "mentesmarka");
   mkdirSync(root, { recursive: true });
   return root;
+}
+
+function mirrorMentesmarkaDirs(primaryRoot) {
+  const mirrors = [];
+  for (const dl of downloadRoots()) {
+    const dir = join(dl, "mentesmarka");
+    if (resolve(dir) === resolve(primaryRoot)) continue;
+    mirrors.push(dir);
+  }
+  return mirrors;
 }
 
 const DEFAULT_OUTPUT = join(mentesmarkaRoot(), "jarmu-katalogus.csv");
@@ -316,10 +335,8 @@ function catalogToCsvRows(catalog) {
       const types = Object.values(model.tipusok ?? {}).sort((a, b) =>
         String(a.nev).localeCompare(String(b.nev), "hu")
       );
-      if (!types.length) {
-        rows.push([brand.nev, model.nev, "", "", ""]);
-        continue;
-      }
+      // Üres Tipus sort nem írunk — a modell a JSON-ban megmarad resume-hoz
+      if (!types.length) continue;
       for (const type of types) {
         rows.push([
           brand.nev,
@@ -375,7 +392,20 @@ function atomicWriteFile(filePath, content) {
   renameSync(tmp, filePath);
 }
 
-/** NEM dob hibát — a scrape továbbmegy. CSAK ~/Letöltések/mentesmarka/ */
+function mirrorCopyFile(primaryPath, primaryRoot) {
+  const name = primaryPath.slice(primaryRoot.length).replace(/^[/\\]/, "");
+  for (const mirrorRoot of mirrorMentesmarkaDirs(primaryRoot)) {
+    try {
+      mkdirSync(mirrorRoot, { recursive: true });
+      const dest = join(mirrorRoot, name);
+      writeFileSync(dest, readFileSync(primaryPath));
+    } catch {
+      /* ignore mirror errors */
+    }
+  }
+}
+
+/** NEM dob hibát — a scrape továbbmegy. Mentés + tükör Downloads/Letöltések. */
 function saveOutputs(options, catalog, onProgress, { quiet = false } = {}) {
   const paths = outputPaths(options);
   try {
@@ -393,6 +423,12 @@ function saveOutputs(options, catalog, onProgress, { quiet = false } = {}) {
     }
 
     const rowCount = Math.max(0, catalogToCsvRows(catalog).length - 1);
+    const typeCount = Object.values(catalog.gyartmanyok ?? {}).reduce((acc, brand) => {
+      for (const model of Object.values(brand.modellek ?? {})) {
+        acc += Object.keys(model.tipusok ?? {}).length;
+      }
+      return acc;
+    }, 0);
     const status = [
       `mentesmarka v${PKG.version}`,
       `ido: ${new Date().toISOString()}`,
@@ -401,12 +437,20 @@ function saveOutputs(options, catalog, onProgress, { quiet = false } = {}) {
       `json: ${paths.json}`,
       `append: ${paths.appendCsv}`,
       `markak: ${Object.keys(catalog.gyartmanyok ?? {}).length}`,
+      `tipusok: ${typeCount}`,
       `sorok: ${rowCount}`,
     ].join("\n");
     atomicWriteFile(paths.status, `${status}\n`);
 
+    mirrorCopyFile(paths.json, paths.root);
+    if (existsSync(paths.csv)) mirrorCopyFile(paths.csv, paths.root);
+    mirrorCopyFile(paths.status, paths.root);
+
     if (!quiet) {
-      onProgress?.(`Mentve (${rowCount} sor): ${paths.csv}`);
+      onProgress?.(`Mentve (${rowCount} sor, ${typeCount} típus): ${paths.csv}`);
+      for (const mirror of mirrorMentesmarkaDirs(paths.root)) {
+        onProgress?.(`  tükör: ${mirror}`);
+      }
     }
     return paths;
   } catch (error) {
@@ -446,6 +490,7 @@ function appendModelTypes(options, brandName, modelName, types, onProgress) {
       closeSync(fd);
     }
 
+    mirrorCopyFile(paths.appendCsv, paths.root);
     onProgress?.(`  +${rows.length} típus → ${paths.appendCsv}`);
   } catch (error) {
     onProgress?.(`Append hiba (folytatom): ${error.message}`);
@@ -453,9 +498,10 @@ function appendModelTypes(options, brandName, modelName, types, onProgress) {
 }
 
 function yearProbeList() {
+  // Újabb évek előbb — modern modelleknél hamarabb jön Tipus, kevesebb üres várakozás
   const years = [];
-  for (let y = YEAR_MIN; y <= YEAR_MAX; y += YEAR_STEP) years.push(y);
-  if (!years.includes(YEAR_MAX)) years.push(YEAR_MAX);
+  for (let y = YEAR_MAX; y >= YEAR_MIN; y -= YEAR_STEP) years.push(y);
+  if (!years.includes(YEAR_MIN)) years.push(YEAR_MIN);
   return years;
 }
 
@@ -804,7 +850,16 @@ async function waitForTypeOptions(select, { timeoutMs = 35000, minWaitMs = 1500,
 
 function clearCatalogOutputs(options, onProgress) {
   const paths = outputPaths(options);
-  for (const filePath of [paths.csv, paths.json, paths.appendCsv, paths.status]) {
+  const targets = [paths.csv, paths.json, paths.appendCsv, paths.status];
+  for (const mirror of mirrorMentesmarkaDirs(paths.root)) {
+    targets.push(
+      join(mirror, "jarmu-katalogus.csv"),
+      join(mirror, "jarmu-katalogus.json"),
+      join(mirror, "jarmu-katalogus.append.csv"),
+      join(mirror, "LEGUTOBBI-MENTES.txt")
+    );
+  }
+  for (const filePath of targets) {
     try {
       if (existsSync(filePath)) {
         unlinkSync(filePath);
@@ -873,10 +928,12 @@ async function resolveYearMonthSelects(page) {
     page.locator('#gyartasi_honap, select[name="gyartasi_honap"], select[id*="gyartasi_honap" i]').first();
 
   if (!(await yearSelect.count())) {
-    // Utolsó esély: select, aminek az optionjei évszámok
-    const candidate = page.locator("select").filter({
-      has: page.locator('option[value="2015"], option[value="2020"]'),
-    }).first();
+    const candidate = page
+      .locator("select")
+      .filter({
+        has: page.locator('option[value="2015"], option[value="2020"]'),
+      })
+      .first();
     if (await candidate.count()) yearSelect = candidate;
   }
 
@@ -962,8 +1019,86 @@ async function setGyartasiEvHonap(page, year, onProgress) {
   return true;
 }
 
-/** Gyors Tipus olvasás: üres / csak EGYÉB évnél ne várjon 25 mp-et. */
-async function waitForRealTypeOptions(select, { timeoutMs = 12000, minWaitMs = 900, settleMs = 900 } = {}) {
+async function resolveTypeSelect(page) {
+  const exact = page.locator('#tipus, select[name="tipus"]').first();
+  if (await exact.count()) return exact;
+
+  const byLabel =
+    (await findSelectByLabel(page, ["Típus", "Tipus"])) ??
+    page.locator('select[name*="tipus" i], select[id*="tipus" i]').first();
+  if (await byLabel.count()) return byLabel;
+  return null;
+}
+
+async function triggerTipusAjax(page, modelSelect, typeSelect) {
+  await page
+    .evaluate(([modelSel, typeSel]) => {
+      const modelEl =
+        document.querySelector(modelSel) ||
+        document.querySelector('select[name="modell"], #modell, select[name*="modell" i]');
+      const typeEl =
+        document.querySelector(typeSel) ||
+        document.querySelector('select[name="tipus"], #tipus, select[name*="tipus" i]');
+      const value = modelEl?.value ?? "";
+
+      // hasznaltauto admin gyakran: Tipus(this.value, ...)
+      if (typeof window.Tipus === "function" && value) {
+        try {
+          window.Tipus(value);
+          return "Tipus()";
+        } catch {
+          /* fall through */
+        }
+      }
+
+      if (modelEl) {
+        const onchange = modelEl.getAttribute("onchange") || "";
+        if (/tipus/i.test(onchange) && value) {
+          try {
+            // eslint-disable-next-line no-new-func
+            new Function("value", onchange.replace(/this\.value/g, "value")).call(modelEl, value);
+            return "onchange";
+          } catch {
+            /* fall through */
+          }
+        }
+        modelEl.dispatchEvent(new Event("change", { bubbles: true }));
+        if (typeof window.jQuery === "function") window.jQuery(modelEl).trigger("change");
+      }
+
+      if (typeEl && typeof window.jQuery === "function") {
+        window.jQuery(typeEl).trigger("change");
+      }
+      return "change";
+    }, ["select[name=\"modell\"], #modell", "select[name=\"tipus\"], #tipus"])
+    .catch(() => "fail");
+
+  // Modell select change is
+  await modelSelect
+    .evaluate((el) => {
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+      if (typeof window.jQuery === "function") window.jQuery(el).trigger("change");
+      const handler = el.getAttribute("onchange");
+      if (handler && /tipus/i.test(handler)) {
+        try {
+          // eslint-disable-next-line no-new-func
+          new Function(handler).call(el);
+        } catch {
+          /* ignore */
+        }
+      }
+    })
+    .catch(() => {});
+
+  if (typeSelect) {
+    await typeSelect.evaluate(() => {}).catch(() => {});
+  }
+}
+
+/** Gyors Tipus olvasás: üres / csak EGYÉB évnél ne várjon túl sokat, de AJAX-nak adjon időt. */
+async function waitForRealTypeOptions(select, { timeoutMs = 16000, minWaitMs = 1200, settleMs = 1000 } = {}) {
+  if (!select || !(await select.count().catch(() => 0))) return [];
+
   const started = Date.now();
   let lastSig = "";
   let stableSince = Date.now();
@@ -973,7 +1108,7 @@ async function waitForRealTypeOptions(select, { timeoutMs = 12000, minWaitMs = 9
   await sleep(minWaitMs);
 
   while (Date.now() - started < timeoutMs) {
-    const options = await readSelectOptions(select);
+    const options = await readSelectOptions(select).catch(() => []);
     const real = options.filter((item) => !isEgyebType(item.text));
     const sig = options.map((item) => `${item.value}:${item.text}`).join("|");
 
@@ -988,57 +1123,73 @@ async function waitForRealTypeOptions(select, { timeoutMs = 12000, minWaitMs = 9
       return real;
     }
 
-    // Csak EGYÉB / üres és stabil → ez az év üres, lépj tovább
+    // Üres/EGYÉB: legalább ~8 mp az AJAX-nak, utána lépj tovább
     if (
-      Date.now() - started >= Math.min(4500, timeoutMs) &&
+      Date.now() - started >= Math.min(8000, timeoutMs) &&
       Date.now() - stableSince >= settleMs &&
       !real.length
     ) {
       return [];
     }
 
-    await sleep(200);
+    await sleep(250);
   }
 
-  return bestReal.length ? bestReal : sawOnlyEgyeb ? [] : preferRealTypes(await readSelectOptions(select)).filter((t) => !isEgyebType(t.text));
+  if (bestReal.length) return bestReal;
+  if (sawOnlyEgyeb) return [];
+  return preferRealTypes(await readSelectOptions(select).catch(() => [])).filter((t) => !isEgyebType(t.text));
 }
 
 /**
  * Modell + évjárat lépéses Tipus gyűjtés.
- * Sorrend: modell (megtart) → év → Tipus AJAX.
- * 1990→2026, lépés 3; találatnál ±1. Üres/EGYÉB kihagyva.
+ * Sorrend: év → hónap → modell → Tipus AJAX.
+ * Újabb évek előbb; találatnál ±1. Üres/EGYÉB kihagyva.
  */
 async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, options, onProgress) {
   const foundByYear = new Map();
   const probeYears = yearProbeList();
   let yearSelectOk = false;
+  let lastDump = "";
+
+  async function currentTypeSelect() {
+    return (await resolveTypeSelect(page)) ?? typeSelect;
+  }
+
+  async function dumpTypes(select, year) {
+    const opts = await readSelectOptions(select).catch(() => []);
+    const preview = opts
+      .slice(0, 8)
+      .map((o) => o.text)
+      .join(" | ");
+    const msg = `év=${year} tipusszám=${opts.length}${preview ? ` (${preview})` : " (üres)"}`;
+    if (msg !== lastDump) {
+      onProgress?.(`    Tipus debug: ${msg}`);
+      lastDump = msg;
+    }
+  }
 
   async function collectYear(year, { longWait = false } = {}) {
     if (foundByYear.has(year)) return foundByYear.get(year);
 
-    // Először modell, aztán év — a Tipus mindkettőre kell
-    await ensureModelSelected(modelSelect, model);
+    // Év előbb (Tipus gyakran ehhez kötött), aztán modell
     const yearOk = await setGyartasiEvHonap(page, year, onProgress);
     if (yearOk) yearSelectOk = true;
     if (!yearOk) return [];
 
-    // Évváltás után modell megmaradt-e?
     await ensureModelSelected(modelSelect, model);
-    // Modell change újra triggerelheti a Tipus AJAX-ot év + modell mellett
-    await modelSelect
-      .evaluate((el) => {
-        el.dispatchEvent(new Event("change", { bubbles: true }));
-        if (typeof window.jQuery === "function") window.jQuery(el).trigger("change");
-      })
-      .catch(() => {});
+    const select = await currentTypeSelect();
+    await triggerTipusAjax(page, modelSelect, select);
+    await sleep(Math.max(900, Math.floor(options.delayMs * 0.7)));
 
-    await sleep(Math.max(700, Math.floor(options.delayMs * 0.6)));
-
-    const types = await waitForRealTypeOptions(typeSelect, {
-      timeoutMs: longWait ? 28000 : 10000,
-      minWaitMs: longWait ? 1500 : 800,
-      settleMs: longWait ? 1200 : 800,
+    const types = await waitForRealTypeOptions(select, {
+      timeoutMs: longWait ? 30000 : 16000,
+      minWaitMs: longWait ? 1800 : 1200,
+      settleMs: longWait ? 1200 : 1000,
     });
+
+    if (!types.length) {
+      await dumpTypes(select, year);
+    }
 
     if (types.length) {
       foundByYear.set(year, types);
@@ -1060,25 +1211,27 @@ async function scrapeModelTypesByYear(page, typeSelect, modelSelect, model, opti
     }
   }
 
-  // Ha semmi: tipikus évek hosszabb várakozással (pl. Giulietta ~2010–2020)
   if (!foundByYear.size && yearSelectOk) {
     onProgress?.("    Nincs típus a lépéses éveknél — újrapróba kulcsévekkel…");
-    for (const year of [2010, 2012, 2014, 2015, 2016, 2018, 2020]) {
+    for (const year of [2016, 2014, 2018, 2012, 2020, 2010, 2008, 2005, 2000]) {
       if (foundByYear.has(year)) continue;
       await collectYear(year, { longWait: true });
+      if (foundByYear.size) break;
     }
   }
 
-  // Ha a gyártási év select egyáltalán nem működött: egyszeri Tipus olvasás modell után
-  if (!foundByYear.size && !yearSelectOk) {
-    onProgress?.("    Gyártási év nélkül próbálom a Tipus listát…");
+  if (!foundByYear.size) {
+    onProgress?.("    Gyártási év utáni Tipus üres — modell-only újrapróba…");
     await ensureModelSelected(modelSelect, model);
-    await sleep(1500);
-    const types = await waitForRealTypeOptions(typeSelect, {
+    const select = await currentTypeSelect();
+    await triggerTipusAjax(page, modelSelect, select);
+    await sleep(2000);
+    const types = await waitForRealTypeOptions(select, {
       timeoutMs: 30000,
-      minWaitMs: 2000,
+      minWaitMs: 2500,
       settleMs: 1500,
     });
+    await dumpTypes(select, yearSelectOk ? "modell-only" : "no-year");
     if (types.length) foundByYear.set(0, types);
   }
 
@@ -1123,6 +1276,7 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
     (await findSelectByLabel(page, ["Modell"])) ??
     page.locator('select[name*="modell" i], select[id*="modell" i]').first();
   const typeSelect =
+    (await resolveTypeSelect(page)) ??
     (await findSelectByLabel(page, ["Típus", "Tipus"])) ??
     page.locator('select[name*="tipus" i], select[id*="tipus" i]').first();
   const bodySelect =
@@ -1302,7 +1456,7 @@ async function scrapeFormCatalog(session, page, options, catalog, onProgress) {
       appendModelTypes(options, brand.text, model.text, appendRows, onProgress);
       catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;
       catalog.meta.scrapedAt = new Date().toISOString();
-      saveOutputs(options, catalog, onProgress, { quiet: true });
+      saveOutputs(options, catalog, onProgress);
     }
 
     catalog.meta.brandCount = Object.keys(catalog.gyartmanyok).length;

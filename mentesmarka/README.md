@@ -58,13 +58,12 @@ A program **nem navigál el** — a meglévő lapot használja.
 
 ## Kimenet
 
-**Csak ide** (magyar Mac — Letöltések mappa):
+**Csak ide** (Downloads vagy Letöltések — ahol már van `mentesmarka` mappa; mindkettőbe tükröz):
 
 ```
-~/Letöltések/mentesmarka/jarmu-katalogus.csv
-~/Letöltések/mentesmarka/jarmu-katalogus.append.csv
-~/Letöltések/mentesmarka/jarmu-katalogus.json
-~/Letöltések/mentesmarka/LEGUTOBBI-MENTES.txt
+~/Downloads/mentesmarka/jarmu-katalogus.csv
+~/Downloads/mentesmarka/jarmu-katalogus.append.csv
+~/Letöltések/mentesmarka/…   (tükör, ha mindkét mappa létezik)
 ```
 
 A program **létrehozza** a `mentesmarka` almappát a Letöltésekben, ha még nincs.
