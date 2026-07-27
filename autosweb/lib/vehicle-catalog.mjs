@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { homedir } from "os";
@@ -9,9 +9,9 @@ const CATALOG_PATH = join(DATA_DIR, "vehicle-catalog.json");
 
 const DEFAULT_CSV_CANDIDATES = [
   join(homedir(), "Desktop", "lista.csv"),
+  join(homedir(), "Asztal", "lista.csv"),
   join(homedir(), "Downloads", "lista.csv"),
-  join(homedir(), "Downloads", "fugveny", "uj lista", "uj-lista.csv"),
-  join(homedir(), "Downloads", "fugveny", "hirdetesek.csv"),
+  join(homedir(), "Letöltések", "lista.csv"),
 ];
 
 function normalizeText(value) {
@@ -28,14 +28,29 @@ function normalizeBrand(value) {
   return upper;
 }
 
+function headerKey(header) {
+  return normalizeText(header)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 function normalizeHeader(header) {
-  const key = normalizeText(header).toLowerCase();
-  if (key.includes("gyárt") || key.includes("gyart") || key === "márka" || key === "marka") {
-    return "gyartmany";
-  }
-  if (key === "modell") return "modell";
-  if (key.includes("típus") || key.includes("tipus")) return "tipus";
+  const key = headerKey(header);
+  if (key === "gyartmany" || key === "marka" || key.startsWith("gyartman")) return "gyartmany";
+  if (key === "modell" || key === "model") return "modell";
+  if (key === "tipus") return "tipus";
+  if (key === "evtol" || key === "evtl") return "evtol";
+  if (key === "evig") return "evig";
   return key;
+}
+
+function toYear(value) {
+  const match = String(value ?? "").match(/(19|20)\d{2}/);
+  if (!match) return null;
+  const year = Number(match[0]);
+  return Number.isFinite(year) ? year : null;
 }
 
 function splitCsvLine(line, delimiter) {
@@ -85,6 +100,13 @@ export function parseCsvText(text) {
   });
 }
 
+/** "500 1.4 [3 ajtós, 135 LE, 2008.07. – 2012.10.]" → "500 1.4" */
+export function shortTypeName(value) {
+  const text = normalizeText(value);
+  const cut = text.split("[")[0];
+  return normalizeText(cut) || text;
+}
+
 export function buildVehicleCatalog(rows, source = "lista.csv") {
   const modellek = new Map();
   const tipusok = new Map();
@@ -98,11 +120,23 @@ export function buildVehicleCatalog(rows, source = "lista.csv") {
     if (!modellek.has(brand)) modellek.set(brand, new Set());
     if (model) modellek.get(brand).add(model);
 
-    if (brand && model && tipus) {
-      const key = `${brand}|${model}`;
-      if (!tipusok.has(key)) tipusok.set(key, new Set());
-      tipusok.get(key).add(tipus);
+    if (!model || !tipus) continue;
+
+    const key = `${brand}|${model}`;
+    if (!tipusok.has(key)) tipusok.set(key, new Map());
+    const byName = tipusok.get(key);
+
+    const evTol = toYear(row.evtol);
+    const evIg = toYear(row.evig);
+    const existing = byName.get(tipus);
+
+    if (!existing) {
+      byName.set(tipus, { nev: tipus, evTol, evIg });
+      continue;
     }
+    // Ugyanaz a típus több sorban: a legtágabb évjárat tartomány marad.
+    if (evTol != null && (existing.evTol == null || evTol < existing.evTol)) existing.evTol = evTol;
+    if (evIg != null && (existing.evIg == null || evIg > existing.evIg)) existing.evIg = evIg;
   }
 
   const gyartmanyok = [...modellek.keys()].sort((a, b) => a.localeCompare(b, "hu"));
@@ -112,9 +146,9 @@ export function buildVehicleCatalog(rows, source = "lista.csv") {
       .map(([brand, models]) => [brand, [...models].sort((a, b) => a.localeCompare(b, "hu"))])
   );
   const tipusokObj = Object.fromEntries(
-    [...tipusok.entries()].map(([key, values]) => [
+    [...tipusok.entries()].map(([key, byName]) => [
       key,
-      [...values].sort((a, b) => a.localeCompare(b, "hu")),
+      [...byName.values()].sort((a, b) => a.nev.localeCompare(b.nev, "hu")),
     ])
   );
 
@@ -125,6 +159,65 @@ export function buildVehicleCatalog(rows, source = "lista.csv") {
     gyartmanyok,
     modellek: modellekObj,
     tipusok: tipusokObj,
+  };
+}
+
+/** Régi mentés: tipusok = ["A4 2.0 TDI"]. Új: [{ nev, evTol, evIg }]. */
+function normalizeTypeEntry(entry) {
+  if (typeof entry === "string") return { nev: entry, evTol: null, evIg: null };
+  if (!entry?.nev) return null;
+  return { nev: entry.nev, evTol: entry.evTol ?? null, evIg: entry.evIg ?? null };
+}
+
+export function modelTypeEntries(catalog, gyartmany, modell) {
+  const key = `${normalizeBrand(gyartmany)}|${normalizeText(modell)}`;
+  const entries = catalog?.tipusok?.[key] ?? [];
+  return entries.map(normalizeTypeEntry).filter(Boolean);
+}
+
+/** Egy modellhez tartozó évek — a típusok EvTol–EvIg tartományainak uniója. */
+export function listModelYears(catalog, gyartmany, modell) {
+  const years = new Set();
+  for (const entry of modelTypeEntries(catalog, gyartmany, modell)) {
+    const from = entry.evTol ?? entry.evIg;
+    const to = entry.evIg ?? entry.evTol;
+    if (from == null || to == null) continue;
+    for (let year = Math.min(from, to); year <= Math.max(from, to); year += 1) {
+      years.add(year);
+    }
+  }
+  return [...years].sort((a, b) => b - a);
+}
+
+/**
+ * Adott évben létező típusok. Év nélkül minden típus.
+ * Ha az évre nincs találat, a teljes lista jön vissza — hiányos katalógusnál
+ * így sem akad el a hirdetésfeladás.
+ */
+export function listModelTypes(catalog, gyartmany, modell, ev = null) {
+  const entries = modelTypeEntries(catalog, gyartmany, modell);
+  const year = toYear(ev);
+  if (year == null) return entries;
+
+  const matching = entries.filter((entry) => {
+    if (entry.evTol == null && entry.evIg == null) return true;
+    const from = entry.evTol ?? entry.evIg;
+    const to = entry.evIg ?? entry.evTol;
+    return year >= from && year <= to;
+  });
+
+  return matching.length ? matching : entries;
+}
+
+/** Márkák + modellek, típusok nélkül — ez megy ki a böngészőnek induláskor. */
+export function catalogSummary(catalog) {
+  if (!catalog) return null;
+  return {
+    source: catalog.source ?? null,
+    imported_at: catalog.imported_at ?? null,
+    count_rows: catalog.count_rows ?? 0,
+    gyartmanyok: catalog.gyartmanyok ?? [],
+    modellek: catalog.modellek ?? {},
   };
 }
 
@@ -155,7 +248,7 @@ export function importVehicleCatalogFromCsv(csvPath, outPath = CATALOG_PATH) {
   }
   const catalog = buildVehicleCatalog(rows, resolved);
   if (!catalog.gyartmanyok.length) {
-    throw new Error("Nincs gyártmány a CSV-ben — ellenőrizd a fejlécet (Gyartmany, Modell).");
+    throw new Error("Nincs gyártmány a CSV-ben — ellenőrizd a fejlécet (Gyartmany, Modell, Tipus).");
   }
   saveVehicleCatalog(catalog, outPath);
   return catalog;
@@ -186,6 +279,28 @@ export function ensureVehicleCatalog() {
     console.warn("Járműkatalógus import sikertelen:", error.message);
     return existing;
   }
+}
+
+let cache = { mtimeMs: null, catalog: null };
+
+/** Memóriában tartott katalógus — a nagy JSON-t nem olvassuk újra kérésenként. */
+export function getVehicleCatalog(path = CATALOG_PATH) {
+  let mtimeMs = null;
+  try {
+    mtimeMs = statSync(path).mtimeMs;
+  } catch {
+    mtimeMs = null;
+  }
+
+  if (cache.catalog && cache.mtimeMs === mtimeMs) return cache.catalog;
+
+  const catalog = mtimeMs == null ? ensureVehicleCatalog() : loadVehicleCatalog(path);
+  cache = { mtimeMs, catalog };
+  return catalog;
+}
+
+export function clearVehicleCatalogCache() {
+  cache = { mtimeMs: null, catalog: null };
 }
 
 export function getVehicleCatalogPath() {

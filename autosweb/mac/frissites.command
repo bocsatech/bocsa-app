@@ -55,6 +55,14 @@ else
   exit 1
 fi
 
+if grep -q 'tipus_katalogus' "$TARGET/public/hirdetesfeladas.html" 2>/dev/null &&
+   grep -q 'filter-tipus-katalogus' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ típus legördülő (évjárat szerint) OK"
+else
+  echo "  ✗ HIBA: régi HTML — nincs típus legördülő (git pull + frissites újra)"
+  exit 1
+fi
+
 if [ -f "$TARGET/data/vehicle-catalog.json" ]; then
   MODEL_COUNT=$(node -e "const c=require('./data/vehicle-catalog.json'); console.log(Object.values(c.modellek||{}).reduce((n,a)=>n+a.length,0))" 2>/dev/null || echo 0)
   echo "  ✓ vehicle-catalog.json ($MODEL_COUNT modell)"
@@ -136,10 +144,10 @@ else
   exit 1
 fi
 
-if grep -q 'partners20260726acc4' "$TARGET/public/index.html" 2>/dev/null; then
-  echo "  ✓ főoldal partner verzió OK"
+if grep -q 'katalogus20260727' "$TARGET/public/index.html" 2>/dev/null; then
+  echo "  ✓ főoldal verzió OK (járműkatalógus)"
 else
-  echo "  ✗ HIBA: index.html régi — partner accordion javítás hiányzik"
+  echo "  ✗ HIBA: index.html régi — járműkatalógus verzió hiányzik"
   exit 1
 fi
 

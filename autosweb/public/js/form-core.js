@@ -1,6 +1,6 @@
 import { UZEMANYAG_CATEGORIES, EQUIPMENT_SECTIONS, KLIM_OPTIONS } from "./equipment-data.js";
 import { EGYEB_INFO_OPTIONS } from "./egyeb-info-data.js";
-import { initVehicleCatalogSelects } from "./vehicle-catalog-client.js";
+import { initVehicleCatalogSelects, typeNameForField } from "./vehicle-catalog-client.js";
 
 export function createAdForm(options = {}) {
   const mode = options.mode ?? "wizard";
@@ -31,6 +31,7 @@ export function createAdForm(options = {}) {
   const gyartmany = document.getElementById("gyartmany");
   const modell = document.getElementById("modell");
   const tipus = document.getElementById("tipus");
+  const tipusKatalogus = document.getElementById("tipus_katalogus");
   const hirdetesCime = document.getElementById("hirdetes_cime");
   const teljesitmenyKw = document.getElementById("teljesitmeny_kw");
   const teljesitmenyLe = document.getElementById("teljesitmeny_le");
@@ -827,14 +828,29 @@ fillYearSelect(forgalombaHelyezesEv);
 initVehicleCatalogSelects({
   brandSelect: gyartmany,
   modelSelect: modell,
+  yearSelect: gyartasiEv,
+  tipusSelect: tipusKatalogus,
+  // A gyártási év listája marad a teljes évsor — csak a típusokat szűri.
+  yearFromCatalog: false,
   brandEmptyLabel: "Válasszon",
   modelEmptyLabel: "Válasszon",
+  tipusEmptyLabel: "Válasszon típust",
   onChange: () => {
     applyAutoFill();
     updateTitle();
     fitAllFormFields();
   },
 }).catch(() => {});
+
+tipusKatalogus?.addEventListener("change", () => {
+  if (!tipusKatalogus.value || !tipus) return;
+  tipus.value = typeNameForField(tipusKatalogus.value, modell?.value);
+  tipus.dataset.userEdited = "1";
+  tipus.classList.remove("auto-filled");
+  updateTitle();
+  fitAllFormFields();
+  saveDraft();
+});
 renderFuelDropdown();
 renderFuelSelector();
 renderKlimaOptions();

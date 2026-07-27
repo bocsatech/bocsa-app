@@ -98,6 +98,7 @@ function hasActiveSidebarFilters(filters) {
       filters.uzemanyagQuick ||
       filters.allapot ||
       filters.tipus ||
+      filters.tipusKatalogus ||
       filters.features?.length ||
       filters.ev_jarat != null ||
       filters.ev_tol != null ||

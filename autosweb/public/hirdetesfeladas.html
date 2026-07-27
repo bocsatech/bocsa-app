@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="automax20260720homelist" />
+    <meta name="autosweb-version" content="katalogus20260727" />
     <title>Hirdetésfeladás — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -82,6 +82,12 @@
                     <label for="modell">Modell: <span class="req">*</span></label>
                     <select id="modell" name="modell" required>
                       <option value="">Először válassz gyártmányt</option>
+                    </select>
+                  </div>
+                  <div class="labeled-field">
+                    <label for="tipus_katalogus">Típus a katalógusból:</label>
+                    <select id="tipus_katalogus">
+                      <option value="">Előbb gyártmány, modell és gyártási év</option>
                     </select>
                   </div>
                   <div class="labeled-field">
@@ -737,6 +743,6 @@
       requireAuthForPage();
       initSiteAuth();
     </script>
-    <script src="/js/app.js?v=fuellist20260725" type="module"></script>
+    <script src="/js/app.js?v=katalogus20260727" type="module"></script>
   </body>
 </html>

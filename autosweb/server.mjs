@@ -40,11 +40,17 @@ import {
 } from "./lib/partners.mjs";
 import { PARTNER_CATEGORIES } from "./lib/partner-categories.mjs";
 import { estimateValuation, valuationOptions } from "./lib/valuation.mjs";
-import { ensureVehicleCatalog, loadVehicleCatalog } from "./lib/vehicle-catalog.mjs";
+import {
+  ensureVehicleCatalog,
+  getVehicleCatalog,
+  catalogSummary,
+  listModelTypes,
+  listModelYears,
+} from "./lib/vehicle-catalog.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
-const PORT = 3456;
+const PORT = Number(process.env.PORT ?? 3456);
 const HOST = "127.0.0.1";
 
 let fugvenyBusy = false;
@@ -377,17 +383,47 @@ async function handleFugvenyApi(req, res, pathname) {
 }
 
 async function handleVehicleCatalogApi(req, res, pathname) {
-  if (pathname === "/api/vehicle-catalog" && req.method === "GET") {
-    const catalog = ensureVehicleCatalog();
-    if (!catalog?.gyartmanyok?.length) {
-      sendJson(res, 404, {
-        error: "Nincs járműkatalógus. Futtasd: npm run import:catalog -- ~/Desktop/lista.csv",
-      });
-      return;
-    }
-    sendJson(res, 200, catalog);
+  if (req.method !== "GET") {
+    sendJson(res, 405, { error: "Csak GET." });
     return;
   }
+
+  const catalog = getVehicleCatalog();
+  if (!catalog?.gyartmanyok?.length) {
+    sendJson(res, 404, {
+      error: "Nincs járműkatalógus. Futtasd: npm run import:catalog -- ~/Desktop/lista.csv",
+    });
+    return;
+  }
+
+  // Márkák + modellek — a típusok nélkül, hogy az oldal gyorsan induljon.
+  if (pathname === "/api/vehicle-catalog") {
+    sendJson(res, 200, catalogSummary(catalog));
+    return;
+  }
+
+  // Egy modell évjáratai és típusai.
+  if (pathname === "/api/vehicle-catalog/tipusok") {
+    const url = new URL(req.url ?? "", `http://${HOST}`);
+    const gyartmany = url.searchParams.get("gyartmany") ?? "";
+    const modell = url.searchParams.get("modell") ?? "";
+    const ev = url.searchParams.get("ev");
+
+    if (!gyartmany || !modell) {
+      sendJson(res, 400, { error: "gyartmany és modell kötelező." });
+      return;
+    }
+
+    sendJson(res, 200, {
+      gyartmany,
+      modell,
+      ev: ev || null,
+      evek: listModelYears(catalog, gyartmany, modell),
+      tipusok: listModelTypes(catalog, gyartmany, modell, ev),
+    });
+    return;
+  }
+
   sendJson(res, 404, { error: "Ismeretlen katalógus API." });
 }
 

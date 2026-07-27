@@ -1,4 +1,4 @@
-import { initVehicleCatalogSelects } from "./vehicle-catalog-client.js";
+import { initVehicleCatalogSelects, shortTypeName } from "./vehicle-catalog-client.js";
 
 const FUEL_QUICK_FILTERS = [
   { id: "benzin", label: "Benzin", match: (value) => value === "Benzin" },
@@ -42,6 +42,39 @@ function hasBadgeOrText(item, needles) {
   return needles.some((n) => hay.includes(n.toLowerCase()));
 }
 
+function normalizeForMatch(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * A katalógus típusneve ("500 Coupe 1.4 TJet 140 [3 ajtós, …]") és a hirdetés
+ * szabad szöveges típusa ("1.4 TJet") ritkán egyezik karakterre. Az űrlapon
+ * feladott új hirdetés pontosan egyezik, az importált régiekre részleges
+ * egyezés kell mindkét irányban.
+ */
+export function matchesCatalogTipus(item, selected) {
+  if (!selected) return true;
+
+  const short = normalizeForMatch(shortTypeName(selected));
+  if (!short) return true;
+
+  const f = item.preview?.filter ?? {};
+  const listingTipus = normalizeForMatch(f.tipus);
+
+  if (listingTipus.length >= 3) {
+    if (listingTipus === short) return true;
+    if (short.includes(listingTipus) || listingTipus.includes(short)) return true;
+  }
+
+  const hay = normalizeForMatch([f.tipus, item.preview?.title, item.preview?.specLine].join(" "));
+  return hay.includes(short);
+}
+
 function readFilters(form) {
   const data = new FormData(form);
   const features = FEATURE_CHECKS.filter(({ id }) => data.get(`feat_${id}`) === "on").map(({ id }) => id);
@@ -56,6 +89,7 @@ function readFilters(form) {
     ar_tol: numOrNull(data.get("ar_tol")),
     ar_ig: numOrNull(data.get("ar_ig")),
     tipus: data.get("tipus")?.toString().trim() ?? "",
+    tipusKatalogus: data.get("tipus_katalogus")?.toString().trim() ?? "",
     km_tol: numOrNull(data.get("km_tol")),
     km_ig: numOrNull(data.get("km_ig")),
     ccm_tol: numOrNull(data.get("ccm_tol")),
@@ -101,6 +135,8 @@ export function filterListingsBySidebar(items, filters) {
       const hay = [f.tipus, preview.title, preview.specLine].join(" ").toLowerCase();
       if (!hay.includes(filters.tipus.toLowerCase())) return false;
     }
+
+    if (!matchesCatalogTipus(item, filters.tipusKatalogus)) return false;
 
     if (filters.ev_jarat != null) {
       if (f.gyartasi_ev !== filters.ev_jarat) return false;
@@ -166,6 +202,7 @@ export function emptyFilters() {
     ar_tol: null,
     ar_ig: null,
     tipus: "",
+    tipusKatalogus: "",
     km_tol: null,
     km_ig: null,
     ccm_tol: null,
@@ -275,8 +312,13 @@ export async function initHomeFilterCatalog(onChange = () => {}) {
   return initVehicleCatalogSelects({
     brandSelect,
     modelSelect,
+    // Az évjárat listája a hirdetésekből jön, a típusokat viszont szűri.
+    yearSelect: document.getElementById("filter-ev-jarat"),
+    tipusSelect: document.getElementById("filter-tipus-katalogus"),
+    yearFromCatalog: false,
     brandEmptyLabel: "Mindegy",
     modelEmptyLabel: "Mindegy",
+    tipusEmptyLabel: "Mindegy",
     onChange,
   });
 }
