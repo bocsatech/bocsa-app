@@ -12,7 +12,15 @@ fi
 
 cp "$SOURCE/package.json" "$SOURCE/server.mjs" "$TARGET/"
 rsync -a --delete "$SOURCE/lib/" "$TARGET/lib/"
+rsync -a --delete "$SOURCE/scripts/" "$TARGET/scripts/"
 "$(dirname "$0")/rsync-public-preserve-images.sh" "$SOURCE" "$TARGET"
+
+# Járműkatalógus az Asztalon lévő lista.csv-ből (a data/ mappát nem törli).
+if [ -f "$HOME/Desktop/lista.csv" ]; then
+  (cd "$TARGET" && npm run import:catalog -- "$HOME/Desktop/lista.csv") &&
+    echo "  ✓ lista.csv importálva" ||
+    echo "  ⚠ lista.csv import sikertelen — a többi fájl attól még átmásolva"
+fi
 
 VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
 echo ""
