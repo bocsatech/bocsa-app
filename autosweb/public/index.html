@@ -13,58 +13,42 @@
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
     <link rel="stylesheet" href="/css/home.css?v=home20260726valuation1" />
     <style id="home-scroll-fix">
-      /* Inline: cache-biztos — csak a középső hirdetéslista görget */
+      /* Inline: cache-biztos — a teljes oldal görget, az oldalsávok nem.
+         A középső hirdetéslista magától görget, ha sok a hirdetés. */
       html:has(body.home-page) {
-        overflow: hidden !important;
-        height: 100% !important;
+        overflow-y: auto !important;
+        height: auto !important;
       }
       body.home-page {
-        overflow: hidden !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        display: flex !important;
-        flex-direction: column !important;
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
+        display: block !important;
       }
       body.home-page .home-main {
-        flex: 1 1 auto !important;
         min-height: 0 !important;
-        /* Alacsony ablaknál a tartalom görgethető marad, nem tűnik el. */
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        display: flex !important;
-        flex-direction: column !important;
+        overflow: visible !important;
+        display: block !important;
       }
       body.home-page .home-layout {
-        flex: 1 1 auto !important;
-        /* Enélkül a felső sorok kinyomnák nullára a három hasábot. */
-        min-height: 420px !important;
-        overflow: hidden !important;
-        align-items: stretch !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        align-items: start !important;
       }
       body.home-page .home-center {
         min-height: 0 !important;
-        overflow: hidden !important;
-        display: flex !important;
-        flex-direction: column !important;
+        overflow: visible !important;
       }
       body.home-page .home-listings-panel {
-        flex: 1 1 auto !important;
-        min-height: 0 !important;
+        max-height: calc(100vh - 180px) !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         overscroll-behavior: contain !important;
         -webkit-overflow-scrolling: touch !important;
       }
-      /* Az oldalsávok saját görgetést kapnak — a fejléc és a sorok fixen maradnak. */
+      /* Az oldalsávoknak nincs saját görgetőjük — az oldallal együtt mozognak. */
       body.home-page .home-info-sidebar,
-      body.home-page .home-filter-sidebar {
-        min-height: 0 !important;
-        max-height: 100% !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        overscroll-behavior: contain !important;
-        -webkit-overflow-scrolling: touch !important;
-      }
+      body.home-page .home-filter-sidebar,
       body.home-page .home-filter-card,
       body.home-page .home-filter-form,
       body.home-page .home-partner-results,
