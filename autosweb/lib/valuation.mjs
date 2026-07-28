@@ -1,4 +1,5 @@
 import { listListingsWithPreview } from "./db.mjs";
+import { getVehicleCatalog } from "./vehicle-catalog.mjs";
 
 function normalizeText(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
@@ -103,6 +104,18 @@ export function valuationOptions() {
     if (!modelsByBrand.has(brand)) modelsByBrand.set(brand, new Set());
     const model = normalizeText(f.modell);
     if (model) modelsByBrand.get(brand).add(model);
+  }
+
+  // Ha nincs még hirdetés, a járműkatalógus (lista.csv) márkái jönnek.
+  const catalog = getVehicleCatalog();
+  for (const brand of catalog?.gyartmanyok ?? []) {
+    const key = normalizeBrand(brand);
+    if (!key) continue;
+    brands.add(key);
+    if (!modelsByBrand.has(key)) modelsByBrand.set(key, new Set());
+    for (const model of catalog.modellek?.[brand] ?? []) {
+      if (model) modelsByBrand.get(key).add(normalizeText(model));
+    }
   }
 
   return {

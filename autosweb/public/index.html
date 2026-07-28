@@ -406,7 +406,7 @@
               <span class="home-valuation-chevron" aria-hidden="true"></span>
             </button>
             <div class="home-valuation-body" id="home-valuation-body" hidden>
-              <p class="home-valuation-lead">Márka, modell típus, évjárat és km alapján átlagár a mentett hirdetésekből.</p>
+              <p class="home-valuation-lead">Márka, modell, évjárat és típus a listából — átlagár a mentett hirdetésekből.</p>
               <form id="home-valuation-form" class="home-valuation-form">
                 <label class="home-valuation-field">
                   <span class="home-valuation-label">Márka</span>
@@ -415,26 +415,22 @@
                   </select>
                 </label>
                 <label class="home-valuation-field">
-                  <span class="home-valuation-label">Modell típus</span>
-                  <input
-                    id="valuation-modell-tipus"
-                    name="modell_tipus"
-                    type="text"
-                    placeholder="pl. Kuga 2.0 TDCi"
-                    autocomplete="off"
-                  />
+                  <span class="home-valuation-label">Modell</span>
+                  <select id="valuation-modell" name="modell">
+                    <option value="">Előbb válassz márkát</option>
+                  </select>
                 </label>
                 <label class="home-valuation-field">
                   <span class="home-valuation-label">Évjárat</span>
-                  <input
-                    name="gyartasi_ev"
-                    type="number"
-                    min="1900"
-                    max="2100"
-                    step="1"
-                    placeholder="2019"
-                    inputmode="numeric"
-                  />
+                  <select id="valuation-ev" name="gyartasi_ev">
+                    <option value="">Mindegy</option>
+                  </select>
+                </label>
+                <label class="home-valuation-field">
+                  <span class="home-valuation-label">Típus</span>
+                  <select id="valuation-tipus" name="tipus">
+                    <option value="">Mindegy</option>
+                  </select>
                 </label>
                 <label class="home-valuation-field">
                   <span class="home-valuation-label">Futott km</span>
@@ -642,7 +638,7 @@
     </footer>
 
     <script src="/js/partner-recommendations-init.js?v=partners20260726acc4" type="module"></script>
-    <script src="/js/home-valuation-init.js?v=valuation20260726" type="module"></script>
+    <script src="/js/home-valuation-init.js?v=valuation20260728catalog" type="module"></script>
     <script src="/js/home-app.js?v=katalogus20260727" type="module"></script>
     <script src="/js/site-auth.js?v=auth20260725reg" type="module"></script>
   </body>
