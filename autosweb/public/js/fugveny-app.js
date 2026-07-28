@@ -1,3 +1,5 @@
+import { initVehicleCatalogSelects, typeNameForField } from "./vehicle-catalog-client.js";
+
 const state = {
   lists: [],
   models: [],
@@ -155,6 +157,15 @@ function formToObject(form) {
   return obj;
 }
 
+/** Becsléshez: a katalógus hosszú típusnevét lerövidíti (szögletes zárójel nélkül, modellnév nélkül). */
+function estimateParamsFromForm(form) {
+  const params = formToObject(form);
+  if (params.tipus) {
+    params.tipus = typeNameForField(params.tipus, params.modell);
+  }
+  return params;
+}
+
 function showTable(rows) {
   const wrap = $("fugveny-query-table-wrap");
   const table = $("fugveny-query-table");
@@ -263,7 +274,7 @@ $("fugveny-score").addEventListener("click", async () => {
 
 $("fugveny-estimate-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const params = formToObject(e.target);
+  const params = estimateParamsFromForm(e.target);
   state.lastEstimateParams = params;
   const box = $("fugveny-estimate-result");
   box.hidden = false;
@@ -281,7 +292,7 @@ $("fugveny-estimate-form").addEventListener("submit", async (e) => {
 
 $("fugveny-save-estimate").addEventListener("click", async () => {
   const form = $("fugveny-estimate-form");
-  const params = state.lastEstimateParams || formToObject(form);
+  const params = state.lastEstimateParams || estimateParamsFromForm(form);
   const name = prompt("Lekérdezés neve", `${params.gyartmany || ""} ${params.modell || ""} becslés`);
   if (!name) return;
   await api("/api/fugveny/queries", {
@@ -312,3 +323,15 @@ $("fugveny-filter-form").addEventListener("submit", async (e) => {
 refreshAll().catch((err) => {
   $("fugveny-lists-empty").textContent = err.message;
 });
+
+initVehicleCatalogSelects({
+  brandSelect: $("fugveny-gyartmany"),
+  modelSelect: $("fugveny-modell"),
+  yearSelect: $("fugveny-ev"),
+  tipusSelect: $("fugveny-tipus"),
+  yearFromCatalog: true,
+  brandEmptyLabel: "Válasszon",
+  modelEmptyLabel: "Előbb válassz gyártmányt",
+  yearEmptyLabel: "Mindegy",
+  tipusEmptyLabel: "Előbb gyártmány, modell és év",
+}).catch((error) => console.error("Járműkatalógus (árlekérdezés):", error));

@@ -56,9 +56,24 @@
         <section class="fugveny-panel">
           <h2>2. Árlekérdezés</h2>
           <form id="fugveny-estimate-form" class="fugveny-form">
-            <label>Gyártmány <input name="gyartmany" placeholder="Audi" required /></label>
-            <label>Modell <input name="modell" placeholder="A6" required /></label>
-            <label class="wide">Típus <input name="tipus" placeholder="40 TDI Design" /></label>
+            <label
+              >Gyártmány
+              <select id="fugveny-gyartmany" name="gyartmany" required>
+                <option value="">Válasszon</option>
+              </select>
+            </label>
+            <label
+              >Modell
+              <select id="fugveny-modell" name="modell" required>
+                <option value="">Előbb válassz gyártmányt</option>
+              </select>
+            </label>
+            <label class="wide"
+              >Típus
+              <select id="fugveny-tipus" name="tipus">
+                <option value="">Előbb gyártmány, modell és év</option>
+              </select>
+            </label>
             <label
               >Üzemanyag
               <select name="uzemanyag">
@@ -69,7 +84,12 @@
                 <option>LPG</option>
               </select>
             </label>
-            <label>Év <input name="ev" type="number" placeholder="2019" /></label>
+            <label
+              >Év
+              <select id="fugveny-ev" name="ev">
+                <option value="">Mindegy</option>
+              </select>
+            </label>
             <label>Hónap <input name="honap" type="number" min="1" max="12" placeholder="5" /></label>
             <label>cm³ <input name="ccm" type="number" placeholder="1968" /></label>
             <label>kW <input name="kw" type="number" placeholder="150" /></label>
@@ -122,7 +142,7 @@
       </div>
     </main>
 
-    <script type="module" src="/js/fugveny-app.js?v=fugveny20260724"></script>
+    <script type="module" src="/js/fugveny-app.js?v=fugveny20260728catalog"></script>
     <script src="/js/site-auth.js?v=auth20260725reg" type="module"></script>
   </body>
 </html>
