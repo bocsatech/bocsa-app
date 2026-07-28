@@ -28,13 +28,16 @@
       body.home-page .home-main {
         flex: 1 1 auto !important;
         min-height: 0 !important;
-        overflow: hidden !important;
+        /* Alacsony ablaknál a tartalom görgethető marad, nem tűnik el. */
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
         display: flex !important;
         flex-direction: column !important;
       }
       body.home-page .home-layout {
         flex: 1 1 auto !important;
-        min-height: 0 !important;
+        /* Enélkül a felső sorok kinyomnák nullára a három hasábot. */
+        min-height: 420px !important;
         overflow: hidden !important;
         align-items: stretch !important;
       }
@@ -52,12 +55,19 @@
         overscroll-behavior: contain !important;
         -webkit-overflow-scrolling: touch !important;
       }
+      /* Az oldalsávok saját görgetést kapnak — a fejléc és a sorok fixen maradnak. */
       body.home-page .home-info-sidebar,
-      body.home-page .home-filter-sidebar,
+      body.home-page .home-filter-sidebar {
+        min-height: 0 !important;
+        max-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        overscroll-behavior: contain !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
       body.home-page .home-filter-card,
       body.home-page .home-filter-form,
       body.home-page .home-partner-results,
-      body.home-page .site-side,
       body.home-page .site-side-card {
         overflow: visible !important;
         max-height: none !important;
