@@ -925,6 +925,14 @@ body.home-page .local-banner {
   border-radius: 0;
   background: transparent;
   transition: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.home-qs-field input.home-qs-control::-webkit-outer-spin-button,
+.home-qs-field input.home-qs-control::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .home-qs-field input.home-qs-control:focus,
@@ -955,6 +963,7 @@ select.home-qs-control {
 }
 
 .home-qs-row--actions {
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.75rem;
 }

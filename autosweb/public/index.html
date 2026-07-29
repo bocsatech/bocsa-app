@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260730qs2" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260730qs3" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — a teljes oldal görget, külön görgetősáv nincs sehol. */
       html:has(body.home-page) {
@@ -359,10 +359,11 @@
                     <input
                       class="home-qs-control"
                       id="qs-ar-tol"
-                      type="number"
-                      min="0"
-                      step="100000"
+                      name="ar_tol"
+                      type="text"
                       inputmode="numeric"
+                      autocomplete="off"
+                      spellcheck="false"
                       placeholder="-tól"
                       aria-label="Vételár -tól"
                     />
@@ -372,10 +373,11 @@
                     <input
                       class="home-qs-control"
                       id="qs-ar-ig"
-                      type="number"
-                      min="0"
-                      step="100000"
+                      name="ar_ig"
+                      type="text"
                       inputmode="numeric"
+                      autocomplete="off"
+                      spellcheck="false"
                       placeholder="-ig"
                       aria-label="Vételár -ig"
                     />
