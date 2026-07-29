@@ -13,12 +13,15 @@ test("index.html: nincs külön grid viewport scroll", () => {
   assert.doesNotMatch(html, /home-grid-viewport/);
 });
 
-test("index.html: középső hirdetéslista scroll fix a head-ben", () => {
+test("index.html: a teljes oldal görget, a hirdetéslistának nincs saját sávja", () => {
   const html = readFileSync(join(PUBLIC, "index.html"), "utf8");
   const css = readFileSync(join(PUBLIC, "css", "home.css"), "utf8");
   assert.ok(html.includes('id="home-scroll-fix"'));
-  assert.ok(html.includes("home-listings-panel"));
   assert.ok(html.includes("overflow-y: auto !important"));
-  assert.ok(css.includes(".home-listings-panel"));
-  assert.ok(css.includes("overflow-y: auto"));
+  assert.match(
+    html,
+    /body\.home-page \.home-listings-panel,[\s\S]*?overflow: visible !important/
+  );
+  assert.match(css, /\.home-listings-panel \{[^}]*overflow: visible/);
+  assert.doesNotMatch(css, /\.home-listings-panel::-webkit-scrollbar/);
 });

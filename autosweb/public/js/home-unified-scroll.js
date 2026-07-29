@@ -1,5 +1,5 @@
-/** Főoldal: csak a középső hirdetéslista görget — CSS kezeli (home-listings-panel). */
+/** Főoldal: a teljes oldal görget, külön görgetősáv nincs — CSS kezeli. */
 
 export function initHomeUnifiedScroll() {
-  /* Korábban az egész oldalt görgettük; most a középső panel scrolloz. */
+  /* Nincs JS-teendő: a görgetést a home.css és az inline `home-scroll-fix` adja. */
 }

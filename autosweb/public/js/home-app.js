@@ -8,6 +8,7 @@ import {
   initHomeFilterCatalog,
 } from "./home-search-filter.js";
 import { filterByQuickPreset, initHomeQuickFilters } from "./home-quick-filters.js";
+import { initHomeQuickSearch } from "./home-quicksearch.js";
 import { filterByCategory, initHomeCategoryBar } from "./home-category-bar.js";
 import { initHomeUnifiedScroll } from "./home-unified-scroll.js";
 import { initHomeStatsBar } from "./home-stats-bar.js";
@@ -136,6 +137,17 @@ categoryUi = initHomeCategoryBar({
     applyFilters();
   },
   getForm: () => filterForm,
+});
+
+initHomeQuickSearch({
+  onSearch: (values) => {
+    sidebarFilters = { ...emptyFilters(), ...values };
+    quickPreset = null;
+    quickFilterUi?.clear();
+    categoryUi?.clear();
+    categoryFilter = null;
+    applyFilters();
+  },
 });
 
 statsUi = initHomeStatsBar({

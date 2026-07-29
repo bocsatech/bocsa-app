@@ -729,12 +729,12 @@ body.home-page .local-banner {
 }
 
 .home-layout.site-layout {
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
-  align-items: stretch;
+  overflow: visible;
+  align-items: start;
 }
 
 .home-info-sidebar {
@@ -823,11 +823,184 @@ body.home-page .local-banner {
   align-items: flex-start;
   gap: 0.85rem;
   min-width: 0;
-  padding: 1rem 1.05rem;
+  /* A sor kártyái 1 cm-rel magasabbak: fent-lent fél centi ráhagyás. */
+  padding: calc(1rem + 0.5cm) 1.05rem;
   border-radius: 16px;
   background: #fff;
   border: 1px solid #e8ebf0;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+/* A gyorskereső a sor utolsó három hasábját foglalja el. */
+.home-stats-card--quicksearch {
+  grid-column: span 3;
+  align-items: center;
+}
+
+.home-qs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.home-qs-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.home-qs-pair {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+
+.home-qs-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1 1 7.5rem;
+  min-width: 0;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.home-qs-field--wide {
+  flex: 1 1 10rem;
+}
+
+.home-qs-field--narrow {
+  flex: 1 1 7rem;
+}
+
+.home-qs-field:focus-within {
+  border-color: #1565c0;
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
+}
+
+/* A címke a felső szegélyen „ül”, ezért kell alá fehér háttér. */
+.home-qs-label {
+  position: absolute;
+  top: -0.52rem;
+  left: 0.6rem;
+  padding: 0 0.28rem;
+  background: #fff;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #667085;
+  white-space: nowrap;
+}
+
+.home-qs-field:focus-within .home-qs-label {
+  color: #1565c0;
+}
+
+.home-qs-control {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.88rem;
+  color: #101828;
+  outline: none;
+}
+
+/*
+ * A style.css `input[type="number"]` és `input:focus` szabálya erősebb egy sima
+ * osztálynál, ezért a szegélyt és a fókuszgyűrűt itt kell semlegesíteni —
+ * különben dupla keret látszik a mezőn belül.
+ */
+.home-qs-field input.home-qs-control,
+.home-qs-field select.home-qs-control {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  transition: none;
+}
+
+.home-qs-field input.home-qs-control:focus,
+.home-qs-field select.home-qs-control:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+select.home-qs-control {
+  appearance: none;
+  cursor: pointer;
+}
+
+.home-qs-field:has(select)::after {
+  content: "";
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #98a2b3;
+}
+
+.home-qs-suffix {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: #98a2b3;
+}
+
+.home-qs-submit {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0.72rem 1.2rem;
+  border: 0;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.home-qs-submit:hover {
+  background: #1f1f1f;
+}
+
+.home-qs-action {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.68rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #667085;
+  cursor: pointer;
+}
+
+.home-qs-action:hover {
+  background: #f2f4f7;
+  color: #101828;
+}
+
+.home-qs-action:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 2px;
+}
+
+.home-qs-action--advanced {
+  margin-left: auto;
+  color: #1565c0;
+}
+
+.home-qs-action--advanced:hover {
+  background: #eef4ff;
+  color: #0d47a1;
 }
 
 .home-stats-card--filter {
@@ -1001,83 +1174,12 @@ body.home-page .local-banner {
   font-size: 0.84rem;
 }
 
-.home-stats-card--app {
-  position: relative;
-  overflow: hidden;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.95rem 1rem;
-  background: #111;
-  border-color: #111;
-  color: #fff;
-}
-
-.home-stats-app-copy {
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-}
-
-.home-stats-app-title {
-  margin: 0 0 0.25rem;
-  font-size: 0.98rem;
-  font-weight: 700;
-}
-
-.home-stats-app-text {
-  margin: 0 0 0.65rem;
-  font-size: 0.76rem;
-  line-height: 1.35;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.home-stats-app-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.home-stats-store-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 1.65rem;
-  padding: 0.15rem 0.55rem;
-  border-radius: 8px;
-  background: #fff;
-  color: #111;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-}
-
-.home-stats-app-phone {
-  position: relative;
-  flex-shrink: 0;
-  width: 4.6rem;
-  height: 5.6rem;
-  border-radius: 14px;
-  padding: 0.28rem;
-  background: linear-gradient(180deg, #2a2a2a 0%, #111 100%);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-}
-
-.home-stats-app-phone-screen {
-  width: 100%;
-  height: 100%;
-  border-radius: 11px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
-    linear-gradient(135deg, #1e88e5 0%, #1565c0 45%, #0d47a1 100%);
-}
-
 @media (max-width: 1180px) {
   .home-stats-track {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .home-stats-card--app {
+  .home-stats-card--quicksearch {
     grid-column: 1 / -1;
   }
 }
@@ -1140,12 +1242,18 @@ body.home-page .local-banner {
   color: #5c6773;
 }
 
+/* Fotós kockán a kép mellett is fehér a háttér, nincs szürke szegélysáv. */
 .home-category-card--has-photo .home-category-visual {
   align-items: center;
   justify-content: center;
   min-height: 84px;
   padding: 0.35rem 0.4rem 0.15rem;
   overflow: hidden;
+  background: #fff;
+}
+
+.home-category-card--has-photo.is-active .home-category-visual {
+  background: #fff;
 }
 
 .home-category-photo {
@@ -1511,16 +1619,11 @@ body.home-page .local-banner {
 
 @media (max-width: 1200px) {
   .home-layout.site-layout {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
-  .home-info-sidebar,
-  .home-filter-sidebar {
+  .home-info-sidebar {
     position: static;
-    max-height: none;
-  }
-
-  .home-filter-card {
     max-height: none;
   }
 
@@ -1562,7 +1665,7 @@ body.home-page .local-banner {
   box-sizing: border-box;
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -1572,32 +1675,15 @@ body.home-page .local-banner {
   flex-direction: column;
   gap: 0.75rem;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
+/* Nincs saját görgetője: a hirdetéslista a teljes oldallal együtt görög. */
 .home-listings-panel {
   min-width: 0;
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #c5cad3 transparent;
-}
-
-.home-listings-panel::-webkit-scrollbar {
-  width: 8px;
-}
-
-.home-listings-panel::-webkit-scrollbar-thumb {
-  background: #c5cad3;
-  border-radius: 999px;
-}
-
-.home-listings-panel::-webkit-scrollbar-track {
-  background: transparent;
+  overflow: visible;
 }
 
 .home-bottom-extra {
@@ -1854,34 +1940,6 @@ body.home-page .local-banner {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.home-grid-card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 0.35rem;
-  color: #777;
-  font-size: 0.8rem;
-}
-
-.home-grid-card-foot-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
-  min-width: 0;
-}
-
-.home-grid-card-foot-item svg {
-  flex-shrink: 0;
-  color: #8a9199;
-}
-
-.home-grid-card-foot-item:last-child {
-  margin-left: auto;
-  white-space: nowrap;
 }
 
 .home-grid-card-status {
