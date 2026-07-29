@@ -954,9 +954,13 @@ select.home-qs-control {
   color: #98a2b3;
 }
 
+.home-qs-row--actions {
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .home-qs-submit {
   flex: 0 0 auto;
-  margin-left: auto;
   padding: 0.72rem 1.2rem;
   border: 0;
   border-radius: 10px;
@@ -994,8 +998,11 @@ select.home-qs-control {
 }
 
 .home-qs-action--advanced {
-  margin-left: auto;
   color: #1565c0;
+}
+
+.home-qs-row--actions .home-qs-action:last-child {
+  margin-left: auto;
 }
 
 .home-qs-action--advanced:hover {

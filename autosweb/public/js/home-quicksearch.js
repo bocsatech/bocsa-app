@@ -1,9 +1,12 @@
 /**
- * Gyorskereső az összesítő sávban: Márka, Modell, Üzemanyag, Évjárat, Vételár.
+ * Gyorskereső az összesítő sávban.
  *
- * A Márka/Modell a járműkatalógusból töltődik, az évlistát itt állítjuk elő.
- * A leadott értékek a szűrő objektum alakját követik (`home-search-filter.js`),
- * hogy a főoldal ugyanazon a szűrőláncon engedje át a hirdetéseket.
+ * 1. sor: Márka, Modell, Típus
+ * 2. sor: Üzemanyag, Évjárat, Vételár
+ * 3. sor: Keresés, Részletes keresés, Visszaállítás
+ *
+ * A Márka/Modell/Típus a járműkatalógusból töltődik.
+ * A leadott értékek a szűrő objektum alakját követik (`home-search-filter.js`).
  */
 
 import { initVehicleCatalogSelects, fillSelect } from "./vehicle-catalog-client.js";
@@ -29,6 +32,7 @@ export function initHomeQuickSearch({ onSearch = () => {} } = {}) {
 
   const brandSelect = document.getElementById("qs-gyartmany");
   const modelSelect = document.getElementById("qs-modell");
+  const tipusSelect = document.getElementById("qs-tipus");
   const fuelSelect = document.getElementById("qs-uzemanyag");
   const yearFrom = document.getElementById("qs-ev-tol");
   const yearTo = document.getElementById("qs-ev-ig");
@@ -42,8 +46,12 @@ export function initHomeQuickSearch({ onSearch = () => {} } = {}) {
   initVehicleCatalogSelects({
     brandSelect,
     modelSelect,
+    yearSelect: yearFrom,
+    tipusSelect,
     brandEmptyLabel: "Mindegy",
     modelEmptyLabel: "Mindegy",
+    tipusEmptyLabel: "Mindegy",
+    yearFromCatalog: false,
   }).catch((error) => {
     console.error("Gyorskereső katalógus:", error);
   });
@@ -53,6 +61,7 @@ export function initHomeQuickSearch({ onSearch = () => {} } = {}) {
     onSearch({
       gyartmany: brandSelect?.value ?? "",
       modell: modelSelect?.value ?? "",
+      tipusKatalogus: tipusSelect?.value ?? "",
       uzemanyagQuick: fuelSelect?.value ?? "",
       ev_tol: numOrNull(yearFrom?.value),
       ev_ig: numOrNull(yearTo?.value),
@@ -62,13 +71,18 @@ export function initHomeQuickSearch({ onSearch = () => {} } = {}) {
   });
 
   /*
-   * A reset a böngésző alapértékeit állítja vissza; a Modell listát nekünk kell
-   * kiürítenünk, mert a katalógus kötés csak a Márka `change` eseményére frissít.
+   * A reset a böngésző alapértékeit állítja vissza; a Modell/Típus listát nekünk
+   * kell frissítenünk, mert a katalógus kötés a Márka `change` eseményére épül.
    */
   form.addEventListener("reset", () => {
     requestAnimationFrame(() => {
       brandSelect?.dispatchEvent(new Event("change"));
       onSearch({});
     });
+  });
+
+  const advancedBtn = document.getElementById("qs-reszletes");
+  advancedBtn?.addEventListener("click", () => {
+    window.location.href = "/listings.html";
   });
 }

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="qs20260729" />
+    <meta name="autosweb-version" content="qs20260730" />
     <title>Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260725" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260729qs1" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260730qs2" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — a teljes oldal görget, külön görgetősáv nincs sehol. */
       html:has(body.home-page) {
@@ -319,6 +319,15 @@
                 </label>
 
                 <label class="home-qs-field home-qs-field--wide">
+                  <span class="home-qs-label">Típus</span>
+                  <select class="home-qs-control" id="qs-tipus">
+                    <option value="">Mindegy</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="home-qs-row">
+                <label class="home-qs-field home-qs-field--wide">
                   <span class="home-qs-label">Üzemanyag</span>
                   <select class="home-qs-control" id="qs-uzemanyag">
                     <option value="">Mindegy</option>
@@ -329,9 +338,7 @@
                     <option value="elektromos">Elektromos</option>
                   </select>
                 </label>
-              </div>
 
-              <div class="home-qs-row">
                 <div class="home-qs-pair">
                   <label class="home-qs-field home-qs-field--narrow">
                     <span class="home-qs-label">Évjárat</span>
@@ -375,15 +382,14 @@
                     <span class="home-qs-suffix" aria-hidden="true">Ft</span>
                   </label>
                 </div>
-
-                <button type="submit" class="home-qs-submit">Keresés</button>
               </div>
 
-              <div class="home-qs-row">
-                <button type="reset" class="home-qs-action">Visszaállítás</button>
+              <div class="home-qs-row home-qs-row--actions">
+                <button type="submit" class="home-qs-submit">Keresés</button>
                 <button type="button" class="home-qs-action home-qs-action--advanced" id="qs-reszletes">
                   Részletes keresés
                 </button>
+                <button type="reset" class="home-qs-action">Visszaállítás</button>
               </div>
             </form>
           </article>
