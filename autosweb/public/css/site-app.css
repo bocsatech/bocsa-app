@@ -1384,21 +1384,21 @@ body.site-app .field-row.full.field-row--tech-top .labeled-field {
 }
 
 body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel {
-  flex: 0 1 190px;
-  width: 190px;
-  max-width: 190px;
+  flex: 1 1 220px;
+  width: auto;
+  max-width: 280px;
 }
 
 body.site-app .field-row.full.field-row--tech-top .labeled-field--henger {
-  flex: 0 0 auto;
-  width: 128px;
-  max-width: 128px;
+  flex: 1 1 180px;
+  width: auto;
+  max-width: 220px;
 }
 
 body.site-app .field-row.full.field-row--tech-top .labeled-field--power {
-  flex: 0 0 auto;
-  width: 196px;
-  max-width: 196px;
+  flex: 1 1 220px;
+  width: auto;
+  max-width: 280px;
 }
 
 body.site-app .field-row.full.field-row--tech-top .labeled-field > select,
@@ -1438,7 +1438,7 @@ body.site-app .field-row.full.field-row--tech-top .labeled-field > .suffix-field
 
 body.site-app .form-grid.form-grid--muszaki {
   grid-template-columns: max-content minmax(7rem, 1fr) max-content minmax(7rem, 1fr);
-  column-gap: 1rem 1.25rem;
+  column-gap: 1.25rem;
   row-gap: 0.85rem;
   align-items: center;
 }
