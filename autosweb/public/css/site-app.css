@@ -455,6 +455,179 @@ body.site-app .login-hint a:hover {
   text-decoration: underline;
 }
 
+/* ——— Beállítások ——— */
+body.site-app.settings-page {
+  background: #f3f4f6;
+}
+
+body.site-app .settings-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+body.site-app .settings-wrap {
+  display: grid;
+  gap: 1rem;
+}
+
+body.site-app .settings-hero {
+  padding: 0.25rem 0.15rem 0.5rem;
+}
+
+body.site-app .settings-kicker {
+  margin: 0 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #667085;
+}
+
+body.site-app .settings-title {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #101828;
+}
+
+body.site-app .settings-lead {
+  margin: 0.35rem 0 0;
+  color: #667085;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+body.site-app .settings-card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  padding: 1.15rem 1.2rem 1.25rem;
+}
+
+body.site-app .settings-card-title {
+  margin: 0 0 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: #101828;
+}
+
+body.site-app .settings-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+body.site-app .settings-readonly {
+  margin: 0;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #344054;
+  font-size: 0.95rem;
+}
+
+body.site-app .settings-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+body.site-app .settings-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  background: #e8eef7;
+  color: #1565c0;
+  display: grid;
+  place-items: center;
+  font-size: 1.55rem;
+  font-weight: 700;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+body.site-app .settings-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+body.site-app .settings-avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+body.site-app .settings-link-btn {
+  border: 0;
+  background: transparent;
+  color: #475467;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0.2rem 0.1rem;
+}
+
+body.site-app .settings-check {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.95rem;
+  color: #344054;
+  cursor: pointer;
+}
+
+body.site-app .settings-check input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: #1565c0;
+}
+
+body.site-app .settings-flash {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+body.site-app .settings-flash--ok {
+  color: #027a48;
+}
+
+body.site-app .settings-flash--err {
+  color: #b42318;
+}
+
+body.site-app .settings-account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+body.site-app .settings-danger-btn {
+  border: 1px solid #fda29b;
+  background: #fff;
+  color: #b42318;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+body.site-app .settings-danger-btn:hover {
+  background: #fef3f2;
+}
+
+@media (max-width: 640px) {
+  body.site-app .settings-avatar-row {
+    align-items: flex-start;
+  }
+}
+
 body.site-app .home-nav-link,
 body.site-app .site-app-nav-link,
 body.site-app .import-nav-link {

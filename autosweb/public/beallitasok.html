@@ -3,16 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="auth20260725reg" />
-    <title>Regisztráció — Add el autod.hu</title>
+    <meta name="autosweb-version" content="settings20260730" />
+    <title>Beállítások — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=auth20260725reg" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730avatar3" />
+    <link rel="stylesheet" href="/css/style.css?v=auth20260725" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730settings1" />
   </head>
-  <body class="site-app login-page" data-site-page="regisztracio" data-auth-init="manual">
-    <div class="local-banner">LOCALHOST — fiók létrehozása a hirdetésfeladáshoz</div>
+  <body class="site-app settings-page" data-site-page="beallitasok" data-auth-init="manual">
+    <div class="local-banner">LOCALHOST — fiók beállítások</div>
 
     <header class="site-header site-app-header">
       <div class="site-app-header-inner">
@@ -130,35 +130,97 @@
       </div>
     </header>
 
-    <main class="login-main">
-      <section class="login-card" aria-labelledby="register-title">
-        <h1 class="login-title" id="register-title">Regisztráció</h1>
-        <p class="login-lead">Hozz létre fiókot, és add fel autód hirdetését.</p>
-        <form id="register-form" class="login-form">
-          <label class="login-field">
-            <span class="login-label">Email</span>
-            <input type="email" name="email" autocomplete="username" required placeholder="pelda@email.hu" />
-          </label>
-          <label class="login-field">
-            <span class="login-label">Jelszó</span>
-            <input type="password" name="password" autocomplete="new-password" required minlength="4" />
-          </label>
-          <label class="login-field">
-            <span class="login-label">Jelszó megerősítése</span>
-            <input type="password" name="password_confirm" autocomplete="new-password" required minlength="4" />
-          </label>
-          <p id="register-error" class="login-error" role="alert" hidden></p>
-          <button type="submit" class="site-header-btn site-header-btn--primary login-submit">Regisztráció</button>
-        </form>
-        <p class="login-hint">Már van fiókod? <a href="/belepes.html">Belépés</a></p>
-      </section>
+    <main class="settings-main">
+      <div class="settings-wrap">
+        <header class="settings-hero">
+          <p class="settings-kicker">Fiók</p>
+          <h1 class="settings-title">Beállítások</h1>
+          <p class="settings-lead">Profil, jelszó, értesítések — a változtatások ezen a gépen mentődnek.</p>
+        </header>
+
+        <section class="settings-card" aria-labelledby="settings-profile-title">
+          <h2 class="settings-card-title" id="settings-profile-title">Profildatok</h2>
+          <div class="settings-avatar-row">
+            <div class="settings-avatar" aria-hidden="true">
+              <span id="settings-avatar-letter">A</span>
+              <img id="settings-avatar-img" alt="" hidden width="72" height="72" />
+            </div>
+            <div class="settings-avatar-actions">
+              <button type="button" class="site-header-btn site-header-btn--outline" id="settings-avatar-upload">Profilkép feltöltése</button>
+              <button type="button" class="settings-link-btn" id="settings-avatar-remove">Kép törlése</button>
+              <input type="file" id="settings-avatar-file" accept="image/jpeg,image/png,image/webp" hidden />
+            </div>
+          </div>
+          <p id="settings-avatar-flash" class="settings-flash" role="status" hidden></p>
+          <form id="settings-profile-form" class="settings-form">
+            <label class="login-field">
+              <span class="login-label">Email</span>
+              <p class="settings-readonly" id="settings-email">—</p>
+            </label>
+            <label class="login-field">
+              <span class="login-label">Megjelenített név</span>
+              <input type="text" name="display_name" id="settings-display-name" maxlength="40" required autocomplete="nickname" />
+            </label>
+            <p id="settings-profile-flash" class="settings-flash" role="status" hidden></p>
+            <button type="submit" class="site-header-btn site-header-btn--primary">Név mentése</button>
+          </form>
+        </section>
+
+        <section class="settings-card" aria-labelledby="settings-password-title">
+          <h2 class="settings-card-title" id="settings-password-title">Jelszó módosítása</h2>
+          <form id="settings-password-form" class="settings-form">
+            <label class="login-field">
+              <span class="login-label">Jelenlegi jelszó</span>
+              <input type="password" name="current_password" autocomplete="current-password" required />
+            </label>
+            <label class="login-field">
+              <span class="login-label">Új jelszó</span>
+              <input type="password" name="new_password" autocomplete="new-password" required minlength="4" />
+            </label>
+            <label class="login-field">
+              <span class="login-label">Új jelszó mégegyszer</span>
+              <input type="password" name="new_password_confirm" autocomplete="new-password" required minlength="4" />
+            </label>
+            <p id="settings-password-flash" class="settings-flash" role="status" hidden></p>
+            <button type="submit" class="site-header-btn site-header-btn--primary">Jelszó mentése</button>
+          </form>
+        </section>
+
+        <section class="settings-card" aria-labelledby="settings-notify-title">
+          <h2 class="settings-card-title" id="settings-notify-title">Értesítések</h2>
+          <form id="settings-notify-form" class="settings-form">
+            <label class="settings-check">
+              <input type="checkbox" name="messages" />
+              <span>Üzenetek</span>
+            </label>
+            <label class="settings-check">
+              <input type="checkbox" name="favorites" />
+              <span>Kedvencek változásai</span>
+            </label>
+            <label class="settings-check">
+              <input type="checkbox" name="interests" />
+              <span>Érdeklődések</span>
+            </label>
+            <label class="settings-check">
+              <input type="checkbox" name="newsletter" />
+              <span>Hírlevél / tippek</span>
+            </label>
+            <p id="settings-notify-flash" class="settings-flash" role="status" hidden></p>
+            <button type="submit" class="site-header-btn site-header-btn--primary">Értesítések mentése</button>
+          </form>
+        </section>
+
+        <section class="settings-card settings-card--danger" aria-labelledby="settings-account-title">
+          <h2 class="settings-card-title" id="settings-account-title">Fiók</h2>
+          <div class="settings-account-actions">
+            <button type="button" class="site-header-btn site-header-btn--outline" id="settings-logout">Kijelentkezés</button>
+            <button type="button" class="settings-danger-btn" id="settings-delete-account">Fiók törlése</button>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <script src="/js/site-avatar-menu.js?v=auth20260730avatar3" type="module"></script>
-    <script type="module">
-      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=auth20260730avatar3";
-      initSiteAuth();
-      initRegisterPage();
-    </script>
+    <script src="/js/site-avatar-menu.js?v=auth20260730settings1" type="module"></script>
+    <script src="/js/beallitasok-app.js?v=auth20260730settings1" type="module"></script>
   </body>
 </html>

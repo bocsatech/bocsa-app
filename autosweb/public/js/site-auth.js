@@ -70,6 +70,64 @@ export function logout() {
   sessionStorage.removeItem(AUTH_KEY);
 }
 
+export function changePassword(currentPassword, newPassword, newPasswordConfirm) {
+  const user = getAuthUser();
+  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
+  const current = String(currentPassword ?? "").trim();
+  const next = String(newPassword ?? "").trim();
+  const confirm = String(newPasswordConfirm ?? "").trim();
+  if (!current || !next) throw new Error("A jelenlegi és az új jelszó kötelező.");
+  if (next !== confirm) throw new Error("A két új jelszó nem egyezik.");
+  if (next.length < 4) throw new Error("Az új jelszó legalább 4 karakter legyen.");
+
+  const users = readUsers();
+  const stored = users[user.email];
+  if (stored?.password && stored.password !== current) {
+    throw new Error("A jelenlegi jelszó hibás.");
+  }
+  users[user.email] = {
+    ...(stored ?? {}),
+    password: next,
+    updatedAt: Date.now(),
+  };
+  writeUsers(users);
+}
+
+export function getDisplayName() {
+  const user = getAuthUser();
+  if (!user?.email) return "";
+  const users = readUsers();
+  const stored = users[user.email]?.displayName;
+  if (stored) return String(stored);
+  const local = user.email.split("@")[0] || user.email;
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
+export function setDisplayName(name) {
+  const user = getAuthUser();
+  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
+  const trimmed = String(name ?? "").trim();
+  if (!trimmed) throw new Error("A megjelenített név kötelező.");
+  if (trimmed.length > 40) throw new Error("A név maximum 40 karakter lehet.");
+  const users = readUsers();
+  users[user.email] = {
+    ...(users[user.email] ?? {}),
+    displayName: trimmed,
+    updatedAt: Date.now(),
+  };
+  writeUsers(users);
+  return trimmed;
+}
+
+export function deleteAccount() {
+  const user = getAuthUser();
+  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
+  const users = readUsers();
+  delete users[user.email];
+  writeUsers(users);
+  sessionStorage.removeItem(AUTH_KEY);
+}
+
 function loginUrl(nextPath = "/hirdetesfeladas.html") {
   return `/belepes.html?next=${encodeURIComponent(nextPath)}`;
 }

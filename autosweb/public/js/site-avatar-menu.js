@@ -52,6 +52,13 @@ function setAvatarPhoto(email, dataUrl) {
 function displayName(user) {
   const email = String(user?.email ?? "").trim();
   if (!email) return "vendég";
+  try {
+    const users = JSON.parse(localStorage.getItem("autosweb-auth-users") || "{}");
+    const stored = users[email]?.displayName;
+    if (stored) return String(stored);
+  } catch {
+    /* ignore */
+  }
   const local = email.split("@")[0] || email;
   return local.charAt(0).toUpperCase() + local.slice(1);
 }
