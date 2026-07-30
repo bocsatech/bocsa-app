@@ -1,5 +1,9 @@
 import { saveListingToDb, getStoredListingId } from "./db-client.js";
 import { createAdForm } from "./form-core.js";
+import { initTireSizes } from "./tire-sizes-ui.js";
+
+const adForm = document.getElementById("ad-form");
+const tireSizes = initTireSizes(adForm);
 
 createAdForm({
   mode: "wizard",
@@ -33,6 +37,8 @@ createAdForm({
     }
   },
 });
+
+tireSizes.syncRearTires();
 
 import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())

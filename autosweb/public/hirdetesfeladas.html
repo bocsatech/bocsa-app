@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730felezo1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730tire1" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
@@ -480,38 +480,52 @@
 
           <div class="card">
             <div class="card-head">Gumi méretek</div>
-            <div class="card-body form-grid">
-              <label>Nyári gumi méret:</label>
-              <div class="tire-row">
-                <input name="nyari_gumi_szelesseg" type="text" placeholder="szélesség" />
-                <span>/</span>
-                <input name="nyari_gumi_magassag" type="text" placeholder="magasság" />
-                <span>R</span>
-                <input name="nyari_gumi_atmero" type="text" placeholder="átmérő" />
+            <div class="card-body tire-sizes-grid">
+              <div class="tire-block">
+                <span class="tire-block-label">Nyári gumi méret:</span>
+                <div class="tire-row">
+                  <select name="nyari_gumi_szelesseg" aria-label="Nyári gumi szélesség"></select>
+                  <span>/</span>
+                  <select name="nyari_gumi_magassag" aria-label="Nyári gumi magasság"></select>
+                  <span>R</span>
+                  <select name="nyari_gumi_atmero" aria-label="Nyári gumi átmérő"></select>
+                </div>
               </div>
-              <label>Hátsó nyári gumi méret:</label>
-              <div class="tire-row">
-                <input name="hatso_nyari_szelesseg" type="text" />
-                <span>/</span>
-                <input name="hatso_nyari_magassag" type="text" />
-                <span>R</span>
-                <input name="hatso_nyari_atmero" type="text" />
+              <div class="tire-block tire-block--rear">
+                <label class="check tire-block-label">
+                  <input type="checkbox" name="hatso_nyari_kulon" value="1" />
+                  Hátsó nyári gumi méret:
+                </label>
+                <div class="tire-row">
+                  <select name="hatso_nyari_szelesseg" aria-label="Hátsó nyári gumi szélesség" disabled></select>
+                  <span>/</span>
+                  <select name="hatso_nyari_magassag" aria-label="Hátsó nyári gumi magasság" disabled></select>
+                  <span>R</span>
+                  <select name="hatso_nyari_atmero" aria-label="Hátsó nyári gumi átmérő" disabled></select>
+                </div>
               </div>
-              <label>Téli gumi méret:</label>
-              <div class="tire-row">
-                <input name="teli_gumi_szelesseg" type="text" />
-                <span>/</span>
-                <input name="teli_gumi_magassag" type="text" />
-                <span>R</span>
-                <input name="teli_gumi_atmero" type="text" />
+              <div class="tire-block">
+                <span class="tire-block-label">Téli gumi méret:</span>
+                <div class="tire-row">
+                  <select name="teli_gumi_szelesseg" aria-label="Téli gumi szélesség"></select>
+                  <span>/</span>
+                  <select name="teli_gumi_magassag" aria-label="Téli gumi magasság"></select>
+                  <span>R</span>
+                  <select name="teli_gumi_atmero" aria-label="Téli gumi átmérő"></select>
+                </div>
               </div>
-              <label>Hátsó téli gumi méret:</label>
-              <div class="tire-row">
-                <input name="hatso_teli_szelesseg" type="text" />
-                <span>/</span>
-                <input name="hatso_teli_magassag" type="text" />
-                <span>R</span>
-                <input name="hatso_teli_atmero" type="text" />
+              <div class="tire-block tire-block--rear">
+                <label class="check tire-block-label">
+                  <input type="checkbox" name="hatso_teli_kulon" value="1" />
+                  Hátsó téli gumi méret:
+                </label>
+                <div class="tire-row">
+                  <select name="hatso_teli_szelesseg" aria-label="Hátsó téli gumi szélesség" disabled></select>
+                  <span>/</span>
+                  <select name="hatso_teli_magassag" aria-label="Hátsó téli gumi magasság" disabled></select>
+                  <span>R</span>
+                  <select name="hatso_teli_atmero" aria-label="Hátsó téli gumi átmérő" disabled></select>
+                </div>
               </div>
             </div>
           </div>
@@ -843,6 +857,6 @@
       requireAuthForPage();
       initSiteAuth();
     </script>
-    <script src="/js/app.js?v=katalogus20260727" type="module"></script>
+    <script src="/js/app.js?v=auth20260730tire1" type="module"></script>
   </body>
 </html>
