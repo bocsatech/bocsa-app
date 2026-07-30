@@ -1761,12 +1761,12 @@ body.site-app .package.selected {
     flex-wrap: wrap;
   }
 
-  body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel,
-  body.site-app .field-row.full.field-row--tech-top .labeled-field--henger,
-  body.site-app .field-row.full.field-row--tech-top .labeled-field--power {
-    flex: 1 1 140px;
+  body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel > select,
+  body.site-app .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field,
+  body.site-app .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field {
     width: auto;
     max-width: none;
+    flex: 1 1 140px;
   }
 
   body.site-app .field-row--vehicle-ident {
