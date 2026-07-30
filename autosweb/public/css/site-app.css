@@ -1455,3 +1455,289 @@ body.site-app .package.selected {
     max-width: none;
   }
 }
+
+
+/* ——— Fiókom / Mein mobile layout ——— */
+body.site-app.mm-page {
+  background: #eef1f4;
+}
+
+body.site-app .mm-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: start;
+}
+
+body.site-app .mm-side {
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 14px;
+  padding: 1rem 0.85rem 1.1rem;
+  position: sticky;
+  top: 0.75rem;
+}
+
+body.site-app .mm-side-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #667085;
+}
+
+body.site-app .mm-side-title {
+  margin: 0 0 0.85rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #101828;
+}
+
+body.site-app .mm-nav {
+  display: grid;
+  gap: 0.2rem;
+}
+
+body.site-app .mm-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.62rem 0.7rem;
+  border-radius: 10px;
+  color: #344054;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+body.site-app .mm-nav-link:hover {
+  background: #f2f4f7;
+}
+
+body.site-app .mm-nav-link.is-active {
+  background: #e8f1fb;
+  color: #1565c0;
+}
+
+body.site-app .mm-nav-badge {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 0.72rem;
+  display: inline-grid;
+  place-items: center;
+}
+
+body.site-app .mm-side-logout {
+  margin-top: 0.9rem;
+  width: 100%;
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  font-weight: 600;
+  color: #344054;
+  cursor: pointer;
+}
+
+body.site-app .mm-main {
+  min-width: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+body.site-app .mm-panel-head {
+  margin-bottom: 0.85rem;
+}
+
+body.site-app .mm-panel-title {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #101828;
+}
+
+body.site-app .mm-panel-lead {
+  margin: 0.35rem 0 0;
+  color: #667085;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+body.site-app .mm-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+body.site-app .mm-card {
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 12px;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  display: grid;
+  gap: 0.35rem;
+}
+
+body.site-app .mm-card:hover {
+  border-color: #98a2b3;
+}
+
+body.site-app .mm-card strong {
+  font-size: 1rem;
+  color: #101828;
+}
+
+body.site-app .mm-card span {
+  color: #667085;
+  font-size: 0.88rem;
+}
+
+body.site-app .mm-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+body.site-app .mm-inline-form input[type="text"] {
+  flex: 1 1 160px;
+  min-width: 140px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+}
+
+body.site-app .mm-check-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  color: #344054;
+}
+
+body.site-app .mm-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+body.site-app .mm-list-item {
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+body.site-app .mm-list-item.is-unread {
+  border-color: #84caff;
+  background: #f5faff;
+}
+
+body.site-app .mm-list-main {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+body.site-app .mm-list-meta {
+  color: #667085;
+  font-size: 0.84rem;
+}
+
+body.site-app .mm-msg-body {
+  margin: 0.25rem 0 0;
+  color: #344054;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+body.site-app .mm-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: flex-start;
+}
+
+body.site-app .mm-note-field {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  color: #667085;
+}
+
+body.site-app .mm-note-field input {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  font: inherit;
+}
+
+body.site-app .mm-empty {
+  margin: 0.5rem 0 0;
+  color: #667085;
+  font-size: 0.92rem;
+}
+
+body.site-app .mm-ad-box {
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+body.site-app .mm-ad-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+body.site-app .mm-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+body.site-app .settings-form select {
+  width: 100%;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 0.72rem 0.85rem;
+  font: inherit;
+  background: #fff;
+}
+
+@media (max-width: 860px) {
+  body.site-app .mm-shell {
+    grid-template-columns: 1fr;
+  }
+  body.site-app .mm-side {
+    position: static;
+  }
+  body.site-app .mm-cards,
+  body.site-app .mm-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

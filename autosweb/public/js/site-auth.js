@@ -128,6 +128,61 @@ export function deleteAccount() {
   sessionStorage.removeItem(AUTH_KEY);
 }
 
+const EMPTY_PROFILE = {
+  salutation: "",
+  firstName: "",
+  lastName: "",
+  street: "",
+  postalCode: "",
+  city: "",
+  country: "Magyarország",
+  phone: "",
+  company: "",
+  accountType: "private",
+};
+
+export function getProfile() {
+  const user = getAuthUser();
+  if (!user?.email) return { ...EMPTY_PROFILE };
+  const users = readUsers();
+  const stored = users[user.email]?.profile ?? {};
+  return { ...EMPTY_PROFILE, ...stored };
+}
+
+export function saveProfile(profile) {
+  const user = getAuthUser();
+  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
+  const next = {
+    salutation: String(profile.salutation ?? "").trim(),
+    firstName: String(profile.firstName ?? "").trim(),
+    lastName: String(profile.lastName ?? "").trim(),
+    street: String(profile.street ?? "").trim(),
+    postalCode: String(profile.postalCode ?? "").trim(),
+    city: String(profile.city ?? "").trim(),
+    country: String(profile.country ?? "Magyarország").trim() || "Magyarország",
+    phone: String(profile.phone ?? "").trim(),
+    company: String(profile.company ?? "").trim(),
+    accountType: profile.accountType === "business" ? "business" : "private",
+  };
+  if (!next.firstName || !next.lastName) {
+    throw new Error("A keresztnév és a vezetéknév kötelező.");
+  }
+  if (!next.postalCode || !next.city) {
+    throw new Error("Az irányítószám és a város kötelező.");
+  }
+  const users = readUsers();
+  const displayName =
+    [next.firstName, next.lastName].filter(Boolean).join(" ") || users[user.email]?.displayName;
+  users[user.email] = {
+    ...(users[user.email] ?? {}),
+    profile: next,
+    displayName,
+    updatedAt: Date.now(),
+  };
+  writeUsers(users);
+  return next;
+}
+
 function loginUrl(nextPath = "/hirdetesfeladas.html") {
   return `/belepes.html?next=${encodeURIComponent(nextPath)}`;
 }
