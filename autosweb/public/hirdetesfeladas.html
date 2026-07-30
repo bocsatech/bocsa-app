@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/site-app.css?v=techtopcompact20260725" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730order" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
@@ -26,9 +26,39 @@
           <a class="import-nav-link" href="/fugveny.html">Függvény</a>
         </nav>
         <div class="header-actions site-header-actions">
-          <a class="site-header-btn site-header-btn--ghost" href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás</a>
-          <a class="site-header-btn site-header-btn--ghost" href="/regisztracio.html" data-auth-register>Regisztráció</a>
-          <a class="site-header-btn site-header-btn--ghost" href="/belepes.html" data-auth-login>Belépés</a>
+          <div class="site-header-auth-row">
+            <a class="site-header-btn site-header-btn--ghost" href="/belepes.html" data-auth-login>Belépés</a>
+            <a class="site-header-btn site-header-btn--ghost" href="/regisztracio.html" data-auth-register>Regisztráció</a>
+            <a class="site-header-btn site-header-btn--ghost" href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás</a>
+          </div>
+          <nav class="site-header-tools" aria-label="Fiók eszközök">
+            <button type="button" class="site-header-tool" aria-label="Értesítések" title="Értesítések">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3.5a5 5 0 0 0-5 5v1.6c0 .9-.3 1.8-.8 2.5L4.8 15h14.4l-1.4-2.4a5 5 0 0 1-.8-2.5V8.5a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                <path d="M9.6 17.2a2.5 2.5 0 0 0 4.8 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button type="button" class="site-header-tool" aria-label="Mentett keresések" title="Mentett keresések">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M11.2 3.8 12.7 8l4.4.3-3.4 2.9 1.1 4.3-3.8-2.4-3.8 2.4 1.1-4.3L5.9 8.3l4.4-.3L11.2 3.8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                <circle cx="17.2" cy="17.2" r="3.1" stroke="currentColor" stroke-width="1.6"/>
+                <path d="m19.4 19.4 2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button type="button" class="site-header-tool site-header-tool--count" aria-label="Kedvencek" title="Kedvencek">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 20s-6.8-4.2-9-7.7C1.4 9.7 2.7 6.5 5.7 5.6c1.8-.5 3.6.2 4.6 1.6 1-1.4 2.8-2.1 4.6-1.6 3 .9 4.3 4.1 2.7 6.7C18.8 15.8 12 20 12 20Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+              </svg>
+              <span class="site-header-tool-count" data-fav-count>1</span>
+            </button>
+            <button type="button" class="site-header-tool" aria-label="Üzenetek" title="Üzenetek">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="12.5" rx="2.5" stroke="currentColor" stroke-width="1.7"/>
+                <path d="M7.5 9.2h9M7.5 12.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <a class="site-header-avatar" href="/belepes.html" data-auth-avatar aria-label="Profil">A</a>
+          </nav>
         </div>
       </div>
     </header>

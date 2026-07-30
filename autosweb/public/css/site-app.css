@@ -89,7 +89,7 @@ body.site-app .site-header-auth-row {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
 }
 
