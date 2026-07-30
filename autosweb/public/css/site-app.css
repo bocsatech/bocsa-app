@@ -1374,7 +1374,7 @@ body.site-app .field-row--vehicle-dates {
 body.site-app .field-row.full.field-row--tech-top {
   display: flex !important;
   flex-flow: row nowrap;
-  align-items: center;
+  align-items: end;
   gap: 1rem 1.25rem;
   width: 100%;
   max-width: 100%;
@@ -1384,9 +1384,9 @@ body.site-app .field-row.full.field-row--tech-top {
 body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field,
 body.site-app .field-row.full.field-row--tech-top .labeled-field {
   display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  gap: 0.45rem;
+  flex-flow: column nowrap;
+  align-items: stretch;
+  gap: 0.35rem;
   width: auto !important;
   max-width: none;
   min-width: 0;
