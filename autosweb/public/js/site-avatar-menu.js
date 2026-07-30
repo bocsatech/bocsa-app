@@ -1,6 +1,6 @@
 /**
- * Profil avatar menü — önálló modul (nincs körkörös import a site-auth-tal).
- * Minden oldalon működik: kattintás → lenyíló lista; profilkép localStorage-ban.
+ * Profil avatar menü — egyetlen példányban töltődik (script tag).
+ * A site-auth `autosweb-auth-changed` eseménnyel frissíti.
  */
 
 const AUTH_KEY = "autosweb-auth-user";
@@ -9,7 +9,6 @@ const MAX_BYTES = 2.5 * 1024 * 1024;
 const AVATAR_SIZE = 256;
 
 let initialized = false;
-let ignoreOutsideClose = false;
 
 function getAuthUser() {
   try {
@@ -106,10 +105,6 @@ function openMenu(root) {
   const toggle = root.querySelector("[data-avatar-toggle]");
   if (dropdown) dropdown.hidden = false;
   if (toggle) toggle.setAttribute("aria-expanded", "true");
-  ignoreOutsideClose = true;
-  window.setTimeout(() => {
-    ignoreOutsideClose = false;
-  }, 0);
 }
 
 export function refreshAvatarMenuUi(root = document) {
@@ -164,12 +159,14 @@ export function initAvatarMenu() {
       event.preventDefault();
       event.stopPropagation();
       if (!isLoggedIn()) {
-        window.location.href = `/belepes.html?next=${encodeURIComponent(window.location.pathname)}`;
+        window.location.href = `/belepes.html?next=${encodeURIComponent(
+          window.location.pathname + window.location.search
+        )}`;
         return;
       }
-      const open = dropdown && !dropdown.hidden;
+      const isOpen = dropdown && !dropdown.hidden;
       document.querySelectorAll("[data-avatar-menu]").forEach(closeMenu);
-      if (!open) openMenu(wrap);
+      if (!isOpen) openMenu(wrap);
     });
 
     photoBtns.forEach((photoBtn) => {
@@ -200,19 +197,19 @@ export function initAvatarMenu() {
     });
   });
 
-  document.addEventListener(
-    "pointerdown",
-    (event) => {
-      if (ignoreOutsideClose) return;
-      if (event.target.closest("[data-avatar-menu]")) return;
-      document.querySelectorAll("[data-avatar-menu]").forEach(closeMenu);
-    },
-    true
-  );
+  // Csak valódi „kívül” kattintásra zárjon — nem capture pointerdown a toggle-lal ütközve.
+  document.addEventListener("click", (event) => {
+    if (event.target.closest("[data-avatar-menu]")) return;
+    document.querySelectorAll("[data-avatar-menu]").forEach(closeMenu);
+  });
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     document.querySelectorAll("[data-avatar-menu]").forEach(closeMenu);
+  });
+
+  window.addEventListener("autosweb-auth-changed", () => {
+    refreshAvatarMenuUi();
   });
 }
 

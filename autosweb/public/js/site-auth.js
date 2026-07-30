@@ -104,17 +104,12 @@ function updateHeaderAuthUi() {
     }
   }
 
-  import("./site-avatar-menu.js")
-    .then((mod) => mod.refreshAvatarMenuUi())
-    .catch((error) => console.error("Avatar UI frissítés:", error));
+  // Az avatar menü külön script — ne importáld újra (különben dupla listener).
+  window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
 }
 
 export function initSiteAuth() {
   updateHeaderAuthUi();
-
-  import("./site-avatar-menu.js")
-    .then((mod) => mod.initAvatarMenu())
-    .catch((error) => console.error("Avatar menü:", error));
 
   document.querySelectorAll("[data-auth-guard]").forEach((el) => {
     el.addEventListener("click", (event) => {
