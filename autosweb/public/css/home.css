@@ -1003,7 +1003,6 @@ body.home-page .local-banner {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.55rem;
-  margin-left: auto;
 }
 
 .home-qs-action {
