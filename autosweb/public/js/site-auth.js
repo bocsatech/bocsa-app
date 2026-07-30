@@ -77,10 +77,18 @@ function loginUrl(nextPath = "/hirdetesfeladas.html") {
 function updateHeaderAuthUi() {
   const loginBtn = document.querySelector("[data-auth-login], [data-auth-logout]");
   const registerBtn = document.querySelector("[data-auth-register]");
+  const avatar = document.querySelector("[data-auth-avatar]");
   const user = getAuthUser();
 
   if (registerBtn) {
     registerBtn.hidden = Boolean(user?.email);
+  }
+
+  if (avatar) {
+    const letter = String(user?.email ?? "A").trim().charAt(0).toUpperCase() || "A";
+    avatar.textContent = letter;
+    avatar.href = user?.email ? "/hirdetesfeladas.html" : "/belepes.html";
+    avatar.title = user?.email ?? "Belépés";
   }
 
   if (loginBtn) {
