@@ -1157,6 +1157,29 @@ body.site-app .field-row--tipus {
 }
 
 body.site-app .field-row--tipus .labeled-field {
+  max-width: none;
+}
+
+body.site-app .field-row.full.field-row--tipus-egyeb {
+  display: flex !important;
+  flex-flow: row nowrap;
+  gap: 1rem 1.25rem;
+  width: 100% !important;
+  max-width: 100%;
+  align-items: end;
+}
+
+body.site-app .field-row.full.field-row--tipus-egyeb .labeled-field {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto !important;
+  max-width: none;
+}
+
+body.site-app .field-row.full.field-row--tipus-egyeb .labeled-field > input {
+  width: 100% !important;
+  max-width: 100%;
+}
   max-width: calc(50% - 0.625rem);
 }
 
