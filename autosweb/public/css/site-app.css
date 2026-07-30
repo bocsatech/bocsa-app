@@ -1540,6 +1540,14 @@ body.site-app .package.selected {
     width: 100% !important;
   }
 
+  body.site-app .form-grid .select-with-check {
+    flex-wrap: wrap;
+  }
+
+  body.site-app .form-grid .select-with-check > select {
+    max-width: 100%;
+  }
+
   body.site-app .field-row--vehicle-year .labeled-field {
     max-width: none;
   }
