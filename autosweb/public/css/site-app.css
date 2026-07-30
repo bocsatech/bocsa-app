@@ -1431,24 +1431,29 @@ body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
   white-space: nowrap;
 }
 
-/* Teljesítmény: LE hint ne nyomja össze az inputot */
-body.site-app #ad-form .labeled-field--power .suffix-field > input,
-body.site-app .labeled-field--power .suffix-field > input {
-  flex: 1 1 auto !important;
+/* Teljesítmény: LE a suffix-fieldön kívül, ne vágja le a kW értéket */
+body.site-app .labeled-field--power .power-control {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-width: 0;
+}
+
+body.site-app #ad-form .labeled-field--power .power-control > .suffix-field,
+body.site-app .labeled-field--power .power-control > .suffix-field {
+  flex: 1 1 0;
   width: auto !important;
-  min-width: 4.5rem !important;
+  min-width: 0;
   max-width: none !important;
 }
 
-body.site-app #ad-form .labeled-field--power .suffix-field > span:not(.hint-inline),
-body.site-app .labeled-field--power .suffix-field > span:not(.hint-inline) {
-  flex: 0 0 auto !important;
-  width: auto !important;
-  max-width: none !important;
-}
-
-body.site-app .labeled-field--power .suffix-field > .hint-inline {
+body.site-app .labeled-field--power .power-control > .hint-inline {
   flex: 0 0 auto;
+  font-size: 0.72rem;
+  color: #666;
+  white-space: nowrap;
 }
 
 /* Műszaki alsó rács — egyenlő 2 oszlop */
