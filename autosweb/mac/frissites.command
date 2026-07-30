@@ -144,11 +144,17 @@ else
   exit 1
 fi
 
-if grep -q 'katalogus20260727' "$TARGET/public/index.html" 2>/dev/null; then
+if grep -q 'qscatalog20260730\|katalogus20260727\|headerorder20260730' "$TARGET/public/index.html" 2>/dev/null; then
   echo "  ✓ főoldal verzió OK (járműkatalógus)"
 else
   echo "  ✗ HIBA: index.html régi — járműkatalógus verzió hiányzik"
   exit 1
+fi
+
+if [ -f "$TARGET/public/data/vehicle-catalog.json" ] || [ -f "$TARGET/data/vehicle-catalog.json" ]; then
+  echo "  ✓ járműkatalógus fájl megvan (API + /data fallback)"
+else
+  echo "  ⚠ Nincs vehicle-catalog.json — lista.csv import kell a márka listához"
 fi
 
 INDEX_VER=$(grep -o 'autosweb-version" content="[^"]*' "$TARGET/public/index.html" | head -1 | sed 's/.*"//')

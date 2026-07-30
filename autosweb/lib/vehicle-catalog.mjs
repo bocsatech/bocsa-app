@@ -5,7 +5,10 @@ import { homedir } from "os";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, "..", "data");
+const PUBLIC_DIR = join(__dirname, "..", "public");
 const CATALOG_PATH = join(DATA_DIR, "vehicle-catalog.json");
+/** Böngésző fallback, ha a /api/vehicle-catalog még nincs a futó szerveren. */
+const PUBLIC_CATALOG_PATH = join(PUBLIC_DIR, "data", "vehicle-catalog.json");
 
 const DEFAULT_CSV_CANDIDATES = [
   join(homedir(), "Desktop", "lista.csv"),
@@ -230,9 +233,18 @@ export function loadVehicleCatalog(path = CATALOG_PATH) {
   }
 }
 
+export function syncVehicleCatalogToPublic(catalog, path = PUBLIC_CATALOG_PATH) {
+  if (!catalog?.gyartmanyok?.length) return null;
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
+  return path;
+}
+
 export function saveVehicleCatalog(catalog, path = CATALOG_PATH) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
+  // A kliens /data/vehicle-catalog.json-t is tudja olvasni API nélkül.
+  if (path === CATALOG_PATH) syncVehicleCatalogToPublic(catalog);
   return path;
 }
 
@@ -268,15 +280,22 @@ function catalogHasModels(catalog) {
 
 export function ensureVehicleCatalog() {
   const existing = loadVehicleCatalog();
-  if (existing?.gyartmanyok?.length && catalogHasModels(existing)) return existing;
+  if (existing?.gyartmanyok?.length && catalogHasModels(existing)) {
+    syncVehicleCatalogToPublic(existing);
+    return existing;
+  }
 
   const csvPath = resolveDefaultCsvPath();
-  if (!csvPath) return existing;
+  if (!csvPath) {
+    if (existing) syncVehicleCatalogToPublic(existing);
+    return existing;
+  }
 
   try {
     return importVehicleCatalogFromCsv(csvPath);
   } catch (error) {
     console.warn("Járműkatalógus import sikertelen:", error.message);
+    if (existing) syncVehicleCatalogToPublic(existing);
     return existing;
   }
 }
@@ -307,4 +326,8 @@ export function getVehicleCatalogPath() {
   return CATALOG_PATH;
 }
 
-export { CATALOG_PATH, DEFAULT_CSV_CANDIDATES };
+export function getPublicVehicleCatalogPath() {
+  return PUBLIC_CATALOG_PATH;
+}
+
+export { CATALOG_PATH, PUBLIC_CATALOG_PATH, DEFAULT_CSV_CANDIDATES };

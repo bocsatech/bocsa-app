@@ -1,22 +1,90 @@
 /** Járműkatalógus (lista.csv): gyártmány → modell → évjárat → típus. */
 
 let catalogPromise = null;
+/** Teljes katalógus a statikus fallbackból (tipusok is) — API nélkül is megy. */
+let staticCatalogPromise = null;
 const typeCache = new Map();
+
+const OLD_SERVER_HINT =
+  "Régi Autosweb szerver — állítsd le (Ctrl+C), futtasd: autosweb/mac/frissites.command, majd indítsd újra.";
+
+function catalogErrorMessage(data, status) {
+  if (status === 404 && data?.error === "Ismeretlen API.") return OLD_SERVER_HINT;
+  return data?.error ?? "Katalógus betöltése sikertelen.";
+}
+
+async function fetchStaticCatalog() {
+  if (!staticCatalogPromise) {
+    staticCatalogPromise = fetch("/data/vehicle-catalog.json", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data?.gyartmanyok?.length) {
+          throw new Error(data.error ?? "Statikus járműkatalógus nem elérhető.");
+        }
+        return data;
+      })
+      .catch((error) => {
+        staticCatalogPromise = null;
+        throw error;
+      });
+  }
+  return staticCatalogPromise;
+}
+
+function summaryFromCatalog(catalog) {
+  return {
+    source: catalog.source ?? null,
+    imported_at: catalog.imported_at ?? null,
+    count_rows: catalog.count_rows ?? 0,
+    gyartmanyok: catalog.gyartmanyok ?? [],
+    modellek: catalog.modellek ?? {},
+  };
+}
 
 export async function fetchVehicleCatalog() {
   if (!catalogPromise) {
     catalogPromise = fetch("/api/vehicle-catalog")
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error ?? "Katalógus betöltése sikertelen.");
+        if (!response.ok) throw new Error(catalogErrorMessage(data, response.status));
         return data;
       })
-      .catch((error) => {
-        catalogPromise = null;
-        throw error;
+      .catch(async (apiError) => {
+        try {
+          const full = await fetchStaticCatalog();
+          console.warn("Járműkatalógus API hiba, statikus fallback:", apiError.message);
+          return summaryFromCatalog(full);
+        } catch {
+          catalogPromise = null;
+          throw apiError;
+        }
       });
   }
   return catalogPromise;
+}
+
+function typesFromStaticCatalog(catalog, gyartmany, modell) {
+  const key = `${String(gyartmany ?? "").trim().toUpperCase()}|${String(modell ?? "").trim()}`;
+  const altKey = `${String(gyartmany ?? "").trim()}|${String(modell ?? "").trim()}`;
+  const entries = catalog?.tipusok?.[key] ?? catalog?.tipusok?.[altKey] ?? [];
+  return entries.map((entry) => {
+    if (typeof entry === "string") return { nev: entry, evTol: null, evIg: null };
+    return { nev: entry.nev, evTol: entry.evTol ?? null, evIg: entry.evIg ?? null };
+  }).filter((entry) => entry.nev);
+
+}
+
+function yearsFromTypes(tipusok) {
+  const years = new Set();
+  for (const entry of tipusok) {
+    const from = entry.evTol ?? entry.evIg;
+    const to = entry.evIg ?? entry.evTol;
+    if (from == null || to == null) continue;
+    for (let year = Math.min(from, to); year <= Math.max(from, to); year += 1) {
+      years.add(year);
+    }
+  }
+  return [...years].sort((a, b) => b - a);
 }
 
 /** Egy modell évjáratai + típusai. Év szűrés a kliensen, hogy ne kelljen újra kérni. */
@@ -28,12 +96,18 @@ export async function fetchModelTypes(gyartmany, modell) {
   const promise = fetch(`/api/vehicle-catalog/tipusok?${query}`)
     .then(async (response) => {
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error ?? "Típusok betöltése sikertelen.");
+      if (!response.ok) throw new Error(catalogErrorMessage(data, response.status));
       return { evek: data.evek ?? [], tipusok: data.tipusok ?? [] };
     })
-    .catch((error) => {
-      typeCache.delete(key);
-      throw error;
+    .catch(async (apiError) => {
+      try {
+        const catalog = await fetchStaticCatalog();
+        const tipusok = typesFromStaticCatalog(catalog, gyartmany, modell);
+        return { evek: yearsFromTypes(tipusok), tipusok };
+      } catch {
+        typeCache.delete(key);
+        throw apiError;
+      }
     });
 
   typeCache.set(key, promise);

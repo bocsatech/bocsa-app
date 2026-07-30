@@ -66,6 +66,8 @@ export function initHomeQuickSearch({ onSearch = () => {} } = {}) {
   fillPriceSelect(priceFrom, "-tól");
   fillPriceSelect(priceTo, "-ig");
 
+  const statusEl = document.getElementById("home-qs-status");
+
   initVehicleCatalogSelects({
     brandSelect,
     modelSelect,
@@ -75,9 +77,27 @@ export function initHomeQuickSearch({ onSearch = () => {} } = {}) {
     modelEmptyLabel: "Mindegy",
     tipusEmptyLabel: "Mindegy",
     yearFromCatalog: false,
-  }).catch((error) => {
-    console.error("Gyorskereső katalógus:", error);
-  });
+  })
+    .then((catalog) => {
+      if (statusEl) {
+        statusEl.hidden = true;
+        statusEl.textContent = "";
+      }
+      if (!catalog?.gyartmanyok?.length && statusEl) {
+        statusEl.hidden = false;
+        statusEl.textContent =
+          "Nincs járműkatalógus. Import: npm run import:catalog -- ~/Desktop/lista.csv, majd indítsd újra az Autosweb-et.";
+      }
+    })
+    .catch((error) => {
+      console.error("Gyorskereső katalógus:", error);
+      if (statusEl) {
+        statusEl.hidden = false;
+        statusEl.textContent =
+          error?.message ||
+          "A márka/modell lista nem töltődött be. Indítsd újra az Autosweb szervert (frissites.command).";
+      }
+    });
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();

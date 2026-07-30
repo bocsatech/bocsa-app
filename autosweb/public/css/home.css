@@ -908,6 +908,16 @@ body.home-page .local-banner {
   color: #1565c0;
 }
 
+.home-qs-status {
+  margin: 0 0 0.55rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  background: #fff4e5;
+  color: #9a3412;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .home-qs-control {
   width: 100%;
   min-width: 0;

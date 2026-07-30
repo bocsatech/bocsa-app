@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync, rmSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
 import {
   parseCsvText,
   buildVehicleCatalog,
@@ -7,6 +10,7 @@ import {
   listModelYears,
   catalogSummary,
   shortTypeName,
+  syncVehicleCatalogToPublic,
 } from "./vehicle-catalog.mjs";
 
 /** A lista.csv fejléce: Gyartmany,Modell,EvTol,EvIg,Tipus */
@@ -85,6 +89,18 @@ test("catalogSummary: típusok nélkül, hogy kicsi maradjon", () => {
   assert.deepEqual(summary.gyartmanyok, ["ABARTH", "AUDI"]);
   assert.ok(summary.modellek.ABARTH);
   assert.equal(summary.tipusok, undefined);
+});
+
+test("syncVehicleCatalogToPublic: a böngésző fallback fájlt írja", () => {
+  const dir = mkdtempSync(join(tmpdir(), "autosweb-catalog-pub-"));
+  const out = join(dir, "vehicle-catalog.json");
+  const catalog = sampleCatalog();
+  const written = syncVehicleCatalogToPublic(catalog, out);
+  assert.equal(written, out);
+  const loaded = JSON.parse(readFileSync(out, "utf8"));
+  assert.deepEqual(loaded.gyartmanyok, ["ABARTH", "AUDI"]);
+  assert.ok(loaded.tipusok["ABARTH|500"].length >= 1);
+  rmSync(dir, { recursive: true, force: true });
 });
 
 test("shortTypeName: a szögletes zárójeles rész lekerül", () => {
