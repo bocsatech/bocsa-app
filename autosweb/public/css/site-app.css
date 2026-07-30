@@ -1431,6 +1431,26 @@ body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
   white-space: nowrap;
 }
 
+/* Teljesítmény: LE hint ne nyomja össze az inputot */
+body.site-app #ad-form .labeled-field--power .suffix-field > input,
+body.site-app .labeled-field--power .suffix-field > input {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 4.5rem !important;
+  max-width: none !important;
+}
+
+body.site-app #ad-form .labeled-field--power .suffix-field > span:not(.hint-inline),
+body.site-app .labeled-field--power .suffix-field > span:not(.hint-inline) {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+body.site-app .labeled-field--power .suffix-field > .hint-inline {
+  flex: 0 0 auto;
+}
+
 /* Műszaki alsó rács — egyenlő 2 oszlop */
 body.site-app .muszaki-grid {
   display: grid;
