@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="auth20260730cimhint1" />
+    <meta name="autosweb-version" content="auth20260730phone1" />
     <title>Hirdetésfeladás — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730cimhint1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730phone1" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
@@ -707,38 +707,51 @@
                 <label for="email">E-mail:</label>
                 <input id="email" name="email" type="email" />
 
-                <label>1. Telefonszám: <span class="req">*</span></label>
-                <div class="phone-row">
-                  <input name="telefon1_orszag" type="text" value="+36" class="phone-part" />
-                  <span>/</span>
-                  <input name="telefon1_korzet" type="text" placeholder="30" class="phone-part" required />
-                  <span>/</span>
-                  <input name="telefon1_szam" type="text" placeholder="123 4567" class="phone-part wide" required />
-                </div>
+                <div class="phone-lang-grid full">
+                  <div class="phone-lang-row">
+                    <div class="phone-lang-phone">
+                      <label>Telefonszám: <span class="req">*</span></label>
+                      <div class="phone-row">
+                        <select name="telefon1_orszag" aria-label="Országkód" class="phone-country"></select>
+                        <span>-</span>
+                        <input name="telefon1_korzet" type="text" placeholder="30" class="phone-part" inputmode="numeric" required />
+                        <span>/</span>
+                        <input name="telefon1_szam" type="text" placeholder="123 4567" class="phone-part wide" inputmode="numeric" required />
+                      </div>
+                    </div>
+                    <div class="phone-lang-langs">
+                      <label>Beszélt nyelvek:</label>
+                      <div class="lang-row">
+                        <select name="telefon1_nyelv1" aria-label="1. beszélt nyelv" data-phone-lang></select>
+                        <select name="telefon1_nyelv2" aria-label="2. beszélt nyelv" data-phone-lang></select>
+                      </div>
+                    </div>
+                  </div>
 
-                <label>2. Telefonszám:</label>
-                <div class="phone-row">
-                  <input name="telefon2_orszag" type="text" value="+36" class="phone-part" />
-                  <span>/</span>
-                  <input name="telefon2_korzet" type="text" class="phone-part" />
-                  <span>/</span>
-                  <input name="telefon2_szam" type="text" class="phone-part wide" />
+                  <div class="phone-lang-row">
+                    <div class="phone-lang-phone">
+                      <label>2. Telefonszám:</label>
+                      <div class="phone-row">
+                        <select name="telefon2_orszag" aria-label="2. országkód" class="phone-country"></select>
+                        <span>-</span>
+                        <input name="telefon2_korzet" type="text" class="phone-part" inputmode="numeric" />
+                        <span>/</span>
+                        <input name="telefon2_szam" type="text" class="phone-part wide" inputmode="numeric" />
+                      </div>
+                    </div>
+                    <div class="phone-lang-langs">
+                      <label>Beszélt nyelvek:</label>
+                      <div class="lang-row">
+                        <select name="telefon2_nyelv1" aria-label="2. telefon 1. nyelv" data-phone-lang></select>
+                        <select name="telefon2_nyelv2" aria-label="2. telefon 2. nyelv" data-phone-lang></select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                <label>3. Telefonszám:</label>
-                <div class="phone-row">
-                  <input name="telefon3_orszag" type="text" value="+36" class="phone-part" />
-                  <span>/</span>
-                  <input name="telefon3_korzet" type="text" class="phone-part" />
-                  <span>/</span>
-                  <input name="telefon3_szam" type="text" class="phone-part wide" />
-                </div>
+                <input type="hidden" id="beszelt_nyelvek" name="beszelt_nyelvek" value="Magyar" />
 
                 <label for="video_url">Videó link (YouTube):</label>
                 <input id="video_url" name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
-
-                <label for="beszelt_nyelvek">Beszélt nyelvek:</label>
-                <input id="beszelt_nyelvek" name="beszelt_nyelvek" type="text" placeholder="pl. magyar, angol, német" />
               </div>
             </div>
           </div>
@@ -846,6 +859,6 @@
       requireAuthForPage();
       initSiteAuth();
     </script>
-    <script src="/js/app.js?v=auth20260730tire1" type="module"></script>
+    <script src="/js/app.js?v=auth20260730phone1" type="module"></script>
   </body>
 </html>

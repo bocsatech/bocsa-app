@@ -1083,6 +1083,110 @@ body.site-app .form-grid > .field-stack--location .inline-2 input {
   max-width: none;
 }
 
+/* Telefonszám + beszélt nyelvek */
+body.site-app .form-grid > .phone-lang-grid.full {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100% !important;
+  max-width: 100% !important;
+  justify-self: stretch;
+}
+
+body.site-app .phone-lang-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 0.85rem 1.35rem;
+  align-items: end;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e8ebf0;
+}
+
+body.site-app .phone-lang-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+body.site-app .phone-lang-phone,
+body.site-app .phone-lang-langs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+body.site-app .phone-lang-phone > label,
+body.site-app .phone-lang-langs > label {
+  margin: 0;
+  color: #444;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+body.site-app .phone-lang-grid .phone-row {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+body.site-app .phone-lang-grid .phone-row > span {
+  flex: 0 0 auto;
+  color: #555;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+body.site-app .phone-lang-grid .phone-row select.phone-country {
+  flex: 0 0 auto;
+  width: auto !important;
+  min-width: 6.5rem;
+  max-width: 8.5rem;
+}
+
+body.site-app .phone-lang-grid .phone-row input.phone-part {
+  flex: 0 0 auto;
+  width: 4.25rem !important;
+  min-width: 3.5rem;
+  max-width: 5rem;
+}
+
+body.site-app .phone-lang-grid .phone-row input.phone-part.wide {
+  flex: 1 1 auto;
+  width: auto !important;
+  min-width: 7rem;
+  max-width: none;
+}
+
+body.site-app .phone-lang-grid .lang-row {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: var(--site-field-height);
+}
+
+body.site-app .phone-lang-grid .lang-row select {
+  flex: 1 1 0;
+  width: auto !important;
+  min-width: 0;
+  max-width: none;
+}
+
+@media (max-width: 720px) {
+  body.site-app .phone-lang-row {
+    grid-template-columns: 1fr;
+  }
+
+  body.site-app .phone-lang-grid .phone-row {
+    flex-wrap: wrap;
+  }
+}
+
 body.site-app .labeled-field > .inline-2,
 body.site-app .form-grid .inline-2,
 body.site-app .md-outlined > .inline-2 {

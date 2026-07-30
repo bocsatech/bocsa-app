@@ -1,9 +1,11 @@
 import { saveListingToDb, getStoredListingId } from "./db-client.js";
 import { createAdForm } from "./form-core.js";
 import { initTireSizes } from "./tire-sizes-ui.js";
+import { initPhoneLanguages } from "./phone-lang-ui.js";
 
 const adForm = document.getElementById("ad-form");
 const tireSizes = initTireSizes(adForm);
+const phoneLanguages = initPhoneLanguages(adForm);
 
 createAdForm({
   mode: "wizard",
@@ -39,6 +41,7 @@ createAdForm({
 });
 
 tireSizes.syncRearTires();
+phoneLanguages.syncLanguages();
 
 import("./site-side-content.js")
   .then((mod) => mod.initSiteSideContent())
