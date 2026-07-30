@@ -1240,7 +1240,7 @@ body.site-app .labeled-field > .suffix-field,
 body.site-app .md-outlined > .suffix-field {
   display: flex;
   align-items: center;
-  width: auto;
+  width: 100%;
   max-width: 100%;
   height: var(--site-field-height);
   min-height: var(--site-field-height);
