@@ -1496,29 +1496,30 @@ body.site-app .field-row--tech-top .suffix-field > span:not(.hint-inline) {
   text-align: left;
 }
 
-/* Teljesítmény: LE a mező alatt; input ne vágódjon (cascade után) */
-body.site-app .labeled-field--power > .hint-inline {
-  margin: 0;
+/* Teljesítmény — csak ez a mező: LE lent, inputnak hely */
+body.site-app .labeled-field--power > .hint-inline#le-display {
+  display: block;
+  margin: 0.15rem 0 0;
   font-size: 0.72rem;
   color: #666;
   white-space: nowrap;
   line-height: 1.2;
 }
 
-body.site-app #ad-form .field-row--tech-top .labeled-field--power .suffix-field > input,
-body.site-app .field-row--tech-top .labeled-field--power .suffix-field > input {
-  flex: 1 1 0 !important;
-  width: 0 !important;
-  min-width: 5.5rem !important;
+body.site-app #ad-form .field-row--tech-top .labeled-field--power .suffix-field > input#teljesitmeny_kw {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 7rem !important;
   max-width: none !important;
 }
 
-body.site-app #ad-form .field-row--tech-top .labeled-field--power .suffix-field > span,
-body.site-app .field-row--tech-top .labeled-field--power .suffix-field > span {
+body.site-app #ad-form .field-row--tech-top .labeled-field--power .suffix-field > span {
   flex: 0 0 auto !important;
   width: auto !important;
   max-width: none !important;
 }
+
+
 
 body.site-app .muszaki-grid input,
 body.site-app .muszaki-grid select,
