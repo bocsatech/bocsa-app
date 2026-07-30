@@ -970,17 +970,6 @@ body.home-page .local-banner {
   cursor: pointer;
 }
 
-.home-qs-field:has(select)::after {
-  content: "";
-  flex-shrink: 0;
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid #98a2b3;
-  pointer-events: none;
-}
-
 .home-qs-suffix {
   flex-shrink: 0;
   font-size: 0.78rem;
