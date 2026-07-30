@@ -1180,8 +1180,6 @@ body.site-app .field-row.full.field-row--tipus-egyeb .labeled-field > input {
   width: 100% !important;
   max-width: 100%;
 }
-  max-width: calc(50% - 0.625rem);
-}
 
 body.site-app .fuel-btn {
   background: #fff;
@@ -1457,6 +1455,15 @@ body.site-app .package.selected {
     flex: 1 1 calc(33.333% - 0.85rem);
     min-width: 140px;
   }
+
+  body.site-app .field-row.full.field-row--tipus-egyeb {
+    flex-wrap: wrap;
+  }
+
+  body.site-app .field-row.full.field-row--tipus-egyeb .labeled-field {
+    flex: 1 1 calc(50% - 0.65rem);
+    min-width: 140px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1468,6 +1475,15 @@ body.site-app .package.selected {
     flex: 1 1 auto;
     width: 100% !important;
     min-width: 0;
+  }
+
+  body.site-app .field-row.full.field-row--tipus-egyeb {
+    flex-direction: column;
+  }
+
+  body.site-app .field-row.full.field-row--tipus-egyeb .labeled-field {
+    flex: 1 1 auto;
+    width: 100% !important;
   }
 
   body.site-app .field-row--vehicle-year .labeled-field {
