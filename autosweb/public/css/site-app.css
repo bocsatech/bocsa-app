@@ -78,6 +78,15 @@ body.site-app .header-actions {
 
 body.site-app .site-header-actions {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+body.site-app .site-header-auth-row {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
@@ -87,8 +96,9 @@ body.site-app .site-header-actions {
 body.site-app .site-header-tools {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.15rem;
-  margin-left: 0.15rem;
+  margin-left: 0;
 }
 
 body.site-app .site-header-tool {
