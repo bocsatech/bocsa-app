@@ -921,6 +921,10 @@ body.home-page .local-banner {
  * A style.css `input[type="number"]` és `input:focus` szabálya erősebb egy sima
  * osztálynál, ezért a szegélyt és a fókuszgyűrűt itt kell semlegesíteni —
  * különben dupla keret látszik a mezőn belül.
+ *
+ * A selectre NEM mehet appearance: textfield — az felülírná az appearance: none-t
+ * (nagyobb specificitás), és a böngésző saját nyila + a ::after háromszög együtt
+ * jelennének meg.
  */
 .home-qs-field input.home-qs-control,
 .home-qs-field select.home-qs-control {
@@ -929,6 +933,9 @@ body.home-page .local-banner {
   border-radius: 0;
   background: transparent;
   transition: none;
+}
+
+.home-qs-field input.home-qs-control {
   -moz-appearance: textfield;
   appearance: textfield;
 }
@@ -945,8 +952,11 @@ body.home-page .local-banner {
   box-shadow: none;
 }
 
-select.home-qs-control {
+.home-qs-field select.home-qs-control {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
+  background-image: none;
   cursor: pointer;
 }
 
@@ -958,6 +968,7 @@ select.home-qs-control {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 5px solid #98a2b3;
+  pointer-events: none;
 }
 
 .home-qs-suffix {
