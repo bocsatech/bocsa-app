@@ -1431,14 +1431,6 @@ body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
   white-space: nowrap;
 }
 
-/* Teljesítmény: LE a mező alatt — az input teljes oszlopszélességet kap */
-body.site-app .labeled-field--power > .hint-inline {
-  margin: 0;
-  font-size: 0.72rem;
-  color: #666;
-  white-space: nowrap;
-  line-height: 1.2;
-}
 
 /* Műszaki alsó rács — egyenlő 2 oszlop */
 body.site-app .muszaki-grid {
@@ -1502,6 +1494,30 @@ body.site-app .field-row--tech-top .suffix-field > span:not(.hint-inline) {
   width: 5.5rem !important;
   max-width: 5.5rem !important;
   text-align: left;
+}
+
+/* Teljesítmény: LE a mező alatt; input ne vágódjon (cascade után) */
+body.site-app .labeled-field--power > .hint-inline {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #666;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+body.site-app #ad-form .field-row--tech-top .labeled-field--power .suffix-field > input,
+body.site-app .field-row--tech-top .labeled-field--power .suffix-field > input {
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  min-width: 5.5rem !important;
+  max-width: none !important;
+}
+
+body.site-app #ad-form .field-row--tech-top .labeled-field--power .suffix-field > span,
+body.site-app .field-row--tech-top .labeled-field--power .suffix-field > span {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  max-width: none !important;
 }
 
 body.site-app .muszaki-grid input,
