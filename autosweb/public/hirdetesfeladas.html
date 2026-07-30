@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="auth20260730ev1" />
+    <meta name="autosweb-version" content="auth20260730evhide1" />
     <title>Hirdetésfeladás — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730ev1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730evhide1" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
@@ -337,7 +337,7 @@
                     <option value="">Válasszon</option>
                   </select>
                 </div>
-                <div class="labeled-field labeled-field--henger">
+                <div class="labeled-field labeled-field--henger fuel-combustion-only">
                   <label for="hengerurtartalom">Hengerűrtartalom:</label>
                   <div class="suffix-field">
                     <input id="hengerurtartalom" name="hengerurtartalom" type="number" class="auto-filled" />
@@ -426,8 +426,8 @@
                 </div>
               </div>
               <div class="form-grid">
-                <label for="kornyezetvedelmi">Környezetvédelmi oszt.: <a href="#" class="help-link">Segítség</a></label>
-                <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" />
+                <label for="kornyezetvedelmi" class="fuel-combustion-only">Környezetvédelmi oszt.: <a href="#" class="help-link">Segítség</a></label>
+                <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" class="fuel-combustion-only" />
 
                 <label for="co2_kibocsatas" class="fuel-combustion-only">CO₂-kibocsátás:</label>
                 <div class="suffix-field fuel-combustion-only">
@@ -453,8 +453,8 @@
                   <span>l/100 km</span>
                 </div>
 
-                <label for="sebessegvalto">Sebességváltó:</label>
-                <div class="select-with-check">
+                <label for="sebessegvalto" class="fuel-combustion-only">Sebességváltó:</label>
+                <div class="select-with-check fuel-combustion-only">
                   <select id="sebessegvalto" name="sebessegvalto" class="auto-filled">
                     <option value="">—</option>
                     <option>Manuális (5 seb.)</option>
@@ -475,8 +475,8 @@
                   <option>Összkerék</option>
                 </select>
 
-                <label for="henger_elrendezes">Henger-elrendezés:</label>
-                <select id="henger_elrendezes" name="henger_elrendezes">
+                <label for="henger_elrendezes" class="fuel-combustion-only">Henger-elrendezés:</label>
+                <select id="henger_elrendezes" name="henger_elrendezes" class="fuel-combustion-only">
                   <option value="">—</option>
                   <option>Sor</option>
                   <option>V</option>
@@ -904,6 +904,6 @@
       requireAuthForPage();
       initSiteAuth();
     </script>
-    <script src="/js/app.js?v=auth20260730ev1" type="module"></script>
+    <script src="/js/app.js?v=auth20260730evhide1" type="module"></script>
   </body>
 </html>
