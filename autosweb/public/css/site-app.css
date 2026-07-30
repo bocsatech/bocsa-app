@@ -982,6 +982,29 @@ body.site-app .md-outlined > .inline-2 {
   height: var(--site-field-height);
 }
 
+body.site-app .form-grid .select-with-check {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+  min-height: var(--site-field-height);
+}
+
+body.site-app .form-grid .select-with-check > select {
+  flex: 1 1 auto;
+  width: auto !important;
+  min-width: 10rem;
+  max-width: min(100%, 22rem);
+}
+
+body.site-app .form-grid .select-with-check > .inline-check {
+  margin-top: 0;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 body.site-app .labeled-field > .inline-2 select,
 body.site-app .labeled-field > .inline-2 input,
 body.site-app .form-grid .inline-2 select,
