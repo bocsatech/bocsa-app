@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="headertools20260730" />
+    <meta name="autosweb-version" content="vetelar500k20260730" />
     <title>Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260730tools" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260730qs3" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260730qs4" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — a teljes oldal görget, külön görgetősáv nincs sehol. */
       html:has(body.home-page) {
@@ -384,31 +384,15 @@
                 <div class="home-qs-pair">
                   <label class="home-qs-field home-qs-field--narrow">
                     <span class="home-qs-label">Vételár</span>
-                    <input
-                      class="home-qs-control"
-                      id="qs-ar-tol"
-                      name="ar_tol"
-                      type="text"
-                      inputmode="numeric"
-                      autocomplete="off"
-                      spellcheck="false"
-                      placeholder="-tól"
-                      aria-label="Vételár -tól"
-                    />
+                    <select class="home-qs-control" id="qs-ar-tol" aria-label="Vételár -tól">
+                      <option value="">-tól</option>
+                    </select>
                     <span class="home-qs-suffix" aria-hidden="true">Ft</span>
                   </label>
                   <label class="home-qs-field home-qs-field--narrow">
-                    <input
-                      class="home-qs-control"
-                      id="qs-ar-ig"
-                      name="ar_ig"
-                      type="text"
-                      inputmode="numeric"
-                      autocomplete="off"
-                      spellcheck="false"
-                      placeholder="-ig"
-                      aria-label="Vételár -ig"
-                    />
+                    <select class="home-qs-control" id="qs-ar-ig" aria-label="Vételár -ig">
+                      <option value="">-ig</option>
+                    </select>
                     <span class="home-qs-suffix" aria-hidden="true">Ft</span>
                   </label>
                 </div>

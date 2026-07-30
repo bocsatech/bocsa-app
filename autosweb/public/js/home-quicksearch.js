@@ -6,18 +6,39 @@
  * 3. sor: Keresés, Részletes keresés, Visszaállítás
  *
  * A Márka/Modell/Típus a járműkatalógusból töltődik.
- * A leadott értékek a szűrő objektum alakját követik (`home-search-filter.js`).
+ * A Vételár 500 000 Ft-os ugrásokkal (legördülő), nincs szövegmező → nincs telefon-autofill.
  */
 
 import { initVehicleCatalogSelects, fillSelect } from "./vehicle-catalog-client.js";
 
 const FIRST_YEAR = 1950;
+const PRICE_STEP = 500_000;
+const PRICE_MAX = 50_000_000;
 
 function yearOptions() {
   const current = new Date().getFullYear();
   const years = [];
   for (let year = current; year >= FIRST_YEAR; year -= 1) years.push(String(year));
   return years;
+}
+
+function priceOptions() {
+  const prices = [];
+  for (let price = PRICE_STEP; price <= PRICE_MAX; price += PRICE_STEP) {
+    prices.push(price);
+  }
+  return prices;
+}
+
+function fillPriceSelect(select, emptyLabel) {
+  if (!select) return;
+  select.innerHTML = `<option value="">${emptyLabel}</option>`;
+  for (const price of priceOptions()) {
+    const opt = document.createElement("option");
+    opt.value = String(price);
+    opt.textContent = price.toLocaleString("hu-HU");
+    select.appendChild(opt);
+  }
 }
 
 function numOrNull(value) {
@@ -42,6 +63,8 @@ export function initHomeQuickSearch({ onSearch = () => {} } = {}) {
   const years = yearOptions();
   fillSelect(yearFrom, years, "-tól");
   fillSelect(yearTo, years, "-ig");
+  fillPriceSelect(priceFrom, "-tól");
+  fillPriceSelect(priceTo, "-ig");
 
   initVehicleCatalogSelects({
     brandSelect,
