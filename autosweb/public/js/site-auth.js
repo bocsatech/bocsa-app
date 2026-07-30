@@ -76,23 +76,24 @@ function loginUrl(nextPath = "/hirdetesfeladas.html") {
 
 function updateHeaderAuthUi() {
   const loginBtn = document.querySelector("[data-auth-login], [data-auth-logout]");
-  const registerBtn = document.querySelector("[data-auth-register]");
+  const registerBtns = document.querySelectorAll("[data-auth-register]");
   const avatar = document.querySelector("[data-auth-avatar]");
   const user = getAuthUser();
+  const loggedIn = Boolean(user?.email);
 
-  if (registerBtn) {
-    registerBtn.hidden = Boolean(user?.email);
-  }
+  registerBtns.forEach((btn) => {
+    btn.hidden = loggedIn;
+  });
 
   if (avatar) {
     const letter = String(user?.email ?? "A").trim().charAt(0).toUpperCase() || "A";
     avatar.textContent = letter;
-    avatar.href = user?.email ? "/hirdetesfeladas.html" : "/belepes.html";
+    avatar.href = loggedIn ? "/hirdetesfeladas.html" : "/belepes.html";
     avatar.title = user?.email ?? "Belépés";
   }
 
   if (loginBtn) {
-    if (user?.email) {
+    if (loggedIn) {
       loginBtn.textContent = "Kijelentkezés";
       loginBtn.href = "#";
       loginBtn.removeAttribute("data-auth-login");
