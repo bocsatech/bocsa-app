@@ -1041,6 +1041,48 @@ body.site-app .md-outlined > textarea {
   box-sizing: border-box;
 }
 
+/* Leírás teljes szélesség + Megtalálható alatta */
+body.site-app .form-grid > .field-stack.full {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  width: 100% !important;
+  max-width: 100% !important;
+  justify-self: stretch;
+}
+
+body.site-app .form-grid > .field-stack.full > label {
+  margin: 0;
+}
+
+body.site-app .form-grid > .field-stack--leiras textarea {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 140px;
+  resize: vertical;
+}
+
+body.site-app .form-grid > .field-stack--leiras .hint {
+  margin: 0.15rem 0 0;
+}
+
+body.site-app .form-grid > .field-stack--location .inline-2 {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-height: var(--site-field-height);
+}
+
+body.site-app .form-grid > .field-stack--location .inline-2 select,
+body.site-app .form-grid > .field-stack--location .inline-2 input {
+  flex: 1 1 0;
+  width: auto !important;
+  min-width: 0;
+  max-width: none;
+}
+
 body.site-app .labeled-field > .inline-2,
 body.site-app .form-grid .inline-2,
 body.site-app .md-outlined > .inline-2 {

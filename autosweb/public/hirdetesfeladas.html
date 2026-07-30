@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="auth20260730noakcios2" />
+    <meta name="autosweb-version" content="auth20260730leiras1" />
     <title>Hirdetésfeladás — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730noakcios2" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730leiras1" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
@@ -659,38 +659,40 @@
             <div class="card">
               <div class="card-head">Leírás és elérhetőség</div>
               <div class="card-body form-grid">
-                <label for="leiras">Leírás:</label>
-                <div>
+                <div class="field-stack full field-stack--leiras">
+                  <label for="leiras">Leírás:</label>
                   <textarea id="leiras" name="leiras" rows="6"></textarea>
                   <p class="hint">A kereső a leírásban szereplő szövegben nem tud keresni!</p>
                 </div>
 
-                <label>Megtalálható: <span class="req">*</span></label>
-                <div class="inline-2">
-                  <select id="megye" name="megye" required>
-                    <option value="">vármegye</option>
-                    <option>Budapest</option>
-                    <option>Pest</option>
-                    <option>Fejér</option>
-                    <option>Győr-Moson-Sopron</option>
-                    <option>Komárom-Esztergom</option>
-                    <option>Veszprém</option>
-                    <option>Baranya</option>
-                    <option>Bács-Kiskun</option>
-                    <option>Békés</option>
-                    <option>Borsod-Abaúj-Zemplén</option>
-                    <option>Csongrád-Csanád</option>
-                    <option>Hajdú-Bihar</option>
-                    <option>Heves</option>
-                    <option>Jász-Nagykun-Szolnok</option>
-                    <option>Nógrád</option>
-                    <option>Somogy</option>
-                    <option>Szabolcs-Szatmár-Bereg</option>
-                    <option>Tolna</option>
-                    <option>Vas</option>
-                    <option>Zala</option>
-                  </select>
-                  <input id="telepules" name="telepules" type="text" placeholder="település" required />
+                <div class="field-stack full field-stack--location">
+                  <label>Megtalálható: <span class="req">*</span></label>
+                  <div class="inline-2">
+                    <select id="megye" name="megye" required>
+                      <option value="">vármegye</option>
+                      <option>Budapest</option>
+                      <option>Pest</option>
+                      <option>Fejér</option>
+                      <option>Győr-Moson-Sopron</option>
+                      <option>Komárom-Esztergom</option>
+                      <option>Veszprém</option>
+                      <option>Baranya</option>
+                      <option>Bács-Kiskun</option>
+                      <option>Békés</option>
+                      <option>Borsod-Abaúj-Zemplén</option>
+                      <option>Csongrád-Csanád</option>
+                      <option>Hajdú-Bihar</option>
+                      <option>Heves</option>
+                      <option>Jász-Nagykun-Szolnok</option>
+                      <option>Nógrád</option>
+                      <option>Somogy</option>
+                      <option>Szabolcs-Szatmár-Bereg</option>
+                      <option>Tolna</option>
+                      <option>Vas</option>
+                      <option>Zala</option>
+                    </select>
+                    <input id="telepules" name="telepules" type="text" placeholder="település" required />
+                  </div>
                 </div>
 
                 <label for="iranyitoszam">Irányítószám:</label>
