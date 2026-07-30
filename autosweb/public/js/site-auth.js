@@ -106,7 +106,7 @@ function updateHeaderAuthUi() {
 
   import("./site-avatar-menu.js")
     .then((mod) => mod.refreshAvatarMenuUi())
-    .catch(() => {});
+    .catch((error) => console.error("Avatar UI frissítés:", error));
 }
 
 export function initSiteAuth() {

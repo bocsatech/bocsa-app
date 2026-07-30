@@ -25,6 +25,9 @@ body.site-app .site-app-header {
   background: #fff;
   border-bottom: 1px solid #e3e6ea;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: 40;
+  overflow: visible;
 }
 
 body.site-app .home-header-inner,
@@ -40,6 +43,7 @@ body.site-app .header-top {
   position: static;
   transform: none;
   justify-content: stretch;
+  overflow: visible;
 }
 
 body.site-app .home-logo,
@@ -83,6 +87,9 @@ body.site-app .site-header-actions {
   gap: 0.35rem;
   flex-wrap: nowrap;
   justify-content: flex-end;
+  overflow: visible;
+  position: relative;
+  z-index: 41;
 }
 
 body.site-app .site-header-auth-row {
@@ -99,6 +106,9 @@ body.site-app .site-header-tools {
   justify-content: flex-end;
   gap: 0.15rem;
   margin-left: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 42;
 }
 
 body.site-app .site-header-tool {
@@ -191,7 +201,7 @@ body.site-app .site-avatar-dropdown {
   position: absolute;
   top: calc(100% + 0.45rem);
   right: 0;
-  z-index: 80;
+  z-index: 200;
   width: min(18.5rem, calc(100vw - 1.5rem));
   padding: 0.35rem 0;
   background: #fff;

@@ -1,13 +1,28 @@
 /**
- * Profil avatar menü: kattintásra lenyíló lista, profilkép feltöltés.
- * A kép localStorage-ban marad felhasználónként (email kulcs).
+ * Profil avatar menü — önálló modul (nincs körkörös import a site-auth-tal).
+ * Minden oldalon működik: kattintás → lenyíló lista; profilkép localStorage-ban.
  */
 
-import { getAuthUser, isLoggedIn } from "./site-auth.js";
-
+const AUTH_KEY = "autosweb-auth-user";
 const PHOTO_KEY = "autosweb-avatar-photos";
 const MAX_BYTES = 2.5 * 1024 * 1024;
 const AVATAR_SIZE = 256;
+
+let initialized = false;
+let ignoreOutsideClose = false;
+
+function getAuthUser() {
+  try {
+    const raw = sessionStorage.getItem(AUTH_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function isLoggedIn() {
+  return Boolean(getAuthUser()?.email);
+}
 
 function readPhotos() {
   try {
@@ -22,12 +37,12 @@ function writePhotos(map) {
   localStorage.setItem(PHOTO_KEY, JSON.stringify(map));
 }
 
-export function getAvatarPhoto(email) {
+function getAvatarPhoto(email) {
   if (!email) return null;
   return readPhotos()[email] ?? null;
 }
 
-export function setAvatarPhoto(email, dataUrl) {
+function setAvatarPhoto(email, dataUrl) {
   if (!email) return;
   const map = readPhotos();
   if (dataUrl) map[email] = dataUrl;
@@ -91,6 +106,10 @@ function openMenu(root) {
   const toggle = root.querySelector("[data-avatar-toggle]");
   if (dropdown) dropdown.hidden = false;
   if (toggle) toggle.setAttribute("aria-expanded", "true");
+  ignoreOutsideClose = true;
+  window.setTimeout(() => {
+    ignoreOutsideClose = false;
+  }, 0);
 }
 
 export function refreshAvatarMenuUi(root = document) {
@@ -123,7 +142,6 @@ export function refreshAvatarMenuUi(root = document) {
 
     if (guestNote) guestNote.hidden = loggedIn;
     if (memberBlock) memberBlock.hidden = !loggedIn;
-
     wrap.dataset.loggedIn = loggedIn ? "1" : "0";
   });
 }
@@ -133,6 +151,8 @@ export function initAvatarMenu() {
   if (!wraps.length) return;
 
   refreshAvatarMenuUi();
+  if (initialized) return;
+  initialized = true;
 
   wraps.forEach((wrap) => {
     const toggle = wrap.querySelector("[data-avatar-toggle]");
@@ -144,7 +164,7 @@ export function initAvatarMenu() {
       event.preventDefault();
       event.stopPropagation();
       if (!isLoggedIn()) {
-        window.location.href = "/belepes.html";
+        window.location.href = `/belepes.html?next=${encodeURIComponent(window.location.pathname)}`;
         return;
       }
       const open = dropdown && !dropdown.hidden;
@@ -155,6 +175,7 @@ export function initAvatarMenu() {
     photoBtns.forEach((photoBtn) => {
       photoBtn.addEventListener("click", (event) => {
         event.preventDefault();
+        event.stopPropagation();
         if (!isLoggedIn()) {
           window.location.href = "/belepes.html";
           return;
@@ -177,23 +198,32 @@ export function initAvatarMenu() {
         window.alert(error.message ?? "Feltöltés sikertelen.");
       }
     });
-
-    wrap.querySelector("[data-avatar-remove-photo]")?.addEventListener("click", (event) => {
-      event.preventDefault();
-      const user = getAuthUser();
-      if (!user?.email) return;
-      setAvatarPhoto(user.email, null);
-      refreshAvatarMenuUi();
-    });
   });
 
-  document.addEventListener("click", (event) => {
-    if (event.target.closest("[data-avatar-menu]")) return;
-    document.querySelectorAll("[data-avatar-menu]").forEach(closeMenu);
-  });
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (ignoreOutsideClose) return;
+      if (event.target.closest("[data-avatar-menu]")) return;
+      document.querySelectorAll("[data-avatar-menu]").forEach(closeMenu);
+    },
+    true
+  );
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     document.querySelectorAll("[data-avatar-menu]").forEach(closeMenu);
   });
+}
+
+function boot() {
+  initAvatarMenu();
+}
+
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
 }
