@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="auth20260730noseg1" />
+    <meta name="autosweb-version" content="auth20260730gridfix2" />
     <title>Hirdetésfeladás — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730noseg1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730gridfix2" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
@@ -425,100 +425,124 @@
                   </label>
                 </div>
               </div>
-              <div class="form-grid">
-                <label for="kornyezetvedelmi" class="fuel-combustion-only">Környezetvédelmi oszt.:</label>
-                <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" class="fuel-combustion-only" />
-
-                <label for="co2_kibocsatas" class="fuel-combustion-only">CO₂-kibocsátás:</label>
-                <div class="suffix-field fuel-combustion-only">
-                  <input id="co2_kibocsatas" name="co2_kibocsatas" type="number" min="0" step="1" />
-                  <span>g/km</span>
+              <div class="muszaki-grid">
+                <div class="labeled-field fuel-combustion-only">
+                  <label for="kornyezetvedelmi">Környezetvédelmi oszt.:</label>
+                  <input id="kornyezetvedelmi" name="kornyezetvedelmi" type="text" />
+                </div>
+                <div class="labeled-field fuel-combustion-only">
+                  <label for="co2_kibocsatas">CO₂-kibocsátás:</label>
+                  <div class="suffix-field">
+                    <input id="co2_kibocsatas" name="co2_kibocsatas" type="number" min="0" step="1" />
+                    <span>g/km</span>
+                  </div>
                 </div>
 
-                <label for="fogyasztas_varosi" class="fuel-combustion-only">Városi fogyasztás:</label>
-                <div class="suffix-field fuel-combustion-only">
-                  <input id="fogyasztas_varosi" name="fogyasztas_varosi" type="number" min="0" step="0.1" />
-                  <span>l/100 km</span>
+                <div class="labeled-field fuel-combustion-only">
+                  <label for="fogyasztas_varosi">Városi fogyasztás:</label>
+                  <div class="suffix-field">
+                    <input id="fogyasztas_varosi" name="fogyasztas_varosi" type="number" min="0" step="0.1" />
+                    <span>l/100 km</span>
+                  </div>
+                </div>
+                <div class="labeled-field fuel-combustion-only">
+                  <label for="fogyasztas_orszaguti">Országúti fogyasztás:</label>
+                  <div class="suffix-field">
+                    <input id="fogyasztas_orszaguti" name="fogyasztas_orszaguti" type="number" min="0" step="0.1" />
+                    <span>l/100 km</span>
+                  </div>
                 </div>
 
-                <label for="fogyasztas_orszaguti" class="fuel-combustion-only">Országúti fogyasztás:</label>
-                <div class="suffix-field fuel-combustion-only">
-                  <input id="fogyasztas_orszaguti" name="fogyasztas_orszaguti" type="number" min="0" step="0.1" />
-                  <span>l/100 km</span>
+                <div class="labeled-field fuel-combustion-only">
+                  <label for="fogyasztas_kombinalt">Kombinált fogyasztás:</label>
+                  <div class="suffix-field">
+                    <input id="fogyasztas_kombinalt" name="fogyasztas_kombinalt" type="number" min="0" step="0.1" />
+                    <span>l/100 km</span>
+                  </div>
+                </div>
+                <div class="labeled-field fuel-combustion-only">
+                  <label for="sebessegvalto">Sebességváltó:</label>
+                  <div class="select-with-check">
+                    <select id="sebessegvalto" name="sebessegvalto" class="auto-filled">
+                      <option value="">—</option>
+                      <option>Manuális (5 seb.)</option>
+                      <option>Manuális (6 seb.)</option>
+                      <option>Automata</option>
+                      <option>Fokozatmentes automata</option>
+                    </select>
+                    <label class="check inline-check">
+                      <input type="checkbox" name="felezo_valto" value="1" /> felező váltó
+                    </label>
+                  </div>
                 </div>
 
-                <label for="fogyasztas_kombinalt" class="fuel-combustion-only">Kombinált fogyasztás:</label>
-                <div class="suffix-field fuel-combustion-only">
-                  <input id="fogyasztas_kombinalt" name="fogyasztas_kombinalt" type="number" min="0" step="0.1" />
-                  <span>l/100 km</span>
-                </div>
-
-                <label for="sebessegvalto" class="fuel-combustion-only">Sebességváltó:</label>
-                <div class="select-with-check fuel-combustion-only">
-                  <select id="sebessegvalto" name="sebessegvalto" class="auto-filled">
+                <div class="labeled-field">
+                  <label for="hajtas">Hajtás:</label>
+                  <select id="hajtas" name="hajtas" class="auto-filled">
                     <option value="">—</option>
-                    <option>Manuális (5 seb.)</option>
-                    <option>Manuális (6 seb.)</option>
-                    <option>Automata</option>
-                    <option>Fokozatmentes automata</option>
+                    <option>Első kerék</option>
+                    <option>Hátsó kerék</option>
+                    <option>Összkerék</option>
                   </select>
-                  <label class="check inline-check">
-                    <input type="checkbox" name="felezo_valto" value="1" /> felező váltó
-                  </label>
+                </div>
+                <div class="labeled-field fuel-combustion-only">
+                  <label for="henger_elrendezes">Henger-elrendezés:</label>
+                  <select id="henger_elrendezes" name="henger_elrendezes">
+                    <option value="">—</option>
+                    <option>Sor</option>
+                    <option>V</option>
+                    <option>Boxer</option>
+                    <option>W</option>
+                  </select>
                 </div>
 
-                <label for="hajtas">Hajtás:</label>
-                <select id="hajtas" name="hajtas" class="auto-filled">
-                  <option value="">—</option>
-                  <option>Első kerék</option>
-                  <option>Hátsó kerék</option>
-                  <option>Összkerék</option>
-                </select>
-
-                <label for="henger_elrendezes" class="fuel-combustion-only">Henger-elrendezés:</label>
-                <select id="henger_elrendezes" name="henger_elrendezes" class="fuel-combustion-only">
-                  <option value="">—</option>
-                  <option>Sor</option>
-                  <option>V</option>
-                  <option>Boxer</option>
-                  <option>W</option>
-                </select>
-
-                <label for="sajat_tomeg">Saját tömeg:</label>
-                <div class="suffix-field">
-                  <input id="sajat_tomeg" name="sajat_tomeg" type="number" />
-                  <span>kg</span>
+                <div class="labeled-field">
+                  <label for="sajat_tomeg">Saját tömeg:</label>
+                  <div class="suffix-field">
+                    <input id="sajat_tomeg" name="sajat_tomeg" type="number" />
+                    <span>kg</span>
+                  </div>
+                </div>
+                <div class="labeled-field">
+                  <label for="ossztomeg">Össztömeg:</label>
+                  <div class="suffix-field">
+                    <input id="ossztomeg" name="ossztomeg" type="number" />
+                    <span>kg</span>
+                  </div>
                 </div>
 
-                <label for="ossztomeg">Össztömeg:</label>
-                <div class="suffix-field">
-                  <input id="ossztomeg" name="ossztomeg" type="number" />
-                  <span>kg</span>
+                <div class="labeled-field">
+                  <label for="karpit1">Kárpit színe (1):</label>
+                  <input id="karpit1" name="karpit1" type="text" />
+                </div>
+                <div class="labeled-field">
+                  <label for="karpit2">Kárpit színe (2):</label>
+                  <input id="karpit2" name="karpit2" type="text" />
                 </div>
 
-                <label for="karpit1">Kárpit színe (1):</label>
-                <input id="karpit1" name="karpit1" type="text" />
-
-                <label for="karpit2">Kárpit színe (2):</label>
-                <input id="karpit2" name="karpit2" type="text" />
-
-                <label for="szin">Szín:</label>
-                <div>
-                  <input id="szin" name="szin" type="text" />
-                  <label class="check inline-check"><input type="checkbox" name="metalfeny" value="1" /> metál</label>
+                <div class="labeled-field">
+                  <label for="szin">Szín:</label>
+                  <div class="szin-row">
+                    <input id="szin" name="szin" type="text" />
+                    <label class="check inline-check"><input type="checkbox" name="metalfeny" value="1" /> metál</label>
+                  </div>
+                </div>
+                <div class="labeled-field">
+                  <label for="tetto">Tető:</label>
+                  <input id="tetto" name="tetto" type="text" />
                 </div>
 
-                <label for="tetto">Tető:</label>
-                <input id="tetto" name="tetto" type="text" />
-
-                <label for="csomagtarto">Csomagtartó:</label>
-                <div class="suffix-field">
-                  <input id="csomagtarto" name="csomagtarto" type="number" />
-                  <span>liter</span>
+                <div class="labeled-field">
+                  <label for="csomagtarto">Csomagtartó:</label>
+                  <div class="suffix-field">
+                    <input id="csomagtarto" name="csomagtarto" type="number" />
+                    <span>liter</span>
+                  </div>
                 </div>
-
-                <label for="belso_azonosito">Belső azonosító:</label>
-                <input id="belso_azonosito" name="belso_azonosito" type="text" />
+                <div class="labeled-field">
+                  <label for="belso_azonosito">Belső azonosító:</label>
+                  <input id="belso_azonosito" name="belso_azonosito" type="text" />
+                </div>
               </div>
             </div>
           </div>

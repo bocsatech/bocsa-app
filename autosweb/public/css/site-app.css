@@ -871,32 +871,31 @@ body.site-app .card-body {
   background: #fff;
 }
 
-/* Gumi méretek — 2×2 rács, címke + selectek egy vonalban */
+/* Gumi méretek — egyenlő 2 oszlop */
 body.site-app .tire-sizes-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem 1.5rem;
-  align-items: center;
+  align-items: start;
 }
 
 body.site-app .tire-block {
   display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  gap: 0.65rem;
+  flex-flow: column nowrap;
+  align-items: stretch;
+  gap: 0.35rem;
   min-width: 0;
+  width: 100%;
 }
 
 body.site-app .tire-block-label {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  flex: 0 0 auto;
   color: #444;
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.2;
-  white-space: nowrap;
 }
 
 body.site-app .tire-block-label.check {
@@ -911,9 +910,7 @@ body.site-app .tire-sizes-grid .tire-row {
   flex-flow: row nowrap;
   align-items: center;
   gap: 0.35rem;
-  flex: 1 1 auto;
-  min-width: 0;
-  width: auto;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -925,11 +922,13 @@ body.site-app .tire-sizes-grid .tire-row > span {
 }
 
 body.site-app .tire-sizes-grid .tire-row select {
-  flex: 1 1 0;
-  width: auto !important;
-  min-width: 0;
-  max-width: 7.25rem;
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
   font-size: 0.875rem !important;
+  field-sizing: fixed;
+  box-sizing: border-box;
 }
 
 body.site-app .tire-sizes-grid .tire-row select:disabled {
@@ -940,23 +939,9 @@ body.site-app .tire-sizes-grid .tire-row select:disabled {
   font-size: 0.875rem !important;
 }
 
-@media (max-width: 900px) {
-  body.site-app .tire-block {
-    flex-wrap: wrap;
-  }
-
-  body.site-app .tire-block-label {
-    white-space: normal;
-  }
-}
-
 @media (max-width: 720px) {
   body.site-app .tire-sizes-grid {
     grid-template-columns: 1fr;
-  }
-
-  body.site-app .tire-sizes-grid .tire-row select {
-    max-width: none;
   }
 }
 
@@ -1397,13 +1382,17 @@ body.site-app .field-row--vehicle-dates {
 }
 
 body.site-app .field-row.full.field-row--tech-top {
-  display: flex !important;
-  flex-flow: row nowrap;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
   gap: 1rem 1.25rem;
   width: 100%;
   max-width: 100%;
   margin-bottom: 1rem;
+}
+
+body.site-app .field-row.full.field-row--tech-top:has(.fuel-combustion-only.hidden) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field,
@@ -1412,10 +1401,10 @@ body.site-app .field-row.full.field-row--tech-top .labeled-field {
   flex-flow: column nowrap;
   align-items: stretch;
   gap: 0.35rem;
-  width: auto !important;
+  width: 100% !important;
   max-width: none;
   min-width: 0;
-  flex: 0 0 auto;
+  flex: none;
 }
 
 body.site-app .field-row.full.field-row--tech-top .labeled-field > label {
@@ -1423,34 +1412,160 @@ body.site-app .field-row.full.field-row--tech-top .labeled-field > label {
   margin: 0;
   white-space: nowrap;
   line-height: 1.2;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #444;
 }
 
-body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--fuel > select,
-body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel > select {
-  flex: 0 0 auto;
-  width: 11rem !important;
-  max-width: 11rem !important;
-  field-sizing: fixed;
-}
-
-body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field,
-body.site-app .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field {
-  flex: 0 0 auto;
-  width: 8rem !important;
-  max-width: 8rem !important;
-}
-
-body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field,
-body.site-app .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field {
-  flex: 0 0 auto;
-  width: 12.25rem !important;
-  max-width: 12.25rem !important;
+body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field > select,
+body.site-app .field-row.full.field-row--tech-top .labeled-field > select,
+body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field > .suffix-field,
+body.site-app .field-row.full.field-row--tech-top .labeled-field > .suffix-field {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
   font-size: 0.72rem;
   color: #666;
   white-space: nowrap;
+}
+
+/* Műszaki alsó rács — egyenlő 2 oszlop */
+body.site-app .muszaki-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  align-items: start;
+  width: 100%;
+}
+
+body.site-app #ad-form .muszaki-grid .labeled-field,
+body.site-app .muszaki-grid .labeled-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  width: 100% !important;
+  max-width: none;
+  min-width: 0;
+}
+
+body.site-app .muszaki-grid .labeled-field > label {
+  margin: 0;
+  color: #444;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+body.site-app #ad-form .muszaki-grid .labeled-field > input,
+body.site-app #ad-form .muszaki-grid .labeled-field > select,
+body.site-app .muszaki-grid .labeled-field > input,
+body.site-app .muszaki-grid .labeled-field > select {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+body.site-app #ad-form .muszaki-grid .suffix-field,
+body.site-app .muszaki-grid .suffix-field,
+body.site-app #ad-form .field-row--tech-top .suffix-field,
+body.site-app .field-row--tech-top .suffix-field {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+body.site-app #ad-form .muszaki-grid .suffix-field > input,
+body.site-app .muszaki-grid .suffix-field > input,
+body.site-app #ad-form .field-row--tech-top .suffix-field > input,
+body.site-app .field-row--tech-top .suffix-field > input {
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+body.site-app #ad-form .muszaki-grid .suffix-field > span,
+body.site-app .muszaki-grid .suffix-field > span,
+body.site-app #ad-form .field-row--tech-top .suffix-field > span:not(.hint-inline),
+body.site-app .field-row--tech-top .suffix-field > span:not(.hint-inline) {
+  flex: 0 0 5.5rem !important;
+  width: 5.5rem !important;
+  max-width: 5.5rem !important;
+  text-align: left;
+}
+
+body.site-app .muszaki-grid input,
+body.site-app .muszaki-grid select,
+body.site-app .field-row--tech-top input,
+body.site-app .field-row--tech-top select {
+  field-sizing: fixed;
+  box-sizing: border-box;
+}
+
+body.site-app .muszaki-grid .select-with-check {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: var(--site-field-height);
+}
+
+body.site-app .muszaki-grid .select-with-check > select {
+  flex: 1 1 0 !important;
+  width: auto !important;
+  min-width: 0;
+  max-width: none !important;
+}
+
+body.site-app .muszaki-grid .select-with-check > .inline-check {
+  margin-top: 0;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+body.site-app .muszaki-grid .szin-row {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: var(--site-field-height);
+}
+
+body.site-app #ad-form .muszaki-grid .szin-row > input,
+body.site-app .muszaki-grid .szin-row > input {
+  flex: 1 1 0 !important;
+  width: auto !important;
+  min-width: 0;
+  max-width: none !important;
+}
+
+body.site-app .muszaki-grid .szin-row > .inline-check {
+  margin-top: 0;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+body.site-app #ad-form input[type="number"]::-webkit-outer-spin-button,
+body.site-app #ad-form input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+body.site-app #ad-form input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+@media (max-width: 720px) {
+  body.site-app .field-row.full.field-row--tech-top,
+  body.site-app .muszaki-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Elektromos műszaki mezők (csak tiszta Elektromos) */
@@ -1792,30 +1907,6 @@ body.site-app .package.selected {
     grid-template-columns: 1fr;
   }
 
-  body.site-app .field-row.full.field-row--tech-top {
-    flex-wrap: wrap;
-  }
-
-  body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--fuel > select,
-  body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel > select {
-    width: 11rem !important;
-    max-width: 11rem !important;
-    flex: 0 0 auto;
-  }
-
-  body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field,
-  body.site-app .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field {
-    width: 8rem !important;
-    max-width: 8rem !important;
-    flex: 0 0 auto;
-  }
-
-  body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field,
-  body.site-app .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field {
-    width: 12.25rem !important;
-    max-width: 12.25rem !important;
-    flex: 0 0 auto;
-  }
 
   body.site-app .field-row--vehicle-ident {
     flex-direction: row;
