@@ -72,9 +72,6 @@ fi
 
 VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
 echo "  ✓ Kategória képek: lokális fájlok megmaradtak (public/images/categories/)"
-echo ""
-echo "✓ Frissítve: $TARGET"
-echo "  Verzió: $VER"
 
 if [ ! -f "$TARGET/public/css/automax.css" ]; then
   echo "  ✗ HIBA: automax.css hiányzik — git pull sikertelen?"
@@ -144,7 +141,7 @@ else
   exit 1
 fi
 
-if grep -q 'qscatalog20260730\|katalogus20260727\|headerorder20260730' "$TARGET/public/index.html" 2>/dev/null; then
+if grep -q 'qscatalog20260730\|katalogus20260727\|headerorder20260730\|indito-autoupdate' "$TARGET/public/index.html" 2>/dev/null; then
   echo "  ✓ főoldal verzió OK (járműkatalógus)"
 else
   echo "  ✗ HIBA: index.html régi — járműkatalógus verzió hiányzik"
@@ -161,19 +158,14 @@ INDEX_VER=$(grep -o 'autosweb-version" content="[^"]*' "$TARGET/public/index.htm
 echo "  Főoldal verzió: ${INDEX_VER:-?}"
 
 echo ""
-echo "  1) Állítsd le a futó Autosweb-et (Ctrl+C a terminálban)"
-if command -v lsof >/dev/null 2>&1; then
-  PIDS=$(lsof -ti:3456 2>/dev/null || true)
-  if [ -n "$PIDS" ]; then
-    echo "  ⚠ Port 3456 foglalt — régi szerver fut. Leállítás…"
-    kill -9 $PIDS 2>/dev/null || true
-    sleep 1
-    echo "  ✓ Régi szerver leállítva"
-  fi
-fi
-echo "  2) Indítsd újra: ~/Desktop/Autosweb-indito.command"
-echo "  3) Böngésző: http://127.0.0.1:3456/  (NEM a Vercel weboldal!)"
-echo "  4) Cmd+Shift+R (kemény frissítés)"
+echo "✓ Frissítve: $TARGET"
+echo "  Verzió: $VER"
+echo ""
+echo "  Mostantól elég az Asztali Autosweb-indito.command —"
+echo "  induláskor maga tölti le a GitHub frissítést, nem kell külön terminál."
+echo "  1) Indítsd: ~/Desktop/Autosweb-indito.command"
+echo "  2) Böngésző: http://127.0.0.1:3456/  (NEM a Vercel weboldal!)"
+echo "  3) Cmd+Shift+R (kemény frissítés)"
 echo ""
 echo "Jó verzió = világos háttér, nincs fejléc keresősáv, stats sáv a kategóriák alatt, középső hirdetésrács görget."
 

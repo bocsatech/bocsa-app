@@ -39,9 +39,20 @@ Asztalon: **Autosweb-indito.command**
 
 ## Frissítés
 
+**Asztali indító** (`Autosweb-indito.command`): induláskor automatikusan letölti a
+GitHub `main` ágat, majd elindítja a szervert. Külön `frissites.command` nem kell.
+
+Ha az indítód még régi (nincs benne a GitHub frissítés), egyszer cseréld:
+
 ```bash
-cd ~/bocsa-app/autosweb/mac
-./frissites.command
+curl -fsSL https://github.com/bocsatech/bocsa-app/archive/refs/heads/main.tar.gz \
+  | tar -xz -O bocsa-app-main/autosweb/mac/Autosweb-indito.command \
+  > ~/Desktop/Autosweb-indito.command
+chmod +x ~/Desktop/Autosweb-indito.command
 ```
 
-Majd indító újra + **Cmd+Shift+R** a böngészőben.
+Majd dupla kattintás az Asztalon + böngészőben **Cmd+Shift+R**.
+
+Gyors újraindítás frissítés nélkül: `AUTOSWEB_SKIP_UPDATE=1` (Terminálból).
+
+Repo-ból (fejlesztőknek) továbbra is: `autosweb/mac/frissites.command`.

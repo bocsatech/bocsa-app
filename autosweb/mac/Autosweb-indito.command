@@ -1,65 +1,181 @@
 #!/bin/bash
-# Indító — ~/Downloads/autosweb (site-app téma, 2026-07 főoldal)
+# Autosweb indító (Asztal) — induláskor GitHub main-ről frissít, majd elindítja a szervert.
+# Nincs szükség külön frissites.command / második terminálra.
+#
+# Kihagyás (ha offline / gyors újraindítás): AUTOSWEB_SKIP_UPDATE=1
 set -euo pipefail
 
-TARGET="$HOME/Downloads/autosweb"
+GITHUB_TAR="https://github.com/bocsatech/bocsa-app/archive/refs/heads/main.tar.gz"
+DESKTOP_LAUNCHER="$HOME/Desktop/Autosweb-indito.command"
+
+autosweb_target() {
+  if [ -d "${HOME}/Downloads/autosweb" ]; then
+    echo "${HOME}/Downloads/autosweb"
+    return
+  fi
+  if [ -d "${HOME}/Letöltések/autosweb" ]; then
+    echo "${HOME}/Letöltések/autosweb"
+    return
+  fi
+  if [ -d "${HOME}/Letöltések" ]; then
+    echo "${HOME}/Letöltések/autosweb"
+    return
+  fi
+  echo "${HOME}/Downloads/autosweb"
+}
+
+TARGET="$(autosweb_target)"
 INDEX="$TARGET/public/index.html"
 HTML="$TARGET/public/hirdetesfeladas.html"
 CSS="$TARGET/public/css/site-app.css"
 
-cd "$TARGET" || {
-  osascript -e 'display alert "Autosweb" message "Először telepítsd: bocsa-app/autosweb/mac/telepites.command"'
-  exit 1
-}
+echo "══════════════════════════════════════"
+echo " Autosweb"
+echo "══════════════════════════════════════"
+echo "Cél: $TARGET"
+echo ""
 
+# --- Régi szerver leállítása ---
 if command -v lsof >/dev/null 2>&1; then
   PIDS=$(lsof -ti:3456 2>/dev/null || true)
   if [ -n "$PIDS" ]; then
     echo "Régi szerver leállítása (3456)…"
+    # shellcheck disable=SC2086
     kill -9 $PIDS 2>/dev/null || true
     sleep 1
   fi
 fi
 
+# --- Frissítés GitHub-ról (main) ---
+update_from_github() {
+  if ! command -v curl >/dev/null 2>&1 || ! command -v tar >/dev/null 2>&1; then
+    echo "⚠ curl/tar hiányzik — frissítés kihagyva"
+    return 1
+  fi
+
+  local tmp src backup
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/autosweb-update.XXXXXX")"
+
+  echo "Frissítés GitHub main-ről…"
+  if ! curl -fsSL --connect-timeout 20 --max-time 180 "$GITHUB_TAR" \
+    | tar -xz -C "$tmp"; then
+    echo "⚠ Letöltés sikertelen — a meglévő helyi fájlokkal indulok."
+    rm -rf "$tmp"
+    return 1
+  fi
+
+  src="$tmp/bocsa-app-main/autosweb"
+  if [ ! -d "$src/public" ] || [ ! -f "$src/server.mjs" ]; then
+    echo "⚠ Érvénytelen archívum — frissítés kihagyva"
+    rm -rf "$tmp"
+    return 1
+  fi
+
+  mkdir -p "$TARGET/public/images/categories" "$TARGET/data" "$TARGET/lib" "$TARGET/scripts"
+
+  backup="$(mktemp -d "${TMPDIR:-/tmp}/autosweb-cats.XXXXXX")"
+  cp -a "$TARGET/public/images/categories/." "$backup/" 2>/dev/null || true
+
+  cp "$src/package.json" "$src/server.mjs" "$TARGET/"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete "$src/lib/" "$TARGET/lib/"
+    rsync -a --delete --exclude 'images/categories/' "$src/public/" "$TARGET/public/"
+    rsync -a "$src/scripts/" "$TARGET/scripts/" 2>/dev/null || true
+  else
+    rm -rf "$TARGET/lib"
+    cp -R "$src/lib" "$TARGET/lib"
+    find "$TARGET/public" -mindepth 1 -maxdepth 1 ! -name images -exec rm -rf {} + 2>/dev/null || true
+    if [ -d "$TARGET/public/images" ]; then
+      find "$TARGET/public/images" -mindepth 1 -maxdepth 1 ! -name categories -exec rm -rf {} + 2>/dev/null || true
+    fi
+    cp -R "$src/public/"* "$TARGET/public/" 2>/dev/null || true
+    rm -rf "$TARGET/scripts"
+    cp -R "$src/scripts" "$TARGET/scripts" 2>/dev/null || true
+  fi
+
+  mkdir -p "$TARGET/public/images/categories"
+  cp -a "$backup/." "$TARGET/public/images/categories/" 2>/dev/null || true
+  if [ -d "$src/public/images/categories" ]; then
+    for f in "$src/public/images/categories/"*; do
+      [ -f "$f" ] || continue
+      base="$(basename "$f")"
+      if [ ! -f "$TARGET/public/images/categories/$base" ]; then
+        cp "$f" "$TARGET/public/images/categories/$base"
+      fi
+    done
+  fi
+  rm -rf "$backup"
+
+  # Asztali indító önmagát is frissíti (még a tmp törlése előtt)
+  if [ -f "$src/mac/Autosweb-indito.command" ]; then
+    mkdir -p "$HOME/Desktop"
+    cp "$src/mac/Autosweb-indito.command" "$DESKTOP_LAUNCHER"
+    chmod +x "$DESKTOP_LAUNCHER"
+    echo "  ✓ Asztali indító frissítve"
+  fi
+
+  rm -rf "$tmp"
+  echo "  ✓ Fájlok frissítve"
+  return 0
+}
+
+if [ "${AUTOSWEB_SKIP_UPDATE:-0}" = "1" ]; then
+  echo "Frissítés kihagyva (AUTOSWEB_SKIP_UPDATE=1)"
+else
+  update_from_github || true
+fi
+
+# --- Telepítés ellenőrzés ---
+if [ ! -d "$TARGET" ] || [ ! -f "$TARGET/server.mjs" ]; then
+  osascript -e 'display alert "Autosweb" message "Nincs telepítve ~/Downloads/autosweb.\n\nElőször futtasd: bocsa-app/autosweb/mac/telepites.command\nvagy ellenőrizd az internetet (az indító letölti a fájlokat)."' 2>/dev/null || \
+    echo "Nincs telepítve: $TARGET — futtasd: telepites.command (vagy indítsd online újra)"
+  exit 1
+fi
+
+cd "$TARGET"
+
 if [ ! -f "$CSS" ]; then
-  osascript -e 'display alert "Régi verzió!" message "Hiányzik site-app.css. Futtasd: autosweb/mac/frissites.command"'
+  osascript -e 'display alert "Régi verzió!" message "Hiányzik site-app.css. Indítsd újra az Autosweb-indito.command-ot online."' 2>/dev/null || true
   exit 1
 fi
 
 if ! grep -q 'site-app' "$HTML" 2>/dev/null; then
-  osascript -e 'display alert "Régi verzió!" message "Régi HTML. Futtasd: autosweb/mac/frissites.command"'
+  osascript -e 'display alert "Régi verzió!" message "Régi HTML. Indítsd újra online — az indító letölti a frissítést."' 2>/dev/null || true
   exit 1
 fi
 
 if [ ! -f "$INDEX" ]; then
-  osascript -e 'display alert "Hiányzik a főoldal!" message "public/index.html nincs. Futtasd: frissites.command"'
+  osascript -e 'display alert "Hiányzik a főoldal!" message "public/index.html nincs."' 2>/dev/null || true
   exit 1
 fi
 
-if ! grep -q 'home-stats-bar' "$INDEX" 2>/dev/null; then
-  osascript -e 'display alert "Régi főoldal!" message "Nincs stats sáv a főoldalon.\\n\\n1) cd ~/bocsa-app && git pull\\n2) autosweb/mac/frissites.command\\n3) indítsd újra"'
-  exit 1
-fi
-
-if grep -q 'home-search-form' "$INDEX" 2>/dev/null; then
-  osascript -e 'display alert "Régi főoldal!" message "Még van fejléc keresősáv — frissíts:\\nautosweb/mac/frissites.command"'
-  exit 1
-fi
-
-if ! grep -q 'partner-recommendations-init.js' "$INDEX" 2>/dev/null; then
-  osascript -e 'display alert "Régi főoldal!" message "Partner accordion init hiányzik.\\n\\n1) cd ~/bocsa-app && git pull\\n2) autosweb/mac/frissites.command\\n3) indítsd újra"'
-  exit 1
-fi
-
-INDEX_VER=$(grep 'autosweb-version' "$INDEX" | head -1 | sed 's/.*content="//;s/".*//')
-echo "Autosweb főoldal: ${INDEX_VER:-?}"
-echo "✓ Stats sáv a főoldalon"
-echo "URL: http://127.0.0.1:3456/"
-
+# --- npm + katalógus ---
 if [ ! -d node_modules ]; then
+  echo "npm install…"
   npm install
 fi
 
-open "http://127.0.0.1:3456/"
+if [ -f "$HOME/Desktop/lista.csv" ]; then
+  echo "Járműkatalógus import (~/Desktop/lista.csv)…"
+  npm run import:catalog -- "$HOME/Desktop/lista.csv" && echo "  ✓ katalógus OK" || echo "  ⚠ katalógus import sikertelen"
+elif [ -f "$HOME/Desktop/lista3.csv" ]; then
+  echo "Járműkatalógus import (~/Desktop/lista3.csv)…"
+  npm run import:catalog -- "$HOME/Desktop/lista3.csv" && echo "  ✓ katalógus OK" || echo "  ⚠ katalógus import sikertelen"
+elif [ -f "$HOME/Downloads/lista.csv" ]; then
+  echo "Járműkatalógus import (~/Downloads/lista.csv)…"
+  npm run import:catalog -- "$HOME/Downloads/lista.csv" && echo "  ✓ katalógus OK" || true
+fi
+
+if [ -f "$TARGET/scripts/embed-ad-form.mjs" ]; then
+  node scripts/embed-ad-form.mjs 2>/dev/null || true
+fi
+
+INDEX_VER=$(grep 'autosweb-version' "$INDEX" | head -1 | sed 's/.*content="//;s/".*//' || true)
+echo ""
+echo "Autosweb főoldal: ${INDEX_VER:-?}"
+echo "URL: http://127.0.0.1:3456/"
 echo "Bezáráshoz: Ctrl+C"
+echo ""
+
+open "http://127.0.0.1:3456/" 2>/dev/null || true
 npm start
