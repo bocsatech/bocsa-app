@@ -77,20 +77,12 @@ function loginUrl(nextPath = "/hirdetesfeladas.html") {
 function updateHeaderAuthUi() {
   const loginBtn = document.querySelector("[data-auth-login], [data-auth-logout]");
   const registerBtns = document.querySelectorAll("[data-auth-register]");
-  const avatar = document.querySelector("[data-auth-avatar]");
   const user = getAuthUser();
   const loggedIn = Boolean(user?.email);
 
   registerBtns.forEach((btn) => {
     btn.hidden = loggedIn;
   });
-
-  if (avatar) {
-    const letter = String(user?.email ?? "A").trim().charAt(0).toUpperCase() || "A";
-    avatar.textContent = letter;
-    avatar.href = loggedIn ? "/hirdetesfeladas.html" : "/belepes.html";
-    avatar.title = user?.email ?? "Belépés";
-  }
 
   if (loginBtn) {
     if (loggedIn) {
@@ -111,10 +103,18 @@ function updateHeaderAuthUi() {
       loginBtn.removeAttribute("title");
     }
   }
+
+  import("./site-avatar-menu.js")
+    .then((mod) => mod.refreshAvatarMenuUi())
+    .catch(() => {});
 }
 
 export function initSiteAuth() {
   updateHeaderAuthUi();
+
+  import("./site-avatar-menu.js")
+    .then((mod) => mod.initAvatarMenu())
+    .catch((error) => console.error("Avatar menü:", error));
 
   document.querySelectorAll("[data-auth-guard]").forEach((el) => {
     el.addEventListener("click", (event) => {

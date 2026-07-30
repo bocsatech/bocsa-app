@@ -145,6 +145,8 @@ body.site-app .site-header-avatar {
   width: 2.15rem;
   height: 2.15rem;
   margin-left: 0.15rem;
+  padding: 0;
+  border: 0;
   border-radius: 999px;
   background: #1e3a8a;
   color: #93c5fd;
@@ -152,10 +154,153 @@ body.site-app .site-header-avatar {
   font-weight: 700;
   text-decoration: none;
   line-height: 1;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
 }
 
 body.site-app .site-header-avatar:hover {
   filter: brightness(1.08);
+}
+
+body.site-app .site-header-avatar:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 2px;
+}
+
+body.site-app .site-header-avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  margin-left: 0.15rem;
+}
+
+body.site-app .site-header-avatar-wrap .site-header-avatar {
+  margin-left: 0;
+}
+
+body.site-app .site-header-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+body.site-app .site-avatar-dropdown {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  z-index: 80;
+  width: min(18.5rem, calc(100vw - 1.5rem));
+  padding: 0.35rem 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
+}
+
+body.site-app .site-avatar-dropdown[hidden] {
+  display: none !important;
+}
+
+body.site-app .site-avatar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.72rem 1rem;
+  border: 0;
+  border-bottom: 1px solid #f0f2f5;
+  background: transparent;
+  color: #111;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+body.site-app .site-avatar-item:last-of-type {
+  border-bottom: 0;
+}
+
+body.site-app .site-avatar-item:hover {
+  background: #f8fafc;
+}
+
+body.site-app .site-avatar-item svg {
+  flex-shrink: 0;
+  color: #4b5565;
+}
+
+body.site-app .site-avatar-item-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+body.site-app .site-avatar-item-count {
+  color: #98a2b3;
+  font-weight: 500;
+}
+
+body.site-app .site-avatar-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+body.site-app .site-avatar-footer {
+  padding: 0.75rem 1rem 0.9rem;
+  border-top: 1px solid #eef0f3;
+}
+
+body.site-app .site-avatar-logged {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  color: #667085;
+}
+
+body.site-app .site-avatar-logged strong {
+  color: #344054;
+  font-weight: 600;
+}
+
+body.site-app .site-avatar-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.85rem;
+  border: 1.5px solid #5e35b1;
+  border-radius: 999px;
+  background: #fff;
+  color: #5e35b1;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+body.site-app .site-avatar-logout:hover {
+  background: #f5f0ff;
+}
+
+body.site-app .site-avatar-guest {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  font-size: 0.86rem;
+  color: #667085;
 }
 
 body.site-app .site-header-btn {
