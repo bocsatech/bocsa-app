@@ -1507,8 +1507,8 @@ body.site-app .labeled-field--power > .hint-inline#le-display {
 }
 
 body.site-app #ad-form .field-row--tech-top .labeled-field--power .suffix-field > input#teljesitmeny_kw {
-  flex: 1 1 auto !important;
-  width: 100% !important;
+  flex: 1 1 0 !important;
+  width: 0 !important;
   min-width: 7rem !important;
   max-width: none !important;
 }
