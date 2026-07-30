@@ -1370,7 +1370,7 @@ body.site-app .field-row--vehicle-dates {
 body.site-app .field-row.full.field-row--tech-top {
   display: flex !important;
   flex-flow: row nowrap;
-  align-items: end;
+  align-items: center;
   gap: 1rem 1.25rem;
   width: 100%;
   max-width: 100%;
@@ -1378,47 +1378,13 @@ body.site-app .field-row.full.field-row--tech-top {
 }
 
 body.site-app .field-row.full.field-row--tech-top .labeled-field {
-  width: auto;
-  min-width: 0;
-  flex: 0 0 auto;
-}
-
-body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel {
-  flex: 1 1 220px;
-  width: auto;
-  max-width: 280px;
-}
-
-body.site-app .field-row.full.field-row--tech-top .labeled-field--henger {
-  flex: 1 1 180px;
-  width: auto;
-  max-width: 220px;
-}
-
-body.site-app .field-row.full.field-row--tech-top .labeled-field--power {
-  flex: 1 1 220px;
-  width: auto;
-  max-width: 280px;
-}
-
-body.site-app .field-row.full.field-row--tech-top .labeled-field > select,
-body.site-app .field-row.full.field-row--tech-top .labeled-field > .suffix-field {
-  width: 100%;
-  max-width: 100%;
-}
-
-body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
-  font-size: 0.72rem;
-  color: #666;
-  white-space: nowrap;
-}
-
-/* Műszaki: címke + mező egy vízszintes vonalban */
-body.site-app .field-row.full.field-row--tech-top .labeled-field {
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
   gap: 0.45rem;
+  width: auto;
+  min-width: 0;
+  flex: 0 0 auto;
 }
 
 body.site-app .field-row.full.field-row--tech-top .labeled-field > label {
@@ -1428,98 +1394,28 @@ body.site-app .field-row.full.field-row--tech-top .labeled-field > label {
   line-height: 1.2;
 }
 
-body.site-app .field-row.full.field-row--tech-top .labeled-field > select,
-body.site-app .field-row.full.field-row--tech-top .labeled-field > .suffix-field {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
-  max-width: 100%;
-}
-
-body.site-app .form-grid.form-grid--muszaki {
-  grid-template-columns: max-content minmax(7rem, 1fr) max-content minmax(7rem, 1fr);
-  column-gap: 1.25rem;
-  row-gap: 0.85rem;
-  align-items: center;
-}
-
-body.site-app .form-grid.form-grid--muszaki > label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 0;
-  white-space: nowrap;
-  line-height: var(--site-field-height);
-}
-
-body.site-app .form-grid.form-grid--muszaki > label .help-link {
-  display: inline;
-  white-space: nowrap;
-}
-
-body.site-app .form-grid.form-grid--muszaki > :not(label) {
-  width: 100%;
-  max-width: 100%;
-  justify-self: stretch;
-}
-
-body.site-app .form-grid.form-grid--muszaki .szin-with-metal {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  gap: 0.65rem;
-  width: 100%;
-  min-width: 0;
-}
-
-body.site-app .form-grid.form-grid--muszaki .szin-with-metal > input {
-  flex: 1 1 auto;
-  min-width: 0;
-  width: auto !important;
-}
-
-body.site-app .form-grid.form-grid--muszaki .szin-with-metal > .inline-check {
-  margin-top: 0;
+body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel > select {
   flex: 0 0 auto;
+  width: 190px;
+  max-width: 190px;
+}
+
+body.site-app .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field {
+  flex: 0 0 auto;
+  width: 128px;
+  max-width: 128px;
+}
+
+body.site-app .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field {
+  flex: 0 0 auto;
+  width: 196px;
+  max-width: 196px;
+}
+
+body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
+  font-size: 0.72rem;
+  color: #666;
   white-space: nowrap;
-}
-
-body.site-app .form-grid.form-grid--muszaki > .form-grid-span-label {
-  grid-column: 1;
-}
-
-body.site-app .form-grid.form-grid--muszaki > .form-grid-span-field {
-  grid-column: 2 / -1;
-}
-
-@media (max-width: 900px) {
-  body.site-app .form-grid.form-grid--muszaki {
-    grid-template-columns: max-content minmax(0, 1fr);
-  }
-
-  body.site-app .form-grid.form-grid--muszaki > .form-grid-span-field {
-    grid-column: 2;
-  }
-}
-
-@media (max-width: 640px) {
-  body.site-app .field-row.full.field-row--tech-top .labeled-field {
-    flex-wrap: wrap;
-  }
-
-  body.site-app .form-grid.form-grid--muszaki {
-    grid-template-columns: 1fr;
-  }
-
-  body.site-app .form-grid.form-grid--muszaki > label {
-    line-height: 1.3;
-    white-space: normal;
-  }
-
-  body.site-app .form-grid.form-grid--muszaki > .form-grid-span-label,
-  body.site-app .form-grid.form-grid--muszaki > .form-grid-span-field {
-    grid-column: 1;
-  }
 }
 
 /* Elektromos műszaki mezők (csak tiszta Elektromos) */
