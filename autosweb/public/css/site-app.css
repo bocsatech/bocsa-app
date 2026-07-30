@@ -1102,6 +1102,28 @@ body.site-app .field-row--vehicle-year .labeled-field {
   max-width: min(100%, 320px);
 }
 
+body.site-app .field-row.full.field-row--year-km {
+  display: flex !important;
+  flex-flow: row nowrap;
+  gap: 1rem 1.25rem;
+  width: 100% !important;
+  max-width: 100%;
+  align-items: end;
+}
+
+body.site-app .field-row.full.field-row--year-km .labeled-field {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto !important;
+  max-width: none;
+}
+
+body.site-app .field-row.full.field-row--year-km .labeled-field > .inline-2,
+body.site-app .field-row.full.field-row--year-km .labeled-field > .suffix-field {
+  width: 100%;
+  max-width: 100%;
+}
+
 body.site-app .field-row--vehicle-dates {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1482,6 +1504,15 @@ body.site-app .package.selected {
   }
 
   body.site-app .field-row.full.field-row--tipus-egyeb .labeled-field {
+    flex: 1 1 auto;
+    width: 100% !important;
+  }
+
+  body.site-app .field-row.full.field-row--year-km {
+    flex-direction: column;
+  }
+
+  body.site-app .field-row.full.field-row--year-km .labeled-field {
     flex: 1 1 auto;
     width: 100% !important;
   }
