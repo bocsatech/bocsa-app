@@ -36,7 +36,6 @@ export function createAdForm(options = {}) {
   const teljesitmenyKw = document.getElementById("teljesitmeny_kw");
   const teljesitmenyLe = document.getElementById("teljesitmeny_le");
   const leDisplay = document.getElementById("le-display");
-  const electricFieldsCard = document.getElementById("electric-fields-card");
   const klima = document.getElementById("klima");
   const equipmentRoot = document.getElementById("equipment-sections");
   const egyebInfoRoot = document.getElementById("egyeb-info-sections");
@@ -302,13 +301,15 @@ function applyAutoFill() {
 }
 
 function isElectricFuel(value) {
-  return String(value ?? "").toLowerCase().includes("elektromos");
+  return String(value ?? "").trim().toLowerCase() === "elektromos";
 }
 
 function syncFuelDependentFields() {
   const value = uzemanyag?.value ?? "";
   const electric = isElectricFuel(value);
-  electricFieldsCard?.classList.toggle("hidden", !electric);
+  document.querySelectorAll(".fuel-electric-only").forEach((el) => {
+    el.classList.toggle("hidden", !electric);
+  });
   document.querySelectorAll(".fuel-combustion-only").forEach((el) => {
     el.classList.toggle("hidden", electric);
   });
