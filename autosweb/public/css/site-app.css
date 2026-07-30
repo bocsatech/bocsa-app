@@ -1431,29 +1431,13 @@ body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
   white-space: nowrap;
 }
 
-/* Teljesítmény: LE a suffix-fieldön kívül, ne vágja le a kW értéket */
-body.site-app .labeled-field--power .power-control {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  gap: 0.45rem;
-  width: 100%;
-  min-width: 0;
-}
-
-body.site-app #ad-form .labeled-field--power .power-control > .suffix-field,
-body.site-app .labeled-field--power .power-control > .suffix-field {
-  flex: 1 1 0;
-  width: auto !important;
-  min-width: 0;
-  max-width: none !important;
-}
-
-body.site-app .labeled-field--power .power-control > .hint-inline {
-  flex: 0 0 auto;
+/* Teljesítmény: LE a mező alatt — az input teljes oszlopszélességet kap */
+body.site-app .labeled-field--power > .hint-inline {
+  margin: 0;
   font-size: 0.72rem;
   color: #666;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 /* Műszaki alsó rács — egyenlő 2 oszlop */
