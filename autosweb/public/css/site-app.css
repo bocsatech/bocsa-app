@@ -1377,12 +1377,14 @@ body.site-app .field-row.full.field-row--tech-top {
   margin-bottom: 1rem;
 }
 
+body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field,
 body.site-app .field-row.full.field-row--tech-top .labeled-field {
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
   gap: 0.45rem;
-  width: auto;
+  width: auto !important;
+  max-width: none;
   min-width: 0;
   flex: 0 0 auto;
 }
@@ -1394,22 +1396,26 @@ body.site-app .field-row.full.field-row--tech-top .labeled-field > label {
   line-height: 1.2;
 }
 
+body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--fuel > select,
 body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel > select {
   flex: 0 0 auto;
-  width: 190px;
-  max-width: 190px;
+  width: 11rem !important;
+  max-width: 11rem !important;
+  field-sizing: fixed;
 }
 
+body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field,
 body.site-app .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field {
   flex: 0 0 auto;
-  width: 128px;
-  max-width: 128px;
+  width: 8rem !important;
+  max-width: 8rem !important;
 }
 
+body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field,
 body.site-app .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field {
   flex: 0 0 auto;
-  width: 196px;
-  max-width: 196px;
+  width: 12.25rem !important;
+  max-width: 12.25rem !important;
 }
 
 body.site-app .field-row.full.field-row--tech-top .suffix-field .hint-inline {
@@ -1761,12 +1767,25 @@ body.site-app .package.selected {
     flex-wrap: wrap;
   }
 
-  body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel > select,
-  body.site-app .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field,
+  body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--fuel > select,
+  body.site-app .field-row.full.field-row--tech-top .labeled-field--fuel > select {
+    width: 11rem !important;
+    max-width: 11rem !important;
+    flex: 0 0 auto;
+  }
+
+  body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field,
+  body.site-app .field-row.full.field-row--tech-top .labeled-field--henger > .suffix-field {
+    width: 8rem !important;
+    max-width: 8rem !important;
+    flex: 0 0 auto;
+  }
+
+  body.site-app #ad-form .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field,
   body.site-app .field-row.full.field-row--tech-top .labeled-field--power > .suffix-field {
-    width: auto;
-    max-width: none;
-    flex: 1 1 140px;
+    width: 12.25rem !important;
+    max-width: 12.25rem !important;
+    flex: 0 0 auto;
   }
 
   body.site-app .field-row--vehicle-ident {
