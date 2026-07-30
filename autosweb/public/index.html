@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260730avatar3" />
     <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=home20260730noarrow1" />
+    <link rel="stylesheet" href="/css/home.css?v=home20260730qsbtns1" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — a teljes oldal görget, külön görgetősáv nincs sehol. */
       html:has(body.home-page) {
@@ -472,10 +472,12 @@
 
               <div class="home-qs-row home-qs-row--actions">
                 <button type="submit" class="home-qs-submit">Keresés</button>
-                <button type="button" class="home-qs-action home-qs-action--advanced" id="qs-reszletes">
-                  Részletes keresés
-                </button>
-                <button type="reset" class="home-qs-action">Visszaállítás</button>
+                <div class="home-qs-actions-secondary">
+                  <button type="button" class="home-qs-action home-qs-action--advanced" id="qs-reszletes">
+                    Részletes keresés
+                  </button>
+                  <button type="reset" class="home-qs-action">Visszaállítás</button>
+                </div>
               </div>
             </form>
           </article>
