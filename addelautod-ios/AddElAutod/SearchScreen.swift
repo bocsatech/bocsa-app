@@ -52,22 +52,19 @@ struct SearchScreen: View {
         }
     }
 
-    /// Felül Keresés → Közelben + Új hirdetések → autóikonok → legalul Beállítások
+    /// Felső sor: Keresés, Közelben, Új hirdetések → autóikonok → legalul Beállítások
     private var searchLanding: some View {
         ScrollView {
             VStack(spacing: 0) {
-                HomeIconButton(
-                    systemName: "magnifyingglass",
-                    label: "Keresés",
-                    tint: AppTheme.accent
-                ) {
-                    panel = .root
-                    mode = .search
-                }
-                .padding(.top, 12)
-                .padding(.bottom, 18)
-
-                HStack(spacing: 28) {
+                HStack(spacing: 20) {
+                    HomeIconButton(
+                        systemName: "magnifyingglass",
+                        label: "Keresés",
+                        tint: AppTheme.accent
+                    ) {
+                        panel = .root
+                        mode = .search
+                    }
                     HomeIconButton(
                         systemName: "mappin.and.ellipse",
                         label: "Közelben",
@@ -83,6 +80,7 @@ struct SearchScreen: View {
                         openListing(.newListings)
                     }
                 }
+                .padding(.top, 12)
                 .padding(.bottom, 22)
 
                 LazyVGrid(
