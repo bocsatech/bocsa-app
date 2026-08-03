@@ -38,7 +38,6 @@ struct SavedSearchesScreen: View {
                                 store.apply(item)
                                 alertTitle = "Alkalmazva"
                                 alertMessage = item.filter.summary
-                                pendingDeleteId = nil
                                 showAlert = true
                             } label: {
                                 VStack(spacing: 8) {
