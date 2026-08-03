@@ -6,17 +6,37 @@ final class SearchStore: ObservableObject {
     @Published var filter = SearchFilter()
     @Published var saved: [SavedSearch] = []
 
-    private let storageKey = "addelautod.savedSearches.v1"
+    private let storageKey = "addelautod.savedSearches.v2"
 
     init() {
         load()
     }
 
-    func setBrand(_ brand: String?) {
-        if brand != filter.gyartmany {
-            filter.modell = nil
+    func setBrand(_ brand: String, on: Bool) {
+        var list = filter.gyartmanyok
+        if on {
+            if !list.contains(brand) { list.append(brand) }
+        } else {
+            list.removeAll { $0 == brand }
         }
-        filter.gyartmany = brand
+        list.sort()
+        filter.gyartmanyok = list
+        // Modell csak akkor marad, ha még van hozzá tartozó bekapcsolt márka
+        if let modell = filter.modell {
+            let stillValid = list.contains { brand in
+                (Catalog.brands[brand] ?? []).contains(modell)
+            }
+            if !stillValid { filter.modell = nil }
+        }
+    }
+
+    func clearBrands() {
+        filter.gyartmanyok = []
+        filter.modell = nil
+    }
+
+    func isBrandOn(_ brand: String) -> Bool {
+        filter.gyartmanyok.contains(brand)
     }
 
     func setModel(_ model: String?) {

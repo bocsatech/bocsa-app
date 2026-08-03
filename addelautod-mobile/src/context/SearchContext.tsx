@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { SAVED_ICONS } from "../data/catalog";
+import { BRANDS, SAVED_ICONS } from "../data/catalog";
 import { loadSavedSearches, persistSavedSearches } from "../storage/savedSearches";
 import {
   emptyFilter,
@@ -21,7 +21,8 @@ import {
 type SearchContextValue = {
   filter: SearchFilter;
   saved: SavedSearch[];
-  setBrand: (brand: string | null) => void;
+  setBrand: (brand: string, on: boolean) => void;
+  clearBrands: () => void;
   setModel: (model: string | null) => void;
   setFuel: (fuel: FuelType) => void;
   setPrice: (arTol: number | null, arIg: number | null) => void;
@@ -48,12 +49,26 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     void persistSavedSearches(saved);
   }, [saved]);
 
-  const setBrand = useCallback((brand: string | null) => {
-    setFilter((prev) => ({
-      ...prev,
-      gyartmany: brand,
-      modell: brand === prev.gyartmany ? prev.modell : null,
-    }));
+  const setBrand = useCallback((brand: string, on: boolean) => {
+    setFilter((prev) => {
+      let list = [...prev.gyartmanyok];
+      if (on) {
+        if (!list.includes(brand)) list.push(brand);
+      } else {
+        list = list.filter((b) => b !== brand);
+      }
+      list.sort();
+      let modell = prev.modell;
+      if (modell) {
+        const still = list.some((b) => (BRANDS[b] ?? []).includes(modell!));
+        if (!still) modell = null;
+      }
+      return { ...prev, gyartmanyok: list, modell };
+    });
+  }, []);
+
+  const clearBrands = useCallback(() => {
+    setFilter((prev) => ({ ...prev, gyartmanyok: [], modell: null }));
   }, []);
 
   const setModel = useCallback((model: string | null) => {
@@ -118,6 +133,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       filter,
       saved,
       setBrand,
+      clearBrands,
       setModel,
       setFuel,
       setPrice,
@@ -133,6 +149,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       filter,
       saved,
       setBrand,
+      clearBrands,
       setModel,
       setFuel,
       setPrice,

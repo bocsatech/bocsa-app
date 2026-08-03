@@ -13,7 +13,7 @@ export type ExtraKey =
   | "klima";
 
 export type SearchFilter = {
-  gyartmany: string | null;
+  gyartmanyok: string[];
   modell: string | null;
   fuel: FuelType;
   arTol: number | null;
@@ -52,7 +52,7 @@ export type FeaturedAd = {
 
 export function emptyFilter(): SearchFilter {
   return {
-    gyartmany: null,
+    gyartmanyok: [],
     modell: null,
     fuel: null,
     arTol: null,
@@ -69,9 +69,17 @@ export function countActiveExtras(filter: SearchFilter): number {
   return Object.values(filter.extras).filter(Boolean).length;
 }
 
+export function brandLabel(filter: SearchFilter): string {
+  const list = filter.gyartmanyok;
+  if (!list.length) return "Mindegy";
+  if (list.length === 1) return list[0];
+  if (list.length <= 3) return list.join(", ");
+  return `${list.length} márka`;
+}
+
 export function summarizeFilter(filter: SearchFilter): string {
   const parts: string[] = [];
-  if (filter.gyartmany) parts.push(filter.gyartmany);
+  if (filter.gyartmanyok.length) parts.push(brandLabel(filter));
   if (filter.modell) parts.push(filter.modell);
   if (filter.fuel) parts.push(fuelLabel(filter.fuel));
   if (filter.arIg != null) parts.push(`– ${formatPrice(filter.arIg)}`);

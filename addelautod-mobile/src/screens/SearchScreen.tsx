@@ -24,6 +24,7 @@ import {
   countActiveExtras,
   formatPrice,
   fuelLabel,
+  brandLabel,
   summarizeFilter,
 } from "../types";
 import { colors, radii, spacing } from "../theme";
@@ -46,6 +47,7 @@ export default function SearchScreen() {
   const {
     filter,
     setBrand,
+    clearBrands,
     setModel,
     setFuel,
     setPrice,
@@ -66,7 +68,21 @@ export default function SearchScreen() {
     return brandNames.filter((b) => b.toLowerCase().includes(q));
   }, [brandNames, query]);
 
-  const models = filter.gyartmany ? BRANDS[filter.gyartmany] ?? [] : [];
+  const models = useMemo(() => {
+    const brands = filter.gyartmanyok;
+    if (!brands.length) return [] as string[];
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const b of brands) {
+      for (const m of BRANDS[b] ?? []) {
+        if (!seen.has(m)) {
+          seen.add(m);
+          out.push(m);
+        }
+      }
+    }
+    return out.sort();
+  }, [filter.gyartmanyok]);
 
   const priceValue =
     filter.arTol == null && filter.arIg == null
@@ -117,7 +133,7 @@ export default function SearchScreen() {
   if (panel === "brand") {
     return (
       <View style={styles.page}>
-        <ScreenHeader title="Márka" onBack={goBack} />
+        <ScreenHeader title="Márka" onBack={goBack} rightLabel="Kész" onRightPress={goBack} />
         <TextInput
           value={query}
           onChangeText={setQuery}
@@ -129,29 +145,19 @@ export default function SearchScreen() {
           clearButtonMode="while-editing"
         />
         <ScrollView contentContainerStyle={styles.pad}>
+          <Text style={styles.sectionLabel}>Kapcsolók — több márka is</Text>
+          <Pressable onPress={clearBrands} style={{ marginBottom: 12, marginLeft: 4 }}>
+            <Text style={{ color: colors.accent, fontWeight: "500" }}>Összes kikapcsolása</Text>
+          </Pressable>
           <Group>
-            <SettingsRow
-              title="Mindegy"
-              isFirst
-              isLast={!filteredBrands.length}
-              showChevron={false}
-              value={!filter.gyartmany ? "✓" : undefined}
-              onPress={() => {
-                setBrand(null);
-                goBack();
-              }}
-            />
             {filteredBrands.map((brand, i) => (
-              <SettingsRow
+              <ToggleRow
                 key={brand}
                 title={brand}
+                value={filter.gyartmanyok.includes(brand)}
+                onValueChange={(on) => setBrand(brand, on)}
+                isFirst={i === 0}
                 isLast={i === filteredBrands.length - 1}
-                showChevron={false}
-                value={filter.gyartmany === brand ? "✓" : undefined}
-                onPress={() => {
-                  setBrand(brand);
-                  goBack();
-                }}
               />
             ))}
           </Group>
@@ -165,12 +171,12 @@ export default function SearchScreen() {
       <View style={styles.page}>
         <ScreenHeader
           title="Modell"
-          subtitle={filter.gyartmany ?? "Válassz márkát"}
+          subtitle={filter.gyartmanyok.length ? brandLabel(filter) : "Válassz márkát"}
           onBack={goBack}
         />
         <ScrollView contentContainerStyle={styles.pad}>
-          {!filter.gyartmany ? (
-            <Text style={styles.empty}>Előbb válassz márkát.</Text>
+          {!filter.gyartmanyok.length ? (
+            <Text style={styles.empty}>Előbb kapcsolj be legalább egy márkát.</Text>
           ) : (
             <Group>
               <SettingsRow
@@ -385,7 +391,7 @@ export default function SearchScreen() {
         <Group>
           <SettingsRow
             title="Márka"
-            value={filter.gyartmany ?? "Mindegy"}
+            value={brandLabel(filter)}
             isFirst
             onPress={() => setPanel("brand")}
           />
@@ -425,9 +431,7 @@ export default function SearchScreen() {
           <Text style={styles.primaryBtnText}>Mentés ikonra (4. oldal)</Text>
         </Pressable>
 
-        <Text style={styles.hint}>
-          Márka / modell: almenü → választás → visszalépés. Extrák: kapcsoló.
-        </Text>
+        <Text style={styles.hint}>Márka: több is bekapcsolható. Extrák: kapcsoló.</Text>
       </ScrollView>
     </View>
   );

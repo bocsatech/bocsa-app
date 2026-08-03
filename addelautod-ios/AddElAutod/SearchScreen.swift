@@ -67,11 +67,15 @@ struct SearchScreen: View {
                 rootHeader
                 rootList
             case .brand:
-                ScreenHeader(title: "Márka", onBack: goRoot)
+                ScreenHeader(title: "Márka", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
                 brandSearchField
                 brandList
             case .model:
-                ScreenHeader(title: "Modell", subtitle: store.filter.gyartmany ?? "Válassz márkát", onBack: goRoot)
+                ScreenHeader(
+                    title: "Modell",
+                    subtitle: store.filter.gyartmanyok.isEmpty ? "Válassz márkát" : store.filter.brandLabel,
+                    onBack: goRoot
+                )
                 modelList
             case .fuel:
                 ScreenHeader(title: "Üzemanyag", onBack: goRoot)
@@ -110,7 +114,7 @@ struct SearchScreen: View {
             VStack(alignment: .leading, spacing: 16) {
                 SectionLabel(text: "Jármű")
                 SettingsGroup {
-                    SettingsRow(title: "Márka", value: store.filter.gyartmany ?? "Mindegy") {
+                    SettingsRow(title: "Márka", value: store.filter.brandLabel) {
                         panel = .brand
                     }
                     Divider().padding(.leading, 16)
@@ -163,7 +167,7 @@ struct SearchScreen: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
 
-                Text("Márka / modell: almenü → választás → visszalépés. Extrák: kapcsoló.")
+                Text("Márka: több is bekapcsolható. Extrák: kapcsoló.")
                     .font(.footnote)
                     .foregroundStyle(AppTheme.textTertiary)
                     .multilineTextAlignment(.center)
@@ -192,16 +196,28 @@ struct SearchScreen: View {
 
     private var brandList: some View {
         ScrollView {
-            SettingsGroup {
-                choiceRow("Mindegy", selected: store.filter.gyartmany == nil) {
-                    store.setBrand(nil)
-                    goRoot()
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Kapcsolók — több márka is")
+                Button {
+                    store.clearBrands()
+                } label: {
+                    Text("Összes kikapcsolása")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.accent)
+                        .padding(.leading, 4)
                 }
-                ForEach(filteredBrands, id: \.self) { brand in
-                    Divider().padding(.leading, 16)
-                    choiceRow(brand, selected: store.filter.gyartmany == brand) {
-                        store.setBrand(brand)
-                        goRoot()
+                .buttonStyle(.plain)
+
+                SettingsGroup {
+                    ForEach(Array(filteredBrands.enumerated()), id: \.element) { index, brand in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(brand, isOn: Binding(
+                            get: { store.isBrandOn(brand) },
+                            set: { store.setBrand(brand, on: $0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
                     }
                 }
             }
@@ -209,15 +225,30 @@ struct SearchScreen: View {
         }
     }
 
+    private var availableModels: [String] {
+        let brands = store.filter.gyartmanyok
+        guard !brands.isEmpty else { return [] }
+        var seen = Set<String>()
+        var out: [String] = []
+        for brand in brands {
+            for model in Catalog.brands[brand] ?? [] {
+                if seen.insert(model).inserted {
+                    out.append(model)
+                }
+            }
+        }
+        return out.sorted()
+    }
+
     private var modelList: some View {
         ScrollView {
-            if store.filter.gyartmany == nil {
-                Text("Előbb válassz márkát.")
+            if store.filter.gyartmanyok.isEmpty {
+                Text("Előbb kapcsolj be legalább egy márkát.")
                     .foregroundStyle(AppTheme.textSecondary)
                     .padding(.top, 40)
                     .frame(maxWidth: .infinity)
             } else {
-                let models = Catalog.brands[store.filter.gyartmany!] ?? []
+                let models = availableModels
                 SettingsGroup {
                     choiceRow("Mindegy", selected: store.filter.modell == nil) {
                         store.setModel(nil)
