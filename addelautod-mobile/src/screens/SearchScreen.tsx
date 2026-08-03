@@ -16,7 +16,7 @@ import {
   EXTRA_OPTIONS,
   FUEL_OPTIONS,
   KM_PRESETS,
-  PRICE_PRESETS,
+  PRICE_STEPS,
   YEAR_PRESETS,
 } from "../data/catalog";
 import { useSearch } from "../context/SearchContext";
@@ -36,6 +36,8 @@ type Panel =
   | "model"
   | "fuel"
   | "price"
+  | "priceMin"
+  | "priceMax"
   | "year"
   | "km"
   | "extras";
@@ -241,27 +243,72 @@ export default function SearchScreen() {
   if (panel === "price") {
     return (
       <View style={styles.page}>
-        <ScreenHeader title="Ár" onBack={goBack} />
+        <ScreenHeader title="Ár" onBack={goBack} rightLabel="Kész" onRightPress={goBack} />
+        <ScrollView contentContainerStyle={styles.pad}>
+          <Text style={styles.sectionLabel}>Lépésköz: 500 000 Ft</Text>
+          <Group>
+            <SettingsRow
+              title="Minimum"
+              value={filter.arTol == null ? "Mindegy" : formatPrice(filter.arTol)}
+              isFirst
+              onPress={() => setPanel("priceMin")}
+            />
+            <SettingsRow
+              title="Maximum"
+              value={filter.arIg == null ? "Mindegy" : formatPrice(filter.arIg)}
+              isLast
+              onPress={() => setPanel("priceMax")}
+            />
+          </Group>
+          <Pressable
+            onPress={() => setPrice(null, null)}
+            style={{ marginTop: 12, marginLeft: 4 }}
+          >
+            <Text style={{ color: colors.accent, fontWeight: "500" }}>Ár szűrő törlése</Text>
+          </Pressable>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  if (panel === "priceMin" || panel === "priceMax") {
+    const isMin = panel === "priceMin";
+    const current = isMin ? filter.arTol : filter.arIg;
+    return (
+      <View style={styles.page}>
+        <ScreenHeader
+          title={isMin ? "Minimum ár" : "Maximum ár"}
+          onBack={() => setPanel("price")}
+          rightLabel="Kész"
+          onRightPress={() => setPanel("price")}
+        />
         <ScrollView contentContainerStyle={styles.pad}>
           <Group>
-            {PRICE_PRESETS.map((preset, i) => {
-              const selected =
-                filter.arTol === preset.arTol && filter.arIg === preset.arIg;
-              return (
-                <SettingsRow
-                  key={preset.label}
-                  title={preset.label}
-                  isFirst={i === 0}
-                  isLast={i === PRICE_PRESETS.length - 1}
-                  showChevron={false}
-                  value={selected ? "✓" : undefined}
-                  onPress={() => {
-                    setPrice(preset.arTol, preset.arIg);
-                    goBack();
-                  }}
-                />
-              );
-            })}
+            <SettingsRow
+              title="Mindegy"
+              isFirst
+              showChevron={false}
+              value={current == null ? "✓" : undefined}
+              onPress={() => {
+                if (isMin) setPrice(null, filter.arIg);
+                else setPrice(filter.arTol, null);
+                setPanel("price");
+              }}
+            />
+            {PRICE_STEPS.map((value, i) => (
+              <SettingsRow
+                key={value}
+                title={formatPrice(value)}
+                isLast={i === PRICE_STEPS.length - 1}
+                showChevron={false}
+                value={current === value ? "✓" : undefined}
+                onPress={() => {
+                  if (isMin) setPrice(value, filter.arIg);
+                  else setPrice(filter.arTol, value);
+                  setPanel("price");
+                }}
+              />
+            ))}
           </Group>
         </ScrollView>
       </View>
