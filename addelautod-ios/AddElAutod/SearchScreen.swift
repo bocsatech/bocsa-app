@@ -730,6 +730,14 @@ struct SearchScreen: View {
         return "\(store.filter.brandLabel) · \(store.filter.modelLabel)"
     }
 
+    private var allapotValue: String {
+        let list = store.filter.allapotok
+        if list.isEmpty { return "Mindegy" }
+        if list.count == 1 { return list[0] }
+        if list.count <= 3 { return list.joined(separator: ", ") }
+        return "\(list.count) állapot"
+    }
+
     private var fuelList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {

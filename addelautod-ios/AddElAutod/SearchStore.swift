@@ -143,12 +143,11 @@ final class SearchStore: ObservableObject {
     }
 
     func setYear(tol: Int?, ig: Int?) {
-        var t = tol
         var i = ig
-        if let tVal = t, let iVal = i, tVal > iVal {
+        if let tVal = tol, let iVal = i, tVal > iVal {
             i = tVal
         }
-        filter.evTol = t
+        filter.evTol = tol
         filter.evIg = i
     }
 
@@ -161,12 +160,11 @@ final class SearchStore: ObservableObject {
     }
 
     func setKm(tol: Int?, ig: Int?) {
-        var t = tol
         var i = ig
-        if let tVal = t, let iVal = i, tVal > iVal {
+        if let tVal = tol, let iVal = i, tVal > iVal {
             i = tVal
         }
-        filter.kmTol = t
+        filter.kmTol = tol
         filter.kmIg = i
     }
 
