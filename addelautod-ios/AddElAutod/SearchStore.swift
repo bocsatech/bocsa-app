@@ -6,7 +6,7 @@ final class SearchStore: ObservableObject {
     @Published var filter = SearchFilter()
     @Published var saved: [SavedSearch] = []
 
-    private let storageKey = "addelautod.savedSearches.v2"
+    private let storageKey = "addelautod.savedSearches.v3"
 
     init() {
         load()
@@ -21,26 +21,39 @@ final class SearchStore: ObservableObject {
         }
         list.sort()
         filter.gyartmanyok = list
-        // Modell csak akkor marad, ha még van hozzá tartozó bekapcsolt márka
-        if let modell = filter.modell {
-            let stillValid = list.contains { brand in
-                (Catalog.brands[brand] ?? []).contains(modell)
-            }
-            if !stillValid { filter.modell = nil }
-        }
+        pruneModels()
     }
 
     func clearBrands() {
         filter.gyartmanyok = []
-        filter.modell = nil
+        filter.modellek = []
     }
 
     func isBrandOn(_ brand: String) -> Bool {
         filter.gyartmanyok.contains(brand)
     }
 
-    func setModel(_ model: String?) {
-        filter.modell = model
+    func setModel(_ model: String, on: Bool) {
+        var list = filter.modellek
+        if on {
+            if !list.contains(model) { list.append(model) }
+        } else {
+            list.removeAll { $0 == model }
+        }
+        filter.modellek = list.sorted()
+    }
+
+    func clearModels() {
+        filter.modellek = []
+    }
+
+    func isModelOn(_ model: String) -> Bool {
+        filter.modellek.contains(model)
+    }
+
+    private func pruneModels() {
+        let allowed = Set(filter.gyartmanyok.flatMap { Catalog.brands[$0] ?? [] })
+        filter.modellek = filter.modellek.filter { allowed.contains($0) }
     }
 
     func setFuel(_ fuel: FuelType, on: Bool) {

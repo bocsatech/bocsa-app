@@ -74,7 +74,9 @@ struct SearchScreen: View {
                 ScreenHeader(
                     title: "Modell",
                     subtitle: store.filter.gyartmanyok.isEmpty ? "Válassz márkát" : store.filter.brandLabel,
-                    onBack: goRoot
+                    onBack: goRoot,
+                    rightLabel: "Kész",
+                    onRight: goRoot
                 )
                 modelList
             case .fuel:
@@ -118,7 +120,7 @@ struct SearchScreen: View {
                         panel = .brand
                     }
                     Divider().padding(.leading, 16)
-                    SettingsRow(title: "Modell", value: store.filter.modell ?? "Mindegy") {
+                    SettingsRow(title: "Modell", value: store.filter.modelLabel) {
                         panel = .model
                     }
                 }
@@ -249,16 +251,28 @@ struct SearchScreen: View {
                     .frame(maxWidth: .infinity)
             } else {
                 let models = availableModels
-                SettingsGroup {
-                    choiceRow("Mindegy", selected: store.filter.modell == nil) {
-                        store.setModel(nil)
-                        goRoot()
+                VStack(alignment: .leading, spacing: 8) {
+                    SectionLabel(text: "Kapcsolók — több modell is")
+                    Button {
+                        store.clearModels()
+                    } label: {
+                        Text("Összes kikapcsolása")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.leading, 4)
                     }
-                    ForEach(models, id: \.self) { model in
-                        Divider().padding(.leading, 16)
-                        choiceRow(model, selected: store.filter.modell == model) {
-                            store.setModel(model)
-                            goRoot()
+                    .buttonStyle(.plain)
+
+                    SettingsGroup {
+                        ForEach(Array(models.enumerated()), id: \.element) { index, model in
+                            if index > 0 { Divider().padding(.leading, 16) }
+                            Toggle(model, isOn: Binding(
+                                get: { store.isModelOn(model) },
+                                set: { store.setModel(model, on: $0) }
+                            ))
+                            .tint(Color.green)
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 52)
                         }
                     }
                 }

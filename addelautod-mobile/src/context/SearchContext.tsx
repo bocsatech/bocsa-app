@@ -23,7 +23,8 @@ type SearchContextValue = {
   saved: SavedSearch[];
   setBrand: (brand: string, on: boolean) => void;
   clearBrands: () => void;
-  setModel: (model: string | null) => void;
+  setModel: (model: string, on: boolean) => void;
+  clearModels: () => void;
   setFuel: (fuel: NonNullable<FuelType>, on: boolean) => void;
   clearFuels: () => void;
   setPrice: (arTol: number | null, arIg: number | null) => void;
@@ -59,21 +60,33 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         list = list.filter((b) => b !== brand);
       }
       list.sort();
-      let modell = prev.modell;
-      if (modell) {
-        const still = list.some((b) => (BRANDS[b] ?? []).includes(modell!));
-        if (!still) modell = null;
-      }
-      return { ...prev, gyartmanyok: list, modell };
+      const allowed = new Set(list.flatMap((b) => BRANDS[b] ?? []));
+      return {
+        ...prev,
+        gyartmanyok: list,
+        modellek: prev.modellek.filter((m) => allowed.has(m)),
+      };
     });
   }, []);
 
   const clearBrands = useCallback(() => {
-    setFilter((prev) => ({ ...prev, gyartmanyok: [], modell: null }));
+    setFilter((prev) => ({ ...prev, gyartmanyok: [], modellek: [] }));
   }, []);
 
-  const setModel = useCallback((model: string | null) => {
-    setFilter((prev) => ({ ...prev, modell: model }));
+  const setModel = useCallback((model: string, on: boolean) => {
+    setFilter((prev) => {
+      let list = [...prev.modellek];
+      if (on) {
+        if (!list.includes(model)) list.push(model);
+      } else {
+        list = list.filter((m) => m !== model);
+      }
+      return { ...prev, modellek: list.sort() };
+    });
+  }, []);
+
+  const clearModels = useCallback(() => {
+    setFilter((prev) => ({ ...prev, modellek: [] }));
   }, []);
 
   const setFuel = useCallback((fuel: NonNullable<FuelType>, on: boolean) => {
@@ -155,6 +168,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       setBrand,
       clearBrands,
       setModel,
+      clearModels,
       setFuel,
       clearFuels,
       setPrice,
@@ -172,6 +186,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       setBrand,
       clearBrands,
       setModel,
+      clearModels,
       setFuel,
       clearFuels,
       setPrice,

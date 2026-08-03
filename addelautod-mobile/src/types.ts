@@ -14,7 +14,7 @@ export type ExtraKey =
 
 export type SearchFilter = {
   gyartmanyok: string[];
-  modell: string | null;
+  modellek: string[];
   fuels: NonNullable<FuelType>[];
   arTol: number | null;
   arIg: number | null;
@@ -53,7 +53,7 @@ export type FeaturedAd = {
 export function emptyFilter(): SearchFilter {
   return {
     gyartmanyok: [],
-    modell: null,
+    modellek: [],
     fuels: [],
     arTol: null,
     arIg: null,
@@ -67,6 +67,14 @@ export function emptyFilter(): SearchFilter {
 
 export function countActiveExtras(filter: SearchFilter): number {
   return Object.values(filter.extras).filter(Boolean).length;
+}
+
+export function modelLabel(filter: SearchFilter): string {
+  const list = filter.modellek;
+  if (!list.length) return "Mindegy";
+  if (list.length === 1) return list[0];
+  if (list.length <= 3) return list.join(", ");
+  return `${list.length} modell`;
 }
 
 export function brandLabel(filter: SearchFilter): string {
@@ -88,7 +96,7 @@ export function fuelFilterLabel(filter: SearchFilter): string {
 export function summarizeFilter(filter: SearchFilter): string {
   const parts: string[] = [];
   if (filter.gyartmanyok.length) parts.push(brandLabel(filter));
-  if (filter.modell) parts.push(filter.modell);
+  if (filter.modellek.length) parts.push(modelLabel(filter));
   if (filter.fuels.length) parts.push(fuelFilterLabel(filter));
   if (filter.arIg != null) parts.push(`– ${formatPrice(filter.arIg)}`);
   if (filter.arTol != null && filter.arIg == null) parts.push(`${formatPrice(filter.arTol)} –`);

@@ -42,7 +42,8 @@ enum ExtraKey: String, Codable, CaseIterable, Identifiable {
 struct SearchFilter: Codable, Equatable {
     /// Több márka — kapcsolókkal (nem pipa).
     var gyartmanyok: [String] = []
-    var modell: String? = nil
+    /// Több modell — kapcsolókkal.
+    var modellek: [String] = []
     /// Több üzemanyag — kapcsolókkal.
     var fuels: [FuelType] = []
     var arTol: Int? = nil
@@ -64,6 +65,13 @@ struct SearchFilter: Codable, Equatable {
         return "\(gyartmanyok.count) márka"
     }
 
+    var modelLabel: String {
+        if modellek.isEmpty { return "Mindegy" }
+        if modellek.count == 1 { return modellek[0] }
+        if modellek.count <= 3 { return modellek.joined(separator: ", ") }
+        return "\(modellek.count) modell"
+    }
+
     var fuelLabel: String {
         if fuels.isEmpty { return "Mindegy" }
         if fuels.count == 1 { return fuels[0].label }
@@ -74,7 +82,7 @@ struct SearchFilter: Codable, Equatable {
     var summary: String {
         var parts: [String] = []
         if !gyartmanyok.isEmpty { parts.append(brandLabel) }
-        if let m = modell { parts.append(m) }
+        if !modellek.isEmpty { parts.append(modelLabel) }
         if !fuels.isEmpty { parts.append(fuelLabel) }
         if let ig = arIg { parts.append("– \(Self.formatPrice(ig))") }
         else if let tol = arTol { parts.append("\(Self.formatPrice(tol)) –") }

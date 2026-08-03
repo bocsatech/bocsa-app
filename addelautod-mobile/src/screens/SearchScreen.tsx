@@ -25,6 +25,7 @@ import {
   formatPrice,
   fuelLabel,
   brandLabel,
+  modelLabel,
   fuelFilterLabel,
   summarizeFilter,
 } from "../types";
@@ -56,6 +57,7 @@ export default function SearchScreen() {
     setBrand,
     clearBrands,
     setModel,
+    clearModels,
     setFuel,
     clearFuels,
     setPrice,
@@ -181,37 +183,31 @@ export default function SearchScreen() {
           title="Modell"
           subtitle={filter.gyartmanyok.length ? brandLabel(filter) : "Válassz márkát"}
           onBack={goBack}
+          rightLabel="Kész"
+          onRightPress={goBack}
         />
         <ScrollView contentContainerStyle={styles.pad}>
           {!filter.gyartmanyok.length ? (
             <Text style={styles.empty}>Előbb kapcsolj be legalább egy márkát.</Text>
           ) : (
-            <Group>
-              <SettingsRow
-                title="Mindegy"
-                isFirst
-                isLast={!models.length}
-                showChevron={false}
-                value={!filter.modell ? "✓" : undefined}
-                onPress={() => {
-                  setModel(null);
-                  goBack();
-                }}
-              />
-              {models.map((model, i) => (
-                <SettingsRow
-                  key={model}
-                  title={model}
-                  isLast={i === models.length - 1}
-                  showChevron={false}
-                  value={filter.modell === model ? "✓" : undefined}
-                  onPress={() => {
-                    setModel(model);
-                    goBack();
-                  }}
-                />
-              ))}
-            </Group>
+            <>
+              <Text style={styles.sectionLabel}>Kapcsolók — több modell is</Text>
+              <Pressable onPress={clearModels} style={{ marginBottom: 12, marginLeft: 4 }}>
+                <Text style={{ color: colors.accent, fontWeight: "500" }}>Összes kikapcsolása</Text>
+              </Pressable>
+              <Group>
+                {models.map((model, i) => (
+                  <ToggleRow
+                    key={model}
+                    title={model}
+                    value={filter.modellek.includes(model)}
+                    onValueChange={(on) => setModel(model, on)}
+                    isFirst={i === 0}
+                    isLast={i === models.length - 1}
+                  />
+                ))}
+              </Group>
+            </>
           )}
         </ScrollView>
       </View>
@@ -531,7 +527,7 @@ export default function SearchScreen() {
           />
           <SettingsRow
             title="Modell"
-            value={filter.modell ?? "Mindegy"}
+            value={modelLabel(filter)}
             isLast
             onPress={() => setPanel("model")}
           />
