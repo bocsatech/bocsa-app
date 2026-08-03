@@ -1,40 +1,36 @@
 #!/bin/bash
-# Telepíti az Add el autod Xcode projektet ide:
-#   ~/Downloads/autosapp
-# Majd megnyitja Xcode-ban.
-set -euo pipefail
+# Egyszerű telepítő: ~/Downloads/autosapp + Xcode megnyitás
+set -e
 
-DEST="${HOME}/Downloads/autosapp"
+DEST="$HOME/Downloads/autosapp"
 BRANCH="cursor/addelautod-mobile-de62"
 REPO="https://github.com/bocsatech/bocsa-app.git"
-TMP="$(mktemp -d /tmp/autosapp-XXXXXX)"
+TMP="$HOME/Downloads/autosapp-tmp-clone"
 
-cleanup() { rm -rf "$TMP"; }
-trap cleanup EXIT
-
-echo "→ Mappa: $DEST"
+echo "1) Mappa: $DEST"
+mkdir -p "$HOME/Downloads"
+rm -rf "$TMP"
+rm -rf "$DEST"
 mkdir -p "$DEST"
 
-echo "→ Letöltés GitHubról ($BRANCH)…"
-git clone --depth 1 --branch "$BRANCH" "$REPO" "$TMP/repo"
+echo "2) GitHub letöltés..."
+if ! command -v git >/dev/null 2>&1; then
+  echo "HIBA: nincs git. Telepítsd: xcode-select --install"
+  exit 1
+fi
 
-echo "→ Másolás → $DEST"
-# Ürítjük a célmappát (megtartjuk magát a mappát), majd bemásoljuk az iOS projektet
-find "$DEST" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-cp -R "$TMP/repo/addelautod-ios/." "$DEST/"
+git clone --depth 1 --branch "$BRANCH" "$REPO" "$TMP"
 
-# Jelölő, hogy honnan jött
-cat > "$DEST/HONNAN.txt" <<EOF
-Add el autod — iOS (Xcode)
-Forrás: $REPO
-Ág: $BRANCH
-Telepítve: $(date)
-Megnyitás: AddElAutod.xcodeproj
-EOF
+echo "3) Másolás..."
+cp -R "$TMP/addelautod-ios/AddElAutod" "$DEST/"
+cp -R "$TMP/addelautod-ios/AddElAutod.xcodeproj" "$DEST/"
+cp "$TMP/addelautod-ios/README.md" "$DEST/" 2>/dev/null || true
+rm -rf "$TMP"
 
-echo "→ Xcode megnyitása…"
-open "$DEST/AddElAutod.xcodeproj"
+echo "4) Xcode..."
+open "$DEST/AddElAutod.xcodeproj" || open -a Xcode "$DEST/AddElAutod.xcodeproj"
 
 echo ""
-echo "Kész. Projekt: $DEST/AddElAutod.xcodeproj"
-echo "Xcode-ban: iPhone Simulator → ▶ Run (Cmd+R)"
+echo "KESZ: $DEST"
+echo "Finder: Letoltesek -> autosapp -> AddElAutod.xcodeproj"
+echo "Xcode: felul iPhone Simulator, majd Cmd+R"

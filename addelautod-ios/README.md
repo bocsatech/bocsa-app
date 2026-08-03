@@ -1,29 +1,37 @@
-# Hol van a projekt? → ~/Downloads/autosapp
+# Add el autod — iOS (Xcode)
 
-A Macen a telepítő ide másol mindent:
+## Hol legyen a Macen?
 
-```
-~/Downloads/autosapp/
-  AddElAutod.xcodeproj   ← ezt nyisd meg Xcode-ban
-  AddElAutod/
-  README.md
-  HONNAN.txt
-```
+**Letöltések → autosapp** = `~/Downloads/autosapp`
 
-## Telepítés (egyszer a Maceden)
+---
 
-Terminálba másold be **egyetlen** blokként:
+## A) Terminál (ajánlott) — másold be EGÉSZBEN
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/bocsatech/bocsa-app/cursor/addelautod-mobile-de62/addelautod-ios/mac/Telepit-Downloads-autosapp.command" -o /tmp/telepit-autosapp.command && chmod +x /tmp/telepit-autosapp.command && /tmp/telepit-autosapp.command
+mkdir -p ~/Downloads && cd ~/Downloads && rm -rf autosapp autosapp-tmp && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git autosapp-tmp && mkdir autosapp && cp -R autosapp-tmp/addelautod-ios/AddElAutod autosapp/ && cp -R autosapp-tmp/addelautod-ios/AddElAutod.xcodeproj autosapp/ && rm -rf autosapp-tmp && open ~/Downloads/autosapp/AddElAutod.xcodeproj && echo "KESZ: ~/Downloads/autosapp"
 ```
 
-Ez:
-1. létrehozza a `~/Downloads/autosapp` mappát
-2. oda másolja az Xcode projektet
-3. megnyitja Xcode-ban
+Ha hibát ír: másold ki a piros szöveget.
 
-## Utána
+---
 
-Finder → **Letöltések → autosapp → AddElAutod.xcodeproj**  
-vagy Xcode: iPhone Simulator → ▶ Run
+## B) ZIP böngészőből
+
+1. Nyisd meg: https://github.com/bocsatech/bocsa-app/raw/cursor/addelautod-mobile-de62/addelautod-ios/dist/AddElAutod-Xcode.zip
+2. Mentés → Letöltések
+3. Dupla katt a ZIP-re (kicsomagol)
+4. A kicsomagolt mappában: **AddElAutod.xcodeproj** → dupla katt
+5. (Opcionális) húzd át a tartalmat `Letöltések/autosapp` alá
+
+---
+
+## Xcode futtatás
+
+1. Felül válaszd: **iPhone 16** (Simulator)
+2. **Product → Run** vagy **Cmd+R**
+3. Ha Signing hiba: Target **AddElAutod** → Signing → pipa Automatic → Team: saját Apple ID
+
+---
+
+4 oldal: Hírfolyam | Kiemeltek | Keresés | Mentett — húzd oldalra.
