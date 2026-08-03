@@ -16,35 +16,10 @@ enum FuelType: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-enum ExtraKey: String, Codable, CaseIterable, Identifiable {
-    case klima, automata, tempomat, osszker, alufelni
-    case elektromosAblak = "elektromos_ablak"
-    case vonohorog, isofix, esp, szervizkonyv
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .klima: return "Klíma"
-        case .automata: return "Automata váltó"
-        case .tempomat: return "Tempomat"
-        case .osszker: return "Összkerék"
-        case .alufelni: return "Alufelni"
-        case .elektromosAblak: return "Elektromos ablak"
-        case .vonohorog: return "Vonóhorog"
-        case .isofix: return "ISOFIX"
-        case .esp: return "ESP"
-        case .szervizkonyv: return "Szervizkönyv"
-        }
-    }
-}
-
 struct SearchFilter: Codable, Equatable {
-    /// Több márka — kapcsolókkal (nem pipa).
+    // MARK: Egyszerű + Alap
     var gyartmanyok: [String] = []
-    /// Több modell — kapcsolókkal.
     var modellek: [String] = []
-    /// Több üzemanyag — kapcsolókkal.
     var fuels: [FuelType] = []
     var arTol: Int? = nil
     var arIg: Int? = nil
@@ -52,10 +27,43 @@ struct SearchFilter: Codable, Equatable {
     var evIg: Int? = nil
     var kmTol: Int? = nil
     var kmIg: Int? = nil
+
+    var allapotok: [String] = []
+    var kiviteles: [String] = []
+    var ajtok: [String] = []
+    var szemelyek: [String] = []
+    var okmanyJellegek: [String] = []
+    var okmanyErvenyesseg: [String] = []
+
+    // MARK: Műszaki
+    var hengerCm3Tol: Int? = nil
+    var hengerCm3Ig: Int? = nil
+    var kwTol: Int? = nil
+    var kwIg: Int? = nil
+    var sebessegvaltok: [String] = []
+    var felezoValto: Bool = false
+    var hajtasok: [String] = []
+    var hengerElrendezesek: [String] = []
+    var szinek: [String] = []
+    var metalfeny: Bool = false
+    var akkumulatorKwhTol: Int? = nil
+    var akkumulatorKwhIg: Int? = nil
+    var hatotavTol: Int? = nil
+    var hatotavIg: Int? = nil
+    var toltoCsatlakozok: [String] = []
+
+    // MARK: Extrák
+    var klima: String? = nil
+    var nemDohanyzo: Bool = false
+    var holgyTulajdonos: Bool = false
+    /// Teljes felszereltség-lista kapcsolói (címke → be/ki)
     var extras: [String: Bool] = [:]
 
     var activeExtrasCount: Int {
         extras.values.filter { $0 }.count
+            + (klima != nil ? 1 : 0)
+            + (nemDohanyzo ? 1 : 0)
+            + (holgyTulajdonos ? 1 : 0)
     }
 
     var brandLabel: String {
@@ -86,6 +94,10 @@ struct SearchFilter: Codable, Equatable {
         if !fuels.isEmpty { parts.append(fuelLabel) }
         if let ig = arIg { parts.append("– \(Self.formatPrice(ig))") }
         else if let tol = arTol { parts.append("\(Self.formatPrice(tol)) –") }
+        if !allapotok.isEmpty { parts.append("állapot") }
+        if !kiviteles.isEmpty { parts.append("kivitel") }
+        if !sebessegvaltok.isEmpty { parts.append("váltó") }
+        if !hajtasok.isEmpty { parts.append("hajtás") }
         if activeExtrasCount > 0 { parts.append("\(activeExtrasCount) extra") }
         return parts.isEmpty ? "Nincs szűrő" : parts.joined(separator: " · ")
     }

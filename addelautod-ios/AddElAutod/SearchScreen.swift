@@ -5,6 +5,7 @@ struct SearchScreen: View {
     @State private var mode: Mode = .landing
     @State private var panel: Panel = .simple
     @State private var listPanel: Panel = .simple
+    @State private var openAccordion: AccordionSection? = nil
     @State private var brandQuery = ""
     @State private var toast: String?
     @State private var activeQuery: ListingQuery?
@@ -14,7 +15,11 @@ struct SearchScreen: View {
     }
 
     private enum Panel {
-        case simple, advanced, brand, model(String), fuel, price, year, km, extras
+        case simple, advanced, brand, model(String), fuel, price, year, km
+    }
+
+    private enum AccordionSection: String {
+        case alap, muszaki, extrak
     }
 
     var body: some View {
@@ -155,9 +160,6 @@ struct SearchScreen: View {
             case .km:
                 ScreenHeader(title: "Futott km", onBack: goList, rightLabel: "Kész", onRight: goList)
                 kmWheels
-            case .extras:
-                ScreenHeader(title: "Extrák", onBack: goList, rightLabel: "Kész", onRight: goList)
-                extrasList
             }
         }
         .background(AppTheme.bgGrouped)
@@ -215,6 +217,7 @@ struct SearchScreen: View {
                 }
 
                 Button {
+                    openAccordion = nil
                     listPanel = .advanced
                     panel = .advanced
                 } label: {
@@ -242,15 +245,32 @@ struct SearchScreen: View {
         }
     }
 
-    /// Részletes: Extrák (+ későbbi további feltételek)
+    /// Részletes: Alap / Műszaki / Extrák — egyszerre egy accordion nyitva
     private var advancedList: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                SectionLabel(text: "További feltételek")
-                SettingsGroup {
-                    SettingsRow(title: "Extrák", value: extrasValue) {
-                        openSubpanel(.extras)
-                    }
+            VStack(alignment: .leading, spacing: 12) {
+                accordionBlock(
+                    section: .alap,
+                    title: "Alap adatok",
+                    summary: alapSummary
+                ) {
+                    alapAccordionBody
+                }
+
+                accordionBlock(
+                    section: .muszaki,
+                    title: "Műszaki adatok",
+                    summary: muszakiSummary
+                ) {
+                    muszakiAccordionBody
+                }
+
+                accordionBlock(
+                    section: .extrak,
+                    title: "Extrák",
+                    summary: extrasValue
+                ) {
+                    extrakAccordionBody
                 }
 
                 activeFilterCard
@@ -259,6 +279,257 @@ struct SearchScreen: View {
             }
             .padding(16)
         }
+    }
+
+    private func accordionBlock<Content: View>(
+        section: AccordionSection,
+        title: String,
+        summary: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        let isOpen = openAccordion == section
+        return VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    openAccordion = isOpen ? nil : section
+                }
+            } label: {
+                HStack {
+                    Text(title)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(AppTheme.text)
+                    Spacer()
+                    if !isOpen, summary != "Mindegy", !summary.isEmpty {
+                        Text(summary)
+                            .font(.footnote)
+                            .foregroundStyle(AppTheme.textSecondary)
+                            .lineLimit(1)
+                    }
+                    Image(systemName: isOpen ? "chevron.up" : "chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(AppTheme.textTertiary)
+                }
+                .padding(.horizontal, 16)
+                .frame(minHeight: 52)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isOpen {
+                Divider().padding(.leading, 16)
+                content()
+                    .padding(.bottom, 8)
+            }
+        }
+        .background(AppTheme.bgElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var alapAccordionBody: some View {
+        VStack(spacing: 0) {
+            SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
+                openSubpanel(.brand)
+            }
+            Divider().padding(.leading, 16)
+            SettingsRow(title: "Évjárat", value: yearValue) {
+                openSubpanel(.year)
+            }
+            Divider().padding(.leading, 16)
+            SettingsRow(title: "Futott km", value: kmValue) {
+                openSubpanel(.km)
+            }
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Állapot",
+                options: DetailedSearchCatalog.allapotok,
+                keyPath: \.allapotok
+            )
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Kivitel",
+                options: DetailedSearchCatalog.kiviteles,
+                keyPath: \.kiviteles
+            )
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Ajtók száma",
+                options: DetailedSearchCatalog.ajtok,
+                keyPath: \.ajtok
+            )
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Szállítható személyek",
+                options: DetailedSearchCatalog.szemelyek,
+                keyPath: \.szemelyek
+            )
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Okmányok jellege",
+                options: DetailedSearchCatalog.okmanyJellegek,
+                keyPath: \.okmanyJellegek
+            )
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Okmányok érvényessége",
+                options: DetailedSearchCatalog.okmanyErvenyesseg,
+                keyPath: \.okmanyErvenyesseg
+            )
+        }
+    }
+
+    private var muszakiAccordionBody: some View {
+        VStack(spacing: 0) {
+            SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
+                openSubpanel(.fuel)
+            }
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Sebességváltó",
+                options: DetailedSearchCatalog.sebessegvaltok,
+                keyPath: \.sebessegvaltok
+            )
+            Divider().padding(.leading, 16)
+            Toggle("Felező váltó", isOn: Binding(
+                get: { store.filter.felezoValto },
+                set: { store.filter.felezoValto = $0 }
+            ))
+            .tint(Color.green)
+            .padding(.horizontal, 16)
+            .frame(minHeight: 48)
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Hajtás",
+                options: DetailedSearchCatalog.hajtasok,
+                keyPath: \.hajtasok
+            )
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Henger-elrendezés",
+                options: DetailedSearchCatalog.hengerElrendezesek,
+                keyPath: \.hengerElrendezesek
+            )
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Szín",
+                options: DetailedSearchCatalog.szinek,
+                keyPath: \.szinek
+            )
+            Divider().padding(.leading, 16)
+            Toggle("Metál fényezés", isOn: Binding(
+                get: { store.filter.metalfeny },
+                set: { store.filter.metalfeny = $0 }
+            ))
+            .tint(Color.green)
+            .padding(.horizontal, 16)
+            .frame(minHeight: 48)
+            Divider().padding(.leading, 16)
+            multiToggleGroup(
+                title: "Töltőcsatlakozó",
+                options: DetailedSearchCatalog.toltoCsatlakozok,
+                keyPath: \.toltoCsatlakozok
+            )
+        }
+    }
+
+    private var extrakAccordionBody: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionLabel(text: "Klíma")
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            ForEach(DetailedSearchCatalog.klimaOptions, id: \.self) { option in
+                Toggle(option, isOn: Binding(
+                    get: { store.filter.klima == option },
+                    set: { on in store.filter.klima = on ? option : nil }
+                ))
+                .tint(Color.green)
+                .padding(.horizontal, 16)
+                .frame(minHeight: 44)
+            }
+
+            Divider().padding(.leading, 16)
+
+            Toggle("Nem dohányzó autó", isOn: Binding(
+                get: { store.filter.nemDohanyzo },
+                set: { store.filter.nemDohanyzo = $0 }
+            ))
+            .tint(Color.green)
+            .padding(.horizontal, 16)
+            .frame(minHeight: 48)
+
+            Toggle("Hölgy tulajdonostól", isOn: Binding(
+                get: { store.filter.holgyTulajdonos },
+                set: { store.filter.holgyTulajdonos = $0 }
+            ))
+            .tint(Color.green)
+            .padding(.horizontal, 16)
+            .frame(minHeight: 48)
+
+            ForEach(DetailedSearchCatalog.equipmentSections, id: \.id) { section in
+                Divider().padding(.leading, 16)
+                SectionLabel(text: section.title)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 6)
+                ForEach(section.items, id: \.self) { item in
+                    Toggle(item, isOn: Binding(
+                        get: { store.isExtraOn(item) },
+                        set: { store.setExtra(item, on: $0) }
+                    ))
+                    .tint(Color.green)
+                    .padding(.horizontal, 16)
+                    .frame(minHeight: 44)
+                }
+            }
+        }
+    }
+
+    private func multiToggleGroup(
+        title: String,
+        options: [String],
+        keyPath: WritableKeyPath<SearchFilter, [String]>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+            ForEach(options, id: \.self) { option in
+                Toggle(option, isOn: Binding(
+                    get: { store.isMultiOn(keyPath, value: option) },
+                    set: { store.toggleMulti(keyPath, value: option, on: $0) }
+                ))
+                .tint(Color.green)
+                .padding(.horizontal, 16)
+                .frame(minHeight: 44)
+            }
+        }
+    }
+
+    private var alapSummary: String {
+        var n = 0
+        if !store.filter.gyartmanyok.isEmpty { n += 1 }
+        if store.filter.evTol != nil || store.filter.evIg != nil { n += 1 }
+        if store.filter.kmTol != nil || store.filter.kmIg != nil { n += 1 }
+        n += store.filter.allapotok.isEmpty ? 0 : 1
+        n += store.filter.kiviteles.isEmpty ? 0 : 1
+        n += store.filter.ajtok.isEmpty ? 0 : 1
+        n += store.filter.szemelyek.isEmpty ? 0 : 1
+        n += store.filter.okmanyJellegek.isEmpty ? 0 : 1
+        n += store.filter.okmanyErvenyesseg.isEmpty ? 0 : 1
+        return n == 0 ? "Mindegy" : "\(n) feltétel"
+    }
+
+    private var muszakiSummary: String {
+        var n = 0
+        if !store.filter.fuels.isEmpty { n += 1 }
+        n += store.filter.sebessegvaltok.isEmpty ? 0 : 1
+        if store.filter.felezoValto { n += 1 }
+        n += store.filter.hajtasok.isEmpty ? 0 : 1
+        n += store.filter.hengerElrendezesek.isEmpty ? 0 : 1
+        n += store.filter.szinek.isEmpty ? 0 : 1
+        if store.filter.metalfeny { n += 1 }
+        n += store.filter.toltoCsatlakozok.isEmpty ? 0 : 1
+        return n == 0 ? "Mindegy" : "\(n) feltétel"
     }
 
     private var activeFilterCard: some View {
@@ -637,31 +908,6 @@ struct SearchScreen: View {
             .labelsHidden()
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private var extrasList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "Kapcsolók — nem pipa")
-                SettingsGroup {
-                    ForEach(Array(ExtraKey.allCases.enumerated()), id: \.element.id) { index, key in
-                        if index > 0 { Divider().padding(.leading, 16) }
-                        Toggle(key.label, isOn: Binding(
-                            get: { store.isExtraOn(key) },
-                            set: { store.setExtra(key, on: $0) }
-                        ))
-                        .tint(Color.green)
-                        .padding(.horizontal, 16)
-                        .frame(minHeight: 52)
-                    }
-                }
-            }
-            .padding(16)
-        }
-    }
-
-    private func choiceRow(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
-        SettingsRow(title: title, value: selected ? "✓" : nil, showChevron: false, action: action)
     }
 
     private func openListing(_ query: ListingQuery) {

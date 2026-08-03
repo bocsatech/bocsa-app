@@ -6,7 +6,7 @@ final class SearchStore: ObservableObject {
     @Published var filter = SearchFilter()
     @Published var saved: [SavedSearch] = []
 
-    private let storageKey = "addelautod.savedSearches.v3"
+    private let storageKey = "addelautod.savedSearches.v4"
 
     init() {
         load()
@@ -180,13 +180,33 @@ final class SearchStore: ObservableObject {
         setKm(tol: filter.kmTol, ig: value)
     }
 
-    func setExtra(_ key: ExtraKey, on: Bool) {
-        filter.extras[key.rawValue] = on
+    func setExtra(_ key: String, on: Bool) {
+        filter.extras[key] = on
     }
 
-    func isExtraOn(_ key: ExtraKey) -> Bool {
-        filter.extras[key.rawValue] == true
+    func isExtraOn(_ key: String) -> Bool {
+        filter.extras[key] == true
     }
+
+    func toggleMulti(_ keyPath: WritableKeyPath<SearchFilter, [String]>, value: String, on: Bool) {
+        var list = filter[keyPath: keyPath]
+        if on {
+            if !list.contains(value) { list.append(value) }
+        } else {
+            list.removeAll { $0 == value }
+        }
+        filter[keyPath: keyPath] = list
+    }
+
+    func isMultiOn(_ keyPath: KeyPath<SearchFilter, [String]>, value: String) -> Bool {
+        filter[keyPath: keyPath].contains(value)
+    }
+
+    func setFelezoValto(_ on: Bool) { filter.felezoValto = on }
+    func setMetalfeny(_ on: Bool) { filter.metalfeny = on }
+    func setNemDohanyzo(_ on: Bool) { filter.nemDohanyzo = on }
+    func setHolgyTulajdonos(_ on: Bool) { filter.holgyTulajdonos = on }
+    func setKlima(_ value: String?) { filter.klima = value }
 
     func reset() {
         filter = SearchFilter()
