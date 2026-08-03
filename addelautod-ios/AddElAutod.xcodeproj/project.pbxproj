@@ -18,6 +18,9 @@
 		82161CE429B74D729B6A5C3A /* SearchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05479F640874E71B65C7956 /* SearchScreen.swift */; };
 		C520885EA02E42088BD39FDB /* SavedSearchesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5994CEB2B17435F94B75D4B /* SavedSearchesScreen.swift */; };
 		9D806392D1924CCFB5E2A93B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D5E540509006439B81E2A510 /* Assets.xcassets */; };
+		5234A81B4BE444FAABBEBF1F /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35870FE7B2E24EA4A78B9D05 /* ProfileStore.swift */; };
+		B674E1A81A9946258753FA6A /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D03F70F75E4340965F21D0 /* SettingsScreen.swift */; };
+		DF2B1A37C381486F8EDD4D2A /* HomeIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EA38AC378A84D3A91E2BD2B /* HomeIconButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +36,9 @@
 		F5994CEB2B17435F94B75D4B /* SavedSearchesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedSearchesScreen.swift; sourceTree = "<group>"; };
 		D5E540509006439B81E2A510 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0995C5D541194E8CAF8D2D63 /* AddElAutod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AddElAutod.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		35870FE7B2E24EA4A78B9D05 /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
+		06D03F70F75E4340965F21D0 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		4EA38AC378A84D3A91E2BD2B /* HomeIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeIconButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +81,9 @@
 				28B784D70F74423CA2713653 /* FeedFeaturedScreens.swift */,
 				F05479F640874E71B65C7956 /* SearchScreen.swift */,
 				F5994CEB2B17435F94B75D4B /* SavedSearchesScreen.swift */,
+				35870FE7B2E24EA4A78B9D05 /* ProfileStore.swift */,
+				06D03F70F75E4340965F21D0 /* SettingsScreen.swift */,
+				4EA38AC378A84D3A91E2BD2B /* HomeIconButton.swift */,
 				D5E540509006439B81E2A510 /* Assets.xcassets */,
 			);
 			path = AddElAutod;
@@ -160,6 +169,9 @@
 				C54E8CFDBF884BAEB98F7664 /* FeedFeaturedScreens.swift in Sources */,
 				82161CE429B74D729B6A5C3A /* SearchScreen.swift in Sources */,
 				C520885EA02E42088BD39FDB /* SavedSearchesScreen.swift in Sources */,
+				DF2B1A37C381486F8EDD4D2A /* HomeIconButton.swift in Sources */,
+				B674E1A81A9946258753FA6A /* SettingsScreen.swift in Sources */,
+				5234A81B4BE444FAABBEBF1F /* ProfileStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -2,10 +2,14 @@ import SwiftUI
 
 struct SearchScreen: View {
     @EnvironmentObject private var store: SearchStore
-    @State private var isOpen = false
+    @State private var mode: Mode = .landing
     @State private var panel: Panel = .root
     @State private var brandQuery = ""
     @State private var toast: String?
+
+    private enum Mode {
+        case landing, search, settings
+    }
 
     private enum Panel {
         case root, brand, model, fuel, price, year, km, extras
@@ -13,10 +17,13 @@ struct SearchScreen: View {
 
     var body: some View {
         Group {
-            if !isOpen {
+            switch mode {
+            case .landing:
                 searchLanding
-            } else {
+            case .search:
                 filterStack
+            case .settings:
+                SettingsScreen(onClose: { mode = .landing })
             }
         }
         .alert("Mentés", isPresented: Binding(
@@ -29,22 +36,27 @@ struct SearchScreen: View {
         }
     }
 
-    /// Üres fehér oldal + nagyító — koppintásra nyílik a szűrő.
+    /// Fehér oldal — kis iOS-méretű ikonok (nagyító + fogaskerék).
     private var searchLanding: some View {
         ZStack {
             Color.white.ignoresSafeArea()
-            Button {
-                panel = .root
-                isOpen = true
-            } label: {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 72, weight: .light))
-                    .foregroundStyle(AppTheme.text.opacity(0.85))
-                    .frame(width: 120, height: 120)
-                    .contentShape(Rectangle())
+            HStack(spacing: 28) {
+                HomeIconButton(
+                    systemName: "magnifyingglass",
+                    label: "Keresés",
+                    tint: AppTheme.accent
+                ) {
+                    panel = .root
+                    mode = .search
+                }
+                HomeIconButton(
+                    systemName: "gearshape.fill",
+                    label: "Beállítások",
+                    tint: Color(red: 0.55, green: 0.58, blue: 0.62)
+                ) {
+                    mode = .settings
+                }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Keresés megnyitása")
         }
     }
 
@@ -86,7 +98,7 @@ struct SearchScreen: View {
             title: "Keresés",
             onBack: {
                 panel = .root
-                isOpen = false
+                mode = .landing
             },
             rightLabel: "Törlés",
             onRight: store.reset
