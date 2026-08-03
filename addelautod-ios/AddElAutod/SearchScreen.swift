@@ -87,8 +87,8 @@ struct SearchScreen: View {
                 ScreenHeader(title: "Évjárat", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
                 yearWheels
             case .km:
-                ScreenHeader(title: "Futott km", onBack: goRoot)
-                kmList
+                ScreenHeader(title: "Futott km", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                kmWheels
             case .extras:
                 ScreenHeader(title: "Extrák", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
                 extrasList
@@ -419,20 +419,64 @@ struct SearchScreen: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var kmList: some View {
-        ScrollView {
-            SettingsGroup {
-                ForEach(Array(Catalog.kmPresets.enumerated()), id: \.offset) { index, preset in
-                    if index > 0 { Divider().padding(.leading, 16) }
-                    let selected = store.filter.kmTol == preset.tol && store.filter.kmIg == preset.ig
-                    choiceRow(preset.label, selected: selected) {
-                        store.setKm(tol: preset.tol, ig: preset.ig)
-                        goRoot()
-                    }
+    private var kmWheels: some View {
+        VStack(spacing: 0) {
+            Text("Lépésköz: 10 000 km")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+            HStack(alignment: .top, spacing: 0) {
+                kmWheelColumn(
+                    title: "Tól",
+                    selection: Binding(
+                        get: { store.filter.kmTol ?? -1 },
+                        set: { store.setKmMin($0 < 0 ? nil : $0) }
+                    )
+                )
+                Divider()
+                kmWheelColumn(
+                    title: "Ig",
+                    selection: Binding(
+                        get: { store.filter.kmIg ?? -1 },
+                        set: { store.setKmMax($0 < 0 ? nil : $0) }
+                    )
+                )
+            }
+            .frame(maxHeight: .infinity)
+
+            Button {
+                store.setKm(tol: nil, ig: nil)
+            } label: {
+                Text("Km szűrő törlése")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
+        }
+        .background(AppTheme.bgGrouped)
+    }
+
+    private func kmWheelColumn(title: String, selection: Binding<Int>) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppTheme.text)
+                .padding(.top, 8)
+            Picker(title, selection: selection) {
+                Text("Mindegy").tag(-1)
+                ForEach(Catalog.kmSteps, id: \.self) { value in
+                    Text(Catalog.kmStepLabel(value)).tag(value)
                 }
             }
-            .padding(16)
+            .pickerStyle(.wheel)
+            .labelsHidden()
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var extrasList: some View {

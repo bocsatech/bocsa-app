@@ -100,8 +100,21 @@ final class SearchStore: ObservableObject {
     }
 
     func setKm(tol: Int?, ig: Int?) {
-        filter.kmTol = tol
-        filter.kmIg = ig
+        var t = tol
+        var i = ig
+        if let tVal = t, let iVal = i, tVal > iVal {
+            i = tVal
+        }
+        filter.kmTol = t
+        filter.kmIg = i
+    }
+
+    func setKmMin(_ value: Int?) {
+        setKm(tol: value, ig: filter.kmIg)
+    }
+
+    func setKmMax(_ value: Int?) {
+        setKm(tol: filter.kmTol, ig: value)
     }
 
     func setExtra(_ key: ExtraKey, on: Bool) {

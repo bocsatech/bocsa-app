@@ -36,13 +36,18 @@ enum Catalog {
         Array(stride(from: yearMin, through: yearMax, by: 1))
     }
 
-    static let kmPresets: [(label: String, tol: Int?, ig: Int?)] = [
-        ("Mindegy", nil, nil),
-        ("– 50 000 km", nil, 50_000),
-        ("– 100 000 km", nil, 100_000),
-        ("– 150 000 km", nil, 150_000),
-        ("150 000 km –", 150_000, nil),
-    ]
+    /// Futott km: 0 … 500 000, 10 000-es lépésköz
+    static let kmStep = 10_000
+    static let kmMaxCap = 500_000
+    static var kmSteps: [Int] {
+        Array(stride(from: 0, through: kmMaxCap, by: kmStep))
+    }
+
+    static func kmStepLabel(_ value: Int) -> String {
+        if value == 0 { return "0 km" }
+        let formatted = value.formatted()
+        return "\(formatted) km"
+    }
 
     static let savedIcons = ["🚗", "🔍", "⭐", "💎", "🏎️", "🛠️", "📌", "🔥"]
 }

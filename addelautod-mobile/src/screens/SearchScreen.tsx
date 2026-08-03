@@ -15,7 +15,7 @@ import {
   BRANDS,
   EXTRA_OPTIONS,
   FUEL_OPTIONS,
-  KM_PRESETS,
+  KM_STEPS,
   PRICE_STEPS,
   YEAR_STEPS,
 } from "../data/catalog";
@@ -42,6 +42,8 @@ type Panel =
   | "yearMin"
   | "yearMax"
   | "km"
+  | "kmMin"
+  | "kmMax"
   | "extras";
 
 function Group({ children }: { children: ReactNode }) {
@@ -395,27 +397,72 @@ export default function SearchScreen() {
   if (panel === "km") {
     return (
       <View style={styles.page}>
-        <ScreenHeader title="Futott km" onBack={goBack} />
+        <ScreenHeader title="Futott km" onBack={goBack} rightLabel="Kész" onRightPress={goBack} />
+        <ScrollView contentContainerStyle={styles.pad}>
+          <Text style={styles.sectionLabel}>Lépésköz: 10 000 km — tól / ig</Text>
+          <Group>
+            <SettingsRow
+              title="Tól"
+              value={filter.kmTol == null ? "Mindegy" : `${filter.kmTol.toLocaleString("hu-HU")} km`}
+              isFirst
+              onPress={() => setPanel("kmMin")}
+            />
+            <SettingsRow
+              title="Ig"
+              value={filter.kmIg == null ? "Mindegy" : `${filter.kmIg.toLocaleString("hu-HU")} km`}
+              isLast
+              onPress={() => setPanel("kmMax")}
+            />
+          </Group>
+          <Pressable
+            onPress={() => setKm(null, null)}
+            style={{ marginTop: 12, marginLeft: 4 }}
+          >
+            <Text style={{ color: colors.accent, fontWeight: "500" }}>Km szűrő törlése</Text>
+          </Pressable>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  if (panel === "kmMin" || panel === "kmMax") {
+    const isMin = panel === "kmMin";
+    const current = isMin ? filter.kmTol : filter.kmIg;
+    return (
+      <View style={styles.page}>
+        <ScreenHeader
+          title={isMin ? "Km tól" : "Km ig"}
+          onBack={() => setPanel("km")}
+          rightLabel="Kész"
+          onRightPress={() => setPanel("km")}
+        />
         <ScrollView contentContainerStyle={styles.pad}>
           <Group>
-            {KM_PRESETS.map((preset, i) => {
-              const selected =
-                filter.kmTol === preset.kmTol && filter.kmIg === preset.kmIg;
-              return (
-                <SettingsRow
-                  key={preset.label}
-                  title={preset.label}
-                  isFirst={i === 0}
-                  isLast={i === KM_PRESETS.length - 1}
-                  showChevron={false}
-                  value={selected ? "✓" : undefined}
-                  onPress={() => {
-                    setKm(preset.kmTol, preset.kmIg);
-                    goBack();
-                  }}
-                />
-              );
-            })}
+            <SettingsRow
+              title="Mindegy"
+              isFirst
+              showChevron={false}
+              value={current == null ? "✓" : undefined}
+              onPress={() => {
+                if (isMin) setKm(null, filter.kmIg);
+                else setKm(filter.kmTol, null);
+                setPanel("km");
+              }}
+            />
+            {KM_STEPS.map((value, i) => (
+              <SettingsRow
+                key={value}
+                title={`${value.toLocaleString("hu-HU")} km`}
+                isLast={i === KM_STEPS.length - 1}
+                showChevron={false}
+                value={current === value ? "✓" : undefined}
+                onPress={() => {
+                  if (isMin) setKm(value, filter.kmIg);
+                  else setKm(filter.kmTol, value);
+                  setPanel("km");
+                }}
+              />
+            ))}
           </Group>
         </ScrollView>
       </View>

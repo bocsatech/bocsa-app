@@ -28,7 +28,6 @@ export const PRICE_STEPS: number[] = Array.from(
   (_, i) => i * PRICE_STEP,
 );
 
-
 export const YEAR_MIN = 1990;
 export const YEAR_MAX = new Date().getFullYear();
 export const YEAR_STEPS: number[] = Array.from(
@@ -36,13 +35,12 @@ export const YEAR_STEPS: number[] = Array.from(
   (_, i) => YEAR_MIN + i,
 );
 
-export const KM_PRESETS: { label: string; kmTol: number | null; kmIg: number | null }[] = [
-  { label: "Mindegy", kmTol: null, kmIg: null },
-  { label: "– 50 000 km", kmTol: null, kmIg: 50_000 },
-  { label: "– 100 000 km", kmTol: null, kmIg: 100_000 },
-  { label: "– 150 000 km", kmTol: null, kmIg: 150_000 },
-  { label: "150 000 km –", kmTol: 150_000, kmIg: null },
-];
+export const KM_STEP = 10_000;
+export const KM_MAX_CAP = 500_000;
+export const KM_STEPS: number[] = Array.from(
+  { length: Math.floor(KM_MAX_CAP / KM_STEP) + 1 },
+  (_, i) => i * KM_STEP,
+);
 
 export const EXTRA_OPTIONS: { key: ExtraKey; label: string }[] = [
   { key: "klima", label: "Klíma" },
