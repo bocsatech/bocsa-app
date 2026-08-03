@@ -641,11 +641,6 @@ struct SearchScreen: View {
         mode = .results
     }
 
-    private func goRoot() {
-        brandQuery = ""
-        panel = .root
-    }
-
     private var priceValue: String {
         if store.filter.arTol == nil && store.filter.arIg == nil { return "Mindegy" }
         if let tol = store.filter.arTol, let ig = store.filter.arIg {
