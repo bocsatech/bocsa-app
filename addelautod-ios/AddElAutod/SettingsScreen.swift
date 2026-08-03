@@ -16,6 +16,7 @@ struct SettingsScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     personalCard
+                    searchAreaCard
                     passwordCard
                     notifyCard
                     dangerCard
@@ -142,6 +143,49 @@ struct SettingsScreen: View {
                 toast = "Adatok mentve."
             } label: {
                 Text("Adatok mentése")
+                    .font(.body.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .foregroundStyle(.white)
+                    .background(AppTheme.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.bgElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    /// Gyors kategória kereséshez: irányítószám + km-sugár
+    private var searchAreaCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Keresési körzet")
+                .font(.headline)
+            Text("A gyorsikonok (Diesel, Benzin…) ezzel az irányítószámmal és km-sugárral szűrnek.")
+                .font(.footnote)
+                .foregroundStyle(AppTheme.textSecondary)
+
+            fieldLabel("Irányítószám")
+            TextField("pl. 1117", text: $profile.profile.postalCode)
+                .textFieldStyle(.roundedBorder)
+                .keyboardType(.numberPad)
+                .textContentType(.postalCode)
+
+            fieldLabel("Sugár (km)")
+            Picker("Sugár", selection: $profile.profile.searchRadiusKm) {
+                ForEach([5, 10, 15, 20, 30, 50, 75, 100], id: \.self) { km in
+                    Text("\(km) km").tag(km)
+                }
+            }
+            .pickerStyle(.wheel)
+            .frame(height: 120)
+
+            Button {
+                profile.save()
+                toast = "Keresési körzet mentve."
+            } label: {
+                Text("Körzet mentése")
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)

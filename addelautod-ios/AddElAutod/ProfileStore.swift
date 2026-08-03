@@ -17,6 +17,8 @@ struct UserProfile: Codable, Equatable {
     var notifyFavorites: Bool = false
     var notifyInterests: Bool = false
     var notifyNewsletter: Bool = false
+    /// Gyors kategória keresés: km-sugár az irányítószám körül
+    var searchRadiusKm: Int = 30
 
     var displayName: String {
         let n = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
@@ -35,7 +37,7 @@ struct UserProfile: Codable, Equatable {
 final class ProfileStore: ObservableObject {
     @Published var profile = UserProfile()
 
-    private let key = "addelautod.userProfile.v1"
+    private let key = "addelautod.userProfile.v2"
 
     init() {
         load()

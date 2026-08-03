@@ -6,9 +6,10 @@ struct SearchScreen: View {
     @State private var panel: Panel = .root
     @State private var brandQuery = ""
     @State private var toast: String?
+    @State private var activeCategory: QuickCategory?
 
     private enum Mode {
-        case landing, search, settings
+        case landing, search, settings, results
     }
 
     private enum Panel {
@@ -23,7 +24,22 @@ struct SearchScreen: View {
             case .search:
                 filterStack
             case .settings:
-                SettingsScreen(onClose: { mode = .landing })
+                SettingsScreen(onClose: {
+                    mode = activeCategory == nil ? .landing : .results
+                })
+            case .results:
+                if let category = activeCategory {
+                    CategoryResultsScreen(
+                        category: category,
+                        onBack: {
+                            activeCategory = nil
+                            mode = .landing
+                        },
+                        onOpenSettings: { mode = .settings }
+                    )
+                } else {
+                    searchLanding
+                }
             }
         }
         .alert("Mentés", isPresented: Binding(
@@ -36,10 +52,10 @@ struct SearchScreen: View {
         }
     }
 
-    /// Fehér oldal — kis iOS-méretű ikonok (nagyító + fogaskerék).
+    /// Felül: Keresés + Beállítások. Alatta: Autosweb kategóriaikonok (~1/4 méret).
     private var searchLanding: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
+        VStack(spacing: 0) {
+            Color.white
             HStack(spacing: 28) {
                 HomeIconButton(
                     systemName: "magnifyingglass",
@@ -57,7 +73,33 @@ struct SearchScreen: View {
                     mode = .settings
                 }
             }
+            .padding(.top, 12)
+            .padding(.bottom, 20)
+
+            Text("Gyors kategóriák")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 10)
+
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
+                spacing: 14
+            ) {
+                ForEach(QuickCategory.allCases) { category in
+                    CategoryIconButton(category: category) {
+                        activeCategory = category
+                        mode = .results
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+
+            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white.ignoresSafeArea())
     }
 
     private var filterStack: some View {

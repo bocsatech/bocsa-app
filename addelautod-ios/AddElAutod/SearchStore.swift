@@ -51,6 +51,26 @@ final class SearchStore: ObservableObject {
         filter.modellek.contains(model)
     }
 
+    /// Gyors kategória a főoldali ikonokról (Új, Diesel, …)
+    func applyQuickCategory(_ category: QuickCategory) {
+        filter = SearchFilter()
+        let year = Calendar.current.component(.year, from: Date())
+        switch category {
+        case .uj:
+            filter.evTol = year - 1
+        case .benzin:
+            filter.fuels = [.benzin]
+        case .diesel:
+            filter.fuels = [.diesel]
+        case .elektromos:
+            filter.fuels = [.elektromos]
+        case .hybrid:
+            filter.fuels = [.hybrid]
+        case .leasing, .berelheto, .ot:
+            break
+        }
+    }
+
     private func pruneModels() {
         let allowed = Set(filter.gyartmanyok.flatMap { Catalog.brands[$0] ?? [] })
         filter.modellek = filter.modellek.filter { allowed.contains($0) }
