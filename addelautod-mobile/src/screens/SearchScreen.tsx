@@ -17,7 +17,7 @@ import {
   FUEL_OPTIONS,
   KM_PRESETS,
   PRICE_STEPS,
-  YEAR_PRESETS,
+  YEAR_STEPS,
 } from "../data/catalog";
 import { useSearch } from "../context/SearchContext";
 import {
