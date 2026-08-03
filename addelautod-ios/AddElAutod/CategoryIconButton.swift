@@ -1,16 +1,16 @@
 import SwiftUI
 
-/// Autosweb kategóriaikon — kb. a webes kártya 1/4 mérete (~30 pt)
+/// Autosweb kategóriaikon — ugyanakkora, mint Keresés / Beállítások
 struct CategoryIconButton: View {
     let category: QuickCategory
     let action: () -> Void
 
-    private let iconSize: CGFloat = 30
-    private let corner: CGFloat = 7
+    private let iconSize: CGFloat = 60
+    private let corner: CGFloat = 14
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 Image(category.imageName)
                     .resizable()
                     .scaledToFill()
@@ -20,12 +20,13 @@ struct CategoryIconButton: View {
                         RoundedRectangle(cornerRadius: corner, style: .continuous)
                             .stroke(AppTheme.border, lineWidth: 0.5)
                     )
+                    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
                 Text(category.title)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(.system(size: 11))
                     .foregroundStyle(AppTheme.text)
                     .lineLimit(1)
             }
-            .frame(width: 52)
+            .frame(width: 76)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(category.title)
