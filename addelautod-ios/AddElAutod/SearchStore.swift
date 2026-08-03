@@ -198,6 +198,10 @@ final class SearchStore: ObservableObject {
         filter[keyPath: keyPath] = list
     }
 
+    func clearMulti(_ keyPath: WritableKeyPath<SearchFilter, [String]>) {
+        filter[keyPath: keyPath] = []
+    }
+
     func isMultiOn(_ keyPath: KeyPath<SearchFilter, [String]>, value: String) -> Bool {
         filter[keyPath: keyPath].contains(value)
     }

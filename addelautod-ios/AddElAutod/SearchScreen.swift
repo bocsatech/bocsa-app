@@ -15,7 +15,7 @@ struct SearchScreen: View {
     }
 
     private enum Panel {
-        case simple, advanced, brand, model(String), fuel, price, year, km
+        case simple, advanced, brand, model(String), fuel, price, year, km, allapot
     }
 
     private enum AccordionSection: String {
@@ -160,6 +160,9 @@ struct SearchScreen: View {
             case .km:
                 ScreenHeader(title: "Futott km", onBack: goList, rightLabel: "Kész", onRight: goList)
                 kmWheels
+            case .allapot:
+                ScreenHeader(title: "Állapot", onBack: goList, rightLabel: "Kész", onRight: goList)
+                allapotList
             }
         }
         .background(AppTheme.bgGrouped)
@@ -339,11 +342,9 @@ struct SearchScreen: View {
                 openSubpanel(.km)
             }
             Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Állapot",
-                options: DetailedSearchCatalog.allapotok,
-                keyPath: \.allapotok
-            )
+            SettingsRow(title: "Állapot", value: allapotValue) {
+                openSubpanel(.allapot)
+            }
             Divider().padding(.leading, 16)
             multiToggleGroup(
                 title: "Kivitel",
@@ -644,6 +645,37 @@ struct SearchScreen: View {
                             }
                             .padding(.leading, 16)
                         }
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private var allapotList: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Kapcsolók — több is")
+                Button {
+                    store.clearMulti(\.allapotok)
+                } label: {
+                    Text("Összes kikapcsolása")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.accent)
+                        .padding(.leading, 4)
+                }
+                .buttonStyle(.plain)
+
+                SettingsGroup {
+                    ForEach(Array(DetailedSearchCatalog.allapotok.enumerated()), id: \.element) { index, option in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(option, isOn: Binding(
+                            get: { store.isMultiOn(\.allapotok, value: option) },
+                            set: { store.toggleMulti(\.allapotok, value: option, on: $0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
                     }
                 }
             }
