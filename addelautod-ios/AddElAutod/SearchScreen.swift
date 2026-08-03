@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SearchScreen: View {
     @EnvironmentObject private var store: SearchStore
+    @State private var isOpen = false
     @State private var panel: Panel = .root
     @State private var brandQuery = ""
     @State private var toast: String?
@@ -11,6 +12,43 @@ struct SearchScreen: View {
     }
 
     var body: some View {
+        Group {
+            if !isOpen {
+                searchLanding
+            } else {
+                filterStack
+            }
+        }
+        .alert("Mentés", isPresented: Binding(
+            get: { toast != nil },
+            set: { if !$0 { toast = nil } }
+        )) {
+            Button("OK", role: .cancel) { toast = nil }
+        } message: {
+            Text(toast ?? "")
+        }
+    }
+
+    /// Üres fehér oldal + nagyító — koppintásra nyílik a szűrő.
+    private var searchLanding: some View {
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Button {
+                panel = .root
+                isOpen = true
+            } label: {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 72, weight: .light))
+                    .foregroundStyle(AppTheme.text.opacity(0.85))
+                    .frame(width: 120, height: 120)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Keresés megnyitása")
+        }
+    }
+
+    private var filterStack: some View {
         VStack(spacing: 0) {
             switch panel {
             case .root:
@@ -41,18 +79,18 @@ struct SearchScreen: View {
             }
         }
         .background(AppTheme.bgGrouped)
-        .alert("Mentés", isPresented: Binding(
-            get: { toast != nil },
-            set: { if !$0 { toast = nil } }
-        )) {
-            Button("OK", role: .cancel) { toast = nil }
-        } message: {
-            Text(toast ?? "")
-        }
     }
 
     private var rootHeader: some View {
-        ScreenHeader(title: "Keresés", subtitle: "Beállítások-stílus", rightLabel: "Törlés", onRight: store.reset)
+        ScreenHeader(
+            title: "Keresés",
+            onBack: {
+                panel = .root
+                isOpen = false
+            },
+            rightLabel: "Törlés",
+            onRight: store.reset
+        )
     }
 
     private var rootList: some View {
