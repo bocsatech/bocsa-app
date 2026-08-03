@@ -57,6 +57,7 @@ export default function SearchScreen() {
   } = useSearch();
   const [panel, setPanel] = useState<Panel>("root");
   const [query, setQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const brandNames = useMemo(() => Object.keys(BRANDS).sort(), []);
   const filteredBrands = useMemo(() => {
@@ -351,11 +352,31 @@ export default function SearchScreen() {
     );
   }
 
+  if (!isOpen) {
+    return (
+      <View style={styles.landing}>
+        <Pressable
+          onPress={() => {
+            setPanel("root");
+            setIsOpen(true);
+          }}
+          style={styles.landingHit}
+          accessibilityLabel="Keresés megnyitása"
+        >
+          <Text style={styles.landingIcon}>🔍</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.page}>
       <ScreenHeader
         title="Keresés"
-        subtitle="Beállítások-stílus"
+        onBack={() => {
+          setPanel("root");
+          setIsOpen(false);
+        }}
         rightLabel="Törlés"
         onRightPress={resetFilter}
       />
@@ -413,6 +434,21 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
+  landing: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  landingHit: {
+    width: 120,
+    height: 120,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  landingIcon: {
+    fontSize: 72,
+  },
   page: { flex: 1, backgroundColor: colors.bgGrouped },
   pad: { padding: spacing.lg, paddingBottom: spacing.xl * 2 },
   group: {
