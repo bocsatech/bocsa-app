@@ -21,13 +21,13 @@ export const FUEL_OPTIONS: { key: NonNullable<FuelType>; label: string }[] = [
   { key: "benzin-gaz", label: "Benzin/Gáz" },
 ];
 
-export const PRICE_PRESETS: { label: string; arTol: number | null; arIg: number | null }[] = [
-  { label: "Mindegy", arTol: null, arIg: null },
-  { label: "– 2 M Ft", arTol: null, arIg: 2_000_000 },
-  { label: "2 – 5 M Ft", arTol: 2_000_000, arIg: 5_000_000 },
-  { label: "5 – 10 M Ft", arTol: 5_000_000, arIg: 10_000_000 },
-  { label: "10 M Ft –", arTol: 10_000_000, arIg: null },
-];
+export const PRICE_STEP = 500_000;
+export const PRICE_MAX_CAP = 50_000_000;
+export const PRICE_STEPS: number[] = Array.from(
+  { length: Math.floor(PRICE_MAX_CAP / PRICE_STEP) + 1 },
+  (_, i) => i * PRICE_STEP,
+);
+
 
 export const YEAR_PRESETS: { label: string; evTol: number | null; evIg: number | null }[] = [
   { label: "Mindegy", evTol: null, evIg: null },

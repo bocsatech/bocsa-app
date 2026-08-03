@@ -81,8 +81,8 @@ struct SearchScreen: View {
                 ScreenHeader(title: "Üzemanyag", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
                 fuelList
             case .price:
-                ScreenHeader(title: "Ár", onBack: goRoot)
-                priceList
+                ScreenHeader(title: "Ár", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                priceWheels
             case .year:
                 ScreenHeader(title: "Évjárat", onBack: goRoot)
                 yearList
@@ -298,20 +298,65 @@ struct SearchScreen: View {
         }
     }
 
-    private var priceList: some View {
-        ScrollView {
-            SettingsGroup {
-                ForEach(Array(Catalog.pricePresets.enumerated()), id: \.offset) { index, preset in
-                    if index > 0 { Divider().padding(.leading, 16) }
-                    let selected = store.filter.arTol == preset.tol && store.filter.arIg == preset.ig
-                    choiceRow(preset.label, selected: selected) {
-                        store.setPrice(tol: preset.tol, ig: preset.ig)
-                        goRoot()
-                    }
+    /// Minimum + Maximum — mindkettő görgethető lista, 500 000 Ft lépésköz.
+    private var priceWheels: some View {
+        VStack(spacing: 0) {
+            Text("Lépésköz: 500 000 Ft")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+            HStack(alignment: .top, spacing: 0) {
+                priceWheelColumn(
+                    title: "Minimum",
+                    selection: Binding(
+                        get: { store.filter.arTol ?? -1 },
+                        set: { store.setPriceMin($0 < 0 ? nil : $0) }
+                    )
+                )
+                Divider()
+                priceWheelColumn(
+                    title: "Maximum",
+                    selection: Binding(
+                        get: { store.filter.arIg ?? -1 },
+                        set: { store.setPriceMax($0 < 0 ? nil : $0) }
+                    )
+                )
+            }
+            .frame(maxHeight: .infinity)
+
+            Button {
+                store.setPrice(tol: nil, ig: nil)
+            } label: {
+                Text("Ár szűrő törlése")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
+        }
+        .background(AppTheme.bgGrouped)
+    }
+
+    private func priceWheelColumn(title: String, selection: Binding<Int>) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppTheme.text)
+                .padding(.top, 8)
+            Picker(title, selection: selection) {
+                Text("Mindegy").tag(-1)
+                ForEach(Catalog.priceSteps, id: \.self) { value in
+                    Text(Catalog.priceStepLabel(value)).tag(value)
                 }
             }
-            .padding(16)
+            .pickerStyle(.wheel)
+            .labelsHidden()
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var yearList: some View {

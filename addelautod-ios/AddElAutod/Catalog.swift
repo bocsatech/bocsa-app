@@ -15,13 +15,17 @@ enum Catalog {
 
     static var brandNames: [String] { brands.keys.sorted() }
 
-    static let pricePresets: [(label: String, tol: Int?, ig: Int?)] = [
-        ("Mindegy", nil, nil),
-        ("– 2 M Ft", nil, 2_000_000),
-        ("2 – 5 M Ft", 2_000_000, 5_000_000),
-        ("5 – 10 M Ft", 5_000_000, 10_000_000),
-        ("10 M Ft –", 10_000_000, nil),
-    ]
+    /// Ár lépésköz: 500 000 Ft (0 … 50 M)
+    static let priceStep = 500_000
+    static let priceMaxCap = 50_000_000
+    static var priceSteps: [Int] {
+        Array(stride(from: 0, through: priceMaxCap, by: priceStep))
+    }
+
+    static func priceStepLabel(_ value: Int) -> String {
+        if value == 0 { return "0 Ft" }
+        return SearchFilter.formatPrice(value)
+    }
 
     static let yearPresets: [(label: String, tol: Int?, ig: Int?)] = [
         ("Mindegy", nil, nil),
