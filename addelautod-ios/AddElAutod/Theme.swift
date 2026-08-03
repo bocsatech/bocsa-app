@@ -1,9 +1,9 @@
 import SwiftUI
 
 enum AppTheme {
-    static let bg = Color(red: 0.933, green: 0.941, blue: 0.953) // #eef0f3
+    static let bg = Color.white
     static let bgElevated = Color.white
-    static let bgGrouped = Color(red: 0.949, green: 0.949, blue: 0.969) // #f2f2f7
+    static let bgGrouped = Color.white
     static let text = Color(red: 0.067, green: 0.067, blue: 0.067)
     static let textSecondary = Color(red: 0.420, green: 0.447, blue: 0.502)
     static let textTertiary = Color(red: 0.612, green: 0.639, blue: 0.686)
