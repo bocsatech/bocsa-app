@@ -1,20 +1,22 @@
 import SwiftUI
 
-/// Autosweb kategóriaikon — ugyanakkora, mint Keresés / Beállítások
+/// Autosweb kategóriaikon — nagyobb, 3 / sor; kép nem vágódik (fit)
 struct CategoryIconButton: View {
     let category: QuickCategory
     let action: () -> Void
 
-    private let iconSize: CGFloat = 60
-    private let corner: CGFloat = 14
+    /// Nagyobb ikon; a rács 3 oszlopos, így elfér
+    private let iconSize: CGFloat = 100
+    private let corner: CGFloat = 16
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
+            VStack(spacing: 8) {
                 Image(category.imageName)
                     .resizable()
-                    .scaledToFill()
+                    .scaledToFit()
                     .frame(width: iconSize, height: iconSize)
+                    .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: corner, style: .continuous)
@@ -22,11 +24,11 @@ struct CategoryIconButton: View {
                     )
                     .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
                 Text(category.title)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(AppTheme.text)
                     .lineLimit(1)
             }
-            .frame(width: 76)
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(category.title)

@@ -83,8 +83,8 @@ struct SearchScreen: View {
                 .padding(.bottom, 10)
 
             LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
-                spacing: 14
+                columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3),
+                spacing: 18
             ) {
                 ForEach(QuickCategory.allCases) { category in
                     CategoryIconButton(category: category) {
