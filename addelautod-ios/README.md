@@ -35,3 +35,14 @@ Ha hibát ír: másold ki a piros szöveget.
 ---
 
 4 oldal: Hírfolyam | Kiemeltek | Keresés | Mentett — húzd oldalra.
+
+## Márka / modell katalógus
+
+Az app a `AddElAutod/VehicleCatalog.json` fájlt használja (~289 márka, ~8300 modell).
+
+Ha a Macen megvan az Autosweb `lista.csv`, ezzel szinkronizálhatod **ugyanarra** a listára:
+
+```bash
+node addelautod-ios/scripts/sync-vehicle-catalog.mjs ~/Desktop/lista.csv
+```
+

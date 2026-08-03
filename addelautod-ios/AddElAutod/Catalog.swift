@@ -1,19 +1,26 @@
 import Foundation
 
 enum Catalog {
-    static let brands: [String: [String]] = [
-        "Audi": ["A3", "A4", "A6", "Q3", "Q5"],
-        "BMW": ["1-es", "3-as", "5-ös", "X1", "X3", "X5"],
-        "Ford": ["Fiesta", "Focus", "Kuga", "Mustang", "Puma"],
-        "Mercedes": ["A-osztály", "C-osztály", "E-osztály", "GLA", "GLC"],
-        "Opel": ["Astra", "Corsa", "Insignia", "Mokka"],
-        "Skoda": ["Fabia", "Octavia", "Superb", "Kodiaq"],
-        "Suzuki": ["Swift", "Vitara", "SX4 S-Cross"],
-        "Toyota": ["Corolla", "Yaris", "RAV4", "C-HR"],
-        "Volkswagen": ["Golf", "Passat", "Tiguan", "Polo", "ID.3"],
-    ]
+    /// Gyártmány → modellek (Autosweb / VehicleCatalog.json)
+    static let brands: [String: [String]] = loadBrands()
 
-    static var brandNames: [String] { brands.keys.sorted() }
+    static var brandNames: [String] {
+        brands.keys.sorted {
+            $0.localizedStandardCompare($1) == .orderedAscending
+        }
+    }
+
+    private static func loadBrands() -> [String: [String]] {
+        guard
+            let url = Bundle.main.url(forResource: "VehicleCatalog", withExtension: "json"),
+            let data = try? Data(contentsOf: url),
+            let decoded = try? JSONDecoder().decode(VehicleCatalogFile.self, from: data)
+        else {
+            assertionFailure("VehicleCatalog.json hiányzik a bundle-ből")
+            return [:]
+        }
+        return decoded.modellek
+    }
 
     /// Ár lépésköz: 500 000 Ft (0 … 50 M)
     static let priceStep = 500_000
@@ -50,6 +57,11 @@ enum Catalog {
     }
 
     static let savedIcons = ["🚗", "🔍", "⭐", "💎", "🏎️", "🛠️", "📌", "🔥"]
+}
+
+private struct VehicleCatalogFile: Decodable {
+    let gyartmanyok: [String]?
+    let modellek: [String: [String]]
 }
 
 enum SampleContent {

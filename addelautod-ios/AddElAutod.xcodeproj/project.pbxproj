@@ -25,6 +25,7 @@
 		B8C221795D9B4B66B8B5B267 /* CategoryIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFB84F97E8F542859F95EA52 /* CategoryIconButton.swift */; };
 		6DCD44F9A505405E8B30405F /* CategoryResultsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE63FA243C6D4C498FA5FBCE /* CategoryResultsScreen.swift */; };
 		A1LISTQ002B /* ListingQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1LISTQ001B /* ListingQuery.swift */; };
+		A1VCAT002B /* VehicleCatalog.json in Resources */ = {isa = PBXBuildFile; fileRef = A1VCAT001B /* VehicleCatalog.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +48,7 @@
 		FFB84F97E8F542859F95EA52 /* CategoryIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryIconButton.swift; sourceTree = "<group>"; };
 		EE63FA243C6D4C498FA5FBCE /* CategoryResultsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryResultsScreen.swift; sourceTree = "<group>"; };
 		A1LISTQ001B /* ListingQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingQuery.swift; sourceTree = "<group>"; };
+		A1VCAT001B /* VehicleCatalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VehicleCatalog.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +98,7 @@
 				FFB84F97E8F542859F95EA52 /* CategoryIconButton.swift */,
 				EE63FA243C6D4C498FA5FBCE /* CategoryResultsScreen.swift */,
 				A1LISTQ001B /* ListingQuery.swift */,
+				A1VCAT001B /* VehicleCatalog.json */,
 				D5E540509006439B81E2A510 /* Assets.xcassets */,
 			);
 			path = AddElAutod;
@@ -161,6 +164,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9D806392D1924CCFB5E2A93B /* Assets.xcassets in Resources */,
+				A1VCAT002B /* VehicleCatalog.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
