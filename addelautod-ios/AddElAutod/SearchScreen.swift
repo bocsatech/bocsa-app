@@ -1,0 +1,317 @@
+import SwiftUI
+
+struct SearchScreen: View {
+    @EnvironmentObject private var store: SearchStore
+    @State private var panel: Panel = .root
+    @State private var brandQuery = ""
+    @State private var toast: String?
+
+    private enum Panel {
+        case root, brand, model, fuel, price, year, km, extras
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            switch panel {
+            case .root:
+                rootHeader
+                rootList
+            case .brand:
+                ScreenHeader(title: "Márka", onBack: goRoot)
+                brandSearchField
+                brandList
+            case .model:
+                ScreenHeader(title: "Modell", subtitle: store.filter.gyartmany ?? "Válassz márkát", onBack: goRoot)
+                modelList
+            case .fuel:
+                ScreenHeader(title: "Üzemanyag", onBack: goRoot)
+                fuelList
+            case .price:
+                ScreenHeader(title: "Ár", onBack: goRoot)
+                priceList
+            case .year:
+                ScreenHeader(title: "Évjárat", onBack: goRoot)
+                yearList
+            case .km:
+                ScreenHeader(title: "Futott km", onBack: goRoot)
+                kmList
+            case .extras:
+                ScreenHeader(title: "Extrák", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                extrasList
+            }
+        }
+        .background(AppTheme.bgGrouped)
+        .alert("Mentés", isPresented: Binding(
+            get: { toast != nil },
+            set: { if !$0 { toast = nil } }
+        )) {
+            Button("OK", role: .cancel) { toast = nil }
+        } message: {
+            Text(toast ?? "")
+        }
+    }
+
+    private var rootHeader: some View {
+        ScreenHeader(title: "Keresés", subtitle: "Beállítások-stílus", rightLabel: "Törlés", onRight: store.reset)
+    }
+
+    private var rootList: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                SectionLabel(text: "Jármű")
+                SettingsGroup {
+                    SettingsRow(title: "Márka", value: store.filter.gyartmany ?? "Mindegy") {
+                        panel = .brand
+                    }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Modell", value: store.filter.modell ?? "Mindegy") {
+                        panel = .model
+                    }
+                }
+
+                SectionLabel(text: "Feltételek")
+                SettingsGroup {
+                    SettingsRow(title: "Üzemanyag", value: store.filter.fuel?.label ?? "Mindegy") {
+                        panel = .fuel
+                    }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Ár", value: priceValue) { panel = .price }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Évjárat", value: yearValue) { panel = .year }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Futott km", value: kmValue) { panel = .km }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Extrák", value: extrasValue) { panel = .extras }
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("AKTÍV SZŰRŐ")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary)
+                    Text(store.filter.summary)
+                        .font(.body)
+                        .foregroundStyle(AppTheme.text)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(AppTheme.bgElevated)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                Button {
+                    if let saved = store.saveCurrent() {
+                        toast = "Ikon a 4. oldalon: \(saved.icon) \(saved.name)"
+                    } else {
+                        toast = "Előbb állíts be legalább egy feltételt."
+                    }
+                } label: {
+                    Text("Mentés ikonra (4. oldal)")
+                        .font(.body.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .foregroundStyle(.white)
+                        .background(AppTheme.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+
+                Text("Márka / modell: almenü → választás → visszalépés. Extrák: kapcsoló.")
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
+            .padding(16)
+        }
+    }
+
+    private var brandSearchField: some View {
+        TextField("Keresés…", text: $brandQuery)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .padding(12)
+            .background(AppTheme.bgElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+    }
+
+    private var filteredBrands: [String] {
+        let q = brandQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if q.isEmpty { return Catalog.brandNames }
+        return Catalog.brandNames.filter { $0.lowercased().contains(q) }
+    }
+
+    private var brandList: some View {
+        ScrollView {
+            SettingsGroup {
+                choiceRow("Mindegy", selected: store.filter.gyartmany == nil) {
+                    store.setBrand(nil)
+                    goRoot()
+                }
+                ForEach(filteredBrands, id: \.self) { brand in
+                    Divider().padding(.leading, 16)
+                    choiceRow(brand, selected: store.filter.gyartmany == brand) {
+                        store.setBrand(brand)
+                        goRoot()
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private var modelList: some View {
+        ScrollView {
+            if store.filter.gyartmany == nil {
+                Text("Előbb válassz márkát.")
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .padding(.top, 40)
+                    .frame(maxWidth: .infinity)
+            } else {
+                let models = Catalog.brands[store.filter.gyartmany!] ?? []
+                SettingsGroup {
+                    choiceRow("Mindegy", selected: store.filter.modell == nil) {
+                        store.setModel(nil)
+                        goRoot()
+                    }
+                    ForEach(models, id: \.self) { model in
+                        Divider().padding(.leading, 16)
+                        choiceRow(model, selected: store.filter.modell == model) {
+                            store.setModel(model)
+                            goRoot()
+                        }
+                    }
+                }
+                .padding(16)
+            }
+        }
+    }
+
+    private var fuelList: some View {
+        ScrollView {
+            SettingsGroup {
+                choiceRow("Mindegy", selected: store.filter.fuel == nil) {
+                    store.setFuel(nil)
+                    goRoot()
+                }
+                ForEach(FuelType.allCases) { fuel in
+                    Divider().padding(.leading, 16)
+                    choiceRow(fuel.label, selected: store.filter.fuel == fuel) {
+                        store.setFuel(fuel)
+                        goRoot()
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private var priceList: some View {
+        ScrollView {
+            SettingsGroup {
+                ForEach(Array(Catalog.pricePresets.enumerated()), id: \.offset) { index, preset in
+                    if index > 0 { Divider().padding(.leading, 16) }
+                    let selected = store.filter.arTol == preset.tol && store.filter.arIg == preset.ig
+                    choiceRow(preset.label, selected: selected) {
+                        store.setPrice(tol: preset.tol, ig: preset.ig)
+                        goRoot()
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private var yearList: some View {
+        ScrollView {
+            SettingsGroup {
+                ForEach(Array(Catalog.yearPresets.enumerated()), id: \.offset) { index, preset in
+                    if index > 0 { Divider().padding(.leading, 16) }
+                    let selected = store.filter.evTol == preset.tol && store.filter.evIg == preset.ig
+                    choiceRow(preset.label, selected: selected) {
+                        store.setYear(tol: preset.tol, ig: preset.ig)
+                        goRoot()
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private var kmList: some View {
+        ScrollView {
+            SettingsGroup {
+                ForEach(Array(Catalog.kmPresets.enumerated()), id: \.offset) { index, preset in
+                    if index > 0 { Divider().padding(.leading, 16) }
+                    let selected = store.filter.kmTol == preset.tol && store.filter.kmIg == preset.ig
+                    choiceRow(preset.label, selected: selected) {
+                        store.setKm(tol: preset.tol, ig: preset.ig)
+                        goRoot()
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private var extrasList: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Kapcsolók — nem pipa")
+                SettingsGroup {
+                    ForEach(Array(ExtraKey.allCases.enumerated()), id: \.element.id) { index, key in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(key.label, isOn: Binding(
+                            get: { store.isExtraOn(key) },
+                            set: { store.setExtra(key, on: $0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private func choiceRow(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        SettingsRow(title: title, value: selected ? "✓" : nil, showChevron: false, action: action)
+    }
+
+    private func goRoot() {
+        brandQuery = ""
+        panel = .root
+    }
+
+    private var priceValue: String {
+        if store.filter.arTol == nil && store.filter.arIg == nil { return "Mindegy" }
+        if let tol = store.filter.arTol, let ig = store.filter.arIg {
+            return "\(SearchFilter.formatPrice(tol)) – \(SearchFilter.formatPrice(ig))"
+        }
+        if let ig = store.filter.arIg { return "– \(SearchFilter.formatPrice(ig))" }
+        return "\(SearchFilter.formatPrice(store.filter.arTol!)) –"
+    }
+
+    private var yearValue: String {
+        if store.filter.evTol == nil && store.filter.evIg == nil { return "Mindegy" }
+        if let tol = store.filter.evTol, let ig = store.filter.evIg { return "\(tol) – \(ig)" }
+        if let tol = store.filter.evTol { return "\(tol) –" }
+        return "– \(store.filter.evIg!)"
+    }
+
+    private var kmValue: String {
+        if store.filter.kmTol == nil && store.filter.kmIg == nil { return "Mindegy" }
+        if let ig = store.filter.kmIg, store.filter.kmTol == nil {
+            return "– \(ig.formatted()) km"
+        }
+        if let tol = store.filter.kmTol, store.filter.kmIg == nil {
+            return "\(tol.formatted()) km –"
+        }
+        return "\(store.filter.kmTol!.formatted()) – \(store.filter.kmIg!.formatted())"
+    }
+
+    private var extrasValue: String {
+        let n = store.filter.activeExtrasCount
+        return n > 0 ? "\(n) bekapcsolva" : "Mindegy"
+    }
+}

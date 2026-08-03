@@ -1,0 +1,285 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7669DAAB7CD44197B5DB9569 /* AddElAutodApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1398B4CEB8BE4DDCAF96D11D /* AddElAutodApp.swift */; };
+		4E4A054B6A794CAAB12CA9AB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B4A4D1FF4749A3869C8AD7 /* ContentView.swift */; };
+		054C268AE8BC4CC2835B3718 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71858E9000D643608B066981 /* Theme.swift */; };
+		E25DB785583C4E20AF784C2A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DED661A8646464A8691D774 /* Models.swift */; };
+		15A85E1C57CF456ABB5A6253 /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F296DCB3794961AC2CF694 /* Catalog.swift */; };
+		286A2879D6E349EAA0E94039 /* SearchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B377CA5C6924D49B93F24BD /* SearchStore.swift */; };
+		98A1EE78BB5B468485E26671 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B502AF79024F4B83D46A10 /* Components.swift */; };
+		C54E8CFDBF884BAEB98F7664 /* FeedFeaturedScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B784D70F74423CA2713653 /* FeedFeaturedScreens.swift */; };
+		82161CE429B74D729B6A5C3A /* SearchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05479F640874E71B65C7956 /* SearchScreen.swift */; };
+		C520885EA02E42088BD39FDB /* SavedSearchesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5994CEB2B17435F94B75D4B /* SavedSearchesScreen.swift */; };
+		9D806392D1924CCFB5E2A93B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D5E540509006439B81E2A510 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1398B4CEB8BE4DDCAF96D11D /* AddElAutodApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddElAutodApp.swift; sourceTree = "<group>"; };
+		10B4A4D1FF4749A3869C8AD7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		71858E9000D643608B066981 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		2DED661A8646464A8691D774 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		B3F296DCB3794961AC2CF694 /* Catalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Catalog.swift; sourceTree = "<group>"; };
+		9B377CA5C6924D49B93F24BD /* SearchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchStore.swift; sourceTree = "<group>"; };
+		05B502AF79024F4B83D46A10 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		28B784D70F74423CA2713653 /* FeedFeaturedScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedFeaturedScreens.swift; sourceTree = "<group>"; };
+		F05479F640874E71B65C7956 /* SearchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchScreen.swift; sourceTree = "<group>"; };
+		F5994CEB2B17435F94B75D4B /* SavedSearchesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedSearchesScreen.swift; sourceTree = "<group>"; };
+		D5E540509006439B81E2A510 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0995C5D541194E8CAF8D2D63 /* AddElAutod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AddElAutod.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B74E46F82BC24775B085B28E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9D01449131BA40429D4CE85A = {
+			isa = PBXGroup;
+			children = (
+				7841E83F558145C1917511DE /* AddElAutod */,
+				B375C6FD4244436DB7DF56E6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B375C6FD4244436DB7DF56E6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0995C5D541194E8CAF8D2D63 /* AddElAutod.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7841E83F558145C1917511DE /* AddElAutod */ = {
+			isa = PBXGroup;
+			children = (
+				1398B4CEB8BE4DDCAF96D11D /* AddElAutodApp.swift */,
+				10B4A4D1FF4749A3869C8AD7 /* ContentView.swift */,
+				71858E9000D643608B066981 /* Theme.swift */,
+				2DED661A8646464A8691D774 /* Models.swift */,
+				B3F296DCB3794961AC2CF694 /* Catalog.swift */,
+				9B377CA5C6924D49B93F24BD /* SearchStore.swift */,
+				05B502AF79024F4B83D46A10 /* Components.swift */,
+				28B784D70F74423CA2713653 /* FeedFeaturedScreens.swift */,
+				F05479F640874E71B65C7956 /* SearchScreen.swift */,
+				F5994CEB2B17435F94B75D4B /* SavedSearchesScreen.swift */,
+				D5E540509006439B81E2A510 /* Assets.xcassets */,
+			);
+			path = AddElAutod;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3C6945F6817943F6B0FEF8A2 /* AddElAutod */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0A2CCFEBC5CC4A51B56B4CF6 /* Build configuration list for PBXNativeTarget "AddElAutod" */;
+			buildPhases = (
+				C222DBD4E9554789AEA4AC80 /* Sources */,
+				B74E46F82BC24775B085B28E /* Frameworks */,
+				47FA0483A6294C3FBF8C6F93 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AddElAutod;
+			productName = AddElAutod;
+			productReference = 0995C5D541194E8CAF8D2D63 /* AddElAutod.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		16381CA3574B42FFBE8059FF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					3C6945F6817943F6B0FEF8A2 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = 3A1E22AE119C45F086D7DFDB /* Build configuration list for PBXProject "AddElAutod" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = hu;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				hu,
+			);
+			mainGroup = 9D01449131BA40429D4CE85A;
+			productRefGroup = B375C6FD4244436DB7DF56E6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3C6945F6817943F6B0FEF8A2 /* AddElAutod */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		47FA0483A6294C3FBF8C6F93 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9D806392D1924CCFB5E2A93B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C222DBD4E9554789AEA4AC80 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7669DAAB7CD44197B5DB9569 /* AddElAutodApp.swift in Sources */,
+				4E4A054B6A794CAAB12CA9AB /* ContentView.swift in Sources */,
+				054C268AE8BC4CC2835B3718 /* Theme.swift in Sources */,
+				E25DB785583C4E20AF784C2A /* Models.swift in Sources */,
+				15A85E1C57CF456ABB5A6253 /* Catalog.swift in Sources */,
+				286A2879D6E349EAA0E94039 /* SearchStore.swift in Sources */,
+				98A1EE78BB5B468485E26671 /* Components.swift in Sources */,
+				C54E8CFDBF884BAEB98F7664 /* FeedFeaturedScreens.swift in Sources */,
+				82161CE429B74D729B6A5C3A /* SearchScreen.swift in Sources */,
+				C520885EA02E42088BD39FDB /* SavedSearchesScreen.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		31B04A645908412DB194C755 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		FF73B066FF4B443995E5FED4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		E32AA2FDC632415ABC39012C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Add el autod";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = hu.addelautod.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		2DCDEBE147A440BC84B5DE1F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Add el autod";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = hu.addelautod.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3A1E22AE119C45F086D7DFDB /* Build configuration list for PBXProject "AddElAutod" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				31B04A645908412DB194C755 /* Debug */,
+				FF73B066FF4B443995E5FED4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0A2CCFEBC5CC4A51B56B4CF6 /* Build configuration list for PBXNativeTarget "AddElAutod" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E32AA2FDC632415ABC39012C /* Debug */,
+				2DCDEBE147A440BC84B5DE1F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 16381CA3574B42FFBE8059FF /* Project object */;
+}
