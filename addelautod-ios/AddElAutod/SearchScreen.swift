@@ -13,7 +13,7 @@ struct SearchScreen: View {
     }
 
     private enum Panel {
-        case root, brand, model, fuel, price, year, km, extras
+        case root, brand, model(String), fuel, price, year, km, extras
     }
 
     var body: some View {
@@ -120,15 +120,15 @@ struct SearchScreen: View {
                 ScreenHeader(title: "Márka", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
                 brandSearchField
                 brandList
-            case .model:
+            case .model(let brand):
                 ScreenHeader(
-                    title: "Modell",
-                    subtitle: store.filter.gyartmanyok.isEmpty ? "Válassz márkát" : store.filter.brandLabel,
-                    onBack: goRoot,
+                    title: brand,
+                    subtitle: "Modell — több is bekapcsolható",
+                    onBack: { panel = .brand },
                     rightLabel: "Kész",
-                    onRight: goRoot
+                    onRight: { panel = .brand }
                 )
-                modelList
+                modelList(for: brand)
             case .fuel:
                 ScreenHeader(title: "Üzemanyag", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
                 fuelList
@@ -166,12 +166,8 @@ struct SearchScreen: View {
             VStack(alignment: .leading, spacing: 16) {
                 SectionLabel(text: "Jármű")
                 SettingsGroup {
-                    SettingsRow(title: "Márka", value: store.filter.brandLabel) {
+                    SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
                         panel = .brand
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Modell", value: store.filter.modelLabel) {
-                        panel = .model
                     }
                 }
 
@@ -270,6 +266,17 @@ struct SearchScreen: View {
                         .tint(Color.green)
                         .padding(.horizontal, 16)
                         .frame(minHeight: 52)
+
+                        if store.isBrandOn(brand) {
+                            Divider().padding(.leading, 32)
+                            SettingsRow(
+                                title: "\(brand) modell választása",
+                                value: store.modelLabel(for: brand)
+                            ) {
+                                panel = .model(brand)
+                            }
+                            .padding(.leading, 16)
+                        }
                     }
                 }
             }
@@ -277,42 +284,27 @@ struct SearchScreen: View {
         }
     }
 
-    private var availableModels: [String] {
-        let brands = store.filter.gyartmanyok
-        guard !brands.isEmpty else { return [] }
-        var seen = Set<String>()
-        var out: [String] = []
-        for brand in brands {
-            for model in Catalog.brands[brand] ?? [] {
-                if seen.insert(model).inserted {
-                    out.append(model)
+    private func modelList(for brand: String) -> some View {
+        let models = Catalog.brands[brand] ?? []
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Kapcsolók — több modell is")
+                Button {
+                    store.clearModels(for: brand)
+                } label: {
+                    Text("Összes kikapcsolása")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.accent)
+                        .padding(.leading, 4)
                 }
-            }
-        }
-        return out.sorted()
-    }
+                .buttonStyle(.plain)
 
-    private var modelList: some View {
-        ScrollView {
-            if store.filter.gyartmanyok.isEmpty {
-                Text("Előbb kapcsolj be legalább egy márkát.")
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .padding(.top, 40)
-                    .frame(maxWidth: .infinity)
-            } else {
-                let models = availableModels
-                VStack(alignment: .leading, spacing: 8) {
-                    SectionLabel(text: "Kapcsolók — több modell is")
-                    Button {
-                        store.clearModels()
-                    } label: {
-                        Text("Összes kikapcsolása")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(AppTheme.accent)
-                            .padding(.leading, 4)
-                    }
-                    .buttonStyle(.plain)
-
+                if models.isEmpty {
+                    Text("Nincs modell ehhez a márkához.")
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .padding(.top, 24)
+                        .frame(maxWidth: .infinity)
+                } else {
                     SettingsGroup {
                         ForEach(Array(models.enumerated()), id: \.element) { index, model in
                             if index > 0 { Divider().padding(.leading, 16) }
@@ -326,9 +318,17 @@ struct SearchScreen: View {
                         }
                     }
                 }
-                .padding(16)
             }
+            .padding(16)
         }
+    }
+
+    private var brandModelRootValue: String {
+        let brands = store.filter.gyartmanyok
+        let models = store.filter.modellek
+        if brands.isEmpty { return "Mindegy" }
+        if models.isEmpty { return store.filter.brandLabel }
+        return "\(store.filter.brandLabel) · \(store.filter.modelLabel)"
     }
 
     private var fuelList: some View {

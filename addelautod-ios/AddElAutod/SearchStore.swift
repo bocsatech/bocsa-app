@@ -47,8 +47,27 @@ final class SearchStore: ObservableObject {
         filter.modellek = []
     }
 
+    func clearModels(for brand: String) {
+        let allowed = Set(Catalog.brands[brand] ?? [])
+        filter.modellek.removeAll { allowed.contains($0) }
+    }
+
     func isModelOn(_ model: String) -> Bool {
         filter.modellek.contains(model)
+    }
+
+    /// Egy gyártmányhoz tartozó, bekapcsolt modellek
+    func models(for brand: String) -> [String] {
+        let allowed = Set(Catalog.brands[brand] ?? [])
+        return filter.modellek.filter { allowed.contains($0) }
+    }
+
+    func modelLabel(for brand: String) -> String {
+        let m = models(for: brand)
+        if m.isEmpty { return "Mindegy" }
+        if m.count == 1 { return m[0] }
+        if m.count <= 3 { return m.joined(separator: ", ") }
+        return "\(m.count) modell"
     }
 
     /// Gyors kategória a főoldali ikonokról (Új, Diesel, …)
