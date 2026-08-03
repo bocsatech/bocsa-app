@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// Gyors kategória találatok — egy szűrés + irányítószám / km-sugár a beállításokból
+/// Gyors találatok — Közelben / Új hirdetések / kategória + irányítószám / km-sugár
 struct CategoryResultsScreen: View {
     @EnvironmentObject private var store: SearchStore
     @EnvironmentObject private var profile: ProfileStore
 
-    let category: QuickCategory
+    let query: ListingQuery
     var onBack: () -> Void
     var onOpenSettings: () -> Void
 
@@ -16,13 +16,13 @@ struct CategoryResultsScreen: View {
     }
 
     private var cars: [DemoListing] {
-        DemoListing.filtered(for: category, maxDistanceKm: radiusKm)
+        DemoListing.filtered(for: query, maxDistanceKm: radiusKm)
     }
 
     var body: some View {
         VStack(spacing: 0) {
             ScreenHeader(
-                title: category.title,
+                title: query.title,
                 subtitle: "\(postal) · \(radiusKm) km",
                 onBack: onBack,
                 rightLabel: "Körzet",
@@ -47,7 +47,7 @@ struct CategoryResultsScreen: View {
 
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    Text("\(cars.count) találat · \(category.title) · \(radiusKm) km körzet")
+                    Text("\(cars.count) találat · \(query.title) · \(radiusKm) km körzet")
                         .font(.footnote)
                         .foregroundStyle(AppTheme.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -94,7 +94,7 @@ struct CategoryResultsScreen: View {
         }
         .background(AppTheme.bg)
         .onAppear {
-            store.applyQuickCategory(category)
+            store.applyListingQuery(query)
         }
     }
 }
@@ -128,19 +128,32 @@ struct DemoListing: Identifiable {
         DemoListing(id: "12", title: "Suzuki Swift", priceLabel: "3,6 M Ft", meta: "28 000 km · Benzin · 2023", badge: "Friss", fuel: .benzin, year: 2023, isLeasing: false, isRentable: true, isOldtimer: false, postalCode: "1082", distanceKm: 4),
     ]
 
-    static func filtered(for category: QuickCategory, maxDistanceKm: Int = 500) -> [DemoListing] {
+    static func filtered(for query: ListingQuery, maxDistanceKm: Int = 500) -> [DemoListing] {
         all.filter { car in
             guard car.distanceKm <= maxDistanceKm else { return false }
-            switch category {
-            case .uj: return car.year >= 2024
-            case .benzin: return car.fuel == .benzin && !car.isOldtimer
-            case .diesel: return car.fuel == .diesel
-            case .elektromos: return car.fuel == .elektromos
-            case .hybrid: return car.fuel == .hybrid
-            case .leasing: return car.isLeasing
-            case .berelheto: return car.isRentable
-            case .ot: return car.isOldtimer
+            switch query {
+            case .nearby:
+                return true
+            case .newListings:
+                return car.year >= 2024
+                    || car.badge == "Új"
+                    || car.badge == "Friss"
+            case .category(let category):
+                switch category {
+                case .uj: return car.year >= 2024
+                case .benzin: return car.fuel == .benzin && !car.isOldtimer
+                case .diesel: return car.fuel == .diesel
+                case .elektromos: return car.fuel == .elektromos
+                case .hybrid: return car.fuel == .hybrid
+                case .leasing: return car.isLeasing
+                case .berelheto: return car.isRentable
+                case .ot: return car.isOldtimer
+                }
             }
         }
+    }
+
+    static func filtered(for category: QuickCategory, maxDistanceKm: Int = 500) -> [DemoListing] {
+        filtered(for: .category(category), maxDistanceKm: maxDistanceKm)
     }
 }

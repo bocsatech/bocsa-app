@@ -53,21 +53,32 @@ final class SearchStore: ObservableObject {
 
     /// Gyors kategória a főoldali ikonokról (Új, Diesel, …)
     func applyQuickCategory(_ category: QuickCategory) {
+        applyListingQuery(.category(category))
+    }
+
+    func applyListingQuery(_ query: ListingQuery) {
         filter = SearchFilter()
         let year = Calendar.current.component(.year, from: Date())
-        switch category {
-        case .uj:
-            filter.evTol = year - 1
-        case .benzin:
-            filter.fuels = [.benzin]
-        case .diesel:
-            filter.fuels = [.diesel]
-        case .elektromos:
-            filter.fuels = [.elektromos]
-        case .hybrid:
-            filter.fuels = [.hybrid]
-        case .leasing, .berelheto, .ot:
+        switch query {
+        case .nearby:
             break
+        case .newListings:
+            filter.evTol = year - 1
+        case .category(let category):
+            switch category {
+            case .uj:
+                filter.evTol = year - 1
+            case .benzin:
+                filter.fuels = [.benzin]
+            case .diesel:
+                filter.fuels = [.diesel]
+            case .elektromos:
+                filter.fuels = [.elektromos]
+            case .hybrid:
+                filter.fuels = [.hybrid]
+            case .leasing, .berelheto, .ot:
+                break
+            }
         }
     }
 

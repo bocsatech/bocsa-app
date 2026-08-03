@@ -6,7 +6,7 @@ struct SearchScreen: View {
     @State private var panel: Panel = .root
     @State private var brandQuery = ""
     @State private var toast: String?
-    @State private var activeCategory: QuickCategory?
+    @State private var activeQuery: ListingQuery?
 
     private enum Mode {
         case landing, search, settings, results
@@ -25,14 +25,14 @@ struct SearchScreen: View {
                 filterStack
             case .settings:
                 SettingsScreen(onClose: {
-                    mode = activeCategory == nil ? .landing : .results
+                    mode = activeQuery == nil ? .landing : .results
                 })
             case .results:
-                if let category = activeCategory {
+                if let query = activeQuery {
                     CategoryResultsScreen(
-                        category: category,
+                        query: query,
                         onBack: {
-                            activeCategory = nil
+                            activeQuery = nil
                             mode = .landing
                         },
                         onOpenSettings: { mode = .settings }
@@ -52,10 +52,10 @@ struct SearchScreen: View {
         }
     }
 
-    /// Felül: Keresés + Beállítások. Alatta: Autosweb kategóriaikonok (~1/4 méret).
+    /// Felül Keresés → Közelben + Új hirdetések → autóikonok → legalul Beállítások
     private var searchLanding: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 28) {
+        ScrollView {
+            VStack(spacing: 0) {
                 HomeIconButton(
                     systemName: "magnifyingglass",
                     label: "Keresés",
@@ -64,6 +64,40 @@ struct SearchScreen: View {
                     panel = .root
                     mode = .search
                 }
+                .padding(.top, 12)
+                .padding(.bottom, 18)
+
+                HStack(spacing: 28) {
+                    HomeIconButton(
+                        systemName: "mappin.and.ellipse",
+                        label: "Közelben",
+                        tint: Color(red: 0.18, green: 0.55, blue: 0.34)
+                    ) {
+                        openListing(.nearby)
+                    }
+                    HomeIconButton(
+                        systemName: "sparkles",
+                        label: "Új hirdetések",
+                        tint: Color(red: 0.85, green: 0.45, blue: 0.12)
+                    ) {
+                        openListing(.newListings)
+                    }
+                }
+                .padding(.bottom, 22)
+
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3),
+                    spacing: 18
+                ) {
+                    ForEach(QuickCategory.allCases) { category in
+                        CategoryIconButton(category: category) {
+                            openListing(.category(category))
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 28)
+
                 HomeIconButton(
                     systemName: "gearshape.fill",
                     label: "Beállítások",
@@ -71,33 +105,10 @@ struct SearchScreen: View {
                 ) {
                     mode = .settings
                 }
+                .padding(.bottom, 24)
             }
-            .padding(.top, 12)
-            .padding(.bottom, 20)
-
-            Text("Gyors kategóriák")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 10)
-
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3),
-                spacing: 18
-            ) {
-                ForEach(QuickCategory.allCases) { category in
-                    CategoryIconButton(category: category) {
-                        activeCategory = category
-                        mode = .results
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.white.ignoresSafeArea())
     }
 
@@ -557,6 +568,12 @@ struct SearchScreen: View {
 
     private func choiceRow(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
         SettingsRow(title: title, value: selected ? "✓" : nil, showChevron: false, action: action)
+    }
+
+    private func openListing(_ query: ListingQuery) {
+        store.applyListingQuery(query)
+        activeQuery = query
+        mode = .results
     }
 
     private func goRoot() {
