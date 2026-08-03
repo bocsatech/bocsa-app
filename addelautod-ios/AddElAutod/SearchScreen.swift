@@ -391,7 +391,7 @@ struct SearchScreen: View {
             Divider().padding(.leading, 16)
             Toggle("Felező váltó", isOn: Binding(
                 get: { store.filter.felezoValto },
-                set: { store.filter.felezoValto = $0 }
+                set: { store.setFelezoValto($0) }
             ))
             .tint(Color.green)
             .padding(.horizontal, 16)
@@ -417,7 +417,7 @@ struct SearchScreen: View {
             Divider().padding(.leading, 16)
             Toggle("Metál fényezés", isOn: Binding(
                 get: { store.filter.metalfeny },
-                set: { store.filter.metalfeny = $0 }
+                set: { store.setMetalfeny($0) }
             ))
             .tint(Color.green)
             .padding(.horizontal, 16)
@@ -439,7 +439,7 @@ struct SearchScreen: View {
             ForEach(DetailedSearchCatalog.klimaOptions, id: \.self) { option in
                 Toggle(option, isOn: Binding(
                     get: { store.filter.klima == option },
-                    set: { on in store.filter.klima = on ? option : nil }
+                    set: { on in store.setKlima(on ? option : nil) }
                 ))
                 .tint(Color.green)
                 .padding(.horizontal, 16)
@@ -450,7 +450,7 @@ struct SearchScreen: View {
 
             Toggle("Nem dohányzó autó", isOn: Binding(
                 get: { store.filter.nemDohanyzo },
-                set: { store.filter.nemDohanyzo = $0 }
+                set: { store.setNemDohanyzo($0) }
             ))
             .tint(Color.green)
             .padding(.horizontal, 16)
@@ -458,7 +458,7 @@ struct SearchScreen: View {
 
             Toggle("Hölgy tulajdonostól", isOn: Binding(
                 get: { store.filter.holgyTulajdonos },
-                set: { store.filter.holgyTulajdonos = $0 }
+                set: { store.setHolgyTulajdonos($0) }
             ))
             .tint(Color.green)
             .padding(.horizontal, 16)
