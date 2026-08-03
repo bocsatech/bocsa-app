@@ -1,47 +1,29 @@
-# Add el autod — iOS (Xcode / SwiftUI)
+# Hol van a projekt? → ~/Downloads/autosapp
 
-Natív iPhone app. **Xcode-ban írod és ott teszteljük** (Simulator).
+A Macen a telepítő ide másol mindent:
 
-Nem Bocsa CRM — Autosweb / Add el autod.hu mobil koncepció.
-
-## Fontos: hol van a repo a Macen?
-
-A Terminálban **ne** a home mappából (`~`) indítsd. Előbb menj a bocsa-app klónba, pl.:
-
-```bash
-# Ha a repo itt van:
-cd ~/bocsa-app
-
-# vagy keresd meg:
-mdfind -name bocsa-app | head
+```
+~/Downloads/autosapp/
+  AddElAutod.xcodeproj   ← ezt nyisd meg Xcode-ban
+  AddElAutod/
+  README.md
+  HONNAN.txt
 ```
 
-Majd:
+## Telepítés (egyszer a Maceden)
+
+Terminálba másold be **egyetlen** blokként:
 
 ```bash
-git fetch origin
-git checkout cursor/addelautod-mobile-de62
-open addelautod-ios/AddElAutod.xcodeproj
+curl -fsSL "https://raw.githubusercontent.com/bocsatech/bocsa-app/cursor/addelautod-mobile-de62/addelautod-ios/mac/Telepit-Downloads-autosapp.command" -o /tmp/telepit-autosapp.command && chmod +x /tmp/telepit-autosapp.command && /tmp/telepit-autosapp.command
 ```
 
-## Xcode lépések
+Ez:
+1. létrehozza a `~/Downloads/autosapp` mappát
+2. oda másolja az Xcode projektet
+3. megnyitja Xcode-ban
 
-1. Megnyílik az **AddElAutod** projekt
-2. Felül válaszd: **iPhone 16** (vagy bármely Simulator)
-3. Nyomj **▶ Run** (Cmd+R)
-4. Ha Team kell: Target → Signing → válaszd a saját Apple ID-t (Personal Team elég Simulatorhoz gyakran; Simulatoron sokszor Signing nélkül is megy)
+## Utána
 
-## Mit kapsz
-
-| Oldal | Swipe | Tartalom |
-|-------|-------|----------|
-| 1 | Hírfolyam | Hírek + YouTube (demo) |
-| 2 | Kiemeltek | Autós hirdetések (demo) |
-| 3 | Keresés | iOS Beállítások-menü, extrák **Toggle** |
-| 4 | Mentett | Keresési feltételek ikonokra |
-
-Jobbra–balra húzás a 4 oldal között.
-
-## Expo mappa
-
-Az `addelautod-mobile/` Expo próba volt. **Most az `addelautod-ios/` a Xcode út.**
+Finder → **Letöltések → autosapp → AddElAutod.xcodeproj**  
+vagy Xcode: iPhone Simulator → ▶ Run
