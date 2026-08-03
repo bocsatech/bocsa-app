@@ -25,6 +25,7 @@ import {
   formatPrice,
   fuelLabel,
   brandLabel,
+  fuelFilterLabel,
   summarizeFilter,
 } from "../types";
 import { colors, radii, spacing } from "../theme";
@@ -50,6 +51,7 @@ export default function SearchScreen() {
     clearBrands,
     setModel,
     setFuel,
+    clearFuels,
     setPrice,
     setYear,
     setKm,
@@ -213,30 +215,21 @@ export default function SearchScreen() {
   if (panel === "fuel") {
     return (
       <View style={styles.page}>
-        <ScreenHeader title="Üzemanyag" onBack={goBack} />
+        <ScreenHeader title="Üzemanyag" onBack={goBack} rightLabel="Kész" onRightPress={goBack} />
         <ScrollView contentContainerStyle={styles.pad}>
+          <Text style={styles.sectionLabel}>Kapcsolók — több is</Text>
+          <Pressable onPress={clearFuels} style={{ marginBottom: 12, marginLeft: 4 }}>
+            <Text style={{ color: colors.accent, fontWeight: "500" }}>Összes kikapcsolása</Text>
+          </Pressable>
           <Group>
-            <SettingsRow
-              title="Mindegy"
-              isFirst
-              showChevron={false}
-              value={filter.fuel == null ? "✓" : undefined}
-              onPress={() => {
-                setFuel(null);
-                goBack();
-              }}
-            />
             {FUEL_OPTIONS.map((opt, i) => (
-              <SettingsRow
+              <ToggleRow
                 key={opt.key}
                 title={opt.label}
+                value={filter.fuels.includes(opt.key)}
+                onValueChange={(on) => setFuel(opt.key, on)}
+                isFirst={i === 0}
                 isLast={i === FUEL_OPTIONS.length - 1}
-                showChevron={false}
-                value={filter.fuel === opt.key ? "✓" : undefined}
-                onPress={() => {
-                  setFuel(opt.key);
-                  goBack();
-                }}
               />
             ))}
           </Group>
@@ -407,7 +400,7 @@ export default function SearchScreen() {
         <Group>
           <SettingsRow
             title="Üzemanyag"
-            value={filter.fuel ? fuelLabel(filter.fuel) : "Mindegy"}
+            value={fuelFilterLabel(filter)}
             isFirst
             onPress={() => setPanel("fuel")}
           />

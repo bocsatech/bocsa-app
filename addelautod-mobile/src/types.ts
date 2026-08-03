@@ -15,7 +15,7 @@ export type ExtraKey =
 export type SearchFilter = {
   gyartmanyok: string[];
   modell: string | null;
-  fuel: FuelType;
+  fuels: NonNullable<FuelType>[];
   arTol: number | null;
   arIg: number | null;
   evTol: number | null;
@@ -54,7 +54,7 @@ export function emptyFilter(): SearchFilter {
   return {
     gyartmanyok: [],
     modell: null,
-    fuel: null,
+    fuels: [],
     arTol: null,
     arIg: null,
     evTol: null,
@@ -77,11 +77,19 @@ export function brandLabel(filter: SearchFilter): string {
   return `${list.length} márka`;
 }
 
+export function fuelFilterLabel(filter: SearchFilter): string {
+  const list = filter.fuels;
+  if (!list.length) return "Mindegy";
+  if (list.length === 1) return fuelLabel(list[0]);
+  if (list.length <= 3) return list.map(fuelLabel).join(", ");
+  return `${list.length} üzemanyag`;
+}
+
 export function summarizeFilter(filter: SearchFilter): string {
   const parts: string[] = [];
   if (filter.gyartmanyok.length) parts.push(brandLabel(filter));
   if (filter.modell) parts.push(filter.modell);
-  if (filter.fuel) parts.push(fuelLabel(filter.fuel));
+  if (filter.fuels.length) parts.push(fuelFilterLabel(filter));
   if (filter.arIg != null) parts.push(`– ${formatPrice(filter.arIg)}`);
   if (filter.arTol != null && filter.arIg == null) parts.push(`${formatPrice(filter.arTol)} –`);
   const n = countActiveExtras(filter);

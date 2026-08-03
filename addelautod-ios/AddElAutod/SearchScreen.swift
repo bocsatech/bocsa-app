@@ -78,7 +78,7 @@ struct SearchScreen: View {
                 )
                 modelList
             case .fuel:
-                ScreenHeader(title: "Üzemanyag", onBack: goRoot)
+                ScreenHeader(title: "Üzemanyag", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
                 fuelList
             case .price:
                 ScreenHeader(title: "Ár", onBack: goRoot)
@@ -125,7 +125,7 @@ struct SearchScreen: View {
 
                 SectionLabel(text: "Feltételek")
                 SettingsGroup {
-                    SettingsRow(title: "Üzemanyag", value: store.filter.fuel?.label ?? "Mindegy") {
+                    SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
                         panel = .fuel
                     }
                     Divider().padding(.leading, 16)
@@ -269,16 +269,28 @@ struct SearchScreen: View {
 
     private var fuelList: some View {
         ScrollView {
-            SettingsGroup {
-                choiceRow("Mindegy", selected: store.filter.fuel == nil) {
-                    store.setFuel(nil)
-                    goRoot()
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Kapcsolók — több is")
+                Button {
+                    store.clearFuels()
+                } label: {
+                    Text("Összes kikapcsolása")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.accent)
+                        .padding(.leading, 4)
                 }
-                ForEach(FuelType.allCases) { fuel in
-                    Divider().padding(.leading, 16)
-                    choiceRow(fuel.label, selected: store.filter.fuel == fuel) {
-                        store.setFuel(fuel)
-                        goRoot()
+                .buttonStyle(.plain)
+
+                SettingsGroup {
+                    ForEach(Array(FuelType.allCases.enumerated()), id: \.element.id) { index, fuel in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(fuel.label, isOn: Binding(
+                            get: { store.isFuelOn(fuel) },
+                            set: { store.setFuel(fuel, on: $0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
                     }
                 }
             }

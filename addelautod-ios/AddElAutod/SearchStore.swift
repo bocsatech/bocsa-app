@@ -43,8 +43,23 @@ final class SearchStore: ObservableObject {
         filter.modell = model
     }
 
-    func setFuel(_ fuel: FuelType?) {
-        filter.fuel = fuel
+    func setFuel(_ fuel: FuelType, on: Bool) {
+        var list = filter.fuels
+        if on {
+            if !list.contains(fuel) { list.append(fuel) }
+        } else {
+            list.removeAll { $0 == fuel }
+        }
+        // stabil sorrend: FuelType.allCases szerint
+        filter.fuels = FuelType.allCases.filter { list.contains($0) }
+    }
+
+    func clearFuels() {
+        filter.fuels = []
+    }
+
+    func isFuelOn(_ fuel: FuelType) -> Bool {
+        filter.fuels.contains(fuel)
     }
 
     func setPrice(tol: Int?, ig: Int?) {

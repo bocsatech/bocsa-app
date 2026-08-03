@@ -24,7 +24,8 @@ type SearchContextValue = {
   setBrand: (brand: string, on: boolean) => void;
   clearBrands: () => void;
   setModel: (model: string | null) => void;
-  setFuel: (fuel: FuelType) => void;
+  setFuel: (fuel: NonNullable<FuelType>, on: boolean) => void;
+  clearFuels: () => void;
   setPrice: (arTol: number | null, arIg: number | null) => void;
   setYear: (evTol: number | null, evIg: number | null) => void;
   setKm: (kmTol: number | null, kmIg: number | null) => void;
@@ -75,8 +76,27 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     setFilter((prev) => ({ ...prev, modell: model }));
   }, []);
 
-  const setFuel = useCallback((fuel: FuelType) => {
-    setFilter((prev) => ({ ...prev, fuel }));
+  const setFuel = useCallback((fuel: NonNullable<FuelType>, on: boolean) => {
+    setFilter((prev) => {
+      let list = [...prev.fuels];
+      if (on) {
+        if (!list.includes(fuel)) list.push(fuel);
+      } else {
+        list = list.filter((f) => f !== fuel);
+      }
+      const order: NonNullable<FuelType>[] = [
+        "benzin",
+        "diesel",
+        "hybrid",
+        "elektromos",
+        "benzin-gaz",
+      ];
+      return { ...prev, fuels: order.filter((f) => list.includes(f)) };
+    });
+  }, []);
+
+  const clearFuels = useCallback(() => {
+    setFilter((prev) => ({ ...prev, fuels: [] }));
   }, []);
 
   const setPrice = useCallback((arTol: number | null, arIg: number | null) => {
@@ -136,6 +156,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       clearBrands,
       setModel,
       setFuel,
+      clearFuels,
       setPrice,
       setYear,
       setKm,
@@ -152,6 +173,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       clearBrands,
       setModel,
       setFuel,
+      clearFuels,
       setPrice,
       setYear,
       setKm,
