@@ -29,13 +29,12 @@ export const PRICE_STEPS: number[] = Array.from(
 );
 
 
-export const YEAR_PRESETS: { label: string; evTol: number | null; evIg: number | null }[] = [
-  { label: "Mindegy", evTol: null, evIg: null },
-  { label: "2020 –", evTol: 2020, evIg: null },
-  { label: "2015 – 2019", evTol: 2015, evIg: 2019 },
-  { label: "2010 – 2014", evTol: 2010, evIg: 2014 },
-  { label: "– 2009", evTol: null, evIg: 2009 },
-];
+export const YEAR_MIN = 1990;
+export const YEAR_MAX = new Date().getFullYear();
+export const YEAR_STEPS: number[] = Array.from(
+  { length: YEAR_MAX - YEAR_MIN + 1 },
+  (_, i) => YEAR_MIN + i,
+);
 
 export const KM_PRESETS: { label: string; kmTol: number | null; kmIg: number | null }[] = [
   { label: "Mindegy", kmTol: null, kmIg: null },

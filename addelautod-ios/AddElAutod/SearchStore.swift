@@ -82,8 +82,21 @@ final class SearchStore: ObservableObject {
     }
 
     func setYear(tol: Int?, ig: Int?) {
-        filter.evTol = tol
-        filter.evIg = ig
+        var t = tol
+        var i = ig
+        if let tVal = t, let iVal = i, tVal > iVal {
+            i = tVal
+        }
+        filter.evTol = t
+        filter.evIg = i
+    }
+
+    func setYearMin(_ value: Int?) {
+        setYear(tol: value, ig: filter.evIg)
+    }
+
+    func setYearMax(_ value: Int?) {
+        setYear(tol: filter.evTol, ig: value)
     }
 
     func setKm(tol: Int?, ig: Int?) {

@@ -84,8 +84,8 @@ struct SearchScreen: View {
                 ScreenHeader(title: "Ár", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
                 priceWheels
             case .year:
-                ScreenHeader(title: "Évjárat", onBack: goRoot)
-                yearList
+                ScreenHeader(title: "Évjárat", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                yearWheels
             case .km:
                 ScreenHeader(title: "Futott km", onBack: goRoot)
                 kmList
@@ -359,20 +359,64 @@ struct SearchScreen: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var yearList: some View {
-        ScrollView {
-            SettingsGroup {
-                ForEach(Array(Catalog.yearPresets.enumerated()), id: \.offset) { index, preset in
-                    if index > 0 { Divider().padding(.leading, 16) }
-                    let selected = store.filter.evTol == preset.tol && store.filter.evIg == preset.ig
-                    choiceRow(preset.label, selected: selected) {
-                        store.setYear(tol: preset.tol, ig: preset.ig)
-                        goRoot()
-                    }
+    private var yearWheels: some View {
+        VStack(spacing: 0) {
+            Text("Évjárat — tól / ig")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+            HStack(alignment: .top, spacing: 0) {
+                yearWheelColumn(
+                    title: "Tól",
+                    selection: Binding(
+                        get: { store.filter.evTol ?? -1 },
+                        set: { store.setYearMin($0 < 0 ? nil : $0) }
+                    )
+                )
+                Divider()
+                yearWheelColumn(
+                    title: "Ig",
+                    selection: Binding(
+                        get: { store.filter.evIg ?? -1 },
+                        set: { store.setYearMax($0 < 0 ? nil : $0) }
+                    )
+                )
+            }
+            .frame(maxHeight: .infinity)
+
+            Button {
+                store.setYear(tol: nil, ig: nil)
+            } label: {
+                Text("Évjárat szűrő törlése")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
+        }
+        .background(AppTheme.bgGrouped)
+    }
+
+    private func yearWheelColumn(title: String, selection: Binding<Int>) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppTheme.text)
+                .padding(.top, 8)
+            Picker(title, selection: selection) {
+                Text("Mindegy").tag(-1)
+                ForEach(Catalog.yearSteps, id: \.self) { year in
+                    Text(String(year)).tag(year)
                 }
             }
-            .padding(16)
+            .pickerStyle(.wheel)
+            .labelsHidden()
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var kmList: some View {

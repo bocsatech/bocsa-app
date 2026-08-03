@@ -27,13 +27,14 @@ enum Catalog {
         return SearchFilter.formatPrice(value)
     }
 
-    static let yearPresets: [(label: String, tol: Int?, ig: Int?)] = [
-        ("Mindegy", nil, nil),
-        ("2020 –", 2020, nil),
-        ("2015 – 2019", 2015, 2019),
-        ("2010 – 2014", 2010, 2014),
-        ("– 2009", nil, 2009),
-    ]
+    /// Évjárat: 1990 … aktuális év
+    static var yearMax: Int {
+        Calendar.current.component(.year, from: Date())
+    }
+    static let yearMin = 1990
+    static var yearSteps: [Int] {
+        Array(stride(from: yearMin, through: yearMax, by: 1))
+    }
 
     static let kmPresets: [(label: String, tol: Int?, ig: Int?)] = [
         ("Mindegy", nil, nil),

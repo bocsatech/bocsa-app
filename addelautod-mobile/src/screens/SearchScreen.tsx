@@ -39,6 +39,8 @@ type Panel =
   | "priceMin"
   | "priceMax"
   | "year"
+  | "yearMin"
+  | "yearMax"
   | "km"
   | "extras";
 
@@ -318,27 +320,72 @@ export default function SearchScreen() {
   if (panel === "year") {
     return (
       <View style={styles.page}>
-        <ScreenHeader title="Évjárat" onBack={goBack} />
+        <ScreenHeader title="Évjárat" onBack={goBack} rightLabel="Kész" onRightPress={goBack} />
+        <ScrollView contentContainerStyle={styles.pad}>
+          <Text style={styles.sectionLabel}>Évjárat — tól / ig</Text>
+          <Group>
+            <SettingsRow
+              title="Tól"
+              value={filter.evTol == null ? "Mindegy" : String(filter.evTol)}
+              isFirst
+              onPress={() => setPanel("yearMin")}
+            />
+            <SettingsRow
+              title="Ig"
+              value={filter.evIg == null ? "Mindegy" : String(filter.evIg)}
+              isLast
+              onPress={() => setPanel("yearMax")}
+            />
+          </Group>
+          <Pressable
+            onPress={() => setYear(null, null)}
+            style={{ marginTop: 12, marginLeft: 4 }}
+          >
+            <Text style={{ color: colors.accent, fontWeight: "500" }}>Évjárat szűrő törlése</Text>
+          </Pressable>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  if (panel === "yearMin" || panel === "yearMax") {
+    const isMin = panel === "yearMin";
+    const current = isMin ? filter.evTol : filter.evIg;
+    return (
+      <View style={styles.page}>
+        <ScreenHeader
+          title={isMin ? "Évjárat tól" : "Évjárat ig"}
+          onBack={() => setPanel("year")}
+          rightLabel="Kész"
+          onRightPress={() => setPanel("year")}
+        />
         <ScrollView contentContainerStyle={styles.pad}>
           <Group>
-            {YEAR_PRESETS.map((preset, i) => {
-              const selected =
-                filter.evTol === preset.evTol && filter.evIg === preset.evIg;
-              return (
-                <SettingsRow
-                  key={preset.label}
-                  title={preset.label}
-                  isFirst={i === 0}
-                  isLast={i === YEAR_PRESETS.length - 1}
-                  showChevron={false}
-                  value={selected ? "✓" : undefined}
-                  onPress={() => {
-                    setYear(preset.evTol, preset.evIg);
-                    goBack();
-                  }}
-                />
-              );
-            })}
+            <SettingsRow
+              title="Mindegy"
+              isFirst
+              showChevron={false}
+              value={current == null ? "✓" : undefined}
+              onPress={() => {
+                if (isMin) setYear(null, filter.evIg);
+                else setYear(filter.evTol, null);
+                setPanel("year");
+              }}
+            />
+            {YEAR_STEPS.map((year, i) => (
+              <SettingsRow
+                key={year}
+                title={String(year)}
+                isLast={i === YEAR_STEPS.length - 1}
+                showChevron={false}
+                value={current === year ? "✓" : undefined}
+                onPress={() => {
+                  if (isMin) setYear(year, filter.evIg);
+                  else setYear(filter.evTol, year);
+                  setPanel("year");
+                }}
+              />
+            ))}
           </Group>
         </ScrollView>
       </View>
