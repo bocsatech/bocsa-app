@@ -126,13 +126,11 @@ final class SearchStore: ObservableObject {
     }
 
     func setPrice(tol: Int?, ig: Int?) {
-        var t = tol
         var i = ig
-        if let tVal = t, let iVal = i, tVal > iVal {
-            // ha minimum > maximum, igazítjuk
+        if let tVal = tol, let iVal = i, tVal > iVal {
             i = tVal
         }
-        filter.arTol = t
+        filter.arTol = tol
         filter.arIg = i
     }
 
