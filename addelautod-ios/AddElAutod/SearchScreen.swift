@@ -3,7 +3,8 @@ import SwiftUI
 struct SearchScreen: View {
     @EnvironmentObject private var store: SearchStore
     @State private var mode: Mode = .landing
-    @State private var panel: Panel = .root
+    @State private var panel: Panel = .simple
+    @State private var listPanel: Panel = .simple
     @State private var brandQuery = ""
     @State private var toast: String?
     @State private var activeQuery: ListingQuery?
@@ -13,7 +14,7 @@ struct SearchScreen: View {
     }
 
     private enum Panel {
-        case root, brand, model(String), fuel, price, year, km, extras
+        case simple, advanced, brand, model(String), fuel, price, year, km, extras
     }
 
     var body: some View {
@@ -62,7 +63,8 @@ struct SearchScreen: View {
                         label: "Keresés",
                         tint: AppTheme.accent
                     ) {
-                        panel = .root
+                        listPanel = .simple
+                        panel = .simple
                         mode = .search
                     }
                     HomeIconButton(
@@ -113,11 +115,14 @@ struct SearchScreen: View {
     private var filterStack: some View {
         VStack(spacing: 0) {
             switch panel {
-            case .root:
-                rootHeader
-                rootList
+            case .simple:
+                simpleHeader
+                simpleList
+            case .advanced:
+                advancedHeader
+                advancedList
             case .brand:
-                ScreenHeader(title: "Márka", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                ScreenHeader(title: "Márka", onBack: goList, rightLabel: "Kész", onRight: goList)
                 brandSearchField
                 brandList
             case .model(let brand):
@@ -130,30 +135,31 @@ struct SearchScreen: View {
                 )
                 modelList(for: brand)
             case .fuel:
-                ScreenHeader(title: "Üzemanyag", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                ScreenHeader(title: "Üzemanyag", onBack: goList, rightLabel: "Kész", onRight: goList)
                 fuelList
             case .price:
-                ScreenHeader(title: "Ár", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                ScreenHeader(title: "Ár", onBack: goList, rightLabel: "Kész", onRight: goList)
                 priceWheels
             case .year:
-                ScreenHeader(title: "Évjárat", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                ScreenHeader(title: "Évjárat", onBack: goList, rightLabel: "Kész", onRight: goList)
                 yearWheels
             case .km:
-                ScreenHeader(title: "Futott km", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                ScreenHeader(title: "Futott km", onBack: goList, rightLabel: "Kész", onRight: goList)
                 kmWheels
             case .extras:
-                ScreenHeader(title: "Extrák", onBack: goRoot, rightLabel: "Kész", onRight: goRoot)
+                ScreenHeader(title: "Extrák", onBack: goList, rightLabel: "Kész", onRight: goList)
                 extrasList
             }
         }
         .background(AppTheme.bgGrouped)
     }
 
-    private var rootHeader: some View {
+    private var simpleHeader: some View {
         ScreenHeader(
             title: "Keresés",
             onBack: {
-                panel = .root
+                panel = .simple
+                listPanel = .simple
                 mode = .landing
             },
             rightLabel: "Törlés",
@@ -161,68 +167,129 @@ struct SearchScreen: View {
         )
     }
 
-    private var rootList: some View {
+    private var advancedHeader: some View {
+        ScreenHeader(
+            title: "Részletes keresés",
+            onBack: {
+                listPanel = .simple
+                panel = .simple
+            },
+            rightLabel: "Törlés",
+            onRight: store.reset
+        )
+    }
+
+    /// Egyszerű: Márka/modell, évjárat, km, ár, üzemanyag
+    private var simpleList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                SectionLabel(text: "Jármű")
                 SettingsGroup {
                     SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
-                        panel = .brand
+                        openSubpanel(.brand)
                     }
-                }
-
-                SectionLabel(text: "Feltételek")
-                SettingsGroup {
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Évjárat", value: yearValue) {
+                        openSubpanel(.year)
+                    }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Futott km", value: kmValue) {
+                        openSubpanel(.km)
+                    }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Ár", value: priceValue) {
+                        openSubpanel(.price)
+                    }
+                    Divider().padding(.leading, 16)
                     SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
-                        panel = .fuel
+                        openSubpanel(.fuel)
                     }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Ár", value: priceValue) { panel = .price }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Évjárat", value: yearValue) { panel = .year }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Futott km", value: kmValue) { panel = .km }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Extrák", value: extrasValue) { panel = .extras }
                 }
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("AKTÍV SZŰRŐ")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.textSecondary)
-                    Text(store.filter.summary)
-                        .font(.body)
-                        .foregroundStyle(AppTheme.text)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background(AppTheme.bgElevated)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 Button {
-                    if let saved = store.saveCurrent() {
-                        toast = "Ikon a 4. oldalon: \(saved.icon) \(saved.name)"
-                    } else {
-                        toast = "Előbb állíts be legalább egy feltételt."
-                    }
+                    listPanel = .advanced
+                    panel = .advanced
                 } label: {
-                    Text("Mentés ikonra (4. oldal)")
-                        .font(.body.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .foregroundStyle(.white)
-                        .background(AppTheme.accent)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    HStack {
+                        Text("Részletes keresés")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(AppTheme.accent)
+                        Spacer()
+                        Text("›")
+                            .font(.title2)
+                            .foregroundStyle(AppTheme.textTertiary)
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(minHeight: 52)
+                    .background(AppTheme.bgElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
+                .buttonStyle(.plain)
 
-                Text("Márka: több is bekapcsolható. Extrák: kapcsoló.")
-                    .font(.footnote)
-                    .foregroundStyle(AppTheme.textTertiary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
+                activeFilterCard
+                saveButton
             }
             .padding(16)
         }
+    }
+
+    /// Részletes: Extrák (+ későbbi további feltételek)
+    private var advancedList: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                SectionLabel(text: "További feltételek")
+                SettingsGroup {
+                    SettingsRow(title: "Extrák", value: extrasValue) {
+                        openSubpanel(.extras)
+                    }
+                }
+
+                activeFilterCard
+                saveButton
+            }
+            .padding(16)
+        }
+    }
+
+    private var activeFilterCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("AKTÍV SZŰRŐ")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+            Text(store.filter.summary)
+                .font(.body)
+                .foregroundStyle(AppTheme.text)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(AppTheme.bgElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var saveButton: some View {
+        Button {
+            if let saved = store.saveCurrent() {
+                toast = "Ikon a 4. oldalon: \(saved.icon) \(saved.name)"
+            } else {
+                toast = "Előbb állíts be legalább egy feltételt."
+            }
+        } label: {
+            Text("Mentés ikonra (4. oldal)")
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .foregroundStyle(.white)
+                .background(AppTheme.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+
+    private func openSubpanel(_ next: Panel) {
+        panel = next
+    }
+
+    private func goList() {
+        brandQuery = ""
+        panel = listPanel
     }
 
     private var brandSearchField: some View {
