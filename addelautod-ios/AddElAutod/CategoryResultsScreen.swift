@@ -128,8 +128,9 @@ struct DemoListing: Identifiable {
         DemoListing(id: "12", title: "Suzuki Swift", priceLabel: "3,6 M Ft", meta: "28 000 km · Benzin · 2023", badge: "Friss", fuel: .benzin, year: 2023, isLeasing: false, isRentable: true, isOldtimer: false, postalCode: "1082", distanceKm: 4),
     ]
 
-    static func filtered(for category: QuickCategory) -> [DemoListing] {
+    static func filtered(for category: QuickCategory, maxDistanceKm: Int = 500) -> [DemoListing] {
         all.filter { car in
+            guard car.distanceKm <= maxDistanceKm else { return false }
             switch category {
             case .uj: return car.year >= 2024
             case .benzin: return car.fuel == .benzin && !car.isOldtimer

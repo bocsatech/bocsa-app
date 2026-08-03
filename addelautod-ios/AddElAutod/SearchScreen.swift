@@ -55,7 +55,6 @@ struct SearchScreen: View {
     /// Felül: Keresés + Beállítások. Alatta: Autosweb kategóriaikonok (~1/4 méret).
     private var searchLanding: some View {
         VStack(spacing: 0) {
-            Color.white
             HStack(spacing: 28) {
                 HomeIconButton(
                     systemName: "magnifyingglass",
