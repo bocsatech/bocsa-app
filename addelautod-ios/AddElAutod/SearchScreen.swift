@@ -10,7 +10,7 @@ struct SearchScreen: View {
     @State private var activeQuery: ListingQuery?
 
     private enum Mode {
-        case landing, search, settings, results
+        case landing, search, settings, results, filterResults
     }
 
     private enum Panel {
@@ -26,7 +26,11 @@ struct SearchScreen: View {
                 filterStack
             case .settings:
                 SettingsScreen(onClose: {
-                    mode = activeQuery == nil ? .landing : .results
+                    if activeQuery != nil {
+                        mode = .results
+                    } else {
+                        mode = .landing
+                    }
                 })
             case .results:
                 if let query = activeQuery {
@@ -41,6 +45,11 @@ struct SearchScreen: View {
                 } else {
                     searchLanding
                 }
+            case .filterResults:
+                FilterResultsScreen(onBack: {
+                    mode = .search
+                    panel = listPanel
+                })
             }
         }
         .alert("Mentés", isPresented: Binding(
@@ -226,6 +235,7 @@ struct SearchScreen: View {
                 .buttonStyle(.plain)
 
                 activeFilterCard
+                searchResultsButton
                 saveButton
             }
             .padding(16)
@@ -244,6 +254,7 @@ struct SearchScreen: View {
                 }
 
                 activeFilterCard
+                searchResultsButton
                 saveButton
             }
             .padding(16)
@@ -263,6 +274,24 @@ struct SearchScreen: View {
         .padding(16)
         .background(AppTheme.bgElevated)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var hitCount: Int {
+        DemoListing.filtered(for: store.filter).count
+    }
+
+    private var searchResultsButton: some View {
+        Button {
+            mode = .filterResults
+        } label: {
+            Text("Keresés · \(hitCount) találat")
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .foregroundStyle(.white)
+                .background(AppTheme.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
     }
 
     private var saveButton: some View {
