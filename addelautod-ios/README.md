@@ -18,8 +18,9 @@ Majd Xcode: **Product → Clean Build Folder**, **Cmd+R**.
 Találatok: sok narancs **használtautó.hu** kártya = élő autó; kattintás → Safari az adott hirdetés.  
 Nincs „Demo találat” üzenet.
 
-**Fontos:** az Asztali `Autosweb-indito` a **main** ágat tölti — abban **nincs** mobil HA keresés.  
-HA kereséshez: `addelautod-ios/mac/Autosweb-HA-indito.command` (feature ág).
+**Fontos:** Asztali Autosweb = **3456 / main** (Bocsa).  
+HA mobil keresés = **3457 / feature ág** → `Autosweb-HA-indito.command`  
+A kettő **nem** ütközik. Az app a **3457**-et hívja.
 
 ---
 
@@ -78,14 +79,15 @@ node addelautod-ios/scripts/sync-vehicle-catalog.mjs ~/Desktop/lista.csv
 
 Nincs demó / hamis link. Ehhez a Macen fusson az Autosweb (háttér scrape, ablak nélkül).
 
-### 1) Terminál — Autosweb indítás (hagyd futni)
+### 1) Terminál — Autosweb-HA (port 3457, hagyd futni)
 
 ```bash
-lsof -ti tcp:3456 | xargs kill -9 2>/dev/null; cd ~/Downloads && rm -rf bocsa-ha-tmp && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git bocsa-ha-tmp && cd bocsa-ha-tmp/autosweb && npm install && npx playwright install chromium && npm start
+cd ~/Downloads && rm -rf bocsa-run && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git bocsa-run && bash bocsa-run/addelautod-ios/mac/Autosweb-HA-indito.command
 ```
 
-Látnod kell: `Autosweb: http://127.0.0.1:3456`
+Látnod kell: `Autosweb: http://127.0.0.1:3457`  
+(Az Asztali Autosweb 3456-on maradhat.)
 
 ### 2) Simulator — új keresés
 
-Cmd+R → Keresés → feltételek → Találatok. Sok narancs **használtautó.hu** kártya az appban. Koppintás → Safari csak arra az egy hirdetésre.
+Cmd+R → Keresés → Találatok. Sok narancs **használtautó.hu** kártya az appban. Koppintás → Safari csak arra az egy hirdetésre.

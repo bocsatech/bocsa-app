@@ -97,18 +97,18 @@ struct FilterResultsScreen: View {
 
   private var autoswebHelpCard: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("Használtautó kereséshez külön Autosweb kell")
+      Text("Autosweb-HA kell (port 3457)")
         .font(.headline)
         .foregroundStyle(AppTheme.text)
-      Text("Az Asztali Autosweb-indito a MAIN ágat tölti — abban nincs mobil HA keresés.")
+      Text("Az Asztali Autosweb (3456 / main) NEM elég. Külön HA szerver kell a 3457-en.")
         .font(.footnote)
         .foregroundStyle(AppTheme.textSecondary)
-      Text("Terminálba (egészben):")
+      Text("Terminálba (egészben), hagyd futni:")
         .font(.caption.weight(.semibold))
       Text(autoswebRestartHint)
         .font(.system(.caption2, design: .monospaced))
         .textSelection(.enabled)
-      Text("Amíg fut: Autosweb: http://127.0.0.1:3456 — majd Újrapróbálás.")
+      Text("Amíg látod: Autosweb: http://127.0.0.1:3457 → Újrapróbálás")
         .font(.footnote)
         .foregroundStyle(AppTheme.textSecondary)
       Button("Újrapróbálás") {
@@ -124,7 +124,7 @@ struct FilterResultsScreen: View {
 
   private var autoswebRestartHint: String {
     """
-    lsof -ti tcp:3456 | xargs kill -9 2>/dev/null; cd ~/Downloads && rm -rf bocsa-run && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git bocsa-run && bash bocsa-run/addelautod-ios/mac/Autosweb-HA-indito.command
+    cd ~/Downloads && rm -rf bocsa-run && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git bocsa-run && bash bocsa-run/addelautod-ios/mac/Autosweb-HA-indito.command
     """
   }
 
@@ -239,14 +239,14 @@ struct FilterResultsScreen: View {
     let up = await HasznaltautoSearchClient.isReachable()
     if !up {
       needsAutosweb = true
-      warning = "Autosweb nem fut, vagy MAIN ág (nincs HA keresés). Indítsd: Autosweb-HA-indito.command"
+      warning = "Autosweb-HA nem fut a 3457-en. Indítsd: Autosweb-HA-indito.command (ne az Asztali 3456-ot)"
       return
     }
 
     let hasApi = await HasznaltautoSearchClient.hasHaSearchApi()
     if !hasApi {
       needsAutosweb = true
-      warning = "Autosweb fut, de MAIN ág — nincs /api/ha-search. Zárd be, indítsd: addelautod-ios/mac/Autosweb-HA-indito.command"
+      warning = "A 3457-en nincs /api/ha-search. Indítsd újra: Autosweb-HA-indito.command"
       return
     }
 
@@ -279,7 +279,7 @@ struct FilterResultsScreen: View {
       case .timedOut:
         warning = "A keresés túl sokáig tartott. Terminál: [ha-search] logok. Cloudflare pipa a Chrome-ban, majd Újrapróbálás."
       case .cannotConnectToHost, .networkConnectionLost, .notConnectedToInternet:
-        warning = "Megszakadt a kapcsolat az Autoswebbel. Indítsd újra: npm start (3456), majd Újrapróbálás."
+        warning = "Megszakadt a kapcsolat (3457). Indítsd újra: Autosweb-HA-indito.command"
       default:
         warning = "Hálózati hiba: \(urlError.localizedDescription)"
       }

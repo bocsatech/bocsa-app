@@ -1,6 +1,5 @@
 #!/bin/bash
-# Egy parancs: Autosweb HA (feature ág) + iOS app frissítés
-# FIGYELEM: Az Asztali Autosweb-indito MAIN ág — abban NINCS /api/ha-search
+# Egy parancs: Autosweb-HA (3457) + iOS app frissítés
 set -euo pipefail
 
 BRANCH="cursor/addelautod-mobile-de62"
@@ -8,9 +7,9 @@ REPO="https://github.com/bocsatech/bocsa-app.git"
 APP_TMP="$HOME/Downloads/autosapp-tmp"
 APP_DEST="$HOME/Downloads/autosapp"
 RUN="$HOME/Downloads/bocsa-run-ha"
-PORT=3456
+PORT=3457
 
-echo "=== 1/2 Autosweb HA (ág: $BRANCH) ==="
+echo "=== 1/2 Autosweb-HA port $PORT (Asztali 3456 érintetlen) ==="
 mkdir -p "$HOME/Downloads"
 
 rm -rf "$RUN"
@@ -23,14 +22,14 @@ tell application "Terminal"
   do script "bash \"$RUN/addelautod-ios/mac/Autosweb-HA-indito.command\""
 end tell
 EOF
-  echo "Autosweb-HA Terminál ablakban indul → http://127.0.0.1:$PORT"
+  echo "Autosweb-HA Terminálban → http://127.0.0.1:$PORT"
   sleep 3
 else
-  echo "Indítsd kézzel: bash $RUN/addelautod-ios/mac/Autosweb-HA-indito.command"
+  echo "Indítsd: bash $RUN/addelautod-ios/mac/Autosweb-HA-indito.command"
 fi
 
 echo ""
-echo "=== 2/2 iOS app frissítés ==="
+echo "=== 2/2 iOS app ==="
 osascript -e 'tell application "Xcode" to quit' 2>/dev/null || true
 sleep 1
 
@@ -41,16 +40,12 @@ ditto "$APP_TMP/addelautod-ios/AddElAutod" "$APP_DEST/AddElAutod"
 ditto "$APP_TMP/addelautod-ios/AddElAutod.xcodeproj" "$APP_DEST/AddElAutod.xcodeproj"
 rm -rf "$APP_TMP"
 
-if [[ ! -f "$APP_DEST/AddElAutod.xcodeproj/project.pbxproj" ]]; then
-  echo "HIBA: hiányzik a project.pbxproj"
-  exit 1
-fi
-
+test -f "$APP_DEST/AddElAutod.xcodeproj/project.pbxproj"
 rm -rf "$HOME/Library/Developer/Xcode/DerivedData/AddElAutod-"* 2>/dev/null || true
 open "$APP_DEST/AddElAutod.xcodeproj"
 
 echo ""
 echo "KESZ."
-echo "1) Terminál: Autosweb: http://127.0.0.1:$PORT  (HA indító, NEM Asztali main)"
+echo "1) Terminál: Autosweb: http://127.0.0.1:$PORT"
 echo "2) Xcode: Clean Build Folder + Cmd+R"
-echo "3) Keresés → találatok AZ APPBAN; Safari csak koppintásra"
+echo "3) Asztali Autosweb (3456) maradhat — nem zavar"

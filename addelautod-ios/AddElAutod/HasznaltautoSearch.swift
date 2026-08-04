@@ -131,8 +131,8 @@ struct HaRemoteListing: Decodable, Identifiable {
 }
 
 enum HasznaltautoSearchClient {
-  /// Simulator → Mac localhost Autosweb
-  static var baseURL = URL(string: "http://127.0.0.1:3456")!
+  /// Simulator → Mac Autosweb-HA (feature ág, port 3457 — nem az Asztali 3456)
+  static var baseURL = URL(string: "http://127.0.0.1:3457")!
 
   /// Gyors ellenőrzés: fut-e az Autosweb ÉS van-e HA keresés
   static func isReachable() async -> Bool {
@@ -202,7 +202,7 @@ enum HasznaltautoSearchClient {
     if http.statusCode == 404 {
       throw NSError(domain: "HasznaltautoSearch", code: 404, userInfo: [
         NSLocalizedDescriptionKey:
-          "Autosweb fut, de nincs /api/ha-search (valószínűleg MAIN ág). Indítsd: addelautod-ios/mac/Autosweb-HA-indito.command",
+          "Autosweb-HA hiányzik a 3457-en (vagy MAIN a 3456-on). Indítsd: Autosweb-HA-indito.command",
       ])
     }
     guard (200..<300).contains(http.statusCode) else {
