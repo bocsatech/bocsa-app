@@ -146,32 +146,38 @@ function matchesFilter(item, filter = {}) {
   return true;
 }
 
+function isIndividualListingUrl(url) {
+  try {
+    const path = new URL(url).pathname;
+    return /\/szemelyauto\/.+-\d{5,}$/i.test(path);
+  } catch {
+    return false;
+  }
+}
+
 async function extractRichCards(page) {
   return page.evaluate(() => {
     const listingRe = /\/szemelyauto\/[^?#]+-\d{5,}/i;
     const seen = new Set();
     const cards = [];
 
-    const rows = document.querySelectorAll(".row.talalati-sor, .talalati-sor, [class*='talalati']");
-    for (const row of rows) {
-      const anchor =
-        row.querySelector(".cim-kontener h3 a") ||
-        row.querySelector("h3 a[href*='/szemelyauto/']") ||
-        row.querySelector("a[href*='/szemelyauto/']");
-      if (!anchor) continue;
+    const pushCard = (anchor, container) => {
       try {
         const absolute = new URL(anchor.href, window.location.href);
-        if (!listingRe.test(absolute.pathname)) continue;
+        if (absolute.hostname.replace(/^www\./, "") !== "hasznaltauto.hu") return;
+        if (!listingRe.test(absolute.pathname)) return;
         const url = `${absolute.origin}${absolute.pathname}`;
-        if (seen.has(url)) continue;
+        if (seen.has(url)) return;
         seen.add(url);
 
-        const priceEl = row.querySelector(".pricefield-primary, [class*='pricefield'], [class*='ar']");
+        const root = container || anchor.closest(".row, article, li, [class*='talalati']") || anchor.parentElement;
+        const priceEl = root?.querySelector?.(".pricefield-primary, [class*='pricefield'], [class*='ar']");
         const img =
-          row.querySelector(".talalatisor-kep img, .talalatikepek img, img[src*='hasznaltauto'], img[data-src]") ||
-          row.querySelector("img");
+          root?.querySelector?.(
+            ".talalatisor-kep img, .talalatikepek img, img[src*='hasznaltauto'], img[data-src]"
+          ) || root?.querySelector?.("img");
         const imageUrl = img?.getAttribute("src") || img?.getAttribute("data-src") || img?.currentSrc || null;
-        const text = (row.innerText || "").replace(/\s+/g, " ").trim();
+        const text = (root?.innerText || "").replace(/\s+/g, " ").trim();
         const kmMatch = text.match(/(\d[\d\s.]*)\s*km/i);
 
         cards.push({
@@ -185,7 +191,22 @@ async function extractRichCards(page) {
       } catch {
         /* skip */
       }
+    };
+
+    const rows = document.querySelectorAll(".row.talalati-sor, .talalati-sor, [class*='talalati']");
+    for (const row of rows) {
+      const anchor =
+        row.querySelector(".cim-kontener h3 a") ||
+        row.querySelector("h3 a[href*='/szemelyauto/']") ||
+        row.querySelector("a[href*='/szemelyauto/']");
+      if (anchor) pushCard(anchor, row);
     }
+
+    // Fallback: minden egyedi hirdetés-link (ne brand lista URL)
+    for (const anchor of document.querySelectorAll("a[href*='/szemelyauto/']")) {
+      pushCard(anchor, anchor.closest(".row, article, li, [class*='talalati']") || anchor.parentElement);
+    }
+
     return cards;
   });
 }
@@ -228,62 +249,104 @@ async function scrapeListPages(listUrl, { maxPages = MAX_PAGES, onProgress } = {
   return all;
 }
 
-/** Demo találatok, ha a scrape nem elérhető (Cloudflare / nincs Chrome). */
+/** Demo találatok — mindig külön hirdetésenként (soha nem lista/márka oldal). */
 export function demoHasznaltautoResults(filter = {}) {
-  const samples = [
-    {
-      id: "ha-demo-1",
-      source: "hasznaltauto",
-      title: "BMW 320d xDrive (2019)",
-      brand: "BMW",
-      model: "320d",
-      year: 2019,
-      km: 142000,
-      priceFt: 8990000,
-      priceLabel: "8 990 000 Ft",
-      fuel: "diesel",
-      imageUrl: null,
-      url: "https://www.hasznaltauto.hu/szemelyauto/bmw/320/bmw_320d-11111111",
-      meta: "2019 · 142 000 km",
-    },
-    {
-      id: "ha-demo-2",
-      source: "hasznaltauto",
-      title: "Volkswagen Golf 1.5 TSI (2021)",
-      brand: "VOLKSWAGEN",
-      model: "Golf",
-      year: 2021,
-      km: 68000,
-      priceFt: 6250000,
-      priceLabel: "6 250 000 Ft",
-      fuel: "benzin",
-      imageUrl: null,
-      url: "https://www.hasznaltauto.hu/szemelyauto/volkswagen/golf/volkswagen_golf-22222222",
-      meta: "2021 · 68 000 km",
-    },
-    {
-      id: "ha-demo-3",
-      source: "hasznaltauto",
-      title: "Toyota Corolla Hybrid (2022)",
-      brand: "TOYOTA",
-      model: "Corolla",
-      year: 2022,
-      km: 51000,
-      priceFt: 7490000,
-      priceLabel: "7 490 000 Ft",
-      fuel: "hybrid",
-      imageUrl: null,
-      url: "https://www.hasznaltauto.hu/szemelyauto/toyota/corolla/toyota_corolla-33333333",
-      meta: "2022 · 51 000 km",
-    },
+  const pool = [
+    ["BMW", "320d", 2019, 142000, 8990000, "diesel"],
+    ["BMW", "520d", 2018, 168000, 7950000, "diesel"],
+    ["BMW", "X3", 2021, 62000, 12990000, "diesel"],
+    ["AUDI", "A4", 2021, 95000, 7900000, "diesel"],
+    ["AUDI", "A3", 2020, 78000, 6490000, "benzin"],
+    ["AUDI", "Q5", 2019, 110000, 10990000, "diesel"],
+    ["VOLKSWAGEN", "Golf", 2021, 68000, 6250000, "benzin"],
+    ["VOLKSWAGEN", "Passat", 2018, 145000, 5490000, "diesel"],
+    ["VOLKSWAGEN", "Tiguan", 2022, 41000, 11200000, "benzin"],
+    ["OPEL", "Astra", 2019, 98000, 4290000, "benzin"],
+    ["OPEL", "Astra", 2021, 54000, 5890000, "benzin"],
+    ["OPEL", "Corsa", 2020, 61000, 3990000, "benzin"],
+    ["OPEL", "Insignia", 2018, 132000, 4690000, "diesel"],
+    ["TOYOTA", "Corolla", 2022, 51000, 7490000, "hybrid"],
+    ["TOYOTA", "Yaris", 2021, 38000, 5290000, "hybrid"],
+    ["FORD", "Focus", 2019, 89000, 4590000, "benzin"],
+    ["FORD", "Kuga", 2023, 34000, 9800000, "hybrid"],
+    ["SKODA", "Octavia", 2018, 118000, 5100000, "diesel"],
+    ["SKODA", "Fabia", 2020, 72000, 3890000, "benzin"],
+    ["MERCEDES-BENZ", "C 220d", 2020, 89000, 10100000, "diesel"],
+    ["SUZUKI", "Swift", 2023, 28000, 3600000, "benzin"],
+    ["TESLA", "Model 3", 2024, 18000, 14900000, "elektromos"],
   ];
-  return samples.filter((item) => matchesFilter(item, filter));
+
+  const samples = pool.map(([brand, model, year, km, priceFt, fuel], index) => {
+    const idNum = 20000000 + index;
+    const brandSlug = slugifyBrand(brand);
+    const modelSlug = slugifyModel(model);
+    return {
+      id: `ha-demo-${idNum}`,
+      source: "hasznaltauto",
+      title: `${brand} ${model} (${year})`,
+      brand,
+      model,
+      year,
+      km,
+      priceFt,
+      priceLabel: `${priceFt.toLocaleString("hu-HU")} Ft`,
+      fuel,
+      imageUrl: null,
+      // Konkrét hirdetés URL (…-id), NEM márka lista
+      url: `https://www.hasznaltauto.hu/szemelyauto/${brandSlug}/${modelSlug}/${brandSlug}_${modelSlug}-${idNum}`,
+      meta: `${year} · ${km.toLocaleString("hu-HU")} km`,
+    };
+  });
+
+  let filtered = samples.filter((item) => matchesFilter(item, filter));
+
+  // Ha a szűrő márkát kér, de a demó poolban kevés van: több egyedi kártya
+  const brands = filter.gyartmanyok ?? [];
+  if (brands.length && filtered.length < 6) {
+    const brand = brands[0];
+    const brandSlug = slugifyBrand(brand);
+    const modelBase = filter.modellek?.[0] || filtered[0]?.model || "320d";
+    const need = 8 - filtered.length;
+    const extra = Array.from({ length: Math.max(need, 0) }, (_, i) => {
+      const year = 2017 + (i % 8);
+      const km = 30000 + i * 12000;
+      const priceFt = 3500000 + i * 400000;
+      const idNum = 30000000 + i;
+      const model = modelBase;
+      const modelSlug = slugifyModel(model);
+      return {
+        id: `ha-demo-gen-${idNum}`,
+        source: "hasznaltauto",
+        title: `${brand} ${model} (${year})`,
+        brand: brand.toUpperCase(),
+        model,
+        year,
+        km,
+        priceFt,
+        priceLabel: `${priceFt.toLocaleString("hu-HU")} Ft`,
+        fuel: "benzin",
+        imageUrl: null,
+        url: `https://www.hasznaltauto.hu/szemelyauto/${brandSlug}/${modelSlug}/${brandSlug}_${modelSlug}-${idNum}`,
+        meta: `${year} · ${km.toLocaleString("hu-HU")} km`,
+      };
+    }).filter((item) => matchesFilter(item, filter));
+    const seen = new Set(filtered.map((x) => x.id));
+    for (const item of extra) {
+      if (!seen.has(item.id)) filtered.push(item);
+    }
+  }
+
+  return filtered;
 }
 
 /**
  * @param {object} filter SearchFilter-szerű objektum
  * @param {{ demo?: boolean, maxPages?: number, onProgress?: Function }} options
  */
+function onlyIndividualListings(items) {
+  return (items ?? []).filter((item) => isIndividualListingUrl(item.url));
+}
+
 export async function searchHasznaltauto(filter = {}, options = {}) {
   const listUrl = buildHasznaltautoListUrl(filter);
   if (options.demo) {
@@ -291,7 +354,7 @@ export async function searchHasznaltauto(filter = {}, options = {}) {
       ok: true,
       mode: "demo",
       sourceUrl: listUrl,
-      results: demoHasznaltautoResults(filter),
+      results: onlyIndividualListings(demoHasznaltautoResults(filter)),
       warning: "Demo mód — nincs élő scrape.",
     };
   }
@@ -301,7 +364,7 @@ export async function searchHasznaltauto(filter = {}, options = {}) {
       maxPages: options.maxPages ?? MAX_PAGES,
       onProgress: options.onProgress,
     });
-    const results = scraped.filter((item) => matchesFilter(item, filter));
+    const results = onlyIndividualListings(scraped.filter((item) => matchesFilter(item, filter)));
     return {
       ok: true,
       mode: "live",
@@ -310,7 +373,7 @@ export async function searchHasznaltauto(filter = {}, options = {}) {
       results,
     };
   } catch (error) {
-    const demo = demoHasznaltautoResults(filter);
+    const demo = onlyIndividualListings(demoHasznaltautoResults(filter));
     return {
       ok: true,
       mode: "demo-fallback",
