@@ -51,7 +51,7 @@ struct FilterResultsScreen: View {
               Text("használtautó.hu élő keresés…")
                 .font(.footnote)
                 .foregroundStyle(AppTheme.textSecondary)
-              Text("Chrome ablak nyílhat — Cloudflare esetén jelöld be a pipát.")
+              Text("Sok oldal betöltése — Chrome ablak nyílhat; Cloudflare esetén jelöld be a pipát.")
                 .font(.caption2)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)

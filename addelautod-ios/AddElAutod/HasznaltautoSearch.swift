@@ -138,11 +138,13 @@ enum HasznaltautoSearchClient {
     var request = URLRequest(url: baseURL.appendingPathComponent("api/ha-search"))
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.timeoutInterval = 300
+    // Sok oldal scrape-je hosszú lehet
+    request.timeoutInterval = 900
 
     let body: [String: Any] = [
       "demo": demo,
-      "maxPages": 10,
+      // Használtautó listaoldalak — ne álljon meg 10-nél
+      "maxPages": 100,
       "filter": encodeFilter(filter),
     ]
     request.httpBody = try JSONSerialization.data(withJSONObject: body)

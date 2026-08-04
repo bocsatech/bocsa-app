@@ -3,7 +3,7 @@
  * Csak localhost Autoswebhez; nem hivatalos API.
  */
 
-const MAX_PAGES = Number(process.env.HA_SEARCH_MAX_PAGES ?? 25);
+const MAX_PAGES = Number(process.env.HA_SEARCH_MAX_PAGES ?? 100);
 const PAGE_TIMEOUT_MS = 90_000;
 const PAGE_SUFFIX_RE = /\/page(\d+)$/i;
 
