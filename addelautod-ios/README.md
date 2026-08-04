@@ -70,9 +70,10 @@ node addelautod-ios/scripts/sync-vehicle-catalog.mjs ~/Desktop/lista.csv
 
 ## Használtautó.hu — élő találatok (kötelező a valódi linkekhez)
 
-**Egy kártya = egy autó** (kép, márka/típus, év, km, ár). Kattintás → **Safari csak az adott hirdetést** nyitja.
+**A hirdetések az APPBAN jelennek meg** (kép, márka/típus, év, km, ár).  
+**Safari NEM nyílik magától** — csak ha egy kártyára koppintasz (akkor az adott egy autó).
 
-Nincs demó / hamis link. Ehhez a Macen fusson az Autosweb.
+Nincs demó / hamis link. Ehhez a Macen fusson az Autosweb (háttér scrape, ablak nélkül).
 
 ### 1) Terminál — Autosweb indítás (hagyd futni)
 
@@ -82,8 +83,6 @@ lsof -ti tcp:3456 | xargs kill -9 2>/dev/null; cd ~/Downloads && rm -rf bocsa-ha
 
 Látnod kell: `Autosweb: http://127.0.0.1:3456`
 
-Kereséskor **Chrome** ablak nyílhat — Cloudflare pipa, amíg látszanak az autók.
-
 ### 2) Simulator — új keresés
 
-Cmd+R → Keresés → feltételek → Találatok. Narancs **használtautó.hu** kártyák = élő egyedi hirdetések.
+Cmd+R → Keresés → feltételek → Találatok. Sok narancs **használtautó.hu** kártya az appban. Koppintás → Safari csak arra az egy hirdetésre.
