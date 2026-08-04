@@ -226,10 +226,11 @@ function extractMaxPageFromHtml(html, currentUrl = "") {
   return Math.max(...pageNumbers);
 }
 
-async function waitForListings(page, onProgress, maxSeconds = 90) {
+async function waitForListings(page, onProgress, maxSeconds = 25) {
   const { countListingLinksOnPage } = await import("./links.mjs");
   const deadline = Date.now() + maxSeconds * 1000;
   let lastLog = 0;
+  let sawChallenge = false;
 
   while (Date.now() < deadline) {
     const count = await countListingLinksOnPage(page);
@@ -237,18 +238,23 @@ async function waitForListings(page, onProgress, maxSeconds = 90) {
 
     const title = await page.title();
     const now = Date.now();
-    if (now - lastLog > 8000) {
-      if (/Attention Required|biztonsági|Egy pillanat|Just a moment/i.test(title)) {
-        onProgress?.("Cloudflare blokkolja a háttérkeresést — próbáld újra később.");
-      } else {
-        onProgress?.("Várakozás: lista betöltése (háttérben)…");
-      }
+    if (/Attention Required|biztonsági|Egy pillanat|Just a moment/i.test(title)) {
+      sawChallenge = true;
+    }
+    if (now - lastLog > 6000) {
+      onProgress?.(
+        sawChallenge
+          ? "Cloudflare ellenőrzés… (ha Chrome ablak van, jelöld be a pipát)"
+          : "Várakozás: lista betöltése…"
+      );
       lastLog = now;
     }
-    await sleep(1500);
+    await sleep(1200);
   }
   throw new Error(
-    "Nem töltődtek be a hirdetések a háttérben (Cloudflare / üres lista). Próbáld újra."
+    sawChallenge
+      ? "Cloudflare blokkolta a keresést."
+      : "Nem töltődtek be a hirdetések (üres / timeout)."
   );
 }
 
@@ -261,68 +267,94 @@ async function scrollListPage(page) {
   await sleep(300);
 }
 
-/**
- * Lista scrape — headless, NEM nyit böngészőablakot.
- * A találatok JSON-ként mennek az appba; Safari csak app-kattintásra.
- */
-async function scrapeListPages(listUrl, { maxPages = MAX_PAGES, onProgress } = {}) {
-  const { acquireHeadlessSearchSession } = await import("./browser-session.mjs");
-  const base = stripPageFromUrl(listUrl) || listUrl;
-  const session = await acquireHeadlessSearchSession({ onProgress });
-  const page = await session.context.newPage();
-
+async function scrapeWithPage(page, base, maxPages, onProgress, label) {
   const all = [];
   const seen = new Set();
+  let pagesToFetch = maxPages;
 
-  try {
-    let pagesToFetch = maxPages;
+  for (let pageNum = 1; pageNum <= pagesToFetch; pageNum += 1) {
+    const url = pageNum === 1 ? base : buildListPageUrl(base, pageNum);
+    onProgress?.(`${label}: oldal ${pageNum}/${pagesToFetch}…`);
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: PAGE_TIMEOUT_MS });
 
-    for (let pageNum = 1; pageNum <= pagesToFetch; pageNum += 1) {
-      const url = pageNum === 1 ? base : buildListPageUrl(base, pageNum);
-      onProgress?.(`Lista oldal ${pageNum}/${pagesToFetch} (háttér)…`);
-      await page.goto(url, { waitUntil: "domcontentloaded", timeout: PAGE_TIMEOUT_MS });
-
-      if (pageNum === 1) {
-        await waitForListings(page, onProgress);
-        const html = await page.content();
-        const detected = extractMaxPageFromHtml(html, url);
-        pagesToFetch = Math.min(maxPages, Math.max(detected, 1));
-        onProgress?.(`Felismert oldalak: ${detected} → betöltés: ${pagesToFetch}`);
-      } else {
-        await sleep(800);
-        const { countListingLinksOnPage } = await import("./links.mjs");
-        const n = await countListingLinksOnPage(page);
-        if (!n) {
-          onProgress?.(`Üres oldal ${pageNum} — vége.`);
-          break;
-        }
-      }
-
-      await scrollListPage(page);
-      const raw = await extractRichCards(page);
-      if (!raw.length) {
-        onProgress?.(`Nincs egyedi link oldal ${pageNum}-en — vége.`);
+    if (pageNum === 1) {
+      await waitForListings(page, onProgress, label.includes("Chrome") ? 120 : 25);
+      const html = await page.content();
+      const detected = extractMaxPageFromHtml(html, url);
+      pagesToFetch = Math.min(maxPages, Math.max(detected, 1));
+      onProgress?.(`Felismert oldalak: ${detected} → betöltés: ${pagesToFetch}`);
+    } else {
+      await sleep(800);
+      const { countListingLinksOnPage } = await import("./links.mjs");
+      const n = await countListingLinksOnPage(page);
+      if (!n) {
+        onProgress?.(`Üres oldal ${pageNum} — vége.`);
         break;
       }
-
-      let added = 0;
-      for (const card of raw) {
-        if (seen.has(card.url)) continue;
-        seen.add(card.url);
-        all.push(enrichCard(card));
-        added += 1;
-      }
-      onProgress?.(`Oldal ${pageNum}: +${added} autó (összesen ${all.length})`);
-      if (added === 0) break;
     }
 
+    await scrollListPage(page);
+    const raw = await extractRichCards(page);
+    if (!raw.length) {
+      onProgress?.(`Nincs egyedi link oldal ${pageNum}-en — vége.`);
+      break;
+    }
+
+    let added = 0;
+    for (const card of raw) {
+      if (seen.has(card.url)) continue;
+      seen.add(card.url);
+      all.push(enrichCard(card));
+      added += 1;
+    }
+    onProgress?.(`Oldal ${pageNum}: +${added} autó (összesen ${all.length})`);
+    if (added === 0) break;
+  }
+
+  return all;
+}
+
+/**
+ * 1) Headless (ablak nélkül) → JSON az appba
+ * 2) Ha Cloudflare blokkol: Chrome csak a letöltéshez (találatok továbbra is az APPBAN)
+ * Safari / listanézet NEM a találati UI.
+ */
+async function scrapeListPages(listUrl, { maxPages = MAX_PAGES, onProgress } = {}) {
+  const base = stripPageFromUrl(listUrl) || listUrl;
+
+  // --- 1) Headless ---
+  try {
+    const { acquireHeadlessSearchSession } = await import("./browser-session.mjs");
+    const session = await acquireHeadlessSearchSession({ onProgress });
+    try {
+      const page = await session.context.newPage();
+      const all = await scrapeWithPage(page, base, maxPages, onProgress, "Háttér");
+      if (all.length) return all;
+      throw new Error("0 autó headless módban.");
+    } finally {
+      await session.close();
+    }
+  } catch (headlessError) {
+    onProgress?.(
+      `Háttérkeresés nem sikerült (${headlessError.message}). Chrome csak letöltéshez — a lista az APPBAN lesz, nem a böngészőben.`
+    );
+  }
+
+  // --- 2) Chrome / CDP fallback (adatgyűjtés, nem UI) ---
+  const { acquireImportSession } = await import("./browser-session.mjs");
+  const session = await acquireImportSession(base, {
+    onProgress,
+    preferCdp: true,
+  });
+  try {
+    const page = session.context.pages()[0] ?? (await session.context.newPage());
+    const all = await scrapeWithPage(page, base, maxPages, onProgress, "Chrome-letöltés");
     if (!all.length) {
-      throw new Error("0 egyedi autó a listán (háttérkeresés).");
+      throw new Error("0 egyedi autó. Cloudflare: pipáld be a Chrome ablakban, majd Újrapróbálás az appban.");
     }
-
     return all;
-  } finally {
-    await session.close();
+  } catch (error) {
+    throw error;
   }
 }
 

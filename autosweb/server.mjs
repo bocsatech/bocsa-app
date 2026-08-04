@@ -208,10 +208,17 @@ async function handleHaSearchApi(req, res) {
     const result = await searchHasznaltauto(filter, {
       demo,
       maxPages,
-      onProgress: (message) => logs.push(message),
+      onProgress: (message) => {
+        logs.push(message);
+        console.log(`[ha-search] ${message}`);
+      },
     });
+    console.log(
+      `[ha-search] kész mode=${result.mode} results=${result.results?.length ?? 0} ok=${result.ok}`
+    );
     sendJson(res, 200, { ...result, logs });
   } catch (error) {
+    console.error(`[ha-search] hiba: ${error.message}`);
     sendJson(res, 500, {
       ok: false,
       error: error.message ?? String(error),

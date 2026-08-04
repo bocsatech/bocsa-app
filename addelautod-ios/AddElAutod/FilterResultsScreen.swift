@@ -100,7 +100,7 @@ struct FilterResultsScreen: View {
       Text("Használtautó.hu kapcsolat kell")
         .font(.headline)
         .foregroundStyle(AppTheme.text)
-      Text("A Macen indítsd az Autoswebet (3456), majd Újrapróbálás. A hirdetések az appban jelennek meg; Safari csak kártyára kattintáskor.")
+      Text("Ha a Terminálban Cloudflare / 0 autó látszik: a Chrome ablakban pipáld be, majd Újrapróbálás. A találatok az APPBAN jelennek meg — Safari csak kártyára koppintáskor.")
         .font(.footnote)
         .foregroundStyle(AppTheme.textSecondary)
       Button("Újrapróbálás") {
@@ -239,12 +239,14 @@ struct FilterResultsScreen: View {
       } else {
         remote = []
         needsAutosweb = true
-        warning = nil
+        warning = response.warning
+          ?? response.error
+          ?? "A használtautó keresés nem adott találatot."
       }
     } catch {
       remote = []
       needsAutosweb = true
-      warning = nil
+      warning = "Autosweb nem elérhető (127.0.0.1:3456), vagy a keresés megszakadt."
     }
   }
 }
