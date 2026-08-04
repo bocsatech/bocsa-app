@@ -9,8 +9,10 @@
 ## A) Terminál (ajánlott) — másold be EGÉSZBEN
 
 ```bash
-mkdir -p ~/Downloads && cd ~/Downloads && rm -rf autosapp autosapp-tmp && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git autosapp-tmp && mkdir autosapp && cp -R autosapp-tmp/addelautod-ios/AddElAutod autosapp/ && cp -R autosapp-tmp/addelautod-ios/AddElAutod.xcodeproj autosapp/ && rm -rf autosapp-tmp && open ~/Downloads/autosapp/AddElAutod.xcodeproj && echo "KESZ: ~/Downloads/autosapp"
+mkdir -p ~/Downloads && cd ~/Downloads && rm -rf autosapp autosapp-tmp && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git autosapp-tmp && mkdir autosapp && ditto autosapp-tmp/addelautod-ios/AddElAutod autosapp/AddElAutod && ditto autosapp-tmp/addelautod-ios/AddElAutod.xcodeproj autosapp/AddElAutod.xcodeproj && test -f autosapp/AddElAutod.xcodeproj/project.pbxproj && rm -rf autosapp-tmp && open ~/Downloads/autosapp/AddElAutod.xcodeproj && echo "KESZ: ~/Downloads/autosapp"
 ```
+
+Ha hibát ír (`project.pbxproj` hiányzik): **Quit Xcode**, töröld a `Letöltések/autosapp` mappát Finderben, futtasd újra a fenti sort.
 
 Ha hibát ír: másold ki a piros szöveget.
 
