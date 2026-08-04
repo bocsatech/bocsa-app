@@ -17,14 +17,25 @@ struct UnifiedListing: Identifiable, Hashable {
   let priceLabel: String
   let meta: String
   let imageUrl: URL?
+  /// Élő egyedi hirdetés URL (Safariban nyílik). Demónál nil.
   let externalUrl: URL?
+  /// Demó / scrape nélkül: működő márka+modell kereső oldal (nem egy autó).
+  let searchUrl: URL?
   let badge: String?
+  /// true = nincs valódi hirdetés-link (hamis id → 404 lenne)
+  let isDemo: Bool
 
   var sourceLabel: String {
     switch source {
     case .local: return "Add el autod"
-    case .hasznaltauto: return "használtautó.hu"
+    case .hasznaltauto: return isDemo ? "HA demo" : "használtautó.hu"
     }
+  }
+
+  /// Safariban egy konkrét hirdetés nyitható.
+  var canOpenLiveListing: Bool {
+    guard source == .hasznaltauto, !isDemo, let url = externalUrl else { return false }
+    return url.path.range(of: #"/szemelyauto/.+-\d{5,}$"#, options: .regularExpression) != nil
   }
 
   static func fromLocal(_ car: DemoListing) -> UnifiedListing {
@@ -41,7 +52,9 @@ struct UnifiedListing: Identifiable, Hashable {
       meta: car.meta,
       imageUrl: nil,
       externalUrl: nil,
-      badge: car.badge
+      searchUrl: nil,
+      badge: car.badge,
+      isDemo: false
     )
   }
 }
@@ -52,6 +65,11 @@ struct HaSearchResponse: Decodable {
   let sourceUrl: String?
   let warning: String?
   let results: [HaRemoteListing]
+
+  var isDemoMode: Bool {
+    let m = (mode ?? "").lowercased()
+    return m == "demo" || m == "demo-fallback" || m.contains("demo")
+  }
 }
 
 struct HaRemoteListing: Decodable, Identifiable {
@@ -67,9 +85,12 @@ struct HaRemoteListing: Decodable, Identifiable {
   let meta: String?
   let imageUrl: String?
   let url: String?
+  let searchUrl: String?
+  let demo: Bool?
 
-  func asUnified() -> UnifiedListing {
-    UnifiedListing(
+  func asUnified(forceDemo: Bool = false) -> UnifiedListing {
+    let isDemo = forceDemo || (demo == true)
+    return UnifiedListing(
       id: id,
       source: .hasznaltauto,
       title: title,
@@ -81,9 +102,30 @@ struct HaRemoteListing: Decodable, Identifiable {
       priceLabel: priceLabel ?? "—",
       meta: meta ?? [year.map(String.init), km.map { "\($0) km" }].compactMap { $0 }.joined(separator: " · "),
       imageUrl: imageUrl.flatMap(URL.init(string:)),
-      externalUrl: url.flatMap(URL.init(string:)),
-      badge: "használtautó.hu"
+      externalUrl: isDemo ? nil : url.flatMap(URL.init(string:)),
+      searchUrl: searchUrl.flatMap(URL.init(string:)) ?? Self.fallbackSearchUrl(brand: brand, model: model),
+      badge: isDemo ? "demo" : "használtautó.hu",
+      isDemo: isDemo
     )
+  }
+
+  private static func fallbackSearchUrl(brand: String?, model: String?) -> URL? {
+    guard let brand, !brand.isEmpty else {
+      return URL(string: "https://www.hasznaltauto.hu/szemelyauto")
+    }
+    let b = slugify(brand)
+    if let model, !model.isEmpty {
+      return URL(string: "https://www.hasznaltauto.hu/szemelyauto/\(b)/\(slugify(model))")
+    }
+    return URL(string: "https://www.hasznaltauto.hu/szemelyauto/\(b)")
+  }
+
+  private static func slugify(_ text: String) -> String {
+    text
+      .folding(options: .diacriticInsensitive, locale: .current)
+      .lowercased()
+      .replacingOccurrences(of: " ", with: "_")
+      .replacingOccurrences(of: "-", with: "_")
   }
 }
 

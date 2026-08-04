@@ -249,7 +249,7 @@ async function scrapeListPages(listUrl, { maxPages = MAX_PAGES, onProgress } = {
   return all;
 }
 
-/** Demo találatok — mindig külön hirdetésenként (soha nem lista/márka oldal). */
+/** Demo találatok — UI próba. Nincs valódi hirdetés-URL (az 404 lenne). */
 export function demoHasznaltautoResults(filter = {}) {
   const pool = [
     ["BMW", "320d", 2019, 142000, 8990000, "diesel"],
@@ -276,13 +276,14 @@ export function demoHasznaltautoResults(filter = {}) {
     ["TESLA", "Model 3", 2024, 18000, 14900000, "elektromos"],
   ];
 
-  const samples = pool.map(([brand, model, year, km, priceFt, fuel], index) => {
-    const idNum = 20000000 + index;
+  const toDemoCard = ([brand, model, year, km, priceFt, fuel], index, idBase) => {
+    const idNum = idBase + index;
     const brandSlug = slugifyBrand(brand);
     const modelSlug = slugifyModel(model);
     return {
       id: `ha-demo-${idNum}`,
       source: "hasznaltauto",
+      demo: true,
       title: `${brand} ${model} (${year})`,
       brand,
       model,
@@ -292,43 +293,27 @@ export function demoHasznaltautoResults(filter = {}) {
       priceLabel: `${priceFt.toLocaleString("hu-HU")} Ft`,
       fuel,
       imageUrl: null,
-      // Konkrét hirdetés URL (…-id), NEM márka lista
-      url: `https://www.hasznaltauto.hu/szemelyauto/${brandSlug}/${modelSlug}/${brandSlug}_${modelSlug}-${idNum}`,
+      // Nincs hamis listing id → 404. Safari csak élő scrape URL-lel.
+      url: null,
+      searchUrl: `https://www.hasznaltauto.hu/szemelyauto/${brandSlug}/${modelSlug}`,
       meta: `${year} · ${km.toLocaleString("hu-HU")} km`,
     };
-  });
+  };
+
+  const samples = pool.map((row, index) => toDemoCard(row, index, 20000000));
 
   let filtered = samples.filter((item) => matchesFilter(item, filter));
 
-  // Ha a szűrő márkát kér, de a demó poolban kevés van: több egyedi kártya
   const brands = filter.gyartmanyok ?? [];
   if (brands.length && filtered.length < 6) {
     const brand = brands[0];
-    const brandSlug = slugifyBrand(brand);
     const modelBase = filter.modellek?.[0] || filtered[0]?.model || "320d";
     const need = 8 - filtered.length;
     const extra = Array.from({ length: Math.max(need, 0) }, (_, i) => {
       const year = 2017 + (i % 8);
       const km = 30000 + i * 12000;
       const priceFt = 3500000 + i * 400000;
-      const idNum = 30000000 + i;
-      const model = modelBase;
-      const modelSlug = slugifyModel(model);
-      return {
-        id: `ha-demo-gen-${idNum}`,
-        source: "hasznaltauto",
-        title: `${brand} ${model} (${year})`,
-        brand: brand.toUpperCase(),
-        model,
-        year,
-        km,
-        priceFt,
-        priceLabel: `${priceFt.toLocaleString("hu-HU")} Ft`,
-        fuel: "benzin",
-        imageUrl: null,
-        url: `https://www.hasznaltauto.hu/szemelyauto/${brandSlug}/${modelSlug}/${brandSlug}_${modelSlug}-${idNum}`,
-        meta: `${year} · ${km.toLocaleString("hu-HU")} km`,
-      };
+      return toDemoCard([brand, modelBase, year, km, priceFt, "benzin"], i, 30000000);
     }).filter((item) => matchesFilter(item, filter));
     const seen = new Set(filtered.map((x) => x.id));
     for (const item of extra) {
@@ -354,8 +339,8 @@ export async function searchHasznaltauto(filter = {}, options = {}) {
       ok: true,
       mode: "demo",
       sourceUrl: listUrl,
-      results: onlyIndividualListings(demoHasznaltautoResults(filter)),
-      warning: "Demo mód — nincs élő scrape.",
+      results: demoHasznaltautoResults(filter),
+      warning: "Demo mód — nincs élő scrape; a kártyáknak nincs valódi hirdetés-linkje.",
     };
   }
 
@@ -364,7 +349,9 @@ export async function searchHasznaltauto(filter = {}, options = {}) {
       maxPages: options.maxPages ?? MAX_PAGES,
       onProgress: options.onProgress,
     });
-    const results = onlyIndividualListings(scraped.filter((item) => matchesFilter(item, filter)));
+    const results = onlyIndividualListings(scraped.filter((item) => matchesFilter(item, filter))).map(
+      (item) => ({ ...item, demo: false })
+    );
     return {
       ok: true,
       mode: "live",
@@ -373,13 +360,12 @@ export async function searchHasznaltauto(filter = {}, options = {}) {
       results,
     };
   } catch (error) {
-    const demo = onlyIndividualListings(demoHasznaltautoResults(filter));
     return {
       ok: true,
       mode: "demo-fallback",
       sourceUrl: listUrl,
-      results: demo,
-      warning: `Élő scrape sikertelen (${error.message}). Demo találatok.`,
+      results: demoHasznaltautoResults(filter),
+      warning: `Élő scrape sikertelen (${error.message}). Demo találatok — nincs valódi Safari-link.`,
       error: error.message,
     };
   }

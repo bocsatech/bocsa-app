@@ -10,6 +10,7 @@ struct FilterResultsScreen: View {
   @State private var loadingRemote = true
   @State private var warning: String?
   @State private var remoteMode: String?
+  @State private var demoTapItem: UnifiedListing?
 
   private var localItems: [UnifiedListing] {
     DemoListing.filtered(for: store.filter).map(UnifiedListing.fromLocal)
@@ -75,6 +76,25 @@ struct FilterResultsScreen: View {
     .task {
       await loadRemote()
     }
+    .alert(
+      "Demo találat",
+      isPresented: Binding(
+        get: { demoTapItem != nil },
+        set: { if !$0 { demoTapItem = nil } }
+      )
+    ) {
+      Button("Márka keresés Safariban") {
+        if let item = demoTapItem, let url = item.searchUrl {
+          UIApplication.shared.open(url)
+        }
+        demoTapItem = nil
+      }
+      Button("OK", role: .cancel) {
+        demoTapItem = nil
+      }
+    } message: {
+      Text("Ez nem élő hirdetés-link (a hamis link 404 lenne). Valós autóhoz indítsd az Autoswebet Chrome-mal: cd autosweb && npm start — utána új keresés.")
+    }
   }
 
   private var subtitle: String {
@@ -83,7 +103,10 @@ struct FilterResultsScreen: View {
     if loadingRemote {
       return "\(local) saját · használtautó.hu…"
     }
-    return "\(local) saját · \(ha) használtautó.hu"
+    if remoteMode == "live" {
+      return "\(local) saját · \(ha) használtautó.hu"
+    }
+    return "\(local) saját · \(ha) HA demo"
   }
 
   @ViewBuilder
@@ -121,9 +144,9 @@ struct FilterResultsScreen: View {
             .foregroundStyle(AppTheme.textSecondary)
 
           if item.source == .hasznaltauto {
-            Text("Megnyitás Safariban ›")
+            Text(item.canOpenLiveListing ? "Megnyitás Safariban ›" : "Demo · nincs élő link")
               .font(.caption.weight(.medium))
-              .foregroundStyle(AppTheme.accent)
+              .foregroundStyle(item.canOpenLiveListing ? AppTheme.accent : AppTheme.textSecondary)
           }
         }
       }
@@ -178,20 +201,17 @@ struct FilterResultsScreen: View {
     return parts.joined(separator: " · ")
   }
 
-  /// Csak egyedi hirdetés URL (…-12345), soha nem /szemelyauto/bmw listaoldal.
-  private static func isIndividualHaListing(_ item: UnifiedListing) -> Bool {
-    guard item.source == .hasznaltauto, let url = item.externalUrl else { return item.source != .hasznaltauto }
-    return url.path.range(of: #"/szemelyauto/.+-\d{5,}$"#, options: .regularExpression) != nil
-  }
-
   private func openExternalIfNeeded(_ item: UnifiedListing) {
-    guard item.source == .hasznaltauto, let url = item.externalUrl else { return }
-    guard Self.isIndividualHaListing(item) else {
-      warning = "Ehhez a találathoz nincs egyedi hirdetés-link (listaoldal nem nyílik)."
+    guard item.source == .hasznaltauto else { return }
+
+    // Élő scrape → egyedi hirdetés Safariban
+    if item.canOpenLiveListing, let url = item.externalUrl {
+      UIApplication.shared.open(url)
       return
     }
-    // Most csak Safari (rendszer böngésző)
-    UIApplication.shared.open(url)
+
+    // Demo / hamis link → ne 404; magyarázat + opcionális márka keresés
+    demoTapItem = item
   }
 
   @MainActor
@@ -201,47 +221,59 @@ struct FilterResultsScreen: View {
     defer { loadingRemote = false }
     do {
       let response = try await HasznaltautoSearchClient.search(filter: store.filter)
-      remote = response.results.map { $0.asUnified() }.filter(Self.isIndividualHaListing)
+      let demo = response.isDemoMode
+      remote = response.results
+        .map { $0.asUnified(forceDemo: demo) }
+        .filter { demo ? true : $0.canOpenLiveListing }
       remoteMode = response.mode
-      warning = response.warning
+      if demo {
+        warning = (response.warning ?? "Demo mód.") + " Valós Safari-hirdetéshez: Autosweb + Chrome, majd új keresés."
+      } else {
+        warning = response.warning
+      }
     } catch {
       do {
         let response = try await HasznaltautoSearchClient.search(filter: store.filter, demo: true)
-        remote = response.results.map { $0.asUnified() }.filter(Self.isIndividualHaListing)
-        warning = "Autosweb élő keresés nem elérhető — demo. Indítsd: cd autosweb && npm start"
+        remote = response.results.map { $0.asUnified(forceDemo: true) }
+        remoteMode = "demo"
+        warning = "Autosweb élő keresés nem elérhető — demo. Valós linkhez: cd autosweb && npm start (Chrome)."
       } catch {
-        // Nincs Autosweb — helyi demo használtautó kártyák a UI kipróbálásához
-        remote = localDemoHa(store.filter).filter(Self.isIndividualHaListing)
-        warning = "Autosweb nem fut (127.0.0.1:3456). Helyi demo használtautó találatok. Élőhöz: cd autosweb && npm start"
+        remote = localDemoHa(store.filter)
+        remoteMode = "local-demo"
+        warning = "Autosweb nem fut (127.0.0.1:3456). Demo kártyák — Safari csak élő scrape után nyit egyedi hirdetést."
       }
     }
   }
 }
 
 private func localDemoHa(_ filter: SearchFilter) -> [UnifiedListing] {
-  // Több külön hirdetés, egyedi URL-lel (soha nem /szemelyauto/bmw lista)
-  let raw: [(String, String, Int, Int, Int, String)] = [
-    ("BMW", "320d", 2019, 142_000, 8_990_000, "diesel"),
-    ("BMW", "520d", 2018, 168_000, 7_950_000, "diesel"),
-    ("AUDI", "A4", 2021, 95_000, 7_900_000, "diesel"),
-    ("AUDI", "A3", 2020, 78_000, 6_490_000, "benzin"),
-    ("OPEL", "Astra", 2019, 98_000, 4_290_000, "benzin"),
-    ("OPEL", "Astra", 2021, 54_000, 5_890_000, "benzin"),
-    ("OPEL", "Corsa", 2020, 61_000, 3_990_000, "benzin"),
-    ("VOLKSWAGEN", "Golf", 2021, 68_000, 6_250_000, "benzin"),
-    ("TOYOTA", "Corolla", 2022, 51_000, 7_490_000, "hybrid"),
-    ("FORD", "Focus", 2019, 89_000, 4_590_000, "benzin"),
-    ("SKODA", "Octavia", 2018, 118_000, 5_100_000, "diesel"),
-    ("SUZUKI", "Swift", 2023, 28_000, 3_600_000, "benzin"),
+  let raw: [(String, String, Int, Int, Int)] = [
+    ("BMW", "320d", 2019, 142_000, 8_990_000),
+    ("BMW", "520d", 2018, 168_000, 7_950_000),
+    ("AUDI", "A4", 2021, 95_000, 7_900_000),
+    ("AUDI", "A3", 2020, 78_000, 6_490_000),
+    ("OPEL", "Astra", 2019, 98_000, 4_290_000),
+    ("OPEL", "Astra", 2021, 54_000, 5_890_000),
+    ("OPEL", "Corsa", 2020, 61_000, 3_990_000),
+    ("VOLKSWAGEN", "Golf", 2021, 68_000, 6_250_000),
+    ("TOYOTA", "Corolla", 2022, 51_000, 7_490_000),
+    ("FORD", "Focus", 2019, 89_000, 4_590_000),
+    ("SKODA", "Octavia", 2018, 118_000, 5_100_000),
+    ("SUZUKI", "Swift", 2023, 28_000, 3_600_000),
   ]
 
+  func slug(_ s: String) -> String {
+    s.folding(options: .diacriticInsensitive, locale: .current)
+      .lowercased()
+      .replacingOccurrences(of: " ", with: "_")
+  }
+
   var samples: [UnifiedListing] = raw.enumerated().map { index, row in
-    let (brand, model, year, km, price, _) = row
-    let idNum = 40000000 + index
-    let b = brand.lowercased()
-    let m = model.lowercased().replacingOccurrences(of: " ", with: "_")
+    let (brand, model, year, km, price) = row
+    let b = slug(brand)
+    let m = slug(model)
     return UnifiedListing(
-      id: "ha-local-demo-\(idNum)",
+      id: "ha-local-demo-\(40000000 + index)",
       source: .hasznaltauto,
       title: "\(brand) \(model) (\(year))",
       brand: brand,
@@ -252,28 +284,28 @@ private func localDemoHa(_ filter: SearchFilter) -> [UnifiedListing] {
       priceLabel: "\(price.formatted()) Ft",
       meta: "\(year) · \(km.formatted()) km",
       imageUrl: nil,
-      externalUrl: URL(string: "https://www.hasznaltauto.hu/szemelyauto/\(b)/\(m)/\(b)_\(m)-\(idNum)"),
-      badge: "használtautó.hu"
+      externalUrl: nil,
+      searchUrl: URL(string: "https://www.hasznaltauto.hu/szemelyauto/\(b)/\(m)"),
+      badge: "demo",
+      isDemo: true
     )
   }
 
-  // Ha van gyártmány szűrő, és kevés találat: több egyedi kártya
   if let brand = filter.gyartmanyok.first {
-    let existing = samples.filter { $0.brand.uppercased().contains(brand.uppercased()) || brand.uppercased().contains($0.brand.uppercased()) }
+    let existing = samples.filter {
+      $0.brand.uppercased().contains(brand.uppercased()) || brand.uppercased().contains($0.brand.uppercased())
+    }
     if existing.count < 6 {
       let model = filter.modellek.first ?? existing.first?.model ?? "320d"
-      let b = brand.lowercased()
-        .folding(options: .diacriticInsensitive, locale: .current)
-        .replacingOccurrences(of: " ", with: "_")
-      let m = model.lowercased().replacingOccurrences(of: " ", with: "_")
+      let b = slug(brand)
+      let m = slug(model)
       let need = max(0, 8 - existing.count)
       let generated: [UnifiedListing] = (0..<need).map { i in
         let year = 2017 + i
         let km = 35000 + i * 11000
         let price = 3_800_000 + i * 450_000
-        let idNum = 50000000 + i
         return UnifiedListing(
-          id: "ha-local-gen-\(idNum)",
+          id: "ha-local-gen-\(50000000 + i)",
           source: .hasznaltauto,
           title: "\(brand) \(model) (\(year))",
           brand: brand.uppercased(),
@@ -284,8 +316,10 @@ private func localDemoHa(_ filter: SearchFilter) -> [UnifiedListing] {
           priceLabel: "\(price.formatted()) Ft",
           meta: "\(year) · \(km.formatted()) km",
           imageUrl: nil,
-          externalUrl: URL(string: "https://www.hasznaltauto.hu/szemelyauto/\(b)/\(m)/\(b)_\(m)-\(idNum)"),
-          badge: "használtautó.hu"
+          externalUrl: nil,
+          searchUrl: URL(string: "https://www.hasznaltauto.hu/szemelyauto/\(b)/\(m)"),
+          badge: "demo",
+          isDemo: true
         )
       }
       samples.append(contentsOf: generated)
