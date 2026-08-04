@@ -134,16 +134,49 @@ enum HasznaltautoSearchClient {
   /// Simulator → Mac localhost Autosweb
   static var baseURL = URL(string: "http://127.0.0.1:3456")!
 
-  /// Gyors ellenőrzés: fut-e az Autosweb
+  /// Gyors ellenőrzés: fut-e az Autosweb ÉS van-e HA keresés
   static func isReachable() async -> Bool {
     var request = URLRequest(url: baseURL.appendingPathComponent("api/health"))
     request.httpMethod = "GET"
     request.timeoutInterval = 4
     do {
-      let (_, response) = try await URLSession.shared.data(for: request)
-      return (response as? HTTPURLResponse).map { (200..<300).contains($0.statusCode) } ?? false
+      let (data, response) = try await URLSession.shared.data(for: request)
+      guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+        return false
+      }
+      // Új szerver: haSearch: true; régi main: nincs mező → később a search 404-et ad
+      if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+         let ha = obj["haSearch"] as? Bool
+      {
+        return ha
+      }
+      return true
     } catch {
       return false
+    }
+  }
+
+  /// Van-e /api/ha-search (main ágon nincs)
+  static func hasHaSearchApi() async -> Bool {
+    var request = URLRequest(url: baseURL.appendingPathComponent("api/ha-search"))
+    request.httpMethod = "OPTIONS"
+    request.timeoutInterval = 4
+    do {
+      let (_, response) = try await URLSession.shared.data(for: request)
+      let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+      // 404 = nincs endpoint; 405/200/204 = van
+      return code != 404
+    } catch {
+      // Próbáljunk GET-et is — a handler POST/GET-et fogad
+      var get = URLRequest(url: baseURL.appendingPathComponent("api/ha-search"))
+      get.httpMethod = "GET"
+      get.timeoutInterval = 4
+      do {
+        let (_, response) = try await URLSession.shared.data(for: get)
+        return ((response as? HTTPURLResponse)?.statusCode ?? 404) != 404
+      } catch {
+        return false
+      }
     }
   }
 
@@ -165,6 +198,12 @@ enum HasznaltautoSearchClient {
     let (data, response) = try await URLSession.shared.data(for: request)
     guard let http = response as? HTTPURLResponse else {
       throw URLError(.badServerResponse)
+    }
+    if http.statusCode == 404 {
+      throw NSError(domain: "HasznaltautoSearch", code: 404, userInfo: [
+        NSLocalizedDescriptionKey:
+          "Autosweb fut, de nincs /api/ha-search (valószínűleg MAIN ág). Indítsd: addelautod-ios/mac/Autosweb-HA-indito.command",
+      ])
     }
     guard (200..<300).contains(http.statusCode) else {
       let msg = String(data: data, encoding: .utf8) ?? "HTTP \(http.statusCode)"

@@ -1,46 +1,36 @@
 #!/bin/bash
-# Egy parancs: Autosweb (élő HA) + iOS app frissítés Xcode-ba
+# Egy parancs: Autosweb HA (feature ág) + iOS app frissítés
+# FIGYELEM: Az Asztali Autosweb-indito MAIN ág — abban NINCS /api/ha-search
 set -euo pipefail
 
 BRANCH="cursor/addelautod-mobile-de62"
 REPO="https://github.com/bocsatech/bocsa-app.git"
-HA_TMP="$HOME/Downloads/bocsa-ha-tmp"
 APP_TMP="$HOME/Downloads/autosapp-tmp"
 APP_DEST="$HOME/Downloads/autosapp"
+RUN="$HOME/Downloads/bocsa-run-ha"
 PORT=3456
 
-echo "=== 1/2 Autosweb (élő használtautó.hu) ==="
+echo "=== 1/2 Autosweb HA (ág: $BRANCH) ==="
 mkdir -p "$HOME/Downloads"
 
-if lsof -ti tcp:"$PORT" >/dev/null 2>&1; then
-  echo "Port $PORT leállítás…"
-  lsof -ti tcp:"$PORT" | xargs kill -9 2>/dev/null || true
-  sleep 1
-fi
+rm -rf "$RUN"
+git clone --depth 1 --branch "$BRANCH" "$REPO" "$RUN"
 
-rm -rf "$HA_TMP"
-git clone --depth 1 --branch "$BRANCH" "$REPO" "$HA_TMP"
-cd "$HA_TMP/autosweb"
-npm install
-npx playwright install chromium 2>/dev/null || true
-
-# Autosweb külön Terminál ablakban (macOS)
 if command -v osascript >/dev/null 2>&1; then
   osascript <<EOF
 tell application "Terminal"
   activate
-  do script "cd \"$HA_TMP/autosweb\" && npm start"
+  do script "bash \"$RUN/addelautod-ios/mac/Autosweb-HA-indito.command\""
 end tell
 EOF
-  echo "Autosweb Terminál ablakban indul → http://127.0.0.1:$PORT"
+  echo "Autosweb-HA Terminál ablakban indul → http://127.0.0.1:$PORT"
   sleep 3
 else
-  echo "Indítsd kézzel: cd $HA_TMP/autosweb && npm start"
+  echo "Indítsd kézzel: bash $RUN/addelautod-ios/mac/Autosweb-HA-indito.command"
 fi
 
 echo ""
 echo "=== 2/2 iOS app frissítés ==="
-# Quit Xcode ha nyitva (hogy ne sérüljön a projekt)
 osascript -e 'tell application "Xcode" to quit' 2>/dev/null || true
 sleep 1
 
@@ -56,16 +46,11 @@ if [[ ! -f "$APP_DEST/AddElAutod.xcodeproj/project.pbxproj" ]]; then
   exit 1
 fi
 
-# Régi build cache ürítése — ne a demós app fusson
 rm -rf "$HOME/Library/Developer/Xcode/DerivedData/AddElAutod-"* 2>/dev/null || true
-
 open "$APP_DEST/AddElAutod.xcodeproj"
 
 echo ""
 echo "KESZ."
-echo "1) Terminálban legyen: Autosweb: http://127.0.0.1:$PORT"
-echo "2) Xcode: Product → Clean Build Folder, majd Cmd+R"
-echo "3) Keresés → Találatok: a hirdetések AZ APPBAN jelennek meg (sok kártya)"
-echo "4) Safari CSAK koppintásra — az adott egy autóra"
-echo ""
-echo "A keresés háttérben fut — NEM nyit Chrome/Safari ablakot magától."
+echo "1) Terminál: Autosweb: http://127.0.0.1:$PORT  (HA indító, NEM Asztali main)"
+echo "2) Xcode: Clean Build Folder + Cmd+R"
+echo "3) Keresés → találatok AZ APPBAN; Safari csak koppintásra"

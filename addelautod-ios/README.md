@@ -18,6 +18,9 @@ Majd Xcode: **Product → Clean Build Folder**, **Cmd+R**.
 Találatok: sok narancs **használtautó.hu** kártya = élő autó; kattintás → Safari az adott hirdetés.  
 Nincs „Demo találat” üzenet.
 
+**Fontos:** az Asztali `Autosweb-indito` a **main** ágat tölti — abban **nincs** mobil HA keresés.  
+HA kereséshez: `addelautod-ios/mac/Autosweb-HA-indito.command` (feature ág).
+
 ---
 
 ## Hol legyen a Macen?

@@ -97,21 +97,20 @@ struct FilterResultsScreen: View {
 
   private var autoswebHelpCard: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("Használtautó.hu kapcsolat kell")
+      Text("Használtautó kereséshez külön Autosweb kell")
         .font(.headline)
         .foregroundStyle(AppTheme.text)
-      Text("1) Terminálban fusson: Autosweb: http://127.0.0.1:3456")
+      Text("Az Asztali Autosweb-indito a MAIN ágat tölti — abban nincs mobil HA keresés.")
         .font(.footnote)
         .foregroundStyle(AppTheme.textSecondary)
-      Text("2) Kereséskor nézd a [ha-search] sorokat. Ha Cloudflare: pipa a Chrome-ban.")
-        .font(.footnote)
-        .foregroundStyle(AppTheme.textSecondary)
-      Text("3) A találatok az APPBAN jelennek meg — Safari csak kártyára koppintáskor.")
-        .font(.footnote)
-        .foregroundStyle(AppTheme.textSecondary)
+      Text("Terminálba (egészben):")
+        .font(.caption.weight(.semibold))
       Text(autoswebRestartHint)
         .font(.system(.caption2, design: .monospaced))
         .textSelection(.enabled)
+      Text("Amíg fut: Autosweb: http://127.0.0.1:3456 — majd Újrapróbálás.")
+        .font(.footnote)
+        .foregroundStyle(AppTheme.textSecondary)
       Button("Újrapróbálás") {
         Task { await loadRemote() }
       }
@@ -124,7 +123,9 @@ struct FilterResultsScreen: View {
   }
 
   private var autoswebRestartHint: String {
-    "cd ~/Downloads/bocsa-ha-tmp/autosweb && npm start"
+    """
+    lsof -ti tcp:3456 | xargs kill -9 2>/dev/null; cd ~/Downloads && rm -rf bocsa-run && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git bocsa-run && bash bocsa-run/addelautod-ios/mac/Autosweb-HA-indito.command
+    """
   }
 
   @ViewBuilder
@@ -238,7 +239,14 @@ struct FilterResultsScreen: View {
     let up = await HasznaltautoSearchClient.isReachable()
     if !up {
       needsAutosweb = true
-      warning = "Autosweb nem fut a Macen (127.0.0.1:3456). Indítsd újra a Terminálban, hagyd nyitva, majd Újrapróbálás."
+      warning = "Autosweb nem fut, vagy MAIN ág (nincs HA keresés). Indítsd: Autosweb-HA-indito.command"
+      return
+    }
+
+    let hasApi = await HasznaltautoSearchClient.hasHaSearchApi()
+    if !hasApi {
+      needsAutosweb = true
+      warning = "Autosweb fut, de MAIN ág — nincs /api/ha-search. Zárd be, indítsd: addelautod-ios/mac/Autosweb-HA-indito.command"
       return
     }
 
