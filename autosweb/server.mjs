@@ -643,10 +643,17 @@ const server = createServer(async (req, res) => {
   const pathname = req.url?.split("?")[0] || "/";
 
   if (pathname === "/api/health" && req.method === "GET") {
+    let version = "unknown";
+    try {
+      version = readFileSync(join(PUBLIC, "version.txt"), "utf8").trim();
+    } catch {
+      /* ignore */
+    }
     sendJson(res, 200, {
       ok: true,
-      version: readFileSync(join(PUBLIC, "version.txt"), "utf8").trim(),
+      version,
       chrome: findChromeExecutable(),
+      haSearch: true,
     });
     return;
   }

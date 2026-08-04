@@ -134,6 +134,19 @@ enum HasznaltautoSearchClient {
   /// Simulator → Mac localhost Autosweb
   static var baseURL = URL(string: "http://127.0.0.1:3456")!
 
+  /// Gyors ellenőrzés: fut-e az Autosweb
+  static func isReachable() async -> Bool {
+    var request = URLRequest(url: baseURL.appendingPathComponent("api/health"))
+    request.httpMethod = "GET"
+    request.timeoutInterval = 4
+    do {
+      let (_, response) = try await URLSession.shared.data(for: request)
+      return (response as? HTTPURLResponse).map { (200..<300).contains($0.statusCode) } ?? false
+    } catch {
+      return false
+    }
+  }
+
   static func search(filter: SearchFilter, demo: Bool = false) async throws -> HaSearchResponse {
     var request = URLRequest(url: baseURL.appendingPathComponent("api/ha-search"))
     request.httpMethod = "POST"
@@ -143,8 +156,8 @@ enum HasznaltautoSearchClient {
 
     let body: [String: Any] = [
       "demo": demo,
-      // Használtautó listaoldalak — ne álljon meg 10-nél
-      "maxPages": 100,
+      // Első körben elég sok oldal, de ne 100 (idő / timeout)
+      "maxPages": 30,
       "filter": encodeFilter(filter),
     ]
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -159,7 +172,14 @@ enum HasznaltautoSearchClient {
         NSLocalizedDescriptionKey: msg,
       ])
     }
-    return try JSONDecoder().decode(HaSearchResponse.self, from: data)
+    do {
+      return try JSONDecoder().decode(HaSearchResponse.self, from: data)
+    } catch {
+      let preview = String(data: data, encoding: .utf8)?.prefix(200) ?? ""
+      throw NSError(domain: "HasznaltautoSearch", code: -1, userInfo: [
+        NSLocalizedDescriptionKey: "Érvénytelen válasz az Autoswebtől: \(error.localizedDescription) \(preview)",
+      ])
+    }
   }
 
   private static func encodeFilter(_ filter: SearchFilter) -> [String: Any] {

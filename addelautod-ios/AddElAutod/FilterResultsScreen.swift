@@ -100,9 +100,18 @@ struct FilterResultsScreen: View {
       Text("Használtautó.hu kapcsolat kell")
         .font(.headline)
         .foregroundStyle(AppTheme.text)
-      Text("Ha a Terminálban Cloudflare / 0 autó látszik: a Chrome ablakban pipáld be, majd Újrapróbálás. A találatok az APPBAN jelennek meg — Safari csak kártyára koppintáskor.")
+      Text("1) Terminálban fusson: Autosweb: http://127.0.0.1:3456")
         .font(.footnote)
         .foregroundStyle(AppTheme.textSecondary)
+      Text("2) Kereséskor nézd a [ha-search] sorokat. Ha Cloudflare: pipa a Chrome-ban.")
+        .font(.footnote)
+        .foregroundStyle(AppTheme.textSecondary)
+      Text("3) A találatok az APPBAN jelennek meg — Safari csak kártyára koppintáskor.")
+        .font(.footnote)
+        .foregroundStyle(AppTheme.textSecondary)
+      Text(autoswebRestartHint)
+        .font(.system(.caption2, design: .monospaced))
+        .textSelection(.enabled)
       Button("Újrapróbálás") {
         Task { await loadRemote() }
       }
@@ -112,6 +121,10 @@ struct FilterResultsScreen: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(Color.orange.opacity(0.08))
     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  private var autoswebRestartHint: String {
+    "cd ~/Downloads/bocsa-ha-tmp/autosweb && npm start"
   }
 
   @ViewBuilder
@@ -221,6 +234,14 @@ struct FilterResultsScreen: View {
     remote = []
     defer { loadingRemote = false }
 
+    // Először: fut-e egyáltalán az Autosweb?
+    let up = await HasznaltautoSearchClient.isReachable()
+    if !up {
+      needsAutosweb = true
+      warning = "Autosweb nem fut a Macen (127.0.0.1:3456). Indítsd újra a Terminálban, hagyd nyitva, majd Újrapróbálás."
+      return
+    }
+
     do {
       let response = try await HasznaltautoSearchClient.search(filter: store.filter)
       remoteMode = response.mode
@@ -241,12 +262,23 @@ struct FilterResultsScreen: View {
         needsAutosweb = true
         warning = response.warning
           ?? response.error
-          ?? "A használtautó keresés nem adott találatot."
+          ?? "A használtautó keresés nem adott találatot. Nézd a Terminál [ha-search] sorait."
+      }
+    } catch let urlError as URLError {
+      remote = []
+      needsAutosweb = true
+      switch urlError.code {
+      case .timedOut:
+        warning = "A keresés túl sokáig tartott. Terminál: [ha-search] logok. Cloudflare pipa a Chrome-ban, majd Újrapróbálás."
+      case .cannotConnectToHost, .networkConnectionLost, .notConnectedToInternet:
+        warning = "Megszakadt a kapcsolat az Autoswebbel. Indítsd újra: npm start (3456), majd Újrapróbálás."
+      default:
+        warning = "Hálózati hiba: \(urlError.localizedDescription)"
       }
     } catch {
       remote = []
       needsAutosweb = true
-      warning = "Autosweb nem elérhető (127.0.0.1:3456), vagy a keresés megszakadt."
+      warning = error.localizedDescription
     }
   }
 }
