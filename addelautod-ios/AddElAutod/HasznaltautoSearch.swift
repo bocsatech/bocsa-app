@@ -28,7 +28,7 @@ struct UnifiedListing: Identifiable, Hashable {
   var sourceLabel: String {
     switch source {
     case .local: return "Add el autod"
-    case .hasznaltauto: return isDemo ? "HA demo" : "használtautó.hu"
+    case .hasznaltauto: return "használtautó.hu"
     }
   }
 
@@ -105,7 +105,7 @@ struct HaRemoteListing: Decodable, Identifiable {
       imageUrl: imageUrl.flatMap(URL.init(string:)),
       externalUrl: isDemo ? nil : url.flatMap(URL.init(string:)),
       searchUrl: searchUrl.flatMap(URL.init(string:)) ?? Self.fallbackSearchUrl(brand: brand, model: model),
-      badge: isDemo ? "demo" : "használtautó.hu",
+      badge: "használtautó.hu",
       isDemo: isDemo
     )
   }

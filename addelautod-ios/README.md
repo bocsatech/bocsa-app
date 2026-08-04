@@ -1,12 +1,32 @@
 # Add el autod — iOS (Xcode)
 
+## Egyszerre minden (ajánlott)
+
+**Quit Xcode**, majd Terminálba EGÉSZBEN (Autosweb + friss app, demó nélkül):
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/bocsatech/bocsa-app/cursor/addelautod-mobile-de62/addelautod-ios/mac/Indit-Minden-HA.command)
+```
+
+Vagy klón után:
+
+```bash
+cd ~/Downloads && rm -rf bocsa-run && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git bocsa-run && bash bocsa-run/addelautod-ios/mac/Indit-Minden-HA.command
+```
+
+Majd Xcode: **Product → Clean Build Folder**, **Cmd+R**.  
+Találatok: sok narancs **használtautó.hu** kártya = élő autó; kattintás → Safari az adott hirdetés.  
+Nincs „Demo találat” üzenet.
+
+---
+
 ## Hol legyen a Macen?
 
 **Letöltések → autosapp** = `~/Downloads/autosapp`
 
 ---
 
-## A) Terminál (ajánlott) — másold be EGÉSZBEN
+## A) Csak az app frissítése
 
 ```bash
 mkdir -p ~/Downloads && cd ~/Downloads && rm -rf autosapp autosapp-tmp && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git autosapp-tmp && mkdir autosapp && ditto autosapp-tmp/addelautod-ios/AddElAutod autosapp/AddElAutod && ditto autosapp-tmp/addelautod-ios/AddElAutod.xcodeproj autosapp/AddElAutod.xcodeproj && test -f autosapp/AddElAutod.xcodeproj/project.pbxproj && rm -rf autosapp-tmp && open ~/Downloads/autosapp/AddElAutod.xcodeproj && echo "KESZ: ~/Downloads/autosapp"

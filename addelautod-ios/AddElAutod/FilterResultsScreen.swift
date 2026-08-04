@@ -97,18 +97,12 @@ struct FilterResultsScreen: View {
 
   private var autoswebHelpCard: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("Élő használtautó.hu kell")
+      Text("Használtautó.hu kapcsolat kell")
         .font(.headline)
         .foregroundStyle(AppTheme.text)
-      Text("Minden találat külön autó a listában, kattintásra Safari az adott hirdetést nyitja. Ehhez a Macen fusson az Autosweb.")
+      Text("A Macen indítsd az Autoswebet (3456), majd Újrapróbálás. Utána minden autó külön kártya, élő Safari-linkkel.")
         .font(.footnote)
         .foregroundStyle(AppTheme.textSecondary)
-      Text("Terminál (egészben):")
-        .font(.caption.weight(.semibold))
-      Text(autoswebStartCommand)
-        .font(.system(.caption2, design: .monospaced))
-        .foregroundStyle(AppTheme.text)
-        .textSelection(.enabled)
       Button("Újrapróbálás") {
         Task { await loadRemote() }
       }
@@ -118,12 +112,6 @@ struct FilterResultsScreen: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(Color.orange.opacity(0.08))
     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-  }
-
-  private var autoswebStartCommand: String {
-    """
-    lsof -ti tcp:3456 | xargs kill -9 2>/dev/null; cd ~/Downloads && rm -rf bocsa-ha-tmp && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git bocsa-ha-tmp && cd bocsa-ha-tmp/autosweb && npm install && npx playwright install chromium && npm start
-    """
   }
 
   @ViewBuilder
@@ -253,14 +241,12 @@ struct FilterResultsScreen: View {
       } else {
         remote = []
         needsAutosweb = true
-        warning = response.warning
-          ?? response.error
-          ?? "Élő használtautó keresés sikertelen."
+        warning = nil
       }
     } catch {
       remote = []
       needsAutosweb = true
-      warning = "Autosweb nem elérhető (127.0.0.1:3456). Indítsd a Macen, majd Újrapróbálás."
+      warning = nil
     }
   }
 }
