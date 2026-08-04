@@ -47,6 +47,7 @@ import {
   listModelTypes,
   listModelYears,
 } from "./lib/vehicle-catalog.mjs";
+import { searchHasznaltauto } from "./lib/ha-search.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -168,6 +169,53 @@ async function handleOpenChrome(req, res) {
       error: error.message ?? String(error),
       logs,
       chrome: findChromeExecutable(),
+    });
+  }
+}
+
+/** Ideiglenes: használtautó.hu keresés az iOS appnak */
+async function handleHaSearchApi(req, res) {
+  if (req.method !== "POST" && req.method !== "GET") {
+    sendJson(res, 405, { error: "POST vagy GET." });
+    return;
+  }
+
+  let filter = {};
+  let demo = false;
+  let maxPages;
+
+  try {
+    if (req.method === "POST") {
+      const body = await readBody(req);
+      filter = body.filter ?? body ?? {};
+      demo = Boolean(body.demo);
+      maxPages = body.maxPages;
+    } else {
+      const u = new URL(req.url, `http://${HOST}:${PORT}`);
+      demo = u.searchParams.get("demo") === "1";
+      const brand = u.searchParams.get("brand");
+      if (brand) filter.gyartmanyok = [brand];
+      const model = u.searchParams.get("model");
+      if (model) filter.modellek = [model];
+    }
+  } catch {
+    sendJson(res, 400, { error: "Érvénytelen JSON." });
+    return;
+  }
+
+  const logs = [];
+  try {
+    const result = await searchHasznaltauto(filter, {
+      demo,
+      maxPages,
+      onProgress: (message) => logs.push(message),
+    });
+    sendJson(res, 200, { ...result, logs });
+  } catch (error) {
+    sendJson(res, 500, {
+      ok: false,
+      error: error.message ?? String(error),
+      logs,
     });
   }
 }
@@ -603,6 +651,11 @@ const server = createServer(async (req, res) => {
 
   if (pathname === "/api/import" && req.method === "POST") {
     await handleImport(req, res);
+    return;
+  }
+
+  if (pathname === "/api/ha-search") {
+    await handleHaSearchApi(req, res);
     return;
   }
 

@@ -46,3 +46,10 @@ Ha a Macen megvan az Autosweb `lista.csv`, ezzel szinkronizálhatod **ugyanarra*
 node addelautod-ios/scripts/sync-vehicle-catalog.mjs ~/Desktop/lista.csv
 ```
 
+## Ideiglenes: használtautó.hu keresés
+
+1. Macen indítsd az Autoswebet: `cd autosweb && npm start` → `http://127.0.0.1:3456`
+2. Simulatorban keresés → találati lista: saját + használtautó.hu (narancs jelölés)
+3. Használtautó kártyára kattintás → Safari / Chrome
+4. Élő scrape-hez legyen Chrome a Macen (Cloudflare esetén oldd meg a böngészőben)
+

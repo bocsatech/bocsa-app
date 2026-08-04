@@ -556,7 +556,7 @@ struct SearchScreen: View {
         Button {
             mode = .filterResults
         } label: {
-            Text("Keresés · \(hitCount) találat")
+            Text("Keresés · \(hitCount)+ találat")
                 .font(.body.weight(.semibold))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
