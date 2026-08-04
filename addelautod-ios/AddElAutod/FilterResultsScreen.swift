@@ -194,7 +194,6 @@ struct FilterResultsScreen: View {
       remoteMode = response.mode
       warning = response.warning
     } catch {
-      // Autosweb nem fut / hálózat — demo fallback az API-n keresztül, ha elérhető
       do {
         let response = try await HasznaltautoSearchClient.search(filter: store.filter, demo: true)
         remote = response.results.map { $0.asUnified() }
@@ -205,5 +204,51 @@ struct FilterResultsScreen: View {
         warning = "Autosweb nem fut (127.0.0.1:3456). Helyi demo használtautó találatok. Élőhöz: cd autosweb && npm start"
       }
     }
+  }
+}
+
+private func localDemoHa(_ filter: SearchFilter) -> [UnifiedListing] {
+  let samples: [UnifiedListing] = [
+    UnifiedListing(
+      id: "ha-local-demo-1",
+      source: .hasznaltauto,
+      title: "BMW 320d xDrive (2019)",
+      brand: "BMW",
+      model: "320d",
+      year: 2019,
+      km: 142_000,
+      priceFt: 8_990_000,
+      priceLabel: "8 990 000 Ft",
+      meta: "2019 · 142 000 km",
+      imageUrl: nil,
+      externalUrl: URL(string: "https://www.hasznaltauto.hu/szemelyauto/bmw"),
+      badge: "használtautó.hu"
+    ),
+    UnifiedListing(
+      id: "ha-local-demo-2",
+      source: .hasznaltauto,
+      title: "Audi A4 2.0 TDI (2021)",
+      brand: "AUDI",
+      model: "A4",
+      year: 2021,
+      km: 95_000,
+      priceFt: 7_900_000,
+      priceLabel: "7 900 000 Ft",
+      meta: "2021 · 95 000 km",
+      imageUrl: nil,
+      externalUrl: URL(string: "https://www.hasznaltauto.hu/szemelyauto/audi"),
+      badge: "használtautó.hu"
+    ),
+  ]
+  return samples.filter { item in
+    if !filter.gyartmanyok.isEmpty {
+      let brands = filter.gyartmanyok.map { $0.uppercased() }
+      if !brands.contains(where: { item.brand.contains($0) || $0.contains(item.brand) }) {
+        return false
+      }
+    }
+    if let tol = filter.evTol, let y = item.year, y < tol { return false }
+    if let ig = filter.evIg, let y = item.year, y > ig { return false }
+    return true
   }
 }
