@@ -48,11 +48,22 @@ Ha a Macen megvan az Autosweb `lista.csv`, ezzel szinkronizálhatod **ugyanarra*
 node addelautod-ios/scripts/sync-vehicle-catalog.mjs ~/Desktop/lista.csv
 ```
 
-## Ideiglenes: használtautó.hu keresés
+## Használtautó.hu — élő találatok (kötelező a valódi linkekhez)
 
-1. Macen indítsd az Autoswebet: `cd autosweb && npm start` → `http://127.0.0.1:3456`
-2. Legyen **Chrome** a Macen (élő scrape); Cloudflare esetén oldd meg a böngészőben
-3. Simulatorban keresés → **élő** módban: több kártya, egy kártya = egy autó
-4. Kattintás → **Safari** az **adott hirdetésre** (nem 404, nem márka lista)
-5. Ha Autosweb nem fut / scrape fail → **demo** kártyák: nincs élő link (hamis URL 404 lenne); opcionálisan márka keresés Safariban
+**Egy kártya = egy autó** (kép, márka/típus, év, km, ár). Kattintás → **Safari csak az adott hirdetést** nyitja.
 
+Nincs demó / hamis link. Ehhez a Macen fusson az Autosweb.
+
+### 1) Terminál — Autosweb indítás (hagyd futni)
+
+```bash
+lsof -ti tcp:3456 | xargs kill -9 2>/dev/null; cd ~/Downloads && rm -rf bocsa-ha-tmp && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git bocsa-ha-tmp && cd bocsa-ha-tmp/autosweb && npm install && npx playwright install chromium && npm start
+```
+
+Látnod kell: `Autosweb: http://127.0.0.1:3456`
+
+Kereséskor **Chrome** ablak nyílhat — Cloudflare pipa, amíg látszanak az autók.
+
+### 2) Simulator — új keresés
+
+Cmd+R → Keresés → feltételek → Találatok. Narancs **használtautó.hu** kártyák = élő egyedi hirdetések.

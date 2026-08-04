@@ -64,6 +64,7 @@ struct HaSearchResponse: Decodable {
   let mode: String?
   let sourceUrl: String?
   let warning: String?
+  let error: String?
   let results: [HaRemoteListing]
 
   var isDemoMode: Bool {
@@ -137,10 +138,11 @@ enum HasznaltautoSearchClient {
     var request = URLRequest(url: baseURL.appendingPathComponent("api/ha-search"))
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.timeoutInterval = 180
+    request.timeoutInterval = 300
 
     let body: [String: Any] = [
       "demo": demo,
+      "maxPages": 10,
       "filter": encodeFilter(filter),
     ]
     request.httpBody = try JSONSerialization.data(withJSONObject: body)

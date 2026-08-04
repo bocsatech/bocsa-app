@@ -211,6 +211,43 @@ async function extractRichCards(page) {
   });
 }
 
+async function waitForListings(page, onProgress, maxSeconds = 120) {
+  const { countListingLinksOnPage } = await import("./links.mjs");
+  const deadline = Date.now() + maxSeconds * 1000;
+  let lastLog = 0;
+
+  while (Date.now() < deadline) {
+    const count = await countListingLinksOnPage(page);
+    if (count > 0) return count;
+
+    const title = await page.title();
+    const now = Date.now();
+    if (now - lastLog > 8000) {
+      if (/Attention Required|biztonsági|Egy pillanat|Just a moment/i.test(title)) {
+        onProgress?.(
+          "Cloudflare: a megnyílt Chrome ablakban jelöld meg a pipát, amíg megjelennek az autók…"
+        );
+      } else {
+        onProgress?.("Várakozás: használtautó.hu lista betöltése…");
+      }
+      lastLog = now;
+    }
+    await sleep(2000);
+  }
+  throw new Error(
+    "Nem töltődtek be a hirdetések. Chrome ablakban oldd meg a Cloudflare-t, majd indítsd újra a keresést az appban."
+  );
+}
+
+async function scrollListPage(page) {
+  for (let i = 0; i < 5; i += 1) {
+    await page.evaluate(() => window.scrollBy(0, Math.max(window.innerHeight * 1.4, 700)));
+    await sleep(500);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await sleep(400);
+}
+
 async function scrapeListPages(listUrl, { maxPages = MAX_PAGES, onProgress } = {}) {
   const { acquireImportSession } = await import("./browser-session.mjs");
   const base = stripPageFromUrl(listUrl) || listUrl;
@@ -225,13 +262,25 @@ async function scrapeListPages(listUrl, { maxPages = MAX_PAGES, onProgress } = {
 
   for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
     const url = pageNum === 1 ? base : buildListPageUrl(base, pageNum);
-    onProgress?.(`Használtautó lista: oldal ${pageNum}…`);
+    onProgress?.(`Használtautó lista: oldal ${pageNum}/${maxPages}…`);
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: PAGE_TIMEOUT_MS });
-    await sleep(800);
 
+    if (pageNum === 1) {
+      await waitForListings(page, onProgress);
+    } else {
+      await sleep(1000);
+      const { countListingLinksOnPage } = await import("./links.mjs");
+      const n = await countListingLinksOnPage(page);
+      if (!n) {
+        onProgress?.(`Üres oldal ${pageNum} — vége.`);
+        break;
+      }
+    }
+
+    await scrollListPage(page);
     const raw = await extractRichCards(page);
     if (!raw.length) {
-      onProgress?.(`Üres oldal ${pageNum} — vége.`);
+      onProgress?.(`Nincs egyedi hirdetés link oldal ${pageNum}-en — vége.`);
       break;
     }
 
@@ -242,8 +291,14 @@ async function scrapeListPages(listUrl, { maxPages = MAX_PAGES, onProgress } = {
       all.push(enrichCard(card));
       added += 1;
     }
-    onProgress?.(`Oldal ${pageNum}: +${added} (összesen ${all.length})`);
+    onProgress?.(`Oldal ${pageNum}: +${added} autó (összesen ${all.length})`);
     if (added === 0) break;
+  }
+
+  if (!all.length) {
+    throw new Error(
+      "0 egyedi autó a listán. Cloudflare / üres lista — nézd a Chrome ablakot, majd új keresés."
+    );
   }
 
   return all;
@@ -334,13 +389,15 @@ function onlyIndividualListings(items) {
 
 export async function searchHasznaltauto(filter = {}, options = {}) {
   const listUrl = buildHasznaltautoListUrl(filter);
+
+  // Explicit demo csak teszthez — az app NEM kér demót. Hamis link tilos.
   if (options.demo) {
     return {
       ok: true,
       mode: "demo",
       sourceUrl: listUrl,
       results: demoHasznaltautoResults(filter),
-      warning: "Demo mód — nincs élő scrape; a kártyáknak nincs valódi hirdetés-linkje.",
+      warning: "Demo mód — nincs valódi hirdetés-link.",
     };
   }
 
@@ -358,14 +415,19 @@ export async function searchHasznaltauto(filter = {}, options = {}) {
       sourceUrl: listUrl,
       scrapedCount: scraped.length,
       results,
+      warning:
+        results.length === 0
+          ? "A lista betöltődött, de a szűrőre nincs egyedi találat."
+          : undefined,
     };
   } catch (error) {
+    // Nincs demo-fallback: az appnak valódi autó kell, nem 404-es hamis link
     return {
-      ok: true,
-      mode: "demo-fallback",
+      ok: false,
+      mode: "error",
       sourceUrl: listUrl,
-      results: demoHasznaltautoResults(filter),
-      warning: `Élő scrape sikertelen (${error.message}). Demo találatok — nincs valódi Safari-link.`,
+      results: [],
+      warning: `Élő scrape sikertelen: ${error.message}`,
       error: error.message,
     };
   }
