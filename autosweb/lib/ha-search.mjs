@@ -211,7 +211,22 @@ async function extractRichCards(page) {
   });
 }
 
-async function waitForListings(page, onProgress, maxSeconds = 120) {
+function extractMaxPageFromHtml(html, currentUrl = "") {
+  const pageNumbers = new Set([1]);
+  try {
+    const m = new URL(currentUrl).pathname.match(PAGE_SUFFIX_RE);
+    if (m) pageNumbers.add(Number.parseInt(m[1], 10));
+  } catch {
+    /* ignore */
+  }
+  for (const match of String(html ?? "").matchAll(/\/page(\d+)/gi)) {
+    const n = Number.parseInt(match[1], 10);
+    if (Number.isFinite(n) && n > 0 && n <= 500) pageNumbers.add(n);
+  }
+  return Math.max(...pageNumbers);
+}
+
+async function waitForListings(page, onProgress, maxSeconds = 90) {
   const { countListingLinksOnPage } = await import("./links.mjs");
   const deadline = Date.now() + maxSeconds * 1000;
   let lastLog = 0;
@@ -224,84 +239,91 @@ async function waitForListings(page, onProgress, maxSeconds = 120) {
     const now = Date.now();
     if (now - lastLog > 8000) {
       if (/Attention Required|biztonsági|Egy pillanat|Just a moment/i.test(title)) {
-        onProgress?.(
-          "Cloudflare: a megnyílt Chrome ablakban jelöld meg a pipát, amíg megjelennek az autók…"
-        );
+        onProgress?.("Cloudflare blokkolja a háttérkeresést — próbáld újra később.");
       } else {
-        onProgress?.("Várakozás: használtautó.hu lista betöltése…");
+        onProgress?.("Várakozás: lista betöltése (háttérben)…");
       }
       lastLog = now;
     }
-    await sleep(2000);
+    await sleep(1500);
   }
   throw new Error(
-    "Nem töltődtek be a hirdetések. Chrome ablakban oldd meg a Cloudflare-t, majd indítsd újra a keresést az appban."
+    "Nem töltődtek be a hirdetések a háttérben (Cloudflare / üres lista). Próbáld újra."
   );
 }
 
 async function scrollListPage(page) {
-  for (let i = 0; i < 5; i += 1) {
-    await page.evaluate(() => window.scrollBy(0, Math.max(window.innerHeight * 1.4, 700)));
-    await sleep(500);
+  for (let i = 0; i < 8; i += 1) {
+    await page.evaluate(() => window.scrollBy(0, Math.max(window.innerHeight * 1.5, 800)));
+    await sleep(400);
   }
   await page.evaluate(() => window.scrollTo(0, 0));
-  await sleep(400);
+  await sleep(300);
 }
 
+/**
+ * Lista scrape — headless, NEM nyit böngészőablakot.
+ * A találatok JSON-ként mennek az appba; Safari csak app-kattintásra.
+ */
 async function scrapeListPages(listUrl, { maxPages = MAX_PAGES, onProgress } = {}) {
-  const { acquireImportSession } = await import("./browser-session.mjs");
+  const { acquireHeadlessSearchSession } = await import("./browser-session.mjs");
   const base = stripPageFromUrl(listUrl) || listUrl;
-  const session = await acquireImportSession(base, {
-    onProgress,
-    preferCdp: true,
-  });
-  const page = session.context.pages()[0] ?? (await session.context.newPage());
+  const session = await acquireHeadlessSearchSession({ onProgress });
+  const page = await session.context.newPage();
 
   const all = [];
   const seen = new Set();
 
-  for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
-    const url = pageNum === 1 ? base : buildListPageUrl(base, pageNum);
-    onProgress?.(`Használtautó lista: oldal ${pageNum}/${maxPages}…`);
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: PAGE_TIMEOUT_MS });
+  try {
+    let pagesToFetch = maxPages;
 
-    if (pageNum === 1) {
-      await waitForListings(page, onProgress);
-    } else {
-      await sleep(1000);
-      const { countListingLinksOnPage } = await import("./links.mjs");
-      const n = await countListingLinksOnPage(page);
-      if (!n) {
-        onProgress?.(`Üres oldal ${pageNum} — vége.`);
+    for (let pageNum = 1; pageNum <= pagesToFetch; pageNum += 1) {
+      const url = pageNum === 1 ? base : buildListPageUrl(base, pageNum);
+      onProgress?.(`Lista oldal ${pageNum}/${pagesToFetch} (háttér)…`);
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: PAGE_TIMEOUT_MS });
+
+      if (pageNum === 1) {
+        await waitForListings(page, onProgress);
+        const html = await page.content();
+        const detected = extractMaxPageFromHtml(html, url);
+        pagesToFetch = Math.min(maxPages, Math.max(detected, 1));
+        onProgress?.(`Felismert oldalak: ${detected} → betöltés: ${pagesToFetch}`);
+      } else {
+        await sleep(800);
+        const { countListingLinksOnPage } = await import("./links.mjs");
+        const n = await countListingLinksOnPage(page);
+        if (!n) {
+          onProgress?.(`Üres oldal ${pageNum} — vége.`);
+          break;
+        }
+      }
+
+      await scrollListPage(page);
+      const raw = await extractRichCards(page);
+      if (!raw.length) {
+        onProgress?.(`Nincs egyedi link oldal ${pageNum}-en — vége.`);
         break;
       }
+
+      let added = 0;
+      for (const card of raw) {
+        if (seen.has(card.url)) continue;
+        seen.add(card.url);
+        all.push(enrichCard(card));
+        added += 1;
+      }
+      onProgress?.(`Oldal ${pageNum}: +${added} autó (összesen ${all.length})`);
+      if (added === 0) break;
     }
 
-    await scrollListPage(page);
-    const raw = await extractRichCards(page);
-    if (!raw.length) {
-      onProgress?.(`Nincs egyedi hirdetés link oldal ${pageNum}-en — vége.`);
-      break;
+    if (!all.length) {
+      throw new Error("0 egyedi autó a listán (háttérkeresés).");
     }
 
-    let added = 0;
-    for (const card of raw) {
-      if (seen.has(card.url)) continue;
-      seen.add(card.url);
-      all.push(enrichCard(card));
-      added += 1;
-    }
-    onProgress?.(`Oldal ${pageNum}: +${added} autó (összesen ${all.length})`);
-    if (added === 0) break;
+    return all;
+  } finally {
+    await session.close();
   }
-
-  if (!all.length) {
-    throw new Error(
-      "0 egyedi autó a listán. Cloudflare / üres lista — nézd a Chrome ablakot, majd új keresés."
-    );
-  }
-
-  return all;
 }
 
 /** Demo találatok — UI próba. Nincs valódi hirdetés-URL (az 404 lenne). */

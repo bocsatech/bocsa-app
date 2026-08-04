@@ -48,10 +48,10 @@ struct FilterResultsScreen: View {
           if loadingRemote {
             VStack(spacing: 10) {
               ProgressView()
-              Text("használtautó.hu élő keresés…")
+              Text("Hirdetések betöltése az appba…")
                 .font(.footnote)
                 .foregroundStyle(AppTheme.textSecondary)
-              Text("Sok oldal betöltése — Chrome ablak nyílhat; Cloudflare esetén jelöld be a pipát.")
+              Text("A böngésző nem nyílik meg magától — csak ha egy kártyára kattintasz.")
                 .font(.caption2)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -100,7 +100,7 @@ struct FilterResultsScreen: View {
       Text("Használtautó.hu kapcsolat kell")
         .font(.headline)
         .foregroundStyle(AppTheme.text)
-      Text("A Macen indítsd az Autoswebet (3456), majd Újrapróbálás. Utána minden autó külön kártya, élő Safari-linkkel.")
+      Text("A Macen indítsd az Autoswebet (3456), majd Újrapróbálás. A hirdetések az appban jelennek meg; Safari csak kártyára kattintáskor.")
         .font(.footnote)
         .foregroundStyle(AppTheme.textSecondary)
       Button("Újrapróbálás") {
@@ -149,7 +149,7 @@ struct FilterResultsScreen: View {
             .foregroundStyle(AppTheme.textSecondary)
 
           if item.source == .hasznaltauto {
-            Text("Megnyitás Safariban ›")
+            Text("Koppintás: ez az egy autó Safariban")
               .font(.caption.weight(.medium))
               .foregroundStyle(AppTheme.accent)
           }
@@ -207,11 +207,9 @@ struct FilterResultsScreen: View {
   }
 
   private func openExternalIfNeeded(_ item: UnifiedListing) {
+    // Csak explicit koppintásra — soha automatikusan
     guard item.source == .hasznaltauto else { return }
-    guard item.canOpenLiveListing, let url = item.externalUrl else {
-      warning = "Ehhez a találathoz nincs egyedi hirdetés-link."
-      return
-    }
+    guard item.canOpenLiveListing, let url = item.externalUrl else { return }
     UIApplication.shared.open(url)
   }
 
