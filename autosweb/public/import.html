@@ -136,7 +136,7 @@
       <div class="import-page-main">
         <div class="automax-step-header">
           <h1 class="automax-step-title">Hasznaltauto.hu import</h1>
-          <p class="automax-step-lead">Lista URL-ről az első 20 hirdetés automatikusan mentődik (feladott, fő képpel), duplikátumok kimaradnak. Több import hozzáadódik (pl. 80 autó). Az űrlap továbbra is szerkeszthető.</p>
+          <p class="automax-step-lead">Import után az „Összes mentése” gomb egyszerre menti az összes betöltött hirdetést (nem kell egyesével). Import közben is mentődnek; a gomb a hiányzókat pótolja, a duplikátumokat átugorja.</p>
         </div>
 
         <div id="import-top-alert" class="import-top-alert" role="alert" hidden></div>
@@ -150,7 +150,7 @@
           </div>
           <div class="card-body">
             <p class="hint">
-              Lista vagy egy hirdetés URL-jét illeszd be — max. 50 db, képek nélkül. Csak adatolvasás; <strong>nem ad fel hirdetést</strong> a Használtautó.hu-ra.
+              Lista vagy egy hirdetés URL-jét illeszd be — első 20 db, fő képpel. Csak adatolvasás; <strong>nem ad fel hirdetést</strong> a Használtautó.hu-ra.
             </p>
             <div class="import-url-row">
               <input id="import-url" type="url" placeholder="https://www.hasznaltauto.hu/szemelyauto/… vagy talalatilista/…" />
@@ -786,14 +786,14 @@
 
           </form>
           <div class="import-save-bar">
-            <button type="button" class="btn btn-primary btn-lg" id="import-save-btn">Mentés az adatbázisba</button>
+            <button type="button" class="btn btn-primary btn-lg" id="import-save-btn">Összes mentése az adatbázisba</button>
             <span class="import-save-status" id="import-save-status"></span>
           </div>
         </section>
       </div>
     </main>
 
-    <script src="/js/import-app.js?v=katalogus20260727" type="module"></script>
+    <script src="/js/import-app.js?v=importsaveall20260805" type="module"></script>
     <script src="/js/site-avatar-menu.js?v=auth20260805localdb9" type="module"></script>
 
     <script src="/js/site-auth.js?v=auth20260805localdb9" type="module"></script>

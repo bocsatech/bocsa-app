@@ -1,7 +1,24 @@
-const IMPORT_LIST_KEY = "autosweb-import-list";
+export const IMPORT_LIST_KEY = "autosweb-import-list";
 const EMBEDDED_VERSION = document.querySelector('meta[name="autosweb-version"]')?.content ?? "";
 
-export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {}) {
+export function getImportResults() {
+  try {
+    const raw = sessionStorage.getItem(IMPORT_LIST_KEY);
+    if (!raw) return [];
+    const items = JSON.parse(raw);
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+}
+
+export function setImportResults(items) {
+  const list = Array.isArray(items) ? items : [];
+  sessionStorage.setItem(IMPORT_LIST_KEY, JSON.stringify(list));
+  return list;
+}
+
+export function initImportPanel({ onApply, onSelected, alertOnApply = true, onResultsChange } = {}) {
   const panel = document.getElementById("import-panel");
   const urlInput = document.getElementById("import-url");
   const startBtn = document.getElementById("import-start-btn");
@@ -119,16 +136,13 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
       resultsEl.appendChild(row);
     }
 
-    sessionStorage.setItem(IMPORT_LIST_KEY, JSON.stringify(items));
+    setImportResults(items);
+    onResultsChange?.(items);
   }
 
   function restoreResults() {
-    try {
-      const raw = sessionStorage.getItem(IMPORT_LIST_KEY);
-      if (raw) renderResults(JSON.parse(raw));
-    } catch {
-      /* ignore */
-    }
+    const items = getImportResults();
+    if (items.length) renderResults(items);
   }
 
   async function openChromeOnly() {

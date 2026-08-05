@@ -60,6 +60,16 @@ export async function saveListingToDb(formData, listingId = null, { status = nul
   return saved;
 }
 
+/** Több importált űrlap egyszerre — duplikátumokat a szerver átugorja. */
+export async function saveListingsBatchToDb(forms, { status = "feladott" } = {}) {
+  const response = await fetch("/api/listings/batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ forms, status }),
+  });
+  return parseJson(response);
+}
+
 export async function deleteListingFromDb(id) {
   const response = await fetch(`/api/listings/${id}`, { method: "DELETE" });
   return parseJson(response);

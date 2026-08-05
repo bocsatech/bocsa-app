@@ -14,6 +14,7 @@ import {
   dbStats,
   listFieldDefs,
   findListingBySourceUrl,
+  listingSourceExists,
   getDbPath,
   closeDb,
 } from "./lib/db.mjs";
@@ -248,6 +249,7 @@ async function handleImport(req, res) {
 async function handleListingsApi(req, res, pathname) {
   const latestMatch = pathname === "/api/listings/latest";
   const listMatch = pathname === "/api/listings";
+  const batchMatch = pathname === "/api/listings/batch";
   const idMatch = pathname.match(/^\/api\/listings\/(\d+)$/);
 
   if (pathname === "/api/db/stats" && req.method === "GET") {
@@ -280,6 +282,52 @@ async function handleListingsApi(req, res, pathname) {
       return;
     }
     sendJson(res, 200, { listing });
+    return;
+  }
+
+  if (batchMatch && req.method === "POST") {
+    let body;
+    try {
+      body = await readBody(req);
+    } catch {
+      sendJson(res, 400, { error: "Érvénytelen JSON." });
+      return;
+    }
+
+    const forms = Array.isArray(body.forms) ? body.forms : Array.isArray(body.items) ? body.items : null;
+    if (!forms?.length) {
+      sendJson(res, 400, { error: "Hiányzó hirdetés lista (forms)." });
+      return;
+    }
+    if (forms.length > 80) {
+      sendJson(res, 400, { error: "Egyszerre max. 80 hirdetés menthető." });
+      return;
+    }
+
+    const status = body.status ?? "feladott";
+    const results = [];
+    let savedCount = 0;
+    let skippedCount = 0;
+
+    for (const formData of forms) {
+      if (!formData || typeof formData !== "object") {
+        results.push({ skipped: true, reason: "invalid" });
+        skippedCount += 1;
+        continue;
+      }
+      const sourceUrl = String(formData.forras_url || "").trim();
+      const hasznaltautoId = String(formData.hasznaltauto_hirdetes_id || "").trim();
+      if (listingSourceExists({ sourceUrl, hasznaltautoId })) {
+        results.push({ skipped: true, reason: "duplicate", forras_url: sourceUrl });
+        skippedCount += 1;
+        continue;
+      }
+      const saved = saveListing(formData, null, { status });
+      results.push({ skipped: false, listing: saved });
+      savedCount += 1;
+    }
+
+    sendJson(res, 200, { savedCount, skippedCount, count: forms.length, results });
     return;
   }
 

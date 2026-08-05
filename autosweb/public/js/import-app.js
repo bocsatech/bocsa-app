@@ -1,9 +1,10 @@
 import { loadAdFormPartial } from "./load-ad-form.js";
 import { createAdForm } from "./form-core.js";
-import { initImportPanel } from "./import.js";
+import { initImportPanel, getImportResults, setImportResults } from "./import.js";
 import { enrichFormFromImportItem } from "./import-enrich.js";
 import {
   saveListingToDb,
+  saveListingsBatchToDb,
   setStoredListingId,
   getStoredListingId,
   fetchListing,
@@ -67,11 +68,23 @@ function setSaveReady() {
   if (saveStatus?.classList.contains("import-save-status--err")) {
     setSaveStatus("");
   }
+  updateSaveButtonLabel();
 }
 
 function setVersionWarning(message) {
   showTopAlert(message, "warn");
   setSaveStatus(message, "err");
+}
+
+function updateSaveButtonLabel() {
+  if (!saveBtn) return;
+  const count = getImportResults().length;
+  saveBtn.textContent =
+    count > 1
+      ? `Összes mentése az adatbázisba (${count})`
+      : count === 1
+        ? "Mentés az adatbázisba (1 hirdetés)"
+        : "Mentés az adatbázisba";
 }
 
 function verifyFormLoaded() {
@@ -137,11 +150,12 @@ async function initPage() {
 
   initImportPanel({
     alertOnApply: false,
+    onResultsChange: () => updateSaveButtonLabel(),
     onApply: (formData, item) => {
       if (!verifyFormLoaded() || !adForm) return;
       const enriched = enrichFormFromImportItem(formData, item);
-      currentListingId = null;
-      setStoredListingId(null);
+      currentListingId = item?.savedId ?? null;
+      setStoredListingId(currentListingId);
       adForm.resetForm();
       formTitle.textContent = item?.cim || item?.url || "Importált hirdetés";
       adForm.applyFormData(enriched, { fromImport: true });
@@ -150,9 +164,11 @@ async function initPage() {
       } else if (saveStatus) {
         setSaveStatus("");
       }
+      updateSaveButtonLabel();
     },
   });
 
+  updateSaveButtonLabel();
   await loadListingFromUrl();
 }
 
@@ -174,18 +190,78 @@ async function loadListingFromUrl() {
   }
 }
 
+async function handleSaveAllImportResults() {
+  const items = getImportResults();
+  if (!items.length) return null;
+
+  const forms = items.map((item) => {
+    const enriched = enrichFormFromImportItem(item.form ?? {}, item);
+    if (item.imageUrl && !enriched.fo_kep) enriched.fo_kep = item.imageUrl;
+    return enriched;
+  });
+
+  setSaveStatus(`Mentés: ${forms.length} hirdetés…`);
+  const batch = await saveListingsBatchToDb(forms, { status: "feladott" });
+
+  const updated = items.map((item, index) => {
+    const entry = batch.results?.[index];
+    if (!entry || entry.skipped) {
+      return { ...item, saved: Boolean(item.saved || item.savedId), skippedDuplicate: Boolean(entry?.skipped) };
+    }
+    return {
+      ...item,
+      saved: true,
+      savedId: entry.listing?.id ?? item.savedId,
+      skippedDuplicate: false,
+    };
+  });
+  setImportResults(updated);
+
+  const firstSavedId = batch.results?.find((entry) => entry.listing?.id)?.listing?.id;
+  if (firstSavedId) {
+    currentListingId = firstSavedId;
+    setStoredListingId(firstSavedId);
+  }
+
+  return batch;
+}
+
 async function handleSave() {
-  if (!adForm || !verifyFormLoaded()) return;
   if (!serverReady) {
     showTopAlert(SERVER_RESTART_MSG, "err");
     setSaveStatus(SERVER_RESTART_MSG, "err");
     return;
   }
 
+  const importItems = getImportResults();
   saveBtn.disabled = true;
-  setSaveStatus("Mentés…");
 
   try {
+    if (importItems.length > 0) {
+      const batch = await handleSaveAllImportResults();
+      hideTopAlert();
+      const saved = batch?.savedCount ?? 0;
+      const skipped = batch?.skippedCount ?? 0;
+      setSaveStatus(
+        `Kész: ${saved} mentve, ${skipped} kihagyva (már bent volt) — főoldal: /`,
+        saved > 0 || skipped > 0 ? "ok" : "err"
+      );
+      showTopAlert(
+        saved > 0
+          ? `${saved} hirdetés mentve az adatbázisba${skipped ? `, ${skipped} duplikátum kihagyva` : ""}.`
+          : skipped
+            ? `Minden hirdetés már az adatbázisban volt (${skipped}).`
+            : "Nem sikerült menteni.",
+        saved > 0 ? "ok" : skipped ? "warn" : "err"
+      );
+      await checkServerReady();
+      updateSaveButtonLabel();
+      return;
+    }
+
+    if (!adForm || !verifyFormLoaded()) return;
+
+    setSaveStatus("Mentés…");
     const formData = adForm.collectFormData();
     const saved = await saveListingToDb(formData, currentListingId ?? getStoredListingId(), {
       status: "mentett",
