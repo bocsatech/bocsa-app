@@ -13,6 +13,30 @@ function emptyStore() {
   return { version: 1, profiles: {} };
 }
 
+/** Induláskor: mappa + üres profiles.json, hogy a cat ne adjon „No such file”-t. */
+export function ensureProfilesStore() {
+  const path = profilesFilePath();
+  const dir = dirname(path);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  if (!existsSync(path)) {
+    writeProfilesStore(emptyStore());
+  }
+  try {
+    writeFileSync(
+      join(dir, "SERVER_INFO.txt"),
+      [
+        `profiles=${path}`,
+        `updated=${new Date().toISOString()}`,
+        `pid=${process.pid}`,
+      ].join("\n") + "\n",
+      "utf8"
+    );
+  } catch {
+    /* ignore */
+  }
+  return path;
+}
+
 export function readProfilesStore() {
   const path = profilesFilePath();
   if (!existsSync(path)) return emptyStore();

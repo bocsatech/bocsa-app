@@ -13,7 +13,7 @@ import {
   deleteAccount,
   requireAuthForPage,
   initSiteAuth,
-} from "./site-auth.js?v=auth20260805localdb8";
+} from "./site-auth.js?v=auth20260805localdb9";
 import {
   getParkplatz,
   addParkplatzItem,
@@ -26,7 +26,7 @@ import {
   ensureDemoMessages,
   markMessageRead,
   deleteMessage,
-} from "./fok-data.js?v=auth20260805localdb8";
+} from "./fok-data.js?v=auth20260805localdb9";
 
 const PHOTO_KEY = "autosweb-avatar-photos";
 const NOTIFY_KEY = "autosweb-notify-prefs";

@@ -59,6 +59,7 @@ import {
   countWebUsers,
   inspectWebUsersDb,
   getProfilesFilePath,
+  ensureProfilesStore,
   getUserById,
   getUserBySessionToken,
   loginUser,
@@ -853,6 +854,11 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 server.listen(PORT, HOST, async () => {
+  try {
+    ensureProfilesStore();
+  } catch (error) {
+    console.warn("Profil store:", error.message ?? error);
+  }
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log(`User DB: ${getDbPath()}`);
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");

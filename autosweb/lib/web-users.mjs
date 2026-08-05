@@ -8,12 +8,13 @@ import {
   saveProfileToFile,
   getProfilesFilePath,
   readProfilesStore,
+  ensureProfilesStore,
 } from "./web-user-profiles.mjs";
 
 const SESSION_DAYS = 30;
 const SESSION_COOKIE = "autosweb_session";
 
-export { SESSION_COOKIE, getProfilesFilePath };
+export { SESSION_COOKIE, getProfilesFilePath, ensureProfilesStore };
 
 function hashPassword(password, salt = randomBytes(16).toString("hex")) {
   const hash = scryptSync(String(password), salt, 64).toString("hex");

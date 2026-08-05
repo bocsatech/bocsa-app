@@ -135,6 +135,30 @@ if [ ! -d "$TARGET" ] || [ ! -f "$TARGET/server.mjs" ]; then
   exit 1
 fi
 
+# User DB mappa — mindig létezzen (profil mentés ide ír)
+mkdir -p "$HOME/.autosweb"
+echo "Autosweb user data: $HOME/.autosweb" > "$HOME/.autosweb/README.txt"
+
+# Kötelező: új user/profil kód (különben a név NEM mentődik)
+if [ ! -f "$TARGET/lib/web-user-profiles.mjs" ] || [ ! -f "$TARGET/lib/web-users.mjs" ]; then
+  osascript -e 'display alert "Régi Autosweb!" message "Hiányzik a user adatbázis kód (web-user-profiles.mjs).\n\nKell internet, majd indítsd ÚJRA az Autosweb-indito.command-ot — frissít GitHub main-ről."' 2>/dev/null || true
+  echo "✗ HIBA: régi Autosweb — nincs lib/web-user-profiles.mjs"
+  echo "  Ellenőrizd az internetet, majd indítsd újra (GitHub frissítés)."
+  exit 1
+fi
+
+if ! grep -q 'profiles.json\|saveProfileToFile\|getProfilesFilePath' "$TARGET/lib/web-user-profiles.mjs" 2>/dev/null; then
+  echo "✗ HIBA: web-user-profiles.mjs régi/üres"
+  exit 1
+fi
+
+if ! grep -q 'api/auth/db\|inspectWebUsersDb\|auth20260805localdb' "$TARGET/public/beallitasok.html" "$TARGET/server.mjs" 2>/dev/null; then
+  echo "⚠ Figyelem: beallitasok/server lehet régi — Cmd+Shift+R a böngészőben kötelező"
+fi
+
+echo "✓ User DB kód OK (profiles.json támogatás)"
+echo "  Profil: $HOME/.autosweb/profiles.json"
+
 cd "$TARGET"
 
 if [ ! -f "$CSS" ]; then
@@ -181,7 +205,9 @@ echo "User DB (állandó): $HOME/.autosweb/autosweb.db"
 echo "Profil fájl:       $HOME/.autosweb/profiles.json"
 echo "Bezáráshoz: Ctrl+C"
 echo ""
+echo "Ha a profil fájl mentés után sincs: Cmd+Shift+R, majd Fiókom → Adatok mentése"
+echo ""
 
 mkdir -p "$HOME/.autosweb"
-open "http://127.0.0.1:3456/" 2>/dev/null || true
+open "http://127.0.0.1:3456/beallitasok.html?szekcio=fiok" 2>/dev/null || open "http://127.0.0.1:3456/" 2>/dev/null || true
 npm start
