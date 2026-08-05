@@ -132,6 +132,61 @@ export async function openChromeForImport(startUrl, { onProgress } = {}) {
   return acquireImportSession(startUrl, { onProgress, preferCdp: false });
 }
 
+/**
+ * Mobil HA keresés: háttérben, ablak nélkül.
+ * NE nyisson Chrome/Safari ablakot — a találatok az appban jelennek meg.
+ */
+export async function acquireHeadlessSearchSession({ onProgress } = {}) {
+  onProgress?.("Használtautó keresés háttérben (ablak nélkül)…");
+
+  const launchArgs = [
+    "--disable-blink-features=AutomationControlled",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-dev-shm-usage",
+  ];
+
+  let browser;
+  try {
+    if (findChromeExecutable()) {
+      browser = await chromium.launch({
+        headless: true,
+        channel: "chrome",
+        args: launchArgs,
+      });
+    } else {
+      browser = await chromium.launch({ headless: true, args: launchArgs });
+    }
+  } catch {
+    browser = await chromium.launch({ headless: true, args: launchArgs });
+  }
+
+  const context = await browser.newContext({
+    locale: "hu-HU",
+    viewport: { width: 1400, height: 1000 },
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  });
+
+  return {
+    context,
+    browser,
+    mode: "headless",
+    async close() {
+      try {
+        await context.close();
+      } catch {
+        /* ignore */
+      }
+      try {
+        await browser.close();
+      } catch {
+        /* ignore */
+      }
+    },
+  };
+}
+
 export function releaseCachedSession() {
   cachedSession = null;
 }
