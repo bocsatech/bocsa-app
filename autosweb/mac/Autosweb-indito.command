@@ -159,6 +159,13 @@ fi
 echo "✓ User DB kód OK (profiles.json támogatás)"
 echo "  Profil: $HOME/.autosweb/profiles.json"
 
+if [ -f "$HOME/.autosweb/smtp.json" ]; then
+  echo "✓ SMTP config: $HOME/.autosweb/smtp.json"
+else
+  echo "⚠ SMTP nincs — aktiváló emailhez: autosweb/mac/smtp-beallitas.command"
+  echo "  (vagy másold ~/.autosweb/smtp.example.json → smtp.json Gmail app jelszóval)"
+fi
+
 cd "$TARGET"
 
 if [ ! -f "$CSS" ]; then
@@ -177,7 +184,7 @@ if [ ! -f "$INDEX" ]; then
 fi
 
 # --- npm + katalógus ---
-if [ ! -d node_modules ]; then
+if [ ! -d node_modules ] || [ ! -d node_modules/nodemailer ]; then
   echo "npm install…"
   npm install
 fi

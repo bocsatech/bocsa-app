@@ -18,8 +18,9 @@ test("profil megmarad process újraindítás után (sqlite + profiles.json)", ()
       `
       process.env.AUTOSWEB_DB_PATH = ${JSON.stringify(dbPath)};
       process.env.AUTOSWEB_PROFILES_PATH = ${JSON.stringify(profilesPath)};
-      const { registerUser, saveUserProfile, getUserById } = await import("/workspace/autosweb/lib/web-users.mjs");
-      const { user } = registerUser("persist2@test.dev", "pass1", "pass1");
+      const { registerUser, activateUserByToken, saveUserProfile, getUserById } = await import("/workspace/autosweb/lib/web-users.mjs");
+      const reg = registerUser("persist2@test.dev", "pass1", "pass1");
+      const { user } = activateUserByToken(reg.activationToken);
       saveUserProfile(user.id, { firstName: "Gabor", lastName: "Toth", postalCode: "2000", city: "Szentendre" });
       const u = getUserById(user.id);
       if (u.profile.firstName !== "Gabor") process.exit(2);
@@ -71,8 +72,9 @@ test("profil fájlból visszatöltődik üres sqlite profile_json mellett is", (
       process.env.AUTOSWEB_DB_PATH = ${JSON.stringify(dbPath)};
       process.env.AUTOSWEB_PROFILES_PATH = ${JSON.stringify(profilesPath)};
       const { getDb } = await import("/workspace/autosweb/lib/db.mjs");
-      const { registerUser, saveUserProfile } = await import("/workspace/autosweb/lib/web-users.mjs");
-      const { user } = registerUser("fileonly@test.dev", "pass1", "pass1");
+      const { registerUser, activateUserByToken, saveUserProfile } = await import("/workspace/autosweb/lib/web-users.mjs");
+      const reg = registerUser("fileonly@test.dev", "pass1", "pass1");
+      const { user } = activateUserByToken(reg.activationToken);
       saveUserProfile(user.id, { firstName: "Kata", lastName: "Nagy" });
       getDb().prepare("UPDATE web_users SET profile_json = '{}' WHERE id = ?").run(user.id);
       `,

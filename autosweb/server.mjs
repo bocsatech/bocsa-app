@@ -64,10 +64,13 @@ import {
   getUserBySessionToken,
   loginUser,
   registerUser,
+  activateUserByToken,
+  createActivationForEmail,
   saveUserProfile,
   sessionCookieHeader,
   setUserDisplayName,
 } from "./lib/web-users.mjs";
+import { ensureSmtpExample, isSmtpConfigured, sendMail, smtpConfigPath } from "./lib/mail.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -606,6 +609,25 @@ async function handlePartnersApi(req, res, pathname) {
   }
 }
 
+async function sendActivationEmail(email, activationToken) {
+  const link = `http://${HOST}:${PORT}/aktivalas.html?token=${encodeURIComponent(activationToken)}`;
+  console.log(`Aktiváló link → ${email}: ${link}`);
+  try {
+    await sendMail({
+      to: email,
+      subject: "Add el autod.hu — fiók aktiválása",
+      text: `Szia!\n\nAktiváld a fiókodat ezen a linken (24 óráig érvényes):\n${link}\n\nHa nem te regisztráltál, hagyd figyelmen kívül ezt a levelet.\n`,
+      html: `<p>Szia!</p><p>Aktiváld a fiókodat (24 óráig érvényes):</p><p><a href="${link}">${link}</a></p><p>Ha nem te regisztráltál, hagyd figyelmen kívül.</p>`,
+    });
+    return { sent: true, link };
+  } catch (error) {
+    if (error.code === "SMTP_NOT_CONFIGURED") {
+      return { sent: false, link, error: error.message };
+    }
+    throw error;
+  }
+}
+
 async function handleAuthApi(req, res, pathname) {
   try {
     const token = getSessionTokenFromRequest(req);
@@ -622,6 +644,8 @@ async function handleAuthApi(req, res, pathname) {
         loggedIn: Boolean(currentUser),
         currentEmail: currentUser?.email || null,
         currentProfile: currentUser?.profile || null,
+        smtpConfigured: isSmtpConfigured(),
+        smtpPath: smtpConfigPath(),
         ...inspectWebUsersDb(),
       });
       return;
@@ -629,25 +653,84 @@ async function handleAuthApi(req, res, pathname) {
 
     if (pathname === "/api/auth/register" && req.method === "POST") {
       const body = await readBody(req);
-      const { user, session } = registerUser(body.email, body.password, body.passwordConfirm ?? body.password_confirm);
+      const registered = registerUser(body.email, body.password, body.passwordConfirm ?? body.password_confirm);
+      let mail = { sent: false, link: null, error: null };
+      try {
+        mail = await sendActivationEmail(registered.email, registered.activationToken);
+      } catch (error) {
+        mail = {
+          sent: false,
+          link: `http://${HOST}:${PORT}/aktivalas.html?token=${encodeURIComponent(registered.activationToken)}`,
+          error: error.message,
+        };
+        console.warn("Aktiváló email hiba:", error.message ?? error);
+      }
+      sendJson(res, 200, {
+        ok: true,
+        needsActivation: true,
+        email: registered.email,
+        emailSent: mail.sent,
+        activationLink: mail.sent ? undefined : mail.link,
+        message: mail.sent
+          ? `Küldtünk aktiváló emailt ide: ${registered.email}`
+          : mail.error
+            ? `Regisztráció OK, de az email nem ment ki (${mail.error}). Használd a linket / terminál logot.`
+            : `SMTP nincs beállítva. Aktiváló link (terminálban is): ${mail.link}`,
+      });
+      return;
+    }
+
+    if (pathname === "/api/auth/activate" && req.method === "POST") {
+      const body = await readBody(req);
+      const { user, session } = activateUserByToken(body.token);
       sendJson(
         res,
         200,
-        { user, token: session.token },
+        { ok: true, user, token: session.token },
         { "Set-Cookie": sessionCookieHeader(session.token, session.expires) }
       );
       return;
     }
 
+    if (pathname === "/api/auth/resend-activation" && req.method === "POST") {
+      const body = await readBody(req);
+      const created = createActivationForEmail(body.email);
+      let mail;
+      try {
+        mail = await sendActivationEmail(created.email, created.activationToken);
+      } catch (error) {
+        sendJson(res, 502, { error: `Email küldés sikertelen: ${error.message}` });
+        return;
+      }
+      sendJson(res, 200, {
+        ok: true,
+        email: created.email,
+        emailSent: mail.sent,
+        activationLink: mail.sent ? undefined : mail.link,
+        message: mail.sent
+          ? `Új aktiváló emailt küldtünk: ${created.email}`
+          : `SMTP nincs beállítva. Link: ${mail.link}`,
+      });
+      return;
+    }
+
     if (pathname === "/api/auth/login" && req.method === "POST") {
       const body = await readBody(req);
-      const { user, session } = loginUser(body.email, body.password);
-      sendJson(
-        res,
-        200,
-        { user, token: session.token },
-        { "Set-Cookie": sessionCookieHeader(session.token, session.expires) }
-      );
+      try {
+        const { user, session } = loginUser(body.email, body.password);
+        sendJson(
+          res,
+          200,
+          { user, token: session.token },
+          { "Set-Cookie": sessionCookieHeader(session.token, session.expires) }
+        );
+      } catch (error) {
+        if (error.code === "EMAIL_NOT_VERIFIED") {
+          sendJson(res, 403, { error: error.message, code: "EMAIL_NOT_VERIFIED", email: body.email });
+          return;
+        }
+        throw error;
+      }
       return;
     }
 
@@ -856,11 +939,19 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 server.listen(PORT, HOST, async () => {
   try {
     ensureProfilesStore();
+    ensureSmtpExample();
   } catch (error) {
-    console.warn("Profil store:", error.message ?? error);
+    console.warn("Profil/SMTP store:", error.message ?? error);
   }
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log(`User DB: ${getDbPath()}`);
+  if (isSmtpConfigured()) {
+    console.log(`SMTP: beállítva (${smtpConfigPath()})`);
+  } else {
+    console.warn(
+      `SMTP: NINCS — másold ~/.autosweb/smtp.example.json → smtp.json (Gmail app jelszó). Futtasd: autosweb/mac/smtp-beallitas.command`
+    );
+  }
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
   try {
     const stats = dbStats();

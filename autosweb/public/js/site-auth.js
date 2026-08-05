@@ -172,9 +172,23 @@ export async function register(email, password, passwordConfirm) {
       passwordConfirm,
     }),
   });
-  const user = rememberAuth(data);
-  await maybeRestoreProfile(user);
-  return user;
+  // Aktiválás előtt nincs session.
+  return data;
+}
+
+export async function activateAccount(token) {
+  const data = await authFetch("/api/auth/activate", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+  return rememberAuth(data);
+}
+
+export async function resendActivation(email) {
+  return authFetch("/api/auth/resend-activation", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
 }
 
 export async function login(email, password) {
@@ -378,21 +392,29 @@ export async function requireAuthForPage() {
 export function initRegisterPage() {
   const form = document.getElementById("register-form");
   const errorEl = document.getElementById("register-error");
+  const okEl = document.getElementById("register-ok");
   if (!form) return;
-
-  const params = new URLSearchParams(window.location.search);
-  const next = params.get("next") || "/hirdetesfeladas.html";
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    errorEl.hidden = true;
+    if (errorEl) errorEl.hidden = true;
+    if (okEl) okEl.hidden = true;
     const data = new FormData(form);
     try {
-      await register(data.get("email"), data.get("password"), data.get("password_confirm"));
-      window.location.href = next;
+      const result = await register(data.get("email"), data.get("password"), data.get("password_confirm"));
+      form.hidden = true;
+      if (okEl) {
+        okEl.hidden = false;
+        const linkHint = result.activationLink
+          ? `<p class="login-hint">SMTP nincs beállítva — használd a linket:<br/><a href="${result.activationLink}">${result.activationLink}</a></p>`
+          : `<p class="login-hint">Nézd meg a postaládát (és a spam mappát).</p>`;
+        okEl.innerHTML = `<strong>${result.message || "Regisztráció sikeres."}</strong>${linkHint}<p class="login-hint"><a href="/belepes.html">Tovább a belépéshez</a></p>`;
+      }
     } catch (error) {
-      errorEl.hidden = false;
-      errorEl.textContent = error.message ?? "Sikertelen regisztráció.";
+      if (errorEl) {
+        errorEl.hidden = false;
+        errorEl.textContent = error.message ?? "Sikertelen regisztráció.";
+      }
     }
   });
 }
@@ -409,12 +431,63 @@ export function initLoginPage() {
     event.preventDefault();
     errorEl.hidden = true;
     const data = new FormData(form);
+    const email = data.get("email");
     try {
-      await login(data.get("email"), data.get("password"));
+      await login(email, data.get("password"));
       window.location.href = next;
     } catch (error) {
       errorEl.hidden = false;
-      errorEl.textContent = error.message ?? "Sikertelen belépés.";
+      let msg = error.message ?? "Sikertelen belépés.";
+      if (String(msg).includes("aktiváld") || String(msg).includes("aktivál")) {
+        msg += ` — <a href="/aktivalas.html?email=${encodeURIComponent(String(email || ""))}">Aktiváló email újraküldése</a>`;
+        errorEl.innerHTML = msg;
+      } else {
+        errorEl.textContent = msg;
+      }
+    }
+  });
+}
+
+export function initActivatePage() {
+  const statusEl = document.getElementById("activate-status");
+  const form = document.getElementById("resend-form");
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  const emailParam = params.get("email") || "";
+
+  if (form?.email && emailParam) form.email.value = emailParam;
+
+  async function activate(tok) {
+    if (!statusEl) return;
+    statusEl.hidden = false;
+    statusEl.textContent = "Aktiválás…";
+    try {
+      await activateAccount(tok);
+      statusEl.textContent = "Fiók aktiválva. Átirányítás…";
+      window.location.href = "/beallitasok.html?szekcio=fiok";
+    } catch (error) {
+      statusEl.textContent = error.message ?? "Aktiválás sikertelen.";
+    }
+  }
+
+  if (token) activate(token);
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const email = new FormData(form).get("email");
+    if (statusEl) {
+      statusEl.hidden = false;
+      statusEl.textContent = "Küldés…";
+    }
+    try {
+      const result = await resendActivation(email);
+      if (statusEl) {
+        statusEl.innerHTML = result.activationLink
+          ? `${result.message}<br/><a href="${result.activationLink}">Aktiváló link</a>`
+          : result.message || "Elküldve.";
+      }
+    } catch (error) {
+      if (statusEl) statusEl.textContent = error.message ?? "Küldés sikertelen.";
     }
   });
 }

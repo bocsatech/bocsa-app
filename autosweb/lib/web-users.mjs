@@ -69,10 +69,18 @@ function publicUser(row) {
     id: row.id,
     email: row.email,
     displayName: row.display_name || null,
+    emailVerified: Number(row.email_verified ?? 1) === 1,
     profile: profileFromRow(row),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function ensureColumn(db, table, column, ddl) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
 }
 
 export function initWebUsersSchema(db = getDb()) {
@@ -84,6 +92,9 @@ export function initWebUsersSchema(db = getDb()) {
       password_hash TEXT NOT NULL,
       display_name TEXT,
       profile_json TEXT NOT NULL DEFAULT '{}',
+      email_verified INTEGER NOT NULL DEFAULT 1,
+      activation_token_hash TEXT,
+      activation_expires_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -99,6 +110,11 @@ export function initWebUsersSchema(db = getDb()) {
     CREATE INDEX IF NOT EXISTS idx_web_sessions_user ON web_sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_web_sessions_expires ON web_sessions(expires_at);
   `);
+
+  // Régi DB-k: meglévő userek aktívak maradnak (DEFAULT 1).
+  ensureColumn(db, "web_users", "email_verified", "email_verified INTEGER NOT NULL DEFAULT 1");
+  ensureColumn(db, "web_users", "activation_token_hash", "activation_token_hash TEXT");
+  ensureColumn(db, "web_users", "activation_expires_at", "activation_expires_at TEXT");
 }
 
 function tokenHash(token) {
@@ -137,6 +153,24 @@ export function getUserBySessionToken(token) {
   return publicUser(row);
 }
 
+const ACTIVATION_HOURS = 24;
+
+function makeActivationToken() {
+  const token = randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + ACTIVATION_HOURS * 60 * 60 * 1000);
+  const expiresAt = expires.toISOString().slice(0, 19).replace("T", " ");
+  return { token, expiresAt, expires };
+}
+
+function storeActivationToken(userId, token, expiresAt) {
+  const db = getDb();
+  db.prepare(
+    `UPDATE web_users
+     SET activation_token_hash = ?, activation_expires_at = ?, updated_at = datetime('now')
+     WHERE id = ?`
+  ).run(tokenHash(token), expiresAt, userId);
+}
+
 export function registerUser(email, password, passwordConfirm) {
   const normalized = normalizeEmail(email);
   const pass = String(password ?? "").trim();
@@ -155,22 +189,89 @@ export function registerUser(email, password, passwordConfirm) {
   }
 
   const db = getDb();
-  const existing = db.prepare(`SELECT id FROM web_users WHERE email = ?`).get(normalized);
-  if (existing) {
+  const existing = db.prepare(`SELECT id, email_verified FROM web_users WHERE email = ?`).get(normalized);
+  if (existing && Number(existing.email_verified) === 1) {
     throw new Error("Ez az email már regisztrálva van.");
   }
 
   const { salt, hash } = hashPassword(pass);
-  const info = db
-    .prepare(
-      `INSERT INTO web_users (email, password_salt, password_hash, profile_json)
-       VALUES (?, ?, ?, '{}')`
-    )
-    .run(normalized, salt, hash);
+  const { token, expiresAt } = makeActivationToken();
 
-  const session = createSession(Number(info.lastInsertRowid));
-  const user = getUserBySessionToken(session.token);
+  let userId;
+  if (existing) {
+    // Újra-regisztráció: még nem aktivált fiók — jelszó + új token.
+    db.prepare(
+      `UPDATE web_users
+       SET password_salt = ?, password_hash = ?, email_verified = 0,
+           activation_token_hash = ?, activation_expires_at = ?,
+           updated_at = datetime('now')
+       WHERE id = ?`
+    ).run(salt, hash, tokenHash(token), expiresAt, existing.id);
+    userId = existing.id;
+  } else {
+    const info = db
+      .prepare(
+        `INSERT INTO web_users (
+           email, password_salt, password_hash, profile_json,
+           email_verified, activation_token_hash, activation_expires_at
+         ) VALUES (?, ?, ?, '{}', 0, ?, ?)`
+      )
+      .run(normalized, salt, hash, tokenHash(token), expiresAt);
+    userId = Number(info.lastInsertRowid);
+  }
+
+  return {
+    userId,
+    email: normalized,
+    activationToken: token,
+    needsActivation: true,
+  };
+}
+
+export function activateUserByToken(rawToken) {
+  const token = String(rawToken ?? "").trim();
+  if (!token || token.length < 16) {
+    throw new Error("Érvénytelen aktiváló link.");
+  }
+  const db = getDb();
+  const row = db
+    .prepare(
+      `SELECT * FROM web_users
+       WHERE activation_token_hash = ?
+         AND activation_expires_at IS NOT NULL
+         AND activation_expires_at >= datetime('now')`
+    )
+    .get(tokenHash(token));
+  if (!row) {
+    throw new Error("Az aktiváló link lejárt vagy érvénytelen.");
+  }
+
+  db.prepare(
+    `UPDATE web_users
+     SET email_verified = 1,
+         activation_token_hash = NULL,
+         activation_expires_at = NULL,
+         updated_at = datetime('now')
+     WHERE id = ?`
+  ).run(row.id);
+
+  const session = createSession(row.id);
+  const user = getUserById(row.id);
   return { user, session };
+}
+
+export function createActivationForEmail(email) {
+  const normalized = normalizeEmail(email);
+  if (!normalized) throw new Error("Email kötelező.");
+  const db = getDb();
+  const row = db.prepare(`SELECT * FROM web_users WHERE email = ?`).get(normalized);
+  if (!row) throw new Error("Nincs ilyen fiók.");
+  if (Number(row.email_verified) === 1) {
+    throw new Error("Ez a fiók már aktiválva van — lépj be.");
+  }
+  const { token, expiresAt } = makeActivationToken();
+  storeActivationToken(row.id, token, expiresAt);
+  return { email: normalized, activationToken: token };
 }
 
 export function loginUser(email, password) {
@@ -184,6 +285,11 @@ export function loginUser(email, password) {
   const row = db.prepare(`SELECT * FROM web_users WHERE email = ?`).get(normalized);
   if (!row || !verifyPassword(pass, row.password_salt, row.password_hash)) {
     throw new Error("Hibás email vagy jelszó.");
+  }
+  if (Number(row.email_verified ?? 1) !== 1) {
+    const err = new Error("Előbb aktiváld az emailed — nézd meg a postaládád (és a spam mappát).");
+    err.code = "EMAIL_NOT_VERIFIED";
+    throw err;
   }
 
   const session = createSession(row.id);
