@@ -260,6 +260,22 @@ export function parseCookies(header) {
   return out;
 }
 
+export function getUserById(userId) {
+  const db = getDb();
+  const row = db.prepare(`SELECT * FROM web_users WHERE id = ?`).get(userId);
+  return publicUser(row);
+}
+
+export function getSessionTokenFromRequest(req) {
+  const cookies = parseCookies(req.headers?.cookie);
+  if (cookies[SESSION_COOKIE]) return cookies[SESSION_COOKIE];
+  const auth = String(req.headers?.authorization ?? "");
+  if (auth.toLowerCase().startsWith("bearer ")) {
+    return auth.slice(7).trim();
+  }
+  return "";
+}
+
 export function sessionCookieHeader(token, expires) {
   const maxAge = Math.max(0, Math.floor((expires.getTime() - Date.now()) / 1000));
   return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;

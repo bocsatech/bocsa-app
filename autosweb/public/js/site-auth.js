@@ -1,4 +1,23 @@
 const AUTH_KEY = "autosweb-auth-user";
+const TOKEN_KEY = "autosweb-auth-token";
+const LEGACY_USERS_KEY = "autosweb-auth-users";
+
+function getStoredToken() {
+  try {
+    return localStorage.getItem(TOKEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function setStoredToken(token) {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 function setCachedUser(user) {
   if (!user?.email) {
@@ -16,6 +35,11 @@ function setCachedUser(user) {
   return cached;
 }
 
+function rememberAuth(data) {
+  if (data?.token) setStoredToken(data.token);
+  return setCachedUser(data?.user ?? null);
+}
+
 export function getAuthUser() {
   try {
     const raw = sessionStorage.getItem(AUTH_KEY);
@@ -30,10 +54,12 @@ export function isLoggedIn() {
 }
 
 async function authFetch(url, options = {}) {
+  const token = getStoredToken();
   const response = await fetch(url, {
     credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
     ...options,
@@ -47,13 +73,14 @@ async function authFetch(url, options = {}) {
   if (!response.ok) {
     throw new Error(data.error || "Kérés sikertelen.");
   }
+  if (data.token) setStoredToken(data.token);
   return data;
 }
 
 export async function refreshAuthSession() {
   try {
     const data = await authFetch("/api/auth/me");
-    return setCachedUser(data.user);
+    return rememberAuth(data);
   } catch {
     sessionStorage.removeItem(AUTH_KEY);
     return null;
@@ -63,10 +90,9 @@ export async function refreshAuthSession() {
 /** Profil mindig a szerverről (SQLite), ne a böngésző cache-ből. */
 export async function loadProfileFromServer() {
   const data = await authFetch("/api/auth/profile");
-  const user = getAuthUser() || { email: null };
-  if (data.user) {
-    setCachedUser(data.user);
-  } else {
+  if (data.user) rememberAuth(data);
+  else {
+    const user = getAuthUser() || { email: null };
     setCachedUser({
       ...user,
       displayName: data.displayName ?? user.displayName ?? null,
@@ -74,6 +100,19 @@ export async function loadProfileFromServer() {
     });
   }
   return data.profile ?? getProfile();
+}
+
+async function maybeMigrateLegacyProfile(user) {
+  if (!user?.email || user.profile?.firstName) return;
+  try {
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_USERS_KEY) || "{}");
+    const profile = legacy[user.email]?.profile;
+    if (profile?.firstName && profile?.lastName) {
+      await saveProfile(profile);
+    }
+  } catch {
+    /* ignore */
+  }
 }
 
 export async function register(email, password, passwordConfirm) {
@@ -85,7 +124,9 @@ export async function register(email, password, passwordConfirm) {
       passwordConfirm,
     }),
   });
-  return setCachedUser(data.user);
+  const user = rememberAuth(data);
+  await maybeMigrateLegacyProfile(user);
+  return user;
 }
 
 export async function login(email, password) {
@@ -93,7 +134,9 @@ export async function login(email, password) {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
-  return setCachedUser(data.user);
+  const user = rememberAuth(data);
+  await maybeMigrateLegacyProfile(user);
+  return getAuthUser();
 }
 
 export async function logout() {
@@ -103,6 +146,7 @@ export async function logout() {
     /* ignore */
   }
   sessionStorage.removeItem(AUTH_KEY);
+  setStoredToken("");
 }
 
 export async function changePassword(currentPassword, newPassword, newPasswordConfirm) {
@@ -132,10 +176,13 @@ export async function setDisplayName(name) {
     method: "PUT",
     body: JSON.stringify({ displayName: name }),
   });
-  const user = getAuthUser();
-  if (user) {
-    user.displayName = data.displayName;
-    setCachedUser(user);
+  if (data.user) rememberAuth(data);
+  else {
+    const user = getAuthUser();
+    if (user) {
+      user.displayName = data.displayName;
+      setCachedUser(user);
+    }
   }
   return data.displayName;
 }
@@ -143,6 +190,7 @@ export async function setDisplayName(name) {
 export async function deleteAccount() {
   await authFetch("/api/auth/account", { method: "DELETE" });
   sessionStorage.removeItem(AUTH_KEY);
+  setStoredToken("");
 }
 
 const EMPTY_PROFILE = {
@@ -169,7 +217,7 @@ export async function saveProfile(profile) {
     method: "PUT",
     body: JSON.stringify({ profile }),
   });
-  if (data.user) setCachedUser(data.user);
+  if (data.user) rememberAuth(data);
   else {
     const user = getAuthUser();
     if (user) {
@@ -177,6 +225,9 @@ export async function saveProfile(profile) {
       user.displayName = [data.profile.firstName, data.profile.lastName].filter(Boolean).join(" ");
       setCachedUser(user);
     }
+  }
+  if (!data.profile?.firstName) {
+    throw new Error("A mentés nem sikerült — próbáld újra belépés után.");
   }
   return data.profile;
 }
@@ -244,7 +295,6 @@ export function initSiteAuth() {
 }
 
 export async function requireAuthForPage() {
-  // Mindig a szerver sessionnel ellenőrizzünk (cookie → SQLite).
   const user = await refreshAuthSession();
   if (user?.email) {
     updateHeaderAuthUi();

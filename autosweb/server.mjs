@@ -54,9 +54,10 @@ import {
   clearSessionCookieHeader,
   deleteUserAccount,
   destroySession,
+  getSessionTokenFromRequest,
+  getUserById,
   getUserBySessionToken,
   loginUser,
-  parseCookies,
   registerUser,
   saveUserProfile,
   sessionCookieHeader,
@@ -602,26 +603,35 @@ async function handlePartnersApi(req, res, pathname) {
 
 async function handleAuthApi(req, res, pathname) {
   try {
-    const cookies = parseCookies(req.headers.cookie);
-    const token = cookies[SESSION_COOKIE] || "";
+    const token = getSessionTokenFromRequest(req);
     const currentUser = getUserBySessionToken(token);
 
     if (pathname === "/api/auth/me" && req.method === "GET") {
-      sendJson(res, 200, { user: currentUser });
+      sendJson(res, 200, { user: currentUser, token: currentUser ? token : null });
       return;
     }
 
     if (pathname === "/api/auth/register" && req.method === "POST") {
       const body = await readBody(req);
       const { user, session } = registerUser(body.email, body.password, body.passwordConfirm ?? body.password_confirm);
-      sendJson(res, 200, { user }, { "Set-Cookie": sessionCookieHeader(session.token, session.expires) });
+      sendJson(
+        res,
+        200,
+        { user, token: session.token },
+        { "Set-Cookie": sessionCookieHeader(session.token, session.expires) }
+      );
       return;
     }
 
     if (pathname === "/api/auth/login" && req.method === "POST") {
       const body = await readBody(req);
       const { user, session } = loginUser(body.email, body.password);
-      sendJson(res, 200, { user }, { "Set-Cookie": sessionCookieHeader(session.token, session.expires) });
+      sendJson(
+        res,
+        200,
+        { user, token: session.token },
+        { "Set-Cookie": sessionCookieHeader(session.token, session.expires) }
+      );
       return;
     }
 
@@ -656,24 +666,30 @@ async function handleAuthApi(req, res, pathname) {
         user: currentUser,
         profile: currentUser.profile,
         displayName: currentUser.displayName,
+        token,
       });
       return;
     }
 
     if (pathname === "/api/auth/profile" && req.method === "PUT") {
       if (!currentUser) {
-        sendJson(res, 401, { error: "Nem vagy bejelentkezve." });
+        sendJson(res, 401, { error: "Nem vagy bejelentkezve. Jelentkezz be újra." });
         return;
       }
       const body = await readBody(req);
       if (body.displayName !== undefined && body.profile === undefined) {
         const displayName = setUserDisplayName(currentUser.id, body.displayName);
-        sendJson(res, 200, { displayName });
+        const user = getUserById(currentUser.id);
+        sendJson(res, 200, { displayName, user, token });
         return;
       }
       const profile = saveUserProfile(currentUser.id, body.profile ?? body);
-      const user = getUserBySessionToken(token);
-      sendJson(res, 200, { profile, user });
+      const user = getUserById(currentUser.id);
+      if (!user?.profile?.firstName) {
+        sendJson(res, 500, { error: "A mentés nem íródott a helyi adatbázisba." });
+        return;
+      }
+      sendJson(res, 200, { profile, user, token });
       return;
     }
 

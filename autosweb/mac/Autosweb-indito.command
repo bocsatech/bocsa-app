@@ -36,10 +36,13 @@ echo "Cél: $TARGET"
 echo ""
 
 # --- Régi szerver leállítása ---
-if command -v lsof >/dev/null 2>&1; then
+  if command -v lsof >/dev/null 2>&1; then
   PIDS=$(lsof -ti:3456 2>/dev/null || true)
   if [ -n "$PIDS" ]; then
     echo "Régi szerver leállítása (3456)…"
+    # shellcheck disable=SC2086
+    kill $PIDS 2>/dev/null || true
+    sleep 1
     # shellcheck disable=SC2086
     kill -9 $PIDS 2>/dev/null || true
     sleep 1
