@@ -57,6 +57,7 @@ import {
   destroySession,
   getSessionTokenFromRequest,
   countWebUsers,
+  inspectWebUsersDb,
   getProfilesFilePath,
   getUserById,
   getUserBySessionToken,
@@ -611,6 +612,17 @@ async function handleAuthApi(req, res, pathname) {
 
     if (pathname === "/api/auth/me" && req.method === "GET") {
       sendJson(res, 200, { user: currentUser, token: currentUser ? token : null });
+      return;
+    }
+
+    if (pathname === "/api/auth/db" && req.method === "GET") {
+      sendJson(res, 200, {
+        ok: true,
+        loggedIn: Boolean(currentUser),
+        currentEmail: currentUser?.email || null,
+        currentProfile: currentUser?.profile || null,
+        ...inspectWebUsersDb(),
+      });
       return;
     }
 

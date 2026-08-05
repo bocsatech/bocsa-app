@@ -13,7 +13,7 @@ import {
   deleteAccount,
   requireAuthForPage,
   initSiteAuth,
-} from "./site-auth.js?v=auth20260805localdb7";
+} from "./site-auth.js?v=auth20260805localdb8";
 import {
   getParkplatz,
   addParkplatzItem,
@@ -26,7 +26,7 @@ import {
   ensureDemoMessages,
   markMessageRead,
   deleteMessage,
-} from "./fok-data.js?v=auth20260805localdb7";
+} from "./fok-data.js?v=auth20260805localdb8";
 
 const PHOTO_KEY = "autosweb-avatar-photos";
 const NOTIFY_KEY = "autosweb-notify-prefs";
@@ -299,6 +299,48 @@ function updateProfileSummary(profile) {
   el.textContent = name ? `Mentett név: ${name}` : "Mentett név: még nincs — töltsd ki és mentsd el.";
 }
 
+async function refreshDbInspect() {
+  const el = document.getElementById("settings-db-inspect");
+  if (!el) return;
+  try {
+    const token = localStorage.getItem("autosweb-auth-token") || "";
+    const res = await fetch("/api/auth/db", {
+      credentials: "same-origin",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    const data = await res.json();
+    const lines = [];
+    lines.push(`DB fájl: ${data.dbPath || "?"}`);
+    lines.push(`Profil fájl: ${data.profilesPath || "?"}`);
+    lines.push(`Userek száma: ${data.userCount ?? 0}`);
+    lines.push(`Aktív session: ${data.sessionCount ?? 0}`);
+    lines.push(`Te (bejelentkezve): ${data.currentEmail || "—"}`);
+    lines.push(
+      `Te profil (API): ${
+        data.currentProfile?.firstName
+          ? `${data.currentProfile.firstName} ${data.currentProfile.lastName || ""}`.trim()
+          : "(üres)"
+      }`
+    );
+    lines.push("");
+    if (!data.users?.length) {
+      lines.push("NINCS user a SQLite-ban. Regisztrálj újra ezen a gépen.");
+    } else {
+      for (const u of data.users) {
+        const sqlName = [u.sqliteProfile?.firstName, u.sqliteProfile?.lastName].filter(Boolean).join(" ");
+        const fileName = [u.fileProfile?.firstName, u.fileProfile?.lastName].filter(Boolean).join(" ");
+        lines.push(`#${u.id} ${u.email}`);
+        lines.push(`  SQLite név: ${sqlName || "(üres)"}`);
+        lines.push(`  Fájl név:   ${fileName || "(üres)"}`);
+        lines.push(`  frissítve:  ${u.updatedAt || "?"}`);
+      }
+    }
+    el.textContent = lines.join("\n");
+  } catch (error) {
+    el.textContent = `Adatbázis nem olvasható: ${error.message || error}`;
+  }
+}
+
 function applyProfileToForm(profile) {
   const form = document.getElementById("mm-profile-form");
   if (!form) return;
@@ -397,6 +439,10 @@ export async function initSettingsPage() {
   // Második kör: ha a panel most vált láthatóra, biztosan kitöltjük.
   requestAnimationFrame(() => fillProfileForm(getAuthUser(), loadedProfile || getProfile()));
   initNotifyForm(user.email);
+  refreshDbInspect();
+  document.getElementById("settings-db-refresh")?.addEventListener("click", () => {
+    refreshDbInspect();
+  });
 
   document.querySelectorAll("[data-mm-nav]").forEach((link) => {
     link.addEventListener("click", (event) => {
@@ -535,9 +581,11 @@ function bindProfileFormEarly() {
       }
       // Görgetés a visszajelzéshez (a kártya tetején van).
       flash?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      await refreshDbInspect();
     } catch (error) {
       showFlash(flash, error.message ?? "Mentés sikertelen.", false);
       flash?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      await refreshDbInspect();
     } finally {
       if (btn) btn.disabled = false;
     }

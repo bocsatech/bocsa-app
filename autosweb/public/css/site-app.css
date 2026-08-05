@@ -2324,6 +2324,20 @@ body.site-app #settings-profile-flash {
   min-height: 1.2em;
 }
 
+body.site-app .settings-db-inspect {
+  margin: 0 0 0.85rem;
+  padding: 0.85rem 1rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 22rem;
+}
+
 @media (max-width: 860px) {
   body.site-app .mm-shell {
     grid-template-columns: 1fr;

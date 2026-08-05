@@ -1,12 +1,13 @@
 /** Autosweb web userek — helyi SQLite (localhost), nem Supabase. */
 
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
-import { getDb } from "./db.mjs";
+import { getDb, getDbPath } from "./db.mjs";
 import {
   deleteProfileFromFile,
   loadProfileFromFile,
   saveProfileToFile,
   getProfilesFilePath,
+  readProfilesStore,
 } from "./web-user-profiles.mjs";
 
 const SESSION_DAYS = 30;
@@ -295,6 +296,45 @@ export function countWebUsers() {
   const db = getDb();
   const row = db.prepare(`SELECT COUNT(*) AS n FROM web_users`).get();
   return Number(row?.n ?? 0);
+}
+
+/** Nyers DB + profiles.json tartalom — hibakereséshez. */
+export function inspectWebUsersDb() {
+  const db = getDb();
+  const users = db
+    .prepare(
+      `SELECT id, email, display_name, profile_json, created_at, updated_at FROM web_users ORDER BY id`
+    )
+    .all()
+    .map((row) => {
+      let profile = {};
+      try {
+        profile = row.profile_json ? JSON.parse(row.profile_json) : {};
+      } catch {
+        profile = { _parseError: true, raw: row.profile_json };
+      }
+      const fromFile = loadProfileFromFile(row.email);
+      return {
+        id: row.id,
+        email: row.email,
+        displayName: row.display_name,
+        sqliteProfile: profile,
+        fileProfile: fromFile,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    });
+  const sessionCount = Number(
+    db.prepare(`SELECT COUNT(*) AS n FROM web_sessions WHERE expires_at >= datetime('now')`).get()?.n ?? 0
+  );
+  return {
+    dbPath: getDbPath(),
+    profilesPath: getProfilesFilePath(),
+    userCount: users.length,
+    sessionCount,
+    users,
+    profilesFile: readProfilesStore(),
+  };
 }
 
 export function getSessionTokenFromRequest(req) {
