@@ -336,10 +336,14 @@ function updateHeaderAuthUi() {
   window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
 }
 
-export function initSiteAuth() {
-  refreshAuthSession().finally(() => {
+export function initSiteAuth(options = {}) {
+  if (options.skipRefresh) {
     updateHeaderAuthUi();
-  });
+  } else {
+    refreshAuthSession().finally(() => {
+      updateHeaderAuthUi();
+    });
+  }
 
   document.querySelectorAll("[data-auth-guard]").forEach((el) => {
     el.addEventListener("click", (event) => {

@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="auth20260805localdb6" />
+    <meta name="autosweb-version" content="auth20260805localdb7" />
     <title>Fiókom — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=auth20260725" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730mein1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260805localdb7" />
   </head>
   <body class="site-app settings-page mm-page" data-site-page="beallitasok" data-auth-init="manual">
     <div class="local-banner">LOCALHOST — Fiókom (mobile.de Mein mobile mintára)</div>
@@ -241,6 +241,8 @@
 
           <div class="settings-card">
             <h3 class="settings-card-title">Személyes adatok</h3>
+            <p id="settings-profile-summary" class="mm-panel-lead">Mentett név: még nincs</p>
+            <p id="settings-profile-flash" class="settings-flash" role="status" hidden></p>
             <div class="settings-avatar-row">
               <div class="settings-avatar" aria-hidden="true">
                 <span id="settings-avatar-letter">A</span>
@@ -311,7 +313,6 @@
                 <span class="login-label">Cégnév</span>
                 <input type="text" name="company" autocomplete="organization" />
               </label>
-              <p id="settings-profile-flash" class="settings-flash" role="status" hidden></p>
               <p id="settings-profile-path" class="mm-panel-lead" hidden></p>
               <button type="submit" class="site-header-btn site-header-btn--primary" id="mm-profile-save">Adatok mentése</button>
             </form>
@@ -360,7 +361,7 @@
       </div>
     </main>
 
-    <script src="/js/site-avatar-menu.js?v=auth20260805localdb6" type="module"></script>
-    <script src="/js/beallitasok-app.js?v=auth20260805localdb6" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=auth20260805localdb7" type="module"></script>
+    <script src="/js/beallitasok-app.js?v=auth20260805localdb7" type="module"></script>
   </body>
 </html>

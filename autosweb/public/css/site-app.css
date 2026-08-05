@@ -2300,6 +2300,28 @@ body.site-app .settings-form select {
   padding: 0.72rem 0.85rem;
   font: inherit;
   background: #fff;
+  color: #111;
+}
+
+body.site-app .settings-form input[type="text"],
+body.site-app .settings-form input[type="tel"],
+body.site-app .settings-form input[type="email"],
+body.site-app .settings-form input[type="password"] {
+  color: #111 !important;
+  -webkit-text-fill-color: #111;
+  background: #fff !important;
+  caret-color: #111;
+}
+
+body.site-app #settings-profile-summary {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+  color: #101828;
+}
+
+body.site-app #settings-profile-flash {
+  margin: 0 0 0.85rem;
+  min-height: 1.2em;
 }
 
 @media (max-width: 860px) {

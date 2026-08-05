@@ -13,7 +13,7 @@ import {
   deleteAccount,
   requireAuthForPage,
   initSiteAuth,
-} from "./site-auth.js?v=auth20260805localdb6";
+} from "./site-auth.js?v=auth20260805localdb7";
 import {
   getParkplatz,
   addParkplatzItem,
@@ -26,7 +26,7 @@ import {
   ensureDemoMessages,
   markMessageRead,
   deleteMessage,
-} from "./fok-data.js?v=auth20260805localdb6";
+} from "./fok-data.js?v=auth20260805localdb7";
 
 const PHOTO_KEY = "autosweb-avatar-photos";
 const NOTIFY_KEY = "autosweb-notify-prefs";
@@ -292,23 +292,52 @@ function escapeAttr(value) {
   return escapeHtml(value).replaceAll("'", "&#39;");
 }
 
-function fillProfileForm(user) {
+function updateProfileSummary(profile) {
+  const el = document.getElementById("settings-profile-summary");
+  if (!el) return;
+  const name = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ").trim();
+  el.textContent = name ? `Mentett név: ${name}` : "Mentett név: még nincs — töltsd ki és mentsd el.";
+}
+
+function applyProfileToForm(profile) {
   const form = document.getElementById("mm-profile-form");
   if (!form) return;
-  const profile = getProfile();
-  for (const [key, value] of Object.entries(profile)) {
-    const field = form.elements.namedItem(key);
-    if (field && "value" in field) field.value = value ?? "";
+  const data = { ...getProfile(), ...(profile || {}) };
+  const keys = [
+    "salutation",
+    "firstName",
+    "lastName",
+    "street",
+    "postalCode",
+    "city",
+    "country",
+    "phone",
+    "company",
+    "accountType",
+  ];
+  for (const key of keys) {
+    const field = form.querySelector(`[name="${key}"]`);
+    if (!field) continue;
+    const value = data[key] ?? "";
+    field.value = value;
   }
+  updateProfileSummary(data);
+}
+
+function fillProfileForm(user, profileOverride = null) {
+  const form = document.getElementById("mm-profile-form");
+  if (!form) return;
+  const profile = profileOverride || getProfile();
+  applyProfileToForm(profile);
   const emailEl = document.getElementById("settings-email");
-  if (emailEl) emailEl.textContent = user.email;
+  if (emailEl) emailEl.textContent = user?.email || "—";
   const companyWrap = document.querySelector("[data-mm-company-wrap]");
   if (companyWrap) companyWrap.hidden = profile.accountType !== "business";
 
-  const photo = readPhotos()[user.email];
+  const photo = user?.email ? readPhotos()[user.email] : null;
   const letterEl = document.getElementById("settings-avatar-letter");
   const imgEl = document.getElementById("settings-avatar-img");
-  const letter = (user.email.charAt(0) || "A").toUpperCase();
+  const letter = (user?.email?.charAt(0) || "A").toUpperCase();
   if (letterEl) {
     letterEl.textContent = letter;
     letterEl.hidden = Boolean(photo);
@@ -347,8 +376,9 @@ function initNotifyForm(email) {
 export async function initSettingsPage() {
   const ok = await requireAuthForPage();
   if (!ok) return;
+  let loadedProfile = null;
   try {
-    await loadProfileFromServer();
+    loadedProfile = await loadProfileFromServer();
   } catch {
     /* session már ellenőrizve */
   }
@@ -363,13 +393,18 @@ export async function initSettingsPage() {
   renderPark(user.email);
   renderSearches(user.email);
   renderMessages(user.email);
-  fillProfileForm(user);
+  fillProfileForm(user, loadedProfile);
+  // Második kör: ha a panel most vált láthatóra, biztosan kitöltjük.
+  requestAnimationFrame(() => fillProfileForm(getAuthUser(), loadedProfile || getProfile()));
   initNotifyForm(user.email);
 
   document.querySelectorAll("[data-mm-nav]").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
       setSection(link.getAttribute("data-mm-nav"));
+      if (link.getAttribute("data-mm-nav") === "fiok") {
+        fillProfileForm(getAuthUser(), getProfile());
+      }
     });
   });
 
@@ -481,8 +516,9 @@ function bindProfileFormEarly() {
     if (btn) btn.disabled = true;
     try {
       const saved = await saveProfile(data);
+      applyProfileToForm(saved);
       const user = getAuthUser();
-      if (user) fillProfileForm(user);
+      if (user) fillProfileForm(user, saved);
       const hello = document.querySelector("[data-mm-hello]");
       if (hello) hello.textContent = getDisplayName();
       window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
@@ -497,8 +533,11 @@ function bindProfileFormEarly() {
           ? `Fájl: ${saved._savedTo}`
           : "Helyi profil fájlba írva (~/.autosweb/profiles.json).";
       }
+      // Görgetés a visszajelzéshez (a kártya tetején van).
+      flash?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (error) {
       showFlash(flash, error.message ?? "Mentés sikertelen.", false);
+      flash?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } finally {
       if (btn) btn.disabled = false;
     }
@@ -506,5 +545,5 @@ function bindProfileFormEarly() {
 }
 
 bindProfileFormEarly();
-initSiteAuth();
+initSiteAuth({ skipRefresh: true });
 initSettingsPage();
