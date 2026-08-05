@@ -260,10 +260,13 @@ function mapUser(row: Record<string, unknown> | null): AppUser | null {
     direct_manager:
       typeof row.direct_manager === "string" ? row.direct_manager : null,
     work_area: normalizeUserWorkArea(row.work_area),
-    overtime_hours_balance:
-      row.overtime_hours_balance === null || row.overtime_hours_balance === undefined
-        ? null
-        : Number(row.overtime_hours_balance),
+    overtime_hours_balance: (() => {
+      if (row.overtime_hours_balance === null || row.overtime_hours_balance === undefined) {
+        return null;
+      }
+      const n = Number(row.overtime_hours_balance);
+      return Number.isFinite(n) ? n : null;
+    })(),
     is_active: readIsActive(row),
     created_at:
       typeof row.created_at === "string" ? row.created_at : undefined,
