@@ -10,6 +10,8 @@ struct RecommendationsScreen: View {
   @State private var categories: [PartnerCategoryGroup] = PartnerRecommendationsDemo.categories
   @State private var loading = false
   @State private var sourceNote: String = "Demo ajánlások — Autosweb élő listához indítsd a 3456-ot."
+  /// Accordion: egyszerre legfeljebb egy kategória nyitva (nil = mind zárva)
+  @State private var expandedCategoryId: String? = nil
 
   var body: some View {
     VStack(spacing: 0) {
@@ -30,7 +32,7 @@ struct RecommendationsScreen: View {
       }
 
       ScrollView {
-        LazyVStack(alignment: .leading, spacing: 20) {
+        LazyVStack(alignment: .leading, spacing: 10) {
           ForEach(categories) { group in
             categorySection(group)
           }
