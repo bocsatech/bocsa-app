@@ -49,6 +49,15 @@ test("buildListingPreview összeállítja a hasznaltauto stílusú mezőket", ()
   assert.ok(preview.badges.includes("AUTOMATA"));
   assert.ok(preview.badges.includes("BLUETOOTH"));
   assert.equal(preview.status, "mentett");
+  assert.equal(preview.imageUrl, "");
+});
+
+test("buildListingPreview: fo_kep a meta-ból", () => {
+  const preview = buildListingPreview(
+    { hirdetes_cime: "BMW X5", fo_kep: "/uploads/listings/1.jpg" },
+    { fo_kep: "/uploads/listings/meta.jpg" }
+  );
+  assert.equal(preview.imageUrl, "/uploads/listings/meta.jpg");
 });
 
 test("buildPreviewFromCells cellákból épít előnézetet", () => {

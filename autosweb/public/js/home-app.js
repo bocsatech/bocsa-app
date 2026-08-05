@@ -62,7 +62,7 @@ function renderListings(items) {
     }
   } else if (!filtered.length) {
     emptyEl.textContent =
-      "Még nincs hirdetés. Importálj, mentsd az adatbázisba (Import oldal), majd frissítsd a főoldalt — a legfrissebb mentések itt jelennek meg.";
+      "Még nincs hirdetés. Importálj a hasznaltauto.hu listáról (Import oldal) — a mentett autók azonnal itt jelennek meg.";
   }
 
   for (const item of filtered) {

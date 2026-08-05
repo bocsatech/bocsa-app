@@ -136,7 +136,7 @@
       <div class="import-page-main">
         <div class="automax-step-header">
           <h1 class="automax-step-title">Hasznaltauto.hu import</h1>
-          <p class="automax-step-lead">Az alábbi űrlap minden cellája itt látható. Import után kattints egy autóra — kitölti a mezőket. Mentés gomb → SQLite adatbázis.</p>
+          <p class="automax-step-lead">Lista URL-ről az első 20 hirdetés automatikusan mentődik (feladott, fő képpel), duplikátumok kimaradnak. Több import hozzáadódik (pl. 80 autó). Az űrlap továbbra is szerkeszthető.</p>
         </div>
 
         <div id="import-top-alert" class="import-top-alert" role="alert" hidden></div>
@@ -155,10 +155,13 @@
             <div class="import-url-row">
               <input id="import-url" type="url" placeholder="https://www.hasznaltauto.hu/szemelyauto/… vagy talalatilista/…" />
               <button type="button" class="btn btn-secondary" id="import-chrome-btn">Chrome megnyitása</button>
-              <button type="button" class="btn btn-primary" id="import-start-btn">Import indítása (max 50)</button>
+              <button type="button" class="btn btn-primary" id="import-start-btn">Import indítása (max 20)</button>
             </div>
             <p class="hint import-hint-steps">
-              1) <strong>Import indítása</strong> → látható Chrome ablak &nbsp;
+              1) <strong>Import indítása</strong> → látható Chrome + első 20 auto mentése (feladott) &nbsp;
+              2) Cloudflare pipa ha kell &nbsp;
+              3) Duplikátumok kimaradnak; új lista URL = hozzáadódik (pl. 80 autó)
+            </p>
               2) Cloudflare ha kell &nbsp; 3) Válassz hirdetést a listából
             </p>
             <p id="import-upgrade-warn" class="import-upgrade-warn" data-version-warn hidden></p>

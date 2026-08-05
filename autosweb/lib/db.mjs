@@ -113,6 +113,7 @@ function initSchema(db) {
       hirdetes_cime TEXT,
       forras_url TEXT,
       hasznaltauto_hirdetes_id TEXT,
+      fo_kep TEXT,
       status TEXT NOT NULL DEFAULT 'mentett',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -150,6 +151,9 @@ function migrateListingsStatus(db) {
   if (!columns.some((col) => col.name === "status")) {
     db.exec("ALTER TABLE listings ADD COLUMN status TEXT NOT NULL DEFAULT 'mentett'");
   }
+  if (!columns.some((col) => col.name === "fo_kep")) {
+    db.exec("ALTER TABLE listings ADD COLUMN fo_kep TEXT");
+  }
 }
 
 export const LISTING_STATUSES = ["mentett", "feladott"];
@@ -177,7 +181,7 @@ export function listListings({ limit = 50, status = null } = {}) {
   if (normalizedStatus) {
     return db
       .prepare(
-        `SELECT l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.status,
+        `SELECT l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.fo_kep, l.status,
                 l.created_at, l.updated_at,
                 (SELECT COUNT(*) FROM listing_cells c WHERE c.listing_id = l.id) AS cell_count
          FROM listings l WHERE l.status = ? ORDER BY l.updated_at DESC LIMIT ?`
@@ -186,7 +190,7 @@ export function listListings({ limit = 50, status = null } = {}) {
   }
   return db
     .prepare(
-      `SELECT l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.status,
+      `SELECT l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.fo_kep, l.status,
               l.created_at, l.updated_at,
               (SELECT COUNT(*) FROM listing_cells c WHERE c.listing_id = l.id) AS cell_count
        FROM listings l ORDER BY l.updated_at DESC LIMIT ?`
@@ -225,7 +229,7 @@ export function getListing(id) {
   const db = getDb();
   const listing = db
     .prepare(
-      `SELECT id, hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, status, created_at, updated_at
+      `SELECT id, hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, fo_kep, status, created_at, updated_at
        FROM listings WHERE id = ?`
     )
     .get(id);
@@ -260,12 +264,34 @@ export function findListingBySourceUrl(url) {
   return row ? getListing(row.id) : null;
 }
 
+export function findListingByHasznaltautoId(adId) {
+  const id = String(adId || "").trim();
+  if (!id) return null;
+  const db = getDb();
+  const row = db
+    .prepare(
+      "SELECT id FROM listings WHERE hasznaltauto_hirdetes_id = ? ORDER BY updated_at DESC LIMIT 1"
+    )
+    .get(id);
+  return row ? getListing(row.id) : null;
+}
+
+/** True if a listing with this Használtautó URL or ad id already exists. */
+export function listingSourceExists({ sourceUrl = "", hasznaltautoId = "" } = {}) {
+  if (String(sourceUrl || "").trim() && findListingBySourceUrl(sourceUrl)) return true;
+  if (String(hasznaltautoId || "").trim() && findListingByHasznaltautoId(hasznaltautoId)) {
+    return true;
+  }
+  return false;
+}
+
 function upsertListingMeta(db, id, formData, status) {
   db.prepare(
     `UPDATE listings SET
       hirdetes_cime = ?,
       forras_url = ?,
       hasznaltauto_hirdetes_id = ?,
+      fo_kep = ?,
       status = ?,
       updated_at = datetime('now')
      WHERE id = ?`
@@ -273,6 +299,7 @@ function upsertListingMeta(db, id, formData, status) {
     formData.hirdetes_cime ?? "",
     formData.forras_url ?? "",
     formData.hasznaltauto_hirdetes_id ?? "",
+    formData.fo_kep ?? "",
     normalizeListingStatus(status ?? formData.status),
     id
   );
@@ -303,13 +330,14 @@ export function saveListing(formData, listingId = null, { status = null } = {}) 
   }
 
   const insert = db.prepare(
-    `INSERT INTO listings (hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, status)
-     VALUES (?, ?, ?, ?)`
+    `INSERT INTO listings (hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, fo_kep, status)
+     VALUES (?, ?, ?, ?, ?)`
   );
   const result = insert.run(
     formData.hirdetes_cime ?? "",
     formData.forras_url ?? "",
     formData.hasznaltauto_hirdetes_id ?? "",
+    formData.fo_kep ?? "",
     listingStatus
   );
   const id = Number(result.lastInsertRowid);

@@ -19,6 +19,7 @@ console.log("Import:", url.slice(0, 80) + "...");
 try {
   const result = await importListings(url, {
     limit: 3,
+    autoSave: false,
     onProgress: (msg) => console.log(" ", msg),
   });
 

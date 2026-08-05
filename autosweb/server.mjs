@@ -87,6 +87,8 @@ const MIME = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
 };
 
 let importRunning = false;
@@ -230,7 +232,8 @@ async function handleImport(req, res) {
 
   try {
     const result = await importListings(url, {
-      limit: body.limit ?? 50,
+      limit: body.limit ?? 20,
+      autoSave: body.autoSave !== false,
       onProgress: (message) => send({ type: "log", message }),
     });
     send({ type: "done", result });

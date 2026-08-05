@@ -54,10 +54,14 @@ export function createHomeGridCard(item) {
   const km = preview.km || "—";
   const year = formatSpecYear(preview);
   const fuel = formatFuelLabel(preview.filter?.uzemanyag);
+  const imageUrl = preview.imageUrl || item.fo_kep || "";
+  const photoHtml = imageUrl
+    ? `<img class="home-grid-card-photo-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" />`
+    : "";
 
   card.innerHTML = `
     <div class="home-grid-card-media">
-      <div class="home-grid-card-photo" aria-hidden="true"></div>
+      <div class="home-grid-card-photo" aria-hidden="true">${photoHtml}</div>
       <span class="home-grid-card-save" aria-hidden="true">
         <svg width="18" height="16" viewBox="0 0 18 16" fill="none" aria-hidden="true">
           <path d="M9 14.5 1.8 8.2a4.2 4.2 0 0 1 0-5.9 4 4 0 0 1 5.7 0L9 3.3l1.5-1.5a4 4 0 0 1 5.7 5.9L9 14.5Z" stroke="currentColor" stroke-width="1.4"/>

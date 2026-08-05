@@ -189,7 +189,7 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
       const response = await fetch("/api/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, limit: 50 }),
+        body: JSON.stringify({ url, limit: 20, autoSave: true }),
       });
 
       if (!response.ok && response.headers.get("content-type")?.includes("json")) {
@@ -216,7 +216,11 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
           if (payload.type === "error") throw new Error(payload.message);
           if (payload.type === "done") {
             renderResults(payload.result.items ?? []);
-            appendLog(`Kész: ${payload.result.count} hirdetés importálva.`);
+            const saved = payload.result.savedCount ?? payload.result.count ?? 0;
+            const skipped = payload.result.skippedCount ?? payload.result.skipped?.length ?? 0;
+            appendLog(
+              `Kész: ${saved} mentve a főoldalra, ${skipped} kihagyva (duplikátum), ${payload.result.count ?? 0} betöltve az eredményekbe.`
+            );
             if (payload.result.errors?.length) {
               for (const entry of payload.result.errors.slice(0, 8)) {
                 appendLog(`⚠ ${shortUrl(entry.url, 55)} — ${entry.message}`);
@@ -239,7 +243,7 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true } = {
     } finally {
       importing = false;
       startBtn.disabled = false;
-      startBtn.textContent = "Import indítása (max 50)";
+      startBtn.textContent = "Import indítása (max 20)";
     }
   });
 

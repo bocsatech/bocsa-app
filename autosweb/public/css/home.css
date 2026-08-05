@@ -1908,6 +1908,14 @@ body.home-page .local-banner {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
     linear-gradient(135deg, #dfe4ea 0%, #eef1f5 48%, #e3e8ee 100%);
+  overflow: hidden;
+}
+
+.home-grid-card-photo-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .home-grid-card-save {

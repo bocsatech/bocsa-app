@@ -17,8 +17,13 @@ import {
 import { mapCardPreview, mapListingToForm } from "./map-to-form.mjs";
 import { shortUrl } from "./url-utils.mjs";
 import { acquireImportSession, openChromeForImport } from "./browser-session.mjs";
+import { extractMainImageUrl, downloadMainImage } from "./listing-image.mjs";
+import { listingSourceExists, saveListing } from "./db.mjs";
 
 export { openChromeForImport };
+
+const DEFAULT_IMPORT_LIMIT = 20;
+const MAX_IMPORT_LIMIT = 80;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -164,6 +169,34 @@ async function collectListingUrls(page, listUrl, limit, onProgress) {
   return { urls: unique.slice(0, limit), cards };
 }
 
+function listingKeyFromUrl(url) {
+  const match = String(url || "").match(/-(\d{5,})(?:[/?#]|$)/);
+  return match?.[1] || "";
+}
+
+async function attachMainImage(page, item, onProgress) {
+  try {
+    const imageUrl = await extractMainImageUrl(page);
+    if (!imageUrl) {
+      onProgress?.("Fő kép: nem található");
+      return item;
+    }
+    const key =
+      item.form?.hasznaltauto_hirdetes_id || listingKeyFromUrl(item.url || item.form?.forras_url);
+    const foKep = await downloadMainImage(page, imageUrl, key || `img_${Date.now()}`);
+    if (foKep) {
+      item.imageUrl = foKep;
+      if (item.form) item.form.fo_kep = foKep;
+      onProgress?.(`Fő kép mentve: ${foKep}`);
+    } else {
+      onProgress?.("Fő kép: letöltés sikertelen");
+    }
+  } catch (error) {
+    onProgress?.(`Fő kép hiba: ${error.message ?? error}`);
+  }
+  return item;
+}
+
 async function fetchListingForm(page, url, card, onProgress) {
   onProgress?.(`Részletek: ${shortUrl(url, 70)}`);
   if (page.url() !== url) {
@@ -181,27 +214,86 @@ async function fetchListingForm(page, url, card, onProgress) {
   parsed = mergeParsedListing(parsed, card);
   const fieldCount = Object.keys(parsed.nyersAdatok ?? {}).length;
   onProgress?.(`Kinyerve: ${fieldCount} adatmező → űrlap kitöltés`);
-  return mapCardPreview(card ?? { url }, parsed);
+  const item = mapCardPreview(card ?? { url }, parsed);
+  await attachMainImage(page, item, onProgress);
+  return item;
+}
+
+function shouldSkipListing(url, form = {}) {
+  return listingSourceExists({
+    sourceUrl: form.forras_url || url,
+    hasznaltautoId: form.hasznaltauto_hirdetes_id || listingKeyFromUrl(url),
+  });
+}
+
+function persistImportedItem(item, onProgress) {
+  const form = { ...(item.form || {}), fo_kep: item.form?.fo_kep || item.imageUrl || "" };
+  if (!form.forras_url) form.forras_url = item.url || "";
+  const saved = saveListing(form, null, { status: "feladott" });
+  item.savedId = saved?.id ?? null;
+  item.saved = true;
+  onProgress?.(
+    `Mentve (#${saved?.id ?? "?"}): ${item.cim || form.hirdetes_cime || item.url} — látszik a főoldalon`
+  );
+  return saved;
 }
 
 export async function importListings(inputUrl, options = {}) {
-  const limit = Math.min(Math.max(Number(options.limit) || 50, 1), 50);
+  const limit = Math.min(
+    Math.max(Number(options.limit) || DEFAULT_IMPORT_LIMIT, 1),
+    MAX_IMPORT_LIMIT
+  );
+  const autoSave = options.autoSave !== false;
   const onProgress = options.onProgress;
   const url = normalizeInputUrl(inputUrl);
 
   const session = await openSession({ startUrl: url, onProgress });
   const items = [];
   const errors = [];
+  const skipped = [];
+  let savedCount = 0;
 
   try {
     const page = await getWorkingPage(session.context, url);
 
     if (isListingUrl(url)) {
+      if (autoSave && shouldSkipListing(url)) {
+        onProgress?.(`Kihagyva (már az adatbázisban): ${shortUrl(url, 70)}`);
+        skipped.push({ url, reason: "duplicate" });
+        return {
+          listUrl: url,
+          count: 0,
+          items,
+          errors,
+          skipped,
+          savedCount: 0,
+          skippedCount: skipped.length,
+        };
+      }
       await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 }).catch(() => {});
       await waitForAccess(page, onProgress);
       const item = await fetchListingForm(page, url, { url }, onProgress);
-      items.push(item);
-      return { listUrl: url, count: 1, items, errors };
+      if (autoSave) {
+        if (shouldSkipListing(url, item.form)) {
+          onProgress?.(`Kihagyva (már az adatbázisban): ${shortUrl(url, 70)}`);
+          skipped.push({ url, reason: "duplicate" });
+        } else {
+          persistImportedItem(item, onProgress);
+          savedCount += 1;
+          items.push(item);
+        }
+      } else {
+        items.push(item);
+      }
+      return {
+        listUrl: url,
+        count: items.length,
+        items,
+        errors,
+        skipped,
+        savedCount,
+        skippedCount: skipped.length,
+      };
     }
 
     if (!isListPageUrl(url)) {
@@ -230,12 +322,29 @@ export async function importListings(inputUrl, options = {}) {
     for (let i = 0; i < urls.length; i += 1) {
       const listingUrl = urls[i];
       try {
+        if (autoSave && shouldSkipListing(listingUrl)) {
+          onProgress?.(`[${i + 1}/${urls.length}] Kihagyva (már van): ${shortUrl(listingUrl, 55)}`);
+          skipped.push({ url: listingUrl, reason: "duplicate" });
+          continue;
+        }
+
         onProgress?.(`[${i + 1}/${urls.length}] Import…`);
         const item = await withTimeout(
           fetchListingForm(page, listingUrl, cardByUrl.get(listingUrl), onProgress),
           90000,
           "Időtúllépés (90 mp) — a hirdetés oldal nem válaszolt időben"
         );
+
+        if (autoSave) {
+          if (shouldSkipListing(listingUrl, item.form)) {
+            onProgress?.(`[${i + 1}/${urls.length}] Kihagyva (már van): ${shortUrl(listingUrl, 55)}`);
+            skipped.push({ url: listingUrl, reason: "duplicate" });
+            continue;
+          }
+          persistImportedItem(item, onProgress);
+          savedCount += 1;
+        }
+
         items.push(item);
       } catch (error) {
         const message = error.message ?? String(error);
@@ -245,7 +354,21 @@ export async function importListings(inputUrl, options = {}) {
       await sleep(400);
     }
 
-    return { listUrl: url, count: items.length, items, errors };
+    if (autoSave) {
+      onProgress?.(
+        `Kész: ${savedCount} mentve (feladott), ${skipped.length} kihagyva, ${errors.length} hiba. Összesítés: több import hozzáadódik a meglévőkhöz.`
+      );
+    }
+
+    return {
+      listUrl: url,
+      count: items.length,
+      items,
+      errors,
+      skipped,
+      savedCount,
+      skippedCount: skipped.length,
+    };
   } finally {
     onProgress?.("Chrome nyitva maradt — bezárhatod kézzel, ha kész.");
   }
@@ -256,4 +379,4 @@ export async function importListingFromHtml(html, url) {
   return mapCardPreview({ url }, parsed);
 }
 
-export { mapListingToForm };
+export { mapListingToForm, DEFAULT_IMPORT_LIMIT, MAX_IMPORT_LIMIT };
