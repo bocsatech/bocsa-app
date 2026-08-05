@@ -47,6 +47,20 @@ import {
   listModelTypes,
   listModelYears,
 } from "./lib/vehicle-catalog.mjs";
+import {
+  SESSION_COOKIE,
+  changeUserPassword,
+  clearSessionCookieHeader,
+  deleteUserAccount,
+  destroySession,
+  getUserBySessionToken,
+  loginUser,
+  parseCookies,
+  registerUser,
+  saveUserProfile,
+  sessionCookieHeader,
+  setUserDisplayName,
+} from "./lib/web-users.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -83,10 +97,11 @@ function readBody(req) {
   });
 }
 
-function sendJson(res, status, data) {
+function sendJson(res, status, data, headers = {}) {
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
+    ...headers,
   });
   res.end(JSON.stringify(data));
 }
@@ -584,6 +599,102 @@ async function handlePartnersApi(req, res, pathname) {
   }
 }
 
+async function handleAuthApi(req, res, pathname) {
+  try {
+    const cookies = parseCookies(req.headers.cookie);
+    const token = cookies[SESSION_COOKIE] || "";
+    const currentUser = getUserBySessionToken(token);
+
+    if (pathname === "/api/auth/me" && req.method === "GET") {
+      sendJson(res, 200, { user: currentUser });
+      return;
+    }
+
+    if (pathname === "/api/auth/register" && req.method === "POST") {
+      const body = await readBody(req);
+      const { user, session } = registerUser(body.email, body.password, body.passwordConfirm ?? body.password_confirm);
+      sendJson(res, 200, { user }, { "Set-Cookie": sessionCookieHeader(session.token, session.expires) });
+      return;
+    }
+
+    if (pathname === "/api/auth/login" && req.method === "POST") {
+      const body = await readBody(req);
+      const { user, session } = loginUser(body.email, body.password);
+      sendJson(res, 200, { user }, { "Set-Cookie": sessionCookieHeader(session.token, session.expires) });
+      return;
+    }
+
+    if (pathname === "/api/auth/logout" && req.method === "POST") {
+      destroySession(token);
+      sendJson(res, 200, { ok: true }, { "Set-Cookie": clearSessionCookieHeader() });
+      return;
+    }
+
+    if (pathname === "/api/auth/password" && req.method === "POST") {
+      if (!currentUser) {
+        sendJson(res, 401, { error: "Nem vagy bejelentkezve." });
+        return;
+      }
+      const body = await readBody(req);
+      changeUserPassword(
+        currentUser.id,
+        body.currentPassword ?? body.current_password,
+        body.newPassword ?? body.new_password,
+        body.newPasswordConfirm ?? body.new_password_confirm
+      );
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+
+    if (pathname === "/api/auth/profile" && req.method === "GET") {
+      if (!currentUser) {
+        sendJson(res, 401, { error: "Nem vagy bejelentkezve." });
+        return;
+      }
+      sendJson(res, 200, { profile: currentUser.profile, displayName: currentUser.displayName });
+      return;
+    }
+
+    if (pathname === "/api/auth/profile" && req.method === "PUT") {
+      if (!currentUser) {
+        sendJson(res, 401, { error: "Nem vagy bejelentkezve." });
+        return;
+      }
+      const body = await readBody(req);
+      if (body.displayName !== undefined && body.profile === undefined) {
+        const displayName = setUserDisplayName(currentUser.id, body.displayName);
+        sendJson(res, 200, { displayName });
+        return;
+      }
+      const profile = saveUserProfile(currentUser.id, body.profile ?? body);
+      const user = getUserBySessionToken(token);
+      sendJson(res, 200, { profile, user });
+      return;
+    }
+
+    if (pathname === "/api/auth/account" && req.method === "DELETE") {
+      if (!currentUser) {
+        sendJson(res, 401, { error: "Nem vagy bejelentkezve." });
+        return;
+      }
+      deleteUserAccount(currentUser.id);
+      sendJson(res, 200, { ok: true }, { "Set-Cookie": clearSessionCookieHeader() });
+      return;
+    }
+
+    sendJson(res, 404, { error: "Ismeretlen auth API." });
+  } catch (error) {
+    const message = error.message ?? String(error);
+    const status =
+      message.includes("bejelentkezve") || message.includes("Hibás")
+        ? 401
+        : message.includes("már regisztrálva") || message.includes("kötelező") || message.includes("egyezik")
+          ? 400
+          : 400;
+    sendJson(res, status, { error: message });
+  }
+}
+
 const server = createServer(async (req, res) => {
   const pathname = req.url?.split("?")[0] || "/";
 
@@ -593,6 +704,11 @@ const server = createServer(async (req, res) => {
       version: readFileSync(join(PUBLIC, "version.txt"), "utf8").trim(),
       chrome: findChromeExecutable(),
     });
+    return;
+  }
+
+  if (pathname.startsWith("/api/auth")) {
+    await handleAuthApi(req, res, pathname);
     return;
   }
 

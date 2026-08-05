@@ -52,13 +52,10 @@ function setAvatarPhoto(email, dataUrl) {
 function displayName(user) {
   const email = String(user?.email ?? "").trim();
   if (!email) return "vendég";
-  try {
-    const users = JSON.parse(localStorage.getItem("autosweb-auth-users") || "{}");
-    const stored = users[email]?.displayName;
-    if (stored) return String(stored);
-  } catch {
-    /* ignore */
-  }
+  if (user?.displayName) return String(user.displayName);
+  const profile = user?.profile;
+  const fromProfile = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ");
+  if (fromProfile) return fromProfile;
   const local = email.split("@")[0] || email;
   return local.charAt(0).toUpperCase() + local.slice(1);
 }

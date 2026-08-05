@@ -343,8 +343,9 @@ function initNotifyForm(email) {
   });
 }
 
-export function initSettingsPage() {
-  requireAuthForPage();
+export async function initSettingsPage() {
+  const ok = await requireAuthForPage();
+  if (!ok) return;
   const user = getAuthUser();
   if (!user?.email) return;
 
@@ -397,12 +398,12 @@ export function initSettingsPage() {
     if (wrap) wrap.hidden = profileForm.accountType.value !== "business";
   });
 
-  profileForm?.addEventListener("submit", (event) => {
+  profileForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const flash = document.getElementById("settings-profile-flash");
     const data = new FormData(event.currentTarget);
     try {
-      saveProfile(Object.fromEntries(data.entries()));
+      await saveProfile(Object.fromEntries(data.entries()));
       if (hello) hello.textContent = getDisplayName();
       window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
       showFlash(flash, "Személyes adatok mentve.", true);
@@ -411,13 +412,13 @@ export function initSettingsPage() {
     }
   });
 
-  document.getElementById("settings-password-form")?.addEventListener("submit", (event) => {
+  document.getElementById("settings-password-form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const flash = document.getElementById("settings-password-flash");
     const form = event.currentTarget;
     const data = new FormData(form);
     try {
-      changePassword(data.get("current_password"), data.get("new_password"), data.get("new_password_confirm"));
+      await changePassword(data.get("current_password"), data.get("new_password"), data.get("new_password_confirm"));
       form.reset();
       showFlash(flash, "Jelszó sikeresen módosítva.", true);
     } catch (error) {
@@ -453,10 +454,10 @@ export function initSettingsPage() {
     }
   });
 
-  document.getElementById("settings-delete-account")?.addEventListener("click", () => {
+  document.getElementById("settings-delete-account")?.addEventListener("click", async () => {
     if (!window.confirm("Biztosan törölni szeretnéd a fiókodat? Ez a helyi demó-fiókot törli.")) return;
     try {
-      deleteAccount();
+      await deleteAccount();
       window.location.href = "/";
     } catch (error) {
       window.alert(error.message ?? "Törlés sikertelen.");
