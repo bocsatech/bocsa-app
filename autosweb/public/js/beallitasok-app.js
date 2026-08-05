@@ -7,6 +7,7 @@ import {
   getAuthUser,
   getDisplayName,
   getProfile,
+  loadProfileFromServer,
   saveProfile,
   changePassword,
   deleteAccount,
@@ -346,6 +347,11 @@ function initNotifyForm(email) {
 export async function initSettingsPage() {
   const ok = await requireAuthForPage();
   if (!ok) return;
+  try {
+    await loadProfileFromServer();
+  } catch {
+    /* session már ellenőrizve */
+  }
   const user = getAuthUser();
   if (!user?.email) return;
 

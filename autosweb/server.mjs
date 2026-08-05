@@ -14,6 +14,7 @@ import {
   dbStats,
   listFieldDefs,
   findListingBySourceUrl,
+  getDbPath,
 } from "./lib/db.mjs";
 import { getSiteBlocks, saveSiteBlocks } from "./lib/site-blocks.mjs";
 import {
@@ -651,7 +652,11 @@ async function handleAuthApi(req, res, pathname) {
         sendJson(res, 401, { error: "Nem vagy bejelentkezve." });
         return;
       }
-      sendJson(res, 200, { profile: currentUser.profile, displayName: currentUser.displayName });
+      sendJson(res, 200, {
+        user: currentUser,
+        profile: currentUser.profile,
+        displayName: currentUser.displayName,
+      });
       return;
     }
 
@@ -782,6 +787,7 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, HOST, async () => {
   console.log(`Autosweb: http://${HOST}:${PORT}`);
+  console.log(`User DB: ${getDbPath()}`);
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
   try {
     const stats = dbStats();

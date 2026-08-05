@@ -25,6 +25,7 @@ function getDb() {
   dbInstance = new DatabaseSync(dbPath);
   dbInstancePath = dbPath;
   dbInstance.exec("PRAGMA foreign_keys = ON;");
+  dbInstance.exec("PRAGMA synchronous = FULL;");
   initSchema(dbInstance);
   return dbInstance;
 }

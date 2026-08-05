@@ -60,6 +60,22 @@ export async function refreshAuthSession() {
   }
 }
 
+/** Profil mindig a szerverről (SQLite), ne a böngésző cache-ből. */
+export async function loadProfileFromServer() {
+  const data = await authFetch("/api/auth/profile");
+  const user = getAuthUser() || { email: null };
+  if (data.user) {
+    setCachedUser(data.user);
+  } else {
+    setCachedUser({
+      ...user,
+      displayName: data.displayName ?? user.displayName ?? null,
+      profile: data.profile,
+    });
+  }
+  return data.profile ?? getProfile();
+}
+
 export async function register(email, password, passwordConfirm) {
   const data = await authFetch("/api/auth/register", {
     method: "POST",
@@ -228,10 +244,8 @@ export function initSiteAuth() {
 }
 
 export async function requireAuthForPage() {
-  let user = getAuthUser();
-  if (!user?.email) {
-    user = await refreshAuthSession();
-  }
+  // Mindig a szerver sessionnel ellenőrizzünk (cookie → SQLite).
+  const user = await refreshAuthSession();
   if (user?.email) {
     updateHeaderAuthUi();
     return true;
