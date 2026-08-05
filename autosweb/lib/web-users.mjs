@@ -234,11 +234,20 @@ export function saveUserProfile(userId, profile) {
 
   const displayName = [next.firstName, next.lastName].filter(Boolean).join(" ");
   const db = getDb();
-  db.prepare(
-    `UPDATE web_users
-     SET profile_json = ?, display_name = ?, updated_at = datetime('now')
-     WHERE id = ?`
-  ).run(JSON.stringify(next), displayName, userId);
+  const info = db
+    .prepare(
+      `UPDATE web_users
+       SET profile_json = ?, display_name = ?, updated_at = datetime('now')
+       WHERE id = ?`
+    )
+    .run(JSON.stringify(next), displayName, userId);
+  if (!info.changes) {
+    throw new Error("A profil mentése sikertelen (nincs ilyen felhasználó).");
+  }
+  const verify = profileFromRow(db.prepare(`SELECT profile_json FROM web_users WHERE id = ?`).get(userId));
+  if (verify.firstName !== next.firstName) {
+    throw new Error("A profil mentése nem íródott a helyi adatbázisba.");
+  }
   return next;
 }
 
@@ -264,6 +273,12 @@ export function getUserById(userId) {
   const db = getDb();
   const row = db.prepare(`SELECT * FROM web_users WHERE id = ?`).get(userId);
   return publicUser(row);
+}
+
+export function countWebUsers() {
+  const db = getDb();
+  const row = db.prepare(`SELECT COUNT(*) AS n FROM web_users`).get();
+  return Number(row?.n ?? 0);
 }
 
 export function getSessionTokenFromRequest(req) {

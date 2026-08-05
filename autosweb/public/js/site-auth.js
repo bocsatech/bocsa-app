@@ -1,6 +1,7 @@
 const AUTH_KEY = "autosweb-auth-user";
 const TOKEN_KEY = "autosweb-auth-token";
 const LEGACY_USERS_KEY = "autosweb-auth-users";
+const PROFILE_BACKUP_KEY = "autosweb-profile-backup";
 
 function getStoredToken() {
   try {
@@ -17,6 +18,31 @@ function setStoredToken(token) {
   } catch {
     /* ignore */
   }
+}
+
+function backupProfileLocally(email, profile) {
+  if (!email || !profile?.firstName) return;
+  try {
+    localStorage.setItem(
+      PROFILE_BACKUP_KEY,
+      JSON.stringify({ email, profile, savedAt: Date.now() })
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+function readLocalProfileBackup(email) {
+  if (!email) return null;
+  try {
+    const raw = localStorage.getItem(PROFILE_BACKUP_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data?.email === email && data?.profile?.firstName) return data.profile;
+  } catch {
+    /* ignore */
+  }
+  return null;
 }
 
 function setCachedUser(user) {
@@ -55,14 +81,15 @@ export function isLoggedIn() {
 
 async function authFetch(url, options = {}) {
   const token = getStoredToken();
+  const { headers: optHeaders, ...rest } = options;
   const response = await fetch(url, {
     credentials: "same-origin",
+    ...rest,
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
+      ...(optHeaders || {}),
     },
-    ...options,
   });
   let data = {};
   try {
@@ -80,6 +107,10 @@ async function authFetch(url, options = {}) {
 export async function refreshAuthSession() {
   try {
     const data = await authFetch("/api/auth/me");
+    if (!data.user?.email) {
+      sessionStorage.removeItem(AUTH_KEY);
+      return null;
+    }
     return rememberAuth(data);
   } catch {
     sessionStorage.removeItem(AUTH_KEY);
@@ -99,11 +130,28 @@ export async function loadProfileFromServer() {
       profile: data.profile,
     });
   }
+  const user = getAuthUser();
+  if (user && !data.profile?.firstName) {
+    await maybeRestoreProfile(user);
+    return getProfile();
+  }
+  if (data.profile?.firstName && user?.email) {
+    backupProfileLocally(user.email, data.profile);
+  }
   return data.profile ?? getProfile();
 }
 
-async function maybeMigrateLegacyProfile(user) {
+async function maybeRestoreProfile(user) {
   if (!user?.email || user.profile?.firstName) return;
+  const backup = readLocalProfileBackup(user.email);
+  if (backup?.firstName && backup?.lastName) {
+    try {
+      await saveProfile(backup);
+      return;
+    } catch {
+      /* try legacy next */
+    }
+  }
   try {
     const legacy = JSON.parse(localStorage.getItem(LEGACY_USERS_KEY) || "{}");
     const profile = legacy[user.email]?.profile;
@@ -125,7 +173,7 @@ export async function register(email, password, passwordConfirm) {
     }),
   });
   const user = rememberAuth(data);
-  await maybeMigrateLegacyProfile(user);
+  await maybeRestoreProfile(user);
   return user;
 }
 
@@ -135,7 +183,7 @@ export async function login(email, password) {
     body: JSON.stringify({ email, password }),
   });
   const user = rememberAuth(data);
-  await maybeMigrateLegacyProfile(user);
+  await maybeRestoreProfile(user);
   return getAuthUser();
 }
 
@@ -191,6 +239,11 @@ export async function deleteAccount() {
   await authFetch("/api/auth/account", { method: "DELETE" });
   sessionStorage.removeItem(AUTH_KEY);
   setStoredToken("");
+  try {
+    localStorage.removeItem(PROFILE_BACKUP_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 const EMPTY_PROFILE = {
@@ -228,6 +281,19 @@ export async function saveProfile(profile) {
   }
   if (!data.profile?.firstName) {
     throw new Error("A mentés nem sikerült — próbáld újra belépés után.");
+  }
+  const email = getAuthUser()?.email || data.user?.email;
+  backupProfileLocally(email, data.profile);
+
+  // Újraolvasás — ha a szerver üresen adná vissza, azonnal jelezzük.
+  try {
+    const verify = await authFetch("/api/auth/profile");
+    if (!verify.profile?.firstName) {
+      throw new Error("A mentés nem került a helyi adatbázisba.");
+    }
+    if (verify.user) rememberAuth(verify);
+  } catch (error) {
+    if (String(error.message || "").includes("adatbázisba")) throw error;
   }
   return data.profile;
 }

@@ -15,6 +15,7 @@ import {
   listFieldDefs,
   findListingBySourceUrl,
   getDbPath,
+  closeDb,
 } from "./lib/db.mjs";
 import { getSiteBlocks, saveSiteBlocks } from "./lib/site-blocks.mjs";
 import {
@@ -55,6 +56,7 @@ import {
   deleteUserAccount,
   destroySession,
   getSessionTokenFromRequest,
+  countWebUsers,
   getUserById,
   getUserBySessionToken,
   loginUser,
@@ -689,6 +691,9 @@ async function handleAuthApi(req, res, pathname) {
         sendJson(res, 500, { error: "A mentés nem íródott a helyi adatbázisba." });
         return;
       }
+      console.log(
+        `Profil mentve → ${getDbPath()} | ${currentUser.email} | ${profile.firstName} ${profile.lastName}`
+      );
       sendJson(res, 200, { profile, user, token });
       return;
     }
@@ -720,10 +725,20 @@ const server = createServer(async (req, res) => {
   const pathname = req.url?.split("?")[0] || "/";
 
   if (pathname === "/api/health" && req.method === "GET") {
+    let users = 0;
+    let dbPath = "";
+    try {
+      dbPath = getDbPath();
+      users = countWebUsers();
+    } catch {
+      /* ignore */
+    }
     sendJson(res, 200, {
       ok: true,
       version: readFileSync(join(PUBLIC, "version.txt"), "utf8").trim(),
       chrome: findChromeExecutable(),
+      dbPath,
+      users,
     });
     return;
   }
@@ -801,13 +816,30 @@ const server = createServer(async (req, res) => {
   serveStatic(pathname, res);
 });
 
+function shutdown(signal) {
+  console.log(`\nLeállítás (${signal}) — adatbázis zárása…`);
+  try {
+    closeDb();
+  } catch {
+    /* ignore */
+  }
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 1500).unref();
+}
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+
 server.listen(PORT, HOST, async () => {
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log(`User DB: ${getDbPath()}`);
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
   try {
     const stats = dbStats();
-    console.log(`SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella)`);
+    const users = countWebUsers();
+    console.log(
+      `SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella, ${users} user)`
+    );
   } catch (error) {
     console.warn("SQLite inicializálás:", error.message ?? error);
   }

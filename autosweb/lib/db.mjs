@@ -1,5 +1,6 @@
-import { mkdirSync, existsSync } from "fs";
+import { mkdirSync, existsSync, copyFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
+import { homedir } from "os";
 import { fileURLToPath } from "url";
 import { DatabaseSync } from "node:sqlite";
 import { formDataToCells, cellsToFormData, FORM_FIELD_CATALOG } from "./form-field-catalog.mjs";
@@ -10,8 +11,58 @@ import { initWebUsersSchema } from "./web-users.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, "..", "data");
 
+/** App mappán kívül — túléli a Downloads/autosweb frissítést / újratelepítést. */
+function stableHomeDbPath() {
+  return join(homedir(), ".autosweb", "autosweb.db");
+}
+
+function legacyAppDbPath() {
+  return join(DATA_DIR, "autosweb.db");
+}
+
+function copyDbSidecars(fromPath, toPath) {
+  for (const suffix of ["-wal", "-shm", "-journal"]) {
+    const src = fromPath + suffix;
+    if (existsSync(src)) {
+      try {
+        copyFileSync(src, toPath + suffix);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+}
+
+function migrateLegacyDbIfNeeded(stablePath, legacyPath) {
+  if (existsSync(stablePath) || !existsSync(legacyPath)) return;
+  mkdirSync(dirname(stablePath), { recursive: true });
+  copyFileSync(legacyPath, stablePath);
+  copyDbSidecars(legacyPath, stablePath);
+  console.log(`SQLite átmozgatva (megmarad újraindítás után): ${legacyPath} → ${stablePath}`);
+}
+
+function writeDbLocationHint(dbPath) {
+  try {
+    if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+    writeFileSync(join(DATA_DIR, "DB_LOCATION.txt"), `${dbPath}\n`, "utf8");
+  } catch {
+    /* ignore */
+  }
+}
+
 function resolveDbPath() {
-  return process.env.AUTOSWEB_DB_PATH || join(DATA_DIR, "autosweb.db");
+  if (process.env.AUTOSWEB_DB_PATH) return process.env.AUTOSWEB_DB_PATH;
+  const stable = stableHomeDbPath();
+  const legacy = legacyAppDbPath();
+  try {
+    migrateLegacyDbIfNeeded(stable, legacy);
+  } catch (error) {
+    console.warn("SQLite migráció sikertelen, régi útvonal:", error.message ?? error);
+    writeDbLocationHint(legacy);
+    return legacy;
+  }
+  writeDbLocationHint(stable);
+  return stable;
 }
 
 let dbInstance = null;
@@ -25,9 +76,27 @@ function getDb() {
   dbInstance = new DatabaseSync(dbPath);
   dbInstancePath = dbPath;
   dbInstance.exec("PRAGMA foreign_keys = ON;");
+  dbInstance.exec("PRAGMA journal_mode = DELETE;");
   dbInstance.exec("PRAGMA synchronous = FULL;");
   initSchema(dbInstance);
   return dbInstance;
+}
+
+/** Graceful shutdown — fájlba zárás Ctrl+C előtt. */
+export function closeDb() {
+  if (!dbInstance) return;
+  try {
+    dbInstance.exec("PRAGMA optimize;");
+  } catch {
+    /* ignore */
+  }
+  try {
+    dbInstance.close();
+  } catch {
+    /* ignore */
+  }
+  dbInstance = null;
+  dbInstancePath = null;
 }
 
 function initSchema(db) {

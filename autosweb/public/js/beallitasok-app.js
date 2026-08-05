@@ -409,10 +409,17 @@ export async function initSettingsPage() {
     const flash = document.getElementById("settings-profile-flash");
     const data = new FormData(event.currentTarget);
     try {
-      await saveProfile(Object.fromEntries(data.entries()));
+      const saved = await saveProfile(Object.fromEntries(data.entries()));
+      fillProfileForm(getAuthUser());
       if (hello) hello.textContent = getDisplayName();
       window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
-      showFlash(flash, "Személyes adatok mentve.", true);
+      showFlash(
+        flash,
+        saved?.firstName
+          ? `Személyes adatok mentve (${saved.firstName}). Újraindítás után is megmarad.`
+          : "Személyes adatok mentve.",
+        true
+      );
     } catch (error) {
       showFlash(flash, error.message ?? "Mentés sikertelen.", false);
     }
