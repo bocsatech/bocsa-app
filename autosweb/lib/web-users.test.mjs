@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 
 const dir = mkdtempSync(join(tmpdir(), "autosweb-users-"));
 process.env.AUTOSWEB_DB_PATH = join(dir, "test.db");
+process.env.AUTOSWEB_PROFILES_PATH = join(dir, "profiles.json");
 
 const {
   registerUser,

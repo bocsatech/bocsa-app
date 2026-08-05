@@ -2,11 +2,17 @@
 
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { getDb } from "./db.mjs";
+import {
+  deleteProfileFromFile,
+  loadProfileFromFile,
+  saveProfileToFile,
+  getProfilesFilePath,
+} from "./web-user-profiles.mjs";
 
 const SESSION_DAYS = 30;
 const SESSION_COOKIE = "autosweb_session";
 
-export { SESSION_COOKIE };
+export { SESSION_COOKIE, getProfilesFilePath };
 
 function hashPassword(password, salt = randomBytes(16).toString("hex")) {
   const hash = scryptSync(String(password), salt, 64).toString("hex");
@@ -48,7 +54,11 @@ function profileFromRow(row) {
   } catch {
     parsed = {};
   }
-  return { ...emptyProfile(), ...parsed };
+  const fromFile = loadProfileFromFile(row.email);
+  // Fájl az elsődleges (túléli DB útvonal-váltást); SQLite a másodlagos.
+  const merged = { ...emptyProfile(), ...parsed, ...(fromFile || {}) };
+  delete merged.savedAt;
+  return merged;
 }
 
 function publicUser(row) {
@@ -228,12 +238,16 @@ export function saveUserProfile(userId, profile) {
   if (!next.firstName || !next.lastName) {
     throw new Error("A keresztnév és a vezetéknév kötelező.");
   }
-  if (!next.postalCode || !next.city) {
-    throw new Error("Az irányítószám és a város kötelező.");
-  }
 
   const displayName = [next.firstName, next.lastName].filter(Boolean).join(" ");
   const db = getDb();
+  const row = db.prepare(`SELECT email FROM web_users WHERE id = ?`).get(userId);
+  if (!row?.email) {
+    throw new Error("A profil mentése sikertelen (nincs ilyen felhasználó).");
+  }
+
+  const fileResult = saveProfileToFile(row.email, next);
+
   const info = db
     .prepare(
       `UPDATE web_users
@@ -244,17 +258,19 @@ export function saveUserProfile(userId, profile) {
   if (!info.changes) {
     throw new Error("A profil mentése sikertelen (nincs ilyen felhasználó).");
   }
-  const verify = profileFromRow(db.prepare(`SELECT profile_json FROM web_users WHERE id = ?`).get(userId));
+  const verify = profileFromRow(db.prepare(`SELECT email, profile_json FROM web_users WHERE id = ?`).get(userId));
   if (verify.firstName !== next.firstName) {
     throw new Error("A profil mentése nem íródott a helyi adatbázisba.");
   }
-  return next;
+  return { ...next, _savedTo: fileResult.path };
 }
 
 export function deleteUserAccount(userId) {
   const db = getDb();
+  const row = db.prepare(`SELECT email FROM web_users WHERE id = ?`).get(userId);
   db.prepare(`DELETE FROM web_sessions WHERE user_id = ?`).run(userId);
   db.prepare(`DELETE FROM web_users WHERE id = ?`).run(userId);
+  if (row?.email) deleteProfileFromFile(row.email);
 }
 
 export function parseCookies(header) {

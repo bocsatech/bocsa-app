@@ -13,7 +13,7 @@ import {
   deleteAccount,
   requireAuthForPage,
   initSiteAuth,
-} from "./site-auth.js";
+} from "./site-auth.js?v=auth20260805localdb6";
 import {
   getParkplatz,
   addParkplatzItem,
@@ -26,7 +26,7 @@ import {
   ensureDemoMessages,
   markMessageRead,
   deleteMessage,
-} from "./fok-data.js";
+} from "./fok-data.js?v=auth20260805localdb6";
 
 const PHOTO_KEY = "autosweb-avatar-photos";
 const NOTIFY_KEY = "autosweb-notify-prefs";
@@ -404,26 +404,7 @@ export async function initSettingsPage() {
     if (wrap) wrap.hidden = profileForm.accountType.value !== "business";
   });
 
-  profileForm?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const flash = document.getElementById("settings-profile-flash");
-    const data = new FormData(event.currentTarget);
-    try {
-      const saved = await saveProfile(Object.fromEntries(data.entries()));
-      fillProfileForm(getAuthUser());
-      if (hello) hello.textContent = getDisplayName();
-      window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
-      showFlash(
-        flash,
-        saved?.firstName
-          ? `Személyes adatok mentve (${saved.firstName}). Újraindítás után is megmarad.`
-          : "Személyes adatok mentve.",
-        true
-      );
-    } catch (error) {
-      showFlash(flash, error.message ?? "Mentés sikertelen.", false);
-    }
-  });
+  // A submit listener korán kötődik (bindProfileFormEarly) — itt csak a hello frissül mentés után.
 
   document.getElementById("settings-password-form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -480,5 +461,50 @@ export async function initSettingsPage() {
   window.addEventListener("popstate", () => setSection(currentSection()));
 }
 
+/** Mentés listener AZONNAL — ne várjon az auth hálózatra (különben natív submit = nincs mentés). */
+function bindProfileFormEarly() {
+  const profileForm = document.getElementById("mm-profile-form");
+  if (!profileForm || profileForm.dataset.bound === "1") return;
+  profileForm.dataset.bound = "1";
+
+  profileForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const flash = document.getElementById("settings-profile-flash");
+    const pathEl = document.getElementById("settings-profile-path");
+    const btn = document.getElementById("mm-profile-save");
+    const data = Object.fromEntries(new FormData(profileForm).entries());
+    if (!String(data.firstName || "").trim() || !String(data.lastName || "").trim()) {
+      showFlash(flash, "Keresztnév és vezetéknév kötelező.", false);
+      return;
+    }
+    if (btn) btn.disabled = true;
+    try {
+      const saved = await saveProfile(data);
+      const user = getAuthUser();
+      if (user) fillProfileForm(user);
+      const hello = document.querySelector("[data-mm-hello]");
+      if (hello) hello.textContent = getDisplayName();
+      window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
+      showFlash(
+        flash,
+        `Mentve: ${saved.firstName} ${saved.lastName}. Újraindítás után is megmarad.`,
+        true
+      );
+      if (pathEl) {
+        pathEl.hidden = false;
+        pathEl.textContent = saved._savedTo
+          ? `Fájl: ${saved._savedTo}`
+          : "Helyi profil fájlba írva (~/.autosweb/profiles.json).";
+      }
+    } catch (error) {
+      showFlash(flash, error.message ?? "Mentés sikertelen.", false);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+}
+
+bindProfileFormEarly();
 initSiteAuth();
 initSettingsPage();

@@ -178,6 +178,7 @@ echo ""
 echo "Autosweb főoldal: ${INDEX_VER:-?}"
 echo "URL: http://127.0.0.1:3456/"
 echo "User DB (állandó): $HOME/.autosweb/autosweb.db"
+echo "Profil fájl:       $HOME/.autosweb/profiles.json"
 echo "Bezáráshoz: Ctrl+C"
 echo ""
 

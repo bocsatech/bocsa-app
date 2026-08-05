@@ -57,6 +57,7 @@ import {
   destroySession,
   getSessionTokenFromRequest,
   countWebUsers,
+  getProfilesFilePath,
   getUserById,
   getUserBySessionToken,
   loginUser,
@@ -685,16 +686,22 @@ async function handleAuthApi(req, res, pathname) {
         sendJson(res, 200, { displayName, user, token });
         return;
       }
-      const profile = saveUserProfile(currentUser.id, body.profile ?? body);
+      const saved = saveUserProfile(currentUser.id, body.profile ?? body);
+      const { _savedTo, ...profile } = saved;
       const user = getUserById(currentUser.id);
       if (!user?.profile?.firstName) {
         sendJson(res, 500, { error: "A mentés nem íródott a helyi adatbázisba." });
         return;
       }
       console.log(
-        `Profil mentve → ${getDbPath()} | ${currentUser.email} | ${profile.firstName} ${profile.lastName}`
+        `Profil mentve → ${_savedTo || getProfilesFilePath()} | ${currentUser.email} | ${profile.firstName} ${profile.lastName}`
       );
-      sendJson(res, 200, { profile, user, token });
+      sendJson(res, 200, {
+        profile,
+        user,
+        token,
+        savedTo: _savedTo || getProfilesFilePath(),
+      });
       return;
     }
 
@@ -727,9 +734,11 @@ const server = createServer(async (req, res) => {
   if (pathname === "/api/health" && req.method === "GET") {
     let users = 0;
     let dbPath = "";
+    let profilesPath = "";
     try {
       dbPath = getDbPath();
       users = countWebUsers();
+      profilesPath = getProfilesFilePath();
     } catch {
       /* ignore */
     }
@@ -738,6 +747,7 @@ const server = createServer(async (req, res) => {
       version: readFileSync(join(PUBLIC, "version.txt"), "utf8").trim(),
       chrome: findChromeExecutable(),
       dbPath,
+      profilesPath,
       users,
     });
     return;
@@ -840,6 +850,7 @@ server.listen(PORT, HOST, async () => {
     console.log(
       `SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella, ${users} user)`
     );
+    console.log(`Profil fájl: ${getProfilesFilePath()}`);
   } catch (error) {
     console.warn("SQLite inicializálás:", error.message ?? error);
   }

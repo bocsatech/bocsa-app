@@ -295,7 +295,7 @@ export async function saveProfile(profile) {
   } catch (error) {
     if (String(error.message || "").includes("adatbázisba")) throw error;
   }
-  return data.profile;
+  return { ...data.profile, _savedTo: data.savedTo || null };
 }
 
 function loginUrl(nextPath = "/hirdetesfeladas.html") {
