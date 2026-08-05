@@ -116,6 +116,12 @@ update_from_github() {
     chmod +x "$DESKTOP_LAUNCHER"
     echo "  ✓ Asztali indító frissítve"
   fi
+  if [ -f "$src/mac/smtp-beallitas.command" ]; then
+    mkdir -p "$HOME/Desktop"
+    cp "$src/mac/smtp-beallitas.command" "$HOME/Desktop/Autosweb-smtp-beallitas.command"
+    chmod +x "$HOME/Desktop/Autosweb-smtp-beallitas.command"
+    echo "  ✓ SMTP beállító az Asztalon: Autosweb-smtp-beallitas.command"
+  fi
 
   rm -rf "$tmp"
   echo "  ✓ Fájlok frissítve"
