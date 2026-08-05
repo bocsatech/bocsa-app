@@ -156,14 +156,28 @@ export async function syncPersonalProfilePositionFromAdmin(
   userId: string,
   position: string | null | undefined
 ) {
+  return syncPersonalProfileFromAdmin(userId, { position: position ?? "" });
+}
+
+/** Admin /users mentés: teljes profil mezők a personal profiles táblába is. */
+export async function syncPersonalProfileFromAdmin(
+  userId: string,
+  patch: UserProfilePatch
+) {
   const db = getDb();
   if (!db) {
     return { ok: false, error: null, missingTable: true };
   }
+
+  const payload = userProfilePatchToDbPayload(patch);
+  if (Object.keys(payload).length === 0) {
+    return { ok: true, error: null, missingTable: false };
+  }
+
   const { error } = await db.from(PERSONAL_PROFILES_TABLE).upsert(
     {
       user_id: userId,
-      position: typeof position === "string" ? position.trim() || null : null,
+      ...payload,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" }

@@ -255,6 +255,15 @@ function mapUser(row: Record<string, unknown> | null): AppUser | null {
       typeof row.emergency_contact_phone === "string"
         ? row.emergency_contact_phone
         : null,
+    bank_account:
+      typeof row.bank_account === "string" ? row.bank_account : null,
+    direct_manager:
+      typeof row.direct_manager === "string" ? row.direct_manager : null,
+    work_area: normalizeUserWorkArea(row.work_area),
+    overtime_hours_balance:
+      row.overtime_hours_balance === null || row.overtime_hours_balance === undefined
+        ? null
+        : Number(row.overtime_hours_balance),
     is_active: readIsActive(row),
     created_at:
       typeof row.created_at === "string" ? row.created_at : undefined,
