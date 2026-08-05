@@ -86,21 +86,55 @@ struct RecommendationsScreen: View {
 
   @ViewBuilder
   private func categorySection(_ group: PartnerCategoryGroup) -> some View {
-    VStack(alignment: .leading, spacing: 10) {
-      Text(group.label)
-        .font(.title3.weight(.semibold))
-        .foregroundStyle(AppTheme.text)
-
-      if group.partners.isEmpty {
-        Text("Ebben a kategóriában nincs ajánlott partner a közelben.")
-          .font(.footnote)
-          .foregroundStyle(AppTheme.textSecondary)
-      } else {
-        ForEach(group.partners) { partner in
-          partnerCard(partner)
+    let isOpen = expandedCategoryId == group.id
+    VStack(alignment: .leading, spacing: 0) {
+      Button {
+        withAnimation(.easeInOut(duration: 0.2)) {
+          expandedCategoryId = isOpen ? nil : group.id
         }
+      } label: {
+        HStack {
+          Text(group.label)
+            .font(.headline)
+            .foregroundStyle(AppTheme.text)
+            .multilineTextAlignment(.leading)
+          Spacer(minLength: 8)
+          Text(group.partners.isEmpty ? "0" : "\(group.partners.count)")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.textSecondary)
+          Image(systemName: isOpen ? "chevron.up" : "chevron.down")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.textSecondary)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.bgElevated)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+
+      if isOpen {
+        VStack(alignment: .leading, spacing: 10) {
+          if group.partners.isEmpty {
+            Text("Ebben a kategóriában nincs ajánlott partner a közelben.")
+              .font(.footnote)
+              .foregroundStyle(AppTheme.textSecondary)
+              .padding(.horizontal, 4)
+          } else {
+            ForEach(group.partners) { partner in
+              partnerCard(partner)
+            }
+          }
+        }
+        .padding(.top, 10)
+        .padding(.bottom, 4)
       }
     }
+    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .stroke(AppTheme.border, lineWidth: 0.5)
+    )
   }
 
   private func partnerCard(_ partner: PartnerRecommendation) -> some View {
@@ -177,6 +211,7 @@ struct RecommendationsScreen: View {
       cityLabel = result.city
       let withPartners = result.categories.filter { !$0.partners.isEmpty }
       categories = withPartners.isEmpty ? result.categories : withPartners
+      expandedCategoryId = nil
       sourceNote = "Élő Autosweb ajánlások (\(code))."
       if profile.profile.postalCode != code {
         profile.profile.postalCode = code
@@ -185,6 +220,7 @@ struct RecommendationsScreen: View {
     } catch {
       cityLabel = code == "8000" ? "Székesfehérvár" : nil
       categories = PartnerRecommendationsDemo.categories
+      expandedCategoryId = nil
       sourceNote = "Autosweb nem elérhető (3456) — demo ajánlások. Élőhöz: Autosweb-indito."
     }
   }
