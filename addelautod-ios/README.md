@@ -29,6 +29,8 @@ Ha hibát ír (`project.pbxproj` hiányzik): **Quit Xcode**, töröld a `Letölt
 2. **Cmd+R**
 3. Signing: Automatic + saját Apple ID
 
-4 oldal: Hírfolyam | Kiemeltek | Keresés | Mentett
+5 oldal: Hírfolyam | **Ajánlások** | Kiemeltek | Keresés | Mentett
 
-A **Keresés** találatai a saját (Add el autod) hirdetések — nincs használtautó.hu import a mobil keresőben.
+Az **Ajánlások** az autós oldal fizetős partnerei (irányítószám, ~30 km). Élő listához Autosweb `3456`; különben demo.
+
+A **Keresés** találatai a saját (Add el autod) hirdetések.

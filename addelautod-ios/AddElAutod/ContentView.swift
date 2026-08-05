@@ -8,16 +8,18 @@ struct ContentView: View {
             TabView(selection: $page) {
                 FeedScreen()
                     .tag(0)
-                FeaturedScreen()
+                RecommendationsScreen()
                     .tag(1)
-                SearchScreen()
+                FeaturedScreen()
                     .tag(2)
-                SavedSearchesScreen(onOpenSearch: { page = 2 })
+                SearchScreen()
                     .tag(3)
+                SavedSearchesScreen(onOpenSearch: { page = 3 })
+                    .tag(4)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
 
-            PageDots(count: 4, index: page)
+            PageDots(count: 5, index: page)
                 .padding(.bottom, 8)
         }
         .background(AppTheme.bg.ignoresSafeArea())
