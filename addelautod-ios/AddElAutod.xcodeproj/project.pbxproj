@@ -34,6 +34,7 @@
 		A1LOGI002B /* LoginScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1LOGI001B /* LoginScreen.swift */; };
 		A1REGI002B /* RegisterScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1REGI001B /* RegisterScreen.swift */; };
 		A1SAUTH002B /* SiteAuthBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1SAUTH001B /* SiteAuthBar.swift */; };
+		A1SOCL002B /* SocialWebScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1SOCL001B /* SocialWebScreens.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */

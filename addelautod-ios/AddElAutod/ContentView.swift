@@ -70,18 +70,22 @@ struct ContentView: View {
             TabView(selection: $page) {
                 FeedScreen()
                     .tag(0)
-                RecommendationsScreen()
+                FacebookReelScreen()
                     .tag(1)
-                FeaturedScreen()
+                YouTubeScreen()
                     .tag(2)
-                SearchScreen(onOpenSettings: { showSettings = true })
+                RecommendationsScreen()
                     .tag(3)
-                SavedSearchesScreen(onOpenSearch: { page = 3 })
+                FeaturedScreen()
                     .tag(4)
+                SearchScreen(onOpenSettings: { showSettings = true })
+                    .tag(5)
+                SavedSearchesScreen(onOpenSearch: { page = 5 })
+                    .tag(6)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
 
-            PageDots(count: 5, index: page)
+            PageDots(count: 7, index: page)
                 .padding(.bottom, 8)
         }
         .background(AppTheme.bg.ignoresSafeArea())

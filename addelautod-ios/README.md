@@ -49,4 +49,4 @@ A **Keresés** találatai a saját (Add el autod) hirdetések.
 ## Közös fiók (web + app)
 
 Belépés nélkül **csak** a Belépés / Regisztráció oldal (nincs lapozás). Felső gombok: **Belépés** | **Regisztráció**.  
-Belépés után jönnek a 5 oldal. Közös Autosweb fiók (`3456`).
+Belépés után 7 oldal: Hírfolyam | **Facebook** | **YouTube** | Ajánlások | Kiemeltek | Keresés | Mentett. Közös Autosweb fiók (`3456`).
