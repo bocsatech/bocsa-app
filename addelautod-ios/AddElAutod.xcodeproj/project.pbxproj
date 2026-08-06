@@ -68,6 +68,7 @@
 		A1REGI001B /* RegisterScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterScreen.swift; sourceTree = "<group>"; };
 		A1SAUTH001B /* SiteAuthBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteAuthBar.swift; sourceTree = "<group>"; };
 		A1SOCL001B /* SocialWebScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialWebScreens.swift; sourceTree = "<group>"; };
+		A1WEBK001B /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		A1INFO001B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -76,6 +77,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1WEBK002B /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,8 +88,17 @@
 			isa = PBXGroup;
 			children = (
 				7841E83F558145C1917511DE /* AddElAutod */,
+				A1FWKS001B /* Frameworks */,
 				B375C6FD4244436DB7DF56E6 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		A1FWKS001B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A1WEBK001B /* WebKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		B375C6FD4244436DB7DF56E6 /* Products */ = {
