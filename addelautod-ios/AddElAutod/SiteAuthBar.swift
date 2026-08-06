@@ -24,14 +24,11 @@ struct SiteAuthBar: View {
                 Button {
                     onAccount?()
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(AppTheme.accent.opacity(0.15))
-                            .frame(width: 34, height: 34)
-                        Text(profile.profile.avatarLetter)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(AppTheme.accent)
-                    }
+                    ProfileAvatarView(
+                        image: profile.avatarImage,
+                        letter: profile.profile.avatarLetter,
+                        size: 34
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Fiók")

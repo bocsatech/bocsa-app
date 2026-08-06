@@ -26,6 +26,7 @@ Utána: **Signing (Apple ID)** → **iPhone 16** → **Clean Build Folder** → 
 - Először **Vezetéknév**, aztán **Keresztnév**
 - Fióktípus: Magánszemély / Vállalkozás / **Autókereskedő**
 - **Irányítószám** keskeny + melletté **Település** (4 jegy után auto — Autosweb `3456` kell)
+- Profilkép feltöltés + **Profil QR** a fénykép mellett
 
 7 swipe oldal: Hírfolyam | Facebook | YouTube | Ajánlások | Kiemeltek | Keresés | Mentett
 

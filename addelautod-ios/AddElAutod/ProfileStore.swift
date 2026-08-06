@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UIKit
 
 struct UserProfile: Codable, Equatable {
     var salutation: String = ""
@@ -21,14 +22,14 @@ struct UserProfile: Codable, Equatable {
     var searchRadiusKm: Int = 30
 
     var displayName: String {
-        let n = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+        let n = "\(lastName) \(firstName)".trimmingCharacters(in: .whitespaces)
         if !n.isEmpty { return n }
         if !email.isEmpty { return email }
         return "Fiók"
     }
 
     var avatarLetter: String {
-        let ch = firstName.first ?? email.first ?? "A"
+        let ch = lastName.first ?? firstName.first ?? email.first ?? "A"
         return String(ch).uppercased()
     }
 }
@@ -39,6 +40,7 @@ final class ProfileStore: ObservableObject {
     @Published var token: String?
     @Published var isRestoring = true
     @Published var authError: String?
+    @Published var avatarImage: UIImage?
 
     var isLoggedIn: Bool { token != nil && !profile.email.isEmpty }
 
@@ -47,6 +49,7 @@ final class ProfileStore: ObservableObject {
 
     init() {
         loadLocal()
+        loadAvatarFromDisk()
         if token == nil {
             isRestoring = false
         } else {
@@ -76,6 +79,58 @@ final class ProfileStore: ObservableObject {
             profile = decoded
         }
         token = UserDefaults.standard.string(forKey: tokenKey)
+    }
+
+    // MARK: - Profilkép
+
+    func setAvatar(_ image: UIImage) {
+        let resized = Self.resize(image, maxSide: 512)
+        avatarImage = resized
+        guard let email = avatarEmailKey(), let data = resized.jpegData(compressionQuality: 0.85) else { return }
+        try? data.write(to: avatarFileURL(email: email), options: .atomic)
+    }
+
+    func clearAvatar() {
+        avatarImage = nil
+        if let email = avatarEmailKey() {
+            try? FileManager.default.removeItem(at: avatarFileURL(email: email))
+        }
+    }
+
+    func loadAvatarFromDisk() {
+        guard let email = avatarEmailKey() else {
+            avatarImage = nil
+            return
+        }
+        let url = avatarFileURL(email: email)
+        guard let data = try? Data(contentsOf: url), let image = UIImage(data: data) else {
+            avatarImage = nil
+            return
+        }
+        avatarImage = image
+    }
+
+    private func avatarEmailKey() -> String? {
+        let email = profile.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return email.isEmpty ? nil : email
+    }
+
+    private func avatarFileURL(email: String) -> URL {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("avatars", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let safe = email.replacingOccurrences(of: "@", with: "_at_").replacingOccurrences(of: "/", with: "_")
+        return dir.appendingPathComponent("\(safe).jpg")
+    }
+
+    private static func resize(_ image: UIImage, maxSide: CGFloat) -> UIImage {
+        let size = image.size
+        let longest = max(size.width, size.height)
+        guard longest > maxSide else { return image }
+        let scale = maxSide / longest
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: newSize)) }
     }
 
     func restoreSession() async {
@@ -178,9 +233,11 @@ final class ProfileStore: ObservableObject {
 
     private func applyRemote(_ user: AuthAPI.RemoteUser) {
         profile.apply(remote: user)
+        loadAvatarFromDisk()
     }
 
     private func clearSession() {
+        clearAvatar()
         token = nil
         profile = UserProfile()
         UserDefaults.standard.removeObject(forKey: profileKey)

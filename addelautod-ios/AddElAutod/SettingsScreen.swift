@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import UIKit
 
 /// Autosweb /beallitasok.html?szekcio=fiok — Fiók szerkesztése (személyes adatok)
 struct SettingsScreen: View {
@@ -11,6 +13,7 @@ struct SettingsScreen: View {
     @State private var newPasswordConfirm = ""
     @State private var cityLookupBusy = false
     @State private var lastLookedUpPostal = ""
+    @State private var photoItem: PhotosPickerItem?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -43,21 +46,58 @@ struct SettingsScreen: View {
             Text("Személyes adatok")
                 .font(.headline)
 
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(AppTheme.accent.opacity(0.15))
-                        .frame(width: 64, height: 64)
-                    Text(profile.profile.avatarLetter)
-                        .font(.title.weight(.semibold))
-                        .foregroundStyle(AppTheme.accent)
-                }
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 14) {
+                ProfileAvatarView(
+                    image: profile.avatarImage,
+                    letter: profile.profile.avatarLetter,
+                    size: 72
+                )
+
+                VStack(alignment: .leading, spacing: 8) {
                     Text(profile.profile.displayName)
                         .font(.body.weight(.semibold))
-                    Text("Profilkép — később feltöltés")
-                        .font(.caption)
+
+                    HStack(spacing: 8) {
+                        PhotosPicker(selection: $photoItem, matching: .images, photoLibrary: .shared()) {
+                            Text(profile.avatarImage == nil ? "Feltöltés" : "Csere")
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .foregroundStyle(.white)
+                                .background(AppTheme.accent)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                        if profile.avatarImage != nil {
+                            Button("Törlés") {
+                                profile.clearAvatar()
+                                toast = "Profilkép törölve."
+                            }
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.red)
+                        }
+                    }
+                }
+
+                Spacer(minLength: 8)
+
+                VStack(spacing: 4) {
+                    ProfileQRView(profile: profile.profile, size: 72)
+                    Text("Profil QR")
+                        .font(.caption2)
                         .foregroundStyle(AppTheme.textSecondary)
+                }
+            }
+            .onChange(of: photoItem) { _, item in
+                guard let item else { return }
+                Task {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        profile.setAvatar(image)
+                        toast = "Profilkép mentve."
+                    } else {
+                        toast = "A kép betöltése sikertelen."
+                    }
+                    photoItem = nil
                 }
             }
 
