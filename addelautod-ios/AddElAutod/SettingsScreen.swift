@@ -61,16 +61,16 @@ struct SettingsScreen: View {
 
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 6) {
-                    fieldLabel("Keresztnév")
-                    TextField("", text: $profile.profile.firstName)
-                        .textFieldStyle(.roundedBorder)
-                        .textContentType(.givenName)
-                }
-                VStack(alignment: .leading, spacing: 6) {
                     fieldLabel("Vezetéknév")
                     TextField("", text: $profile.profile.lastName)
                         .textFieldStyle(.roundedBorder)
                         .textContentType(.familyName)
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    fieldLabel("Keresztnév")
+                    TextField("", text: $profile.profile.firstName)
+                        .textFieldStyle(.roundedBorder)
+                        .textContentType(.givenName)
                 }
             }
 
