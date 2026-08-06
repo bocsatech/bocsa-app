@@ -8,6 +8,7 @@ struct CategoryResultsScreen: View {
     let query: ListingQuery
     var onBack: () -> Void
     var onOpenSettings: () -> Void
+    var onMessage: ((ListingMessageTarget) -> Void)? = nil
 
     private var radiusKm: Int { max(1, profile.profile.searchRadiusKm) }
     private var postal: String {
@@ -77,6 +78,12 @@ struct CategoryResultsScreen: View {
                             Text("\(car.postalCode) · ~\(car.distanceKm) km")
                                 .font(.caption)
                                 .foregroundStyle(AppTheme.textTertiary)
+                            if let onMessage {
+                                MessageListingButton {
+                                    onMessage(car.messageTarget)
+                                }
+                                .padding(.top, 4)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)

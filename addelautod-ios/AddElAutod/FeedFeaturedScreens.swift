@@ -64,6 +64,9 @@ private struct FeedCard: View {
 }
 
 struct FeaturedScreen: View {
+    @EnvironmentObject private var profile: ProfileStore
+    @State private var messageTarget: ListingMessageTarget?
+
     var body: some View {
         VStack(spacing: 0) {
             ScreenHeader(title: "Kiemeltek", subtitle: "Autós oldal hirdetései")
@@ -92,6 +95,10 @@ struct FeaturedScreen: View {
                             Text(ad.meta)
                                 .font(.subheadline)
                                 .foregroundStyle(AppTheme.textSecondary)
+                            MessageListingButton {
+                                messageTarget = ad.messageTarget
+                            }
+                            .padding(.top, 4)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
@@ -111,5 +118,9 @@ struct FeaturedScreen: View {
             }
         }
         .background(AppTheme.bg)
+        .fullScreenCover(item: $messageTarget) { target in
+            MessagesScreen(onClose: { messageTarget = nil }, initialTarget: target)
+                .environmentObject(profile)
+        }
     }
 }

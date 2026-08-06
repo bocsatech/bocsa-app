@@ -38,6 +38,8 @@ struct UserProfile: Codable, Equatable {
 final class ProfileStore: ObservableObject {
     @Published var profile = UserProfile()
     @Published var token: String?
+    /// Szerver user id — chat buborék „saját” oldalhoz
+    @Published var userId: Int?
     @Published var isRestoring = true
     @Published var authError: String?
     @Published var avatarImage: UIImage?
@@ -46,6 +48,7 @@ final class ProfileStore: ObservableObject {
 
     private let profileKey = "addelautod.userProfile.v2"
     private let tokenKey = "addelautod.authToken.v1"
+    private let userIdKey = "addelautod.userId.v1"
 
     init() {
         loadLocal()
@@ -66,6 +69,11 @@ final class ProfileStore: ObservableObject {
         } else {
             UserDefaults.standard.removeObject(forKey: tokenKey)
         }
+        if let userId {
+            UserDefaults.standard.set(userId, forKey: userIdKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: userIdKey)
+        }
     }
 
     /// Helyi gyors mentés (pl. keresési sugár) — profil szerverre külön.
@@ -79,6 +87,8 @@ final class ProfileStore: ObservableObject {
             profile = decoded
         }
         token = UserDefaults.standard.string(forKey: tokenKey)
+        let storedId = UserDefaults.standard.integer(forKey: userIdKey)
+        userId = storedId > 0 ? storedId : nil
     }
 
     // MARK: - Profilkép
@@ -140,6 +150,7 @@ final class ProfileStore: ObservableObject {
         do {
             let user = try await AuthAPI.me(token: token)
             applyRemote(user)
+            saveLocal()
             authError = nil
         } catch {
             // Token érvénytelen vagy szerver offline — kijelentkeztetünk ha 401 jellegű
@@ -232,6 +243,7 @@ final class ProfileStore: ObservableObject {
     }
 
     private func applyRemote(_ user: AuthAPI.RemoteUser) {
+        userId = user.id
         profile.apply(remote: user)
         loadAvatarFromDisk()
     }
@@ -239,8 +251,11 @@ final class ProfileStore: ObservableObject {
     private func clearSession() {
         clearAvatar()
         token = nil
+        userId = nil
         profile = UserProfile()
         UserDefaults.standard.removeObject(forKey: profileKey)
         UserDefaults.standard.removeObject(forKey: tokenKey)
+        UserDefaults.standard.removeObject(forKey: userIdKey)
+        PushNotificationService.shared.stopPolling()
     }
 }

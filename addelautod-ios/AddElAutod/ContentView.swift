@@ -89,6 +89,15 @@ struct ContentView: View {
                 .padding(.bottom, 8)
         }
         .background(AppTheme.bg.ignoresSafeArea())
+        .task(id: profile.token) {
+            guard profile.isLoggedIn, let token = profile.token else {
+                PushNotificationService.shared.stopPolling()
+                return
+            }
+            let store = profile
+            await PushNotificationService.shared.requestPermissionAndRegister(authToken: token)
+            PushNotificationService.shared.startPolling { store.token }
+        }
     }
 }
 

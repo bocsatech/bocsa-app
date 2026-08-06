@@ -12,6 +12,8 @@ struct SearchScreen: View {
     @State private var brandQuery = ""
     @State private var toast: String?
     @State private var activeQuery: ListingQuery?
+    @State private var messageTarget: ListingMessageTarget?
+    @State private var messagesReturn: Mode = .landing
 
     private enum Mode {
         case landing, search, settings, messages, results, filterResults
@@ -41,7 +43,13 @@ struct SearchScreen: View {
                     }
                 })
             case .messages:
-                MessagesScreen(onClose: { mode = .landing })
+                MessagesScreen(
+                    onClose: {
+                        messageTarget = nil
+                        mode = messagesReturn
+                    },
+                    initialTarget: messageTarget
+                )
             case .results:
                 if let query = activeQuery {
                     CategoryResultsScreen(
@@ -56,16 +64,20 @@ struct SearchScreen: View {
                             } else {
                                 mode = .settings
                             }
-                        }
+                        },
+                        onMessage: { openMessages(from: .results, target: $0) }
                     )
                 } else {
                     searchLanding
                 }
             case .filterResults:
-                FilterResultsScreen(onBack: {
-                    mode = .search
-                    panel = listPanel
-                })
+                FilterResultsScreen(
+                    onBack: {
+                        mode = .search
+                        panel = listPanel
+                    },
+                    onMessage: { openMessages(from: .filterResults, target: $0) }
+                )
             }
         }
         .alert("Mentés", isPresented: Binding(
@@ -129,7 +141,7 @@ struct SearchScreen: View {
                         label: "Üzenetek",
                         tint: Color(red: 0.20, green: 0.55, blue: 0.85)
                     ) {
-                        mode = .messages
+                        openMessages(from: .landing, target: nil)
                     }
                     HomeIconButton(
                         systemName: "gearshape.fill",
@@ -978,6 +990,12 @@ struct SearchScreen: View {
         store.applyListingQuery(query)
         activeQuery = query
         mode = .results
+    }
+
+    private func openMessages(from returnMode: Mode, target: ListingMessageTarget?) {
+        messagesReturn = returnMode
+        messageTarget = target
+        mode = .messages
     }
 
     private var priceValue: String {

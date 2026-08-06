@@ -4,6 +4,7 @@ import SwiftUI
 struct FilterResultsScreen: View {
   @EnvironmentObject private var store: SearchStore
   var onBack: () -> Void
+  var onMessage: ((ListingMessageTarget) -> Void)? = nil
 
   private var items: [DemoListing] {
     DemoListing.filtered(for: store.filter)
@@ -45,38 +46,46 @@ struct FilterResultsScreen: View {
 
   @ViewBuilder
   private func listingRow(_ car: DemoListing) -> some View {
-    HStack(alignment: .top, spacing: 12) {
-      RoundedRectangle(cornerRadius: 10, style: .continuous)
-        .fill(Color(.tertiarySystemFill))
-        .frame(width: 88, height: 66)
-        .overlay {
-          Image(systemName: "car.fill")
-            .foregroundStyle(.secondary)
-        }
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(alignment: .top, spacing: 12) {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+          .fill(Color(.tertiarySystemFill))
+          .frame(width: 88, height: 66)
+          .overlay {
+            Image(systemName: "car.fill")
+              .foregroundStyle(.secondary)
+          }
 
-      VStack(alignment: .leading, spacing: 6) {
-        HStack(alignment: .top) {
-          Text(car.title)
-            .font(.headline)
+        VStack(alignment: .leading, spacing: 6) {
+          HStack(alignment: .top) {
+            Text(car.title)
+              .font(.headline)
+              .foregroundStyle(AppTheme.text)
+              .multilineTextAlignment(.leading)
+            Spacer(minLength: 8)
+            Text("Add el autod")
+              .font(.caption2.weight(.bold))
+              .foregroundStyle(AppTheme.accent)
+              .padding(.horizontal, 8)
+              .padding(.vertical, 3)
+              .background(AppTheme.accent.opacity(0.12))
+              .clipShape(Capsule())
+          }
+
+          Text(car.priceLabel)
+            .font(.title3.weight(.bold))
             .foregroundStyle(AppTheme.text)
-            .multilineTextAlignment(.leading)
-          Spacer(minLength: 8)
-          Text("Add el autod")
-            .font(.caption2.weight(.bold))
-            .foregroundStyle(AppTheme.accent)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(AppTheme.accent.opacity(0.12))
-            .clipShape(Capsule())
+
+          Text(car.meta)
+            .font(.subheadline)
+            .foregroundStyle(AppTheme.textSecondary)
         }
+      }
 
-        Text(car.priceLabel)
-          .font(.title3.weight(.bold))
-          .foregroundStyle(AppTheme.text)
-
-        Text(car.meta)
-          .font(.subheadline)
-          .foregroundStyle(AppTheme.textSecondary)
+      if let onMessage {
+        MessageListingButton {
+          onMessage(car.messageTarget)
+        }
       }
     }
     .padding(14)

@@ -49,6 +49,7 @@ import {
 } from "./lib/vehicle-catalog.mjs";
 import { searchHasznaltauto } from "./lib/ha-search.mjs";
 import { handleAuthApi, initAuthSchema, authStats } from "./lib/auth-users.mjs";
+import { handleMessagesApi, initMessagingSchema } from "./lib/messaging.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -671,6 +672,11 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (pathname.startsWith("/api/messages")) {
+    await handleMessagesApi(req, res, pathname);
+    return;
+  }
+
   if (pathname === "/api/open-chrome" && req.method === "POST") {
     await handleOpenChrome(req, res);
     return;
@@ -749,8 +755,10 @@ server.listen(PORT, HOST, async () => {
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
   try {
     initAuthSchema();
+    initMessagingSchema();
     const auth = authStats();
     console.log(`Fiókok: ${auth.users} felhasználó, ${auth.sessions} aktív session`);
+    console.log("Üzenetek API: /api/messages/*");
   } catch (error) {
     console.warn("Auth séma:", error.message ?? error);
   }

@@ -30,6 +30,14 @@ Utána: **Signing (Apple ID)** → **iPhone 16** → **Clean Build Folder** → 
 
 7 swipe oldal: Hírfolyam | Facebook | YouTube | Ajánlások | Kiemeltek | Keresés | Mentett
 
+### Üzenetek (willhaben-szerű)
+
+- Autosweb **3456** kell (szerveren tárolt chat, nem csak a telefonon)
+- Listákon **Üzenet** gomb → chat a hirdetés előnézetével
+- Keresés oldalon **Üzenetek** ikon → összesített inbox
+- Csatolmány: fotó / PDF / DOC, max **10 MB**
+- Blokkolás + helyi „új üzenet” értesítés (APNs később)
+
 ---
 
 ## ZIP (alternatíva)
