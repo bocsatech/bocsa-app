@@ -148,6 +148,30 @@ enum PartnerRecommendationsClient {
   /// Asztali Autosweb (Bocsa / partnerek) — 3456
   static var baseURL = URL(string: "http://127.0.0.1:3456")!
 
+  /// Irányítószám → település (GET /api/postal-codes/lookup)
+  static func lookupCity(postalCode: String) async -> String? {
+    let digits = String(postalCode.filter(\.isNumber).prefix(4))
+    guard digits.count == 4 else { return nil }
+    var components = URLComponents(
+      url: baseURL.appendingPathComponent("api/postal-codes/lookup"),
+      resolvingAgainstBaseURL: false
+    )!
+    components.queryItems = [URLQueryItem(name: "postal_code", value: digits)]
+    guard let url = components.url else { return nil }
+    var request = URLRequest(url: url)
+    request.timeoutInterval = 3
+    do {
+      let (data, response) = try await URLSession.shared.data(for: request)
+      guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+        return nil
+      }
+      struct Row: Decodable { let city: String? }
+      return try JSONDecoder().decode(Row.self, from: data).city
+    } catch {
+      return nil
+    }
+  }
+
   static func fetch(postalCode: String) async throws -> (city: String?, categories: [PartnerCategoryGroup]) {
     var components = URLComponents(
       url: baseURL.appendingPathComponent("api/partners/recommendations"),

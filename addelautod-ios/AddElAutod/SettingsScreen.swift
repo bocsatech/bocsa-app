@@ -79,21 +79,7 @@ struct SettingsScreen: View {
                 .textFieldStyle(.roundedBorder)
                 .textContentType(.streetAddressLine1)
 
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 6) {
-                    fieldLabel("Irányítószám")
-                    TextField("", text: $profile.profile.postalCode)
-                        .textFieldStyle(.roundedBorder)
-                        .textContentType(.postalCode)
-                        .keyboardType(.numberPad)
-                }
-                VStack(alignment: .leading, spacing: 6) {
-                    fieldLabel("Város")
-                    TextField("", text: $profile.profile.city)
-                        .textFieldStyle(.roundedBorder)
-                        .textContentType(.addressCity)
-                }
-            }
+            postalAndCityRow
 
             fieldLabel("Ország")
             TextField("", text: $profile.profile.country)
