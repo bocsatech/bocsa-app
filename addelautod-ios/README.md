@@ -30,6 +30,11 @@ Utána: **Signing (Apple ID)** → **iPhone 16** → **Clean Build Folder** → 
 
 7 swipe oldal: Hírfolyam | Facebook | YouTube | Ajánlások | Kiemeltek | Keresés | Mentett
 
+### Kiemeltek
+
+- Ugyanaz a lista, mint a webes főoldalon (`GET /api/listings`, Autosweb **3456**)
+- Később külön jelöljük a tényleges „kiemelt” hirdetéseket
+
 ### Üzenetek (willhaben-szerű)
 
 - Autosweb **3456** kell (szerveren tárolt chat, nem csak a telefonon)

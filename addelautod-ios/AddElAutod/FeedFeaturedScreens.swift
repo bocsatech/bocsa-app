@@ -63,64 +63,133 @@ private struct FeedCard: View {
     }
 }
 
+/// Ugyanazok a hirdetések, mint a webes főoldalon (`GET /api/listings`).
 struct FeaturedScreen: View {
     @EnvironmentObject private var profile: ProfileStore
     @State private var messageTarget: ListingMessageTarget?
+    @State private var listings: [ListingsAPI.HomeListing] = []
+    @State private var loading = true
+    @State private var errorText: String?
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(title: "Kiemeltek", subtitle: "Autós oldal hirdetései")
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(SampleContent.featured) { ad in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack(alignment: .top) {
-                                Text(ad.title)
-                                    .font(.headline)
-                                    .foregroundStyle(AppTheme.text)
-                                Spacer()
-                                if let badge = ad.badge {
-                                    Text(badge)
-                                        .font(.caption2.weight(.bold))
-                                        .foregroundStyle(AppTheme.accent)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 3)
-                                        .background(AppTheme.accent.opacity(0.12))
-                                        .clipShape(Capsule())
-                                }
-                            }
-                            Text(ad.priceLabel)
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(AppTheme.text)
-                            Text(ad.meta)
-                                .font(.subheadline)
-                                .foregroundStyle(AppTheme.textSecondary)
-                            MessageListingButton {
-                                messageTarget = ad.messageTarget
-                            }
-                            .padding(.top, 4)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(16)
-                        .background(AppTheme.bgElevated)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(AppTheme.border, lineWidth: 0.5)
-                        )
-                    }
-                    Text("Demo lista — később Autosweb kiemeltek.")
-                        .font(.footnote)
-                        .foregroundStyle(AppTheme.textTertiary)
-                        .padding(.top, 8)
+            ScreenHeader(
+                title: "Kiemeltek",
+                subtitle: subtitleText,
+                rightLabel: "Frissítés",
+                onRight: { Task { await reload() } }
+            )
+
+            if loading && listings.isEmpty {
+                ProgressView("Betöltés…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let errorText, listings.isEmpty {
+                VStack(spacing: 12) {
+                    Text(errorText)
+                        .font(.subheadline)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                    Button("Újra") { Task { await reload() } }
                 }
-                .padding(16)
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if listings.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "car.side")
+                        .font(.system(size: 36))
+                        .foregroundStyle(AppTheme.textTertiary)
+                    Text("Még nincs hirdetés a webes főoldalon.")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                    Text("Importáld / mentsd az Autosweben, majd Frissítés.")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textTertiary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(listings) { ad in
+                            listingCard(ad)
+                        }
+                        Text("Ugyanaz a lista, mint a webes főoldalon. Később külön jelöljük a tényleges kiemelést.")
+                            .font(.footnote)
+                            .foregroundStyle(AppTheme.textTertiary)
+                            .padding(.top, 8)
+                    }
+                    .padding(16)
+                }
+                .refreshable { await reload() }
             }
         }
         .background(AppTheme.bg)
+        .task { await reload() }
         .fullScreenCover(item: $messageTarget) { target in
             MessagesScreen(onClose: { messageTarget = nil }, initialTarget: target)
                 .environmentObject(profile)
+        }
+    }
+
+    private var subtitleText: String {
+        if loading && listings.isEmpty { return "Autosweb…" }
+        if let errorText, listings.isEmpty { return "Hiba" }
+        if listings.isEmpty { return "Nincs hirdetés" }
+        return "\(listings.count) hirdetés · Autosweb"
+    }
+
+    @ViewBuilder
+    private func listingCard(_ ad: ListingsAPI.HomeListing) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top) {
+                Text(ad.title)
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.text)
+                Spacer()
+                if let badge = ad.badge {
+                    Text(badge)
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(AppTheme.accent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(AppTheme.accent.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+            }
+            Text(ad.priceLabel)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(AppTheme.text)
+            Text(ad.meta)
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+            MessageListingButton {
+                messageTarget = ad.messageTarget
+            }
+            .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(AppTheme.bgElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppTheme.border, lineWidth: 0.5)
+        )
+    }
+
+    private func reload() async {
+        loading = true
+        errorText = nil
+        defer { loading = false }
+        do {
+            listings = try await ListingsAPI.fetchHomeListings()
+        } catch {
+            errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            if listings.isEmpty == false {
+                // megtartjuk a legutóbbi listát, ha már volt
+            }
         }
     }
 }
