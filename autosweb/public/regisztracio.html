@@ -134,6 +134,22 @@
       <section class="login-card" aria-labelledby="register-title">
         <h1 class="login-title" id="register-title">Regisztráció</h1>
         <p class="login-lead">Hozz létre fiókot, és add fel autód hirdetését.</p>
+        <div class="oauth-block" data-oauth-buttons>
+          <button type="button" class="oauth-btn oauth-btn--google" data-oauth-provider="google">
+            <span class="oauth-btn-icon" aria-hidden="true">G</span>
+            Folytatás Google-lal
+          </button>
+          <button type="button" class="oauth-btn oauth-btn--apple" data-oauth-provider="apple">
+            <span class="oauth-btn-icon" aria-hidden="true"></span>
+            Folytatás Apple-lel
+          </button>
+          <button type="button" class="oauth-btn oauth-btn--facebook" data-oauth-provider="facebook">
+            <span class="oauth-btn-icon" aria-hidden="true">f</span>
+            Folytatás Facebookkal
+          </button>
+          <p class="oauth-hint" data-oauth-hint hidden></p>
+        </div>
+        <div class="login-divider" aria-hidden="true"><span>vagy emaillel</span></div>
         <form id="register-form" class="login-form">
           <label class="login-field">
             <span class="login-label">Email</span>
@@ -151,14 +167,14 @@
           <button type="submit" class="site-header-btn site-header-btn--primary login-submit">Regisztráció</button>
         </form>
         <div id="register-ok" class="login-lead" hidden></div>
-        <p class="login-hint">Az emailben kapott linkkel kell aktiválni a fiókot, utána lehet belépni.</p>
+        <p class="login-hint">Email regisztrációnál aktiváló link kell; social belépésnél azonnal beléphetsz.</p>
         <p class="login-hint">Már van fiókod? <a href="/belepes.html">Belépés</a></p>
       </section>
     </main>
 
-    <script src="/js/site-avatar-menu.js?v=auth20260805localdb9" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=auth20260806oauth1" type="module"></script>
     <script type="module">
-      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=auth20260805localdb9";
+      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=auth20260806oauth1";
       initSiteAuth();
       initRegisterPage();
     </script>

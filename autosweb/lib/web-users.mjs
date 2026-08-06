@@ -107,8 +107,22 @@ export function initWebUsersSchema(db = getDb()) {
       FOREIGN KEY (user_id) REFERENCES web_users(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS web_user_identities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      provider TEXT NOT NULL,
+      provider_subject TEXT NOT NULL,
+      email TEXT,
+      raw_profile_json TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE (provider, provider_subject),
+      FOREIGN KEY (user_id) REFERENCES web_users(id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_web_sessions_user ON web_sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_web_sessions_expires ON web_sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_web_user_identities_user ON web_user_identities(user_id);
   `);
 
   // Régi DB-k: meglévő userek aktívak maradnak (DEFAULT 1).
@@ -130,6 +144,137 @@ function createSession(userId) {
     `INSERT INTO web_sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)`
   ).run(tokenHash(token), userId, expiresAt);
   return { token, expires };
+}
+
+/** OAuth / külső belépés utáni session. */
+export function createUserSession(userId) {
+  return createSession(userId);
+}
+
+function hasPasswordHash(row) {
+  return Boolean(String(row?.password_salt ?? "").trim() && String(row?.password_hash ?? "").trim());
+}
+
+function linkIdentity(userId, { provider, subject, email = "", profile = {} }) {
+  const db = getDb();
+  const existing = db
+    .prepare(
+      `SELECT id, user_id FROM web_user_identities WHERE provider = ? AND provider_subject = ?`
+    )
+    .get(provider, subject);
+  if (existing) {
+    if (Number(existing.user_id) !== Number(userId)) {
+      throw new Error("Ez a social fiók már másik Autosweb felhasználóhoz van kötve.");
+    }
+    db.prepare(
+      `UPDATE web_user_identities
+       SET email = ?, raw_profile_json = ?, updated_at = datetime('now')
+       WHERE id = ?`
+    ).run(email || null, JSON.stringify(profile ?? {}), existing.id);
+    return existing.id;
+  }
+  const info = db
+    .prepare(
+      `INSERT INTO web_user_identities (user_id, provider, provider_subject, email, raw_profile_json)
+       VALUES (?, ?, ?, ?, ?)`
+    )
+    .run(userId, provider, subject, email || null, JSON.stringify(profile ?? {}));
+  return Number(info.lastInsertRowid);
+}
+
+/**
+ * Google / Apple / Facebook belépés → helyi user + identity.
+ * @param {{ provider: string, subject: string, email?: string, name?: string, emailVerified?: boolean, profile?: object }} identity
+ */
+export function findOrCreateOAuthUser(identity) {
+  const provider = String(identity?.provider ?? "").trim().toLowerCase();
+  const subject = String(identity?.subject ?? "").trim();
+  if (!provider || !subject) {
+    throw new Error("Hiányzó OAuth azonosító.");
+  }
+
+  const db = getDb();
+  const byIdentity = db
+    .prepare(
+      `SELECT u.*
+       FROM web_user_identities i
+       JOIN web_users u ON u.id = i.user_id
+       WHERE i.provider = ? AND i.provider_subject = ?`
+    )
+    .get(provider, subject);
+
+  if (byIdentity) {
+    linkIdentity(byIdentity.id, {
+      provider,
+      subject,
+      email: identity.email || byIdentity.email,
+      profile: identity.profile ?? {},
+    });
+    if (Number(byIdentity.email_verified) !== 1 && identity.emailVerified !== false) {
+      db.prepare(
+        `UPDATE web_users SET email_verified = 1, updated_at = datetime('now') WHERE id = ?`
+      ).run(byIdentity.id);
+    }
+    const session = createSession(byIdentity.id);
+    return { user: getUserById(byIdentity.id), session, created: false };
+  }
+
+  let email = normalizeEmail(identity.email);
+  if (!email) {
+    email = `${provider}.${subject.replace(/[^\w.-]+/g, "").slice(0, 48)}@oauth.local`;
+  }
+
+  let userRow = db.prepare(`SELECT * FROM web_users WHERE email = ?`).get(email);
+  let created = false;
+
+  if (!userRow) {
+    const displayName = String(identity.name ?? "").trim().slice(0, 40) || null;
+    const info = db
+      .prepare(
+        `INSERT INTO web_users (
+           email, password_salt, password_hash, display_name, profile_json, email_verified
+         ) VALUES (?, '', '', ?, '{}', 1)`
+      )
+      .run(email, displayName);
+    userRow = db.prepare(`SELECT * FROM web_users WHERE id = ?`).get(Number(info.lastInsertRowid));
+    created = true;
+  } else if (Number(userRow.email_verified) !== 1) {
+    db.prepare(
+      `UPDATE web_users
+       SET email_verified = 1, activation_token_hash = NULL, activation_expires_at = NULL,
+           updated_at = datetime('now')
+       WHERE id = ?`
+    ).run(userRow.id);
+  }
+
+  linkIdentity(userRow.id, {
+    provider,
+    subject,
+    email,
+    profile: identity.profile ?? {},
+  });
+
+  if (identity.name && !userRow.display_name) {
+    const name = String(identity.name).trim().slice(0, 40);
+    if (name) {
+      db.prepare(
+        `UPDATE web_users SET display_name = ?, updated_at = datetime('now') WHERE id = ?`
+      ).run(name, userRow.id);
+    }
+  }
+
+  const session = createSession(userRow.id);
+  return { user: getUserById(userRow.id), session, created };
+}
+
+export function listUserIdentities(userId) {
+  const db = getDb();
+  return db
+    .prepare(
+      `SELECT provider, provider_subject, email, created_at
+       FROM web_user_identities WHERE user_id = ? ORDER BY provider`
+    )
+    .all(userId);
 }
 
 export function destroySession(token) {
@@ -283,7 +428,15 @@ export function loginUser(email, password) {
 
   const db = getDb();
   const row = db.prepare(`SELECT * FROM web_users WHERE email = ?`).get(normalized);
-  if (!row || !verifyPassword(pass, row.password_salt, row.password_hash)) {
+  if (!row) {
+    throw new Error("Hibás email vagy jelszó.");
+  }
+  if (!hasPasswordHash(row)) {
+    throw new Error(
+      "Ez a fiók Google / Apple / Facebook belépéssel készült — használd a social gombot."
+    );
+  }
+  if (!verifyPassword(pass, row.password_salt, row.password_hash)) {
     throw new Error("Hibás email vagy jelszó.");
   }
   if (Number(row.email_verified ?? 1) !== 1) {
@@ -300,15 +453,18 @@ export function changeUserPassword(userId, currentPassword, newPassword, newPass
   const current = String(currentPassword ?? "").trim();
   const next = String(newPassword ?? "").trim();
   const confirm = String(newPasswordConfirm ?? "").trim();
-  if (!current || !next) throw new Error("A jelenlegi és az új jelszó kötelező.");
+  if (!next) throw new Error("Az új jelszó kötelező.");
   if (next !== confirm) throw new Error("A két új jelszó nem egyezik.");
   if (next.length < 4) throw new Error("Az új jelszó legalább 4 karakter legyen.");
 
   const db = getDb();
   const row = db.prepare(`SELECT * FROM web_users WHERE id = ?`).get(userId);
   if (!row) throw new Error("Nem vagy bejelentkezve.");
-  if (!verifyPassword(current, row.password_salt, row.password_hash)) {
-    throw new Error("A jelenlegi jelszó hibás.");
+  if (hasPasswordHash(row)) {
+    if (!current) throw new Error("A jelenlegi és az új jelszó kötelező.");
+    if (!verifyPassword(current, row.password_salt, row.password_hash)) {
+      throw new Error("A jelenlegi jelszó hibás.");
+    }
   }
 
   const { salt, hash } = hashPassword(next);

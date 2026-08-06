@@ -395,6 +395,8 @@ export function initRegisterPage() {
   const okEl = document.getElementById("register-ok");
   if (!form) return;
 
+  initOAuthButtons();
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (errorEl) errorEl.hidden = true;
@@ -426,6 +428,13 @@ export function initLoginPage() {
 
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next") || "/hirdetesfeladas.html";
+  const oauthError = params.get("oauth_error");
+  if (oauthError && errorEl) {
+    errorEl.hidden = false;
+    errorEl.textContent = oauthError;
+  }
+
+  initOAuthButtons({ next });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -446,6 +455,52 @@ export function initLoginPage() {
       }
     }
   });
+}
+
+export async function initOAuthButtons({ next = "/hirdetesfeladas.html" } = {}) {
+  const root = document.querySelector("[data-oauth-buttons]");
+  if (!root) return;
+  const hint = root.querySelector("[data-oauth-hint]");
+  const buttons = [...root.querySelectorAll("[data-oauth-provider]")];
+
+  let providers = [];
+  try {
+    const data = await authFetch("/api/auth/oauth/providers");
+    providers = data.providers ?? [];
+  } catch {
+    providers = [];
+  }
+
+  const byId = new Map(providers.map((p) => [p.id, p]));
+  const enabledCount = providers.filter((p) => p.enabled).length;
+
+  for (const btn of buttons) {
+    const id = btn.getAttribute("data-oauth-provider");
+    const info = byId.get(id);
+    const enabled = Boolean(info?.enabled);
+    btn.disabled = !enabled;
+    btn.title = enabled
+      ? `Belépés ${info.label}-lal`
+      : `${info?.label || id} még nincs beállítva (~/.autosweb/oauth.json)`;
+    btn.addEventListener("click", () => {
+      if (!enabled) {
+        if (hint) {
+          hint.hidden = false;
+          hint.textContent =
+            `${info?.label || id} OAuth nincs bekapcsolva. Futtasd: autosweb/mac/oauth-beallitas.command, majd töltsd ki a ~/.autosweb/oauth.json fájlt.`;
+        }
+        return;
+      }
+      const params = new URLSearchParams({ next });
+      window.location.href = `/api/auth/oauth/start/${id}?${params}`;
+    });
+  }
+
+  if (hint && enabledCount === 0) {
+    hint.hidden = false;
+    hint.textContent =
+      "Social belépés: állítsd be a Google / Apple / Facebook appokat (~/.autosweb/oauth.json). Email regisztráció továbbra is működik.";
+  }
 }
 
 export function initActivatePage() {

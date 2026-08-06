@@ -67,11 +67,23 @@ import {
   registerUser,
   activateUserByToken,
   createActivationForEmail,
+  findOrCreateOAuthUser,
   saveUserProfile,
   sessionCookieHeader,
   setUserDisplayName,
 } from "./lib/web-users.mjs";
 import { ensureSmtpExample, isSmtpConfigured, sendMail, smtpConfigPath } from "./lib/mail.mjs";
+import {
+  appleNameFromForm,
+  buildAuthorizeUrl,
+  createOAuthState,
+  ensureOAuthExample,
+  exchangeOAuthCode,
+  listOAuthProviders,
+  loadOAuthConfig,
+  oauthConfigPath,
+  parseOAuthState,
+} from "./lib/oauth.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -108,6 +120,27 @@ function readBody(req) {
     });
     req.on("error", reject);
   });
+}
+
+function readRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    req.on("error", reject);
+  });
+}
+
+function parseFormBody(raw) {
+  const params = new URLSearchParams(raw || "");
+  const out = {};
+  for (const [key, value] of params.entries()) out[key] = value;
+  return out;
+}
+
+function sendRedirect(res, location, headers = {}) {
+  res.writeHead(302, { Location: location, ...headers });
+  res.end();
 }
 
 function sendJson(res, status, data, headers = {}) {
@@ -697,8 +730,80 @@ async function handleAuthApi(req, res, pathname) {
         currentProfile: currentUser?.profile || null,
         smtpConfigured: isSmtpConfigured(),
         smtpPath: smtpConfigPath(),
+        oauthPath: oauthConfigPath(),
+        oauthProviders: listOAuthProviders(),
         ...inspectWebUsersDb(),
       });
+      return;
+    }
+
+    if (pathname === "/api/auth/oauth/providers" && req.method === "GET") {
+      ensureOAuthExample();
+      sendJson(res, 200, {
+        providers: listOAuthProviders(),
+        configPath: oauthConfigPath(),
+        publicBaseUrl: loadOAuthConfig()?.publicBaseUrl || `http://${HOST}:${PORT}`,
+      });
+      return;
+    }
+
+    const oauthStartMatch = pathname.match(/^\/api\/auth\/oauth\/start\/(google|apple|facebook)$/);
+    if (oauthStartMatch && req.method === "GET") {
+      const provider = oauthStartMatch[1];
+      ensureOAuthExample();
+      const urlObj = new URL(req.url ?? "", `http://${HOST}:${PORT}`);
+      const next = urlObj.searchParams.get("next") || "/hirdetesfeladas.html";
+      try {
+        const state = createOAuthState(provider, next);
+        const authorizeUrl = buildAuthorizeUrl(provider, state);
+        sendRedirect(res, authorizeUrl);
+      } catch (error) {
+        const msg = encodeURIComponent(error.message ?? "OAuth indítás sikertelen");
+        sendRedirect(res, `/belepes.html?oauth_error=${msg}`);
+      }
+      return;
+    }
+
+    const oauthCbMatch = pathname.match(/^\/api\/auth\/oauth\/callback\/(google|apple|facebook)$/);
+    if (oauthCbMatch && (req.method === "GET" || req.method === "POST")) {
+      const provider = oauthCbMatch[1];
+      try {
+        let params;
+        if (req.method === "POST") {
+          const raw = await readRawBody(req);
+          const type = String(req.headers["content-type"] || "");
+          if (type.includes("application/json")) {
+            params = raw ? JSON.parse(raw) : {};
+          } else {
+            params = parseFormBody(raw);
+          }
+        } else {
+          const urlObj = new URL(req.url ?? "", `http://${HOST}:${PORT}`);
+          params = Object.fromEntries(urlObj.searchParams.entries());
+        }
+
+        if (params.error) {
+          throw new Error(params.error_description || params.error);
+        }
+
+        const stateInfo = parseOAuthState(params.state, provider);
+        const identity = await exchangeOAuthCode(provider, params.code);
+        if (provider === "apple") {
+          const appleName = appleNameFromForm(params.user);
+          if (appleName && !identity.name) identity.name = appleName;
+        }
+
+        const { user, session } = findOrCreateOAuthUser(identity);
+        const nextPath = stateInfo.next.startsWith("/") ? stateInfo.next : "/hirdetesfeladas.html";
+        sendRedirect(res, nextPath, {
+          "Set-Cookie": sessionCookieHeader(session.token, session.expires),
+        });
+        console.log(`OAuth OK (${provider}): ${user.email}`);
+      } catch (error) {
+        const msg = encodeURIComponent(error.message ?? "OAuth sikertelen");
+        sendRedirect(res, `/belepes.html?oauth_error=${msg}`);
+        console.warn("OAuth hiba:", error.message ?? error);
+      }
       return;
     }
 
@@ -991,8 +1096,9 @@ server.listen(PORT, HOST, async () => {
   try {
     ensureProfilesStore();
     ensureSmtpExample();
+    ensureOAuthExample();
   } catch (error) {
-    console.warn("Profil/SMTP store:", error.message ?? error);
+    console.warn("Profil/SMTP/OAuth store:", error.message ?? error);
   }
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log(`User DB: ${getDbPath()}`);
@@ -1001,6 +1107,15 @@ server.listen(PORT, HOST, async () => {
   } else {
     console.warn(
       `SMTP: NINCS — másold ~/.autosweb/smtp.example.json → smtp.json (Gmail app jelszó). Futtasd: autosweb/mac/smtp-beallitas.command`
+    );
+  }
+  const oauthProviders = listOAuthProviders();
+  const enabledOauth = oauthProviders.filter((p) => p.enabled).map((p) => p.label);
+  if (enabledOauth.length) {
+    console.log(`OAuth: ${enabledOauth.join(", ")} (${oauthConfigPath()})`);
+  } else {
+    console.warn(
+      `OAuth: nincs aktív provider — szerkeszd: ${oauthConfigPath()} (példa: ~/.autosweb/oauth.example.json). Futtasd: autosweb/mac/oauth-beallitas.command`
     );
   }
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");

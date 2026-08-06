@@ -134,6 +134,22 @@
       <section class="login-card" aria-labelledby="login-title">
         <h1 class="login-title" id="login-title">Belépés</h1>
         <p class="login-lead">A hirdetésfeladáshoz jelentkezz be a fiókodba.</p>
+        <div class="oauth-block" data-oauth-buttons>
+          <button type="button" class="oauth-btn oauth-btn--google" data-oauth-provider="google">
+            <span class="oauth-btn-icon" aria-hidden="true">G</span>
+            Folytatás Google-lal
+          </button>
+          <button type="button" class="oauth-btn oauth-btn--apple" data-oauth-provider="apple">
+            <span class="oauth-btn-icon" aria-hidden="true"></span>
+            Folytatás Apple-lel
+          </button>
+          <button type="button" class="oauth-btn oauth-btn--facebook" data-oauth-provider="facebook">
+            <span class="oauth-btn-icon" aria-hidden="true">f</span>
+            Folytatás Facebookkal
+          </button>
+          <p class="oauth-hint" data-oauth-hint hidden></p>
+        </div>
+        <div class="login-divider" aria-hidden="true"><span>vagy emaillel</span></div>
         <form id="login-form" class="login-form">
           <label class="login-field">
             <span class="login-label">Email</span>
@@ -150,9 +166,9 @@
       </section>
     </main>
 
-    <script src="/js/site-avatar-menu.js?v=auth20260805mail1" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=auth20260806oauth1" type="module"></script>
     <script type="module">
-      import { initLoginPage, initSiteAuth } from "/js/site-auth.js?v=auth20260805mail1";
+      import { initLoginPage, initSiteAuth } from "/js/site-auth.js?v=auth20260806oauth1";
       initSiteAuth();
       initLoginPage();
     </script>

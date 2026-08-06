@@ -122,6 +122,12 @@ update_from_github() {
     chmod +x "$HOME/Desktop/Autosweb-smtp-beallitas.command"
     echo "  ✓ SMTP beállító az Asztalon: Autosweb-smtp-beallitas.command"
   fi
+  if [ -f "$src/mac/oauth-beallitas.command" ]; then
+    mkdir -p "$HOME/Desktop"
+    cp "$src/mac/oauth-beallitas.command" "$HOME/Desktop/Autosweb-oauth-beallitas.command"
+    chmod +x "$HOME/Desktop/Autosweb-oauth-beallitas.command"
+    echo "  ✓ OAuth beállító az Asztalon: Autosweb-oauth-beallitas.command"
+  fi
 
   rm -rf "$tmp"
   echo "  ✓ Fájlok frissítve"
