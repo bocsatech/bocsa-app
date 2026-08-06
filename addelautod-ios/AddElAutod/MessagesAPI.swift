@@ -201,6 +201,11 @@ enum MessagesAPI {
       guard let http = response as? HTTPURLResponse else { throw MsgError.unreachable }
       if http.statusCode >= 400 {
         let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+        if err == "Ismeretlen API." {
+          throw MsgError.server(
+            "Régi Autosweb fut (nincs üzenet API). Indítsd újra az Autosweb-indito.command-ot online, majd Újra."
+          )
+        }
         throw MsgError.server(err ?? "HTTP \(http.statusCode)")
       }
       return data
