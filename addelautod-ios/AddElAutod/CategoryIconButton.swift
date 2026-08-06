@@ -1,12 +1,11 @@
 import SwiftUI
 
-/// Autosweb kategóriaikon — nagyobb, 3 / sor; kép nem vágódik (fit)
+/// Autosweb kategóriaikon — vízszintes görgethető sorban
 struct CategoryIconButton: View {
     let category: QuickCategory
     let action: () -> Void
 
-    /// Nagyobb ikon; a rács 3 oszlopos, így elfér
-    private let iconSize: CGFloat = 100
+    private let iconSize: CGFloat = 88
     private let corner: CGFloat = 16
 
     var body: some View {
@@ -27,8 +26,8 @@ struct CategoryIconButton: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(AppTheme.text)
                     .lineLimit(1)
+                    .frame(width: iconSize)
             }
-            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(category.title)
