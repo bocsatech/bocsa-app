@@ -36,6 +36,7 @@
 		A1SAUTH002B /* SiteAuthBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1SAUTH001B /* SiteAuthBar.swift */; };
 		A1SOCL002B /* SocialWebScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1SOCL001B /* SocialWebScreens.swift */; };
 		A1AVAT002B /* ProfileAvatarViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AVAT001B /* ProfileAvatarViews.swift */; };
+		A1MSG002B /* MessagesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1MSG001B /* MessagesScreen.swift */; };
 		A1WEBK002B /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1WEBK001B /* WebKit.framework */; };
 /* End PBXBuildFile section */
 

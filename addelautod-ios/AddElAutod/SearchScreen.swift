@@ -14,7 +14,7 @@ struct SearchScreen: View {
     @State private var activeQuery: ListingQuery?
 
     private enum Mode {
-        case landing, search, settings, results, filterResults
+        case landing, search, settings, messages, results, filterResults
     }
 
     private enum Panel {
