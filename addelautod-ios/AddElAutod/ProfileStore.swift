@@ -47,7 +47,11 @@ final class ProfileStore: ObservableObject {
 
     init() {
         loadLocal()
-        Task { await restoreSession() }
+        if token == nil {
+            isRestoring = false
+        } else {
+            Task { await restoreSession() }
+        }
     }
 
     func saveLocal() {

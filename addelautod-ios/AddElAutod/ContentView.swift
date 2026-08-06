@@ -70,9 +70,9 @@ struct ContentView: View {
             TabView(selection: $page) {
                 FeedScreen()
                     .tag(0)
-                FacebookReelScreen()
+                SocialWebScreen(kind: .facebookReel, isActive: page == 1)
                     .tag(1)
-                YouTubeScreen()
+                SocialWebScreen(kind: .youTube, isActive: page == 2)
                     .tag(2)
                 RecommendationsScreen()
                     .tag(3)

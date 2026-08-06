@@ -31,14 +31,16 @@ Ha hibát ír (`project.pbxproj` hiányzik): **Quit Xcode**, töröld a `Letölt
 
 ### Ha nem indul („Application failed preflight checks” / Busy)
 
-Másold be a Terminálba:
+Másold be a Terminálba **egészben**:
 
 ```bash
-xcrun simctl shutdown all; xcrun simctl erase all; killall Simulator 2>/dev/null; killall "Simulator (SwiftUI Previews)" 2>/dev/null; rm -rf ~/Library/Developer/Xcode/DerivedData/AddElAutod-* ; open ~/Downloads/autosapp/AddElAutod.xcodeproj
+curl -fsSL https://raw.githubusercontent.com/bocsatech/bocsa-app/cursor/addelautod-mobile-de62/addelautod-ios/reset-simulator.sh | bash
 ```
 
-Utána Xcode-ban válassz **iPhone 16** simulatort → Clean → Cmd+R.  
-Ha még mindig Busy: Xcode menü **Window → Devices and Simulators** → töröld a beragadt iPhone-t → **+** új iPhone 16.
+Vagy lokálisan a klónból: `bash addelautod-ios/reset-simulator.sh`
+
+Utána Xcode-ban: **Signing** (Automatic + Apple ID) → **iPhone 16** → Clean → Cmd+R.  
+Ha még Busy: **Window → Devices and Simulators** → töröld az iPhone-t → **+** új iPhone 16.
 
 5 oldal: Hírfolyam | **Ajánlások** | Kiemeltek | Keresés | Mentett
 

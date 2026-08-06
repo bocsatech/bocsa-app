@@ -162,9 +162,17 @@ enum AuthAPI {
     return (token, user)
   }
 
+  private static let session: URLSession = {
+    let config = URLSessionConfiguration.ephemeral
+    config.timeoutIntervalForRequest = 3
+    config.timeoutIntervalForResource = 5
+    config.waitsForConnectivity = false
+    return URLSession(configuration: config)
+  }()
+
   private static func perform(_ request: URLRequest) async throws -> (Data, URLResponse) {
     do {
-      return try await URLSession.shared.data(for: request)
+      return try await session.data(for: request)
     } catch {
       throw AuthError.unreachable
     }
