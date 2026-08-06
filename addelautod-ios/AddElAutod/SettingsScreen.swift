@@ -9,6 +9,8 @@ struct SettingsScreen: View {
     @State private var currentPassword = ""
     @State private var newPassword = ""
     @State private var newPasswordConfirm = ""
+    @State private var cityLookupBusy = false
+    @State private var lastLookedUpPostal = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -149,11 +151,7 @@ struct SettingsScreen: View {
                 .font(.footnote)
                 .foregroundStyle(AppTheme.textSecondary)
 
-            fieldLabel("Irányítószám")
-            TextField("pl. 1117", text: $profile.profile.postalCode)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.numberPad)
-                .textContentType(.postalCode)
+            postalAndCityRow
 
             fieldLabel("Sugár (km)")
             Picker("Sugár", selection: $profile.profile.searchRadiusKm) {
@@ -297,6 +295,57 @@ struct SettingsScreen: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(AppTheme.bgElevated)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var postalAndCityRow: some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 6) {
+                fieldLabel("Irányítószám")
+                TextField("7083", text: $profile.profile.postalCode)
+                    .textFieldStyle(.roundedBorder)
+                    .textContentType(.postalCode)
+                    .keyboardType(.numberPad)
+                    .frame(width: 96)
+                    .onChange(of: profile.profile.postalCode) { _, newValue in
+                        let digits = String(newValue.filter(\.isNumber).prefix(4))
+                        if digits != newValue {
+                            profile.profile.postalCode = digits
+                            return
+                        }
+                        Task { await lookupCityFromPostal() }
+                    }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    fieldLabel("Település")
+                    if cityLookupBusy {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    }
+                }
+                TextField("automatikus", text: $profile.profile.city)
+                    .textFieldStyle(.roundedBorder)
+                    .textContentType(.addressCity)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .task {
+            await lookupCityFromPostal()
+        }
+    }
+
+    private func lookupCityFromPostal() async {
+        let digits = String(profile.profile.postalCode.filter(\.isNumber).prefix(4))
+        guard digits.count == 4 else { return }
+        guard digits != lastLookedUpPostal else { return }
+        cityLookupBusy = true
+        defer { cityLookupBusy = false }
+        if let city = await PartnerRecommendationsClient.lookupCity(postalCode: digits) {
+            lastLookedUpPostal = digits
+            profile.profile.city = city
+            profile.profile.postalCode = digits
+        }
     }
 
     private func fieldLabel(_ text: String) -> some View {
