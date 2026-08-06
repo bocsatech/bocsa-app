@@ -400,7 +400,12 @@ export async function initSettingsPage() {
   const profileForm = document.getElementById("mm-profile-form");
   profileForm?.elements?.namedItem("accountType")?.addEventListener("change", () => {
     const wrap = document.querySelector("[data-mm-company-wrap]");
-    if (wrap) wrap.hidden = profileForm.accountType.value !== "business";
+    const type = profileForm.accountType.value;
+    if (wrap) wrap.hidden = type !== "business" && type !== "dealer";
+    const companyLabel = document.querySelector("[data-mm-company-label]");
+    if (companyLabel) {
+      companyLabel.textContent = type === "dealer" ? "Kereskedés neve" : "Cégnév";
+    }
   });
 
   profileForm?.addEventListener("submit", async (event) => {
