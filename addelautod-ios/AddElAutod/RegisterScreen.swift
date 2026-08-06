@@ -1,31 +1,31 @@
 import SwiftUI
 
-/// Autosweb `/belepes.html` — külön Belépés képernyő.
-struct LoginScreen: View {
+/// Autosweb `/regisztracio.html` — külön Regisztráció képernyő.
+struct RegisterScreen: View {
     @EnvironmentObject private var profile: ProfileStore
 
     var onClose: (() -> Void)? = nil
-    var onGoRegister: (() -> Void)? = nil
-    /// Sikeres belépés után (pl. Beállítások megnyitása)
+    var onGoLogin: (() -> Void)? = nil
     var onSuccess: (() -> Void)? = nil
 
     @State private var email = ""
     @State private var password = ""
+    @State private var passwordConfirm = ""
     @State private var busy = false
 
     var body: some View {
         VStack(spacing: 0) {
-            authNavBar(title: "Belépés")
+            authNavBar
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     authCard {
-                        Text("Belépés")
+                        Text("Regisztráció")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(AppTheme.text)
                             .padding(.bottom, 6)
 
-                        Text("A hirdetésfeladáshoz jelentkezz be a fiókodba.")
+                        Text("Hozz létre fiókot, és add fel autód hirdetését.")
                             .font(.subheadline)
                             .foregroundStyle(AppTheme.textSecondary)
                             .padding(.bottom, 16)
@@ -56,7 +56,20 @@ struct LoginScreen: View {
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                                     .stroke(AppTheme.border, lineWidth: 1)
                             )
-                            .textContentType(.password)
+                            .textContentType(.newPassword)
+                            .padding(.bottom, 12)
+
+                        fieldLabel("Jelszó megerősítése")
+                        SecureField("", text: $passwordConfirm)
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 11)
+                            .background(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .stroke(AppTheme.border, lineWidth: 1)
+                            )
+                            .textContentType(.newPassword)
                             .padding(.bottom, 12)
 
                         if let err = profile.authError, !err.isEmpty {
@@ -73,7 +86,7 @@ struct LoginScreen: View {
                                 if busy {
                                     ProgressView().tint(.white)
                                 } else {
-                                    Text("Belépés")
+                                    Text("Regisztráció")
                                         .font(.body.weight(.semibold))
                                 }
                             }
@@ -83,15 +96,20 @@ struct LoginScreen: View {
                             .background(Color(red: 0.067, green: 0.067, blue: 0.067))
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         }
-                        .disabled(busy || email.trimmingCharacters(in: .whitespaces).isEmpty || password.isEmpty)
+                        .disabled(
+                            busy
+                                || email.trimmingCharacters(in: .whitespaces).isEmpty
+                                || password.isEmpty
+                                || passwordConfirm.isEmpty
+                        )
                         .padding(.top, 4)
 
                         HStack(spacing: 4) {
-                            Text("Nincs még fiókod?")
+                            Text("Már van fiókod?")
                                 .foregroundStyle(AppTheme.textSecondary)
-                            Button("Regisztráció") {
+                            Button("Belépés") {
                                 profile.authError = nil
-                                onGoRegister?()
+                                onGoLogin?()
                             }
                             .fontWeight(.medium)
                             .foregroundStyle(AppTheme.accent)
@@ -107,8 +125,7 @@ struct LoginScreen: View {
         .onAppear { profile.authError = nil }
     }
 
-    @ViewBuilder
-    private func authNavBar(title: String) -> some View {
+    private var authNavBar: some View {
         HStack {
             if let onClose {
                 Button("‹ Vissza", action: onClose)
@@ -156,9 +173,14 @@ struct LoginScreen: View {
     private func submit() async {
         busy = true
         defer { busy = false }
-        let ok = await profile.login(email: email, password: password)
+        let ok = await profile.register(
+            email: email,
+            password: password,
+            passwordConfirm: passwordConfirm
+        )
         if ok {
             password = ""
+            passwordConfirm = ""
             onSuccess?()
             onClose?()
         }
@@ -166,6 +188,6 @@ struct LoginScreen: View {
 }
 
 #Preview {
-    LoginScreen(onClose: {}, onGoRegister: {})
+    RegisterScreen(onClose: {}, onGoLogin: {})
         .environmentObject(ProfileStore())
 }

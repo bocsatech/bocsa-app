@@ -2,6 +2,9 @@ import SwiftUI
 
 struct SearchScreen: View {
     @EnvironmentObject private var store: SearchStore
+    /// Beállítások — auth-guard mint a weben
+    var onOpenSettings: (() -> Void)? = nil
+
     @State private var mode: Mode = .landing
     @State private var panel: Panel = .simple
     @State private var listPanel: Panel = .simple
@@ -45,7 +48,13 @@ struct SearchScreen: View {
                             activeQuery = nil
                             mode = .landing
                         },
-                        onOpenSettings: { mode = .settings }
+                        onOpenSettings: {
+                            if let onOpenSettings {
+                                onOpenSettings()
+                            } else {
+                                mode = .settings
+                            }
+                        }
                     )
                 } else {
                     searchLanding
@@ -117,7 +126,11 @@ struct SearchScreen: View {
                     label: "Beállítások",
                     tint: Color(red: 0.55, green: 0.58, blue: 0.62)
                 ) {
-                    mode = .settings
+                    if let onOpenSettings {
+                        onOpenSettings()
+                    } else {
+                        mode = .settings
+                    }
                 }
                 .padding(.bottom, 24)
             }

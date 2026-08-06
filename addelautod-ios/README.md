@@ -37,5 +37,5 @@ A **Keresés** találatai a saját (Add el autod) hirdetések.
 
 ## Közös fiók (web + app)
 
-Belépés / regisztráció ugyanarra az Autosweb fiókra megy (`http://127.0.0.1:3456/api/auth/*`).  
-Az app induláskor belépést kér; a Beállításokban mentett profil és jelszó a weben is megjelenik.
+A felső sávban **Belépés** / **Regisztráció** (mint a weben). Böngészhetsz belépés nélkül; a Beállításokhoz belépés kell.  
+Ugyanaz az Autosweb fiók (`3456` / `/api/auth/*`).
