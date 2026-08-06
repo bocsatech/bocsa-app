@@ -59,16 +59,6 @@ struct SettingsScreen: View {
                 }
             }
 
-            fieldLabel("Megszólítás")
-            Picker("", selection: $profile.profile.salutation) {
-                Text("—").tag("")
-                Text("Úr").tag("ur")
-                Text("Hölgy").tag("holgy")
-                Text("Egyéb").tag("egyeb")
-            }
-            .pickerStyle(.menu)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 6) {
                     fieldLabel("Keresztnév")
