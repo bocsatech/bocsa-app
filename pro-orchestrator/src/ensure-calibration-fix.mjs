@@ -74,7 +74,7 @@ async function downloadWillhabenFiles() {
   const root = getWillhabenRoot();
   for (const rel of WILLHABEN_REL_FILES) {
     const dest = path.join(root, rel);
-    const content = await downloadRaw(`pro-orchestrator/vendor/willhaben-pro/${rel}`);
+    const content = await downloadRaw(`willhaben-pro/${rel}`);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, content);
   }

@@ -11,6 +11,9 @@ Indító ikon (.app) építése egyszer a Macen:
   cd ~/Downloads/bocsa-app
   ./scripts/build-mac-launcher-app.sh willhaben-pro
 
+Telepítés Letöltésekbe (+ .app):
+  dupla kattintás: willhaben-pro/mac/telepites.command
+
 Mit csinál?
   - Megnyitja a Terminalt
   - caffeinate: a gép nem alszik el
