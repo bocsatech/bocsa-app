@@ -40,6 +40,8 @@ struct SearchScreen: View {
                         mode = .landing
                     }
                 })
+            case .messages:
+                MessagesScreen(onClose: { mode = .landing })
             case .results:
                 if let query = activeQuery {
                     CategoryResultsScreen(
@@ -121,15 +123,24 @@ struct SearchScreen: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 28)
 
-                HomeIconButton(
-                    systemName: "gearshape.fill",
-                    label: "Beállítások",
-                    tint: Color(red: 0.55, green: 0.58, blue: 0.62)
-                ) {
-                    if let onOpenSettings {
-                        onOpenSettings()
-                    } else {
-                        mode = .settings
+                HStack(spacing: 20) {
+                    HomeIconButton(
+                        systemName: "bubble.left.and.bubble.right.fill",
+                        label: "Üzenetek",
+                        tint: Color(red: 0.20, green: 0.55, blue: 0.85)
+                    ) {
+                        mode = .messages
+                    }
+                    HomeIconButton(
+                        systemName: "gearshape.fill",
+                        label: "Beállítások",
+                        tint: Color(red: 0.55, green: 0.58, blue: 0.62)
+                    ) {
+                        if let onOpenSettings {
+                            onOpenSettings()
+                        } else {
+                            mode = .settings
+                        }
                     }
                 }
                 .padding(.bottom, 24)
