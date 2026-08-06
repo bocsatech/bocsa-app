@@ -48,6 +48,7 @@ import {
   listModelYears,
 } from "./lib/vehicle-catalog.mjs";
 import { searchHasznaltauto } from "./lib/ha-search.mjs";
+import { handleAuthApi, initAuthSchema, authStats } from "./lib/auth-users.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -649,12 +650,24 @@ const server = createServer(async (req, res) => {
     } catch {
       /* ignore */
     }
+    let users = 0;
+    try {
+      users = authStats().users;
+    } catch {
+      /* ignore */
+    }
     sendJson(res, 200, {
       ok: true,
       version,
       chrome: findChromeExecutable(),
       haSearch: true,
+      users,
     });
+    return;
+  }
+
+  if (pathname.startsWith("/api/auth")) {
+    await handleAuthApi(req, res, pathname);
     return;
   }
 
@@ -734,6 +747,13 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, HOST, async () => {
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
+  try {
+    initAuthSchema();
+    const auth = authStats();
+    console.log(`Fiókok: ${auth.users} felhasználó, ${auth.sessions} aktív session`);
+  } catch (error) {
+    console.warn("Auth séma:", error.message ?? error);
+  }
   try {
     const stats = dbStats();
     console.log(`SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella)`);

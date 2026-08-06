@@ -1,132 +1,13 @@
+/**
+ * Közös fiók — Autosweb szerver (/api/auth/*) + localStorage token.
+ * A régi böngésző-only fiókok egyszer importálódnak a szerverre.
+ * Avatar menü: site-avatar-menu.js (külön script).
+ */
+
 const AUTH_KEY = "autosweb-auth-user";
+const TOKEN_KEY = "autosweb-auth-token";
 const USERS_KEY = "autosweb-auth-users";
-
-function readUsers() {
-  try {
-    const raw = localStorage.getItem(USERS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-export function getAuthUser() {
-  try {
-    const raw = sessionStorage.getItem(AUTH_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function isLoggedIn() {
-  return Boolean(getAuthUser()?.email);
-}
-
-export function register(email, password, passwordConfirm) {
-  const trimmedEmail = String(email ?? "").trim();
-  const trimmedPassword = String(password ?? "").trim();
-  const trimmedConfirm = String(passwordConfirm ?? "").trim();
-  if (!trimmedEmail || !trimmedPassword) {
-    throw new Error("Email és jelszó kötelező.");
-  }
-  if (trimmedPassword !== trimmedConfirm) {
-    throw new Error("A két jelszó nem egyezik.");
-  }
-  const users = readUsers();
-  if (users[trimmedEmail]) {
-    throw new Error("Ez az email már regisztrálva van.");
-  }
-  users[trimmedEmail] = { password: trimmedPassword, createdAt: Date.now() };
-  writeUsers(users);
-  sessionStorage.setItem(
-    AUTH_KEY,
-    JSON.stringify({ email: trimmedEmail, loggedInAt: Date.now() })
-  );
-}
-
-export function login(email, password) {
-  const trimmedEmail = String(email ?? "").trim();
-  const trimmedPassword = String(password ?? "").trim();
-  if (!trimmedEmail || !trimmedPassword) {
-    throw new Error("Email és jelszó kötelező.");
-  }
-  const users = readUsers();
-  const stored = users[trimmedEmail];
-  if (stored && stored.password !== trimmedPassword) {
-    throw new Error("Hibás email vagy jelszó.");
-  }
-  sessionStorage.setItem(
-    AUTH_KEY,
-    JSON.stringify({ email: trimmedEmail, loggedInAt: Date.now() })
-  );
-}
-
-export function logout() {
-  sessionStorage.removeItem(AUTH_KEY);
-}
-
-export function changePassword(currentPassword, newPassword, newPasswordConfirm) {
-  const user = getAuthUser();
-  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
-  const current = String(currentPassword ?? "").trim();
-  const next = String(newPassword ?? "").trim();
-  const confirm = String(newPasswordConfirm ?? "").trim();
-  if (!current || !next) throw new Error("A jelenlegi és az új jelszó kötelező.");
-  if (next !== confirm) throw new Error("A két új jelszó nem egyezik.");
-  if (next.length < 4) throw new Error("Az új jelszó legalább 4 karakter legyen.");
-
-  const users = readUsers();
-  const stored = users[user.email];
-  if (stored?.password && stored.password !== current) {
-    throw new Error("A jelenlegi jelszó hibás.");
-  }
-  users[user.email] = {
-    ...(stored ?? {}),
-    password: next,
-    updatedAt: Date.now(),
-  };
-  writeUsers(users);
-}
-
-export function getDisplayName() {
-  const user = getAuthUser();
-  if (!user?.email) return "";
-  const users = readUsers();
-  const stored = users[user.email]?.displayName;
-  if (stored) return String(stored);
-  const local = user.email.split("@")[0] || user.email;
-  return local.charAt(0).toUpperCase() + local.slice(1);
-}
-
-export function setDisplayName(name) {
-  const user = getAuthUser();
-  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
-  const trimmed = String(name ?? "").trim();
-  if (!trimmed) throw new Error("A megjelenített név kötelező.");
-  if (trimmed.length > 40) throw new Error("A név maximum 40 karakter lehet.");
-  const users = readUsers();
-  users[user.email] = {
-    ...(users[user.email] ?? {}),
-    displayName: trimmed,
-    updatedAt: Date.now(),
-  };
-  writeUsers(users);
-  return trimmed;
-}
-
-export function deleteAccount() {
-  const user = getAuthUser();
-  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
-  const users = readUsers();
-  delete users[user.email];
-  writeUsers(users);
-  sessionStorage.removeItem(AUTH_KEY);
-}
+const MIGRATED_KEY = "autosweb-auth-migrated-v1";
 
 const EMPTY_PROFILE = {
   salutation: "",
@@ -141,46 +22,245 @@ const EMPTY_PROFILE = {
   accountType: "private",
 };
 
+function readUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function getToken() {
+  try {
+    return localStorage.getItem(TOKEN_KEY) || getAuthUser()?.token || null;
+  } catch {
+    return null;
+  }
+}
+
+function setSession(user, token) {
+  const payload = {
+    id: user?.id ?? null,
+    email: user?.email ?? "",
+    displayName: user?.displayName ?? "",
+    profile: { ...EMPTY_PROFILE, ...(user?.profile ?? {}) },
+    token: token || null,
+    loggedInAt: Date.now(),
+  };
+  sessionStorage.setItem(AUTH_KEY, JSON.stringify(payload));
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  else localStorage.removeItem(TOKEN_KEY);
+  return payload;
+}
+
+function clearSession() {
+  sessionStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+export function getAuthUser() {
+  try {
+    const raw = sessionStorage.getItem(AUTH_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function isLoggedIn() {
+  return Boolean(getAuthUser()?.email && getToken());
+}
+
+async function api(path, { method = "GET", body, token } = {}) {
+  const headers = { Accept: "application/json" };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const auth = token ?? getToken();
+  if (auth) headers.Authorization = `Bearer ${auth}`;
+  const res = await fetch(path, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    data = {};
+  }
+  if (!res.ok) {
+    const err = new Error(data.error || `HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+async function migrateLocalAccountsOnce() {
+  if (localStorage.getItem(MIGRATED_KEY)) return;
+  const users = readUsers();
+  const accounts = Object.entries(users).map(([email, row]) => ({
+    email,
+    password: row?.password,
+    displayName: row?.displayName,
+    profile: row?.profile,
+  }));
+  if (accounts.length) {
+    try {
+      await api("/api/auth/import-local", { method: "POST", body: { accounts } });
+    } catch {
+      /* szerver lehet offline — később újra */
+      return;
+    }
+  }
+  localStorage.setItem(MIGRATED_KEY, "1");
+}
+
+export async function restoreSession() {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const data = await api("/api/auth/me", { token });
+    return setSession(data.user, token);
+  } catch {
+    clearSession();
+    return null;
+  }
+}
+
+export async function register(email, password, passwordConfirm) {
+  const data = await api("/api/auth/register", {
+    method: "POST",
+    body: {
+      email,
+      password,
+      password_confirm: passwordConfirm,
+    },
+  });
+  setSession(data.user, data.token);
+  return data.user;
+}
+
+export async function login(email, password) {
+  const trimmedEmail = String(email ?? "").trim();
+  const trimmedPassword = String(password ?? "").trim();
+  if (!trimmedEmail || !trimmedPassword) {
+    throw new Error("Email és jelszó kötelező.");
+  }
+
+  try {
+    const data = await api("/api/auth/login", {
+      method: "POST",
+      body: { email: trimmedEmail, password: trimmedPassword },
+    });
+    setSession(data.user, data.token);
+    return data.user;
+  } catch (error) {
+    // Régi localStorage fiók: import + újrapróbálás
+    const local = readUsers()[trimmedEmail];
+    if (local?.password && local.password === trimmedPassword) {
+      try {
+        await api("/api/auth/import-local", {
+          method: "POST",
+          body: {
+            accounts: [
+              {
+                email: trimmedEmail,
+                password: trimmedPassword,
+                displayName: local.displayName,
+                profile: local.profile,
+              },
+            ],
+          },
+        });
+        const data = await api("/api/auth/login", {
+          method: "POST",
+          body: { email: trimmedEmail, password: trimmedPassword },
+        });
+        setSession(data.user, data.token);
+        return data.user;
+      } catch (inner) {
+        throw inner;
+      }
+    }
+    throw error;
+  }
+}
+
+export async function logout() {
+  const token = getToken();
+  try {
+    if (token) await api("/api/auth/logout", { method: "POST", token });
+  } catch {
+    /* ignore */
+  }
+  clearSession();
+}
+
+export async function changePassword(currentPassword, newPassword, newPasswordConfirm) {
+  await api("/api/auth/password", {
+    method: "POST",
+    body: {
+      current_password: currentPassword,
+      new_password: newPassword,
+      new_password_confirm: newPasswordConfirm,
+    },
+  });
+}
+
+export function getDisplayName() {
+  const user = getAuthUser();
+  if (!user?.email) return "";
+  if (user.displayName) return String(user.displayName);
+  const local = user.email.split("@")[0] || user.email;
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
+export async function setDisplayName(name) {
+  const user = getAuthUser();
+  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
+  const trimmed = String(name ?? "").trim();
+  if (!trimmed) throw new Error("A megjelenített név kötelező.");
+  if (trimmed.length > 40) throw new Error("A név maximum 40 karakter lehet.");
+  const profile = { ...getProfile() };
+  const parts = trimmed.split(/\s+/);
+  if (!profile.firstName && parts[0]) profile.firstName = parts[0];
+  if (!profile.lastName && parts.length > 1) profile.lastName = parts.slice(1).join(" ");
+  if (!profile.firstName) profile.firstName = trimmed;
+  if (!profile.lastName) profile.lastName = "—";
+  await saveProfile(profile);
+  return trimmed;
+}
+
+export async function deleteAccount() {
+  await api("/api/auth/account", { method: "DELETE" });
+  const user = getAuthUser();
+  if (user?.email) {
+    const users = readUsers();
+    delete users[user.email];
+    writeUsers(users);
+  }
+  clearSession();
+}
+
 export function getProfile() {
   const user = getAuthUser();
   if (!user?.email) return { ...EMPTY_PROFILE };
-  const users = readUsers();
-  const stored = users[user.email]?.profile ?? {};
-  return { ...EMPTY_PROFILE, ...stored };
+  return { ...EMPTY_PROFILE, ...(user.profile ?? {}) };
 }
 
-export function saveProfile(profile) {
-  const user = getAuthUser();
-  if (!user?.email) throw new Error("Nem vagy bejelentkezve.");
-  const next = {
-    salutation: String(profile.salutation ?? "").trim(),
-    firstName: String(profile.firstName ?? "").trim(),
-    lastName: String(profile.lastName ?? "").trim(),
-    street: String(profile.street ?? "").trim(),
-    postalCode: String(profile.postalCode ?? "").trim(),
-    city: String(profile.city ?? "").trim(),
-    country: String(profile.country ?? "Magyarország").trim() || "Magyarország",
-    phone: String(profile.phone ?? "").trim(),
-    company: String(profile.company ?? "").trim(),
-    accountType: profile.accountType === "business" ? "business" : "private",
-  };
-  if (!next.firstName || !next.lastName) {
-    throw new Error("A keresztnév és a vezetéknév kötelező.");
-  }
-  if (!next.postalCode || !next.city) {
-    throw new Error("Az irányítószám és a város kötelező.");
-  }
-  const users = readUsers();
-  const displayName =
-    [next.firstName, next.lastName].filter(Boolean).join(" ") || users[user.email]?.displayName;
-  users[user.email] = {
-    ...(users[user.email] ?? {}),
-    profile: next,
-    displayName,
-    updatedAt: Date.now(),
-  };
-  writeUsers(users);
-  return next;
+export async function saveProfile(profile) {
+  const data = await api("/api/auth/profile", {
+    method: "PUT",
+    body: profile,
+  });
+  setSession(data.user, getToken());
+  return data.user.profile;
 }
 
 function loginUrl(nextPath = "/hirdetesfeladas.html") {
@@ -191,7 +271,7 @@ function updateHeaderAuthUi() {
   const loginBtn = document.querySelector("[data-auth-login], [data-auth-logout]");
   const registerBtns = document.querySelectorAll("[data-auth-register]");
   const user = getAuthUser();
-  const loggedIn = Boolean(user?.email);
+  const loggedIn = Boolean(user?.email && getToken());
 
   registerBtns.forEach((btn) => {
     btn.hidden = loggedIn;
@@ -221,7 +301,9 @@ function updateHeaderAuthUi() {
   window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
 }
 
-export function initSiteAuth() {
+export async function initSiteAuth() {
+  await restoreSession();
+  await migrateLocalAccountsOnce();
   updateHeaderAuthUi();
 
   document.querySelectorAll("[data-auth-guard]").forEach((el) => {
@@ -233,11 +315,11 @@ export function initSiteAuth() {
     });
   });
 
-  document.addEventListener("click", (event) => {
+  document.addEventListener("click", async (event) => {
     const logoutBtn = event.target.closest("[data-auth-logout]");
     if (!logoutBtn) return;
     event.preventDefault();
-    logout();
+    await logout();
     updateHeaderAuthUi();
     window.location.href = "/";
   });
@@ -257,12 +339,12 @@ export function initRegisterPage() {
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next") || "/hirdetesfeladas.html";
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     errorEl.hidden = true;
     const data = new FormData(form);
     try {
-      register(data.get("email"), data.get("password"), data.get("password_confirm"));
+      await register(data.get("email"), data.get("password"), data.get("password_confirm"));
       window.location.href = next;
     } catch (error) {
       errorEl.hidden = false;
@@ -279,12 +361,12 @@ export function initLoginPage() {
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next") || "/hirdetesfeladas.html";
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     errorEl.hidden = true;
     const data = new FormData(form);
     try {
-      login(data.get("email"), data.get("password"));
+      await login(data.get("email"), data.get("password"));
       window.location.href = next;
     } catch (error) {
       errorEl.hidden = false;

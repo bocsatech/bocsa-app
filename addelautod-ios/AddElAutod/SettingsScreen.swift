@@ -123,6 +123,7 @@ struct SettingsScreen: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .textContentType(.emailAddress)
+                .disabled(true)
 
             fieldLabel("Fióktípus")
             Picker("", selection: $profile.profile.accountType) {
@@ -139,8 +140,13 @@ struct SettingsScreen: View {
             }
 
             Button {
-                profile.save()
-                toast = "Adatok mentve."
+                Task {
+                    if let err = await profile.saveProfileToServer() {
+                        toast = err
+                    } else {
+                        toast = "Adatok mentve (web + app)."
+                    }
+                }
             } label: {
                 Text("Adatok mentése")
                     .font(.body.weight(.semibold))
@@ -211,18 +217,20 @@ struct SettingsScreen: View {
             SecureField("Új jelszó mégegyszer", text: $newPasswordConfirm)
                 .textFieldStyle(.roundedBorder)
             Button {
-                if newPassword.count < 4 {
-                    toast = "Az új jelszó legyen legalább 4 karakter."
-                    return
+                Task {
+                    if let err = await profile.changePassword(
+                        current: currentPassword,
+                        newPassword: newPassword,
+                        confirm: newPasswordConfirm
+                    ) {
+                        toast = err
+                        return
+                    }
+                    currentPassword = ""
+                    newPassword = ""
+                    newPasswordConfirm = ""
+                    toast = "Jelszó mentve (web + app)."
                 }
-                if newPassword != newPasswordConfirm {
-                    toast = "A két új jelszó nem egyezik."
-                    return
-                }
-                currentPassword = ""
-                newPassword = ""
-                newPasswordConfirm = ""
-                toast = "Jelszó mentve (helyi demó)."
             } label: {
                 Text("Jelszó mentése")
                     .font(.body.weight(.semibold))
@@ -276,14 +284,31 @@ struct SettingsScreen: View {
 
     private var dangerCard: some View {
         VStack(alignment: .leading, spacing: 10) {
+            Text("Kijelentkezés")
+                .font(.headline)
+            Button {
+                Task { await profile.logout() }
+            } label: {
+                Text("Kijelentkezés")
+                    .font(.body.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+            }
+
             Text("Fiók törlése")
                 .font(.headline)
-            Text("A fiók törlése végleges ezen a gépen (helyi demó-fiók).")
+                .padding(.top, 8)
+            Text("A törlés végleges a közös szerveren is (web + app).")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
             Button(role: .destructive) {
-                profile.reset()
-                toast = "Fiók törölve (helyi demó)."
+                Task {
+                    if let err = await profile.deleteAccount() {
+                        toast = err
+                    } else {
+                        onClose()
+                    }
+                }
             } label: {
                 Text("Fiók törlése")
                     .font(.body.weight(.semibold))

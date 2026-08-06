@@ -34,3 +34,8 @@ Ha hibát ír (`project.pbxproj` hiányzik): **Quit Xcode**, töröld a `Letölt
 Az **Ajánlások** az autós oldal fizetős partnerei (irányítószám, ~30 km). Élő listához Autosweb `3456`; különben demo.
 
 A **Keresés** találatai a saját (Add el autod) hirdetések.
+
+## Közös fiók (web + app)
+
+Belépés / regisztráció ugyanarra az Autosweb fiókra megy (`http://127.0.0.1:3456/api/auth/*`).  
+Az app induláskor belépést kér; a Beállításokban mentett profil és jelszó a weben is megjelenik.
