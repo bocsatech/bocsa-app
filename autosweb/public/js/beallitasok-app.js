@@ -303,7 +303,11 @@ function fillProfileForm(user) {
   const emailEl = document.getElementById("settings-email");
   if (emailEl) emailEl.textContent = user.email;
   const companyWrap = document.querySelector("[data-mm-company-wrap]");
-  if (companyWrap) companyWrap.hidden = profile.accountType !== "business";
+  if (companyWrap) companyWrap.hidden = profile.accountType !== "business" && profile.accountType !== "dealer";
+  const companyLabel = document.querySelector("[data-mm-company-label]");
+  if (companyLabel) {
+    companyLabel.textContent = profile.accountType === "dealer" ? "Kereskedés neve" : "Cégnév";
+  }
 
   const photo = readPhotos()[user.email];
   const letterEl = document.getElementById("settings-avatar-letter");

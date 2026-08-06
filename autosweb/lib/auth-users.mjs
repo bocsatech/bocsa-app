@@ -223,7 +223,11 @@ export function saveUserProfile(token, profileInput) {
     country: String(profileInput.country ?? "Magyarország").trim() || "Magyarország",
     phone: String(profileInput.phone ?? "").trim(),
     company: String(profileInput.company ?? "").trim(),
-    accountType: profileInput.accountType === "business" ? "business" : "private",
+    accountType: profileInput.accountType === "business"
+      ? "business"
+      : profileInput.accountType === "dealer"
+        ? "dealer"
+        : "private",
   };
 
   if (!next.firstName || !next.lastName) {

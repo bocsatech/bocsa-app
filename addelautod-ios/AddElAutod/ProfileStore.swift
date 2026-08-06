@@ -11,7 +11,7 @@ struct UserProfile: Codable, Equatable {
     var country: String = "Magyarország"
     var phone: String = ""
     var email: String = ""
-    var accountType: String = "private" // private | business
+    var accountType: String = "private" // private | business | dealer
     var company: String = ""
     var notifyMessages: Bool = false
     var notifyFavorites: Bool = false

@@ -119,11 +119,12 @@ struct SettingsScreen: View {
             Picker("", selection: $profile.profile.accountType) {
                 Text("Magánszemély").tag("private")
                 Text("Vállalkozás (nem kereskedő)").tag("business")
+                Text("Autókereskedő").tag("dealer")
             }
             .pickerStyle(.menu)
 
-            if profile.profile.accountType == "business" {
-                fieldLabel("Cégnév")
+            if profile.profile.accountType == "business" || profile.profile.accountType == "dealer" {
+                fieldLabel(profile.profile.accountType == "dealer" ? "Kereskedés neve" : "Cégnév")
                 TextField("", text: $profile.profile.company)
                     .textFieldStyle(.roundedBorder)
                     .textContentType(.organizationName)
