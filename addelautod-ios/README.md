@@ -1,54 +1,37 @@
 # Add el autod — iOS (Xcode)
 
-## Hol legyen a Macen?
+## Ha „semmi sem működik” / nem indul / régi UI
 
-**Letöltések → autosapp** = `~/Downloads/autosapp`
-
----
-
-## Terminál — másold be EGÉSZBEN
-
-```bash
-mkdir -p ~/Downloads && cd ~/Downloads && rm -rf autosapp autosapp-tmp && git clone --depth 1 -b cursor/addelautod-mobile-de62 https://github.com/bocsatech/bocsa-app.git autosapp-tmp && mkdir autosapp && ditto autosapp-tmp/addelautod-ios/AddElAutod autosapp/AddElAutod && ditto autosapp-tmp/addelautod-ios/AddElAutod.xcodeproj autosapp/AddElAutod.xcodeproj && test -f autosapp/AddElAutod.xcodeproj/project.pbxproj && rm -rf autosapp-tmp && open ~/Downloads/autosapp/AddElAutod.xcodeproj && echo "KESZ: ~/Downloads/autosapp"
-```
-
-Ha hibát ír (`project.pbxproj` hiányzik): **Quit Xcode**, töröld a `Letöltések/autosapp` mappát, futtasd újra.
-
----
-
-## ZIP
-
-1. https://github.com/bocsatech/bocsa-app/raw/cursor/addelautod-mobile-de62/addelautod-ios/dist/AddElAutod-Xcode.zip
-2. Kicsomagol → **AddElAutod.xcodeproj**
-
----
-
-## Xcode
-
-1. Signing: **Automatically manage signing** + saját Apple ID (Team)
-2. Simulator: **iPhone 16**
-3. **Product → Clean Build Folder**, majd **Cmd+R**
-
-### Ha nem indul („Application failed preflight checks” / Busy)
-
-Másold be a Terminálba **egészben**:
+**Quit Xcode**, majd Terminálba **egészben**:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/bocsatech/bocsa-app/cursor/addelautod-mobile-de62/addelautod-ios/reset-simulator.sh | bash
 ```
 
-Vagy lokálisan a klónból: `bash addelautod-ios/reset-simulator.sh`
+A script ellenőrzi, hogy a friss fájlok megvannak (Település, Autókereskedő…).  
+Utána: **Signing (Apple ID)** → **iPhone 16** → **Clean Build Folder** → **Cmd+R**.
 
-Utána Xcode-ban: **Signing** (Automatic + Apple ID) → **iPhone 16** → Clean → Cmd+R.  
-Ha még Busy: **Window → Devices and Simulators** → töröld az iPhone-t → **+** új iPhone 16.
+---
 
-5 oldal: Hírfolyam | **Ajánlások** | Kiemeltek | Keresés | Mentett
+## Hol legyen a Macen?
 
-Az **Ajánlások** az autós oldal fizetős partnerei (irányítószám, ~30 km). Élő listához Autosweb `3456`; különben demo.
+**Letöltések → autosapp** = `~/Downloads/autosapp`  
+(Ne más mappából futtasd — ott régi kód lehet.)
 
-A **Keresés** találatai a saját (Add el autod) hirdetések.
+---
 
-## Közös fiók (web + app)
+## Mit kellene látnod belépés után (Beállítások)
 
-Belépés nélkül **csak** a Belépés / Regisztráció oldal (nincs lapozás). Felső gombok: **Belépés** | **Regisztráció**.  
-Belépés után 7 oldal: Hírfolyam | **Facebook** | **YouTube** | Ajánlások | Kiemeltek | Keresés | Mentett. Közös Autosweb fiók (`3456`).
+- Nincs „Megszólítás / Úr”
+- Először **Vezetéknév**, aztán **Keresztnév**
+- Fióktípus: Magánszemély / Vállalkozás / **Autókereskedő**
+- **Irányítószám** keskeny + melletté **Település** (4 jegy után auto — Autosweb `3456` kell)
+
+7 swipe oldal: Hírfolyam | Facebook | YouTube | Ajánlások | Kiemeltek | Keresés | Mentett
+
+---
+
+## ZIP (alternatíva)
+
+1. https://github.com/bocsatech/bocsa-app/raw/cursor/addelautod-mobile-de62/addelautod-ios/dist/AddElAutod-Xcode.zip
+2. Kicsomagol → **AddElAutod.xcodeproj** → Clean + Cmd+R
