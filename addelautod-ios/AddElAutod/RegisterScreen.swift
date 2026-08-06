@@ -15,7 +15,9 @@ struct RegisterScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            authNavBar
+            if onClose != nil {
+                authNavBar
+            }
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {

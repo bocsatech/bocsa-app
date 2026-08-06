@@ -37,5 +37,5 @@ A **Keresés** találatai a saját (Add el autod) hirdetések.
 
 ## Közös fiók (web + app)
 
-A felső sávban **Belépés** / **Regisztráció** (mint a weben). Böngészhetsz belépés nélkül; a Beállításokhoz belépés kell.  
-Ugyanaz az Autosweb fiók (`3456` / `/api/auth/*`).
+Belépés nélkül **csak** a Belépés / Regisztráció oldal (nincs lapozás). Felső gombok: **Belépés** | **Regisztráció**.  
+Belépés után jönnek a 5 oldal. Közös Autosweb fiók (`3456`).

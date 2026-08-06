@@ -15,7 +15,9 @@ struct LoginScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            authNavBar(title: "Belépés")
+            if onClose != nil {
+                authNavBar(title: "Belépés")
+            }
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
