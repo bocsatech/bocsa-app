@@ -10,6 +10,8 @@ struct CategoryResultsScreen: View {
     var onOpenSettings: () -> Void
     var onMessage: ((ListingMessageTarget) -> Void)? = nil
 
+    @State private var openRequest: ListingOpenRequest?
+
     private var radiusKm: Int { max(1, profile.profile.searchRadiusKm) }
     private var postal: String {
         let p = profile.profile.postalCode.trimmingCharacters(in: .whitespaces)
@@ -54,44 +56,10 @@ struct CategoryResultsScreen: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     ForEach(cars) { car in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack(alignment: .top) {
-                                Text(car.title)
-                                    .font(.headline)
-                                    .foregroundStyle(AppTheme.text)
-                                Spacer()
-                                if let badge = car.badge {
-                                    Text(badge)
-                                        .font(.caption2.weight(.bold))
-                                        .foregroundStyle(AppTheme.accent)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 3)
-                                        .background(AppTheme.accent.opacity(0.12))
-                                        .clipShape(Capsule())
-                                }
-                            }
-                            Text(car.priceLabel)
-                                .font(.title3.weight(.bold))
-                            Text(car.meta)
-                                .font(.subheadline)
-                                .foregroundStyle(AppTheme.textSecondary)
-                            Text("\(car.postalCode) · ~\(car.distanceKm) km")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.textTertiary)
-                            if let onMessage {
-                                MessageListingButton {
-                                    onMessage(car.messageTarget)
-                                }
-                                .padding(.top, 4)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(16)
-                        .background(AppTheme.bgElevated)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(AppTheme.border, lineWidth: 0.5)
+                        ListingFeedCard(
+                            detail: car.asDetail,
+                            onOpen: { openRequest = .demo(car) },
+                            onMessage: onMessage.map { handler in { handler(car.messageTarget) } }
                         )
                     }
                 }
@@ -103,10 +71,14 @@ struct CategoryResultsScreen: View {
         .onAppear {
             store.applyListingQuery(query)
         }
+        .fullScreenCover(item: $openRequest) { req in
+            ListingDetailLoader(request: req, onClose: { openRequest = nil })
+                .environmentObject(profile)
+        }
     }
 }
 
-struct DemoListing: Identifiable {
+struct DemoListing: Identifiable, Equatable {
     let id: String
     let title: String
     let priceLabel: String

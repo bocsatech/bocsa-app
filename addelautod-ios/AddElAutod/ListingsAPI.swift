@@ -12,6 +12,7 @@ enum ListingsAPI {
     let meta: String
     let badge: String?
     let updatedAt: String
+    let imageURLs: [URL]
 
     var featuredAd: FeaturedAd {
       FeaturedAd(
@@ -31,6 +32,38 @@ enum ListingsAPI {
         meta: meta
       )
     }
+
+    /// Könnyű kártya a listához (részletes adat a loaderben jön).
+    var cardDetail: ListingDetail {
+      ListingDetail(
+        id: id,
+        title: title,
+        priceLabel: priceLabel,
+        kmLabel: meta.split(separator: "·").dropFirst().first.map { String($0).trimmingCharacters(in: .whitespaces) } ?? "—",
+        registrationLabel: meta.split(separator: "·").first.map { String($0).trimmingCharacters(in: .whitespaces) } ?? "—",
+        imageURLs: imageURLs,
+        meta: meta,
+        badge: badge,
+        vehicleRows: [],
+        equipment: [],
+        description: "",
+        sellerName: "Eladó",
+        sellerPhone: nil,
+        addressLines: [],
+        mapQuery: nil
+      )
+    }
+  }
+
+  /// Relatív `/uploads/...` vagy abszolút URL → betölthető kép.
+  static func absoluteImageURL(_ path: String?) -> URL? {
+    let raw = (path ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !raw.isEmpty else { return nil }
+    if raw.hasPrefix("http://") || raw.hasPrefix("https://") {
+      return URL(string: raw)
+    }
+    let trimmed = raw.hasPrefix("/") ? String(raw.dropFirst()) : raw
+    return URL(string: trimmed, relativeTo: baseURL)?.absoluteURL
   }
 
   enum ListingsError: LocalizedError {
@@ -98,13 +131,17 @@ enum ListingsAPI {
       if row.status == "feladott" { return "Feladott" }
       return nil
     }()
+    var images: [URL] = []
+    if let u = absoluteImageURL(row.fo_kep) { images.append(u) }
+    if let u = absoluteImageURL(preview?.imageUrl), !images.contains(u) { images.append(u) }
     return HomeListing(
       id: String(row.id),
       title: title,
       priceLabel: price,
       meta: meta,
       badge: badge,
-      updatedAt: row.updated_at ?? row.created_at ?? ""
+      updatedAt: row.updated_at ?? row.created_at ?? "",
+      imageURLs: images
     )
   }
 
@@ -152,6 +189,7 @@ enum ListingsAPI {
   private struct RemoteListing: Decodable {
     let id: Int
     let hirdetes_cime: String?
+    let fo_kep: String?
     let status: String?
     let created_at: String?
     let updated_at: String?
@@ -163,6 +201,7 @@ enum ListingsAPI {
     let price: String?
     let km: String?
     let specLine: String?
+    let imageUrl: String?
     let filter: RemoteFilter?
   }
 

@@ -30,6 +30,12 @@ Utána: **Signing (Apple ID)** → **iPhone 16** → **Clean Build Folder** → 
 
 7 swipe oldal: Hírfolyam | Facebook | YouTube | Ajánlások | Kiemeltek | Keresés | Mentett
 
+### Hirdetés részletes
+
+- Bármely listáról (Kiemeltek, kategória, saját keresés) megnyílik
+- Magyar feliratok; **Üzenet** fixen alul; tartalom scrolloz
+- Lista kártyán a képek vízszintesen lapozhatók (ha van `fo_kep`)
+
 ### Kiemeltek
 
 - Ugyanaz a lista, mint a webes főoldalon (`GET /api/listings`, Autosweb **3456**)

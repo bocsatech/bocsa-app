@@ -50,6 +50,8 @@ grep -q "ListingsAPI.swift" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 test -f "$DEST/AddElAutod/MessagesAPI.swift"
 test -f "$DEST/AddElAutod/PushNotificationService.swift"
 test -f "$DEST/AddElAutod/ListingsAPI.swift"
+test -f "$DEST/AddElAutod/ListingDetailScreen.swift"
+grep -q "ListingDetailScreen.swift" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 echo "    OK — commit: $COMMIT"
 echo "    Település / Autókereskedő / Vezetéknév / Üzenetek API megvan, Megszólítás nincs."
 

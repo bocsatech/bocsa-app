@@ -67,6 +67,7 @@ private struct FeedCard: View {
 struct FeaturedScreen: View {
     @EnvironmentObject private var profile: ProfileStore
     @State private var messageTarget: ListingMessageTarget?
+    @State private var openRequest: ListingOpenRequest?
     @State private var listings: [ListingsAPI.HomeListing] = []
     @State private var loading = true
     @State private var errorText: String?
@@ -113,7 +114,11 @@ struct FeaturedScreen: View {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         ForEach(listings) { ad in
-                            listingCard(ad)
+                            ListingFeedCard(
+                                detail: ad.cardDetail,
+                                onOpen: { openRequest = .remote(id: ad.id) },
+                                onMessage: { messageTarget = ad.messageTarget }
+                            )
                         }
                         Text("Ugyanaz a lista, mint a webes főoldalon. Később külön jelöljük a tényleges kiemelést.")
                             .font(.footnote)
@@ -131,6 +136,10 @@ struct FeaturedScreen: View {
             MessagesScreen(onClose: { messageTarget = nil }, initialTarget: target)
                 .environmentObject(profile)
         }
+        .fullScreenCover(item: $openRequest) { req in
+            ListingDetailLoader(request: req, onClose: { openRequest = nil })
+                .environmentObject(profile)
+        }
     }
 
     private var subtitleText: String {
@@ -138,45 +147,6 @@ struct FeaturedScreen: View {
         if let errorText, listings.isEmpty { return "Hiba" }
         if listings.isEmpty { return "Nincs hirdetés" }
         return "\(listings.count) hirdetés · Autosweb"
-    }
-
-    @ViewBuilder
-    private func listingCard(_ ad: ListingsAPI.HomeListing) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top) {
-                Text(ad.title)
-                    .font(.headline)
-                    .foregroundStyle(AppTheme.text)
-                Spacer()
-                if let badge = ad.badge {
-                    Text(badge)
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(AppTheme.accent)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(AppTheme.accent.opacity(0.12))
-                        .clipShape(Capsule())
-                }
-            }
-            Text(ad.priceLabel)
-                .font(.title2.weight(.bold))
-                .foregroundStyle(AppTheme.text)
-            Text(ad.meta)
-                .font(.subheadline)
-                .foregroundStyle(AppTheme.textSecondary)
-            MessageListingButton {
-                messageTarget = ad.messageTarget
-            }
-            .padding(.top, 4)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(AppTheme.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: 0.5)
-        )
     }
 
     private func reload() async {
@@ -187,9 +157,6 @@ struct FeaturedScreen: View {
             listings = try await ListingsAPI.fetchHomeListings()
         } catch {
             errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-            if listings.isEmpty == false {
-                // megtartjuk a legutóbbi listát, ha már volt
-            }
         }
     }
 }
