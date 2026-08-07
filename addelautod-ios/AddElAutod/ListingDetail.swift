@@ -127,7 +127,7 @@ extension ListingsAPI {
       return ""
     }()
 
-    let rows: [(String, String)] = [
+    let rows: [ListingKV] = [
       ("Jármű típusa", str("kivitel").isEmpty ? str("tipus") : str("kivitel")),
       ("Állapot", str("allapot")),
       ("Teljesítmény", power),
@@ -139,10 +139,10 @@ extension ListingsAPI {
       ("Ajtók száma", str("ajtok")),
       ("Előző tulajdonosok", str("tulajdonosok_szama")),
       ("Műszaki érvényesség", muszaki),
-    ].compactMap { label, value in
-      let v = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    ].compactMap { pair -> ListingKV? in
+      let v = pair.1.trimmingCharacters(in: .whitespacesAndNewlines)
       guard !v.isEmpty else { return nil }
-      return ListingKV(label: label, value: v)
+      return ListingKV(label: pair.0, value: v)
     }
 
     var equipment = arr("felszereltseg")
