@@ -1,19 +1,64 @@
-/** Fő kép letöltés hasznaltauto hirdetésről → public/uploads/listings/ */
+/** Fő kép letöltés — tartós mappa: ~/.autosweb/uploads/listings/ (túléli a frissítést). */
 
-import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
+import { homedir } from "os";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const UPLOAD_DIR = join(__dirname, "..", "public", "uploads", "listings");
+const LEGACY_UPLOAD_DIR = join(__dirname, "..", "public", "uploads", "listings");
+
+function stableUploadDir() {
+  if (process.env.AUTOSWEB_UPLOADS_PATH) return process.env.AUTOSWEB_UPLOADS_PATH;
+  return join(homedir(), ".autosweb", "uploads", "listings");
+}
+
+let migratedLegacy = false;
+
+function migrateLegacyUploadsIfNeeded(destDir) {
+  if (migratedLegacy) return;
+  migratedLegacy = true;
+  if (!existsSync(LEGACY_UPLOAD_DIR)) return;
+  try {
+    for (const name of readdirSync(LEGACY_UPLOAD_DIR)) {
+      if (name.startsWith(".")) continue;
+      const from = join(LEGACY_UPLOAD_DIR, name);
+      const to = join(destDir, name);
+      if (!existsSync(to)) {
+        try {
+          copyFileSync(from, to);
+        } catch {
+          /* ignore single file */
+        }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 export function listingImageDir() {
-  if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true });
-  return UPLOAD_DIR;
+  const dir = stableUploadDir();
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  migrateLegacyUploadsIfNeeded(dir);
+  return dir;
 }
 
 export function listingImagePublicPath(fileName) {
   return `/uploads/listings/${fileName}`;
+}
+
+/** Abszolút fájlútvonal a /uploads/listings/… URL-hez, vagy null. */
+export function resolveListingImageFile(urlPath) {
+  const rel = String(urlPath || "").replace(/^\/+/, "");
+  if (!rel.startsWith("uploads/listings/")) return null;
+  const name = rel.slice("uploads/listings/".length);
+  if (!name || name.includes("..") || name.includes("/") || name.includes("\\")) return null;
+  const primary = join(listingImageDir(), name);
+  if (existsSync(primary)) return primary;
+  const legacy = join(LEGACY_UPLOAD_DIR, name);
+  if (existsSync(legacy)) return legacy;
+  return null;
 }
 
 export async function extractMainImageUrl(page) {

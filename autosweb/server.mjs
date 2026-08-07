@@ -84,6 +84,7 @@ import {
   oauthConfigPath,
   parseOAuthState,
 } from "./lib/oauth.mjs";
+import { listingImageDir, resolveListingImageFile } from "./lib/listing-image.mjs";
 import { handleMessagesApi, initMessagingSchema } from "./lib/messaging.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -155,6 +156,21 @@ function sendJson(res, status, data, headers = {}) {
 
 function serveStatic(path, res) {
   const rel = path === "/" ? "index.html" : path.replace(/^\//, "");
+
+  // Hirdetésképek: ~/.autosweb/uploads (túléli a frissítést)
+  if (rel.startsWith("uploads/listings/")) {
+    const uploadFile = resolveListingImageFile(`/${rel}`);
+    if (uploadFile) {
+      const ext = extname(uploadFile);
+      res.writeHead(200, {
+        "Content-Type": MIME[ext] ?? "application/octet-stream",
+        "Cache-Control": "public, max-age=86400",
+      });
+      res.end(readFileSync(uploadFile));
+      return;
+    }
+  }
+
   const filePath = join(PUBLIC, rel);
   if (!filePath.startsWith(PUBLIC) || !existsSync(filePath)) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
@@ -1110,6 +1126,11 @@ server.listen(PORT, HOST, async () => {
   }
   console.log(`Autosweb: http://${HOST}:${PORT}`);
   console.log(`User DB: ${getDbPath()}`);
+  try {
+    console.log(`Hirdetésképek: ${listingImageDir()}`);
+  } catch (error) {
+    console.warn("Upload mappa:", error.message ?? error);
+  }
   if (isSmtpConfigured()) {
     console.log(`SMTP: beállítva (${smtpConfigPath()})`);
   } else {

@@ -14,7 +14,7 @@ mkdir -p "$TARGET/public/images/categories"
 BACKUP=$(mktemp -d)
 cp -a "$TARGET/public/images/categories/." "$BACKUP/" 2>/dev/null || true
 
-rsync -a "${DELETE_FLAG[@]}" --exclude 'images/categories/' "$SOURCE/public/" "$TARGET/public/"
+rsync -a "${DELETE_FLAG[@]}" --exclude 'images/categories/' --exclude 'uploads/' "$SOURCE/public/" "$TARGET/public/"
 
 mkdir -p "$TARGET/public/images/categories"
 cp -a "$BACKUP/." "$TARGET/public/images/categories/"

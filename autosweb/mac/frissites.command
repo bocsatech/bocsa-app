@@ -72,6 +72,7 @@ fi
 
 VER=$(cat "$TARGET/public/version.txt" 2>/dev/null || echo "HIÁNYZIK")
 echo "  ✓ Kategória képek: lokális fájlok megmaradtak (public/images/categories/)"
+echo "  ✓ Hirdetésképek: ~/.autosweb/uploads/listings/ (nem a public/ mappa)"
 
 if [ ! -f "$TARGET/public/css/automax.css" ]; then
   echo "  ✗ HIBA: automax.css hiányzik — git pull sikertelen?"

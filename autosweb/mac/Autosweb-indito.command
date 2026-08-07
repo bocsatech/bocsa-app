@@ -82,7 +82,7 @@ update_from_github() {
   cp "$src/package.json" "$src/server.mjs" "$TARGET/"
   if command -v rsync >/dev/null 2>&1; then
     rsync -a --delete "$src/lib/" "$TARGET/lib/"
-    rsync -a --delete --exclude 'images/categories/' "$src/public/" "$TARGET/public/"
+    rsync -a --delete --exclude 'images/categories/' --exclude 'uploads/' "$src/public/" "$TARGET/public/"
     rsync -a "$src/scripts/" "$TARGET/scripts/" 2>/dev/null || true
   else
     rm -rf "$TARGET/lib"
