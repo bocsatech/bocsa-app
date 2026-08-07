@@ -52,12 +52,21 @@ test("buildListingPreview összeállítja a hasznaltauto stílusú mezőket", ()
   assert.equal(preview.imageUrl, "");
 });
 
-test("buildListingPreview: fo_kep a meta-ból", () => {
+test("buildListingPreview: távoli fo_kep → proxy URL", () => {
+  const preview = buildListingPreview(
+    { hirdetes_cime: "BMW X5" },
+    { fo_kep: "https://www.hasznaltauto.hu/images/cars/x.jpg" }
+  );
+  assert.match(preview.imageUrl, /^\/api\/media\/proxy\?url=/);
+  assert.match(preview.imageUrl, /hasznaltauto/);
+});
+
+test("buildListingPreview: hiányzó helyi fo_kep → üres (nincs törött ikon)", () => {
   const preview = buildListingPreview(
     { hirdetes_cime: "BMW X5", fo_kep: "/uploads/listings/1.jpg" },
     { fo_kep: "/uploads/listings/meta.jpg" }
   );
-  assert.equal(preview.imageUrl, "/uploads/listings/meta.jpg");
+  assert.equal(preview.imageUrl, "");
 });
 
 test("buildPreviewFromCells cellákból épít előnézetet", () => {

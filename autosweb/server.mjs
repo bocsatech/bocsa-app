@@ -84,7 +84,7 @@ import {
   oauthConfigPath,
   parseOAuthState,
 } from "./lib/oauth.mjs";
-import { listingImageDir, resolveListingImageFile } from "./lib/listing-image.mjs";
+import { listingImageDir, resolveListingImageFile, fetchRemoteListingImage } from "./lib/listing-image.mjs";
 import { handleMessagesApi, initMessagingSchema } from "./lib/messaging.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -143,6 +143,27 @@ function parseFormBody(raw) {
 function sendRedirect(res, location, headers = {}) {
   res.writeHead(302, { Location: location, ...headers });
   res.end();
+}
+
+async function handleMediaProxy(req, res) {
+  try {
+    const urlObj = new URL(req.url ?? "", `http://${HOST}:${PORT}`);
+    const target = urlObj.searchParams.get("url");
+    if (!target) {
+      sendJson(res, 400, { error: "Hiányzó url paraméter." });
+      return;
+    }
+    const { buffer, contentType } = await fetchRemoteListingImage(target);
+    res.writeHead(200, {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=86400",
+      "Content-Length": String(buffer.length),
+    });
+    res.end(buffer);
+  } catch (error) {
+    const status = error.code === "FORBIDDEN_IMAGE" ? 403 : 502;
+    sendJson(res, status, { error: error.message ?? "Kép proxy hiba." });
+  }
 }
 
 function sendJson(res, status, data, headers = {}) {
@@ -1019,6 +1040,11 @@ const server = createServer(async (req, res) => {
       profilesPath,
       users,
     });
+    return;
+  }
+
+  if (pathname === "/api/media/proxy" && req.method === "GET") {
+    await handleMediaProxy(req, res);
     return;
   }
 

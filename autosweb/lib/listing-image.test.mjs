@@ -16,6 +16,8 @@ test("listing-image: tartós útvonal + resolve", async () => {
   assert.ok(existsSync(uploadDir));
   writeFileSync(join(uploadDir, "abc.jpg"), Buffer.alloc(600, 1));
   assert.equal(mod.resolveListingImageFile("/uploads/listings/abc.jpg"), join(uploadDir, "abc.jpg"));
+  assert.equal(mod.displayImageUrl("/uploads/listings/abc.jpg"), "/uploads/listings/abc.jpg");
+  assert.equal(mod.displayImageUrl("/uploads/listings/hianyzik.jpg"), "");
   assert.equal(mod.resolveListingImageFile("/uploads/listings/../secret"), null);
   assert.equal(mod.isListingImageMissing("/uploads/listings/abc.jpg"), false);
   assert.equal(mod.isListingImageMissing("/uploads/listings/hianyzik.jpg"), true);
@@ -24,11 +26,15 @@ test("listing-image: tartós útvonal + resolve", async () => {
   delete process.env.AUTOSWEB_UPLOADS_PATH;
 });
 
-test("isListingImageMissing: https URL nem hiányzó", async () => {
+test("isListingImageMissing / displayImageUrl: https → proxy", async () => {
   const dir = mkdtempSync(join(tmpdir(), "autosweb-up2-"));
   process.env.AUTOSWEB_UPLOADS_PATH = join(dir, "listings");
   const mod = await import(`./listing-image.mjs?t=${Date.now() + 9}`);
-  assert.equal(mod.isListingImageMissing("https://cdn.example/a.jpg"), false);
+  const remote = "https://www.hasznaltauto.hu/kepek/auto.jpg";
+  assert.equal(mod.isListingImageMissing(remote), false);
+  assert.match(mod.displayImageUrl(remote), /^\/api\/media\/proxy\?url=/);
+  assert.equal(mod.isAllowedRemoteImageUrl("https://evil.example/x.jpg"), false);
+  assert.equal(mod.displayImageUrl("https://evil.example/x.jpg"), "");
   assert.equal(mod.isListingImageMissing(""), true);
   rmSync(dir, { recursive: true, force: true });
   delete process.env.AUTOSWEB_UPLOADS_PATH;
@@ -39,6 +45,8 @@ test("listing-image forrás: ~/.autosweb", () => {
   assert.match(src, /\.autosweb/);
   assert.match(src, /AUTOSWEB_UPLOADS_PATH/);
   assert.match(src, /resolveListingImageFile/);
+  assert.match(src, /displayImageUrl/);
+  assert.match(src, /fetchRemoteListingImage/);
 });
 
 test("import-listings: alap limit 20, max 80", () => {

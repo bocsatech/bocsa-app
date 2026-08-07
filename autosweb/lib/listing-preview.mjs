@@ -1,4 +1,5 @@
 import { cellsToFormData } from "./form-field-catalog.mjs";
+import { displayImageUrl } from "./listing-image.mjs";
 
 const BADGE_ALIASES = [
   ["automata", "AUTOMATA"],
@@ -120,7 +121,7 @@ export function buildListingPreview(form, meta = {}) {
     badges: collectBadges(data),
     status: meta.status ?? "mentett",
     forras_url: meta.forras_url || data.forras_url || "",
-    imageUrl: meta.fo_kep || data.fo_kep || "",
+    imageUrl: displayImageUrl(meta.fo_kep || data.fo_kep || ""),
     filter: {
       gyartmany: cleanText(data.gyartmany),
       modell: cleanText(data.modell),

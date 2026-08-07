@@ -61,11 +61,42 @@ export function resolveListingImageFile(urlPath) {
   return null;
 }
 
-/** True ha nincs fo_kep, vagy helyi fájl hiányzik. Távoli https URL = OK. */
+export function isAllowedRemoteImageUrl(raw) {
+  try {
+    const u = new URL(String(raw || "").trim());
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    return (
+      host === "hasznaltauto.hu" ||
+      host.endsWith(".hasznaltauto.hu") ||
+      host.includes("hasznaltauto")
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Böngészőben megjelenítendő URL — távoli kép proxyn át (hotlink ellen). */
+export function displayImageUrl(foKep) {
+  const path = String(foKep || "").trim();
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) {
+    if (!isAllowedRemoteImageUrl(path)) return "";
+    return `/api/media/proxy?url=${encodeURIComponent(path)}`;
+  }
+  if (path.startsWith("/uploads/listings/")) {
+    return resolveListingImageFile(path) ? path : "";
+  }
+  if (path.startsWith("/api/media/proxy")) return path;
+  return "";
+}
+
+/** True ha nincs fo_kep, vagy helyi fájl hiányzik. Távoli https URL = OK (proxyn keresztül). */
 export function isListingImageMissing(foKep) {
   const path = String(foKep || "").trim();
   if (!path) return true;
-  if (/^https?:\/\//i.test(path)) return false;
+  if (/^https?:\/\//i.test(path)) return !isAllowedRemoteImageUrl(path);
+  if (path.startsWith("/api/media/proxy")) return false;
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return !resolveListingImageFile(normalized);
 }
@@ -137,6 +168,32 @@ function extFromUrl(url) {
   return m ? m[1].toLowerCase().replace("jpeg", "jpg") : "jpg";
 }
 
+function sniffExt(buffer) {
+  if (!buffer || buffer.length < 4) return null;
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) return "jpg";
+  if (buffer[0] === 0x89 && buffer[1] === 0x50) return "png";
+  if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) {
+    return "webp";
+  }
+  return null;
+}
+
+async function downloadViaPageFetch(page, imageUrl) {
+  try {
+    const bytes = await page.evaluate(async (url) => {
+      const res = await fetch(url, { credentials: "include", mode: "cors" });
+      if (!res.ok) return null;
+      const buf = await res.arrayBuffer();
+      if (buf.byteLength < 500) return null;
+      return Array.from(new Uint8Array(buf));
+    }, imageUrl);
+    if (!bytes?.length) return null;
+    return Buffer.from(bytes);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Letölti a fő képet. Vissza: publikus útvonal vagy null.
  * @param {import('playwright').Page} page
@@ -148,21 +205,69 @@ export async function downloadMainImage(page, imageUrl, listingKey) {
   const safeKey = String(listingKey).replace(/[^\w.-]+/g, "_").slice(0, 64);
   if (!safeKey) return null;
 
-  const ext = extFromUrl(imageUrl);
-  const fileName = `${safeKey}.${ext}`;
-  const dest = join(listingImageDir(), fileName);
-
+  let buffer = null;
   try {
     const response = await page.context().request.get(imageUrl, {
       timeout: 30000,
-      headers: { Referer: "https://www.hasznaltauto.hu/" },
+      headers: {
+        Referer: "https://www.hasznaltauto.hu/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      },
     });
-    if (!response.ok()) return null;
-    const buffer = Buffer.from(await response.body());
-    if (buffer.length < 500) return null;
-    writeFileSync(dest, buffer);
-    return listingImagePublicPath(fileName);
+    if (response.ok()) {
+      buffer = Buffer.from(await response.body());
+      if (buffer.length < 500) buffer = null;
+    }
   } catch {
-    return null;
+    buffer = null;
   }
+
+  if (!buffer && page) {
+    buffer = await downloadViaPageFetch(page, imageUrl);
+  }
+
+  if (!buffer) return null;
+
+  const ext = sniffExt(buffer) || extFromUrl(imageUrl);
+  const fileName = `${safeKey}.${ext}`;
+  const dest = join(listingImageDir(), fileName);
+  writeFileSync(dest, buffer);
+  return listingImagePublicPath(fileName);
+}
+
+/** Szerver oldali proxy: távoli kép lekérése Referer-rel. */
+export async function fetchRemoteListingImage(imageUrl) {
+  if (!isAllowedRemoteImageUrl(imageUrl)) {
+    const err = new Error("Nem engedélyezett kép URL.");
+    err.code = "FORBIDDEN_IMAGE";
+    throw err;
+  }
+  const response = await fetch(imageUrl, {
+    headers: {
+      Referer: "https://www.hasznaltauto.hu/",
+      Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    },
+  });
+  if (!response.ok) {
+    const err = new Error(`Kép letöltés sikertelen (${response.status}).`);
+    err.code = "FETCH_FAILED";
+    throw err;
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.length < 500) {
+    const err = new Error("Üres / túl kicsi kép.");
+    err.code = "EMPTY_IMAGE";
+    throw err;
+  }
+  const contentType =
+    response.headers.get("content-type") ||
+    (sniffExt(buffer) === "png"
+      ? "image/png"
+      : sniffExt(buffer) === "webp"
+        ? "image/webp"
+        : "image/jpeg");
+  return { buffer, contentType };
 }

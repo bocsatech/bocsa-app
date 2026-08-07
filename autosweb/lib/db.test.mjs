@@ -79,21 +79,37 @@ test("saveListing: sqlite fájlba ment", async () => {
   assert.ok(findListingByHasznaltautoId("12345678"));
 
   const withPreview = listListingsWithPreview({ limit: 10 });
-  assert.equal(withPreview[0].preview.imageUrl, "/uploads/listings/12345678.jpg");
+  // Helyi fájl nincs a lemezen → üres imageUrl (ne törött <img>)
+  assert.equal(withPreview[0].fo_kep, "/uploads/listings/12345678.jpg");
+  assert.equal(withPreview[0].preview.imageUrl, "");
 
-  const repaired = updateListingFoKep(saved.id, "/uploads/listings/repaired.jpg");
-  assert.equal(repaired.fo_kep, "/uploads/listings/repaired.jpg");
+  const remote = saveListing(
+    {
+      hirdetes_cime: "Remote kep",
+      forras_url: "https://www.hasznaltauto.hu/szemelyauto/x/y-99999999",
+      hasznaltauto_hirdetes_id: "99999999",
+      fo_kep: "https://www.hasznaltauto.hu/img/test.jpg",
+    },
+    null,
+    { status: "feladott" }
+  );
+  const remotePreview = listListingsWithPreview({ limit: 10 }).find((row) => row.id === remote.id);
+  assert.match(remotePreview.preview.imageUrl, /^\/api\/media\/proxy\?url=/);
 
   const stats = dbStats();
-  assert.equal(stats.listings, 1);
+  assert.equal(stats.listings, 2);
   assert.equal(stats.mentett, 1);
+  assert.equal(stats.feladott, 1);
   assert.ok(stats.cells >= 4);
 
   const feladott = saveListing({ hirdetes_cime: "Feladott teszt", gyartmany: "BMW" }, null, {
     status: "feladott",
   });
   assert.equal(feladott.status, "feladott");
-  assert.equal(listListings({ status: "feladott" }).length, 1);
+  assert.equal(listListings({ status: "feladott" }).length, 2);
+
+  const repaired = updateListingFoKep(saved.id, "/uploads/listings/repaired.jpg");
+  assert.equal(repaired.fo_kep, "/uploads/listings/repaired.jpg");
 
   rmSync(tempDir, { recursive: true, force: true });
   delete process.env.AUTOSWEB_DB_PATH;
