@@ -9,6 +9,7 @@ import {
   getStoredListingId,
   fetchListing,
   fetchDbStats,
+  deleteAllListingsFromDb,
 } from "./db-client.js";
 
 const EMBEDDED_VERSION = document.querySelector('meta[name="autosweb-version"]')?.content ?? "";
@@ -20,6 +21,7 @@ const formTitle = document.getElementById("import-form-title");
 const formError = document.getElementById("import-form-error");
 const topAlert = document.getElementById("import-top-alert");
 const saveBtn = document.getElementById("import-save-btn");
+const clearAllBtn = document.getElementById("import-clear-all-btn");
 const saveStatus = document.getElementById("import-save-status");
 const dbBadge = document.getElementById("import-db-badge");
 
@@ -284,4 +286,34 @@ async function handleSave() {
 }
 
 saveBtn?.addEventListener("click", handleSave);
+
+clearAllBtn?.addEventListener("click", async () => {
+  if (
+    !confirm(
+      "Törlöd AZ ÖSSZES hirdetést az adatbázisból?\n\nEz a képeket is törli. Utána újra tudsz importálni."
+    )
+  ) {
+    return;
+  }
+  if (!confirm("Biztosan? Ez nem visszavonható.")) return;
+  clearAllBtn.disabled = true;
+  setSaveStatus("Törlés…");
+  try {
+    const result = await deleteAllListingsFromDb();
+    hideTopAlert();
+    setSaveStatus(
+      `Törölve: ${result.deleted ?? 0} hirdetés, ${result.imagesRemoved ?? 0} kép — készen áll az új importra.`,
+      "ok"
+    );
+    showTopAlert("Minden hirdetés törölve. Most indíthatod az importot.", "ok");
+    await checkServerReady();
+  } catch (error) {
+    const message = error.message ?? "Törlés sikertelen";
+    showTopAlert(message, "err");
+    setSaveStatus(message, "err");
+  } finally {
+    clearAllBtn.disabled = false;
+  }
+});
+
 await initPage();

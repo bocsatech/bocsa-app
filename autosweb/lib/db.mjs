@@ -370,6 +370,20 @@ export function deleteListing(id) {
   return { ok: true };
 }
 
+/** Összes hirdetés + cellák törlése. Vissza: törölt darabszám. */
+export function deleteAllListings() {
+  const db = getDb();
+  const before = Number(db.prepare("SELECT COUNT(*) AS n FROM listings").get()?.n ?? 0);
+  db.exec("DELETE FROM listing_cells");
+  db.exec("DELETE FROM listings");
+  try {
+    db.exec("DELETE FROM sqlite_sequence WHERE name IN ('listings')");
+  } catch {
+    /* nincs sqlite_sequence */
+  }
+  return { ok: true, deleted: before };
+}
+
 export function dbStats() {
   const db = getDb();
   const listings = db.prepare("SELECT COUNT(*) AS n FROM listings").get().n;

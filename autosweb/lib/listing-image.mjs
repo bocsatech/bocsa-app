@@ -1,6 +1,6 @@
 /** Fő kép letöltés — tartós mappa: ~/.autosweb/uploads/listings/ (túléli a frissítést). */
 
-import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { homedir } from "os";
 import { fileURLToPath } from "url";
@@ -42,6 +42,26 @@ export function listingImageDir() {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   migrateLegacyUploadsIfNeeded(dir);
   return dir;
+}
+
+/** Törli a helyi hirdetésképeket (~/.autosweb/uploads/listings). */
+export function clearListingImageFiles() {
+  const dir = listingImageDir();
+  let removed = 0;
+  try {
+    for (const name of readdirSync(dir)) {
+      if (name.startsWith(".")) continue;
+      try {
+        unlinkSync(join(dir, name));
+        removed += 1;
+      } catch {
+        /* ignore */
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return { removed, dir };
 }
 
 export function listingImagePublicPath(fileName) {

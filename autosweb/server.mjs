@@ -11,6 +11,7 @@ import {
   getLatestListing,
   listListingsWithPreview,
   deleteListing,
+  deleteAllListings,
   dbStats,
   listFieldDefs,
   findListingBySourceUrl,
@@ -84,7 +85,7 @@ import {
   oauthConfigPath,
   parseOAuthState,
 } from "./lib/oauth.mjs";
-import { listingImageDir, resolveListingImageFile, fetchRemoteListingImage } from "./lib/listing-image.mjs";
+import { listingImageDir, resolveListingImageFile, fetchRemoteListingImage, clearListingImageFiles } from "./lib/listing-image.mjs";
 import { handleMessagesApi, initMessagingSchema } from "./lib/messaging.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -424,6 +425,13 @@ async function handleListingsApi(req, res, pathname) {
       return;
     }
     sendJson(res, 200, { listing: saved });
+    return;
+  }
+
+  if (pathname === "/api/listings/all" && req.method === "DELETE") {
+    const result = deleteAllListings();
+    const images = clearListingImageFiles();
+    sendJson(res, 200, { ok: true, deleted: result.deleted, imagesRemoved: images.removed });
     return;
   }
 

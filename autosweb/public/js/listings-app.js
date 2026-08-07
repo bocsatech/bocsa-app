@@ -1,4 +1,4 @@
-import { fetchListings, fetchListing, deleteListingFromDb, fetchDbStats, saveListingToDb } from "./db-client.js";
+import { fetchListings, fetchListing, deleteListingFromDb, deleteAllListingsFromDb, fetchDbStats, saveListingToDb } from "./db-client.js";
 import { renderListingCells } from "./cells-view.js";
 import { createListingCard, formatListingDisplayTitle } from "./listing-card.js";
 
@@ -13,6 +13,7 @@ const filterButtons = [...document.querySelectorAll("[data-listings-filter]")];
 const editBtn = document.getElementById("listings-edit-btn");
 const publishBtn = document.getElementById("listings-publish-btn");
 const deleteBtn = document.getElementById("listings-delete-btn");
+const clearAllBtn = document.getElementById("listings-clear-all-btn");
 
 let currentFilter = "all";
 let selectedId = null;
@@ -136,6 +137,32 @@ async function handleDelete() {
   await loadList();
 }
 
+async function handleClearAll() {
+  if (
+    !confirm(
+      "Törlöd AZ ÖSSZES hirdetést az adatbázisból?\n\nEz a képeket is törli. Utána újra tudsz importálni."
+    )
+  ) {
+    return;
+  }
+  if (!confirm("Biztosan? Ez nem visszavonható.")) return;
+
+  clearAllBtn.disabled = true;
+  try {
+    const result = await deleteAllListingsFromDb();
+    selectedId = null;
+    currentListing = null;
+    detailEl.hidden = true;
+    await refreshStats();
+    await loadList();
+    alert(`Törölve: ${result.deleted ?? 0} hirdetés, ${result.imagesRemoved ?? 0} kép.`);
+  } catch (error) {
+    alert(error.message ?? "Törlés sikertelen.");
+  } finally {
+    clearAllBtn.disabled = false;
+  }
+}
+
 filterButtons.forEach((btn) => {
   btn.addEventListener("click", async () => {
     setActiveFilter(btn.dataset.listingsFilter);
@@ -145,6 +172,7 @@ filterButtons.forEach((btn) => {
 
 publishBtn?.addEventListener("click", handlePublish);
 deleteBtn?.addEventListener("click", handleDelete);
+clearAllBtn?.addEventListener("click", handleClearAll);
 
 const params = new URLSearchParams(location.search);
 const openId = Number(params.get("id"));

@@ -74,3 +74,8 @@ export async function deleteListingFromDb(id) {
   const response = await fetch(`/api/listings/${id}`, { method: "DELETE" });
   return parseJson(response);
 }
+
+export async function deleteAllListingsFromDb() {
+  const response = await fetch("/api/listings/all", { method: "DELETE" });
+  return parseJson(response);
+}
