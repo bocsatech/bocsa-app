@@ -8,7 +8,6 @@ struct CategoryResultsScreen: View {
     let query: ListingQuery
     var onBack: () -> Void
     var onOpenSettings: () -> Void
-    var onMessage: ((ListingMessageTarget) -> Void)? = nil
 
     @State private var openRequest: ListingOpenRequest?
 
@@ -58,8 +57,7 @@ struct CategoryResultsScreen: View {
                     ForEach(cars) { car in
                         ListingFeedCard(
                             detail: car.asDetail,
-                            onOpen: { openRequest = .demo(car) },
-                            onMessage: onMessage.map { handler in { handler(car.messageTarget) } }
+                            onOpen: { openRequest = .demo(car) }
                         )
                     }
                 }

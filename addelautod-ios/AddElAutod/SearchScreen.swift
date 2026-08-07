@@ -64,8 +64,7 @@ struct SearchScreen: View {
                             } else {
                                 mode = .settings
                             }
-                        },
-                        onMessage: { openMessages(from: .results, target: $0) }
+                        }
                     )
                 } else {
                     searchLanding
@@ -75,8 +74,7 @@ struct SearchScreen: View {
                     onBack: {
                         mode = .search
                         panel = listPanel
-                    },
-                    onMessage: { openMessages(from: .filterResults, target: $0) }
+                    }
                 )
             }
         }

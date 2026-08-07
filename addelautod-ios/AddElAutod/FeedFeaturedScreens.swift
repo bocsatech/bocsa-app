@@ -66,7 +66,6 @@ private struct FeedCard: View {
 /// Ugyanazok a hirdetések, mint a webes főoldalon (`GET /api/listings`).
 struct FeaturedScreen: View {
     @EnvironmentObject private var profile: ProfileStore
-    @State private var messageTarget: ListingMessageTarget?
     @State private var openRequest: ListingOpenRequest?
     @State private var listings: [ListingsAPI.HomeListing] = []
     @State private var loading = true
@@ -116,8 +115,7 @@ struct FeaturedScreen: View {
                         ForEach(listings) { ad in
                             ListingFeedCard(
                                 detail: ad.cardDetail,
-                                onOpen: { openRequest = .remote(id: ad.id) },
-                                onMessage: { messageTarget = ad.messageTarget }
+                                onOpen: { openRequest = .remote(id: ad.id) }
                             )
                         }
                         Text("Ugyanaz a lista, mint a webes főoldalon. Később külön jelöljük a tényleges kiemelést.")
@@ -132,10 +130,6 @@ struct FeaturedScreen: View {
         }
         .background(AppTheme.bg)
         .task { await reload() }
-        .fullScreenCover(item: $messageTarget) { target in
-            MessagesScreen(onClose: { messageTarget = nil }, initialTarget: target)
-                .environmentObject(profile)
-        }
         .fullScreenCover(item: $openRequest) { req in
             ListingDetailLoader(request: req, onClose: { openRequest = nil })
                 .environmentObject(profile)

@@ -353,7 +353,6 @@ struct ListingDetailScreen: View {
 struct ListingFeedCard: View {
   let detail: ListingDetail
   var onOpen: () -> Void
-  var onMessage: (() -> Void)? = nil
 
   @State private var photoIndex = 0
 
@@ -420,11 +419,6 @@ struct ListingFeedCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
       }
       .buttonStyle(.plain)
-
-      if let onMessage {
-        MessageListingButton(action: onMessage)
-          .padding(.top, 8)
-      }
     }
     .padding(14)
     .background(AppTheme.bgElevated)

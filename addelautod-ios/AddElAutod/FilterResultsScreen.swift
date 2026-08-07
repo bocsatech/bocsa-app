@@ -5,7 +5,6 @@ struct FilterResultsScreen: View {
   @EnvironmentObject private var store: SearchStore
   @EnvironmentObject private var profile: ProfileStore
   var onBack: () -> Void
-  var onMessage: ((ListingMessageTarget) -> Void)? = nil
 
   @State private var openRequest: ListingOpenRequest?
 
@@ -38,8 +37,7 @@ struct FilterResultsScreen: View {
             ForEach(items) { car in
               ListingFeedCard(
                 detail: car.asDetail,
-                onOpen: { openRequest = .demo(car) },
-                onMessage: onMessage.map { handler in { handler(car.messageTarget) } }
+                onOpen: { openRequest = .demo(car) }
               )
             }
           }
