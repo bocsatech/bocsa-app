@@ -43,7 +43,7 @@ struct ListingDetailScreen: View {
     }
   }
 
-  /// Balra húzás a tartalmon → vissza a listához (a képen nem).
+  /// Balról jobbra húzás a tartalmon → vissza a listához (a képen nem).
   private var backSwipeGesture: some Gesture {
     DragGesture(minimumDistance: 24, coordinateSpace: .local)
       .onChanged { value in
@@ -53,9 +53,9 @@ struct ListingDetailScreen: View {
           if backDragX != 0 { backDragX = 0 }
           return
         }
-        // Balra = negatív dx; enyhén követi az ujjat
-        if dx < 0 {
-          backDragX = dx * 0.35
+        // Jobbra = pozitív dx (balról jobbra)
+        if dx > 0 {
+          backDragX = min(dx * 0.45, 120)
         } else {
           backDragX = 0
         }
@@ -63,7 +63,7 @@ struct ListingDetailScreen: View {
       .onEnded { value in
         let dx = value.translation.width
         let dy = value.translation.height
-        let goBack = dx < -90 && abs(dx) > abs(dy) * 1.15
+        let goBack = dx > 90 && abs(dx) > abs(dy) * 1.15
         withAnimation(.easeOut(duration: 0.2)) {
           backDragX = 0
         }
