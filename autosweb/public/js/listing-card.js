@@ -64,6 +64,17 @@ export function createListingCard(item, { selected = false, formatDate = (v) => 
   const location = preview.location;
   const desc = preview.leiras;
   const updated = formatDate(item.updated_at);
+  const imageUrl = preview.imageUrl || item.fo_kep || "";
+  const photoInner = imageUrl
+    ? `<img class="ha-card-photo-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`
+    : `<div class="ha-card-photo-empty" aria-hidden="true">
+          <span class="ha-card-photo-icon" aria-hidden="true">
+            <svg width="22" height="18" viewBox="0 0 22 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 4.5h3l1.5-2h7l1.5 2H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.4"/>
+              <circle cx="11" cy="10" r="3.2" stroke="currentColor" stroke-width="1.4"/>
+            </svg>
+          </span>
+        </div>`;
 
   card.innerHTML = `
     <header class="ha-card-head">
@@ -72,16 +83,7 @@ export function createListingCard(item, { selected = false, formatDate = (v) => 
     </header>
     <div class="ha-card-badges">${renderBadges(preview, item.status || "mentett")}</div>
     <div class="ha-card-body">
-      <div class="ha-card-photo">
-        <div class="ha-card-photo-empty" aria-hidden="true">
-          <span class="ha-card-photo-icon" aria-hidden="true">
-            <svg width="22" height="18" viewBox="0 0 22 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 4.5h3l1.5-2h7l1.5 2H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.4"/>
-              <circle cx="11" cy="10" r="3.2" stroke="currentColor" stroke-width="1.4"/>
-            </svg>
-          </span>
-        </div>
-      </div>
+      <div class="ha-card-photo">${photoInner}</div>
       <div class="ha-card-main">
         ${preview.specLine ? `<p class="ha-card-spec">${formatSpecLine(preview)}</p>` : ""}
         ${desc ? `<p class="ha-card-desc">${escapeHtml(desc)}</p>` : ""}

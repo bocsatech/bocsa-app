@@ -185,13 +185,10 @@ async function attachMainImage(page, item, onProgress, preferredImageUrl = null)
     const key =
       item.form?.hasznaltauto_hirdetes_id || listingKeyFromUrl(item.url || item.form?.forras_url);
     const foKep = await downloadMainImage(page, imageUrl, key || `img_${Date.now()}`);
-    if (foKep) {
-      item.imageUrl = foKep;
-      if (item.form) item.form.fo_kep = foKep;
-      onProgress?.(`Fő kép mentve: ${foKep}`);
-    } else {
-      onProgress?.("Fő kép: letöltés sikertelen");
-    }
+    const finalUrl = foKep || imageUrl;
+    item.imageUrl = finalUrl;
+    if (item.form) item.form.fo_kep = finalUrl;
+    onProgress?.(foKep ? `Fő kép mentve: ${foKep}` : `Fő kép (távoli URL): ${imageUrl.slice(0, 80)}`);
   } catch (error) {
     onProgress?.(`Fő kép hiba: ${error.message ?? error}`);
   }
@@ -220,13 +217,13 @@ async function repairExistingListingImage(page, existing, listingUrl, card, onPr
     listingKeyFromUrl(listingUrl) ||
     `listing_${existing.id}`;
   const foKep = await downloadMainImage(page, imageUrl, key);
-  if (!foKep) {
-    onProgress?.(`Kép pótlás sikertelen (#${existing.id}): letöltés hiba`);
-    return false;
-  }
-
-  updateListingFoKep(existing.id, foKep);
-  onProgress?.(`Kép pótolva (#${existing.id}): ${foKep}`);
+  const finalUrl = foKep || imageUrl;
+  updateListingFoKep(existing.id, finalUrl);
+  onProgress?.(
+    foKep
+      ? `Kép pótolva (#${existing.id}): ${foKep}`
+      : `Kép pótolva távoli URL-lel (#${existing.id})`
+  );
   return true;
 }
 

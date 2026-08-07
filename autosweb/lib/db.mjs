@@ -303,6 +303,8 @@ export function updateListingFoKep(listingId, foKep) {
 }
 
 function upsertListingMeta(db, id, formData, status) {
+  const existing = db.prepare("SELECT fo_kep FROM listings WHERE id = ?").get(id);
+  const nextFoKep = String(formData.fo_kep ?? "").trim() || existing?.fo_kep || "";
   db.prepare(
     `UPDATE listings SET
       hirdetes_cime = ?,
@@ -316,7 +318,7 @@ function upsertListingMeta(db, id, formData, status) {
     formData.hirdetes_cime ?? "",
     formData.forras_url ?? "",
     formData.hasznaltauto_hirdetes_id ?? "",
-    formData.fo_kep ?? "",
+    nextFoKep,
     normalizeListingStatus(status ?? formData.status),
     id
   );

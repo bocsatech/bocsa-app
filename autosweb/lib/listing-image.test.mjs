@@ -24,6 +24,16 @@ test("listing-image: tartós útvonal + resolve", async () => {
   delete process.env.AUTOSWEB_UPLOADS_PATH;
 });
 
+test("isListingImageMissing: https URL nem hiányzó", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "autosweb-up2-"));
+  process.env.AUTOSWEB_UPLOADS_PATH = join(dir, "listings");
+  const mod = await import(`./listing-image.mjs?t=${Date.now() + 9}`);
+  assert.equal(mod.isListingImageMissing("https://cdn.example/a.jpg"), false);
+  assert.equal(mod.isListingImageMissing(""), true);
+  rmSync(dir, { recursive: true, force: true });
+  delete process.env.AUTOSWEB_UPLOADS_PATH;
+});
+
 test("listing-image forrás: ~/.autosweb", () => {
   const src = readFileSync(join(__dirname, "listing-image.mjs"), "utf8");
   assert.match(src, /\.autosweb/);

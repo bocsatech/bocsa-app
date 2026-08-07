@@ -56,7 +56,7 @@ export function createHomeGridCard(item) {
   const fuel = formatFuelLabel(preview.filter?.uzemanyag);
   const imageUrl = preview.imageUrl || item.fo_kep || "";
   const photoHtml = imageUrl
-    ? `<img class="home-grid-card-photo-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" />`
+    ? `<img class="home-grid-card-photo-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`
     : "";
 
   card.innerHTML = `

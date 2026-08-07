@@ -1213,6 +1213,15 @@ body.listings-page .ha-card-photo-empty {
   color: #aaa;
 }
 
+body.listings-page .ha-card-photo-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #f2f2f2;
+  border: 1px solid #e0e0e0;
+}
+
 body.listings-page .ha-card-photo-icon svg {
   display: block;
 }

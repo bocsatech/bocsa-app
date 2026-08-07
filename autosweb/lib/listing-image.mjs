@@ -61,10 +61,11 @@ export function resolveListingImageFile(urlPath) {
   return null;
 }
 
-/** True ha nincs fo_kep, vagy a fájl hiányzik a lemezről. */
+/** True ha nincs fo_kep, vagy helyi fájl hiányzik. Távoli https URL = OK. */
 export function isListingImageMissing(foKep) {
   const path = String(foKep || "").trim();
   if (!path) return true;
+  if (/^https?:\/\//i.test(path)) return false;
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return !resolveListingImageFile(normalized);
 }
