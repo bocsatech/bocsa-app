@@ -10,12 +10,15 @@ struct ListingDetailScreen: View {
   @State private var showMessages = false
   @State private var photoIndex = 0
   @State private var favorited = false
+  @State private var backDragX: CGFloat = 0
 
   var body: some View {
     VStack(spacing: 0) {
+      // Galéria külön: itt balra lapozás = következő kép, nem vissza
+      gallery
+
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
-          gallery
           titleBlock
           Divider().padding(.horizontal, 16)
           vehicleSection
@@ -25,8 +28,11 @@ struct ListingDetailScreen: View {
           Color.clear.frame(height: 24)
         }
       }
+      .simultaneousGesture(backSwipeGesture)
+
       messageBar
     }
+    .offset(x: backDragX)
     .background(Color.white.ignoresSafeArea())
     .fullScreenCover(isPresented: $showMessages) {
       MessagesScreen(
@@ -35,6 +41,36 @@ struct ListingDetailScreen: View {
       )
       .environmentObject(profile)
     }
+  }
+
+  /// Balra húzás a tartalmon → vissza a listához (a képen nem).
+  private var backSwipeGesture: some Gesture {
+    DragGesture(minimumDistance: 24, coordinateSpace: .local)
+      .onChanged { value in
+        let dx = value.translation.width
+        let dy = value.translation.height
+        guard abs(dx) > abs(dy) * 1.15 else {
+          if backDragX != 0 { backDragX = 0 }
+          return
+        }
+        // Balra = negatív dx; enyhén követi az ujjat
+        if dx < 0 {
+          backDragX = dx * 0.35
+        } else {
+          backDragX = 0
+        }
+      }
+      .onEnded { value in
+        let dx = value.translation.width
+        let dy = value.translation.height
+        let goBack = dx < -90 && abs(dx) > abs(dy) * 1.15
+        withAnimation(.easeOut(duration: 0.2)) {
+          backDragX = 0
+        }
+        if goBack {
+          onClose()
+        }
+      }
   }
 
   // MARK: - Gallery
