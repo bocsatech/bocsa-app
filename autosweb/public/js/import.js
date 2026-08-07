@@ -231,9 +231,10 @@ export function initImportPanel({ onApply, onSelected, alertOnApply = true, onRe
           if (payload.type === "done") {
             renderResults(payload.result.items ?? []);
             const saved = payload.result.savedCount ?? payload.result.count ?? 0;
+            const repaired = payload.result.repairedCount ?? 0;
             const skipped = payload.result.skippedCount ?? payload.result.skipped?.length ?? 0;
             appendLog(
-              `Kész: ${saved} mentve a főoldalra, ${skipped} kihagyva (duplikátum), ${payload.result.count ?? 0} betöltve az eredményekbe.`
+              `Kész: ${saved} mentve, ${repaired} kép pótolva, ${skipped} kihagyva, ${payload.result.count ?? 0} betöltve az eredményekbe.`
             );
             if (payload.result.errors?.length) {
               for (const entry of payload.result.errors.slice(0, 8)) {

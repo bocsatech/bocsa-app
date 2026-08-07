@@ -96,7 +96,27 @@ export async function extractListingCardsFromPage(page) {
           }
         }
         const fullText = text.length >= 40 ? text : [title, text, kmText].filter(Boolean).join(" ");
-        cards.push({ url: clean, text: fullText, title: title?.trim() || "", kmText });
+        let imageUrl = "";
+        const img =
+          (container || document.body).querySelector(
+            "img[src*='http'], img[data-src*='http'], img[src*='hasznaltauto'], img[data-src*='hasznaltauto']"
+          ) || null;
+        const rawImg =
+          img?.currentSrc ||
+          img?.src ||
+          img?.getAttribute("data-src") ||
+          img?.getAttribute("data-lazy") ||
+          "";
+        if (rawImg && /^https?:\/\//i.test(rawImg) && !/logo|sprite|icon|pixel/i.test(rawImg)) {
+          imageUrl = rawImg;
+        }
+        cards.push({
+          url: clean,
+          text: fullText,
+          title: title?.trim() || "",
+          kmText,
+          imageUrl,
+        });
       } catch {
         /* skip */
       }

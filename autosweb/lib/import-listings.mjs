@@ -17,8 +17,8 @@ import {
 import { mapCardPreview, mapListingToForm } from "./map-to-form.mjs";
 import { shortUrl } from "./url-utils.mjs";
 import { acquireImportSession, openChromeForImport } from "./browser-session.mjs";
-import { extractMainImageUrl, downloadMainImage } from "./listing-image.mjs";
-import { listingSourceExists, saveListing } from "./db.mjs";
+import { extractMainImageUrl, downloadMainImage, isListingImageMissing } from "./listing-image.mjs";
+import { findListingBySource, saveListing, updateListingFoKep } from "./db.mjs";
 
 export { openChromeForImport };
 
@@ -174,9 +174,10 @@ function listingKeyFromUrl(url) {
   return match?.[1] || "";
 }
 
-async function attachMainImage(page, item, onProgress) {
+async function attachMainImage(page, item, onProgress, preferredImageUrl = null) {
   try {
-    const imageUrl = await extractMainImageUrl(page);
+    let imageUrl = preferredImageUrl || null;
+    if (!imageUrl) imageUrl = await extractMainImageUrl(page);
     if (!imageUrl) {
       onProgress?.("Fő kép: nem található");
       return item;
@@ -197,6 +198,45 @@ async function attachMainImage(page, item, onProgress) {
   return item;
 }
 
+async function repairExistingListingImage(page, existing, listingUrl, card, onProgress) {
+  onProgress?.(`Kép pótlás (#${existing.id}): ${shortUrl(listingUrl, 55)}`);
+  let imageUrl = card?.imageUrl || null;
+
+  if (!imageUrl) {
+    if (page.url() !== listingUrl) {
+      await page.goto(listingUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+    }
+    await waitForListingHtml(page, onProgress);
+    imageUrl = await extractMainImageUrl(page);
+  }
+
+  if (!imageUrl) {
+    onProgress?.(`Kép pótlás sikertelen (#${existing.id}): nincs kép URL`);
+    return false;
+  }
+
+  const key =
+    existing.hasznaltauto_hirdetes_id ||
+    listingKeyFromUrl(listingUrl) ||
+    `listing_${existing.id}`;
+  const foKep = await downloadMainImage(page, imageUrl, key);
+  if (!foKep) {
+    onProgress?.(`Kép pótlás sikertelen (#${existing.id}): letöltés hiba`);
+    return false;
+  }
+
+  updateListingFoKep(existing.id, foKep);
+  onProgress?.(`Kép pótolva (#${existing.id}): ${foKep}`);
+  return true;
+}
+
+function existingForUrl(url, form = {}) {
+  return findListingBySource({
+    sourceUrl: form.forras_url || url,
+    hasznaltautoId: form.hasznaltauto_hirdetes_id || listingKeyFromUrl(url),
+  });
+}
+
 async function fetchListingForm(page, url, card, onProgress) {
   onProgress?.(`Részletek: ${shortUrl(url, 70)}`);
   if (page.url() !== url) {
@@ -215,15 +255,8 @@ async function fetchListingForm(page, url, card, onProgress) {
   const fieldCount = Object.keys(parsed.nyersAdatok ?? {}).length;
   onProgress?.(`Kinyerve: ${fieldCount} adatmező → űrlap kitöltés`);
   const item = mapCardPreview(card ?? { url }, parsed);
-  await attachMainImage(page, item, onProgress);
+  await attachMainImage(page, item, onProgress, card?.imageUrl || null);
   return item;
-}
-
-function shouldSkipListing(url, form = {}) {
-  return listingSourceExists({
-    sourceUrl: form.forras_url || url,
-    hasznaltautoId: form.hasznaltauto_hirdetes_id || listingKeyFromUrl(url),
-  });
 }
 
 function persistImportedItem(item, onProgress) {
@@ -252,12 +285,14 @@ export async function importListings(inputUrl, options = {}) {
   const errors = [];
   const skipped = [];
   let savedCount = 0;
+  let repairedCount = 0;
 
   try {
     const page = await getWorkingPage(session.context, url);
 
     if (isListingUrl(url)) {
-      if (autoSave && shouldSkipListing(url)) {
+      const existingSingle = existingForUrl(url);
+      if (autoSave && existingSingle && !isListingImageMissing(existingSingle.fo_kep)) {
         onProgress?.(`Kihagyva (már az adatbázisban): ${shortUrl(url, 70)}`);
         skipped.push({ url, reason: "duplicate" });
         return {
@@ -267,6 +302,7 @@ export async function importListings(inputUrl, options = {}) {
           errors,
           skipped,
           savedCount: 0,
+          repairedCount: 0,
           skippedCount: skipped.length,
         };
       }
@@ -274,9 +310,18 @@ export async function importListings(inputUrl, options = {}) {
       await waitForAccess(page, onProgress);
       const item = await fetchListingForm(page, url, { url }, onProgress);
       if (autoSave) {
-        if (shouldSkipListing(url, item.form)) {
-          onProgress?.(`Kihagyva (már az adatbázisban): ${shortUrl(url, 70)}`);
-          skipped.push({ url, reason: "duplicate" });
+        const existing = existingForUrl(url, item.form);
+        if (existing) {
+          if (item.form?.fo_kep && isListingImageMissing(existing.fo_kep)) {
+            updateListingFoKep(existing.id, item.form.fo_kep);
+            repairedCount += 1;
+            item.savedId = existing.id;
+            items.push(item);
+            onProgress?.(`Kép pótolva (#${existing.id})`);
+          } else {
+            onProgress?.(`Kihagyva (már az adatbázisban): ${shortUrl(url, 70)}`);
+            skipped.push({ url, reason: "duplicate" });
+          }
         } else {
           persistImportedItem(item, onProgress);
           savedCount += 1;
@@ -292,6 +337,7 @@ export async function importListings(inputUrl, options = {}) {
         errors,
         skipped,
         savedCount,
+        repairedCount,
         skippedCount: skipped.length,
       };
     }
@@ -322,9 +368,27 @@ export async function importListings(inputUrl, options = {}) {
     for (let i = 0; i < urls.length; i += 1) {
       const listingUrl = urls[i];
       try {
-        if (autoSave && shouldSkipListing(listingUrl)) {
+        const existing = autoSave ? existingForUrl(listingUrl) : null;
+        if (existing && !isListingImageMissing(existing.fo_kep)) {
           onProgress?.(`[${i + 1}/${urls.length}] Kihagyva (már van): ${shortUrl(listingUrl, 55)}`);
           skipped.push({ url: listingUrl, reason: "duplicate" });
+          continue;
+        }
+
+        if (existing && isListingImageMissing(existing.fo_kep)) {
+          const ok = await withTimeout(
+            repairExistingListingImage(
+              page,
+              existing,
+              listingUrl,
+              cardByUrl.get(listingUrl),
+              onProgress
+            ),
+            90000,
+            "Időtúllépés kép pótláskor"
+          );
+          if (ok) repairedCount += 1;
+          else skipped.push({ url: listingUrl, reason: "image_repair_failed" });
           continue;
         }
 
@@ -336,13 +400,21 @@ export async function importListings(inputUrl, options = {}) {
         );
 
         if (autoSave) {
-          if (shouldSkipListing(listingUrl, item.form)) {
-            onProgress?.(`[${i + 1}/${urls.length}] Kihagyva (már van): ${shortUrl(listingUrl, 55)}`);
-            skipped.push({ url: listingUrl, reason: "duplicate" });
-            continue;
+          const again = existingForUrl(listingUrl, item.form);
+          if (again) {
+            if (item.form?.fo_kep && isListingImageMissing(again.fo_kep)) {
+              updateListingFoKep(again.id, item.form.fo_kep);
+              repairedCount += 1;
+              item.savedId = again.id;
+            } else {
+              onProgress?.(`[${i + 1}/${urls.length}] Kihagyva (már van): ${shortUrl(listingUrl, 55)}`);
+              skipped.push({ url: listingUrl, reason: "duplicate" });
+              continue;
+            }
+          } else {
+            persistImportedItem(item, onProgress);
+            savedCount += 1;
           }
-          persistImportedItem(item, onProgress);
-          savedCount += 1;
         }
 
         items.push(item);
@@ -356,7 +428,7 @@ export async function importListings(inputUrl, options = {}) {
 
     if (autoSave) {
       onProgress?.(
-        `Kész: ${savedCount} mentve (feladott), ${skipped.length} kihagyva, ${errors.length} hiba. Összesítés: több import hozzáadódik a meglévőkhöz.`
+        `Kész: ${savedCount} mentve, ${repairedCount} kép pótolva, ${skipped.length} kihagyva, ${errors.length} hiba.`
       );
     }
 
@@ -367,6 +439,7 @@ export async function importListings(inputUrl, options = {}) {
       errors,
       skipped,
       savedCount,
+      repairedCount,
       skippedCount: skipped.length,
     };
   } finally {

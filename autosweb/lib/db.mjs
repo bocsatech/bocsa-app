@@ -278,11 +278,28 @@ export function findListingByHasznaltautoId(adId) {
 
 /** True if a listing with this Használtautó URL or ad id already exists. */
 export function listingSourceExists({ sourceUrl = "", hasznaltautoId = "" } = {}) {
-  if (String(sourceUrl || "").trim() && findListingBySourceUrl(sourceUrl)) return true;
-  if (String(hasznaltautoId || "").trim() && findListingByHasznaltautoId(hasznaltautoId)) {
-    return true;
-  }
-  return false;
+  return Boolean(findListingBySource({ sourceUrl, hasznaltautoId }));
+}
+
+export function findListingBySource({ sourceUrl = "", hasznaltautoId = "" } = {}) {
+  const byUrl = findListingBySourceUrl(sourceUrl);
+  if (byUrl) return byUrl;
+  return findListingByHasznaltautoId(hasznaltautoId);
+}
+
+export function updateListingFoKep(listingId, foKep) {
+  const id = Number(listingId);
+  if (!Number.isFinite(id) || id <= 0) return null;
+  const path = String(foKep || "").trim();
+  if (!path) return null;
+  const db = getDb();
+  const info = db
+    .prepare(
+      `UPDATE listings SET fo_kep = ?, updated_at = datetime('now') WHERE id = ?`
+    )
+    .run(path, id);
+  if (!info.changes) return null;
+  return getListing(id);
 }
 
 function upsertListingMeta(db, id, formData, status) {

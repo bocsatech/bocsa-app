@@ -41,6 +41,7 @@ test("saveListing: sqlite fájlba ment", async () => {
     listingSourceExists,
     findListingByHasznaltautoId,
     listListingsWithPreview,
+    updateListingFoKep,
   } = await import(`./db.mjs?t=${Date.now()}`);
 
   const saved = saveListing(
@@ -79,6 +80,9 @@ test("saveListing: sqlite fájlba ment", async () => {
 
   const withPreview = listListingsWithPreview({ limit: 10 });
   assert.equal(withPreview[0].preview.imageUrl, "/uploads/listings/12345678.jpg");
+
+  const repaired = updateListingFoKep(saved.id, "/uploads/listings/repaired.jpg");
+  assert.equal(repaired.fo_kep, "/uploads/listings/repaired.jpg");
 
   const stats = dbStats();
   assert.equal(stats.listings, 1);

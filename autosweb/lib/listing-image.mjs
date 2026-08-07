@@ -61,10 +61,41 @@ export function resolveListingImageFile(urlPath) {
   return null;
 }
 
+/** True ha nincs fo_kep, vagy a fájl hiányzik a lemezről. */
+export function isListingImageMissing(foKep) {
+  const path = String(foKep || "").trim();
+  if (!path) return true;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return !resolveListingImageFile(normalized);
+}
+
 export async function extractMainImageUrl(page) {
   return page.evaluate(() => {
+    const pick = (src) => {
+      if (!src || !/^https?:\/\//i.test(src)) return null;
+      if (/logo|sprite|icon|pixel|avatar|badge|placeholder/i.test(src)) return null;
+      return src;
+    };
+
     const og = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
-    if (og && /^https?:\/\//i.test(og)) return og;
+    if (pick(og)) return pick(og);
+
+    const twitter = document.querySelector('meta[name="twitter:image"]')?.getAttribute("content");
+    if (pick(twitter)) return pick(twitter);
+
+    for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
+      try {
+        const data = JSON.parse(script.textContent || "");
+        const nodes = Array.isArray(data) ? data : [data];
+        for (const node of nodes) {
+          const img = node?.image;
+          const candidate = Array.isArray(img) ? img[0] : typeof img === "string" ? img : img?.url;
+          if (pick(candidate)) return pick(candidate);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
 
     const selectors = [
       ".swiper-slide-active img",
@@ -73,15 +104,27 @@ export async function extractMainImageUrl(page) {
       "[class*='Gallery'] img",
       "[class*='kepek'] img",
       "[class*='foto'] img",
+      "[class*='photo'] img",
+      "picture source",
       "img[src*='hasznaltauto']",
       "img[data-src*='hasznaltauto']",
+      "img[srcset*='hasznaltauto']",
     ];
     for (const sel of selectors) {
-      const img = document.querySelector(sel);
-      const src = img?.currentSrc || img?.src || img?.getAttribute("data-src");
-      if (src && /^https?:\/\//i.test(src) && !/logo|sprite|icon|pixel/i.test(src)) {
-        return src;
+      const el = document.querySelector(sel);
+      if (!el) continue;
+      if (el.tagName === "SOURCE") {
+        const srcset = el.getAttribute("srcset") || "";
+        const first = srcset.split(",")[0]?.trim().split(/\s+/)[0];
+        if (pick(first)) return pick(first);
       }
+      const src =
+        el.currentSrc ||
+        el.src ||
+        el.getAttribute("data-src") ||
+        el.getAttribute("data-lazy") ||
+        (el.getAttribute("srcset") || "").split(",")[0]?.trim().split(/\s+/)[0];
+      if (pick(src)) return pick(src);
     }
     return null;
   });

@@ -17,6 +17,9 @@ test("listing-image: tartós útvonal + resolve", async () => {
   writeFileSync(join(uploadDir, "abc.jpg"), Buffer.alloc(600, 1));
   assert.equal(mod.resolveListingImageFile("/uploads/listings/abc.jpg"), join(uploadDir, "abc.jpg"));
   assert.equal(mod.resolveListingImageFile("/uploads/listings/../secret"), null);
+  assert.equal(mod.isListingImageMissing("/uploads/listings/abc.jpg"), false);
+  assert.equal(mod.isListingImageMissing("/uploads/listings/hianyzik.jpg"), true);
+  assert.equal(mod.isListingImageMissing(""), true);
   rmSync(dir, { recursive: true, force: true });
   delete process.env.AUTOSWEB_UPLOADS_PATH;
 });
