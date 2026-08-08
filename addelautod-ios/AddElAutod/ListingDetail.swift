@@ -308,10 +308,10 @@ func sanitizeListingText(_ value: String) -> String {
 private func stripInlineListingChrome(_ line: String) -> String {
   var s = line
   let patterns = [
-    #"(?i)használtautó\.?\s*hu"#,
-    #"(?i)\bhasználtautó\b"#,
-    #"(?i)\bbelépés\b"#,
-    #"(?i)\bregisztráció\b"#,
+    #"(?i)haszn[aá]ltaut[oó]\.?\s*hu"#,
+    #"(?i)\bhaszn[aá]ltaut[oó]\b"#,
+    #"(?i)\bbel[eé]p[eé]s\b"#,
+    #"(?i)\bregisztr[aá]ci[oó]\b"#,
     #"(?i)\badd\s*el\s*autod(\.hu)?\b"#,
   ]
   for p in patterns {

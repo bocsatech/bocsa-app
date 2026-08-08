@@ -28,10 +28,10 @@ export function formatCellValue(cell) {
       .map((l) =>
         l
           .replace(/\s+/g, " ")
-          .replace(/használtautó\.?\s*hu/gi, " ")
-          .replace(/\bhasználtautó\b/gi, " ")
-          .replace(/\bbelépés\b/gi, " ")
-          .replace(/\bregisztráció\b/gi, " ")
+          .replace(/haszn[aá]ltaut[oó]\.?\s*hu/gi, " ")
+          .replace(/\bhaszn[aá]ltaut[oó]\b/gi, " ")
+          .replace(/\bbel[eé]p[eé]s\b/gi, " ")
+          .replace(/\bregisztr[aá]ci[oó]\b/gi, " ")
           .replace(/\s{2,}/g, " ")
           .trim()
       )

@@ -3,7 +3,11 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { DatabaseSync } from "node:sqlite";
 import { formDataToCells, cellsToFormData, FORM_FIELD_CATALOG } from "./form-field-catalog.mjs";
-import { buildPreviewFromCells, sanitizeListingPlainText } from "./listing-preview.mjs";
+import {
+  buildPreviewFromCells,
+  sanitizeListingFieldValue,
+  sanitizeListingPlainText,
+} from "./listing-preview.mjs";
 import { initPartnerSchema } from "./partner-schema.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -190,7 +194,21 @@ function sanitizeListingCell(cell) {
   if (key === "leiras" || key === "hirdetes_cime") {
     return { ...cell, value: sanitizeListingPlainText(cell.value) };
   }
+  // Scrape után a cím „Használtautó.hu” / „Belépés” szavai gyártmány/modell mezőbe is kerülhetnek
+  if (key === "gyartmany" || key === "modell" || key === "tipus") {
+    return { ...cell, value: sanitizeListingFieldValue(cell.value) };
+  }
   return cell;
+}
+
+function sanitizeFormDataForSave(formData = {}) {
+  const data = { ...formData };
+  data.hirdetes_cime = sanitizeListingPlainText(data.hirdetes_cime) || "";
+  data.leiras = sanitizeListingPlainText(data.leiras) || "";
+  data.gyartmany = sanitizeListingFieldValue(data.gyartmany);
+  data.modell = sanitizeListingFieldValue(data.modell);
+  data.tipus = sanitizeListingFieldValue(data.tipus);
+  return data;
 }
 
 export function getLatestListing() {
@@ -239,13 +257,14 @@ function replaceCells(db, listingId, cells) {
 
 export function saveListing(formData, listingId = null, { status = null } = {}) {
   const db = getDb();
-  const cells = formDataToCells(formData);
-  const listingStatus = normalizeListingStatus(status ?? formData.status);
+  const clean = sanitizeFormDataForSave(formData);
+  const cells = formDataToCells(clean);
+  const listingStatus = normalizeListingStatus(status ?? clean.status);
 
   if (listingId) {
     const existing = db.prepare("SELECT id FROM listings WHERE id = ?").get(listingId);
     if (!existing) return null;
-    upsertListingMeta(db, listingId, formData, listingStatus);
+    upsertListingMeta(db, listingId, clean, listingStatus);
     replaceCells(db, listingId, cells);
     return getListing(listingId);
   }
@@ -255,9 +274,9 @@ export function saveListing(formData, listingId = null, { status = null } = {}) 
      VALUES (?, ?, ?, ?)`
   );
   const result = insert.run(
-    formData.hirdetes_cime ?? "",
-    formData.forras_url ?? "",
-    formData.hasznaltauto_hirdetes_id ?? "",
+    clean.hirdetes_cime ?? "",
+    clean.forras_url ?? "",
+    clean.hasznaltauto_hirdetes_id ?? "",
     listingStatus
   );
   const id = Number(result.lastInsertRowid);

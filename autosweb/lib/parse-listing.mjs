@@ -325,14 +325,20 @@ function parseJsonLd(html) {
 }
 
 function parseTitle(html) {
+  let raw = null;
   const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-  if (h1) return cleanText(h1[1].replace(/<[^>]+>/g, ""));
-
-  const ogTitle = html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
-  if (ogTitle) return cleanText(ogTitle[1]);
-
-  const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  return title ? cleanText(title[1].replace(/\s*\|.*$/, "")) : null;
+  if (h1) raw = cleanText(h1[1].replace(/<[^>]+>/g, ""));
+  if (!raw) {
+    const ogTitle = html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
+    if (ogTitle) raw = cleanText(ogTitle[1]);
+  }
+  if (!raw) {
+    const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    raw = title ? cleanText(title[1].replace(/\s*\|.*$/, "")) : null;
+  }
+  if (!raw) return null;
+  const cleaned = sanitizeListingPlainText(raw).replace(/\s+/g, " ").trim();
+  return cleaned || null;
 }
 
 function parsePriceFromHtml(html) {

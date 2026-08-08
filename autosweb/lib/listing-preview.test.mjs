@@ -22,6 +22,21 @@ test("sanitizeListingPlainText kiszűri a Használtautó.hu / Belépés fejléce
   );
 });
 
+test("buildListingPreview nem engedi a szennyezett gyartmany/modell fallback címet", () => {
+  const preview = buildListingPreview(
+    {
+      hirdetes_cime: "Használtautó.hu\nBelépés",
+      gyartmany: "Használtautó.hu",
+      modell: "Belépés",
+      vetelar: "5000000",
+    },
+    { id: 99 }
+  );
+  assert.equal(preview.title, "Hirdetés #99");
+  assert.equal(preview.filter.gyartmany, "");
+  assert.equal(preview.filter.modell, "");
+});
+
 test("formatListingDisplayTitle eltávolítja az Eladó prefixet", async () => {
   const { formatListingDisplayTitle } = await import("./listing-preview.mjs");
   assert.equal(
