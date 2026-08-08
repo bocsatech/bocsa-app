@@ -38,15 +38,29 @@ export function sanitizeListingPlainText(value) {
     .replace(/\u00a0/g, " ");
   const lines = raw
     .split(/\n+/)
-    .map((line) => line.replace(/\s+/g, " ").trim())
+    .map((line) => stripInlineListingChrome(line.replace(/\s+/g, " ").trim()))
     .filter(Boolean)
     .filter((line) => !isListingSiteChromeLine(line));
   const text = lines.join("\n").trim();
-  if (isListingSiteChromeLine(text.replace(/\n+/g, " "))) return "";
+  if (!text || isListingSiteChromeLine(text.replace(/\n+/g, " "))) return "";
   return text;
 }
 
-function isListingSiteChromeLine(line) {
+/** Inline „Használtautó.hu” / „Belépés” tokenek eltávolítása egy sorból. */
+export function stripInlineListingChrome(line) {
+  return String(line ?? "")
+    .replace(/használtautó\.?\s*hu/gi, " ")
+    .replace(/\bhasználtautó\b/gi, " ")
+    .replace(/\bbelépés\b/gi, " ")
+    .replace(/\bregisztráció\b/gi, " ")
+    .replace(/\badd\s*el\s*autod(\.hu)?\b/gi, " ")
+    .replace(/[|·•]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[\s|·•\-–—]+|[\s|·•\-–—]+$/g, "")
+    .trim();
+}
+
+export function isListingSiteChromeLine(line) {
   const n = String(line ?? "")
     .toLowerCase()
     .normalize("NFD")
@@ -54,10 +68,21 @@ function isListingSiteChromeLine(line) {
     .replace(/\s+/g, " ")
     .trim();
   if (!n) return true;
-  if (/^(hasznaltauto\.hu|hasznaltauto hu)([.!|]*)?$/.test(n)) return true;
+  // Ha a sor csak site-chrome szavakból áll (bármilyen hossz), dobjuk
+  const onlyChrome = n
+    .replace(/hasznaltauto(\.hu)?/g, " ")
+    .replace(/\bbelepes\b/g, " ")
+    .replace(/\bregisztracio\b/g, " ")
+    .replace(/\badd el autod(\.hu)?\b/g, " ")
+    .replace(/[|·•\-–—./:!]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!onlyChrome) return true;
+  // Rövid sor, amiben hasznaltauto / belépés szerepel → fejléc szemét
+  if (n.includes("hasznaltauto") && n.length <= 64) return true;
+  if (/\bbelepes\b/.test(n) && n.length <= 24) return true;
   if (/^belepes([.!|]*)?$/.test(n)) return true;
   if (/^regisztracio([.!|]*)?$/.test(n)) return true;
-  if (/^(hasznaltauto\.hu|hasznaltauto hu)\s*[|·-]?\s*belepes$/.test(n)) return true;
   if (/^add el autod(\.hu)?$/.test(n)) return true;
   return false;
 }

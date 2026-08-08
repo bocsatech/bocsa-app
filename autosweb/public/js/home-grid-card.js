@@ -5,7 +5,8 @@ function buildCardTitle(preview, item) {
     preview.title ||
     item.hirdetes_cime ||
     `Hirdetés #${item.id}`;
-  return formatListingDisplayTitle(raw) || raw;
+  // Soha ne essünk vissza a nyers Használtautó.hu / Belépés címre
+  return formatListingDisplayTitle(raw) || `Hirdetés #${item.id}`;
 }
 
 function extractYearMonth(specLine, year) {

@@ -11,12 +11,70 @@ export function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
-/** Megjelenítéshez: „Eladó …” prefix nélkül */
-export function formatListingDisplayTitle(value) {
-  return String(value ?? "")
+function stripInlineChrome(line) {
+  return String(line ?? "")
+    .replace(/használtautó\.?\s*hu/gi, " ")
+    .replace(/\bhasználtautó\b/gi, " ")
+    .replace(/\bbelépés\b/gi, " ")
+    .replace(/\bregisztráció\b/gi, " ")
+    .replace(/\badd\s*el\s*autod(\.hu)?\b/gi, " ")
+    .replace(/[|·•]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[\s|·•\-–—]+|[\s|·•\-–—]+$/g, "")
+    .trim();
+}
+
+function isSiteChromeLine(line) {
+  const n = String(line ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
     .replace(/\s+/g, " ")
-    .trim()
-    .replace(/^eladó\s+/i, "");
+    .trim();
+  if (!n) return true;
+  const onlyChrome = n
+    .replace(/hasznaltauto(\.hu)?/g, " ")
+    .replace(/\bbelepes\b/g, " ")
+    .replace(/\bregisztracio\b/g, " ")
+    .replace(/\badd el autod(\.hu)?\b/g, " ")
+    .replace(/[|·•\-–—./:!]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!onlyChrome) return true;
+  if (n.includes("hasznaltauto") && n.length <= 64) return true;
+  if (/\bbelepes\b/.test(n) && n.length <= 24) return true;
+  if (/^belepes([.!|]*)?$/.test(n)) return true;
+  if (/^regisztracio([.!|]*)?$/.test(n)) return true;
+  if (/^add el autod(\.hu)?$/.test(n)) return true;
+  return false;
+}
+
+/** Megjelenítéshez: „Eladó …” prefix nélkül + Használtautó.hu / Belépés nélkül */
+export function formatListingDisplayTitle(value) {
+  const lines = String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\u00a0/g, " ")
+    .split(/\n+/)
+    .map((line) => stripInlineChrome(line.replace(/\s+/g, " ").trim()))
+    .filter(Boolean)
+    .filter((line) => !isSiteChromeLine(line));
+  let text = lines.join(" ").replace(/\s+/g, " ").trim().replace(/^eladó\s+/i, "");
+  if (!text || isSiteChromeLine(text)) return "";
+  return text;
+}
+
+/** Leírás: site chrome sorok / tokenek nélkül */
+export function sanitizeListingDescription(value) {
+  const lines = String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\u00a0/g, " ")
+    .split(/\n+/)
+    .map((line) => stripInlineChrome(line.replace(/\s+/g, " ").trim()))
+    .filter(Boolean)
+    .filter((line) => !isSiteChromeLine(line));
+  const text = lines.join("\n").trim();
+  if (!text || isSiteChromeLine(text.replace(/\n+/g, " "))) return "";
+  return text;
 }
 
 function formatSpecLine(preview) {
@@ -62,7 +120,7 @@ export function createListingCard(item, { selected = false, formatDate = (v) => 
   const price = preview.price || "—";
   const code = preview.hirdeteskod;
   const location = preview.location;
-  const desc = preview.leiras;
+  const desc = sanitizeListingDescription(preview.leiras || "");
   const updated = formatDate(item.updated_at);
   const imageUrl = preview.imageUrl || item.fo_kep || "";
   const photoInner = imageUrl
