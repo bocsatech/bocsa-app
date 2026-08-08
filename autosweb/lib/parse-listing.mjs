@@ -1,6 +1,7 @@
 import { shortUrl } from "./url-utils.mjs";
 import { extractOdometerKm, formatKmDisplay } from "./extract-km.mjs";
 import { parseSummarySpecs } from "./map-tech.mjs";
+import { sanitizeListingPlainText } from "./listing-preview.mjs";
 
 const PHONE_RE = /(?:\+36|06)\s*[\d\s/-]{7,14}\d/;
 
@@ -378,7 +379,9 @@ export function parseDescription(html) {
   for (const pattern of patterns) {
     const match = html.match(pattern);
     if (!match) continue;
-    const text = cleanText(match[1].replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " "));
+    const text = sanitizeListingPlainText(
+      match[1].replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ")
+    );
     if (text.length >= 20) return text;
   }
 
@@ -447,7 +450,7 @@ export function parseListingHtml(html, { url = "", phone = null } = {}) {
     km,
     telefonszam,
     cim: title,
-    leiras,
+    leiras: sanitizeListingPlainText(leiras),
     felszereltseg: felszereltseg.length ? felszereltseg : undefined,
     nyersAdatok: attributeMap,
   };

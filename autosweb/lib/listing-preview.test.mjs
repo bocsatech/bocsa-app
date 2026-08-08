@@ -2,6 +2,17 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { buildListingPreview, buildPreviewFromCells } from "./listing-preview.mjs";
 
+test("sanitizeListingPlainText kiszűri a Használtautó.hu / Belépés fejlécet", async () => {
+  const { sanitizeListingPlainText, formatListingDisplayTitle } = await import("./listing-preview.mjs");
+  assert.equal(sanitizeListingPlainText("Használtautó.hu\nBelépés"), "");
+  assert.equal(sanitizeListingPlainText("Használtautó.hu Belépés"), "");
+  assert.equal(
+    sanitizeListingPlainText("Használtautó.hu\nBelépés\nSzép, garanciális autó."),
+    "Szép, garanciális autó."
+  );
+  assert.equal(formatListingDisplayTitle("Használtautó.hu"), "");
+});
+
 test("formatListingDisplayTitle eltávolítja az Eladó prefixet", async () => {
   const { formatListingDisplayTitle } = await import("./listing-preview.mjs");
   assert.equal(

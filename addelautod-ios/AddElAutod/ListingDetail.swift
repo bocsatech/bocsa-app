@@ -105,6 +105,13 @@ extension ListingsAPI {
       ? (row.hirdetes_cime ?? "Hirdetés #\(row.id)")
       : str("hirdetes_cime")
     let title = Self.detailDisplayTitle(rawTitle, year: Int(year))
+    title = sanitizeListingText(title)
+    if title.isEmpty {
+      title = Self.detailDisplayTitle(
+        row.hirdetes_cime ?? "Hirdetés #\(row.id)",
+        year: Int(year)
+      )
+    }
 
     var images: [URL] = []
     if let u = absoluteImageURL(row.fo_kep) { images.append(u) }
@@ -190,7 +197,7 @@ extension ListingsAPI {
       badge: row.status == "feladott" ? "Feladott" : nil,
       vehicleRows: rows,
       equipment: equipment,
-      description: str("leiras"),
+      description: sanitizeListingText(str("leiras")),
       sellerName: sellerName,
       sellerPhone: phone.isEmpty ? nil : phone,
       addressLines: address,
@@ -286,6 +293,33 @@ private extension String {
   var padLeft2: String {
     count >= 2 ? self : String(repeating: "0", count: 2 - count) + self
   }
+}
+
+/// Használtautó.hu / Belépés fejléc kiszűrése a leírásból / címből.
+func sanitizeListingText(_ value: String) -> String {
+  let lines = value
+    .replacingOccurrences(of: "\r\n", with: "\n")
+    .components(separatedBy: .newlines)
+    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+    .filter { !$0.isEmpty }
+    .filter { !isListingSiteChromeLine($0) }
+  let text = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+  if isListingSiteChromeLine(text.replacingOccurrences(of: "\n", with: " ")) { return "" }
+  return text
+}
+
+private func isListingSiteChromeLine(_ line: String) -> Bool {
+  let folded = line
+    .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "hu_HU"))
+    .lowercased()
+    .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+    .trimmingCharacters(in: .whitespacesAndNewlines)
+  if folded.isEmpty { return true }
+  if folded == "hasznaltauto.hu" || folded == "hasznaltauto hu" { return true }
+  if folded == "belepes" || folded == "regisztracio" { return true }
+  if folded == "hasznaltauto.hu belepes" || folded == "hasznaltauto hu belepes" { return true }
+  if folded == "add el autod" || folded == "add el autod.hu" { return true }
+  return false
 }
 
 extension DemoListing {
