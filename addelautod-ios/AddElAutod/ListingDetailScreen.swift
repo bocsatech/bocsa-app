@@ -14,21 +14,21 @@ struct ListingDetailScreen: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      // Galéria külön: itt balra lapozás = következő kép, nem vissza
-      gallery
-
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
-          titleBlock
-          Divider().padding(.horizontal, 16)
-          vehicleSection
-          sellerSection
-          equipmentSection
-          descriptionSection
-          Color.clear.frame(height: 24)
+          gallery
+          VStack(alignment: .leading, spacing: 0) {
+            titleBlock
+            Divider().padding(.horizontal, 16)
+            vehicleSection
+            sellerSection
+            equipmentSection
+            descriptionSection
+            Color.clear.frame(height: 24)
+          }
+          .simultaneousGesture(backSwipeGesture)
         }
       }
-      .simultaneousGesture(backSwipeGesture)
 
       messageBar
     }
@@ -43,7 +43,7 @@ struct ListingDetailScreen: View {
     }
   }
 
-  /// Balról jobbra húzás a tartalmon → vissza a listához (a képen nem).
+  /// Balról jobbra húzás a szöveges részen → vissza (a képen fotó lapozás marad).
   private var backSwipeGesture: some Gesture {
     DragGesture(minimumDistance: 24, coordinateSpace: .local)
       .onChanged { value in
