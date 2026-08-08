@@ -318,7 +318,8 @@ function applyRequiredDefaults(data, parsed, titleParts, m) {
 
 function mapCounty(location) {
   if (!location) return { megye: "", telepules: "" };
-  const text = cleanText(location);
+  const text = sanitizeListingFieldValue(location);
+  if (!text) return { megye: "", telepules: "" };
   for (const county of COUNTY_NAMES) {
     if (normalizeKey(text).includes(normalizeKey(county))) {
       const telepules = text.replace(new RegExp(county, "i"), "").replace(/^[,·\s-]+/, "").trim();
@@ -443,10 +444,10 @@ export function mapListingToForm(parsed) {
     forgalomba_helyezes_ar: digits(
       pickValue(m, ["forgalomba helyezés ára", "magyarországi forgalomba helyezés"])
     ),
-    leiras: parsed.leiras || "",
-    megye: location.megye,
-    telepules: location.telepules,
-    iranyitoszam: pickValue(m, ["irányítószám", "iranyitoszam"]),
+    leiras: sanitizeListingPlainText(parsed.leiras || ""),
+    megye: sanitizeListingFieldValue(location.megye),
+    telepules: sanitizeListingFieldValue(location.telepules),
+    iranyitoszam: sanitizeListingFieldValue(pickValue(m, ["irányítószám", "iranyitoszam"])),
   };
 
   if (phone) {
@@ -469,6 +470,25 @@ export function mapListingToForm(parsed) {
   data.hirdetes_cime = buildHirdetesCime(parsed, data);
   ensureKmField(data, parsed, m, titleParts);
 
+  // applyFieldMap után is: ne maradjon Használtautó.hu / Belépés a hely/cím mezőkben
+  for (const key of [
+    "telepules",
+    "megye",
+    "megtekintesi_cim",
+    "iranyitoszam",
+    "gyartmany",
+    "modell",
+    "tipus",
+    "leiras",
+    "hirdetes_cime",
+  ]) {
+    if (!data[key]) continue;
+    data[key] =
+      key === "leiras" || key === "hirdetes_cime"
+        ? sanitizeListingPlainText(data[key])
+        : sanitizeListingFieldValue(data[key]);
+  }
+
   return Object.fromEntries(Object.entries(data).filter(([, value]) => value !== "" && value != null));
 }
 
@@ -487,7 +507,9 @@ export function mapCardPreview(card, parsed) {
   const mapped = mapListingToFormWithSummary(parsed);
   return {
     url: card.url,
-    cim: parsed.cim || card.title || card.jarmuTipus || "—",
+    cim:
+      sanitizeListingFieldValue(parsed.cim || card.title || card.jarmuTipus || "") ||
+      "—",
     ar: parsed.ar || card.ar || "—",
     km: parsed.km || card.km || "—",
     evjarat: parsed.evjarat || card.evjarat || "—",

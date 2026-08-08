@@ -164,16 +164,21 @@ extension ListingsAPI {
       area: str("telefon1_korzet"),
       number: str("telefon1_szam")
     )
-    let city = str("telepules")
-    let postal = str("iranyitoszam")
-    let street = str("megtekintesi_cim")
-    let megye = str("megye")
+    // Scrape gyakran a település/cím mezőbe is belerakja a Használtautó.hu / Belépés fejlécet
+    let city = sanitizeListingField(str("telepules"))
+    let postal = sanitizeListingField(str("iranyitoszam"))
+    let street = sanitizeListingField(str("megtekintesi_cim"))
+    let megye = sanitizeListingField(str("megye"))
     var address: [String] = []
     if !street.isEmpty { address.append(street) }
     let cityLine = [postal, city, megye].filter { !$0.isEmpty }.joined(separator: " ")
     if !cityLine.isEmpty { address.append(cityLine) }
 
-    let mapParts = [street, postal, city, megye, "Magyarország"].filter { !$0.isEmpty }
+    let mapParts = [street, postal, city, megye].filter { !$0.isEmpty }
+    let mapQuery: String? = {
+      guard !mapParts.isEmpty else { return nil }
+      return (mapParts + ["Magyarország"]).joined(separator: ", ")
+    }()
     let sellerName: String = {
       let email = str("email")
       if !email.isEmpty, let local = email.split(separator: "@").first, !local.isEmpty {
@@ -197,7 +202,7 @@ extension ListingsAPI {
       sellerName: sellerName,
       sellerPhone: phone.isEmpty ? nil : phone,
       addressLines: address,
-      mapQuery: mapParts.isEmpty ? nil : mapParts.joined(separator: ", ")
+      mapQuery: mapQuery
     )
   }
 
@@ -303,6 +308,15 @@ func sanitizeListingText(_ value: String) -> String {
   if text.isEmpty { return "" }
   if isListingSiteChromeLine(text.replacingOccurrences(of: "\n", with: " ")) { return "" }
   return text
+}
+
+/// Egy soros mező (település, cím, gyártmány…): chrome → üres.
+func sanitizeListingField(_ value: String) -> String {
+  let cleaned = sanitizeListingText(value)
+    .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+    .trimmingCharacters(in: .whitespacesAndNewlines)
+  if cleaned.isEmpty || isListingSiteChromeLine(cleaned) { return "" }
+  return cleaned
 }
 
 private func stripInlineListingChrome(_ line: String) -> String {
