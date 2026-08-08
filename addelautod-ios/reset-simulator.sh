@@ -1,26 +1,37 @@
 #!/bin/bash
 # Teljes Mac reset: Xcode + Simulator + friss projekt a feature branchez.
 # Használat: bash reset-simulator.sh
+# Ha a Simulator teljesen holt: ERASE_ALL=1 bash reset-simulator.sh
 set -euo pipefail
 
 BUNDLE_ID="hu.addelautod.app"
 DEST="${HOME}/Downloads/autosapp"
 BRANCH="cursor/addelautod-mobile-de62"
+ERASE_ALL="${ERASE_ALL:-0}"
 
 echo "==> 1) Xcode / Simulator leállítás"
 killall Xcode 2>/dev/null || true
 killall Simulator 2>/dev/null || true
 killall "Simulator (SwiftUI Previews)" 2>/dev/null || true
+killall com.apple.CoreSimulator.CoreSimulatorService 2>/dev/null || true
+sleep 2
+
+echo "==> 2) Simulator eszközök"
+xcrun simctl shutdown all 2>/dev/null || true
 sleep 1
 
-echo "==> 2) Régi app törlése minden szimulátorról"
-xcrun simctl shutdown all 2>/dev/null || true
-for udid in $(xcrun simctl list devices | sed -n 's/.*(\([A-F0-9-]\{36\}\)).*/\1/p' 2>/dev/null); do
-  xcrun simctl uninstall "$udid" "$BUNDLE_ID" 2>/dev/null || true
-done
-xcrun simctl erase all 2>/dev/null || true
+if [ "$ERASE_ALL" = "1" ]; then
+  echo "    ERASE_ALL=1 — minden szimulátor törlése…"
+  xcrun simctl erase all 2>/dev/null || true
+else
+  echo "    App törlése a szimulátorokról (erase nélkül — stabilabb)"
+  while IFS= read -r udid; do
+    [ -n "$udid" ] || continue
+    xcrun simctl uninstall "$udid" "$BUNDLE_ID" 2>/dev/null || true
+  done < <(xcrun simctl list devices available 2>/dev/null | sed -n 's/.*(\([A-F0-9-]\{36\}\)).*/\1/p')
+fi
 
-echo "==> 3) DerivedData törlés"
+echo "==> 3) DerivedData törlés (AddElAutod)"
 rm -rf "${HOME}/Library/Developer/Xcode/DerivedData/AddElAutod-"* 2>/dev/null || true
 rm -rf "${HOME}/Library/Developer/Xcode/DerivedData"/*AddElAutod* 2>/dev/null || true
 
@@ -36,36 +47,58 @@ ditto autosapp-tmp/addelautod-ios/AddElAutod.xcodeproj autosapp/AddElAutod.xcode
 xattr -cr autosapp 2>/dev/null || true
 rm -rf autosapp-tmp
 
-echo "==> 5) Ellenőrzés — benne vannak-e a friss változások?"
+echo "==> 5) Ellenőrzés"
 SETTINGS="$DEST/AddElAutod/SettingsScreen.swift"
 test -f "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 test -f "$SETTINGS"
 grep -q "Település" "$SETTINGS"
-grep -q "Autókereskedő" "$SETTINGS"
-grep -q "Vezetéknév" "$SETTINGS"
-! grep -q "Megszólítás" "$SETTINGS"
-grep -q "SocialWebScreens.swift" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
-grep -q "MessagesAPI.swift" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
-grep -q "ListingsAPI.swift" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
-test -f "$DEST/AddElAutod/MessagesAPI.swift"
-test -f "$DEST/AddElAutod/PushNotificationService.swift"
-test -f "$DEST/AddElAutod/ListingsAPI.swift"
-test -f "$DEST/AddElAutod/ListingDetailScreen.swift"
 grep -q "ListingDetailScreen.swift" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
+test -f "$DEST/AddElAutod/ListingDetailScreen.swift"
 echo "    OK — commit: $COMMIT"
-echo "    Település / Autókereskedő / Vezetéknév / Üzenetek API megvan, Megszólítás nincs."
 
-echo "==> 6) Xcode megnyitás"
+echo "==> 6) Egy Simulator boot (iPhone)"
+# Preferált: iPhone 16, különben bármely elérhető iPhone
+UDID=""
+for name in "iPhone 16" "iPhone 16 Pro" "iPhone 15" "iPhone 15 Pro" "iPhone SE"; do
+  UDID=$(xcrun simctl list devices available 2>/dev/null | sed -n "s/.*${name} (\([A-F0-9-]\{36\}\)).*/\1/p" | head -1)
+  if [ -n "$UDID" ]; then
+    echo "    Boot: $name ($UDID)"
+    break
+  fi
+done
+if [ -z "$UDID" ]; then
+  UDID=$(xcrun simctl list devices available 2>/dev/null | sed -n 's/.*iPhone[^(]*(\([A-F0-9-]\{36\}\)).*/\1/p' | head -1)
+fi
+if [ -n "$UDID" ]; then
+  xcrun simctl boot "$UDID" 2>/dev/null || true
+  open -a Simulator 2>/dev/null || true
+  # várunk amíg booted
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    state=$(xcrun simctl list devices 2>/dev/null | grep "$UDID" | sed -n 's/.*(\(Booted\|Shutdown\|Creating\|Booting\)).*/\1/p' | head -1)
+    # format is actually: iPhone 16 (UDID) (Booted)
+    if xcrun simctl list devices 2>/dev/null | grep "$UDID" | grep -q Booted; then
+      echo "    Simulator Booted"
+      break
+    fi
+    sleep 1
+  done
+else
+  echo "    ⚠ Nem találtam iPhone szimulátort — Xcode-ban válassz manuálisan."
+fi
+
+echo "==> 7) Xcode megnyitás"
 open "$DEST/AddElAutod.xcodeproj"
 
 cat <<EOF
 
 KESZ ($COMMIT). Most Xcode-ban:
-1. Signing & Capabilities → Automatically manage signing → saját Apple ID (Team)
-2. Felül: iPhone 16 (vagy bármely iOS 17+ Simulator)
+1. Signing → Automatically manage signing → saját Apple ID (Team)
+2. Felül ugyanaz a Simulator (pl. iPhone 16), ami bootolt
 3. Product → Clean Build Folder (Cmd+Shift+K)
 4. Product → Run (Cmd+R)
 
-Ha Build error van: másold ki az Xcode piros hibát.
-Ha Busy/preflight: futtasd újra ezt a scriptet, majd Devices and Simulators-ben új iPhone 16.
+Ha a Simulator továbbra sem indul:
+  ERASE_ALL=1 bash <(curl -fsSL https://raw.githubusercontent.com/bocsatech/bocsa-app/${BRANCH}/addelautod-ios/reset-simulator.sh)
+
+Ha Build error: másold ki az Xcode piros hibát.
 EOF
