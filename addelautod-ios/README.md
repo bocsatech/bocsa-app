@@ -8,8 +8,9 @@
 curl -fsSL https://raw.githubusercontent.com/bocsatech/bocsa-app/cursor/addelautod-mobile-de62/addelautod-ios/reset-simulator.sh | bash
 ```
 
-A script ellenőrzi, hogy a friss fájlok megvannak (Település, Autókereskedő…).  
-Utána: **Signing (Apple ID)** → **iPhone 16** → **Clean Build Folder** → **Cmd+R**.
+A script ellenőrzi, hogy a friss fájlok megvannak.  
+Utána: **iPhone 16 Simulator** (ne fizikai telefon) → **Clean Build Folder** → **Cmd+R**.  
+Simulatorhoz általában **nem kell** Development Team. Ha Xcode mégis kéri: Signing → Team → Apple ID.
 
 ---
 
