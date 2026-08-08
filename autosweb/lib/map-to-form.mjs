@@ -3,6 +3,7 @@ import { extractOdometerKm, kmDigitsFromValue } from "./extract-km.mjs";
 import { applyMuszakiFields, applyExtrakFields } from "./map-tech.mjs";
 import { applyFieldMap } from "./field-key-map.mjs";
 import { summarizeImportByStep, formatImportSummary } from "./map-import-summary.mjs";
+import { sanitizeListingFieldValue, sanitizeListingPlainText } from "./listing-preview.mjs";
 
 const COUNTY_NAMES = [
   "Budapest",
@@ -77,26 +78,40 @@ function extractListingId(url) {
 }
 
 function parseTitleParts(title) {
-  const clean = cleanText(title)
+  const clean = sanitizeListingPlainText(title)
+    .replace(/\s+/g, " ")
     .replace(/^eladó\s+/i, "")
     .replace(/\s*\([^)]*\)\s*$/, "")
     .trim();
+  if (!clean) return { gyartmany: "", modell: "", rest: "" };
   const parts = clean.split(/\s+/).filter(Boolean);
   return {
-    gyartmany: parts[0] ?? "",
-    modell: parts[1] ?? "",
-    rest: parts.slice(2).join(" "),
+    gyartmany: sanitizeListingFieldValue(parts[0] ?? ""),
+    modell: sanitizeListingFieldValue(parts[1] ?? ""),
+    rest: sanitizeListingFieldValue(parts.slice(2).join(" ")),
   };
 }
 
 export function buildHirdetesCime(parsed, data = {}) {
   const m = parsed.nyersAdatok ?? {};
-  const raw = cleanText(
+  let raw = cleanText(
     parsed.cim ||
       parsed.jarmuTipus ||
       pickValue(m, ["cím", "cim", "hirdetés címe", "hirdetes cime"]) ||
       ""
   );
+  // Ne mentsünk Használtautó.hu / Belépés fejlécet hirdetéscímnek
+  raw = raw
+    .replace(/haszn[aá]ltaut[oó]\.?\s*hu/gi, " ")
+    .replace(/\bhaszn[aá]ltaut[oó]\b/gi, " ")
+    .replace(/\bbel[eé]p[eé]s\b/gi, " ")
+    .replace(/\bregisztr[aá]ci[oó]\b/gi, " ")
+    .replace(/[|·•]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (!raw || /^bel[eé]p[eé]s$/i.test(raw) || /^haszn/i.test(raw) && raw.length <= 24) {
+    raw = "";
+  }
 
   if (raw && /^eladó\s/i.test(raw)) return raw;
 
@@ -111,7 +126,9 @@ export function buildHirdetesCime(parsed, data = {}) {
     return yearLabel ? `Eladó ${raw} (${yearLabel})` : `Eladó ${raw}`;
   }
 
-  const parts = [data.gyartmany, data.modell, data.tipus].filter(Boolean);
+  const parts = [data.gyartmany, data.modell, data.tipus]
+    .map((v) => sanitizeListingFieldValue(v))
+    .filter(Boolean);
   if (!parts.length) return "";
   return yearLabel ? `Eladó ${parts.join(" ")} (${yearLabel})` : `Eladó ${parts.join(" ")}`;
 }
@@ -368,9 +385,11 @@ export function mapListingToForm(parsed) {
     forras_url: parsed.url || "",
     hasznaltauto_hirdetes_id: extractListingId(parsed.url),
     hirdetes_cime: "",
-    gyartmany: String(pickValue(m, ["gyártmány", "gyartmany"]) || titleParts.gyartmany || "").toUpperCase(),
-    modell: pickValue(m, ["modell"]) || titleParts.modell,
-    tipus: pickValue(m, ["típus", "tipus"]) || titleParts.rest,
+    gyartmany: sanitizeListingFieldValue(
+      String(pickValue(m, ["gyártmány", "gyartmany"]) || titleParts.gyartmany || "").toUpperCase()
+    ),
+    modell: sanitizeListingFieldValue(pickValue(m, ["modell"]) || titleParts.modell),
+    tipus: sanitizeListingFieldValue(pickValue(m, ["típus", "tipus"]) || titleParts.rest),
     kivitel: mapKivitel(
       pickValue(m, ["kivitel", "kategória", "kategoria", "szerkezeti változat", "szerkezeti valtozat"])
     ),

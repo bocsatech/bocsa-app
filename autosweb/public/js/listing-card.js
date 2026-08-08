@@ -13,10 +13,10 @@ export function escapeHtml(value) {
 
 function stripInlineChrome(line) {
   return String(line ?? "")
-    .replace(/használtautó\.?\s*hu/gi, " ")
-    .replace(/\bhasználtautó\b/gi, " ")
-    .replace(/\bbelépés\b/gi, " ")
-    .replace(/\bregisztráció\b/gi, " ")
+    .replace(/haszn[aá]ltaut[oó]\.?\s*hu/gi, " ")
+    .replace(/\bhaszn[aá]ltaut[oó]\b/gi, " ")
+    .replace(/\bbel[eé]p[eé]s\b/gi, " ")
+    .replace(/\bregisztr[aá]ci[oó]\b/gi, " ")
     .replace(/\badd\s*el\s*autod(\.hu)?\b/gi, " ")
     .replace(/[|·•]+/g, " ")
     .replace(/\s{2,}/g, " ")

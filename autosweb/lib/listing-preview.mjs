@@ -48,16 +48,24 @@ export function sanitizeListingPlainText(value) {
 
 /** Inline „Használtautó.hu” / „Belépés” tokenek eltávolítása egy sorból. */
 export function stripInlineListingChrome(line) {
+  // Ékezetes + ASCII (hasznaltauto / belepes) — a scrape gyakran mindkettőt hozza
   return String(line ?? "")
-    .replace(/használtautó\.?\s*hu/gi, " ")
-    .replace(/\bhasználtautó\b/gi, " ")
-    .replace(/\bbelépés\b/gi, " ")
-    .replace(/\bregisztráció\b/gi, " ")
+    .replace(/haszn[aá]ltaut[oó]\.?\s*hu/gi, " ")
+    .replace(/\bhaszn[aá]ltaut[oó]\b/gi, " ")
+    .replace(/\bbel[eé]p[eé]s\b/gi, " ")
+    .replace(/\bregisztr[aá]ci[oó]\b/gi, " ")
     .replace(/\badd\s*el\s*autod(\.hu)?\b/gi, " ")
     .replace(/[|·•]+/g, " ")
     .replace(/\s{2,}/g, " ")
     .replace(/^[\s|·•\-–—]+|[\s|·•\-–—]+$/g, "")
     .trim();
+}
+
+/** Gyártmány / modell / típus: ha site-chrome, ne legyen preview cím. */
+export function sanitizeListingFieldValue(value) {
+  const cleaned = sanitizeListingPlainText(value).replace(/\s+/g, " ").trim();
+  if (!cleaned || isListingSiteChromeLine(cleaned)) return "";
+  return cleaned;
 }
 
 export function isListingSiteChromeLine(line) {
@@ -159,10 +167,15 @@ export function buildListingPreview(form, meta = {}) {
   if (km) specParts.push(km);
 
   const location = [data.telepules, data.megye].filter(Boolean).join(", ");
+  const gyartmany = sanitizeListingFieldValue(data.gyartmany);
+  const modell = sanitizeListingFieldValue(data.modell);
+  const tipus = sanitizeListingFieldValue(data.tipus);
+  // Fontos: a gyartmany/modell fallbacket is szűrni — scrape után ezek is lehetnek
+  // „Használtautó.hu” / „Belépés”, és eddig ez ment preview.title-ként a kliensnek.
   const title =
     formatListingDisplayTitle(data.hirdetes_cime) ||
     formatListingDisplayTitle(meta.hirdetes_cime) ||
-    cleanText([data.gyartmany, data.modell, data.tipus].filter(Boolean).join(" ")) ||
+    formatListingDisplayTitle([gyartmany, modell, tipus].filter(Boolean).join(" ")) ||
     `Hirdetés #${meta.id ?? "?"}`;
 
   return {
@@ -180,8 +193,8 @@ export function buildListingPreview(form, meta = {}) {
     forras_url: meta.forras_url || data.forras_url || "",
     imageUrl: displayImageUrl(meta.fo_kep || data.fo_kep || ""),
     filter: {
-      gyartmany: cleanText(data.gyartmany),
-      modell: cleanText(data.modell),
+      gyartmany,
+      modell,
       kivitel: cleanText(data.kivitel),
       uzemanyag: cleanText(data.uzemanyag),
       gyartasi_ev: Number(data.gyartasi_ev) || null,
@@ -189,7 +202,7 @@ export function buildListingPreview(form, meta = {}) {
       allapot: cleanText(data.allapot),
       ajtok: cleanText(data.ajtok_szama),
       ulesek: cleanText(data.ulesek_szama),
-      tipus: cleanText(data.tipus),
+      tipus,
       telepules: cleanText(data.telepules),
     },
   };
