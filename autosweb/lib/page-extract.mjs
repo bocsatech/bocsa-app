@@ -1,4 +1,5 @@
 import { cleanText, mergeAttributeMaps, parseBodyTextAttributes } from "./parse-listing.mjs";
+import { sanitizeListingPlainText } from "./listing-preview.mjs";
 import { extractOdometerKm, formatKmDisplay } from "./extract-km.mjs";
 
 export async function dismissCookieBanner(page) {
@@ -190,7 +191,7 @@ export async function extractListingFromPage(page) {
     ];
     for (const selector of leirasSelectors) {
       const node = document.querySelector(selector);
-      const text = clean(node?.innerText ?? "");
+      const text = sanitizeListingPlainText(node?.innerText ?? "");
       if (text.length >= 20) {
         leiras = text;
         break;
@@ -204,7 +205,7 @@ export async function extractListingFromPage(page) {
           heading.closest("section, div, article") ||
           heading.parentElement?.querySelector("p, div") ||
           heading.nextElementSibling;
-        const text = clean(block?.innerText ?? "");
+        const text = sanitizeListingPlainText(block?.innerText ?? "");
         if (text.length >= 20) {
           leiras = text;
           break;
@@ -314,7 +315,7 @@ export function mergePageExtract(parsed, extracted) {
   return {
     ...parsed,
     cim: parsed.cim || extracted.title || "",
-    leiras: parsed.leiras || extracted.leiras || "",
+    leiras: sanitizeListingPlainText(parsed.leiras || extracted.leiras || ""),
     km,
     telefonszam: parsed.telefonszam || extracted.phone || parsed.telefonszam,
     felszereltseg: [...new Set([...(parsed.felszereltseg ?? []), ...(extracted.felszereltseg ?? [])])],

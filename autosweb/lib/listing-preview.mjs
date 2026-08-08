@@ -31,9 +31,41 @@ function cleanText(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
 }
 
-/** Megjelenítéshez: „Eladó MERCEDES…” → „MERCEDES…” */
+/** Használtautó.hu fejléc / Belépés stb. — ne jelenjen meg hirdetés szövegként. */
+export function sanitizeListingPlainText(value) {
+  const raw = String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\u00a0/g, " ");
+  const lines = raw
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .filter((line) => !isListingSiteChromeLine(line));
+  const text = lines.join("\n").trim();
+  if (isListingSiteChromeLine(text.replace(/\n+/g, " "))) return "";
+  return text;
+}
+
+function isListingSiteChromeLine(line) {
+  const n = String(line ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!n) return true;
+  if (/^(hasznaltauto\.hu|hasznaltauto hu)([.!|]*)?$/.test(n)) return true;
+  if (/^belepes([.!|]*)?$/.test(n)) return true;
+  if (/^regisztracio([.!|]*)?$/.test(n)) return true;
+  if (/^(hasznaltauto\.hu|hasznaltauto hu)\s*[|·-]?\s*belepes$/.test(n)) return true;
+  if (/^add el autod(\.hu)?$/.test(n)) return true;
+  return false;
+}
+
+/** Megjelenítéshez: „Eladó MERCEDES…” → „MERCEDES…” + site chrome nélkül */
 export function formatListingDisplayTitle(value) {
-  return cleanText(value).replace(/^eladó\s+/i, "");
+  const cleaned = sanitizeListingPlainText(String(value ?? "").replace(/^eladó\s+/i, ""));
+  return cleaned.replace(/\s+/g, " ").trim();
 }
 
 function formatPriceFt(value) {
@@ -115,7 +147,7 @@ export function buildListingPreview(form, meta = {}) {
     specLine: specParts.join(", "),
     km,
     kmNum: Number(String(data.km ?? "").replace(/\D/g, "")) || null,
-    leiras: cleanText(data.leiras).slice(0, 240),
+    leiras: sanitizeListingPlainText(data.leiras).slice(0, 240),
     hirdeteskod: meta.hasznaltauto_hirdetes_id || data.hasznaltauto_hirdetes_id || data.belso_azonosito || "",
     location,
     badges: collectBadges(data),

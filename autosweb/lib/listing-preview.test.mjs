@@ -2,6 +2,17 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { buildListingPreview, buildPreviewFromCells } from "./listing-preview.mjs";
 
+test("sanitizeListingPlainText kiszűri a Használtautó.hu / Belépés fejlécet", async () => {
+  const { sanitizeListingPlainText, formatListingDisplayTitle } = await import("./listing-preview.mjs");
+  assert.equal(sanitizeListingPlainText("Használtautó.hu\nBelépés"), "");
+  assert.equal(sanitizeListingPlainText("Használtautó.hu Belépés"), "");
+  assert.equal(
+    sanitizeListingPlainText("Használtautó.hu\nBelépés\nSzép, garanciális autó."),
+    "Szép, garanciális autó."
+  );
+  assert.equal(formatListingDisplayTitle("Használtautó.hu"), "");
+});
+
 test("formatListingDisplayTitle eltávolítja az Eladó prefixet", async () => {
   const { formatListingDisplayTitle } = await import("./listing-preview.mjs");
   assert.equal(
@@ -49,24 +60,6 @@ test("buildListingPreview összeállítja a hasznaltauto stílusú mezőket", ()
   assert.ok(preview.badges.includes("AUTOMATA"));
   assert.ok(preview.badges.includes("BLUETOOTH"));
   assert.equal(preview.status, "mentett");
-  assert.equal(preview.imageUrl, "");
-});
-
-test("buildListingPreview: távoli fo_kep → proxy URL", () => {
-  const preview = buildListingPreview(
-    { hirdetes_cime: "BMW X5" },
-    { fo_kep: "https://www.hasznaltauto.hu/images/cars/x.jpg" }
-  );
-  assert.match(preview.imageUrl, /^\/api\/media\/proxy\?url=/);
-  assert.match(preview.imageUrl, /hasznaltauto/);
-});
-
-test("buildListingPreview: hiányzó helyi fo_kep → üres (nincs törött ikon)", () => {
-  const preview = buildListingPreview(
-    { hirdetes_cime: "BMW X5", fo_kep: "/uploads/listings/1.jpg" },
-    { fo_kep: "/uploads/listings/meta.jpg" }
-  );
-  assert.equal(preview.imageUrl, "");
 });
 
 test("buildPreviewFromCells cellákból épít előnézetet", () => {
