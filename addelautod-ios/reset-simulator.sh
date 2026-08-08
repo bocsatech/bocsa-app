@@ -92,12 +92,16 @@ open "$DEST/AddElAutod.xcodeproj"
 cat <<EOF
 
 KESZ ($COMMIT). Most Xcode-ban:
-1. Signing → Automatically manage signing → saját Apple ID (Team)
-2. Felül ugyanaz a Simulator (pl. iPhone 16), ami bootolt
-3. Product → Clean Build Folder (Cmd+Shift+K)
-4. Product → Run (Cmd+R)
+1. Felül: iPhone 16 (Simulator) — NEM „Any iOS Device” / fizikai telefon
+2. Product → Clean Build Folder (Cmd+Shift+K)
+3. Product → Run (Cmd+R)
 
-Ha a Simulator továbbra sem indul:
+Simulatorhoz nem kell Development Team.
+Ha mégis „requires a development team” hibát látsz:
+  - Ellenőrizd, hogy Simulator a célpont (nem iPhone készülék)
+  - Vagy: Signing & Capabilities → Team → Apple ID (Personal Team)
+
+Ha a Simulator ablak nem indul:
   ERASE_ALL=1 bash <(curl -fsSL https://raw.githubusercontent.com/bocsatech/bocsa-app/${BRANCH}/addelautod-ios/reset-simulator.sh)
 
 Ha Build error: másold ki az Xcode piros hibát.
