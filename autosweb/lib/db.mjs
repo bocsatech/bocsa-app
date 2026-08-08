@@ -264,14 +264,26 @@ export function getListing(id) {
   };
 }
 
+const CHROME_FIELD_KEYS = new Set([
+  "leiras",
+  "hirdetes_cime",
+  "gyartmany",
+  "modell",
+  "tipus",
+  "telepules",
+  "megye",
+  "megtekintesi_cim",
+  "iranyitoszam",
+]);
+
 function sanitizeListingCell(cell) {
   if (!cell) return cell;
   const key = String(cell.field_key ?? "");
   if (key === "leiras" || key === "hirdetes_cime") {
     return { ...cell, value: sanitizeListingPlainText(cell.value) };
   }
-  // Scrape után a cím „Használtautó.hu” / „Belépés” szavai gyártmány/modell mezőbe is kerülhetnek
-  if (key === "gyartmany" || key === "modell" || key === "tipus") {
+  // Scrape: chrome a gyártmány/modell/település/cím mezőkbe is kerülhet
+  if (CHROME_FIELD_KEYS.has(key)) {
     return { ...cell, value: sanitizeListingFieldValue(cell.value) };
   }
   return cell;
@@ -284,6 +296,10 @@ function sanitizeFormDataForSave(formData = {}) {
   data.gyartmany = sanitizeListingFieldValue(data.gyartmany);
   data.modell = sanitizeListingFieldValue(data.modell);
   data.tipus = sanitizeListingFieldValue(data.tipus);
+  data.telepules = sanitizeListingFieldValue(data.telepules);
+  data.megye = sanitizeListingFieldValue(data.megye);
+  data.megtekintesi_cim = sanitizeListingFieldValue(data.megtekintesi_cim);
+  data.iranyitoszam = sanitizeListingFieldValue(data.iranyitoszam);
   return data;
 }
 
