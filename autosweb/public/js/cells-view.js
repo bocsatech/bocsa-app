@@ -19,7 +19,46 @@ export function formatCellValue(cell) {
   if (cell.field_key?.startsWith("extra:") || cell.field_key?.startsWith("info:")) {
     return "✓";
   }
-  return String(cell.value ?? "");
+  const raw = String(cell.value ?? "");
+  if (cell.field_key === "leiras" || cell.field_key === "hirdetes_cime") {
+    // Használtautó.hu / Belépés ne jelenjen meg (inline tokenek is)
+    const lines = raw
+      .replace(/\r\n/g, "\n")
+      .split(/\n+/)
+      .map((l) =>
+        l
+          .replace(/\s+/g, " ")
+          .replace(/használtautó\.?\s*hu/gi, " ")
+          .replace(/\bhasználtautó\b/gi, " ")
+          .replace(/\bbelépés\b/gi, " ")
+          .replace(/\bregisztráció\b/gi, " ")
+          .replace(/\s{2,}/g, " ")
+          .trim()
+      )
+      .filter(Boolean)
+      .filter((l) => {
+        const n = l
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/\p{M}/gu, "")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (!n) return false;
+        const onlyChrome = n
+          .replace(/hasznaltauto(\.hu)?/g, " ")
+          .replace(/\bbelepes\b/g, " ")
+          .replace(/\bregisztracio\b/g, " ")
+          .replace(/[|·•\-–—./:!]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (!onlyChrome) return false;
+        if (n.includes("hasznaltauto") && n.length <= 64) return false;
+        if (/\bbelepes\b/.test(n) && n.length <= 24) return false;
+        return true;
+      });
+    return lines.join("\n");
+  }
+  return raw;
 }
 
 export function renderListingCells(container, cells) {

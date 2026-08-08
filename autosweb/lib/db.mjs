@@ -3,7 +3,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { DatabaseSync } from "node:sqlite";
 import { formDataToCells, cellsToFormData, FORM_FIELD_CATALOG } from "./form-field-catalog.mjs";
-import { buildPreviewFromCells } from "./listing-preview.mjs";
+import { buildPreviewFromCells, sanitizeListingPlainText } from "./listing-preview.mjs";
 import { initPartnerSchema } from "./partner-schema.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -143,10 +143,16 @@ function loadCellsByListingIds(ids) {
 export function listListingsWithPreview({ limit = 50, status = null } = {}) {
   const rows = listListings({ limit, status });
   const cellsById = loadCellsByListingIds(rows.map((row) => row.id));
-  return rows.map((row) => ({
-    ...row,
-    preview: buildPreviewFromCells(cellsById.get(row.id) ?? [], row),
-  }));
+  return rows.map((row) => {
+    const cells = (cellsById.get(row.id) ?? []).map((cell) => sanitizeListingCell(cell));
+    const hirdetes_cime =
+      sanitizeListingPlainText(row.hirdetes_cime) || `Hirdetés #${row.id}`;
+    return {
+      ...row,
+      hirdetes_cime,
+      preview: buildPreviewFromCells(cells, { ...row, hirdetes_cime }),
+    };
+  });
 }
 
 export function getListing(id) {
@@ -164,13 +170,27 @@ export function getListing(id) {
       `SELECT field_key, label, value, step FROM listing_cells
        WHERE listing_id = ? ORDER BY step, label`
     )
-    .all(id);
+    .all(id)
+    .map((cell) => sanitizeListingCell(cell));
+
+  const hirdetes_cime =
+    sanitizeListingPlainText(listing.hirdetes_cime) || `Hirdetés #${listing.id}`;
 
   return {
     ...listing,
+    hirdetes_cime,
     cells,
     form: cellsToFormData(cells),
   };
+}
+
+function sanitizeListingCell(cell) {
+  if (!cell) return cell;
+  const key = String(cell.field_key ?? "");
+  if (key === "leiras" || key === "hirdetes_cime") {
+    return { ...cell, value: sanitizeListingPlainText(cell.value) };
+  }
+  return cell;
 }
 
 export function getLatestListing() {

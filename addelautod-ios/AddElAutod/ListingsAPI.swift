@@ -121,7 +121,11 @@ enum ListingsAPI {
   private static func mapListing(_ row: RemoteListing) -> HomeListing {
     let preview = row.preview
     let rawTitle = preview?.title ?? row.hirdetes_cime ?? "Hirdetés #\(row.id)"
-    let title = displayTitle(rawTitle, year: preview?.filter?.gyartasi_ev, specLine: preview?.specLine)
+    var title = displayTitle(rawTitle, year: preview?.filter?.gyartasi_ev, specLine: preview?.specLine)
+    title = sanitizeListingText(title)
+    if title.isEmpty {
+      title = "Hirdetés #\(row.id)"
+    }
     let price = (preview?.price).flatMap { $0.isEmpty ? nil : $0 } ?? "—"
     let year = yearLabel(preview?.filter?.gyartasi_ev, specLine: preview?.specLine)
     let km = (preview?.km).flatMap { $0.isEmpty ? nil : $0 } ?? "—"

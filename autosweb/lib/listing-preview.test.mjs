@@ -10,7 +10,16 @@ test("sanitizeListingPlainText kiszűri a Használtautó.hu / Belépés fejléce
     sanitizeListingPlainText("Használtautó.hu\nBelépés\nSzép, garanciális autó."),
     "Szép, garanciális autó."
   );
+  assert.equal(
+    sanitizeListingPlainText("Használtautó.hu Belépés Mercedes-Benz C 220 d — első tulajdonos"),
+    "Mercedes-Benz C 220 d — első tulajdonos"
+  );
   assert.equal(formatListingDisplayTitle("Használtautó.hu"), "");
+  assert.equal(formatListingDisplayTitle("Használtautó.hu | Belépés"), "");
+  assert.equal(
+    formatListingDisplayTitle("Használtautó.hu Belépés BMW X5"),
+    "BMW X5"
+  );
 });
 
 test("formatListingDisplayTitle eltávolítja az Eladó prefixet", async () => {

@@ -104,13 +104,9 @@ extension ListingsAPI {
     let rawTitle = str("hirdetes_cime").isEmpty
       ? (row.hirdetes_cime ?? "Hirdetés #\(row.id)")
       : str("hirdetes_cime")
-    let title = Self.detailDisplayTitle(rawTitle, year: Int(year))
-    title = sanitizeListingText(title)
+    var title = sanitizeListingText(Self.detailDisplayTitle(rawTitle, year: Int(year)))
     if title.isEmpty {
-      title = Self.detailDisplayTitle(
-        row.hirdetes_cime ?? "Hirdetés #\(row.id)",
-        year: Int(year)
-      )
+      title = "Hirdetés #\(row.id)"
     }
 
     var images: [URL] = []
@@ -300,12 +296,30 @@ func sanitizeListingText(_ value: String) -> String {
   let lines = value
     .replacingOccurrences(of: "\r\n", with: "\n")
     .components(separatedBy: .newlines)
-    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+    .map { stripInlineListingChrome($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
     .filter { !$0.isEmpty }
     .filter { !isListingSiteChromeLine($0) }
   let text = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+  if text.isEmpty { return "" }
   if isListingSiteChromeLine(text.replacingOccurrences(of: "\n", with: " ")) { return "" }
   return text
+}
+
+private func stripInlineListingChrome(_ line: String) -> String {
+  var s = line
+  let patterns = [
+    #"(?i)használtautó\.?\s*hu"#,
+    #"(?i)\bhasználtautó\b"#,
+    #"(?i)\bbelépés\b"#,
+    #"(?i)\bregisztráció\b"#,
+    #"(?i)\badd\s*el\s*autod(\.hu)?\b"#,
+  ]
+  for p in patterns {
+    s = s.replacingOccurrences(of: p, with: " ", options: .regularExpression)
+  }
+  s = s.replacingOccurrences(of: #"[|·•]+"#, with: " ", options: .regularExpression)
+  s = s.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+  return s.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 private func isListingSiteChromeLine(_ line: String) -> Bool {
@@ -315,9 +329,18 @@ private func isListingSiteChromeLine(_ line: String) -> Bool {
     .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
     .trimmingCharacters(in: .whitespacesAndNewlines)
   if folded.isEmpty { return true }
-  if folded == "hasznaltauto.hu" || folded == "hasznaltauto hu" { return true }
+  var onlyChrome = folded
+  onlyChrome = onlyChrome.replacingOccurrences(of: #"hasznaltauto(\.hu)?"#, with: " ", options: .regularExpression)
+  onlyChrome = onlyChrome.replacingOccurrences(of: #"\bbelepes\b"#, with: " ", options: .regularExpression)
+  onlyChrome = onlyChrome.replacingOccurrences(of: #"\bregisztracio\b"#, with: " ", options: .regularExpression)
+  onlyChrome = onlyChrome.replacingOccurrences(of: #"\badd el autod(\.hu)?\b"#, with: " ", options: .regularExpression)
+  onlyChrome = onlyChrome.replacingOccurrences(of: #"[|·•\-–—./:!]+"#, with: " ", options: .regularExpression)
+  onlyChrome = onlyChrome.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+    .trimmingCharacters(in: .whitespacesAndNewlines)
+  if onlyChrome.isEmpty { return true }
+  if folded.contains("hasznaltauto"), folded.count <= 64 { return true }
+  if folded.contains("belepes"), folded.count <= 24 { return true }
   if folded == "belepes" || folded == "regisztracio" { return true }
-  if folded == "hasznaltauto.hu belepes" || folded == "hasznaltauto hu belepes" { return true }
   if folded == "add el autod" || folded == "add el autod.hu" { return true }
   return false
 }
