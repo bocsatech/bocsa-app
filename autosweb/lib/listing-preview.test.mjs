@@ -37,6 +37,20 @@ test("buildListingPreview nem engedi a szennyezett gyartmany/modell fallback cí
   assert.equal(preview.filter.modell, "");
 });
 
+test("buildListingPreview kiszűri a chrome települést a location-ből", () => {
+  const preview = buildListingPreview(
+    {
+      hirdetes_cime: "FORD PUMA",
+      telepules: "Használtautó.hu Belépés",
+      megye: "Belépés",
+      vetelar: "1000000",
+    },
+    { id: 3 }
+  );
+  assert.equal(preview.location, "");
+  assert.equal(preview.filter.telepules, "");
+});
+
 test("formatListingDisplayTitle eltávolítja az Eladó prefixet", async () => {
   const { formatListingDisplayTitle } = await import("./listing-preview.mjs");
   assert.equal(

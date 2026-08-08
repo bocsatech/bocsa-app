@@ -1,5 +1,4 @@
 import { cellsToFormData } from "./form-field-catalog.mjs";
-import { displayImageUrl } from "./listing-image.mjs";
 
 const BADGE_ALIASES = [
   ["automata", "AUTOMATA"],
@@ -166,10 +165,12 @@ export function buildListingPreview(form, meta = {}) {
   const km = formatKm(data.km);
   if (km) specParts.push(km);
 
-  const location = [data.telepules, data.megye].filter(Boolean).join(", ");
   const gyartmany = sanitizeListingFieldValue(data.gyartmany);
   const modell = sanitizeListingFieldValue(data.modell);
   const tipus = sanitizeListingFieldValue(data.tipus);
+  const telepules = sanitizeListingFieldValue(data.telepules);
+  const megye = sanitizeListingFieldValue(data.megye);
+  const location = [telepules, megye].filter(Boolean).join(", ");
   // Fontos: a gyartmany/modell fallbacket is szűrni — scrape után ezek is lehetnek
   // „Használtautó.hu” / „Belépés”, és eddig ez ment preview.title-ként a kliensnek.
   const title =
@@ -191,7 +192,6 @@ export function buildListingPreview(form, meta = {}) {
     badges: collectBadges(data),
     status: meta.status ?? "mentett",
     forras_url: meta.forras_url || data.forras_url || "",
-    imageUrl: displayImageUrl(meta.fo_kep || data.fo_kep || ""),
     filter: {
       gyartmany,
       modell,
@@ -203,7 +203,7 @@ export function buildListingPreview(form, meta = {}) {
       ajtok: cleanText(data.ajtok_szama),
       ulesek: cleanText(data.ulesek_szama),
       tipus,
-      telepules: cleanText(data.telepules),
+      telepules,
     },
   };
 }
