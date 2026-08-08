@@ -35,9 +35,9 @@ struct ListingDetailScreen: View {
     .offset(x: backDragX)
     .background(Color.white.ignoresSafeArea())
     .fullScreenCover(isPresented: $showMessages) {
-      MessagesScreen(
-        onClose: { showMessages = false },
-        initialTarget: detail.messageTarget
+      StartChatScreen(
+        target: detail.messageTarget,
+        onClose: { showMessages = false }
       )
       .environmentObject(profile)
     }

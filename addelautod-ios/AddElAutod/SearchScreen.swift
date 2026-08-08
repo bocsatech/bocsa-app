@@ -43,13 +43,22 @@ struct SearchScreen: View {
                     }
                 })
             case .messages:
-                MessagesScreen(
-                    onClose: {
-                        messageTarget = nil
-                        mode = messagesReturn
-                    },
-                    initialTarget: messageTarget
-                )
+                if let messageTarget {
+                    // Hirdetés → Üzenet: egyből a chat, nem az inbox
+                    StartChatScreen(
+                        target: messageTarget,
+                        onClose: {
+                            self.messageTarget = nil
+                            mode = messagesReturn
+                        }
+                    )
+                } else {
+                    MessagesScreen(
+                        onClose: {
+                            mode = messagesReturn
+                        }
+                    )
+                }
             case .results:
                 if let query = activeQuery {
                     CategoryResultsScreen(

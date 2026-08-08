@@ -3,11 +3,69 @@ import PhotosUI
 import UniformTypeIdentifiers
 import UIKit
 
-/// Összesített üzenetek + chat (willhaben-szerű, magyarul).
+/// Hirdetés Üzenet gombja: egyből a beszélgetés (nincs inbox köztes képernyő).
+struct StartChatScreen: View {
+  @EnvironmentObject private var profile: ProfileStore
+  let target: ListingMessageTarget
+  var onClose: () -> Void
+
+  @State private var conversation: MessagesAPI.Conversation?
+  @State private var errorText: String?
+
+  var body: some View {
+    Group {
+      if let conversation {
+        ChatThreadScreen(conversation: conversation, onClose: onClose)
+      } else if let errorText {
+        VStack(spacing: 14) {
+          ScreenHeader(title: "Üzenet", subtitle: nil, onBack: onClose)
+          Spacer()
+          Text(errorText)
+            .font(.subheadline)
+            .foregroundStyle(.red)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
+          Button("Újra") { Task { await start() } }
+          Spacer()
+        }
+        .background(AppTheme.bgGrouped)
+      } else {
+        VStack(spacing: 0) {
+          ScreenHeader(title: "Üzenet", subtitle: nil, onBack: onClose)
+          ProgressView("Üzenet megnyitása…")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(AppTheme.bgGrouped)
+      }
+    }
+    .task { await start() }
+  }
+
+  private func start() async {
+    guard let token = profile.token else {
+      errorText = "Jelentkezz be az üzenetekhez."
+      return
+    }
+    errorText = nil
+    do {
+      conversation = try await MessagesAPI.startConversation(
+        token: token,
+        listingId: target.listingId,
+        title: target.title,
+        priceLabel: target.priceLabel,
+        meta: target.meta,
+        code: target.code
+      )
+    } catch {
+      errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+    }
+  }
+}
+
+/// Összesített üzenetek + chat (willhaben-szerű, magyarul). Csak az inbox menüből.
 struct MessagesScreen: View {
   @EnvironmentObject private var profile: ProfileStore
   var onClose: () -> Void
-  var initialTarget: ListingMessageTarget? = nil
 
   @State private var conversations: [MessagesAPI.Conversation] = []
   @State private var loading = true
@@ -70,12 +128,7 @@ struct MessagesScreen: View {
       }
     }
     .background(AppTheme.bgGrouped)
-    .task {
-      await reload()
-      if let initialTarget {
-        await openListing(initialTarget)
-      }
-    }
+    .task { await reload() }
     .fullScreenCover(item: $openChat) { conv in
       ChatThreadScreen(conversation: conv, onClose: {
         openChat = nil
@@ -162,24 +215,6 @@ struct MessagesScreen: View {
     defer { loading = false }
     do {
       conversations = try await MessagesAPI.listConversations(token: token)
-    } catch {
-      errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-    }
-  }
-
-  private func openListing(_ target: ListingMessageTarget) async {
-    guard let token = profile.token else { return }
-    do {
-      let conv = try await MessagesAPI.startConversation(
-        token: token,
-        listingId: target.listingId,
-        title: target.title,
-        priceLabel: target.priceLabel,
-        meta: target.meta,
-        code: target.code
-      )
-      conversations = try await MessagesAPI.listConversations(token: token)
-      openChat = conv
     } catch {
       errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
     }
