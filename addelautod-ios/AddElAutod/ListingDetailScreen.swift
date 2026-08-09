@@ -12,31 +12,34 @@ struct ListingDetailScreen: View {
   @State private var favorited = false
   @State private var backDragX: CGFloat = 0
 
-  var body: some View {
-    GeometryReader { geo in
-      let topInset = geo.safeAreaInsets.top
-      VStack(spacing: 0) {
-        ScrollView {
-          VStack(alignment: .leading, spacing: 0) {
-            gallery(topInset: topInset)
-            VStack(alignment: .leading, spacing: 0) {
-              titleBlock
-              Divider().padding(.horizontal, 16)
-              vehicleSection
-              sellerSection
-              equipmentSection
-              descriptionSection
-              Color.clear.frame(height: 24)
-            }
-            .simultaneousGesture(backSwipeGesture)
-          }
-        }
+  /// Status bar / Dynamic Island magasság (ignoresSafeArea után is stabil).
+  private var topSafeInset: CGFloat {
+    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    let window = scenes.flatMap(\.windows).first(where: \.isKeyWindow) ?? scenes.flatMap(\.windows).first
+    return window?.safeAreaInsets.top ?? 59
+  }
 
-        messageBar
+  var body: some View {
+    VStack(spacing: 0) {
+      ScrollView {
+        VStack(alignment: .leading, spacing: 0) {
+          gallery(topInset: topSafeInset)
+          VStack(alignment: .leading, spacing: 0) {
+            titleBlock
+            Divider().padding(.horizontal, 16)
+            vehicleSection
+            sellerSection
+            equipmentSection
+            descriptionSection
+            Color.clear.frame(height: 24)
+          }
+          .simultaneousGesture(backSwipeGesture)
+        }
       }
-      .offset(x: backDragX)
-      .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
+
+      messageBar
     }
+    .offset(x: backDragX)
     .background(Color.white.ignoresSafeArea())
     // Fotó a status bar / Dynamic Island alá is — nincs fehér sáv felül
     .ignoresSafeArea(edges: .top)

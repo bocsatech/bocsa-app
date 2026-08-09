@@ -20,10 +20,8 @@ enum DetailedSearchCatalog {
     static let okmanyErvenyesseg = ["Érvényes", "Lejárt"]
 
     static let sebessegvaltok = [
-        "Manuális (5 seb.)",
-        "Manuális (6 seb.)",
+        "Manuális",
         "Automata",
-        "Fokozatmentes automata",
     ]
 
     static let hajtasok = ["Első kerék", "Hátsó kerék", "Összkerék"]
