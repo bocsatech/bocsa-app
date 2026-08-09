@@ -20,6 +20,11 @@ enum DetailedSearchCatalog {
         "Érvényes külföldi okmányokkal",
     ]
 
+    static let hirdetok = [
+        "Magánszemély",
+        "Kereskedés",
+    ]
+
     static let sebessegvaltok = [
         "Manuális",
         "Automata",

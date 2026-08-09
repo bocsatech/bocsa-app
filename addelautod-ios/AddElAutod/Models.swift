@@ -34,6 +34,7 @@ struct SearchFilter: Codable, Equatable {
     var szemelyek: [String] = []
     var okmanyJellegek: [String] = []
     var okmanyErvenyesseg: [String] = []
+    var hirdetok: [String] = []
 
     // MARK: Műszaki
     var hengerCm3Tol: Int? = nil
@@ -96,6 +97,7 @@ struct SearchFilter: Codable, Equatable {
         else if let tol = arTol { parts.append("\(Self.formatPrice(tol)) –") }
         if !allapotok.isEmpty { parts.append("állapot") }
         if !kiviteles.isEmpty { parts.append("kivitel") }
+        if !hirdetok.isEmpty { parts.append("hirdető") }
         if !sebessegvaltok.isEmpty { parts.append("váltó") }
         if !hajtasok.isEmpty { parts.append("hajtás") }
         if activeExtrasCount > 0 { parts.append("\(activeExtrasCount) extra") }

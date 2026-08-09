@@ -23,7 +23,7 @@ struct SearchScreen: View {
 
     private enum Panel {
         case simple, advanced, brand, model(String), fuel, price, year, km, allapot, kivitel
-        case ajtok, szemelyek, okmanyok, hengerurtartalom
+        case ajtok, szemelyek, okmanyok, hirdeto, hengerurtartalom
     }
 
     private enum AccordionSection: String {
@@ -235,6 +235,13 @@ struct SearchScreen: View {
                     sectionTitle: "Okmányok",
                     options: DetailedSearchCatalog.okmanyok,
                     keyPath: \.okmanyErvenyesseg
+                )
+            case .hirdeto:
+                ScreenHeader(title: "Hirdető", onBack: goList, rightLabel: "Kész", onRight: goList)
+                multiSelectList(
+                    sectionTitle: "Hirdető",
+                    options: DetailedSearchCatalog.hirdetok,
+                    keyPath: \.hirdetok
                 )
             case .hengerurtartalom:
                 ScreenHeader(title: "Hengerűrtartalom", onBack: goList, rightLabel: "Kész", onRight: goList)
@@ -483,6 +490,10 @@ struct SearchScreen: View {
             Divider().padding(.leading, 16)
             SettingsRow(title: "Okmányok", value: okmanyokValue) {
                 openSubpanel(.okmanyok)
+            }
+            Divider().padding(.leading, 16)
+            SettingsRow(title: "Hirdető", value: hirdetoValue) {
+                openSubpanel(.hirdeto)
             }
         }
     }
