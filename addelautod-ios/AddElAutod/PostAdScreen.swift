@@ -19,30 +19,37 @@ struct PostAdScreen: View {
     @State private var selectedTipusok: Set<String> = []
     @State private var selectedKategoriak: Set<String> = []
     @State private var toast: String?
+    @State private var showSzemelyautoForm = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            switch subPanel {
-            case .list:
-                ScreenHeader(title: "Hirdetés feladás", subtitle: "Válassz kategóriát", onBack: onClose)
-                mainList
-            case .tipus:
-                ScreenHeader(title: "Típus", onBack: { subPanel = .list }, rightLabel: "Kész", onRight: { subPanel = .list })
-                multiSelectList(
-                    sectionTitle: "Típus",
-                    options: PostAdCatalog.ingatlanTipusok,
-                    selection: $selectedTipusok
-                )
-            case .kategoria:
-                ScreenHeader(title: "Kategória", onBack: { subPanel = .list }, rightLabel: "Kész", onRight: { subPanel = .list })
-                multiSelectList(
-                    sectionTitle: "Kategória",
-                    options: PostAdCatalog.ingatlanKategoriak,
-                    selection: $selectedKategoriak
-                )
+        Group {
+            if showSzemelyautoForm {
+                PostAdCarScreen(onClose: { showSzemelyautoForm = false })
+            } else {
+                VStack(spacing: 0) {
+                    switch subPanel {
+                    case .list:
+                        ScreenHeader(title: "Hirdetés feladás", subtitle: "Válassz kategóriát", onBack: onClose)
+                        mainList
+                    case .tipus:
+                        ScreenHeader(title: "Típus", onBack: { subPanel = .list }, rightLabel: "Kész", onRight: { subPanel = .list })
+                        multiSelectList(
+                            sectionTitle: "Típus",
+                            options: PostAdCatalog.ingatlanTipusok,
+                            selection: $selectedTipusok
+                        )
+                    case .kategoria:
+                        ScreenHeader(title: "Kategória", onBack: { subPanel = .list }, rightLabel: "Kész", onRight: { subPanel = .list })
+                        multiSelectList(
+                            sectionTitle: "Kategória",
+                            options: PostAdCatalog.ingatlanKategoriak,
+                            selection: $selectedKategoriak
+                        )
+                    }
+                }
+                .background(AppTheme.bgGrouped)
             }
         }
-        .background(AppTheme.bgGrouped)
         .alert("Hirdetés feladás", isPresented: Binding(
             get: { toast != nil },
             set: { if !$0 { toast = nil } }
@@ -123,7 +130,11 @@ struct PostAdScreen: View {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 if index > 0 { Divider().padding(.leading, 16) }
                 Button {
-                    toast = "\(item.title) — hamarosan."
+                    if item.id == "auto-szemelyauto" {
+                        showSzemelyautoForm = true
+                    } else {
+                        toast = "\(item.title) — hamarosan."
+                    }
                 } label: {
                     HStack {
                         Text(item.title)

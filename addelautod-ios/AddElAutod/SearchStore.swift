@@ -7,9 +7,14 @@ final class SearchStore: ObservableObject {
     @Published var saved: [SavedSearch] = []
 
     private let storageKey = "addelautod.savedSearches.v4"
+    /// false: hirdetésfeladás draft — nincs mentett keresés / külön a fő keresőtől
+    private let persistSavedSearches: Bool
 
-    init() {
-        load()
+    init(persistSavedSearches: Bool = true) {
+        self.persistSavedSearches = persistSavedSearches
+        if persistSavedSearches {
+            load()
+        }
     }
 
     func setBrand(_ brand: String, on: Bool) {
@@ -235,6 +240,7 @@ final class SearchStore: ObservableObject {
 
     @discardableResult
     func saveCurrent(name: String? = nil) -> SavedSearch? {
+        guard persistSavedSearches else { return nil }
         guard !filter.isEmpty else { return nil }
         let icon = Catalog.savedIcons[saved.count % Catalog.savedIcons.count]
         let item = SavedSearch(
@@ -256,6 +262,7 @@ final class SearchStore: ObservableObject {
     }
 
     private func load() {
+        guard persistSavedSearches else { return }
         guard let data = UserDefaults.standard.data(forKey: storageKey) else { return }
         if let decoded = try? JSONDecoder().decode([SavedSearch].self, from: data) {
             saved = decoded
@@ -263,6 +270,7 @@ final class SearchStore: ObservableObject {
     }
 
     private func persist() {
+        guard persistSavedSearches else { return }
         if let data = try? JSONEncoder().encode(saved) {
             UserDefaults.standard.set(data, forKey: storageKey)
         }
