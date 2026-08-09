@@ -31,7 +31,9 @@ struct HomeIconButton: View {
                 Text(label)
                     .font(.system(size: 11))
                     .foregroundStyle(AppTheme.text)
-                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(width: 76)
             }
             .frame(width: 76)
         }

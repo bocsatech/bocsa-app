@@ -100,11 +100,11 @@ struct SearchScreen: View {
         }
     }
 
-    /// Felső sor: Keresés, Közelben, Új hirdetések → autóikonok → legalul Beállítások
+    /// Felső sor: Keresés, Közelben, Új hirdetések, Hirdetés feladás → autóikonok → Üzenetek / Beállítások
     private var searchLanding: some View {
         ScrollView {
             VStack(spacing: 0) {
-                HStack(spacing: 20) {
+                HStack(spacing: 12) {
                     HomeIconButton(
                         systemName: "magnifyingglass",
                         label: "Keresés",
@@ -127,6 +127,14 @@ struct SearchScreen: View {
                         tint: Color(red: 0.85, green: 0.45, blue: 0.12)
                     ) {
                         openListing(.newListings)
+                    }
+                    HomeIconButton(
+                        systemName: "plus.app.fill",
+                        label: "Hirdetés feladás",
+                        tint: Color(red: 0.72, green: 0.18, blue: 0.22)
+                    ) {
+                        // Funkció később
+                        toast = "Hirdetés feladás — hamarosan."
                     }
                 }
                 .padding(.top, 12)
