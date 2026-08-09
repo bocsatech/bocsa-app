@@ -460,12 +460,9 @@ struct SearchScreen: View {
         }
     }
 
+    /// Üzemanyag fent már megvan — itt csak a többi műszaki szűrő.
     private var muszakiAccordionBody: some View {
         VStack(spacing: 0) {
-            SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
-                openSubpanel(.fuel)
-            }
-            Divider().padding(.leading, 16)
             multiToggleGroup(
                 title: "Sebességváltó",
                 options: DetailedSearchCatalog.sebessegvaltok,
@@ -594,7 +591,6 @@ struct SearchScreen: View {
 
     private var muszakiSummary: String {
         var n = 0
-        if !store.filter.fuels.isEmpty { n += 1 }
         n += store.filter.sebessegvaltok.isEmpty ? 0 : 1
         if store.filter.felezoValto { n += 1 }
         n += store.filter.hajtasok.isEmpty ? 0 : 1
