@@ -274,6 +274,7 @@ struct PostAdCarScreen: View {
                     extrakAccordionBody
                 }
 
+                postAdButton
             }
             .padding(16)
         }
