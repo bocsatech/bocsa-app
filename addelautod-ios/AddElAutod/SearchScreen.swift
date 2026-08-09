@@ -266,11 +266,10 @@ struct SearchScreen: View {
         )
     }
 
-    /// Egyszerű szűrők + opcionális részletes blokk a Márka fölött.
+    /// Gyorskeresés (5 mező) VAGY részletes (Alap=10 mező + Műszaki + Extrák + Kevesebb mutatása).
     private var simpleList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Részletes nyitva: Alap/Műszaki/Extrák FELÜL (Márka előtt), „Részletes keresés” felirat NINCS
                 if showDetailedSearch {
                     VStack(alignment: .leading, spacing: 12) {
                         accordionBlock(
@@ -303,40 +302,22 @@ struct SearchScreen: View {
                                 openAccordion = nil
                             }
                         } label: {
-                            Text("Kevesebb")
-                                .font(.subheadline.weight(.semibold))
+                            Text("Kevesebb mutatása")
+                                .font(.body.weight(.semibold))
                                 .foregroundStyle(AppTheme.accent)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 4)
+                                .padding(.horizontal, 16)
+                                .frame(minHeight: 52)
+                                .background(AppTheme.bgElevated)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         }
                         .buttonStyle(.plain)
                     }
-                }
+                } else {
+                    SettingsGroup {
+                        quickSearchRows
+                    }
 
-                SettingsGroup {
-                    SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
-                        openSubpanel(.brand)
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Évjárat", value: yearValue) {
-                        openSubpanel(.year)
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Futott km", value: kmValue) {
-                        openSubpanel(.km)
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Vételár", value: priceValue) {
-                        openSubpanel(.price)
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
-                        openSubpanel(.fuel)
-                    }
-                }
-
-                // Csak zárva: „Részletes keresés” a lista alján (a gyors szűrők után)
-                if !showDetailedSearch {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             showDetailedSearch = true
@@ -365,6 +346,30 @@ struct SearchScreen: View {
                 saveButton
             }
             .padding(16)
+        }
+    }
+
+    /// Gyorskeresés mezői (részletes Alap adatok tetején is).
+    @ViewBuilder
+    private var quickSearchRows: some View {
+        SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
+            openSubpanel(.brand)
+        }
+        Divider().padding(.leading, 16)
+        SettingsRow(title: "Évjárat", value: yearValue) {
+            openSubpanel(.year)
+        }
+        Divider().padding(.leading, 16)
+        SettingsRow(title: "Futott km", value: kmValue) {
+            openSubpanel(.km)
+        }
+        Divider().padding(.leading, 16)
+        SettingsRow(title: "Vételár", value: priceValue) {
+            openSubpanel(.price)
+        }
+        Divider().padding(.leading, 16)
+        SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
+            openSubpanel(.fuel)
         }
     }
 
@@ -448,9 +453,11 @@ struct SearchScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    /// Csak a részletes mezők — Márka / Évjárat / km / Vételár fent már megvan.
+    /// Részletes Alap adatok: gyors 5 mező + Állapot / Kivitel / Ajtók / személyek / Okmányok.
     private var alapAccordionBody: some View {
         VStack(spacing: 0) {
+            quickSearchRows
+            Divider().padding(.leading, 16)
             SettingsRow(title: "Állapot", value: allapotValue) {
                 openSubpanel(.allapot)
             }
@@ -594,6 +601,11 @@ struct SearchScreen: View {
 
     private var alapSummary: String {
         var n = 0
+        if !store.filter.gyartmanyok.isEmpty { n += 1 }
+        if store.filter.evTol != nil || store.filter.evIg != nil { n += 1 }
+        if store.filter.kmTol != nil || store.filter.kmIg != nil { n += 1 }
+        if store.filter.arTol != nil || store.filter.arIg != nil { n += 1 }
+        if !store.filter.fuels.isEmpty { n += 1 }
         n += store.filter.allapotok.isEmpty ? 0 : 1
         n += store.filter.kiviteles.isEmpty ? 0 : 1
         n += store.filter.ajtok.isEmpty ? 0 : 1
