@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Demo ikonok a fő 7 laphoz (Assets: demo-*). Csak vizuális placeholder.
+/// Fő 7 lap ikonjai (Assets: demo-*).
 enum DemoPageIcons {
     case hirfolyam, facebook, youtube, ajanlasok, kiemeltek, foOldal, mentettKeresesek
 

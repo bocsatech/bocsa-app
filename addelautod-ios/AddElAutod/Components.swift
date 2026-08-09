@@ -16,6 +16,53 @@ struct PageDots: View {
     }
 }
 
+/// Alsó 7 lap: demo ikonok + felirat; az aktuális kék.
+struct PageIconBar: View {
+    @Binding var index: Int
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(DemoPageIcons.all.enumerated()), id: \.offset) { i, item in
+                let selected = i == index
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        index = i
+                    }
+                } label: {
+                    VStack(spacing: 3) {
+                        Image(item.assetName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                            .opacity(selected ? 1 : 0.7)
+                        Text(item.title)
+                            .font(.system(size: 9, weight: selected ? .semibold : .regular))
+                            .foregroundStyle(selected ? AppTheme.accent : AppTheme.textTertiary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
+                        Capsule()
+                            .fill(selected ? AppTheme.accent : Color.clear)
+                            .frame(width: 14, height: 3)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(selected ? AppTheme.accent.opacity(0.08) : Color.clear)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.title)
+                .accessibilityAddTraits(selected ? [.isSelected] : [])
+            }
+        }
+        .padding(.horizontal, 4)
+        .padding(.top, 2)
+        .padding(.bottom, 4)
+        .animation(.easeInOut(duration: 0.2), value: index)
+    }
+}
+
 struct ScreenHeader: View {
     let title: String
     var subtitle: String? = nil

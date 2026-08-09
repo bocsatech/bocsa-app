@@ -85,8 +85,8 @@ struct ContentView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
 
-            PageDots(count: 7, index: page)
-                .padding(.bottom, 8)
+            PageIconBar(index: $page)
+                .padding(.bottom, 4)
         }
         .background(AppTheme.bg.ignoresSafeArea())
         .task(id: profile.token) {
