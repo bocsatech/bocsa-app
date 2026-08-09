@@ -57,16 +57,7 @@ struct PostAdScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 topAccordion(section: .auto, title: "Autó hirdetés") {
-                    VStack(spacing: 0) {
-                        itemList(PostAdCatalog.autoItems)
-                        searchButton(label: "Keresés") {
-                            // Funkció később
-                            toast = "Autó keresés — hamarosan."
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 12)
-                        .padding(.bottom, 8)
-                    }
+                    itemList(PostAdCatalog.autoItems)
                 }
 
                 topAccordion(section: .ingatlan, title: "Ingatlan hirdetések") {
@@ -78,13 +69,6 @@ struct PostAdScreen: View {
                         SettingsRow(title: "Kategória", value: multiValue(selectedKategoriak, from: PostAdCatalog.ingatlanKategoriak)) {
                             subPanel = .kategoria
                         }
-                        searchButton(label: "Keresés") {
-                            // Funkció később
-                            toast = "Ingatlan keresés — hamarosan."
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 12)
-                        .padding(.bottom, 8)
                     }
                 }
             }
@@ -208,18 +192,5 @@ struct PostAdScreen: View {
         if titles.count == 1 { return titles[0] }
         if titles.count <= 3 { return titles.joined(separator: ", ") }
         return "\(titles.count) kiválasztva"
-    }
-
-    private func searchButton(label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.body.weight(.semibold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .foregroundStyle(.white)
-                .background(AppTheme.accent)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .buttonStyle(.plain)
     }
 }
