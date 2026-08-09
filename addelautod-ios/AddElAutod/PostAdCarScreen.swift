@@ -11,6 +11,8 @@ struct PostAdCarScreen: View {
     @State private var showDetailedSearch = false
     @State private var brandQuery = ""
     @State private var toast: String?
+    @State private var leiras: String = ""
+    @State private var posting = false
 
     private enum Panel {
         case simple, advanced, brand, model(String), fuel, price, year, km, allapot, kivitel
@@ -182,6 +184,8 @@ struct PostAdCarScreen: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         }
                         .buttonStyle(.plain)
+
+                        postAdButton
                     }
                 } else {
                     SettingsGroup {
@@ -209,6 +213,8 @@ struct PostAdCarScreen: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                     .buttonStyle(.plain)
+
+                    postAdButton
                 }
 
             }
@@ -445,6 +451,69 @@ struct PostAdCarScreen: View {
                     .frame(minHeight: 44)
                 }
             }
+
+            Divider().padding(.leading, 16)
+            SectionLabel(text: "Leírás")
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            VStack(alignment: .leading, spacing: 6) {
+                TextEditor(text: Binding(
+                    get: { leiras },
+                    set: { leiras = String($0.prefix(PostAdListingMapper.maxLeirasLength)) }
+                ))
+                .frame(minHeight: 120)
+                .padding(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(AppTheme.border, lineWidth: 1)
+                )
+                Text("\(leiras.count) / \(PostAdListingMapper.maxLeirasLength)")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+        }
+    }
+
+    private var postAdButton: some View {
+        Button {
+            Task { await submitListing() }
+        } label: {
+            HStack {
+                if posting { ProgressView().tint(.white) }
+                Text(posting ? "Mentés…" : "Hirdetés feladás")
+                    .font(.body.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .foregroundStyle(.white)
+            .background(posting ? AppTheme.accent.opacity(0.6) : AppTheme.accent)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(posting)
+    }
+
+    private func submitListing() async {
+        guard !posting else { return }
+        if store.filter.gyartmanyok.isEmpty && store.filter.modellek.isEmpty {
+            toast = "Válassz legalább márkát vagy modellt."
+            return
+        }
+        posting = true
+        defer { posting = false }
+        let form = PostAdListingMapper.formData(from: store.filter, leiras: leiras)
+        do {
+            let id = try await ListingsAPI.saveListing(form: form, status: "feladott")
+            toast = "Hirdetés feladva (#\(id)). Megjelenik a Kiemeltek között és kereshető."
+            store.reset()
+            leiras = ""
+            showDetailedSearch = false
+            openAccordion = nil
+        } catch {
+            toast = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
 
