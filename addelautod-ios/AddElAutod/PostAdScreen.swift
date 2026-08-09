@@ -78,7 +78,7 @@ struct PostAdScreen: View {
                         SettingsRow(title: "Kategória", value: multiValue(selectedKategoriak, from: PostAdCatalog.ingatlanKategoriak)) {
                             subPanel = .kategoria
                         }
-                        searchButton(label: "Keresés — Ingatlan") {
+                        searchButton(label: "Keresés") {
                             // Funkció később
                             toast = "Ingatlan keresés — hamarosan."
                         }
