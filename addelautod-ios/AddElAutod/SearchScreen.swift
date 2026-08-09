@@ -435,24 +435,9 @@ struct SearchScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
+    /// Csak a részletes mezők — Márka / Évjárat / km / Vételár fent már megvan.
     private var alapAccordionBody: some View {
         VStack(spacing: 0) {
-            SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
-                openSubpanel(.brand)
-            }
-            Divider().padding(.leading, 16)
-            SettingsRow(title: "Évjárat", value: yearValue) {
-                openSubpanel(.year)
-            }
-            Divider().padding(.leading, 16)
-            SettingsRow(title: "Futott km", value: kmValue) {
-                openSubpanel(.km)
-            }
-            Divider().padding(.leading, 16)
-            SettingsRow(title: "Vételár", value: priceValue) {
-                openSubpanel(.price)
-            }
-            Divider().padding(.leading, 16)
             SettingsRow(title: "Állapot", value: allapotValue) {
                 openSubpanel(.allapot)
             }
@@ -599,10 +584,6 @@ struct SearchScreen: View {
 
     private var alapSummary: String {
         var n = 0
-        if !store.filter.gyartmanyok.isEmpty { n += 1 }
-        if store.filter.evTol != nil || store.filter.evIg != nil { n += 1 }
-        if store.filter.kmTol != nil || store.filter.kmIg != nil { n += 1 }
-        if store.filter.arTol != nil || store.filter.arIg != nil { n += 1 }
         n += store.filter.allapotok.isEmpty ? 0 : 1
         n += store.filter.kiviteles.isEmpty ? 0 : 1
         n += store.filter.ajtok.isEmpty ? 0 : 1
