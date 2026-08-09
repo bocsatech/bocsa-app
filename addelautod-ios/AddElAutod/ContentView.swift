@@ -8,6 +8,7 @@ enum AuthPage: String {
 
 struct ContentView: View {
     @EnvironmentObject private var profile: ProfileStore
+    @EnvironmentObject private var pageLayout: PageLayoutStore
     @State private var page = 0
     @State private var authPage: AuthPage = .login
     @State private var showSettings = false
@@ -27,6 +28,7 @@ struct ContentView: View {
         .fullScreenCover(isPresented: $showSettings) {
             SettingsScreen(onClose: { showSettings = false })
                 .environmentObject(profile)
+                .environmentObject(pageLayout)
         }
     }
 
@@ -59,7 +61,8 @@ struct ContentView: View {
     }
 
     private var mainTabs: some View {
-        VStack(spacing: 0) {
+        let pages = pageLayout.visible
+        return VStack(spacing: 0) {
             SiteAuthBar(
                 selectedPage: nil,
                 onLogin: {},
@@ -68,24 +71,20 @@ struct ContentView: View {
             )
 
             TabView(selection: $page) {
-                FeedScreen()
-                    .tag(0)
-                SocialWebScreen(kind: .facebookReel, isActive: page == 1)
-                    .tag(1)
-                SocialWebScreen(kind: .youTube, isActive: page == 2)
-                    .tag(2)
-                RecommendationsScreen()
-                    .tag(3)
-                FeaturedScreen()
-                    .tag(4)
-                SearchScreen(onOpenSettings: { showSettings = true })
-                    .tag(5)
-                SavedSearchesScreen(onOpenSearch: { page = 5 })
-                    .tag(6)
+                ForEach(Array(pages.enumerated()), id: \.element) { index, id in
+                    mainPageView(id, tabIndex: index)
+                        .tag(index)
+                }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
+            .id(pages.map(\.rawValue).joined(separator: "-"))
+            .onChange(of: pages.map(\.rawValue)) { _, newIds in
+                if page >= newIds.count {
+                    page = max(0, newIds.count - 1)
+                }
+            }
 
-            PageIconBar(index: $page)
+            PageIconBar(pages: pages, index: $page)
                 .padding(.bottom, 4)
         }
         .background(AppTheme.bg.ignoresSafeArea())
@@ -99,10 +98,35 @@ struct ContentView: View {
             PushNotificationService.shared.startPolling { store.token }
         }
     }
+
+    @ViewBuilder
+    private func mainPageView(_ id: MainPageID, tabIndex: Int) -> some View {
+        switch id {
+        case .hirfolyam:
+            FeedScreen()
+        case .facebook:
+            SocialWebScreen(kind: .facebookReel, isActive: page == tabIndex)
+        case .youtube:
+            SocialWebScreen(kind: .youTube, isActive: page == tabIndex)
+        case .ajanlasok:
+            RecommendationsScreen()
+        case .kiemeltek:
+            FeaturedScreen()
+        case .foOldal:
+            SearchScreen(onOpenSettings: { showSettings = true })
+        case .mentettKeresesek:
+            SavedSearchesScreen(onOpenSearch: {
+                if let idx = pageLayout.index(of: .foOldal) {
+                    page = idx
+                }
+            })
+        }
+    }
 }
 
 #Preview {
     ContentView()
         .environmentObject(SearchStore())
         .environmentObject(ProfileStore())
+        .environmentObject(PageLayoutStore())
 }

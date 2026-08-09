@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// Fő 7 lap ikonjai (Assets: demo-*).
-enum DemoPageIcons {
+/// Fő lapok ikonjai (Assets: demo-*).
+enum DemoPageIcons: String, CaseIterable, Identifiable {
     case hirfolyam, facebook, youtube, ajanlasok, kiemeltek, foOldal, mentettKeresesek
+
+    var id: String { rawValue }
 
     var assetName: String {
         switch self {
@@ -28,7 +30,5 @@ enum DemoPageIcons {
         }
     }
 
-    static let all: [DemoPageIcons] = [
-        .hirfolyam, .facebook, .youtube, .ajanlasok, .kiemeltek, .foOldal, .mentettKeresesek
-    ]
+    static let all: [DemoPageIcons] = Array(allCases)
 }

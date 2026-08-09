@@ -16,13 +16,14 @@ struct PageDots: View {
     }
 }
 
-/// Alsó 7 lap: demo ikonok + felirat; az aktuális kék.
+/// Alsó lapikonok: látható oldalak sorrendje; az aktuális kék.
 struct PageIconBar: View {
+    let pages: [MainPageID]
     @Binding var index: Int
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(Array(DemoPageIcons.all.enumerated()), id: \.offset) { i, item in
+            ForEach(Array(pages.enumerated()), id: \.element) { i, item in
                 let selected = i == index
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -60,6 +61,7 @@ struct PageIconBar: View {
         .padding(.top, 2)
         .padding(.bottom, 4)
         .animation(.easeInOut(duration: 0.2), value: index)
+        .animation(.easeInOut(duration: 0.2), value: pages)
     }
 }
 

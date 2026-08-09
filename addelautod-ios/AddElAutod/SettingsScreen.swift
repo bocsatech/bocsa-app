@@ -2,11 +2,17 @@ import SwiftUI
 import PhotosUI
 import UIKit
 
-/// Autosweb /beallitasok.html?szekcio=fiok — Fiók szerkesztése (személyes adatok)
+/// Autosweb /beallitasok.html?szekcio=fiok — Fiók szerkesztése
 struct SettingsScreen: View {
     @EnvironmentObject private var profile: ProfileStore
+    @EnvironmentObject private var pageLayout: PageLayoutStore
     var onClose: () -> Void
 
+    private enum Accordion: String {
+        case personal, searchArea, password, notify, pages
+    }
+
+    @State private var openAccordion: Accordion? = nil
     @State private var toast: String?
     @State private var currentPassword = ""
     @State private var newPassword = ""
@@ -19,12 +25,26 @@ struct SettingsScreen: View {
         VStack(spacing: 0) {
             ScreenHeader(title: "Beállítások", subtitle: "Fiók szerkesztése", onBack: onClose)
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    personalCard
-                    searchAreaCard
-                    passwordCard
-                    notifyCard
-                    dangerCard
+                VStack(alignment: .leading, spacing: 12) {
+                    profileHeader
+
+                    accordion(.personal, title: "Személyes adatok") {
+                        personalFields
+                    }
+                    accordion(.searchArea, title: "Keresési körzet") {
+                        searchAreaFields
+                    }
+                    accordion(.password, title: "Jelszó módosítása") {
+                        passwordFields
+                    }
+                    accordion(.notify, title: "Hírlevél és értesítések") {
+                        notifyFields
+                    }
+                    accordion(.pages, title: "Oldalak szerkesztése") {
+                        pagesEditor
+                    }
+
+                    logoutCard
                 }
                 .padding(16)
                 .padding(.bottom, 32)
@@ -41,66 +61,112 @@ struct SettingsScreen: View {
         }
     }
 
-    private var personalCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Személyes adatok")
-                .font(.headline)
+    // MARK: - Profil fejléc (mindig látszik)
 
-            HStack(alignment: .center, spacing: 14) {
-                ProfileAvatarView(
-                    image: profile.avatarImage,
-                    letter: profile.profile.avatarLetter,
-                    size: 72
-                )
+    private var profileHeader: some View {
+        HStack(alignment: .center, spacing: 14) {
+            ProfileAvatarView(
+                image: profile.avatarImage,
+                letter: profile.profile.avatarLetter,
+                size: 72
+            )
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(profile.profile.displayName)
-                        .font(.body.weight(.semibold))
+            VStack(alignment: .leading, spacing: 8) {
+                Text(profile.profile.displayName)
+                    .font(.body.weight(.semibold))
 
-                    HStack(spacing: 8) {
-                        PhotosPicker(selection: $photoItem, matching: .images, photoLibrary: .shared()) {
-                            Text(profile.avatarImage == nil ? "Feltöltés" : "Csere")
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .foregroundStyle(.white)
-                                .background(AppTheme.accent)
-                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        }
-                        if profile.avatarImage != nil {
-                            Button("Törlés") {
-                                profile.clearAvatar()
-                                toast = "Profilkép törölve."
-                            }
+                HStack(spacing: 8) {
+                    PhotosPicker(selection: $photoItem, matching: .images, photoLibrary: .shared()) {
+                        Text(profile.avatarImage == nil ? "Feltöltés" : "Csere")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(.red)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .foregroundStyle(.white)
+                            .background(AppTheme.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                    if profile.avatarImage != nil {
+                        Button("Törlés") {
+                            profile.clearAvatar()
+                            toast = "Profilkép törölve."
                         }
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.red)
                     }
-                }
-
-                Spacer(minLength: 8)
-
-                VStack(spacing: 4) {
-                    ProfileQRView(profile: profile.profile, size: 72)
-                    Text("Profil QR")
-                        .font(.caption2)
-                        .foregroundStyle(AppTheme.textSecondary)
-                }
-            }
-            .onChange(of: photoItem) { _, item in
-                guard let item else { return }
-                Task {
-                    if let data = try? await item.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data) {
-                        profile.setAvatar(image)
-                        toast = "Profilkép mentve."
-                    } else {
-                        toast = "A kép betöltése sikertelen."
-                    }
-                    photoItem = nil
                 }
             }
 
+            Spacer(minLength: 8)
+
+            VStack(spacing: 4) {
+                ProfileQRView(profile: profile.profile, size: 72)
+                Text("Profil QR")
+                    .font(.caption2)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.bgElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .onChange(of: photoItem) { _, item in
+            guard let item else { return }
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    profile.setAvatar(image)
+                    toast = "Profilkép mentve."
+                } else {
+                    toast = "A kép betöltése sikertelen."
+                }
+                photoItem = nil
+            }
+        }
+    }
+
+    // MARK: - Accordion
+
+    private func accordion<Content: View>(
+        _ section: Accordion,
+        title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        let isOpen = openAccordion == section
+        return VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    openAccordion = isOpen ? nil : section
+                }
+            } label: {
+                HStack {
+                    Text(title)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(AppTheme.text)
+                    Spacer()
+                    Image(systemName: isOpen ? "chevron.up" : "chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(AppTheme.textTertiary)
+                }
+                .padding(.horizontal, 16)
+                .frame(minHeight: 52)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isOpen {
+                Divider().padding(.leading, 16)
+                content()
+                    .padding(16)
+            }
+        }
+        .background(AppTheme.bgElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    // MARK: - Személyes adatok
+
+    private var personalFields: some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 6) {
                     fieldLabel("Vezetéknév")
@@ -175,18 +241,30 @@ struct SettingsScreen: View {
                     .background(AppTheme.accent)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
+
+            Button(role: .destructive) {
+                Task {
+                    if let err = await profile.deleteAccount() {
+                        toast = err
+                    } else {
+                        onClose()
+                    }
+                }
+            } label: {
+                Text("Fiók törlése")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 8)
+            }
+            .buttonStyle(.plain)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    /// Gyors kategória kereséshez: irányítószám + km-sugár
-    private var searchAreaCard: some View {
+    // MARK: - Keresési körzet
+
+    private var searchAreaFields: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Keresési körzet")
-                .font(.headline)
             Text("A gyorsikonok (Diesel, Benzin…) ezzel az irányítószámmal és km-sugárral szűrnek.")
                 .font(.footnote)
                 .foregroundStyle(AppTheme.textSecondary)
@@ -215,16 +293,12 @@ struct SettingsScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    private var passwordCard: some View {
+    // MARK: - Jelszó
+
+    private var passwordFields: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Jelszó módosítása")
-                .font(.headline)
             SecureField("Jelenlegi jelszó", text: $currentPassword)
                 .textFieldStyle(.roundedBorder)
             SecureField("Új jelszó", text: $newPassword)
@@ -256,18 +330,12 @@ struct SettingsScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    private var notifyCard: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Hírlevél és értesítések")
-                .font(.headline)
-                .padding(.bottom, 8)
+    // MARK: - Hírlevél
 
+    private var notifyFields: some View {
+        VStack(alignment: .leading, spacing: 4) {
             Toggle("Üzenetek e-mailben", isOn: $profile.profile.notifyMessages)
                 .tint(.green)
             Toggle("Parkoló: árváltozás", isOn: $profile.profile.notifyFavorites)
@@ -291,13 +359,58 @@ struct SettingsScreen: View {
             }
             .padding(.top, 8)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    private var dangerCard: some View {
+    // MARK: - Oldalak szerkesztése
+
+    private var pagesEditor: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Kapcsold be/ki a lapokat, és húzd a sorrendet. A Fő oldal mindig látszik. Azonnal mentődik.")
+                .font(.footnote)
+                .foregroundStyle(AppTheme.textSecondary)
+
+            List {
+                ForEach(pageLayout.order) { id in
+                    HStack(spacing: 12) {
+                        Image(systemName: "line.3.horizontal")
+                            .foregroundStyle(AppTheme.textTertiary)
+                        Image(id.assetName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                        Text(id.title)
+                            .font(.body)
+                        Spacer()
+                        if id.canDisable {
+                            Toggle("", isOn: Binding(
+                                get: { pageLayout.isEnabled(id) },
+                                set: { pageLayout.setEnabled(id, $0) }
+                            ))
+                            .labelsHidden()
+                            .tint(AppTheme.accent)
+                        } else {
+                            Text("Mindig")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(AppTheme.accent)
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
+                .onMove(perform: pageLayout.move)
+                .deleteDisabled(true)
+            }
+            .listStyle(.plain)
+            .scrollDisabled(true)
+            .environment(\.editMode, .constant(.active))
+            .frame(height: CGFloat(pageLayout.order.count) * 52)
+        }
+    }
+
+    // MARK: - Kijelentkezés
+
+    private var logoutCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Kijelentkezés")
                 .font(.headline)
@@ -309,33 +422,14 @@ struct SettingsScreen: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
             }
-
-            Text("Fiók törlése")
-                .font(.headline)
-                .padding(.top, 8)
-            Text("A törlés végleges a közös szerveren is (web + app).")
-                .font(.subheadline)
-                .foregroundStyle(AppTheme.textSecondary)
-            Button(role: .destructive) {
-                Task {
-                    if let err = await profile.deleteAccount() {
-                        toast = err
-                    } else {
-                        onClose()
-                    }
-                }
-            } label: {
-                Text("Fiók törlése")
-                    .font(.body.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-            }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(AppTheme.bgElevated)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
+
+    // MARK: - Shared
 
     private var postalAndCityRow: some View {
         HStack(alignment: .top, spacing: 10) {
