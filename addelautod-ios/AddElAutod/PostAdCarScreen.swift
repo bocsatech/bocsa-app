@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Személyautó hirdetés feladás — teljes kereső űrlap, külön draft store (nincs Mentés / találat).
+/// Személyautó hirdetés feladás — egyértékű számmezők (év/km/ár/cm³), Tovább → részletes, legalul Leírás + Feladás.
 struct PostAdCarScreen: View {
     @StateObject private var store = SearchStore(persistSavedSearches: false)
     var onClose: () -> Void
@@ -15,8 +15,8 @@ struct PostAdCarScreen: View {
     @State private var posting = false
 
     private enum Panel {
-        case simple, advanced, brand, model(String), fuel, price, year, km, allapot, kivitel
-        case ajtok, szemelyek, okmanyok, hirdeto, hengerurtartalom
+        case simple, advanced, brand, model(String), fuel, allapot, kivitel
+        case ajtok, szemelyek, okmanyok, hirdeto
     }
 
     private enum AccordionSection: String {
@@ -61,15 +61,6 @@ struct PostAdCarScreen: View {
             case .fuel:
                 ScreenHeader(title: "Üzemanyag", onBack: goList, rightLabel: "Kész", onRight: goList)
                 fuelList
-            case .price:
-                ScreenHeader(title: "Vételár", onBack: goList, rightLabel: "Kész", onRight: goList)
-                priceWheels
-            case .year:
-                ScreenHeader(title: "Évjárat", onBack: goList, rightLabel: "Kész", onRight: goList)
-                yearWheels
-            case .km:
-                ScreenHeader(title: "Futott km", onBack: goList, rightLabel: "Kész", onRight: goList)
-                kmWheels
             case .allapot:
                 ScreenHeader(title: "Állapot", onBack: goList, rightLabel: "Kész", onRight: goList)
                 allapotList
@@ -108,9 +99,6 @@ struct PostAdCarScreen: View {
                     options: DetailedSearchCatalog.hirdetok,
                     keyPath: \.hirdetok
                 )
-            case .hengerurtartalom:
-                ScreenHeader(title: "Hengerűrtartalom", onBack: goList, rightLabel: "Kész", onRight: goList)
-                hengerurtartalomWheels
             }
         }
         .background(AppTheme.bgGrouped)
@@ -138,7 +126,7 @@ struct PostAdCarScreen: View {
         )
     }
 
-    /// Gyorskeresés (5 mező) VAGY részletes (Alap=10 mező + Műszaki + Extrák + Kevesebb mutatása).
+    /// Gyors mezők, majd Tovább → Alap / Műszaki / Extrák; legalul Leírás + Feladás.
     private var simpleList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -185,7 +173,7 @@ struct PostAdCarScreen: View {
                         }
                         .buttonStyle(.plain)
 
-                        postAdButton
+                        leirasAndPostSection
                     }
                 } else {
                     SettingsGroup {
@@ -199,11 +187,11 @@ struct PostAdCarScreen: View {
                         }
                     } label: {
                         HStack {
-                            Text("Részletes keresés")
+                            Text("Tovább")
                                 .font(.body.weight(.semibold))
                                 .foregroundStyle(AppTheme.accent)
                             Spacer()
-                            Image(systemName: "chevron.down")
+                            Image(systemName: "chevron.right")
                                 .font(.footnote.weight(.semibold))
                                 .foregroundStyle(AppTheme.textTertiary)
                         }
@@ -213,8 +201,6 @@ struct PostAdCarScreen: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                     .buttonStyle(.plain)
-
-                    postAdButton
                 }
 
             }
@@ -222,24 +208,18 @@ struct PostAdCarScreen: View {
         }
     }
 
-    /// Gyorskeresés mezői (részletes Alap adatok tetején is).
+    /// Gyors mezők (részletes Alap adatok tetején is) — évjárat / km / ár: sima számmező.
     @ViewBuilder
     private var quickSearchRows: some View {
         SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
             openSubpanel(.brand)
         }
         Divider().padding(.leading, 16)
-        SettingsRow(title: "Évjárat", value: yearValue) {
-            openSubpanel(.year)
-        }
+        numberFieldRow(title: "Évjárat", placeholder: "pl. 2018", binding: yearTextBinding)
         Divider().padding(.leading, 16)
-        SettingsRow(title: "Futott km", value: kmValue) {
-            openSubpanel(.km)
-        }
+        numberFieldRow(title: "Futott km", placeholder: "pl. 125000", binding: kmTextBinding)
         Divider().padding(.leading, 16)
-        SettingsRow(title: "Vételár", value: priceValue) {
-            openSubpanel(.price)
-        }
+        numberFieldRow(title: "Vételár", placeholder: "Ft", binding: priceTextBinding)
         Divider().padding(.leading, 16)
         SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
             openSubpanel(.fuel)
@@ -274,7 +254,7 @@ struct PostAdCarScreen: View {
                     extrakAccordionBody
                 }
 
-                postAdButton
+                leirasAndPostSection
             }
             .padding(16)
         }
@@ -324,14 +304,12 @@ struct PostAdCarScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    /// Részletes Alap adatok: gyors 5 mező + Hengerűrtartalom + Állapot / …
+    /// Részletes Alap adatok: gyors mezők + Hengerűrtartalom + Állapot / …
     private var alapAccordionBody: some View {
         VStack(spacing: 0) {
             quickSearchRows
             Divider().padding(.leading, 16)
-            SettingsRow(title: "Hengerűrtartalom", value: hengerurtartalomValue) {
-                openSubpanel(.hengerurtartalom)
-            }
+            numberFieldRow(title: "Hengerűrtartalom", placeholder: "cm³", binding: hengerTextBinding)
             Divider().padding(.leading, 16)
             SettingsRow(title: "Állapot", value: allapotValue) {
                 openSubpanel(.allapot)
@@ -452,20 +430,24 @@ struct PostAdCarScreen: View {
                     .frame(minHeight: 44)
                 }
             }
+        }
+    }
 
-            Divider().padding(.leading, 16)
-            SectionLabel(text: "Leírás")
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-            VStack(alignment: .leading, spacing: 6) {
+    /// Legalul: leírás, alatta Hirdetés feladás.
+    private var leirasAndPostSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Leírás")
                 TextEditor(text: Binding(
                     get: { leiras },
                     set: { leiras = String($0.prefix(PostAdListingMapper.maxLeirasLength)) }
                 ))
                 .frame(minHeight: 120)
                 .padding(8)
+                .background(AppTheme.bgElevated)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
                 Text("\(leiras.count) / \(PostAdListingMapper.maxLeirasLength)")
@@ -473,8 +455,8 @@ struct PostAdCarScreen: View {
                     .foregroundStyle(AppTheme.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
+
+            postAdButton
         }
     }
 
@@ -820,290 +802,70 @@ struct PostAdCarScreen: View {
         }
     }
 
-    /// Minimum + Maximum — mindkettő görgethető lista, 500 000 Ft lépésköz.
-    private var priceWheels: some View {
-        VStack(spacing: 0) {
-            Text("Lépésköz: 500 000 Ft")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-
-            HStack(alignment: .top, spacing: 0) {
-                priceWheelColumn(
-                    title: "Minimum",
-                    selection: Binding(
-                        get: { store.filter.arTol ?? -1 },
-                        set: { store.setPriceMin($0 < 0 ? nil : $0) }
-                    )
-                )
-                Divider()
-                priceWheelColumn(
-                    title: "Maximum",
-                    selection: Binding(
-                        get: { store.filter.arIg ?? -1 },
-                        set: { store.setPriceMax($0 < 0 ? nil : $0) }
-                    )
-                )
-            }
-            .frame(maxHeight: .infinity)
-
-            Button {
-                store.setPrice(tol: nil, ig: nil)
-            } label: {
-                Text("Vételár szűrő törlése")
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(AppTheme.accent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.plain)
-        }
-        .background(AppTheme.bgGrouped)
-    }
-
-    private func priceWheelColumn(title: String, selection: Binding<Int>) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppTheme.text)
-                .padding(.top, 8)
-            Picker(title, selection: selection) {
-                Text("Mindegy").tag(-1)
-                ForEach(Catalog.priceSteps, id: \.self) { value in
-                    Text(Catalog.priceStepLabel(value)).tag(value)
-                }
-            }
-            .pickerStyle(.wheel)
-            .labelsHidden()
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private var yearWheels: some View {
-        VStack(spacing: 0) {
-            Text("Évjárat — tól / ig")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-
-            HStack(alignment: .top, spacing: 0) {
-                yearWheelColumn(
-                    title: "Tól",
-                    selection: Binding(
-                        get: { store.filter.evTol ?? -1 },
-                        set: { store.setYearMin($0 < 0 ? nil : $0) }
-                    )
-                )
-                Divider()
-                yearWheelColumn(
-                    title: "Ig",
-                    selection: Binding(
-                        get: { store.filter.evIg ?? -1 },
-                        set: { store.setYearMax($0 < 0 ? nil : $0) }
-                    )
-                )
-            }
-            .frame(maxHeight: .infinity)
-
-            Button {
-                store.setYear(tol: nil, ig: nil)
-            } label: {
-                Text("Évjárat szűrő törlése")
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(AppTheme.accent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.plain)
-        }
-        .background(AppTheme.bgGrouped)
-    }
-
-    /// Mint az évjárat: Minimum / Maximum görgető, cm³ — megadott lépéslista.
-    private var hengerurtartalomWheels: some View {
-        VStack(spacing: 0) {
-            Text("Hengerűrtartalom — cm³")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-
-            HStack(alignment: .top, spacing: 0) {
-                hengerWheelColumn(
-                    title: "Minimum",
-                    steps: Catalog.hengerCm3MinSteps,
-                    selection: Binding(
-                        get: { store.filter.hengerCm3Tol ?? -1 },
-                        set: { store.setHengerCm3Min($0 < 0 ? nil : $0) }
-                    )
-                )
-                Divider()
-                hengerWheelColumn(
-                    title: "Maximum",
-                    steps: Catalog.hengerCm3MaxSteps,
-                    selection: Binding(
-                        get: { store.filter.hengerCm3Ig ?? -1 },
-                        set: { store.setHengerCm3Max($0 < 0 ? nil : $0) }
-                    )
-                )
-            }
-            .frame(maxHeight: .infinity)
-
-            Button {
-                store.setHengerCm3(tol: nil, ig: nil)
-            } label: {
-                Text("Hengerűrtartalom szűrő törlése")
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(AppTheme.accent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.plain)
-        }
-        .background(AppTheme.bgGrouped)
-    }
-
-    private func hengerWheelColumn(title: String, steps: [Int], selection: Binding<Int>) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppTheme.text)
-                .padding(.top, 8)
-            Picker(title, selection: selection) {
-                Text("Mindegy").tag(-1)
-                ForEach(steps, id: \.self) { value in
-                    Text(Catalog.hengerCm3StepLabel(value)).tag(value)
-                }
-            }
-            .pickerStyle(.wheel)
-            .labelsHidden()
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func yearWheelColumn(title: String, selection: Binding<Int>) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppTheme.text)
-                .padding(.top, 8)
-            Picker(title, selection: selection) {
-                Text("Mindegy").tag(-1)
-                ForEach(Catalog.yearSteps, id: \.self) { year in
-                    Text(String(year)).tag(year)
-                }
-            }
-            .pickerStyle(.wheel)
-            .labelsHidden()
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private var kmWheels: some View {
-        VStack(spacing: 0) {
-            Text("Lépésköz: 10 000 km")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-
-            HStack(alignment: .top, spacing: 0) {
-                kmWheelColumn(
-                    title: "Tól",
-                    selection: Binding(
-                        get: { store.filter.kmTol ?? -1 },
-                        set: { store.setKmMin($0 < 0 ? nil : $0) }
-                    )
-                )
-                Divider()
-                kmWheelColumn(
-                    title: "Ig",
-                    selection: Binding(
-                        get: { store.filter.kmIg ?? -1 },
-                        set: { store.setKmMax($0 < 0 ? nil : $0) }
-                    )
-                )
-            }
-            .frame(maxHeight: .infinity)
-
-            Button {
-                store.setKm(tol: nil, ig: nil)
-            } label: {
-                Text("Km szűrő törlése")
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(AppTheme.accent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.plain)
-        }
-        .background(AppTheme.bgGrouped)
-    }
-
-    private func kmWheelColumn(title: String, selection: Binding<Int>) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppTheme.text)
-                .padding(.top, 8)
-            Picker(title, selection: selection) {
-                Text("Mindegy").tag(-1)
-                ForEach(Catalog.kmSteps, id: \.self) { value in
-                    Text(Catalog.kmStepLabel(value)).tag(value)
-                }
-            }
-            .pickerStyle(.wheel)
-            .labelsHidden()
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-
-
-    private var priceValue: String {
-        if store.filter.arTol == nil && store.filter.arIg == nil { return "Mindegy" }
-        if let tol = store.filter.arTol, let ig = store.filter.arIg {
-            return "\(SearchFilter.formatPrice(tol)) – \(SearchFilter.formatPrice(ig))"
-        }
-        if let ig = store.filter.arIg { return "– \(SearchFilter.formatPrice(ig))" }
-        return "\(SearchFilter.formatPrice(store.filter.arTol!)) –"
-    }
-
-    private var yearValue: String {
-        if store.filter.evTol == nil && store.filter.evIg == nil { return "Mindegy" }
-        if let tol = store.filter.evTol, let ig = store.filter.evIg { return "\(tol) – \(ig)" }
-        if let tol = store.filter.evTol { return "\(tol) –" }
-        return "– \(store.filter.evIg!)"
-    }
-
-    private var kmValue: String {
-        if store.filter.kmTol == nil && store.filter.kmIg == nil { return "Mindegy" }
-        if let ig = store.filter.kmIg, store.filter.kmTol == nil {
-            return "– \(ig.formatted()) km"
-        }
-        if let tol = store.filter.kmTol, store.filter.kmIg == nil {
-            return "\(tol.formatted()) km –"
-        }
-        return "\(store.filter.kmTol!.formatted()) – \(store.filter.kmIg!.formatted())"
-    }
-
-    private var hengerurtartalomValue: String {
-        if store.filter.hengerCm3Tol == nil && store.filter.hengerCm3Ig == nil { return "Mindegy" }
-        if let tol = store.filter.hengerCm3Tol, let ig = store.filter.hengerCm3Ig {
-            return "\(tol.formatted()) – \(ig.formatted()) cm³"
-        }
-        if let ig = store.filter.hengerCm3Ig { return "– \(ig.formatted()) cm³" }
-        return "\(store.filter.hengerCm3Tol!.formatted()) cm³ –"
-    }
-
     private var extrasValue: String {
         let n = store.filter.activeExtrasCount
         return n > 0 ? "\(n) bekapcsolva" : "Mindegy"
+    }
+
+    // MARK: - Egyértékű számmezők (feladás)
+
+    private func numberFieldRow(title: String, placeholder: String, binding: Binding<String>) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .foregroundStyle(AppTheme.text)
+                .font(.body)
+            TextField(placeholder, text: binding)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(AppTheme.textSecondary)
+        }
+        .padding(.horizontal, 16)
+        .frame(minHeight: 52)
+    }
+
+    /// Egy érték mindkét filter mezőbe (a mapper `tol ?? ig`-et olvas).
+    private func singleIntBinding(
+        get: @escaping () -> Int?,
+        set: @escaping (Int?) -> Void
+    ) -> Binding<String> {
+        Binding(
+            get: { get().map(String.init) ?? "" },
+            set: { raw in
+                let digits = raw.filter(\.isNumber)
+                if digits.isEmpty {
+                    set(nil)
+                } else {
+                    set(Int(digits))
+                }
+            }
+        )
+    }
+
+    private var yearTextBinding: Binding<String> {
+        singleIntBinding(
+            get: { store.filter.evTol ?? store.filter.evIg },
+            set: { store.setYear(tol: $0, ig: $0) }
+        )
+    }
+
+    private var kmTextBinding: Binding<String> {
+        singleIntBinding(
+            get: { store.filter.kmTol ?? store.filter.kmIg },
+            set: { store.setKm(tol: $0, ig: $0) }
+        )
+    }
+
+    private var priceTextBinding: Binding<String> {
+        singleIntBinding(
+            get: { store.filter.arTol ?? store.filter.arIg },
+            set: { store.setPrice(tol: $0, ig: $0) }
+        )
+    }
+
+    private var hengerTextBinding: Binding<String> {
+        singleIntBinding(
+            get: { store.filter.hengerCm3Tol ?? store.filter.hengerCm3Ig },
+            set: { store.setHengerCm3(tol: $0, ig: $0) }
+        )
     }
 }

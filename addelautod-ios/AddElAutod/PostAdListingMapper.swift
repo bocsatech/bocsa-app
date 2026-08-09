@@ -12,6 +12,7 @@ enum PostAdListingMapper {
         if let brand { form["gyartmany"] = brand }
         if let model { form["modell"] = model }
 
+        // Feladáskor egy érték (mindkét filter mező ugyanaz).
         let year = filter.evTol ?? filter.evIg
         if let year { form["gyartasi_ev"] = String(year) }
 
