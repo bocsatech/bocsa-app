@@ -59,7 +59,7 @@ struct PostAdScreen: View {
                 topAccordion(section: .auto, title: "Autó hirdetés") {
                     VStack(spacing: 0) {
                         itemList(PostAdCatalog.autoItems)
-                        searchButton(label: "Keresés — Autó") {
+                        searchButton(label: "Keresés") {
                             // Funkció később
                             toast = "Autó keresés — hamarosan."
                         }
