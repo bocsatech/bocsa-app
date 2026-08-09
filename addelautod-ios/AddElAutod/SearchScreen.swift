@@ -686,7 +686,7 @@ struct SearchScreen: View {
                 toast = "Előbb állíts be legalább egy feltételt."
             }
         } label: {
-            Text("Mentés ikonra (4. oldal)")
+            Text("Mentés")
                 .font(.body.weight(.semibold))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
