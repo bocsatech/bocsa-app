@@ -1,7 +1,3 @@
-import { mkdirSync, existsSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { DatabaseSync } from "node:sqlite";
 import { formDataToCells, cellsToFormData, FORM_FIELD_CATALOG } from "./form-field-catalog.mjs";
 import {
   buildPreviewFromCells,
@@ -9,27 +5,19 @@ import {
   sanitizeListingPlainText,
 } from "./listing-preview.mjs";
 import { initPartnerSchema } from "./partner-schema.mjs";
+import { getListingsDb, getListingsDbPath, getDbPaths } from "./db-registry.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = join(__dirname, "..", "data");
-
-function resolveDbPath() {
-  return process.env.AUTOSWEB_DB_PATH || join(DATA_DIR, "autosweb.db");
-}
-
-let dbInstance = null;
-let dbInstancePath = null;
+/** Hirdetések DB (listings.db) — séma init path szerint. */
+let listingsSchemaPath = null;
 
 function getDb() {
-  const dbPath = resolveDbPath();
-  if (dbInstance && dbInstancePath === dbPath) return dbInstance;
-  const dir = dirname(dbPath);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  dbInstance = new DatabaseSync(dbPath);
-  dbInstancePath = dbPath;
-  dbInstance.exec("PRAGMA foreign_keys = ON;");
-  initSchema(dbInstance);
-  return dbInstance;
+  const db = getListingsDb();
+  const path = getListingsDbPath();
+  if (listingsSchemaPath !== path) {
+    initSchema(db);
+    listingsSchemaPath = path;
+  }
+  return db;
 }
 
 function initSchema(db) {
@@ -93,10 +81,10 @@ export function normalizeListingStatus(status) {
 
 export function getDbPath() {
   getDb();
-  return resolveDbPath();
+  return getListingsDbPath();
 }
 
-export { getDb };
+export { getDb, getListingsDb, getDbPaths };
 
 export function listFieldDefs() {
   const db = getDb();
@@ -312,7 +300,15 @@ export function dbStats() {
   const cells = db.prepare("SELECT COUNT(*) AS n FROM listing_cells").get().n;
   const mentett = db.prepare("SELECT COUNT(*) AS n FROM listings WHERE status = 'mentett'").get().n;
   const feladott = db.prepare("SELECT COUNT(*) AS n FROM listings WHERE status = 'feladott'").get().n;
-  return { listings, cells, mentett, feladott, path: resolveDbPath() };
+  const paths = getDbPaths();
+  return {
+    listings,
+    cells,
+    mentett,
+    feladott,
+    path: paths.listings,
+    paths,
+  };
 }
 
 export { formDataToCells, cellsToFormData };

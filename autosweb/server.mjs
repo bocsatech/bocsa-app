@@ -14,6 +14,7 @@ import {
   dbStats,
   listFieldDefs,
   findListingBySourceUrl,
+  getDb,
 } from "./lib/db.mjs";
 import { getSiteBlocks, saveSiteBlocks } from "./lib/site-blocks.mjs";
 import {
@@ -50,6 +51,7 @@ import {
 import { searchHasznaltauto } from "./lib/ha-search.mjs";
 import { handleAuthApi, initAuthSchema, authStats } from "./lib/auth-users.mjs";
 import { handleMessagesApi, initMessagingSchema } from "./lib/messaging.mjs";
+import { migrateLegacyAutoswebDb, getDbPaths } from "./lib/db-registry.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
@@ -756,15 +758,24 @@ server.listen(PORT, HOST, async () => {
   try {
     initAuthSchema();
     initMessagingSchema();
+    getDb(); // listings.db séma
+    const mig = migrateLegacyAutoswebDb();
+    const paths = getDbPaths();
+    console.log(`DB users:    ${paths.users}`);
+    console.log(`DB listings: ${paths.listings}`);
+    console.log(`DB messages: ${paths.messages}`);
+    if (mig?.migrated) {
+      console.log(`Legacy autosweb.db → ${mig.backup}`);
+    }
     const auth = authStats();
     console.log(`Fiókok: ${auth.users} felhasználó, ${auth.sessions} aktív session`);
     console.log("Üzenetek API: /api/messages/*");
   } catch (error) {
-    console.warn("Auth séma:", error.message ?? error);
+    console.warn("Auth / DB séma:", error.message ?? error);
   }
   try {
     const stats = dbStats();
-    console.log(`SQLite: ${stats.path} (${stats.listings} hirdetés, ${stats.cells} cella)`);
+    console.log(`Hirdetések: ${stats.listings} db, ${stats.cells} cella (${stats.path})`);
   } catch (error) {
     console.warn("SQLite inicializálás:", error.message ?? error);
   }

@@ -6,7 +6,7 @@ import { randomBytes } from "crypto";
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "fs";
 import { join, dirname, extname } from "path";
 import { fileURLToPath } from "url";
-import { getDb } from "./db.mjs";
+import { getMessagesDb, getUsersDb } from "./db-registry.mjs";
 import { getUserByToken, extractBearerToken, initAuthSchema } from "./auth-users.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -24,8 +24,9 @@ const ALLOWED_MIME = new Set([
 
 const DEMO_SELLER_EMAIL = "eladas@addelautod.demo";
 
-export function initMessagingSchema(db = getDb()) {
-  initAuthSchema(db);
+export function initMessagingSchema(db = getMessagesDb()) {
+  // Felhasználók külön DB-ben
+  initAuthSchema();
   db.exec(`
     CREATE TABLE IF NOT EXISTS conversations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,9 +40,7 @@ export function initMessagingSchema(db = getDb()) {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       buyer_last_read_at TEXT,
-      seller_last_read_at TEXT,
-      FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
+      seller_last_read_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS messages (
@@ -54,17 +53,14 @@ export function initMessagingSchema(db = getDb()) {
       attachment_path TEXT,
       attachment_size INTEGER,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
-      FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+      FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS message_blocks (
       blocker_id INTEGER NOT NULL,
       blocked_id INTEGER NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      PRIMARY KEY (blocker_id, blocked_id),
-      FOREIGN KEY (blocker_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (blocked_id) REFERENCES users(id) ON DELETE CASCADE
+      PRIMARY KEY (blocker_id, blocked_id)
     );
 
     CREATE TABLE IF NOT EXISTS device_tokens (
@@ -72,8 +68,7 @@ export function initMessagingSchema(db = getDb()) {
       token TEXT NOT NULL,
       platform TEXT NOT NULL DEFAULT 'ios',
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-      PRIMARY KEY (user_id, token),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      PRIMARY KEY (user_id, token)
     );
 
     CREATE TABLE IF NOT EXISTS push_outbox (
@@ -83,8 +78,7 @@ export function initMessagingSchema(db = getDb()) {
       body TEXT NOT NULL,
       payload_json TEXT NOT NULL DEFAULT '{}',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      sent_at TEXT,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      sent_at TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_conversations_buyer ON conversations(buyer_id);
@@ -93,17 +87,19 @@ export function initMessagingSchema(db = getDb()) {
     CREATE INDEX IF NOT EXISTS idx_push_outbox_user ON push_outbox(user_id);
   `);
 
-  ensureDemoSeller(db);
+  ensureDemoSeller();
   if (!existsSync(ATTACH_DIR)) mkdirSync(ATTACH_DIR, { recursive: true });
 }
 
-function ensureDemoSeller(db) {
-  const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(DEMO_SELLER_EMAIL);
+function ensureDemoSeller() {
+  const users = getUsersDb();
+  initAuthSchema(users);
+  const existing = users.prepare("SELECT id FROM users WHERE email = ?").get(DEMO_SELLER_EMAIL);
   if (existing) return existing.id;
   // jelszó: nem belépésre szánt demo eladó; hash placeholder
   const salt = randomBytes(16).toString("hex");
   const hash = randomBytes(32).toString("hex");
-  const info = db
+  const info = users
     .prepare(
       `INSERT INTO users (email, password_hash, password_salt, display_name, profile_json)
        VALUES (?, ?, ?, 'Add el autod Eladó', ?)`
@@ -138,8 +134,10 @@ function isBlocked(db, a, b) {
   );
 }
 
-function userPublic(db, id) {
-  const row = db.prepare("SELECT id, email, display_name, profile_json FROM users WHERE id = ?").get(id);
+function userPublic(_db, id) {
+  const row = getUsersDb()
+    .prepare("SELECT id, email, display_name, profile_json FROM users WHERE id = ?")
+    .get(id);
   if (!row) return { id, email: "", displayName: "Ismeretlen" };
   let first = "";
   try {
@@ -282,7 +280,7 @@ function saveAttachment(conversationId, attachment) {
 
 export function listConversations(userId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const rows = db
     .prepare(
       `SELECT * FROM conversations
@@ -295,7 +293,7 @@ export function listConversations(userId) {
 
 export function startConversation(userId, input) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const listingId = String(input.listing_id ?? input.listingId ?? "").trim();
   const title = String(input.listing_title ?? input.listingTitle ?? "").trim();
   if (!listingId || !title) {
@@ -309,8 +307,10 @@ export function startConversation(userId, input) {
     const sellerEmail = String(input.seller_email ?? input.sellerEmail ?? DEMO_SELLER_EMAIL)
       .trim()
       .toLowerCase();
-    const seller = db.prepare("SELECT id FROM users WHERE email = ?").get(sellerEmail);
-    sellerId = seller?.id ?? ensureDemoSeller(db);
+    const seller = getUsersDb()
+      .prepare("SELECT id FROM users WHERE email = ?")
+      .get(sellerEmail);
+    sellerId = seller?.id ?? ensureDemoSeller();
   }
   if (sellerId === userId) {
     const err = new Error("Saját hirdetésedre nem küldhetsz üzenetet.");
@@ -354,7 +354,7 @@ export function startConversation(userId, input) {
 
 export function listMessages(userId, conversationId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const conv = conversationForUser(db, conversationId, userId);
   if (!conv) {
     const err = new Error("Beszélgetés nem található.");
@@ -378,7 +378,7 @@ export function listMessages(userId, conversationId) {
 
 export function sendMessage(userId, conversationId, { body, attachment }) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const conv = conversationForUser(db, conversationId, userId);
   if (!conv) {
     const err = new Error("Beszélgetés nem található.");
@@ -438,7 +438,7 @@ export function sendMessage(userId, conversationId, { body, attachment }) {
 
 export function markRead(userId, conversationId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const conv = conversationForUser(db, conversationId, userId);
   if (!conv) {
     const err = new Error("Beszélgetés nem található.");
@@ -459,7 +459,7 @@ export function markRead(userId, conversationId) {
 
 export function markUnread(userId, conversationId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const conv = conversationForUser(db, conversationId, userId);
   if (!conv) {
     const err = new Error("Beszélgetés nem található.");
@@ -485,7 +485,7 @@ export function markUnread(userId, conversationId) {
 
 export function deleteConversation(userId, conversationId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const conv = conversationForUser(db, conversationId, userId);
   if (!conv) {
     const err = new Error("Beszélgetés nem található.");
@@ -499,7 +499,7 @@ export function deleteConversation(userId, conversationId) {
 
 export function blockUser(blockerId, blockedId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const id = Number(blockedId);
   if (!id || id === blockerId) {
     const err = new Error("Érvénytelen felhasználó.");
@@ -514,7 +514,7 @@ export function blockUser(blockerId, blockedId) {
 
 export function unblockUser(blockerId, blockedId) {
   initMessagingSchema();
-  getDb()
+  getMessagesDb()
     .prepare(`DELETE FROM message_blocks WHERE blocker_id = ? AND blocked_id = ?`)
     .run(blockerId, Number(blockedId));
   return { ok: true };
@@ -522,7 +522,7 @@ export function unblockUser(blockerId, blockedId) {
 
 export function listBlocks(userId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const rows = db
     .prepare(`SELECT blocked_id FROM message_blocks WHERE blocker_id = ?`)
     .all(userId);
@@ -537,7 +537,7 @@ export function registerDeviceToken(userId, { token, platform = "ios" }) {
     err.status = 400;
     throw err;
   }
-  getDb()
+  getMessagesDb()
     .prepare(
       `INSERT INTO device_tokens (user_id, token, platform, updated_at)
        VALUES (?, ?, ?, datetime('now'))
@@ -551,7 +551,7 @@ export function registerDeviceToken(userId, { token, platform = "ios" }) {
 
 export function getAttachmentForUser(userId, messageId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const row = db.prepare("SELECT * FROM messages WHERE id = ?").get(Number(messageId));
   if (!row?.attachment_path) {
     const err = new Error("Csatolmány nem található.");
@@ -579,7 +579,7 @@ export function getAttachmentForUser(userId, messageId) {
 
 export function pendingPushForUser(userId) {
   initMessagingSchema();
-  const db = getDb();
+  const db = getMessagesDb();
   const rows = db
     .prepare(
       `SELECT id, title, body, payload_json, created_at FROM push_outbox

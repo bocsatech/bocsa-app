@@ -15,8 +15,15 @@
 ├── server.mjs
 ├── lib/             ← import scraper
 ├── public/
+├── data/
+│   ├── users.db       ← felhasználók (helyi)
+│   ├── listings.db    ← hirdetések (helyi)
+│   └── messages.db    ← üzenetek (helyi)
 └── node_modules/
 ```
+
+Három külön SQLite a saját gépen (mobilapp + web ugyanazt a helyi szervert használja).
+Régi `autosweb.db` induláskor átmásolódik, majd `autosweb.db.bak`.
 
 ## Telepítés (Mac, egyszer)
 

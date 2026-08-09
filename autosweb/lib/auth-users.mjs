@@ -2,13 +2,13 @@
  * Közös felhasználói fiók (web + mobil) — SQLite + token session.
  */
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
-import { getDb } from "./db.mjs";
+import { getUsersDb, getUsersDbPath } from "./db-registry.mjs";
 
 const TOKEN_BYTES = 32;
 const SESSION_DAYS = 90;
 const SCRYPT_KEYLEN = 64;
 
-export function initAuthSchema(db = getDb()) {
+export function initAuthSchema(db = getUsersDb()) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,7 +94,7 @@ function publicUser(row) {
 }
 
 function createSession(userId) {
-  const db = getDb();
+  const db = getUsersDb();
   const token = randomBytes(TOKEN_BYTES).toString("hex");
   db.prepare(
     `INSERT INTO auth_sessions (token, user_id, expires_at)
@@ -105,13 +105,13 @@ function createSession(userId) {
 
 function deleteSession(token) {
   if (!token) return;
-  getDb().prepare("DELETE FROM auth_sessions WHERE token = ?").run(token);
+  getUsersDb().prepare("DELETE FROM auth_sessions WHERE token = ?").run(token);
 }
 
 export function getUserByToken(token) {
   if (!token) return null;
   initAuthSchema();
-  const db = getDb();
+  const db = getUsersDb();
   const row = db
     .prepare(
       `SELECT u.* FROM auth_sessions s
@@ -157,7 +157,7 @@ export function registerUser({ email, password, password_confirm }) {
     throw err;
   }
 
-  const db = getDb();
+  const db = getUsersDb();
   const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(trimmedEmail);
   if (existing) {
     const err = new Error("Ez az email már regisztrálva van.");
@@ -188,7 +188,7 @@ export function loginUser({ email, password }) {
     throw err;
   }
 
-  const db = getDb();
+  const db = getUsersDb();
   const row = db.prepare("SELECT * FROM users WHERE email = ?").get(trimmedEmail);
   if (!row || !verifyPassword(trimmedPassword, row.password_salt, row.password_hash)) {
     const err = new Error("Hibás email vagy jelszó.");
@@ -242,7 +242,7 @@ export function saveUserProfile(token, profileInput) {
   }
 
   const displayName = [next.firstName, next.lastName].filter(Boolean).join(" ");
-  const db = getDb();
+  const db = getUsersDb();
   db.prepare(
     `UPDATE users SET profile_json = ?, display_name = ?, updated_at = datetime('now') WHERE id = ?`
   ).run(JSON.stringify(next), displayName, user.id);
@@ -277,7 +277,7 @@ export function changeUserPassword(token, { current_password, new_password, new_
     throw err;
   }
 
-  const db = getDb();
+  const db = getUsersDb();
   const row = db.prepare("SELECT * FROM users WHERE id = ?").get(sessionUser.id);
   if (!row || !verifyPassword(current, row.password_salt, row.password_hash)) {
     const err = new Error("A jelenlegi jelszó hibás.");
@@ -295,18 +295,18 @@ export function changeUserPassword(token, { current_password, new_password, new_
 
 export function authStats() {
   initAuthSchema();
-  const db = getDb();
+  const db = getUsersDb();
   const users = db.prepare("SELECT COUNT(*) AS n FROM users").get().n;
   const sessions = db
     .prepare("SELECT COUNT(*) AS n FROM auth_sessions WHERE expires_at > datetime('now')")
     .get().n;
-  return { users, sessions };
+  return { users, sessions, path: getUsersDbPath() };
 }
 
 /** Böngésző localStorage fiókok → szerver (session nélkül). */
 export function importLocalAccounts(accounts = []) {
   initAuthSchema();
-  const db = getDb();
+  const db = getUsersDb();
   const results = [];
   for (const account of (Array.isArray(accounts) ? accounts : []).slice(0, 50)) {
     const email = normalizeEmail(account?.email);
@@ -350,7 +350,7 @@ export function deleteUserAccount(token) {
     err.status = 401;
     throw err;
   }
-  const db = getDb();
+  const db = getUsersDb();
   db.prepare("DELETE FROM auth_sessions WHERE user_id = ?").run(user.id);
   db.prepare("DELETE FROM users WHERE id = ?").run(user.id);
   return { ok: true };
