@@ -57,7 +57,16 @@ struct PostAdScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 topAccordion(section: .auto, title: "Autó hirdetés") {
-                    itemList(PostAdCatalog.autoItems)
+                    VStack(spacing: 0) {
+                        itemList(PostAdCatalog.autoItems)
+                        searchButton(label: "Keresés — Autó") {
+                            // Funkció később
+                            toast = "Autó keresés — hamarosan."
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 8)
+                    }
                 }
 
                 topAccordion(section: .ingatlan, title: "Ingatlan hirdetések") {
@@ -69,6 +78,13 @@ struct PostAdScreen: View {
                         SettingsRow(title: "Kategória", value: multiValue(selectedKategoriak, from: PostAdCatalog.ingatlanKategoriak)) {
                             subPanel = .kategoria
                         }
+                        searchButton(label: "Keresés — Ingatlan") {
+                            // Funkció később
+                            toast = "Ingatlan keresés — hamarosan."
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 8)
                     }
                 }
             }
