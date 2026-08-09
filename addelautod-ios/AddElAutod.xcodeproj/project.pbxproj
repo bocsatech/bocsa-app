@@ -88,6 +88,8 @@
 		A1INFO001B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1DEMO001B /* DemoPageIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoPageIcons.swift; sourceTree = "<group>"; };
 		A1PLAY001B /* PageLayoutStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageLayoutStore.swift; sourceTree = "<group>"; };
+		A1PAD001B /* PostAdScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAdScreen.swift; sourceTree = "<group>"; };
+		A1PCAT001B /* PostAdCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAdCatalog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
