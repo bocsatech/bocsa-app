@@ -8,35 +8,38 @@ struct PostAdScreen: View {
         case auto, ingatlan
     }
 
+    private enum SubPanel: Equatable {
+        case list
+        case tipus
+        case kategoria
+    }
+
     @State private var openTop: TopSection? = nil
-    @State private var openIngatlanGroup: String? = nil
+    @State private var subPanel: SubPanel = .list
+    @State private var selectedTipusok: Set<String> = []
+    @State private var selectedKategoriak: Set<String> = []
     @State private var toast: String?
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(title: "Hirdetés feladás", subtitle: "Válassz kategóriát", onBack: onClose)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    topAccordion(
-                        section: .auto,
-                        title: "Autó hirdetés"
-                    ) {
-                        itemList(PostAdCatalog.autoItems)
-                    }
-
-                    topAccordion(
-                        section: .ingatlan,
-                        title: "Ingatlan hirdetések"
-                    ) {
-                        VStack(spacing: 8) {
-                            ForEach(PostAdCatalog.ingatlanGroups) { group in
-                                ingatlanGroupBlock(group)
-                            }
-                        }
-                    }
-                }
-                .padding(16)
-                .padding(.bottom, 32)
+            switch subPanel {
+            case .list:
+                ScreenHeader(title: "Hirdetés feladás", subtitle: "Válassz kategóriát", onBack: onClose)
+                mainList
+            case .tipus:
+                ScreenHeader(title: "Típus", onBack: { subPanel = .list }, rightLabel: "Kész", onRight: { subPanel = .list })
+                multiSelectList(
+                    sectionTitle: "Típus",
+                    options: PostAdCatalog.ingatlanTipusok,
+                    selection: $selectedTipusok
+                )
+            case .kategoria:
+                ScreenHeader(title: "Kategória", onBack: { subPanel = .list }, rightLabel: "Kész", onRight: { subPanel = .list })
+                multiSelectList(
+                    sectionTitle: "Kategória",
+                    options: PostAdCatalog.ingatlanKategoriak,
+                    selection: $selectedKategoriak
+                )
             }
         }
         .background(AppTheme.bgGrouped)
@@ -50,7 +53,31 @@ struct PostAdScreen: View {
         }
     }
 
-    // MARK: - Top accordion (Autó / Ingatlan)
+    private var mainList: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                topAccordion(section: .auto, title: "Autó hirdetés") {
+                    itemList(PostAdCatalog.autoItems)
+                }
+
+                topAccordion(section: .ingatlan, title: "Ingatlan hirdetések") {
+                    VStack(spacing: 0) {
+                        SettingsRow(title: "Típus", value: multiValue(selectedTipusok, from: PostAdCatalog.ingatlanTipusok)) {
+                            subPanel = .tipus
+                        }
+                        Divider().padding(.leading, 16)
+                        SettingsRow(title: "Kategória", value: multiValue(selectedKategoriak, from: PostAdCatalog.ingatlanKategoriak)) {
+                            subPanel = .kategoria
+                        }
+                    }
+                }
+            }
+            .padding(16)
+            .padding(.bottom, 32)
+        }
+    }
+
+    // MARK: - Top accordion
 
     private func topAccordion<Content: View>(
         section: TopSection,
@@ -61,13 +88,7 @@ struct PostAdScreen: View {
         return VStack(spacing: 0) {
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
-                    if isOpen {
-                        openTop = nil
-                        openIngatlanGroup = nil
-                    } else {
-                        openTop = section
-                        if section != .ingatlan { openIngatlanGroup = nil }
-                    }
+                    openTop = isOpen ? nil : section
                 }
             } label: {
                 HStack {
@@ -88,70 +109,20 @@ struct PostAdScreen: View {
             if isOpen {
                 Divider().padding(.leading, 16)
                 content()
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 8)
+                    .padding(.bottom, 8)
             }
         }
         .background(AppTheme.bgElevated)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    // MARK: - Ingatlan alcsoport (Eladó / Kiadó / Bérelhető)
-
-    private func ingatlanGroupBlock(_ group: PostAdCatalog.Group) -> some View {
-        let isOpen = openIngatlanGroup == group.id
-        return VStack(spacing: 0) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    openIngatlanGroup = isOpen ? nil : group.id
-                }
-            } label: {
-                HStack {
-                    Text(group.title)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppTheme.text)
-                    Spacer()
-                    if group.items.isEmpty {
-                        Text("Hamarosan")
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.textTertiary)
-                    }
-                    Image(systemName: isOpen ? "chevron.up" : "chevron.down")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.textTertiary)
-                }
-                .padding(.horizontal, 12)
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            if isOpen {
-                if group.items.isEmpty {
-                    Text("Ehhez a menühöz később kerülnek a típusok.")
-                        .font(.footnote)
-                        .foregroundStyle(AppTheme.textSecondary)
-                        .padding(.horizontal, 12)
-                        .padding(.bottom, 10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                } else {
-                    itemList(group.items)
-                        .padding(.bottom, 6)
-                }
-            }
-        }
-        .background(AppTheme.bgGrouped.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-    }
-
-    // MARK: - Leaf items
+    // MARK: - Autó leaf items
 
     private func itemList(_ items: [PostAdCatalog.Item]) -> some View {
-        SettingsGroup {
+        VStack(spacing: 0) {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 if index > 0 { Divider().padding(.leading, 16) }
                 Button {
-                    // Űrlap / funkció később
                     toast = "\(item.title) — hamarosan."
                 } label: {
                     HStack {
@@ -170,5 +141,56 @@ struct PostAdScreen: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+
+    // MARK: - Multi-select (mint a kereső)
+
+    private func multiSelectList(
+        sectionTitle: String,
+        options: [PostAdCatalog.Item],
+        selection: Binding<Set<String>>
+    ) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: sectionTitle)
+                Button {
+                    selection.wrappedValue.removeAll()
+                } label: {
+                    Text("Összes kikapcsolása")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.accent)
+                        .padding(.leading, 4)
+                }
+                .buttonStyle(.plain)
+
+                SettingsGroup {
+                    ForEach(Array(options.enumerated()), id: \.element.id) { index, option in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(option.title, isOn: Binding(
+                            get: { selection.wrappedValue.contains(option.id) },
+                            set: { on in
+                                if on {
+                                    selection.wrappedValue.insert(option.id)
+                                } else {
+                                    selection.wrappedValue.remove(option.id)
+                                }
+                            }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private func multiValue(_ selected: Set<String>, from options: [PostAdCatalog.Item]) -> String {
+        let titles = options.filter { selected.contains($0.id) }.map(\.title)
+        if titles.isEmpty { return "Mindegy" }
+        if titles.count == 1 { return titles[0] }
+        if titles.count <= 3 { return titles.joined(separator: ", ") }
+        return "\(titles.count) kiválasztva"
     }
 }
