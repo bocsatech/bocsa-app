@@ -194,7 +194,7 @@ struct SearchScreen: View {
                 ScreenHeader(title: "Üzemanyag", onBack: goList, rightLabel: "Kész", onRight: goList)
                 fuelList
             case .price:
-                ScreenHeader(title: "Ár", onBack: goList, rightLabel: "Kész", onRight: goList)
+                ScreenHeader(title: "Vételár", onBack: goList, rightLabel: "Kész", onRight: goList)
                 priceWheels
             case .year:
                 ScreenHeader(title: "Évjárat", onBack: goList, rightLabel: "Kész", onRight: goList)
@@ -252,7 +252,7 @@ struct SearchScreen: View {
                         openSubpanel(.km)
                     }
                     Divider().padding(.leading, 16)
-                    SettingsRow(title: "Ár", value: priceValue) {
+                    SettingsRow(title: "Vételár", value: priceValue) {
                         openSubpanel(.price)
                     }
                     Divider().padding(.leading, 16)
@@ -382,6 +382,10 @@ struct SearchScreen: View {
             Divider().padding(.leading, 16)
             SettingsRow(title: "Futott km", value: kmValue) {
                 openSubpanel(.km)
+            }
+            Divider().padding(.leading, 16)
+            SettingsRow(title: "Vételár", value: priceValue) {
+                openSubpanel(.price)
             }
             Divider().padding(.leading, 16)
             SettingsRow(title: "Állapot", value: allapotValue) {
@@ -547,6 +551,7 @@ struct SearchScreen: View {
         if !store.filter.gyartmanyok.isEmpty { n += 1 }
         if store.filter.evTol != nil || store.filter.evIg != nil { n += 1 }
         if store.filter.kmTol != nil || store.filter.kmIg != nil { n += 1 }
+        if store.filter.arTol != nil || store.filter.arIg != nil { n += 1 }
         n += store.filter.allapotok.isEmpty ? 0 : 1
         n += store.filter.kiviteles.isEmpty ? 0 : 1
         n += store.filter.ajtok.isEmpty ? 0 : 1
@@ -836,7 +841,7 @@ struct SearchScreen: View {
             Button {
                 store.setPrice(tol: nil, ig: nil)
             } label: {
-                Text("Ár szűrő törlése")
+                Text("Vételár szűrő törlése")
                     .font(.body.weight(.medium))
                     .foregroundStyle(AppTheme.accent)
                     .frame(maxWidth: .infinity)
