@@ -266,59 +266,11 @@ struct SearchScreen: View {
         )
     }
 
-    /// Egyszerű: Márka/modell, évjárat, km, ár, üzemanyag
+    /// Egyszerű szűrők + opcionális részletes blokk a Márka fölött.
     private var simpleList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                SettingsGroup {
-                    SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
-                        openSubpanel(.brand)
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Évjárat", value: yearValue) {
-                        openSubpanel(.year)
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Futott km", value: kmValue) {
-                        openSubpanel(.km)
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Vételár", value: priceValue) {
-                        openSubpanel(.price)
-                    }
-                    Divider().padding(.leading, 16)
-                    SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
-                        openSubpanel(.fuel)
-                    }
-                }
-
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        if showDetailedSearch {
-                            showDetailedSearch = false
-                            openAccordion = nil
-                        } else {
-                            showDetailedSearch = true
-                            openAccordion = .alap
-                        }
-                    }
-                } label: {
-                    HStack {
-                        Text("Részletes keresés")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(AppTheme.accent)
-                        Spacer()
-                        Image(systemName: showDetailedSearch ? "chevron.up" : "chevron.down")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(AppTheme.textTertiary)
-                    }
-                    .padding(.horizontal, 16)
-                    .frame(minHeight: 52)
-                    .background(AppTheme.bgElevated)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
-                .buttonStyle(.plain)
-
+                // Részletes nyitva: Alap/Műszaki/Extrák FELÜL (Márka előtt), „Részletes keresés” felirat NINCS
                 if showDetailedSearch {
                     VStack(alignment: .leading, spacing: 12) {
                         accordionBlock(
@@ -344,7 +296,68 @@ struct SearchScreen: View {
                         ) {
                             extrakAccordionBody
                         }
+
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                showDetailedSearch = false
+                                openAccordion = nil
+                            }
+                        } label: {
+                            Text("Kevesebb")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(AppTheme.accent)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 4)
+                        }
+                        .buttonStyle(.plain)
                     }
+                }
+
+                SettingsGroup {
+                    SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
+                        openSubpanel(.brand)
+                    }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Évjárat", value: yearValue) {
+                        openSubpanel(.year)
+                    }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Futott km", value: kmValue) {
+                        openSubpanel(.km)
+                    }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Vételár", value: priceValue) {
+                        openSubpanel(.price)
+                    }
+                    Divider().padding(.leading, 16)
+                    SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
+                        openSubpanel(.fuel)
+                    }
+                }
+
+                // Csak zárva: „Részletes keresés” a lista alján (a gyors szűrők után)
+                if !showDetailedSearch {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showDetailedSearch = true
+                            openAccordion = .alap
+                        }
+                    } label: {
+                        HStack {
+                            Text("Részletes keresés")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(AppTheme.accent)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(AppTheme.textTertiary)
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                        .background(AppTheme.bgElevated)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 activeFilterCard
