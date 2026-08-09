@@ -13,27 +13,33 @@ struct ListingDetailScreen: View {
   @State private var backDragX: CGFloat = 0
 
   var body: some View {
-    VStack(spacing: 0) {
-      ScrollView {
-        VStack(alignment: .leading, spacing: 0) {
-          gallery
+    GeometryReader { geo in
+      let topInset = geo.safeAreaInsets.top
+      VStack(spacing: 0) {
+        ScrollView {
           VStack(alignment: .leading, spacing: 0) {
-            titleBlock
-            Divider().padding(.horizontal, 16)
-            vehicleSection
-            sellerSection
-            equipmentSection
-            descriptionSection
-            Color.clear.frame(height: 24)
+            gallery(topInset: topInset)
+            VStack(alignment: .leading, spacing: 0) {
+              titleBlock
+              Divider().padding(.horizontal, 16)
+              vehicleSection
+              sellerSection
+              equipmentSection
+              descriptionSection
+              Color.clear.frame(height: 24)
+            }
+            .simultaneousGesture(backSwipeGesture)
           }
-          .simultaneousGesture(backSwipeGesture)
         }
-      }
 
-      messageBar
+        messageBar
+      }
+      .offset(x: backDragX)
+      .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
     }
-    .offset(x: backDragX)
     .background(Color.white.ignoresSafeArea())
+    // Fotó a status bar / Dynamic Island alá is — nincs fehér sáv felül
+    .ignoresSafeArea(edges: .top)
     .fullScreenCover(isPresented: $showMessages) {
       StartChatScreen(
         target: detail.messageTarget,
@@ -75,8 +81,9 @@ struct ListingDetailScreen: View {
 
   // MARK: - Gallery
 
-  private var gallery: some View {
-    ZStack(alignment: .top) {
+  private func gallery(topInset: CGFloat) -> some View {
+    let photoHeight: CGFloat = 280
+    return ZStack(alignment: .top) {
       TabView(selection: $photoIndex) {
         if detail.imageURLs.isEmpty {
           ForEach(0..<3, id: \.self) { i in
@@ -102,8 +109,17 @@ struct ListingDetailScreen: View {
         }
       }
       .tabViewStyle(.page(indexDisplayMode: .automatic))
-      .frame(height: 280)
+      .frame(height: photoHeight + topInset)
       .background(Color(.tertiarySystemFill))
+
+      // Enyhe sötétítés felül, hogy az óra / jelzők olvashatók legyenek a képen
+      LinearGradient(
+        colors: [Color.black.opacity(0.35), Color.black.opacity(0)],
+        startPoint: .top,
+        endPoint: .bottom
+      )
+      .frame(height: topInset + 56)
+      .allowsHitTesting(false)
 
       HStack {
         circleBtn(system: "chevron.left", action: onClose)
@@ -117,7 +133,8 @@ struct ListingDetailScreen: View {
           }
         }
       }
-      .padding(12)
+      .padding(.horizontal, 12)
+      .padding(.top, topInset + 8)
     }
   }
 
