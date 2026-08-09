@@ -20,7 +20,7 @@ struct SearchScreen: View {
     }
 
     private enum Panel {
-        case simple, advanced, brand, model(String), fuel, price, year, km, allapot
+        case simple, advanced, brand, model(String), fuel, price, year, km, allapot, kivitel
     }
 
     private enum AccordionSection: String {
@@ -205,6 +205,9 @@ struct SearchScreen: View {
             case .allapot:
                 ScreenHeader(title: "Állapot", onBack: goList, rightLabel: "Kész", onRight: goList)
                 allapotList
+            case .kivitel:
+                ScreenHeader(title: "Kivitel", onBack: goList, rightLabel: "Kész", onRight: goList)
+                kivitelList
             }
         }
         .background(AppTheme.bgGrouped)
@@ -392,11 +395,9 @@ struct SearchScreen: View {
                 openSubpanel(.allapot)
             }
             Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Kivitel",
-                options: DetailedSearchCatalog.kiviteles,
-                keyPath: \.kiviteles
-            )
+            SettingsRow(title: "Kivitel", value: kivitelValue) {
+                openSubpanel(.kivitel)
+            }
             Divider().padding(.leading, 16)
             multiToggleGroup(
                 title: "Ajtók száma",
@@ -723,6 +724,37 @@ struct SearchScreen: View {
         }
     }
 
+    private var kivitelList: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Kivitel")
+                Button {
+                    store.clearMulti(\.kiviteles)
+                } label: {
+                    Text("Összes kikapcsolása")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.accent)
+                        .padding(.leading, 4)
+                }
+                .buttonStyle(.plain)
+
+                SettingsGroup {
+                    ForEach(Array(DetailedSearchCatalog.kiviteles.enumerated()), id: \.element) { index, option in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(option, isOn: Binding(
+                            get: { store.isMultiOn(\.kiviteles, value: option) },
+                            set: { store.toggleMulti(\.kiviteles, value: option, on: $0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
     private func modelList(for brand: String) -> some View {
         let models = Catalog.brands[brand] ?? []
         return ScrollView {
@@ -776,6 +808,14 @@ struct SearchScreen: View {
         if list.count == 1 { return list[0] }
         if list.count <= 3 { return list.joined(separator: ", ") }
         return "\(list.count) állapot"
+    }
+
+    private var kivitelValue: String {
+        let list = store.filter.kiviteles
+        if list.isEmpty { return "Mindegy" }
+        if list.count == 1 { return list[0] }
+        if list.count <= 3 { return list.joined(separator: ", ") }
+        return "\(list.count) kivitel"
     }
 
     private var fuelList: some View {
