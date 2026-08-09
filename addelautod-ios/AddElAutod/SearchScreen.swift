@@ -630,6 +630,7 @@ struct SearchScreen: View {
         n += store.filter.ajtok.isEmpty ? 0 : 1
         n += store.filter.szemelyek.isEmpty ? 0 : 1
         n += store.filter.okmanyErvenyesseg.isEmpty ? 0 : 1
+        n += store.filter.hirdetok.isEmpty ? 0 : 1
         return n == 0 ? "Mindegy" : "\(n) feltétel"
     }
 
@@ -898,6 +899,10 @@ struct SearchScreen: View {
 
     private var okmanyokValue: String {
         multiSelectValue(store.filter.okmanyErvenyesseg, singular: "okmány")
+    }
+
+    private var hirdetoValue: String {
+        multiSelectValue(store.filter.hirdetok, singular: "hirdető")
     }
 
     private func multiSelectValue(_ list: [String], singular: String) -> String {
