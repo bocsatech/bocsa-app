@@ -26,8 +26,6 @@ enum DetailedSearchCatalog {
 
     static let hajtasok = ["Első kerék", "Hátsó kerék", "Összkerék"]
 
-    static let hengerElrendezesek = ["Sor", "V", "Boxer", "W"]
-
     static let szinek = [
         "Fehér", "Fekete", "Szürke", "Ezüst", "Kék", "Piros", "Zöld", "Barna", "Sárga", "Egyéb",
     ]

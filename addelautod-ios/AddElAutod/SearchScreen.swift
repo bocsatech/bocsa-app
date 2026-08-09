@@ -447,12 +447,6 @@ struct SearchScreen: View {
             )
             Divider().padding(.leading, 16)
             multiToggleGroup(
-                title: "Henger-elrendezés",
-                options: DetailedSearchCatalog.hengerElrendezesek,
-                keyPath: \.hengerElrendezesek
-            )
-            Divider().padding(.leading, 16)
-            multiToggleGroup(
                 title: "Szín",
                 options: DetailedSearchCatalog.szinek,
                 keyPath: \.szinek
@@ -568,7 +562,6 @@ struct SearchScreen: View {
         n += store.filter.sebessegvaltok.isEmpty ? 0 : 1
         if store.filter.felezoValto { n += 1 }
         n += store.filter.hajtasok.isEmpty ? 0 : 1
-        n += store.filter.hengerElrendezesek.isEmpty ? 0 : 1
         n += store.filter.szinek.isEmpty ? 0 : 1
         if store.filter.metalfeny { n += 1 }
         n += store.filter.toltoCsatlakozok.isEmpty ? 0 : 1
