@@ -9,6 +9,8 @@ struct SearchScreen: View {
     @State private var panel: Panel = .simple
     @State private var listPanel: Panel = .simple
     @State private var openAccordion: AccordionSection? = nil
+    /// Részletes keresés accordionok ugyanazon az oldalon (nem új képernyő)
+    @State private var showDetailedSearch = false
     @State private var brandQuery = ""
     @State private var toast: String?
     @State private var activeQuery: ListingQuery?
@@ -291,17 +293,23 @@ struct SearchScreen: View {
                 }
 
                 Button {
-                    openAccordion = nil
-                    listPanel = .advanced
-                    panel = .advanced
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        if showDetailedSearch {
+                            showDetailedSearch = false
+                            openAccordion = nil
+                        } else {
+                            showDetailedSearch = true
+                            openAccordion = .alap
+                        }
+                    }
                 } label: {
                     HStack {
                         Text("Részletes keresés")
                             .font(.body.weight(.semibold))
                             .foregroundStyle(AppTheme.accent)
                         Spacer()
-                        Text("›")
-                            .font(.title2)
+                        Image(systemName: showDetailedSearch ? "chevron.up" : "chevron.down")
+                            .font(.footnote.weight(.semibold))
                             .foregroundStyle(AppTheme.textTertiary)
                     }
                     .padding(.horizontal, 16)
@@ -310,6 +318,34 @@ struct SearchScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
+
+                if showDetailedSearch {
+                    VStack(alignment: .leading, spacing: 12) {
+                        accordionBlock(
+                            section: .alap,
+                            title: "Alap adatok",
+                            summary: alapSummary
+                        ) {
+                            alapAccordionBody
+                        }
+
+                        accordionBlock(
+                            section: .muszaki,
+                            title: "Műszaki adatok",
+                            summary: muszakiSummary
+                        ) {
+                            muszakiAccordionBody
+                        }
+
+                        accordionBlock(
+                            section: .extrak,
+                            title: "Extrák",
+                            summary: extrasValue
+                        ) {
+                            extrakAccordionBody
+                        }
+                    }
+                }
 
                 activeFilterCard
                 searchResultsButton
