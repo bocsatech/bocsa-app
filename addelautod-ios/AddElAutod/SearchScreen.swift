@@ -18,7 +18,7 @@ struct SearchScreen: View {
     @State private var messagesReturn: Mode = .landing
 
     private enum Mode {
-        case landing, search, settings, messages, results, filterResults
+        case landing, search, settings, messages, results, filterResults, postAd
     }
 
     private enum Panel {
@@ -88,6 +88,8 @@ struct SearchScreen: View {
                         panel = listPanel
                     }
                 )
+            case .postAd:
+                PostAdScreen(onClose: { mode = .landing })
             }
         }
         .alert("Mentés", isPresented: Binding(
@@ -133,8 +135,7 @@ struct SearchScreen: View {
                         label: "Hirdetés feladás",
                         tint: Color(red: 0.72, green: 0.18, blue: 0.22)
                     ) {
-                        // Funkció később
-                        toast = "Hirdetés feladás — hamarosan."
+                        mode = .postAd
                     }
                 }
                 .padding(.top, 12)
