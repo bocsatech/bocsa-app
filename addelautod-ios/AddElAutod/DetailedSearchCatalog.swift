@@ -12,12 +12,13 @@ enum DetailedSearchCatalog {
 
     static let szemelyek = ["2", "3", "4", "5", "6", "7", "8", "9"]
 
-    static let okmanyJellegek = [
+    /// Egy „Okmányok” menü: érvényesség + külföldi papírok
+    static let okmanyok = [
+        "Érvényes",
+        "Lejárt",
         "Érvényes magyar okmányokkal",
         "Érvényes külföldi okmányokkal",
     ]
-
-    static let okmanyErvenyesseg = ["Érvényes", "Lejárt"]
 
     static let sebessegvaltok = [
         "Manuális",

@@ -21,6 +21,7 @@ struct SearchScreen: View {
 
     private enum Panel {
         case simple, advanced, brand, model(String), fuel, price, year, km, allapot, kivitel
+        case ajtok, szemelyek, okmanyok
     }
 
     private enum AccordionSection: String {
@@ -207,7 +208,32 @@ struct SearchScreen: View {
                 allapotList
             case .kivitel:
                 ScreenHeader(title: "Kivitel", onBack: goList, rightLabel: "Kész", onRight: goList)
-                kivitelList
+                multiSelectList(
+                    sectionTitle: "Kivitel",
+                    options: DetailedSearchCatalog.kiviteles,
+                    keyPath: \.kiviteles
+                )
+            case .ajtok:
+                ScreenHeader(title: "Ajtók száma", onBack: goList, rightLabel: "Kész", onRight: goList)
+                multiSelectList(
+                    sectionTitle: "Ajtók száma",
+                    options: DetailedSearchCatalog.ajtok,
+                    keyPath: \.ajtok
+                )
+            case .szemelyek:
+                ScreenHeader(title: "Szállítható személyek", onBack: goList, rightLabel: "Kész", onRight: goList)
+                multiSelectList(
+                    sectionTitle: "Szállítható személyek",
+                    options: DetailedSearchCatalog.szemelyek,
+                    keyPath: \.szemelyek
+                )
+            case .okmanyok:
+                ScreenHeader(title: "Okmányok", onBack: goList, rightLabel: "Kész", onRight: goList)
+                multiSelectList(
+                    sectionTitle: "Okmányok",
+                    options: DetailedSearchCatalog.okmanyok,
+                    keyPath: \.okmanyErvenyesseg
+                )
             }
         }
         .background(AppTheme.bgGrouped)
@@ -399,29 +425,17 @@ struct SearchScreen: View {
                 openSubpanel(.kivitel)
             }
             Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Ajtók száma",
-                options: DetailedSearchCatalog.ajtok,
-                keyPath: \.ajtok
-            )
+            SettingsRow(title: "Ajtók száma", value: ajtokValue) {
+                openSubpanel(.ajtok)
+            }
             Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Szállítható személyek",
-                options: DetailedSearchCatalog.szemelyek,
-                keyPath: \.szemelyek
-            )
+            SettingsRow(title: "Szállítható személyek", value: szemelyekValue) {
+                openSubpanel(.szemelyek)
+            }
             Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Okmányok jellege",
-                options: DetailedSearchCatalog.okmanyJellegek,
-                keyPath: \.okmanyJellegek
-            )
-            Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Okmányok érvényessége",
-                options: DetailedSearchCatalog.okmanyErvenyesseg,
-                keyPath: \.okmanyErvenyesseg
-            )
+            SettingsRow(title: "Okmányok", value: okmanyokValue) {
+                openSubpanel(.okmanyok)
+            }
         }
     }
 
@@ -557,7 +571,6 @@ struct SearchScreen: View {
         n += store.filter.kiviteles.isEmpty ? 0 : 1
         n += store.filter.ajtok.isEmpty ? 0 : 1
         n += store.filter.szemelyek.isEmpty ? 0 : 1
-        n += store.filter.okmanyJellegek.isEmpty ? 0 : 1
         n += store.filter.okmanyErvenyesseg.isEmpty ? 0 : 1
         return n == 0 ? "Mindegy" : "\(n) feltétel"
     }
@@ -724,12 +737,16 @@ struct SearchScreen: View {
         }
     }
 
-    private var kivitelList: some View {
+    private func multiSelectList(
+        sectionTitle: String,
+        options: [String],
+        keyPath: WritableKeyPath<SearchFilter, [String]>
+    ) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "Kivitel")
+                SectionLabel(text: sectionTitle)
                 Button {
-                    store.clearMulti(\.kiviteles)
+                    store.clearMulti(keyPath)
                 } label: {
                     Text("Összes kikapcsolása")
                         .font(.subheadline.weight(.medium))
@@ -739,11 +756,11 @@ struct SearchScreen: View {
                 .buttonStyle(.plain)
 
                 SettingsGroup {
-                    ForEach(Array(DetailedSearchCatalog.kiviteles.enumerated()), id: \.element) { index, option in
+                    ForEach(Array(options.enumerated()), id: \.element) { index, option in
                         if index > 0 { Divider().padding(.leading, 16) }
                         Toggle(option, isOn: Binding(
-                            get: { store.isMultiOn(\.kiviteles, value: option) },
-                            set: { store.toggleMulti(\.kiviteles, value: option, on: $0) }
+                            get: { store.isMultiOn(keyPath, value: option) },
+                            set: { store.toggleMulti(keyPath, value: option, on: $0) }
                         ))
                         .tint(Color.green)
                         .padding(.horizontal, 16)
@@ -811,11 +828,26 @@ struct SearchScreen: View {
     }
 
     private var kivitelValue: String {
-        let list = store.filter.kiviteles
+        multiSelectValue(store.filter.kiviteles, singular: "kivitel")
+    }
+
+    private var ajtokValue: String {
+        multiSelectValue(store.filter.ajtok, singular: "ajtószám")
+    }
+
+    private var szemelyekValue: String {
+        multiSelectValue(store.filter.szemelyek, singular: "létszám")
+    }
+
+    private var okmanyokValue: String {
+        multiSelectValue(store.filter.okmanyErvenyesseg, singular: "okmány")
+    }
+
+    private func multiSelectValue(_ list: [String], singular: String) -> String {
         if list.isEmpty { return "Mindegy" }
         if list.count == 1 { return list[0] }
         if list.count <= 3 { return list.joined(separator: ", ") }
-        return "\(list.count) kivitel"
+        return "\(list.count) \(singular)"
     }
 
     private var fuelList: some View {
