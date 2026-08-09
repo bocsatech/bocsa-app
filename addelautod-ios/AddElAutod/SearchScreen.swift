@@ -1030,10 +1030,10 @@ struct SearchScreen: View {
         .background(AppTheme.bgGrouped)
     }
 
-    /// Mint az évjárat: Minimum / Maximum görgető, cm³ egység, 500-es lépésköz.
+    /// Mint az évjárat: Minimum / Maximum görgető, cm³ — megadott lépéslista.
     private var hengerurtartalomWheels: some View {
         VStack(spacing: 0) {
-            Text("Lépésköz: 500 cm³")
+            Text("Hengerűrtartalom — cm³")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(AppTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1043,6 +1043,7 @@ struct SearchScreen: View {
             HStack(alignment: .top, spacing: 0) {
                 hengerWheelColumn(
                     title: "Minimum",
+                    steps: Catalog.hengerCm3MinSteps,
                     selection: Binding(
                         get: { store.filter.hengerCm3Tol ?? -1 },
                         set: { store.setHengerCm3Min($0 < 0 ? nil : $0) }
@@ -1051,6 +1052,7 @@ struct SearchScreen: View {
                 Divider()
                 hengerWheelColumn(
                     title: "Maximum",
+                    steps: Catalog.hengerCm3MaxSteps,
                     selection: Binding(
                         get: { store.filter.hengerCm3Ig ?? -1 },
                         set: { store.setHengerCm3Max($0 < 0 ? nil : $0) }
@@ -1073,7 +1075,7 @@ struct SearchScreen: View {
         .background(AppTheme.bgGrouped)
     }
 
-    private func hengerWheelColumn(title: String, selection: Binding<Int>) -> some View {
+    private func hengerWheelColumn(title: String, steps: [Int], selection: Binding<Int>) -> some View {
         VStack(spacing: 4) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
@@ -1081,7 +1083,7 @@ struct SearchScreen: View {
                 .padding(.top, 8)
             Picker(title, selection: selection) {
                 Text("Mindegy").tag(-1)
-                ForEach(Catalog.hengerCm3Steps, id: \.self) { value in
+                ForEach(steps, id: \.self) { value in
                     Text(Catalog.hengerCm3StepLabel(value)).tag(value)
                 }
             }

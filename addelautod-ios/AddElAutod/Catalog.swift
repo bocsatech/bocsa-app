@@ -56,16 +56,22 @@ enum Catalog {
         return "\(formatted) km"
     }
 
-    /// Hengerűrtartalom: 0 … 10 000 cm³, 500 cm³ lépésköz (500, 1000, 1500…)
-    static let hengerCm3Step = 500
-    static let hengerCm3MaxCap = 10_000
-    static var hengerCm3Steps: [Int] {
-        Array(stride(from: 0, through: hengerCm3MaxCap, by: hengerCm3Step))
-    }
+    /// Hengerűrtartalom minimum görgető (cm³)
+    static let hengerCm3MinSteps: [Int] = [
+        500, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900,
+        2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800, 2900, 3000,
+        3500, 4000, 4500, 5000,
+    ]
+
+    /// Hengerűrtartalom maximum görgető (cm³) — +8000
+    static let hengerCm3MaxSteps: [Int] = [
+        500, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900,
+        2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800, 2900, 3000,
+        3500, 4000, 4500, 5000, 8000,
+    ]
 
     static func hengerCm3StepLabel(_ value: Int) -> String {
-        if value == 0 { return "0 cm³" }
-        return "\(value.formatted()) cm³"
+        "\(value.formatted()) cm³"
     }
 
     static let savedIcons = ["🚗", "🔍", "⭐", "💎", "🏎️", "🛠️", "📌", "🔥"]
