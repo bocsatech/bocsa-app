@@ -139,10 +139,12 @@ export function listListingsWithPreview({ limit = 50, status = null } = {}) {
     const cells = (cellsById.get(row.id) ?? []).map((cell) => sanitizeListingCell(cell));
     const hirdetes_cime =
       sanitizeListingPlainText(row.hirdetes_cime) || `Hirdetés #${row.id}`;
+    const preview = buildPreviewFromCells(cells, { ...row, hirdetes_cime });
     return {
       ...row,
       hirdetes_cime,
-      preview: buildPreviewFromCells(cells, { ...row, hirdetes_cime }),
+      fo_kep: preview.imageUrl || null,
+      preview,
     };
   });
 }

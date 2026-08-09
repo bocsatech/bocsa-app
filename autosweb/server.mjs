@@ -16,6 +16,11 @@ import {
   findListingBySourceUrl,
   getDb,
 } from "./lib/db.mjs";
+import {
+  saveListingPhotos,
+  resolveListingPhotoFile,
+  readListingPhoto,
+} from "./lib/listing-photos.mjs";
 import { getSiteBlocks, saveSiteBlocks } from "./lib/site-blocks.mjs";
 import {
   deleteQuery,
@@ -68,6 +73,8 @@ const MIME = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
 };
 
 let importRunning = false;
@@ -330,10 +337,18 @@ async function handleListingsApi(req, res, pathname) {
       return;
     }
 
-    const saved = saveListing(formData, listingId, { status: body.status });
+    let saved = saveListing(formData, listingId, { status: body.status });
     if (!saved) {
       sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
       return;
+    }
+    if (Array.isArray(body.photos)) {
+      try {
+        saved = saveListingPhotos(saved.id, body.photos);
+      } catch (error) {
+        sendJson(res, 400, { error: error.message ?? "Képek mentése sikertelen." });
+        return;
+      }
     }
     sendJson(res, 200, { listing: saved });
     return;
@@ -746,6 +761,23 @@ const server = createServer(async (req, res) => {
 
   if (pathname.startsWith("/api/")) {
     sendJson(res, 404, { error: "Ismeretlen API." });
+    return;
+  }
+
+  if (pathname.startsWith("/uploads/listings/")) {
+    const abs = resolveListingPhotoFile(pathname);
+    if (!abs) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("404 — kép nem található");
+      return;
+    }
+    const ext = extname(abs).toLowerCase();
+    const mime = MIME[ext] || "application/octet-stream";
+    res.writeHead(200, {
+      "Content-Type": mime,
+      "Cache-Control": "public, max-age=86400",
+    });
+    res.end(readListingPhoto(abs));
     return;
   }
 

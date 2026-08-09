@@ -179,6 +179,22 @@ export function buildListingPreview(form, meta = {}) {
     formatListingDisplayTitle([gyartmany, modell, tipus].filter(Boolean).join(" ")) ||
     `Hirdetés #${meta.id ?? "?"}`;
 
+  const foKep = cleanText(data.fo_kep);
+  let imageUrls = [];
+  if (data.kepek) {
+    try {
+      const parsed = typeof data.kepek === "string" ? JSON.parse(data.kepek) : data.kepek;
+      if (Array.isArray(parsed)) {
+        imageUrls = parsed.map((u) => cleanText(u)).filter(Boolean);
+      }
+    } catch {
+      imageUrls = [];
+    }
+  }
+  if (foKep && !imageUrls.includes(foKep)) {
+    imageUrls = [foKep, ...imageUrls];
+  }
+
   return {
     title,
     price: formatPriceFt(data.vetelar || data.akcios_ar),
@@ -192,6 +208,8 @@ export function buildListingPreview(form, meta = {}) {
     badges: collectBadges(data),
     status: meta.status ?? "mentett",
     forras_url: meta.forras_url || data.forras_url || "",
+    imageUrl: foKep || imageUrls[0] || null,
+    imageUrls,
     filter: {
       gyartmany,
       modell,

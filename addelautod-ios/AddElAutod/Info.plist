@@ -8,6 +8,8 @@
 		<true/>
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Profilkép feltöltéséhez szükséges a fotókönyvtár hozzáférés.</string>
+	<string>Profilkép és hirdetés fényképek feltöltéséhez szükséges a fotókönyvtár hozzáférés.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Hirdetés fényképek készítéséhez szükséges a kamera hozzáférés.</string>
 </dict>
 </plist>

@@ -91,6 +91,8 @@ export const FORM_FIELD_CATALOG = [
   { field_key: "telefon3_korzet", label: "Telefon 3 körzet", step: 5 },
   { field_key: "telefon3_szam", label: "Telefon 3 szám", step: 5 },
   { field_key: "video_url", label: "Videó link", step: 5 },
+  { field_key: "fo_kep", label: "Főkép", step: 1 },
+  { field_key: "kepek", label: "Képek", step: 1 },
   { field_key: "forras_url", label: "Forrás URL", step: 5 },
   { field_key: "hasznaltauto_hirdetes_id", label: "Hasznaltauto hirdetés azonosító", step: 5 },
 ];

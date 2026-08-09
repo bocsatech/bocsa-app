@@ -88,15 +88,23 @@ enum ListingsAPI {
   }
 
   /// Új hirdetés feladása → `POST /api/listings` (listings.db, status: feladott).
+  /// `photos`: base64 JPEG lista, első = főkép.
   @discardableResult
-  static func saveListing(form: [String: Any], status: String = "feladott") async throws -> Int {
+  static func saveListing(
+    form: [String: Any],
+    status: String = "feladott",
+    photos: [String] = []
+  ) async throws -> Int {
     let url = baseURL.appendingPathComponent("api/listings")
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
-    request.timeoutInterval = 30
+    request.timeoutInterval = photos.isEmpty ? 30 : 120
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
-    let body: [String: Any] = ["form": form, "status": status]
+    var body: [String: Any] = ["form": form, "status": status]
+    if !photos.isEmpty {
+      body["photos"] = photos
+    }
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
     let data: Data

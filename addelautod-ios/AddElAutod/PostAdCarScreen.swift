@@ -1,8 +1,11 @@
 import SwiftUI
+import PhotosUI
+import UIKit
 
-/// Személyautó hirdetés feladás — egyértékű számmezők (év/km/ár/cm³), Tovább → részletes, legalul Leírás + Feladás.
+/// Személyautó hirdetés feladás — képek + egyértékű számmezők, Tovább → részletes, legalul Leírás + Feladás.
 struct PostAdCarScreen: View {
     @StateObject private var store = SearchStore(persistSavedSearches: false)
+    @StateObject private var photoStore = PostAdPhotoStore()
     var onClose: () -> Void
 
     @State private var panel: Panel = .simple
@@ -13,6 +16,8 @@ struct PostAdCarScreen: View {
     @State private var toast: String?
     @State private var leiras: String = ""
     @State private var posting = false
+    @State private var libraryItems: [PhotosPickerItem] = []
+    @State private var showCamera = false
 
     private enum Panel {
         case simple, advanced, brand, model(String), fuel, allapot, kivitel
@@ -20,7 +25,7 @@ struct PostAdCarScreen: View {
     }
 
     private enum AccordionSection: String {
-        case alap, muszaki, extrak
+        case kepek, alap, muszaki, extrak
     }
 
     var body: some View {
@@ -33,6 +38,24 @@ struct PostAdCarScreen: View {
                 Button("OK", role: .cancel) { toast = nil }
             } message: {
                 Text(toast ?? "")
+            }
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraPicker(
+                    onImage: { image in
+                        showCamera = false
+                        do {
+                            try photoStore.addImage(image)
+                        } catch {
+                            toast = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                        }
+                    },
+                    onCancel: { showCamera = false }
+                )
+                .ignoresSafeArea()
+            }
+            .onChange(of: libraryItems) { _, items in
+                guard !items.isEmpty else { return }
+                Task { await importLibraryItems(items) }
             }
     }
 
@@ -133,6 +156,14 @@ struct PostAdCarScreen: View {
                 if showDetailedSearch {
                     VStack(alignment: .leading, spacing: 12) {
                         accordionBlock(
+                            section: .kepek,
+                            title: "Képek",
+                            summary: photoStore.summary
+                        ) {
+                            photosAccordionBody
+                        }
+
+                        accordionBlock(
                             section: .alap,
                             title: "Alap adatok",
                             summary: alapSummary
@@ -183,7 +214,7 @@ struct PostAdCarScreen: View {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             showDetailedSearch = true
-                            openAccordion = .alap
+                            openAccordion = .kepek
                         }
                     } label: {
                         HStack {
@@ -226,10 +257,18 @@ struct PostAdCarScreen: View {
         }
     }
 
-    /// Részletes: Alap / Műszaki / Extrák — egyszerre egy accordion nyitva
+    /// Részletes: Képek / Alap / Műszaki / Extrák — egyszerre egy accordion nyitva
     private var advancedList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                accordionBlock(
+                    section: .kepek,
+                    title: "Képek",
+                    summary: photoStore.summary
+                ) {
+                    photosAccordionBody
+                }
+
                 accordionBlock(
                     section: .alap,
                     title: "Alap adatok",
@@ -257,6 +296,172 @@ struct PostAdCarScreen: View {
                 leirasAndPostSection
             }
             .padding(16)
+        }
+    }
+
+    private var photosAccordionBody: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Max. \(PostAdPhotoRules.maxCount) kép · max. 5 MB · min. \(PostAdPhotoRules.minWidth)×\(PostAdPhotoRules.minHeight) px. Az első a főkép.")
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+
+            HStack(spacing: 10) {
+                Button {
+                    guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+                        toast = PostAdPhotoError.cameraUnavailable.errorDescription
+                        return
+                    }
+                    guard photoStore.remainingSlots > 0 else {
+                        toast = PostAdPhotoError.tooMany.errorDescription
+                        return
+                    }
+                    showCamera = true
+                } label: {
+                    Label("Kamera", systemImage: "camera.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .foregroundStyle(AppTheme.accent)
+                        .background(AppTheme.bg)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
+
+                PhotosPicker(
+                    selection: $libraryItems,
+                    maxSelectionCount: max(photoStore.remainingSlots, 1),
+                    matching: .images,
+                    photoLibrary: .shared()
+                ) {
+                    Label("Fotókönyvtár", systemImage: "photo.on.rectangle")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .foregroundStyle(AppTheme.accent)
+                        .background(AppTheme.bg)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .disabled(photoStore.remainingSlots == 0)
+            }
+            .padding(.horizontal, 16)
+
+            if photoStore.photos.isEmpty {
+                Text("Még nincs feltöltött fénykép.")
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.textTertiary)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(Array(photoStore.photos.enumerated()), id: \.element.id) { index, photo in
+                            photoThumb(photo, index: index)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+                }
+            }
+        }
+    }
+
+    private func photoThumb(_ photo: PostAdPhoto, index: Int) -> some View {
+        VStack(spacing: 6) {
+            ZStack(alignment: .topLeading) {
+                Image(uiImage: photo.image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 112, height: 84)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(index == 0 ? AppTheme.accent : AppTheme.border, lineWidth: index == 0 ? 2 : 1)
+                    )
+
+                if index == 0 {
+                    Text("Főkép")
+                        .font(.caption2.weight(.bold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .foregroundStyle(.white)
+                        .background(AppTheme.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .padding(6)
+                }
+
+                Button {
+                    photoStore.remove(id: photo.id)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, .black.opacity(0.55))
+                        .font(.title3)
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(4)
+            }
+
+            HStack(spacing: 8) {
+                Button {
+                    photoStore.moveUp(id: photo.id)
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.caption.weight(.semibold))
+                }
+                .disabled(index == 0)
+
+                if index != 0 {
+                    Button("Főkép") {
+                        photoStore.makePrimary(id: photo.id)
+                    }
+                    .font(.caption2.weight(.semibold))
+                } else {
+                    Text("\(index + 1).")
+                        .font(.caption2)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+
+                Button {
+                    photoStore.moveDown(id: photo.id)
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                }
+                .disabled(index >= photoStore.photos.count - 1)
+            }
+            .foregroundStyle(AppTheme.accent)
+        }
+        .frame(width: 112)
+    }
+
+    private func importLibraryItems(_ items: [PhotosPickerItem]) async {
+        defer { libraryItems = [] }
+        var errors: [String] = []
+        for item in items {
+            guard photoStore.remainingSlots > 0 else {
+                errors.append(PostAdPhotoError.tooMany.errorDescription ?? "")
+                break
+            }
+            do {
+                guard let data = try await item.loadTransferable(type: Data.self) else {
+                    errors.append(PostAdPhotoError.invalid.errorDescription ?? "")
+                    continue
+                }
+                guard let image = UIImage(data: data) else {
+                    errors.append(PostAdPhotoError.invalid.errorDescription ?? "")
+                    continue
+                }
+                try photoStore.addImage(image, sourceByteCount: data.count)
+            } catch {
+                errors.append((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
+            }
+        }
+        if let first = errors.first(where: { !$0.isEmpty }) {
+            toast = first
         }
     }
 
@@ -488,10 +693,12 @@ struct PostAdCarScreen: View {
         posting = true
         defer { posting = false }
         let form = PostAdListingMapper.formData(from: store.filter, leiras: leiras)
+        let photos = photoStore.base64Payloads()
         do {
-            let id = try await ListingsAPI.saveListing(form: form, status: "feladott")
+            let id = try await ListingsAPI.saveListing(form: form, status: "feladott", photos: photos)
             toast = "Hirdetés feladva (#\(id)). Megjelenik a Kiemeltek között és kereshető."
             store.reset()
+            photoStore.clear()
             leiras = ""
             showDetailedSearch = false
             openAccordion = nil
