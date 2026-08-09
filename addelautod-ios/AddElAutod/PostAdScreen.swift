@@ -209,4 +209,17 @@ struct PostAdScreen: View {
         if titles.count <= 3 { return titles.joined(separator: ", ") }
         return "\(titles.count) kiválasztva"
     }
+
+    private func searchButton(label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .foregroundStyle(.white)
+                .background(AppTheme.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
 }
