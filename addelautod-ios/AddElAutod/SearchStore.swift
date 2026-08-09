@@ -176,6 +176,23 @@ final class SearchStore: ObservableObject {
         setKm(tol: filter.kmTol, ig: value)
     }
 
+    func setHengerCm3(tol: Int?, ig: Int?) {
+        var i = ig
+        if let tVal = tol, let iVal = i, tVal > iVal {
+            i = tVal
+        }
+        filter.hengerCm3Tol = tol
+        filter.hengerCm3Ig = i
+    }
+
+    func setHengerCm3Min(_ value: Int?) {
+        setHengerCm3(tol: value, ig: filter.hengerCm3Ig)
+    }
+
+    func setHengerCm3Max(_ value: Int?) {
+        setHengerCm3(tol: filter.hengerCm3Tol, ig: value)
+    }
+
     func setExtra(_ key: String, on: Bool) {
         filter.extras[key] = on
     }

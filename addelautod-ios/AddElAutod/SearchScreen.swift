@@ -23,7 +23,7 @@ struct SearchScreen: View {
 
     private enum Panel {
         case simple, advanced, brand, model(String), fuel, price, year, km, allapot, kivitel
-        case ajtok, szemelyek, okmanyok
+        case ajtok, szemelyek, okmanyok, hengerurtartalom
     }
 
     private enum AccordionSection: String {
@@ -236,6 +236,9 @@ struct SearchScreen: View {
                     options: DetailedSearchCatalog.okmanyok,
                     keyPath: \.okmanyErvenyesseg
                 )
+            case .hengerurtartalom:
+                ScreenHeader(title: "Hengerűrtartalom", onBack: goList, rightLabel: "Kész", onRight: goList)
+                hengerurtartalomWheels
             }
         }
         .background(AppTheme.bgGrouped)
@@ -453,10 +456,14 @@ struct SearchScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    /// Részletes Alap adatok: gyors 5 mező + Állapot / Kivitel / Ajtók / személyek / Okmányok.
+    /// Részletes Alap adatok: gyors 5 mező + Hengerűrtartalom + Állapot / …
     private var alapAccordionBody: some View {
         VStack(spacing: 0) {
             quickSearchRows
+            Divider().padding(.leading, 16)
+            SettingsRow(title: "Hengerűrtartalom", value: hengerurtartalomValue) {
+                openSubpanel(.hengerurtartalom)
+            }
             Divider().padding(.leading, 16)
             SettingsRow(title: "Állapot", value: allapotValue) {
                 openSubpanel(.allapot)
@@ -606,6 +613,7 @@ struct SearchScreen: View {
         if store.filter.kmTol != nil || store.filter.kmIg != nil { n += 1 }
         if store.filter.arTol != nil || store.filter.arIg != nil { n += 1 }
         if !store.filter.fuels.isEmpty { n += 1 }
+        if store.filter.hengerCm3Tol != nil || store.filter.hengerCm3Ig != nil { n += 1 }
         n += store.filter.allapotok.isEmpty ? 0 : 1
         n += store.filter.kiviteles.isEmpty ? 0 : 1
         n += store.filter.ajtok.isEmpty ? 0 : 1
@@ -1022,6 +1030,67 @@ struct SearchScreen: View {
         .background(AppTheme.bgGrouped)
     }
 
+    /// Mint az évjárat: Minimum / Maximum görgető, cm³ egység, 500-es lépésköz.
+    private var hengerurtartalomWheels: some View {
+        VStack(spacing: 0) {
+            Text("Lépésköz: 500 cm³")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+            HStack(alignment: .top, spacing: 0) {
+                hengerWheelColumn(
+                    title: "Minimum",
+                    selection: Binding(
+                        get: { store.filter.hengerCm3Tol ?? -1 },
+                        set: { store.setHengerCm3Min($0 < 0 ? nil : $0) }
+                    )
+                )
+                Divider()
+                hengerWheelColumn(
+                    title: "Maximum",
+                    selection: Binding(
+                        get: { store.filter.hengerCm3Ig ?? -1 },
+                        set: { store.setHengerCm3Max($0 < 0 ? nil : $0) }
+                    )
+                )
+            }
+            .frame(maxHeight: .infinity)
+
+            Button {
+                store.setHengerCm3(tol: nil, ig: nil)
+            } label: {
+                Text("Hengerűrtartalom szűrő törlése")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
+        }
+        .background(AppTheme.bgGrouped)
+    }
+
+    private func hengerWheelColumn(title: String, selection: Binding<Int>) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppTheme.text)
+                .padding(.top, 8)
+            Picker(title, selection: selection) {
+                Text("Mindegy").tag(-1)
+                ForEach(Catalog.hengerCm3Steps, id: \.self) { value in
+                    Text(Catalog.hengerCm3StepLabel(value)).tag(value)
+                }
+            }
+            .pickerStyle(.wheel)
+            .labelsHidden()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     private func yearWheelColumn(title: String, selection: Binding<Int>) -> some View {
         VStack(spacing: 4) {
             Text(title)
@@ -1137,6 +1206,15 @@ struct SearchScreen: View {
             return "\(tol.formatted()) km –"
         }
         return "\(store.filter.kmTol!.formatted()) – \(store.filter.kmIg!.formatted())"
+    }
+
+    private var hengerurtartalomValue: String {
+        if store.filter.hengerCm3Tol == nil && store.filter.hengerCm3Ig == nil { return "Mindegy" }
+        if let tol = store.filter.hengerCm3Tol, let ig = store.filter.hengerCm3Ig {
+            return "\(tol.formatted()) – \(ig.formatted()) cm³"
+        }
+        if let ig = store.filter.hengerCm3Ig { return "– \(ig.formatted()) cm³" }
+        return "\(store.filter.hengerCm3Tol!.formatted()) cm³ –"
     }
 
     private var extrasValue: String {
