@@ -618,8 +618,38 @@ struct PostAdCarScreen: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
 
+            if !missingAlapFields.isEmpty {
+                Text("Az Alap adatok minden mezője kötelező (\(missingAlapFields.count) hiányzik).")
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+
             postAdButton
         }
+    }
+
+    /// Kötelező Alap adatok — hiánylisták megjelenítéshez / gomb tiltáshoz.
+    private var missingAlapFields: [String] {
+        var missing: [String] = []
+        let f = store.filter
+        if f.gyartmanyok.isEmpty { missing.append("Márka") }
+        if f.modellek.isEmpty { missing.append("Modell") }
+        if f.evTol == nil && f.evIg == nil { missing.append("Évjárat") }
+        if f.kmTol == nil && f.kmIg == nil { missing.append("Futott km") }
+        if f.arTol == nil && f.arIg == nil { missing.append("Vételár") }
+        if f.fuels.isEmpty { missing.append("Üzemanyag") }
+        if f.hengerCm3Tol == nil && f.hengerCm3Ig == nil { missing.append("Hengerűrtartalom") }
+        if f.allapotok.isEmpty { missing.append("Állapot") }
+        if f.kiviteles.isEmpty { missing.append("Kivitel") }
+        if f.ajtok.isEmpty { missing.append("Ajtók száma") }
+        if f.szemelyek.isEmpty { missing.append("Szállítható személyek") }
+        if f.okmanyErvenyesseg.isEmpty { missing.append("Okmányok") }
+        if f.hirdetok.isEmpty { missing.append("Hirdető") }
+        return missing
+    }
+
+    private var canSubmitListing: Bool {
+        missingAlapFields.isEmpty
     }
 
     private var postAdButton: some View {
@@ -634,17 +664,23 @@ struct PostAdCarScreen: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .foregroundStyle(.white)
-            .background(posting ? AppTheme.accent.opacity(0.6) : AppTheme.accent)
+            .background(
+                (!canSubmitListing || posting)
+                    ? AppTheme.accent.opacity(0.45)
+                    : AppTheme.accent
+            )
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
-        .disabled(posting)
+        .disabled(posting || !canSubmitListing)
     }
 
     private func submitListing() async {
         guard !posting else { return }
-        if store.filter.gyartmanyok.isEmpty && store.filter.modellek.isEmpty {
-            toast = "Válassz legalább márkát vagy modellt."
+        let missing = missingAlapFields
+        if !missing.isEmpty {
+            openAccordion = .alap
+            toast = "Kötelező Alap adatok: \(missing.joined(separator: ", "))."
             return
         }
         posting = true
