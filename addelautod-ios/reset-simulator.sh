@@ -49,12 +49,17 @@ rm -rf autosapp-tmp
 
 echo "==> 5) Ellenőrzés"
 SETTINGS="$DEST/AddElAutod/SettingsScreen.swift"
+POSTAD="$DEST/AddElAutod/PostAdCarScreen.swift"
 test -f "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 test -f "$SETTINGS"
 grep -q "Település" "$SETTINGS"
 grep -q "ListingDetailScreen.swift" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 test -f "$DEST/AddElAutod/ListingDetailScreen.swift"
-echo "    OK — commit: $COMMIT"
+test -f "$POSTAD"
+grep -q "singleSelectList" "$POSTAD"
+grep -q "Válassz egyet" "$POSTAD"
+grep -q "dismissKeyboard" "$POSTAD"
+echo "    OK — commit: $COMMIT (PostAd: egyválasztós + billentyűzet fix)"
 
 echo "==> 6) Egy Simulator boot (iPhone)"
 # Preferált: iPhone 16, különben bármely elérhető iPhone

@@ -17,6 +17,7 @@ struct PostAdCarScreen: View {
     @State private var posting = false
     @State private var libraryItems: [PhotosPickerItem] = []
     @State private var showCamera = false
+    @FocusState private var focusedField: FormFocus?
 
     private enum Panel: Equatable {
         case simple, advanced, brand, model(String), fuel, allapot, kivitel
@@ -25,6 +26,10 @@ struct PostAdCarScreen: View {
 
     private enum AccordionSection: String {
         case kepek, alap, muszaki, extrak
+    }
+
+    private enum FormFocus: Hashable {
+        case year, km, price, henger, leiras, brandSearch
     }
 
     var body: some View {
@@ -232,11 +237,11 @@ struct PostAdCarScreen: View {
             openSubpanel(.brand)
         }
         Divider().padding(.leading, 16)
-        numberFieldRow(title: "Évjárat", placeholder: "pl. 2018", binding: yearTextBinding)
+        numberFieldRow(title: "Évjárat", placeholder: "pl. 2018", binding: yearTextBinding, focus: .year)
         Divider().padding(.leading, 16)
-        numberFieldRow(title: "Futott km", placeholder: "pl. 125 000", binding: kmTextBinding)
+        numberFieldRow(title: "Futott km", placeholder: "pl. 125 000", binding: kmTextBinding, focus: .km)
         Divider().padding(.leading, 16)
-        numberFieldRow(title: "Vételár", placeholder: "pl. 2 500 000", binding: priceTextBinding)
+        numberFieldRow(title: "Vételár", placeholder: "pl. 2 500 000", binding: priceTextBinding, focus: .price)
         Divider().padding(.leading, 16)
         SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
             openSubpanel(.fuel)
@@ -500,7 +505,7 @@ struct PostAdCarScreen: View {
         VStack(spacing: 0) {
             quickSearchRows
             Divider().padding(.leading, 16)
-            numberFieldRow(title: "Hengerűrtartalom", placeholder: "cm³", binding: hengerTextBinding)
+            numberFieldRow(title: "Hengerűrtartalom", placeholder: "cm³", binding: hengerTextBinding, focus: .henger)
             Divider().padding(.leading, 16)
             SettingsRow(title: "Állapot", value: allapotValue) {
                 openSubpanel(.allapot)
@@ -633,6 +638,7 @@ struct PostAdCarScreen: View {
                     get: { leiras },
                     set: { leiras = String($0.prefix(PostAdListingMapper.maxLeirasLength)) }
                 ))
+                .focused($focusedField, equals: .leiras)
                 .frame(minHeight: 120)
                 .padding(8)
                 .background(AppTheme.bgElevated)
@@ -784,6 +790,7 @@ struct PostAdCarScreen: View {
 
 
     private func dismissKeyboard() {
+        focusedField = nil
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder),
             to: nil,
@@ -815,6 +822,7 @@ struct PostAdCarScreen: View {
         TextField("Keresés…", text: $brandQuery)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
+            .focused($focusedField, equals: .brandSearch)
             .padding(12)
             .background(AppTheme.bgElevated)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -1084,13 +1092,19 @@ struct PostAdCarScreen: View {
 
     // MARK: - Egyértékű számmezők (feladás)
 
-    private func numberFieldRow(title: String, placeholder: String, binding: Binding<String>) -> some View {
+    private func numberFieldRow(
+        title: String,
+        placeholder: String,
+        binding: Binding<String>,
+        focus: FormFocus
+    ) -> some View {
         HStack(spacing: 12) {
             Text(title)
                 .foregroundStyle(AppTheme.text)
                 .font(.body)
             TextField(placeholder, text: binding)
                 .keyboardType(.numberPad)
+                .focused($focusedField, equals: focus)
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(AppTheme.textSecondary)
         }
