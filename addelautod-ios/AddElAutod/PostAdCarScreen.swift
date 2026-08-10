@@ -222,6 +222,7 @@ struct PostAdCarScreen: View {
             }
             .padding(16)
         }
+        .scrollDismissesKeyboard(.immediately)
     }
 
     /// Gyors mezők (részletes Alap adatok tetején is) — évjárat / km / ár: sima számmező.
