@@ -22,6 +22,7 @@ struct PostAdCarScreen: View {
     private enum Panel: Equatable {
         case simple, advanced, brand, model(String), fuel, allapot, kivitel
         case ajtok, szemelyek, okmanyok, hirdeto
+        case sebessegvalto, hajtas, szin, toltoCsatlakozo
     }
 
     private enum AccordionSection: String {
@@ -175,6 +176,26 @@ struct PostAdCarScreen: View {
                 sectionTitle: "Hirdető",
                 options: DetailedSearchCatalog.hirdetok,
                 keyPath: \.hirdetok
+            )
+        case .sebessegvalto:
+            ScreenHeader(title: "Sebességváltó", onBack: goList, rightLabel: "Kész", onRight: goList)
+            sebessegvaltoPanel
+        case .hajtas:
+            ScreenHeader(title: "Hajtás", onBack: goList, rightLabel: "Kész", onRight: goList)
+            singleSelectList(
+                sectionTitle: "Hajtás",
+                options: DetailedSearchCatalog.hajtasok,
+                keyPath: \.hajtasok
+            )
+        case .szin:
+            ScreenHeader(title: "Szín", onBack: goList, rightLabel: "Kész", onRight: goList)
+            szinPanel
+        case .toltoCsatlakozo:
+            ScreenHeader(title: "Töltőcsatlakozó", onBack: goList, rightLabel: "Kész", onRight: goList)
+            singleSelectList(
+                sectionTitle: "Töltőcsatlakozó",
+                options: DetailedSearchCatalog.toltoCsatlakozok,
+                keyPath: \.toltoCsatlakozok
             )
         }
     }
@@ -576,48 +597,60 @@ struct PostAdCarScreen: View {
         }
     }
 
-    /// Üzemanyag fent már megvan — itt csak a többi műszaki szűrő.
+    /// Műszaki: összecsukható menüsorok (almenübe nyílnak).
     private var muszakiAccordionBody: some View {
         VStack(spacing: 0) {
-            multiToggleGroup(
-                title: "Sebességváltó",
-                options: DetailedSearchCatalog.sebessegvaltok,
-                keyPath: \.sebessegvaltok
-            )
+            SettingsRow(title: "Sebességváltó", value: sebessegvaltoValue) {
+                openSubpanel(.sebessegvalto)
+            }
             Divider().padding(.leading, 16)
-            Toggle("Felező váltó", isOn: Binding(
-                get: { store.filter.felezoValto },
-                set: { store.setFelezoValto($0) }
-            ))
-            .tint(Color.green)
-            .padding(.horizontal, 16)
-            .frame(minHeight: 48)
+            SettingsRow(title: "Hajtás", value: hajtasValue) {
+                openSubpanel(.hajtas)
+            }
             Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Hajtás",
-                options: DetailedSearchCatalog.hajtasok,
-                keyPath: \.hajtasok
-            )
+            SettingsRow(title: "Szín", value: szinValue) {
+                openSubpanel(.szin)
+            }
             Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Szín",
-                options: DetailedSearchCatalog.szinek,
-                keyPath: \.szinek
-            )
-            Divider().padding(.leading, 16)
-            Toggle("Metál fényezés", isOn: Binding(
-                get: { store.filter.metalfeny },
-                set: { store.setMetalfeny($0) }
-            ))
-            .tint(Color.green)
-            .padding(.horizontal, 16)
-            .frame(minHeight: 48)
-            Divider().padding(.leading, 16)
-            multiToggleGroup(
-                title: "Töltőcsatlakozó",
-                options: DetailedSearchCatalog.toltoCsatlakozok,
-                keyPath: \.toltoCsatlakozok
-            )
+            SettingsRow(title: "Töltőcsatlakozó", value: toltoCsatlakozoValue) {
+                openSubpanel(.toltoCsatlakozo)
+            }
+        }
+    }
+
+    private var sebessegvaltoPanel: some View {
+        singleSelectList(
+            sectionTitle: "Sebességváltó",
+            options: DetailedSearchCatalog.sebessegvaltok,
+            keyPath: \.sebessegvaltok
+        ) {
+            SettingsGroup {
+                Toggle("Felező váltó", isOn: Binding(
+                    get: { store.filter.felezoValto },
+                    set: { store.setFelezoValto($0) }
+                ))
+                .tint(Color.green)
+                .padding(.horizontal, 16)
+                .frame(minHeight: 52)
+            }
+        }
+    }
+
+    private var szinPanel: some View {
+        singleSelectList(
+            sectionTitle: "Szín",
+            options: DetailedSearchCatalog.szinek,
+            keyPath: \.szinek
+        ) {
+            SettingsGroup {
+                Toggle("Metál fényezés", isOn: Binding(
+                    get: { store.filter.metalfeny },
+                    set: { store.setMetalfeny($0) }
+                ))
+                .tint(Color.green)
+                .padding(.horizontal, 16)
+                .frame(minHeight: 52)
+            }
         }
     }
 
@@ -975,11 +1008,22 @@ struct PostAdCarScreen: View {
         }
     }
 
-    /// Feladás: egy választás (kivitel, ajtók, személyek, okmányok, hirdető).
+    /// Feladás: egy választás (kivitel, ajtók, személyek, okmányok, hirdető, műszaki…).
     private func singleSelectList(
         sectionTitle: String,
         options: [String],
         keyPath: WritableKeyPath<SearchFilter, [String]>
+    ) -> some View {
+        singleSelectList(sectionTitle: sectionTitle, options: options, keyPath: keyPath) {
+            EmptyView()
+        }
+    }
+
+    private func singleSelectList<Footer: View>(
+        sectionTitle: String,
+        options: [String],
+        keyPath: WritableKeyPath<SearchFilter, [String]>,
+        @ViewBuilder footer: () -> Footer
     ) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
@@ -1015,6 +1059,8 @@ struct PostAdCarScreen: View {
                         .frame(minHeight: 52)
                     }
                 }
+
+                footer()
             }
             .padding(16)
         }
@@ -1093,6 +1139,26 @@ struct PostAdCarScreen: View {
 
     private var hirdetoValue: String {
         multiSelectValue(store.filter.hirdetok, singular: "hirdető")
+    }
+
+    private var sebessegvaltoValue: String {
+        var parts = store.filter.sebessegvaltok
+        if store.filter.felezoValto { parts.append("Felező") }
+        return multiSelectValue(parts, singular: "váltó")
+    }
+
+    private var hajtasValue: String {
+        multiSelectValue(store.filter.hajtasok, singular: "hajtás")
+    }
+
+    private var szinValue: String {
+        var parts = store.filter.szinek
+        if store.filter.metalfeny { parts.append("Metál") }
+        return multiSelectValue(parts, singular: "szín")
+    }
+
+    private var toltoCsatlakozoValue: String {
+        multiSelectValue(store.filter.toltoCsatlakozok, singular: "csatlakozó")
     }
 
     private func multiSelectValue(_ list: [String], singular: String) -> String {
