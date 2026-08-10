@@ -133,7 +133,7 @@ struct PostAdCarScreen: View {
             subtitle: "Hirdetés feladás",
             onBack: onClose,
             rightLabel: "Törlés",
-            onRight: store.reset
+            onRight: resetDraft
         )
     }
 
@@ -145,8 +145,14 @@ struct PostAdCarScreen: View {
                 panel = .simple
             },
             rightLabel: "Törlés",
-            onRight: store.reset
+            onRight: resetDraft
         )
+    }
+
+    private func resetDraft() {
+        store.reset()
+        photoStore.clear()
+        leiras = ""
     }
 
     /// Gyors mezők, majd Tovább → Alap / Műszaki / Extrák; legalul Leírás + Feladás.

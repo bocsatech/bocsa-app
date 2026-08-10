@@ -97,7 +97,7 @@ KESZ ($COMMIT). Most Xcode-ban:
 2. Product → Clean Build Folder (Cmd+Shift+K)
 3. Product → Run (Cmd+R)
 
-Simulatorhoz NEM kell Team / provisioning profile (CODE_SIGNING_ALLOWED=NO).
+Simulator: általában elég a fenti. Telefon: Signing → Team (Apple ID), majd a készüléken Trust.
 
 Ha a Simulator ablak nem indul:
   ERASE_ALL=1 bash <(curl -fsSL https://raw.githubusercontent.com/bocsatech/bocsa-app/${BRANCH}/addelautod-ios/reset-simulator.sh)
