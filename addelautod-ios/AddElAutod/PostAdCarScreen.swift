@@ -817,29 +817,6 @@ struct PostAdCarScreen: View {
         }
     }
 
-    private func multiToggleGroup(
-        title: String,
-        options: [String],
-        keyPath: WritableKeyPath<SearchFilter, [String]>
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textSecondary)
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
-            ForEach(options, id: \.self) { option in
-                Toggle(option, isOn: Binding(
-                    get: { store.isMultiOn(keyPath, value: option) },
-                    set: { store.toggleMulti(keyPath, value: option, on: $0) }
-                ))
-                .tint(Color.green)
-                .padding(.horizontal, 16)
-                .frame(minHeight: 44)
-            }
-        }
-    }
-
     private var alapSummary: String {
         var n = 0
         if !store.filter.gyartmanyok.isEmpty { n += 1 }
