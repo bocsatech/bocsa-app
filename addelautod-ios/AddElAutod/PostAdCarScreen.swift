@@ -86,6 +86,7 @@ struct PostAdCarScreen: View {
                     subpanelStack
                 }
                 .background(AppTheme.bgGrouped)
+                .onAppear { dismissKeyboard() }
             }
         }
         .background(AppTheme.bgGrouped)
@@ -781,17 +782,29 @@ struct PostAdCarScreen: View {
 
 
 
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
+
     private func openSubpanel(_ next: Panel) {
+        dismissKeyboard()
         panel = next
     }
 
     private func goList() {
+        dismissKeyboard()
         brandQuery = ""
         panel = listPanel
     }
 
     /// Márka / modell Kész → fő feladás oldal, Alap adatok nyitva.
     private func finishBrandModelSelection() {
+        dismissKeyboard()
         brandQuery = ""
         openAccordion = .alap
         panel = listPanel
