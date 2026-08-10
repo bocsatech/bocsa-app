@@ -305,7 +305,7 @@ struct PostAdCarScreen: View {
 
     /// Accordion nyitáskor a szekció tetejére görget (ne a Szín / közép középen nyíljon).
     private func formAccordionScroll<Content: View>(
-        @ViewBuilder content: () -> Content
+        @ViewBuilder content: @escaping () -> Content
     ) -> some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -318,14 +318,15 @@ struct PostAdCarScreen: View {
             .onChange(of: openAccordion) { _, section in
                 guard let section else { return }
                 // Előző accordion becsukása + új tartalom layoutja után a fejléc tetejére
-                let scroll = {
-                    proxy.scrollTo(section, anchor: .top)
-                }
                 DispatchQueue.main.async {
-                    withAnimation(.easeInOut(duration: 0.25), scroll)
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        proxy.scrollTo(section, anchor: .top)
+                    }
                 }
                 // Második igazítás, ha az első a magasságváltozás előtt futott
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: scroll)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    proxy.scrollTo(section, anchor: .top)
+                }
             }
         }
     }
