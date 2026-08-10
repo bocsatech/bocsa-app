@@ -71,6 +71,11 @@ struct PostAdCarScreen: View {
         }
     }
 
+    /// Számmező csak nyitott Alap adatoknál — így accordion váltáskor eltűnik a number pad.
+    private var isNumberFieldEditable: Bool {
+        openAccordion == .alap
+    }
+
     private var filterStack: some View {
         ZStack {
             VStack(spacing: 0) {
@@ -99,6 +104,16 @@ struct PostAdCarScreen: View {
         .background(AppTheme.bgGrouped)
         .onChange(of: panel) { _, _ in
             dismissKeyboard()
+        }
+        .onChange(of: openAccordion) { _, _ in
+            dismissKeyboard()
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Kész") { dismissKeyboard() }
+                    .fontWeight(.semibold)
+            }
         }
     }
 
@@ -293,6 +308,7 @@ struct PostAdCarScreen: View {
             }
             .padding(16)
         }
+        .scrollDismissesKeyboard(.immediately)
     }
 
     private var photosAccordionBody: some View {
@@ -470,6 +486,7 @@ struct PostAdCarScreen: View {
         let isOpen = openAccordion == section
         return VStack(spacing: 0) {
             Button {
+                dismissKeyboard()
                 withAnimation(.easeInOut(duration: 0.2)) {
                     openAccordion = isOpen ? nil : section
                 }
@@ -809,6 +826,13 @@ struct PostAdCarScreen: View {
             from: nil,
             for: nil
         )
+        // Extra: aktív first responder elengedése az ablakon
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                window.endEditing(true)
+            }
+        }
     }
 
     private func openSubpanel(_ next: Panel) {
@@ -1114,8 +1138,9 @@ struct PostAdCarScreen: View {
             Text(title)
                 .foregroundStyle(AppTheme.text)
                 .font(.body)
-            // Almenünél nincs TextField → number pad nem jöhet fel a háttérből.
-            if isShowingMainForm {
+            // Csak a fő űrlapon + nyitott Alap/Műszaki accordionban legyen szerkeszthető
+            // (különben a number pad „ragad” a Hirdető / Leírás résznél is).
+            if isShowingMainForm && isNumberFieldEditable {
                 TextField(placeholder, text: binding)
                     .keyboardType(.numberPad)
                     .focused($focusedField, equals: focus)

@@ -74,7 +74,7 @@ if grep -A2 "case .okmanyok:" "$SEARCH" | grep -q "multiSelectList"; then
   echo "HIBA: SearchScreen még multiSelectList-et használ okmányoknál — rossz kód"
   exit 1
 fi
-grep -q "MARKETING_VERSION = 1.0.8" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
+grep -q "MARKETING_VERSION = 1.0.9" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 if grep -A3 "case .hirdeto:" "$SEARCH" | grep -q "multiSelectList"; then
   echo "HIBA: SearchScreen Hirdető még multiSelectList"
   exit 1
