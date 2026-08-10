@@ -23,6 +23,7 @@ struct PostAdCarScreen: View {
         case simple, advanced, brand, model(String), fuel, allapot, kivitel
         case ajtok, szemelyek, okmanyok, hirdeto
         case sebessegvalto, hajtas, szin, toltoCsatlakozo
+        case klima, equipment(String)
     }
 
     private enum AccordionSection: String {
@@ -197,6 +198,17 @@ struct PostAdCarScreen: View {
                 options: DetailedSearchCatalog.toltoCsatlakozok,
                 keyPath: \.toltoCsatlakozok
             )
+        case .klima:
+            ScreenHeader(title: "Klíma", onBack: goList, rightLabel: "Kész", onRight: goList)
+            klimaPanel
+        case .equipment(let sectionId):
+            if let section = DetailedSearchCatalog.equipmentSections.first(where: { $0.id == sectionId }) {
+                ScreenHeader(title: section.title, onBack: goList, rightLabel: "Kész", onRight: goList)
+                equipmentPanel(section: section)
+            } else {
+                ScreenHeader(title: "Extrák", onBack: goList, rightLabel: "Kész", onRight: goList)
+                Text("Ismeretlen szekció").padding()
+            }
         }
     }
 
@@ -654,55 +666,146 @@ struct PostAdCarScreen: View {
         }
     }
 
+    /// Extrák: összecsukható menüsorok (ugyanaz a betűméret, mint Alap / Műszaki).
     private var extrakAccordionBody: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(text: "Klíma")
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-            ForEach(DetailedSearchCatalog.klimaOptions, id: \.self) { option in
-                Toggle(option, isOn: Binding(
-                    get: { store.filter.klima == option },
-                    set: { on in store.setKlima(on ? option : nil) }
-                ))
-                .tint(Color.green)
-                .padding(.horizontal, 16)
-                .frame(minHeight: 44)
+        VStack(spacing: 0) {
+            SettingsRow(title: "Klíma", value: klimaValue) {
+                openSubpanel(.klima)
             }
-
-            Divider().padding(.leading, 16)
-
-            Toggle("Nem dohányzó autó", isOn: Binding(
-                get: { store.filter.nemDohanyzo },
-                set: { store.setNemDohanyzo($0) }
-            ))
-            .tint(Color.green)
-            .padding(.horizontal, 16)
-            .frame(minHeight: 48)
-
-            Toggle("Hölgy tulajdonostól", isOn: Binding(
-                get: { store.filter.holgyTulajdonos },
-                set: { store.setHolgyTulajdonos($0) }
-            ))
-            .tint(Color.green)
-            .padding(.horizontal, 16)
-            .frame(minHeight: 48)
-
             ForEach(DetailedSearchCatalog.equipmentSections, id: \.id) { section in
                 Divider().padding(.leading, 16)
-                SectionLabel(text: section.title)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 6)
-                ForEach(section.items, id: \.self) { item in
-                    Toggle(item, isOn: Binding(
-                        get: { store.isExtraOn(item) },
-                        set: { store.setExtra(item, on: $0) }
-                    ))
-                    .tint(Color.green)
-                    .padding(.horizontal, 16)
-                    .frame(minHeight: 44)
+                SettingsRow(title: section.title, value: equipmentSectionValue(section)) {
+                    openSubpanel(.equipment(section.id))
                 }
             }
         }
+    }
+
+    private var klimaPanel: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Csak egy választható")
+                if store.filter.klima != nil {
+                    Button {
+                        store.setKlima(nil)
+                    } label: {
+                        Text("Kiválasztás törlése")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.leading, 4)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                SettingsGroup {
+                    ForEach(Array(DetailedSearchCatalog.klimaOptions.enumerated()), id: \.element) { index, option in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(option, isOn: Binding(
+                            get: { store.filter.klima == option },
+                            set: { on in store.setKlima(on ? option : nil) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private func equipmentPanel(
+        section: (id: String, title: String, items: [String])
+    ) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Több is választható")
+                if equipmentSelectedCount(section) > 0 || (section.id == "egyeb" && (store.filter.nemDohanyzo || store.filter.holgyTulajdonos)) {
+                    Button {
+                        clearEquipmentSection(section)
+                    } label: {
+                        Text("Összes kikapcsolása")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.leading, 4)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if section.id == "egyeb" {
+                    SettingsGroup {
+                        Toggle("Nem dohányzó autó", isOn: Binding(
+                            get: { store.filter.nemDohanyzo },
+                            set: { store.setNemDohanyzo($0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                        Divider().padding(.leading, 16)
+                        Toggle("Hölgy tulajdonostól", isOn: Binding(
+                            get: { store.filter.holgyTulajdonos },
+                            set: { store.setHolgyTulajdonos($0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                    }
+                }
+
+                SettingsGroup {
+                    ForEach(Array(section.items.enumerated()), id: \.element) { index, item in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(item, isOn: Binding(
+                            get: { store.isExtraOn(item) },
+                            set: { store.setExtra(item, on: $0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private func equipmentSelectedCount(
+        _ section: (id: String, title: String, items: [String])
+    ) -> Int {
+        section.items.filter { store.isExtraOn($0) }.count
+    }
+
+    private func clearEquipmentSection(
+        _ section: (id: String, title: String, items: [String])
+    ) {
+        for item in section.items {
+            store.setExtra(item, on: false)
+        }
+        if section.id == "egyeb" {
+            store.setNemDohanyzo(false)
+            store.setHolgyTulajdonos(false)
+        }
+    }
+
+    private var klimaValue: String {
+        store.filter.klima ?? "Mindegy"
+    }
+
+    private func equipmentSectionValue(
+        _ section: (id: String, title: String, items: [String])
+    ) -> String {
+        var n = equipmentSelectedCount(section)
+        if section.id == "egyeb" {
+            if store.filter.nemDohanyzo { n += 1 }
+            if store.filter.holgyTulajdonos { n += 1 }
+        }
+        if n == 0 { return "Mindegy" }
+        if n == 1 {
+            if let one = section.items.first(where: { store.isExtraOn($0) }) { return one }
+            if store.filter.nemDohanyzo { return "Nem dohányzó" }
+            if store.filter.holgyTulajdonos { return "Hölgy tulajdonostól" }
+        }
+        return "\(n) bekapcsolva"
     }
 
     /// Legalul: leírás, alatta Hirdetés feladás.
