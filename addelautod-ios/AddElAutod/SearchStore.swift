@@ -229,6 +229,21 @@ final class SearchStore: ObservableObject {
     func setNemDohanyzo(_ on: Bool) { filter.nemDohanyzo = on }
     func setHolgyTulajdonos(_ on: Bool) { filter.holgyTulajdonos = on }
     func setKlima(_ value: String?) { filter.klima = value }
+    func setVillamToltes(_ on: Bool) { filter.villamToltes = on }
+    func setZoldRendszam(_ on: Bool) { filter.zoldRendszam = on }
+    func setVehicleKind(_ kind: String?) { filter.vehicleKind = kind }
+
+    func setIntRange(
+        _ tolPath: WritableKeyPath<SearchFilter, Int?>,
+        _ igPath: WritableKeyPath<SearchFilter, Int?>,
+        tol: Int?,
+        ig: Int?
+    ) {
+        var i = ig
+        if let tVal = tol, let iVal = i, tVal > iVal { i = tVal }
+        filter[keyPath: tolPath] = tol
+        filter[keyPath: igPath] = i
+    }
 
     func reset() {
         filter = SearchFilter()

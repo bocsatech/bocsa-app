@@ -41,6 +41,12 @@ struct SearchFilter: Codable, Equatable {
     var hengerCm3Ig: Int? = nil
     var kwTol: Int? = nil
     var kwIg: Int? = nil
+    var nyomatekNmTol: Int? = nil
+    var nyomatekNmIg: Int? = nil
+    var sajatTomegTol: Int? = nil
+    var sajatTomegIg: Int? = nil
+    var osszTomegTol: Int? = nil
+    var osszTomegIg: Int? = nil
     var sebessegvaltok: [String] = []
     var felezoValto: Bool = false
     var hajtasok: [String] = []
@@ -49,9 +55,38 @@ struct SearchFilter: Codable, Equatable {
     var metalfeny: Bool = false
     var akkumulatorKwhTol: Int? = nil
     var akkumulatorKwhIg: Int? = nil
+    var jelenlegiAkkukapacitasTol: Int? = nil
+    var jelenlegiAkkukapacitasIg: Int? = nil
+    var acToltoCsatlakozok: [String] = []
+    var acToltoTeljesitmenyTol: Int? = nil
+    var acToltoTeljesitmenyIg: Int? = nil
+    var dcToltoCsatlakozok: [String] = []
+    var dcToltoTeljesitmenyTol: Int? = nil
+    var dcToltoTeljesitmenyIg: Int? = nil
     var hatotavTol: Int? = nil
     var hatotavIg: Int? = nil
+    var autopalyaHatotavTol: Int? = nil
+    var autopalyaHatotavIg: Int? = nil
+    var teliHatotavTol: Int? = nil
+    var teliHatotavIg: Int? = nil
+    var villamToltes: Bool = false
+    var zoldRendszam: Bool = false
     var toltoCsatlakozok: [String] = []
+
+    // MARK: Raktér (teherautó)
+    var rakterTerfogatTol: Int? = nil
+    var rakterTerfogatIg: Int? = nil
+    var rakterHosszTol: Int? = nil
+    var rakterHosszIg: Int? = nil
+    var rakterSzelessegTol: Int? = nil
+    var rakterSzelessegIg: Int? = nil
+    var rakterMagassagTol: Int? = nil
+    var rakterMagassagIg: Int? = nil
+    var doblemezTavolsagTol: Int? = nil
+    var doblemezTavolsagIg: Int? = nil
+
+    /// Feladás / kereső járműtípus (személyautó | kisteher | teherautó)
+    var vehicleKind: String? = nil
 
     // MARK: Extrák
     var klima: String? = nil

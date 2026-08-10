@@ -15,6 +15,48 @@ enum PostAdCatalog {
         .init(id: "auto-berlakokocsi", title: "Bérelhető lakókocsi hirdetés"),
     ]
 
+    /// Teherautó hirdetés almenü
+    static let teherItems: [Item] = [
+        .init(id: "teher-kisteher", title: "Kisteher 3,5 t-ig"),
+        .init(id: "teher-teherauto", title: "Teherautó 3,5 t-tól"),
+    ]
+
+    enum TruckKind: String, CaseIterable, Identifiable {
+        case kisteher
+        case teherauto
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .kisteher: return "Kisteherautó"
+            case .teherauto: return "Teherautó"
+            }
+        }
+
+        var subtitle: String {
+            switch self {
+            case .kisteher: return "3,5 t-ig"
+            case .teherauto: return "3,5 t-tól"
+            }
+        }
+
+        var catalogId: String {
+            switch self {
+            case .kisteher: return "teher-kisteher"
+            case .teherauto: return "teher-teherauto"
+            }
+        }
+
+        static func fromCatalogId(_ id: String) -> TruckKind? {
+            switch id {
+            case "teher-kisteher": return .kisteher
+            case "teher-teherauto": return .teherauto
+            default: return nil
+            }
+        }
+    }
+
     /// Ingatlan → Típus (több is választható)
     static let ingatlanTipusok: [Item] = [
         .init(id: "elado", title: "Eladó"),

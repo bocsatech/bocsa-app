@@ -48,6 +48,31 @@ enum DetailedSearchCatalog {
 
     static let toltoCsatlakozok = ["Type 2", "CCS", "CHAdeMO", "Schuko / hálózati"]
 
+    static let acToltoCsatlakozok = ["Type 2", "Schuko / hálózati", "Egyéb AC"]
+    static let dcToltoCsatlakozok = ["CCS", "CHAdeMO", "Egyéb DC"]
+
+    /// Okmányok jellege (külön az érvényességtől)
+    static let okmanyJellegek = [
+        "Magyar okmányok",
+        "Külföldi okmányok",
+    ]
+
+    static let okmanyErvenyessegOnly = [
+        "Érvényes",
+        "Lejárt",
+    ]
+
+    /// Teherautó / kisteher kivitel
+    static let teherKiviteles = [
+        "Dobozos",
+        "Ponyvás",
+        "Plató",
+        "Hűtős",
+        "Billencs",
+        "Zárt",
+        "Egyéb",
+    ]
+
     static let equipmentSections: [(id: String, title: String, items: [String])] = [
         (
             "muszaki",

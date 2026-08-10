@@ -5,7 +5,7 @@ struct PostAdScreen: View {
     var onClose: () -> Void
 
     private enum TopSection: String {
-        case auto, ingatlan
+        case auto, teher, ingatlan
     }
 
     private enum SubPanel: Equatable {
@@ -20,15 +20,19 @@ struct PostAdScreen: View {
     @State private var selectedKategoriak: Set<String> = []
     @State private var toast: String?
     @State private var showSzemelyautoForm = false
+    @State private var truckKind: PostAdCatalog.TruckKind? = nil
 
     private let pageBg = Color(red: 0.949, green: 0.957, blue: 0.969) // #F2F4F7
     private let autoTint = AppTheme.accent
+    private let teherTint = Color(red: 0.85, green: 0.45, blue: 0.12)
     private let ingatlanTint = Color(red: 0.18, green: 0.55, blue: 0.34)
 
     var body: some View {
         Group {
             if showSzemelyautoForm {
                 PostAdCarScreen(onClose: { showSzemelyautoForm = false })
+            } else if let truckKind {
+                PostAdTruckScreen(kind: truckKind, onClose: { self.truckKind = nil })
             } else {
                 VStack(spacing: 0) {
                     switch subPanel {
@@ -79,6 +83,16 @@ struct PostAdScreen: View {
                     tint: autoTint
                 ) {
                     autoItemList
+                }
+
+                categoryCard(
+                    section: .teher,
+                    title: "Teherautó hirdetés",
+                    subtitle: "Kisteher és teherautó",
+                    systemImage: "truck.box.fill",
+                    tint: teherTint
+                ) {
+                    teherItemList
                 }
 
                 categoryCard(
@@ -227,6 +241,54 @@ struct PostAdScreen: View {
             .padding(.trailing, 16)
             .frame(minHeight: 52)
             .background(available ? autoTint.opacity(0.06) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var teherItemList: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(PostAdCatalog.teherItems.enumerated()), id: \.element.id) { index, item in
+                if index > 0 { Divider().padding(.leading, 74) }
+                teherItemRow(item)
+            }
+        }
+    }
+
+    private func teherItemRow(_ item: PostAdCatalog.Item) -> some View {
+        Button {
+            if let kind = PostAdCatalog.TruckKind.fromCatalogId(item.id) {
+                truckKind = kind
+            }
+        } label: {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(teherTint)
+                    .frame(width: 3, height: 28)
+
+                Image(systemName: "truck.box.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(teherTint)
+                    .frame(width: 28, alignment: .center)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.title)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(teherTint)
+                    Text(item.id == "teher-kisteher" ? "Max. 3,5 tonna" : "3,5 tonnától")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(teherTint)
+            }
+            .padding(.horizontal, 16)
+            .frame(minHeight: 56)
+            .background(teherTint.opacity(0.06))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

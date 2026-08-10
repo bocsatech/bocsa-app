@@ -17,9 +17,11 @@ struct SearchScreen: View {
     @State private var activeQuery: ListingQuery?
     @State private var messageTarget: ListingMessageTarget?
     @State private var messagesReturn: Mode = .landing
+    @State private var truckSearchKind: PostAdCatalog.TruckKind? = nil
+    @State private var openSearchTeher = false
 
     private enum Mode {
-        case landing, search, settings, messages, results, filterResults, postAd
+        case landing, vehiclePick, search, truckSearch, settings, messages, results, filterResults, postAd
     }
 
     private enum Panel {
@@ -36,8 +38,25 @@ struct SearchScreen: View {
             switch mode {
             case .landing:
                 searchLanding
+            case .vehiclePick:
+                searchVehiclePicker
             case .search:
                 filterStack
+            case .truckSearch:
+                if let truckSearchKind {
+                    SearchTruckScreen(
+                        kind: truckSearchKind,
+                        onBack: {
+                            self.truckSearchKind = nil
+                            mode = .vehiclePick
+                        },
+                        onResults: {
+                            mode = .filterResults
+                        }
+                    )
+                } else {
+                    searchVehiclePicker
+                }
             case .settings:
                 SettingsScreen(onClose: {
                     if activeQuery != nil {
@@ -85,8 +104,12 @@ struct SearchScreen: View {
             case .filterResults:
                 FilterResultsScreen(
                     onBack: {
-                        mode = .search
-                        panel = listPanel
+                        if truckSearchKind != nil {
+                            mode = .truckSearch
+                        } else {
+                            mode = .search
+                            panel = listPanel
+                        }
                     }
                 )
             case .postAd:
@@ -113,9 +136,8 @@ struct SearchScreen: View {
                         label: "Keresés",
                         tint: AppTheme.accent
                     ) {
-                        listPanel = .simple
-                        panel = .simple
-                        mode = .search
+                        openSearchTeher = false
+                        mode = .vehiclePick
                     }
                     HomeIconButton(
                         systemName: "mappin.and.ellipse",
@@ -179,6 +201,136 @@ struct SearchScreen: View {
             .frame(maxWidth: .infinity)
         }
         .background(Color.white.ignoresSafeArea())
+    }
+
+    /// Keresés: Személyautó vagy Teherautó (kisteher / teher).
+    private var searchVehiclePicker: some View {
+        let pageBg = Color(red: 0.949, green: 0.957, blue: 0.969)
+        let teherTint = Color(red: 0.85, green: 0.45, blue: 0.12)
+        return VStack(spacing: 0) {
+            ScreenHeader(
+                title: "Keresés",
+                subtitle: "Milyen járművet keresel?",
+                onBack: { mode = .landing }
+            )
+            ScrollView {
+                VStack(spacing: 14) {
+                    Button {
+                        store.reset()
+                        store.setVehicleKind(nil)
+                        listPanel = .simple
+                        panel = .simple
+                        mode = .search
+                    } label: {
+                        searchCategoryCard(
+                            title: "Személyautó",
+                            subtitle: "Részletes autókereső",
+                            systemImage: "car.fill",
+                            tint: AppTheme.accent
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    VStack(spacing: 0) {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                openSearchTeher.toggle()
+                            }
+                        } label: {
+                            searchCategoryCard(
+                                title: "Teherautó",
+                                subtitle: "Kisteher és teherautó",
+                                systemImage: "truck.box.fill",
+                                tint: teherTint,
+                                chevronUp: openSearchTeher
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        if openSearchTeher {
+                            Divider().padding(.leading, 74)
+                            ForEach(PostAdCatalog.TruckKind.allCases) { kind in
+                                Button {
+                                    store.reset()
+                                    store.setVehicleKind(kind.rawValue)
+                                    truckSearchKind = kind
+                                    mode = .truckSearch
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .fill(teherTint)
+                                            .frame(width: 3, height: 28)
+                                        Image(systemName: "truck.box.fill")
+                                            .foregroundStyle(teherTint)
+                                            .frame(width: 28)
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(kind == .kisteher ? "Kisteher 3,5 t-ig" : "Teherautó 3,5 t-tól")
+                                                .font(.body.weight(.semibold))
+                                                .foregroundStyle(teherTint)
+                                            Text(kind.subtitle)
+                                                .font(.caption)
+                                                .foregroundStyle(AppTheme.textSecondary)
+                                        }
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(teherTint)
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .frame(minHeight: 56)
+                                    .background(teherTint.opacity(0.06))
+                                }
+                                .buttonStyle(.plain)
+                                if kind != PostAdCatalog.TruckKind.allCases.last {
+                                    Divider().padding(.leading, 74)
+                                }
+                            }
+                        }
+                    }
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(AppTheme.border.opacity(0.85), lineWidth: 1)
+                    )
+                }
+                .padding(16)
+            }
+            .background(pageBg)
+        }
+        .background(pageBg.ignoresSafeArea())
+    }
+
+    private func searchCategoryCard(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        tint: Color,
+        chevronUp: Bool? = nil
+    ) -> some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle().fill(tint).frame(width: 44, height: 44)
+                Image(systemName: systemImage)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.body.weight(.semibold)).foregroundStyle(AppTheme.text)
+                Text(subtitle).font(.footnote).foregroundStyle(AppTheme.textSecondary)
+            }
+            Spacer()
+            Image(systemName: chevronUp == true ? "chevron.up" : (chevronUp == false ? "chevron.down" : "chevron.right"))
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(tint)
+        }
+        .padding(16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(AppTheme.border.opacity(0.85), lineWidth: 1)
+        )
     }
 
     private var filterStack: some View {
