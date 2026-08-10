@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 import UIKit
 
-/// Személyautó hirdetés feladás — képek + egyértékű számmezők, Tovább → részletes, legalul Leírás + Feladás.
+/// Személyautó hirdetés feladás — kezdő: Képek + Alap / Műszaki / Extrák, legalul Leírás + Feladás.
 struct PostAdCarScreen: View {
     @StateObject private var store = SearchStore(persistSavedSearches: false)
     @StateObject private var photoStore = PostAdPhotoStore()
@@ -10,8 +10,7 @@ struct PostAdCarScreen: View {
 
     @State private var panel: Panel = .simple
     @State private var listPanel: Panel = .simple
-    @State private var openAccordion: AccordionSection? = nil
-    @State private var showDetailedSearch = false
+    @State private var openAccordion: AccordionSection? = .kepek
     @State private var brandQuery = ""
     @State private var toast: String?
     @State private var leiras: String = ""
@@ -155,91 +154,43 @@ struct PostAdCarScreen: View {
         leiras = ""
     }
 
-    /// Gyors mezők, majd Tovább → Alap / Műszaki / Extrák; legalul Leírás + Feladás.
+    /// Kezdőoldal: Képek → Alap / Műszaki / Extrák → Leírás + Feladás.
     private var simpleList: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                if showDetailedSearch {
-                    VStack(alignment: .leading, spacing: 12) {
-                        accordionBlock(
-                            section: .kepek,
-                            title: "Képek",
-                            summary: photoStore.summary
-                        ) {
-                            photosAccordionBody
-                        }
-
-                        accordionBlock(
-                            section: .alap,
-                            title: "Alap adatok",
-                            summary: alapSummary
-                        ) {
-                            alapAccordionBody
-                        }
-
-                        accordionBlock(
-                            section: .muszaki,
-                            title: "Műszaki adatok",
-                            summary: muszakiSummary
-                        ) {
-                            muszakiAccordionBody
-                        }
-
-                        accordionBlock(
-                            section: .extrak,
-                            title: "Extrák",
-                            summary: extrasValue
-                        ) {
-                            extrakAccordionBody
-                        }
-
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                showDetailedSearch = false
-                                openAccordion = nil
-                            }
-                        } label: {
-                            Text("Kevesebb mutatása")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(AppTheme.accent)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 16)
-                                .frame(minHeight: 52)
-                                .background(AppTheme.bgElevated)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        }
-                        .buttonStyle(.plain)
-
-                        leirasAndPostSection
-                    }
-                } else {
-                    SettingsGroup {
-                        quickSearchRows
-                    }
-
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            showDetailedSearch = true
-                            openAccordion = .kepek
-                        }
-                    } label: {
-                        HStack {
-                            Text("Tovább")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(AppTheme.accent)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(AppTheme.textTertiary)
-                        }
-                        .padding(.horizontal, 16)
-                        .frame(minHeight: 52)
-                        .background(AppTheme.bgElevated)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
+            VStack(alignment: .leading, spacing: 12) {
+                accordionBlock(
+                    section: .kepek,
+                    title: "Képek",
+                    summary: photoStore.summary
+                ) {
+                    photosAccordionBody
                 }
 
+                accordionBlock(
+                    section: .alap,
+                    title: "Alap adatok",
+                    summary: alapSummary
+                ) {
+                    alapAccordionBody
+                }
+
+                accordionBlock(
+                    section: .muszaki,
+                    title: "Műszaki adatok",
+                    summary: muszakiSummary
+                ) {
+                    muszakiAccordionBody
+                }
+
+                accordionBlock(
+                    section: .extrak,
+                    title: "Extrák",
+                    summary: extrasValue
+                ) {
+                    extrakAccordionBody
+                }
+
+                leirasAndPostSection
             }
             .padding(16)
         }
