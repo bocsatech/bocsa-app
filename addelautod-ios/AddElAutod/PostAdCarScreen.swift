@@ -727,6 +727,13 @@ struct PostAdCarScreen: View {
         panel = listPanel
     }
 
+    /// Márka / modell Kész → fő feladás oldal, Alap adatok nyitva.
+    private func finishBrandModelSelection() {
+        brandQuery = ""
+        openAccordion = .alap
+        panel = listPanel
+    }
+
     private var brandSearchField: some View {
         TextField("Keresés…", text: $brandQuery)
             .textInputAutocapitalization(.never)
