@@ -8,6 +8,7 @@ import {
   getDisplayName,
   getProfile,
   saveProfile,
+  saveAvatar,
   changePassword,
   deleteAccount,
   requireAuthForPage,
@@ -309,10 +310,17 @@ function fillProfileForm(user) {
     companyLabel.textContent = profile.accountType === "dealer" ? "Kereskedés neve" : "Cégnév";
   }
 
-  const photo = readPhotos()[user.email];
+  const localPhoto = readPhotos()[user.email];
+  const serverPhoto = user.profile?.avatarDataUrl || "";
+  const photo = serverPhoto || localPhoto;
+  if (serverPhoto && localPhoto !== serverPhoto) {
+    const map = readPhotos();
+    map[user.email] = serverPhoto;
+    writePhotos(map);
+  }
   const letterEl = document.getElementById("settings-avatar-letter");
   const imgEl = document.getElementById("settings-avatar-img");
-  const letter = (user.email.charAt(0) || "A").toUpperCase();
+  const letter = (getDisplayName(user).charAt(0) || user.email.charAt(0) || "A").toUpperCase();
   if (letterEl) {
     letterEl.textContent = letter;
     letterEl.hidden = Boolean(photo);
@@ -442,13 +450,19 @@ export async function initSettingsPage() {
 
   const fileInput = document.getElementById("settings-avatar-file");
   document.getElementById("settings-avatar-upload")?.addEventListener("click", () => fileInput?.click());
-  document.getElementById("settings-avatar-remove")?.addEventListener("click", () => {
-    const map = readPhotos();
-    delete map[user.email];
-    writePhotos(map);
-    fillProfileForm(user);
-    window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
-    showFlash(document.getElementById("settings-avatar-flash"), "Profilkép törölve.", true);
+  document.getElementById("settings-avatar-remove")?.addEventListener("click", async () => {
+    const flash = document.getElementById("settings-avatar-flash");
+    try {
+      const updated = await saveAvatar("");
+      const map = readPhotos();
+      delete map[user.email];
+      writePhotos(map);
+      fillProfileForm(updated);
+      window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
+      showFlash(flash, "Profilkép törölve.", true);
+    } catch (error) {
+      showFlash(flash, error.message ?? "Törlés sikertelen.", false);
+    }
   });
   fileInput?.addEventListener("change", async () => {
     const file = fileInput.files?.[0];
@@ -457,12 +471,13 @@ export async function initSettingsPage() {
     const flash = document.getElementById("settings-avatar-flash");
     try {
       const dataUrl = await resizeImageFile(file);
+      const updated = await saveAvatar(dataUrl);
       const map = readPhotos();
       map[user.email] = dataUrl;
       writePhotos(map);
-      fillProfileForm(user);
+      fillProfileForm(updated);
       window.dispatchEvent(new CustomEvent("autosweb-auth-changed"));
-      showFlash(flash, "Profilkép feltöltve.", true);
+      showFlash(flash, "Profilkép feltöltve (szinkron az appal).", true);
     } catch (error) {
       showFlash(flash, error.message ?? "Feltöltés sikertelen.", false);
     }
