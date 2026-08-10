@@ -117,35 +117,35 @@ struct PostAdCarScreen: View {
             allapotList
         case .kivitel:
             ScreenHeader(title: "Kivitel", onBack: goList, rightLabel: "Kész", onRight: goList)
-            multiSelectList(
+            singleSelectList(
                 sectionTitle: "Kivitel",
                 options: DetailedSearchCatalog.kiviteles,
                 keyPath: \.kiviteles
             )
         case .ajtok:
             ScreenHeader(title: "Ajtók száma", onBack: goList, rightLabel: "Kész", onRight: goList)
-            multiSelectList(
+            singleSelectList(
                 sectionTitle: "Ajtók száma",
                 options: DetailedSearchCatalog.ajtok,
                 keyPath: \.ajtok
             )
         case .szemelyek:
             ScreenHeader(title: "Szállítható személyek", onBack: goList, rightLabel: "Kész", onRight: goList)
-            multiSelectList(
+            singleSelectList(
                 sectionTitle: "Szállítható személyek",
                 options: DetailedSearchCatalog.szemelyek,
                 keyPath: \.szemelyek
             )
         case .okmanyok:
             ScreenHeader(title: "Okmányok", onBack: goList, rightLabel: "Kész", onRight: goList)
-            multiSelectList(
+            singleSelectList(
                 sectionTitle: "Okmányok",
                 options: DetailedSearchCatalog.okmanyok,
                 keyPath: \.okmanyErvenyesseg
             )
         case .hirdeto:
             ScreenHeader(title: "Hirdető", onBack: goList, rightLabel: "Kész", onRight: goList)
-            multiSelectList(
+            singleSelectList(
                 sectionTitle: "Hirdető",
                 options: DetailedSearchCatalog.hirdetok,
                 keyPath: \.hirdetok
