@@ -45,7 +45,7 @@ final class PushNotificationService: ObservableObject {
       }
       let convs = try await MessagesAPI.listConversations(token: token)
       let unread = convs.reduce(0) { $0 + $1.unread }
-      UIApplication.shared.applicationIconBadgeNumber = unread
+      try? await UNUserNotificationCenter.current().setBadgeCount(unread)
       if unread > lastUnreadTotal, pending.isEmpty {
         await postLocal(
           title: "Új üzenet érkezett",
