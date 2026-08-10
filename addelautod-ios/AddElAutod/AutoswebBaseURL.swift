@@ -50,12 +50,10 @@ enum AutoswebBaseURL {
             components.port = 3456
         }
         // Trailing slash nélkül
-        var path = components.path
-        if path == "/" { components.path = "" }
+        if components.path == "/" { components.path = "" }
         guard let url = components.url, let host = components.host, !host.isEmpty else {
             return nil
         }
-        _ = path
         return url
     }
 

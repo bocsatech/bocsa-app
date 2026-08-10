@@ -138,7 +138,7 @@ struct FeaturedScreen: View {
 
     private var subtitleText: String {
         if loading && listings.isEmpty { return "Autosweb…" }
-        if let errorText, listings.isEmpty { return "Hiba" }
+        if errorText != nil, listings.isEmpty { return "Hiba" }
         if listings.isEmpty { return "Nincs hirdetés" }
         return "\(listings.count) hirdetés · Autosweb"
     }

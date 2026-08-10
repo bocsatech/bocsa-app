@@ -18,7 +18,7 @@ struct PostAdCarScreen: View {
     @State private var libraryItems: [PhotosPickerItem] = []
     @State private var showCamera = false
 
-    private enum Panel {
+    private enum Panel: Equatable {
         case simple, advanced, brand, model(String), fuel, allapot, kivitel
         case ajtok, szemelyek, okmanyok, hirdeto
     }
