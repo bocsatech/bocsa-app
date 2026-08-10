@@ -50,16 +50,32 @@ rm -rf autosapp-tmp
 echo "==> 5) Ellenőrzés"
 SETTINGS="$DEST/AddElAutod/SettingsScreen.swift"
 POSTAD="$DEST/AddElAutod/PostAdCarScreen.swift"
+SEARCH="$DEST/AddElAutod/SearchScreen.swift"
 test -f "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 test -f "$SETTINGS"
 grep -q "Település" "$SETTINGS"
 grep -q "ListingDetailScreen.swift" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 test -f "$DEST/AddElAutod/ListingDetailScreen.swift"
 test -f "$POSTAD"
+test -f "$SEARCH"
 grep -q "singleSelectList" "$POSTAD"
-grep -q "Válassz egyet" "$POSTAD"
+grep -q "singleSelectList" "$SEARCH"
+grep -q "Csak egy választható" "$POSTAD"
+grep -q "Csak egy választható" "$SEARCH"
 grep -q "dismissKeyboard" "$POSTAD"
-echo "    OK — commit: $COMMIT (PostAd: egyválasztós + billentyűzet fix)"
+grep -q "dismissKeyboard" "$SEARCH"
+grep -q "disabled(!isShowingMainForm)" "$POSTAD"
+# Okmányok NEM a régi multiSelectList (kereső + feladás)
+if grep -A2 "case .okmanyok:" "$POSTAD" | grep -q "multiSelectList"; then
+  echo "HIBA: PostAdCarScreen még multiSelectList-et használ okmányoknál — rossz kód"
+  exit 1
+fi
+if grep -A2 "case .okmanyok:" "$SEARCH" | grep -q "multiSelectList"; then
+  echo "HIBA: SearchScreen még multiSelectList-et használ okmányoknál — rossz kód"
+  exit 1
+fi
+echo "    OK — commit: $COMMIT"
+echo "    Ellenőrzés: Okmányok képernyőn „CSAK EGY VÁLASZTHATÓ” kell, NEM „Összes kikapcsolása”"
 
 echo "==> 6) Egy Simulator boot (iPhone)"
 # Preferált: iPhone 16, különben bármely elérhető iPhone

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SearchScreen: View {
     @EnvironmentObject private var store: SearchStore
@@ -219,36 +220,31 @@ struct SearchScreen: View {
                 allapotList
             case .kivitel:
                 ScreenHeader(title: "Kivitel", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Kivitel",
+                singleSelectList(
                     options: DetailedSearchCatalog.kiviteles,
                     keyPath: \.kiviteles
                 )
             case .ajtok:
                 ScreenHeader(title: "Ajtók száma", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Ajtók száma",
+                singleSelectList(
                     options: DetailedSearchCatalog.ajtok,
                     keyPath: \.ajtok
                 )
             case .szemelyek:
                 ScreenHeader(title: "Szállítható személyek", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Szállítható személyek",
+                singleSelectList(
                     options: DetailedSearchCatalog.szemelyek,
                     keyPath: \.szemelyek
                 )
             case .okmanyok:
                 ScreenHeader(title: "Okmányok", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Okmányok",
+                singleSelectList(
                     options: DetailedSearchCatalog.okmanyok,
                     keyPath: \.okmanyErvenyesseg
                 )
             case .hirdeto:
                 ScreenHeader(title: "Hirdető", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Hirdető",
+                singleSelectList(
                     options: DetailedSearchCatalog.hirdetok,
                     keyPath: \.hirdetok
                 )
@@ -705,11 +701,22 @@ struct SearchScreen: View {
         }
     }
 
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
+
     private func openSubpanel(_ next: Panel) {
+        dismissKeyboard()
         panel = next
     }
 
     private func goList() {
+        dismissKeyboard()
         brandQuery = ""
         panel = listPanel
     }
@@ -774,60 +781,45 @@ struct SearchScreen: View {
     }
 
     private var allapotList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "Kapcsolók — több is")
-                Button {
-                    store.clearMulti(\.allapotok)
-                } label: {
-                    Text("Összes kikapcsolása")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(AppTheme.accent)
-                        .padding(.leading, 4)
-                }
-                .buttonStyle(.plain)
-
-                SettingsGroup {
-                    ForEach(Array(DetailedSearchCatalog.allapotok.enumerated()), id: \.element) { index, option in
-                        if index > 0 { Divider().padding(.leading, 16) }
-                        Toggle(option, isOn: Binding(
-                            get: { store.isMultiOn(\.allapotok, value: option) },
-                            set: { store.toggleMulti(\.allapotok, value: option, on: $0) }
-                        ))
-                        .tint(Color.green)
-                        .padding(.horizontal, 16)
-                        .frame(minHeight: 52)
-                    }
-                }
-            }
-            .padding(16)
-        }
+        singleSelectList(
+            options: DetailedSearchCatalog.allapotok,
+            keyPath: \.allapotok
+        )
     }
 
-    private func multiSelectList(
-        sectionTitle: String,
+    /// Egy választás: állapot, kivitel, ajtók, személyek, okmányok, hirdető.
+    private func singleSelectList(
         options: [String],
         keyPath: WritableKeyPath<SearchFilter, [String]>
     ) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: sectionTitle)
-                Button {
-                    store.clearMulti(keyPath)
-                } label: {
-                    Text("Összes kikapcsolása")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(AppTheme.accent)
-                        .padding(.leading, 4)
+                SectionLabel(text: "Csak egy választható")
+                if !store.filter[keyPath: keyPath].isEmpty {
+                    Button {
+                        store.clearMulti(keyPath)
+                    } label: {
+                        Text("Kiválasztás törlése")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.leading, 4)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 SettingsGroup {
                     ForEach(Array(options.enumerated()), id: \.element) { index, option in
                         if index > 0 { Divider().padding(.leading, 16) }
                         Toggle(option, isOn: Binding(
                             get: { store.isMultiOn(keyPath, value: option) },
-                            set: { store.toggleMulti(keyPath, value: option, on: $0) }
+                            set: { on in
+                                if on {
+                                    store.clearMulti(keyPath)
+                                    store.toggleMulti(keyPath, value: option, on: true)
+                                } else {
+                                    store.toggleMulti(keyPath, value: option, on: false)
+                                }
+                            }
                         ))
                         .tint(Color.green)
                         .padding(.horizontal, 16)
@@ -837,6 +829,7 @@ struct SearchScreen: View {
             }
             .padding(16)
         }
+        .onAppear { dismissKeyboard() }
     }
 
     private func modelList(for brand: String) -> some View {

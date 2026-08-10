@@ -84,12 +84,14 @@ struct PostAdCarScreen: View {
             }
             .opacity(isShowingMainForm ? 1 : 0)
             .allowsHitTesting(isShowingMainForm)
+            .disabled(!isShowingMainForm) // fókusz/billentyűzet elengedése almenünél
             .accessibilityHidden(!isShowingMainForm)
 
             if !isShowingMainForm {
                 VStack(spacing: 0) {
                     subpanelStack
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(AppTheme.bgGrouped)
                 .onAppear { dismissKeyboard() }
             }
@@ -881,7 +883,7 @@ struct PostAdCarScreen: View {
     private var allapotList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "Válassz egyet")
+                SectionLabel(text: "Csak egy választható")
                 if !store.filter.allapotok.isEmpty {
                     Button {
                         store.clearMulti(\.allapotok)
@@ -926,7 +928,7 @@ struct PostAdCarScreen: View {
     ) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "Válassz egyet")
+                SectionLabel(text: "Csak egy választható")
                 if !store.filter[keyPath: keyPath].isEmpty {
                     Button {
                         store.clearMulti(keyPath)
@@ -1048,7 +1050,7 @@ struct PostAdCarScreen: View {
     private var fuelList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "Válassz egyet")
+                SectionLabel(text: "Csak egy választható")
                 if !store.filter.fuels.isEmpty {
                     Button {
                         store.clearFuels()
