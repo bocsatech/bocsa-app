@@ -305,25 +305,25 @@ struct PostAdCarScreen: View {
 
     /// Accordion nyitáskor a szekció tetejére görget (ne a Szín / közép középen nyíljon).
     private func formAccordionScroll<Content: View>(
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: () -> Content
     ) -> some View {
-        ScrollViewReader { proxy in
+        // content() itt hívódik (nem escaping), így nincs „captures non-escaping” hiba
+        let built = content()
+        return ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    content()
+                    built
                 }
                 .padding(16)
             }
             .scrollDismissesKeyboard(.immediately)
             .onChange(of: openAccordion) { _, section in
                 guard let section else { return }
-                // Előző accordion becsukása + új tartalom layoutja után a fejléc tetejére
                 DispatchQueue.main.async {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         proxy.scrollTo(section, anchor: .top)
                     }
                 }
-                // Második igazítás, ha az első a magasságváltozás előtt futott
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     proxy.scrollTo(section, anchor: .top)
                 }
