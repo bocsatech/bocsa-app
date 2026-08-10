@@ -5,7 +5,9 @@
 # Kihagyás (ha offline / gyors újraindítás): AUTOSWEB_SKIP_UPDATE=1
 set -euo pipefail
 
-GITHUB_TAR="https://github.com/bocsatech/bocsa-app/archive/refs/heads/main.tar.gz"
+# Mobil / Wi‑Fi LAN: feature branch (0.0.0.0 bind). Mainre váltás: AUTOSWEB_BRANCH=main
+AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/addelautod-mobile-de62}"
+GITHUB_TAR="https://github.com/bocsatech/bocsa-app/archive/refs/heads/${AUTOSWEB_BRANCH}.tar.gz"
 DESKTOP_LAUNCHER="$HOME/Desktop/Autosweb-indito.command"
 
 autosweb_target() {
@@ -56,7 +58,7 @@ update_from_github() {
   local tmp src backup
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/autosweb-update.XXXXXX")"
 
-  echo "Frissítés GitHub main-ről…"
+  echo "Frissítés GitHub ${AUTOSWEB_BRANCH}-ről…"
   if ! curl -fsSL --connect-timeout 20 --max-time 180 "$GITHUB_TAR" \
     | tar -xz -C "$tmp"; then
     echo "⚠ Letöltés sikertelen — a meglévő helyi fájlokkal indulok."
@@ -64,7 +66,10 @@ update_from_github() {
     return 1
   fi
 
-  src="$tmp/bocsa-app-main/autosweb"
+  # GitHub archive mappa: bocsa-app-<branch-perjelek-helyett-->
+  local folder
+  folder="$(find "$tmp" -maxdepth 1 -type d -name 'bocsa-app-*' | head -1)"
+  src="${folder}/autosweb"
   if [ ! -d "$src/public" ] || [ ! -f "$src/server.mjs" ]; then
     echo "⚠ Érvénytelen archívum — frissítés kihagyva"
     rm -rf "$tmp"
