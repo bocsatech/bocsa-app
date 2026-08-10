@@ -93,7 +93,7 @@ cat <<EOF
 
 KESZ ($COMMIT). Most Xcode-ban:
 1. Felül a célpont: iPhone 16 (vagy más) Simulator
-   TILOS: „Any iOS Device” / saját iPhone — az „requires a provisioning profile” hibát ad
+   Saját telefonhoz: Signing & Capabilities → Team (Apple ID), ne „Any iOS Device” aláírás nélkül
 2. Product → Clean Build Folder (Cmd+Shift+K)
 3. Product → Run (Cmd+R)
 

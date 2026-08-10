@@ -9,8 +9,9 @@ curl -fsSL https://raw.githubusercontent.com/bocsatech/bocsa-app/cursor/addelaut
 ```
 
 A script ellenőrzi, hogy a friss fájlok megvannak.  
-Utána: **iPhone 16 Simulator** (ne fizikai telefon) → **Clean Build Folder** → **Cmd+R**.  
-Simulatorhoz általában **nem kell** Development Team. Ha Xcode mégis kéri: Signing → Team → Apple ID.
+**Simulator:** célpont pl. iPhone 16 → Clean → Cmd+R.
+
+**Saját iPhone:** USB / Wireless → célpont = a telefonod → Xcode → target **AddElAutod** → **Signing & Capabilities** → ☑ Automatically manage signing → **Team** = Apple ID-d (Personal Team is elég fejlesztéshez). Első telepítés után a telefonon: Beállítások → Általános → VPN és készülékkezelés → Trust.
 
 ---
 
