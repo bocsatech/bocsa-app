@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Hirdetés feladás — kategória menük (űrlap később).
+/// Hirdetés feladás — kategóriaválasztó (1. demó: accordion kártyák ikonokkal).
 struct PostAdScreen: View {
     var onClose: () -> Void
 
@@ -14,12 +14,16 @@ struct PostAdScreen: View {
         case kategoria
     }
 
-    @State private var openTop: TopSection? = nil
+    @State private var openTop: TopSection? = .auto
     @State private var subPanel: SubPanel = .list
     @State private var selectedTipusok: Set<String> = []
     @State private var selectedKategoriak: Set<String> = []
     @State private var toast: String?
     @State private var showSzemelyautoForm = false
+
+    private let pageBg = Color(red: 0.949, green: 0.957, blue: 0.969) // #F2F4F7
+    private let autoTint = AppTheme.accent
+    private let ingatlanTint = Color(red: 0.18, green: 0.55, blue: 0.34)
 
     var body: some View {
         Group {
@@ -29,7 +33,11 @@ struct PostAdScreen: View {
                 VStack(spacing: 0) {
                     switch subPanel {
                     case .list:
-                        ScreenHeader(title: "Hirdetés feladás", subtitle: "Válassz kategóriát", onBack: onClose)
+                        ScreenHeader(
+                            title: "Hirdetés feladás",
+                            subtitle: "Milyen hirdetést adsz fel?",
+                            onBack: onClose
+                        )
                         mainList
                     case .tipus:
                         ScreenHeader(title: "Típus", onBack: { subPanel = .list }, rightLabel: "Kész", onRight: { subPanel = .list })
@@ -47,7 +55,7 @@ struct PostAdScreen: View {
                         )
                     }
                 }
-                .background(AppTheme.bgGrouped)
+                .background(pageBg.ignoresSafeArea())
             }
         }
         .alert("Hirdetés feladás", isPresented: Binding(
@@ -62,12 +70,24 @@ struct PostAdScreen: View {
 
     private var mainList: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                topAccordion(section: .auto, title: "Autó hirdetés") {
-                    itemList(PostAdCatalog.autoItems)
+            VStack(alignment: .leading, spacing: 14) {
+                categoryCard(
+                    section: .auto,
+                    title: "Autó hirdetés",
+                    subtitle: "Személyautó és más",
+                    systemImage: "car.fill",
+                    tint: autoTint
+                ) {
+                    autoItemList
                 }
 
-                topAccordion(section: .ingatlan, title: "Ingatlan hirdetések") {
+                categoryCard(
+                    section: .ingatlan,
+                    title: "Ingatlan hirdetések",
+                    subtitle: nil,
+                    systemImage: "house.fill",
+                    tint: ingatlanTint
+                ) {
                     VStack(spacing: 0) {
                         SettingsRow(title: "Típus", value: multiValue(selectedTipusok, from: PostAdCatalog.ingatlanTipusok)) {
                             subPanel = .tipus
@@ -82,79 +102,147 @@ struct PostAdScreen: View {
             .padding(16)
             .padding(.bottom, 32)
         }
+        .background(pageBg)
     }
 
-    // MARK: - Top accordion
+    // MARK: - Category card
 
-    private func topAccordion<Content: View>(
+    private func categoryCard<Content: View>(
         section: TopSection,
         title: String,
+        subtitle: String?,
+        systemImage: String,
+        tint: Color,
         @ViewBuilder content: () -> Content
     ) -> some View {
         let isOpen = openTop == section
         return VStack(spacing: 0) {
             Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(.easeInOut(duration: 0.22)) {
                     openTop = isOpen ? nil : section
                 }
             } label: {
-                HStack {
-                    Text(title)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(AppTheme.text)
-                    Spacer()
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(tint)
+                            .frame(width: 44, height: 44)
+                        Image(systemName: systemImage)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title)
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(AppTheme.text)
+                        if let subtitle, !subtitle.isEmpty {
+                            Text(subtitle)
+                                .font(.footnote)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
+                    }
+                    Spacer(minLength: 8)
                     Image(systemName: isOpen ? "chevron.up" : "chevron.down")
                         .font(.footnote.weight(.semibold))
-                        .foregroundStyle(AppTheme.textTertiary)
+                        .foregroundStyle(isOpen ? tint : AppTheme.textTertiary)
                 }
                 .padding(.horizontal, 16)
-                .frame(minHeight: 52)
+                .padding(.vertical, 14)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
             if isOpen {
-                Divider().padding(.leading, 16)
+                Divider().padding(.leading, 74)
                 content()
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 6)
             }
         }
-        .background(AppTheme.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(AppTheme.border.opacity(0.85), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
     // MARK: - Autó leaf items
 
-    private func itemList(_ items: [PostAdCatalog.Item]) -> some View {
+    private var autoItemList: some View {
         VStack(spacing: 0) {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                if index > 0 { Divider().padding(.leading, 16) }
-                Button {
-                    if item.id == "auto-szemelyauto" {
-                        showSzemelyautoForm = true
-                    } else {
-                        toast = "\(item.title) — hamarosan."
-                    }
-                } label: {
-                    HStack {
-                        Text(item.title)
-                            .font(.body)
-                            .foregroundStyle(AppTheme.text)
-                        Spacer()
-                        Text("›")
-                            .foregroundStyle(AppTheme.textTertiary)
-                            .font(.title2)
-                    }
-                    .padding(.horizontal, 16)
-                    .frame(minHeight: 48)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+            ForEach(Array(PostAdCatalog.autoItems.enumerated()), id: \.element.id) { index, item in
+                if index > 0 { Divider().padding(.leading, 74) }
+                autoItemRow(item)
             }
         }
     }
 
-    // MARK: - Multi-select (mint a kereső)
+    private func autoItemRow(_ item: PostAdCatalog.Item) -> some View {
+        let available = item.id == "auto-szemelyauto"
+        return Button {
+            if available {
+                showSzemelyautoForm = true
+            } else {
+                toast = "\(item.title) — hamarosan."
+            }
+        } label: {
+            HStack(spacing: 12) {
+                if available {
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(autoTint)
+                        .frame(width: 3, height: 28)
+                } else {
+                    Color.clear.frame(width: 3, height: 28)
+                }
+
+                Image(systemName: iconName(for: item.id))
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(available ? autoTint : AppTheme.textTertiary)
+                    .frame(width: 28, alignment: .center)
+
+                Text(item.title)
+                    .font(.body)
+                    .foregroundStyle(available ? autoTint : AppTheme.text)
+                    .fontWeight(available ? .semibold : .regular)
+                    .multilineTextAlignment(.leading)
+
+                Spacer(minLength: 8)
+
+                if !available {
+                    Text("Hamarosan")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(AppTheme.border.opacity(0.65))
+                        .clipShape(Capsule())
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(available ? autoTint : AppTheme.textTertiary)
+            }
+            .padding(.leading, 16)
+            .padding(.trailing, 16)
+            .frame(minHeight: 52)
+            .background(available ? autoTint.opacity(0.06) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func iconName(for itemId: String) -> String {
+        switch itemId {
+        case "auto-szemelyauto": return "car"
+        case "auto-leasing": return "doc.text"
+        case "auto-berauto": return "key.fill"
+        case "auto-lakokocsi": return "caravan.fill"
+        default: return "circle"
+        }
+    }
+
+    // MARK: - Multi-select (ingatlan)
 
     private func multiSelectList(
         sectionTitle: String,
