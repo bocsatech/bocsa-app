@@ -68,7 +68,7 @@ struct PostAdCarScreen: View {
                 advancedHeader
                 advancedList
             case .brand:
-                ScreenHeader(title: "Márka", onBack: goList, rightLabel: "Kész", onRight: goList)
+                ScreenHeader(title: "Márka", onBack: goList, rightLabel: "Kész", onRight: finishBrandModelSelection)
                 brandSearchField
                 brandList
             case .model(let brand):
@@ -77,7 +77,7 @@ struct PostAdCarScreen: View {
                     subtitle: "Modell — több is bekapcsolható",
                     onBack: { panel = .brand },
                     rightLabel: "Kész",
-                    onRight: { panel = .brand }
+                    onRight: finishBrandModelSelection
                 )
                 modelList(for: brand)
             case .fuel:
