@@ -657,8 +657,7 @@ struct PostAdCarScreen: View {
             store.reset()
             photoStore.clear()
             leiras = ""
-            showDetailedSearch = false
-            openAccordion = nil
+            openAccordion = .kepek
         } catch {
             toast = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
