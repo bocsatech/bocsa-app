@@ -73,6 +73,61 @@ enum DetailedSearchCatalog {
         "Egyéb",
     ]
 
+    /// Teherautó / kisteher extrák
+    static let teherEquipmentSections: [(id: String, title: String, items: [String])] = [
+        (
+            "belter",
+            "Beltér",
+            [
+                "függönylégzsák",
+                "hátsó oldal légzsák",
+                "kikapcsolható légzsák",
+                "oldallégzsák",
+                "utasoldali légzsák",
+                "vezetőoldali légzsák",
+                "bukócső",
+                "csomag rögzítő",
+                "ISOFIX rendszer",
+                "full extra",
+                "állófűtés",
+                "bőr belső",
+                "fűthető ülés",
+                "térelválasztó",
+                "ülésmagasság állítás",
+                "állítható kormány",
+                "centrálzár",
+                "fedélzeti komputer",
+                "szervokormány",
+            ]
+        ),
+        (
+            "kulter",
+            "Kültér",
+            [
+                "elektromos ablak",
+                "elektromos tükör",
+                "fűthető tükör",
+                "könnyűfém felni",
+                "színezett üveg",
+                "vonóhorog",
+                "elektromos tető",
+                "ködlámpa",
+                "xenon fényszóró",
+            ]
+        ),
+        (
+            "multimedia",
+            "Multimédia / Navigáció",
+            [
+                "CD tár",
+                "CD-s autórádió",
+                "GPS (navigáció)",
+                "Hi-Fi",
+                "rádiós magnó",
+            ]
+        ),
+    ]
+
     static let equipmentSections: [(id: String, title: String, items: [String])] = [
         (
             "muszaki",

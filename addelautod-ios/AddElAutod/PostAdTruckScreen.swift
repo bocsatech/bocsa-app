@@ -21,7 +21,7 @@ struct PostAdTruckScreen: View {
     @FocusState private var focusedField: FormFocus?
 
     private enum AccordionSection: String, Hashable {
-        case kepek, alap, muszaki, akku, rakter
+        case kepek, alap, muszaki, akku, rakter, extrak
     }
 
     private enum Panel: Equatable {
@@ -30,6 +30,7 @@ struct PostAdTruckScreen: View {
         case okmanyok, okmanyErvenyesseg, hirdeto
         case sebessegvalto, hajtas, klima
         case acTolto, dcTolto
+        case equipment(String)
     }
 
     private enum FormFocus: Hashable {
@@ -117,6 +118,7 @@ struct PostAdTruckScreen: View {
                     accordion(.muszaki, title: "Műszaki adatok", summary: muszakiSummary) { muszakiBody }
                     accordion(.akku, title: "Akkumulátor és hatótáv", summary: akkuSummary) { akkuBody }
                     accordion(.rakter, title: "Raktér adatok", summary: rakterSummary) { rakterBody }
+                    accordion(.extrak, title: "Extrák", summary: extrakSummary) { extrakBody }
                     leirasAndPost
                 }
                 .padding(16)
@@ -319,6 +321,17 @@ struct PostAdTruckScreen: View {
         }
     }
 
+    private var extrakBody: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(DetailedSearchCatalog.teherEquipmentSections.enumerated()), id: \.element.id) { index, section in
+                if index > 0 { Divider().padding(.leading, 16) }
+                SettingsRow(title: section.title, value: teherEquipmentValue(section)) {
+                    open(.equipment(section.id))
+                }
+            }
+        }
+    }
+
     private var leirasAndPost: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionLabel(text: "Leírás")
@@ -422,7 +435,59 @@ struct PostAdTruckScreen: View {
         case .dcTolto:
             ScreenHeader(title: "DC töltőcsatlakozó", onBack: goList, rightLabel: "Kész", onRight: goList)
             exclusiveMulti(\.dcToltoCsatlakozok, DetailedSearchCatalog.dcToltoCsatlakozok)
+        case .equipment(let sectionId):
+            if let section = DetailedSearchCatalog.teherEquipmentSections.first(where: { $0.id == sectionId }) {
+                ScreenHeader(title: section.title, onBack: goList, rightLabel: "Kész", onRight: goList)
+                teherEquipmentPanel(section)
+            } else {
+                ScreenHeader(title: "Extrák", onBack: goList, rightLabel: "Kész", onRight: goList)
+                Text("Ismeretlen szekció").padding()
+            }
         }
+    }
+
+    private func teherEquipmentPanel(
+        _ section: (id: String, title: String, items: [String])
+    ) -> some View {
+        let selectedCount = section.items.filter { store.isExtraOn($0) }.count
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "Több is választható")
+                if selectedCount > 0 {
+                    Button {
+                        for item in section.items { store.setExtra(item, on: false) }
+                    } label: {
+                        Text("Összes kikapcsolása")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.leading, 4)
+                    }
+                    .buttonStyle(.plain)
+                }
+                SettingsGroup {
+                    ForEach(Array(section.items.enumerated()), id: \.element) { index, item in
+                        if index > 0 { Divider().padding(.leading, 16) }
+                        Toggle(item, isOn: Binding(
+                            get: { store.isExtraOn(item) },
+                            set: { store.setExtra(item, on: $0) }
+                        ))
+                        .tint(Color.green)
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 52)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private func teherEquipmentValue(
+        _ section: (id: String, title: String, items: [String])
+    ) -> String {
+        let n = section.items.filter { store.isExtraOn($0) }.count
+        if n == 0 { return "Mindegy" }
+        if n == 1, let one = section.items.first(where: { store.isExtraOn($0) }) { return one }
+        return "\(n) bekapcsolva"
     }
 
     private func exclusiveMulti(
@@ -610,6 +675,14 @@ struct PostAdTruckScreen: View {
         if store.filter.rakterMagassagTol != nil { n += 1 }
         if store.filter.doblemezTavolsagTol != nil { n += 1 }
         return n == 0 ? "Mindegy" : "\(n) mező"
+    }
+
+    private var extrakSummary: String {
+        let n = DetailedSearchCatalog.teherEquipmentSections
+            .flatMap(\.items)
+            .filter { store.isExtraOn($0) }
+            .count
+        return n == 0 ? "Mindegy" : "\(n) bekapcsolva"
     }
 
     private func numberRow(

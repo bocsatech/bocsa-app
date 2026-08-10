@@ -11,7 +11,7 @@ struct SearchTruckScreen: View {
     @State private var panel: Panel = .list
 
     private enum AccordionSection: String, Hashable {
-        case alap, muszaki, akku, rakter
+        case alap, muszaki, akku, rakter, extrak
     }
 
     private enum Panel: Equatable {
@@ -19,6 +19,7 @@ struct SearchTruckScreen: View {
         case brand, fuel, allapot, kivitel, ajtok, szemelyek
         case okmanyok, okmanyErvenyesseg, hirdeto
         case sebessegvalto, hajtas, klima, acTolto, dcTolto
+        case equipment(String)
     }
 
     private var isMain: Bool {
@@ -45,6 +46,7 @@ struct SearchTruckScreen: View {
                         accordion(.muszaki, "Műszaki adatok") { muszakiBody }
                         accordion(.akku, "Akkumulátor és hatótáv") { akkuBody }
                         accordion(.rakter, "Raktér adatok") { rakterBody }
+                        accordion(.extrak, "Extrák") { extrakBody }
 
                         Button(action: onResults) {
                             Text("Találatok")
@@ -207,6 +209,21 @@ struct SearchTruckScreen: View {
         }
     }
 
+    private var extrakBody: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(DetailedSearchCatalog.teherEquipmentSections.enumerated()), id: \.element.id) { index, section in
+                if index > 0 { Divider().padding(.leading, 16) }
+                let n = section.items.filter { store.isExtraOn($0) }.count
+                SettingsRow(
+                    title: section.title,
+                    value: n == 0 ? "Mindegy" : (n == 1 ? (section.items.first(where: { store.isExtraOn($0) }) ?? "\(n)") : "\(n) bekapcsolva")
+                ) {
+                    panel = .equipment(section.id)
+                }
+            }
+        }
+    }
+
     private func rangeRow(
         _ title: String,
         _ tol: WritableKeyPath<SearchFilter, Int?>,
@@ -307,6 +324,32 @@ struct SearchTruckScreen: View {
         case .dcTolto:
             header("DC töltőcsatlakozó")
             multi(\.dcToltoCsatlakozok, DetailedSearchCatalog.dcToltoCsatlakozok)
+        case .equipment(let sectionId):
+            if let section = DetailedSearchCatalog.teherEquipmentSections.first(where: { $0.id == sectionId }) {
+                header(section.title)
+                teherEquipmentList(section.items)
+            } else {
+                header("Extrák")
+                Text("Ismeretlen szekció").padding()
+            }
+        }
+    }
+
+    private func teherEquipmentList(_ items: [String]) -> some View {
+        ScrollView {
+            SettingsGroup {
+                ForEach(Array(items.enumerated()), id: \.element) { index, item in
+                    if index > 0 { Divider().padding(.leading, 16) }
+                    Toggle(item, isOn: Binding(
+                        get: { store.isExtraOn(item) },
+                        set: { store.setExtra(item, on: $0) }
+                    ))
+                    .tint(Color.green)
+                    .padding(.horizontal, 16)
+                    .frame(minHeight: 52)
+                }
+            }
+            .padding(16)
         }
     }
 
