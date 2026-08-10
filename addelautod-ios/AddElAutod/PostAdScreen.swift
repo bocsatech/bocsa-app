@@ -237,7 +237,7 @@ struct PostAdScreen: View {
         case "auto-szemelyauto": return "car"
         case "auto-leasing": return "doc.text"
         case "auto-berauto": return "key.fill"
-        case "auto-lakokocsi": return "caravan.fill"
+        case "auto-berlakokocsi": return "bus.fill"
         default: return "circle"
         }
     }
