@@ -205,9 +205,9 @@ struct PostAdCarScreen: View {
         Divider().padding(.leading, 16)
         numberFieldRow(title: "Évjárat", placeholder: "pl. 2018", binding: yearTextBinding)
         Divider().padding(.leading, 16)
-        numberFieldRow(title: "Futott km", placeholder: "pl. 125000", binding: kmTextBinding)
+        numberFieldRow(title: "Futott km", placeholder: "pl. 125 000", binding: kmTextBinding)
         Divider().padding(.leading, 16)
-        numberFieldRow(title: "Vételár", placeholder: "Ft", binding: priceTextBinding)
+        numberFieldRow(title: "Vételár", placeholder: "pl. 2 500 000", binding: priceTextBinding)
         Divider().padding(.leading, 16)
         SettingsRow(title: "Üzemanyag", value: store.filter.fuelLabel) {
             openSubpanel(.fuel)
@@ -1030,12 +1030,17 @@ struct PostAdCarScreen: View {
     }
 
     /// Egy érték mindkét filter mezőbe (a mapper `tol ?? ig`-et olvas).
+    /// `grouped`: ezres elválasztó szóközzel (pl. 22 366 500) — pont/vessző nélkül.
     private func singleIntBinding(
         get: @escaping () -> Int?,
-        set: @escaping (Int?) -> Void
+        set: @escaping (Int?) -> Void,
+        grouped: Bool = false
     ) -> Binding<String> {
         Binding(
-            get: { get().map(String.init) ?? "" },
+            get: {
+                guard let value = get() else { return "" }
+                return grouped ? Self.formatGrouped(value) : String(value)
+            },
             set: { raw in
                 let digits = raw.filter(\.isNumber)
                 if digits.isEmpty {
@@ -1045,6 +1050,19 @@ struct PostAdCarScreen: View {
                 }
             }
         )
+    }
+
+    /// Jobbról hármasával szóköz: 22366500 → "22 366 500"
+    private static func formatGrouped(_ value: Int) -> String {
+        let digits = String(value)
+        var parts: [String] = []
+        var i = digits.endIndex
+        while i > digits.startIndex {
+            let start = digits.index(i, offsetBy: -3, limitedBy: digits.startIndex) ?? digits.startIndex
+            parts.insert(String(digits[start..<i]), at: 0)
+            i = start
+        }
+        return parts.joined(separator: " ")
     }
 
     private var yearTextBinding: Binding<String> {
@@ -1057,21 +1075,24 @@ struct PostAdCarScreen: View {
     private var kmTextBinding: Binding<String> {
         singleIntBinding(
             get: { store.filter.kmTol ?? store.filter.kmIg },
-            set: { store.setKm(tol: $0, ig: $0) }
+            set: { store.setKm(tol: $0, ig: $0) },
+            grouped: true
         )
     }
 
     private var priceTextBinding: Binding<String> {
         singleIntBinding(
             get: { store.filter.arTol ?? store.filter.arIg },
-            set: { store.setPrice(tol: $0, ig: $0) }
+            set: { store.setPrice(tol: $0, ig: $0) },
+            grouped: true
         )
     }
 
     private var hengerTextBinding: Binding<String> {
         singleIntBinding(
             get: { store.filter.hengerCm3Tol ?? store.filter.hengerCm3Ig },
-            set: { store.setHengerCm3(tol: $0, ig: $0) }
+            set: { store.setHengerCm3(tol: $0, ig: $0) },
+            grouped: true
         )
     }
 }
