@@ -97,6 +97,9 @@ struct PostAdCarScreen: View {
             }
         }
         .background(AppTheme.bgGrouped)
+        .onChange(of: panel) { _, _ in
+            dismissKeyboard()
+        }
     }
 
     @ViewBuilder
@@ -636,11 +639,18 @@ struct PostAdCarScreen: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
                 SectionLabel(text: "Leírás")
-                TextEditor(text: Binding(
-                    get: { leiras },
-                    set: { leiras = String($0.prefix(PostAdListingMapper.maxLeirasLength)) }
-                ))
-                .focused($focusedField, equals: .leiras)
+                Group {
+                    if isShowingMainForm {
+                        TextEditor(text: Binding(
+                            get: { leiras },
+                            set: { leiras = String($0.prefix(PostAdListingMapper.maxLeirasLength)) }
+                        ))
+                        .focused($focusedField, equals: .leiras)
+                    } else {
+                        Text(leiras.isEmpty ? " " : leiras)
+                            .frame(maxWidth: .infinity, alignment: .topLeading)
+                    }
+                }
                 .frame(minHeight: 120)
                 .padding(8)
                 .background(AppTheme.bgElevated)
@@ -1104,11 +1114,19 @@ struct PostAdCarScreen: View {
             Text(title)
                 .foregroundStyle(AppTheme.text)
                 .font(.body)
-            TextField(placeholder, text: binding)
-                .keyboardType(.numberPad)
-                .focused($focusedField, equals: focus)
-                .multilineTextAlignment(.trailing)
-                .foregroundStyle(AppTheme.textSecondary)
+            // Almenünél nincs TextField → number pad nem jöhet fel a háttérből.
+            if isShowingMainForm {
+                TextField(placeholder, text: binding)
+                    .keyboardType(.numberPad)
+                    .focused($focusedField, equals: focus)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(AppTheme.textSecondary)
+            } else {
+                Text(binding.wrappedValue.isEmpty ? placeholder : binding.wrappedValue)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
         }
         .padding(.horizontal, 16)
         .frame(minHeight: 52)

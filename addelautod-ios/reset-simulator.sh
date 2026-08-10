@@ -74,8 +74,17 @@ if grep -A2 "case .okmanyok:" "$SEARCH" | grep -q "multiSelectList"; then
   echo "HIBA: SearchScreen még multiSelectList-et használ okmányoknál — rossz kód"
   exit 1
 fi
-echo "    OK — commit: $COMMIT"
-echo "    Ellenőrzés: Okmányok képernyőn „CSAK EGY VÁLASZTHATÓ” kell, NEM „Összes kikapcsolása”"
+grep -q "MARKETING_VERSION = 1.0.8" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
+if grep -A3 "case .hirdeto:" "$SEARCH" | grep -q "multiSelectList"; then
+  echo "HIBA: SearchScreen Hirdető még multiSelectList"
+  exit 1
+fi
+if grep -A3 "case .hirdeto:" "$POSTAD" | grep -q "multiSelectList"; then
+  echo "HIBA: PostAdCarScreen Hirdető még multiSelectList"
+  exit 1
+fi
+echo "    OK — commit: $COMMIT — app verzió 1.0.8"
+echo "    Ha Hirdető/Okmányok képernyőn „Összes kikapcsolása” látszik → RÉGI BUILD, nem ez a projekt."
 
 echo "==> 6) Egy Simulator boot (iPhone)"
 # Preferált: iPhone 16, különben bármely elérhető iPhone
