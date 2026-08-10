@@ -213,15 +213,20 @@ struct SearchTruckScreen: View {
         VStack(spacing: 0) {
             ForEach(Array(DetailedSearchCatalog.teherEquipmentSections.enumerated()), id: \.element.id) { index, section in
                 if index > 0 { Divider().padding(.leading, 16) }
-                let n = section.items.filter { store.isExtraOn($0) }.count
-                SettingsRow(
-                    title: section.title,
-                    value: n == 0 ? "Mindegy" : (n == 1 ? (section.items.first(where: { store.isExtraOn($0) }) ?? "\(n)") : "\(n) bekapcsolva")
-                ) {
+                SettingsRow(title: section.title, value: teherEquipmentValue(section)) {
                     panel = .equipment(section.id)
                 }
             }
         }
+    }
+
+    private func teherEquipmentValue(
+        _ section: (id: String, title: String, items: [String])
+    ) -> String {
+        let n = section.items.filter { store.isExtraOn($0) }.count
+        if n == 0 { return "Mindegy" }
+        if n == 1, let one = section.items.first(where: { store.isExtraOn($0) }) { return one }
+        return "\(n) bekapcsolva"
     }
 
     private func rangeRow(
