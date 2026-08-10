@@ -209,45 +209,41 @@ struct PostAdCarScreen: View {
 
     /// Kezdőoldal: Képek → Alap / Műszaki / Extrák → Leírás + Feladás.
     private var simpleList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                accordionBlock(
-                    section: .kepek,
-                    title: "Képek",
-                    summary: photoStore.summary
-                ) {
-                    photosAccordionBody
-                }
-
-                accordionBlock(
-                    section: .alap,
-                    title: "Alap adatok",
-                    summary: alapSummary
-                ) {
-                    alapAccordionBody
-                }
-
-                accordionBlock(
-                    section: .muszaki,
-                    title: "Műszaki adatok",
-                    summary: muszakiSummary
-                ) {
-                    muszakiAccordionBody
-                }
-
-                accordionBlock(
-                    section: .extrak,
-                    title: "Extrák",
-                    summary: extrasValue
-                ) {
-                    extrakAccordionBody
-                }
-
-                leirasAndPostSection
+        formAccordionScroll {
+            accordionBlock(
+                section: .kepek,
+                title: "Képek",
+                summary: photoStore.summary
+            ) {
+                photosAccordionBody
             }
-            .padding(16)
+
+            accordionBlock(
+                section: .alap,
+                title: "Alap adatok",
+                summary: alapSummary
+            ) {
+                alapAccordionBody
+            }
+
+            accordionBlock(
+                section: .muszaki,
+                title: "Műszaki adatok",
+                summary: muszakiSummary
+            ) {
+                muszakiAccordionBody
+            }
+
+            accordionBlock(
+                section: .extrak,
+                title: "Extrák",
+                summary: extrasValue
+            ) {
+                extrakAccordionBody
+            }
+
+            leirasAndPostSection
         }
-        .scrollDismissesKeyboard(.immediately)
     }
 
     /// Gyors mezők (részletes Alap adatok tetején is) — évjárat / km / ár: sima számmező.
@@ -270,45 +266,65 @@ struct PostAdCarScreen: View {
 
     /// Részletes: Képek / Alap / Műszaki / Extrák — egyszerre egy accordion nyitva
     private var advancedList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                accordionBlock(
-                    section: .kepek,
-                    title: "Képek",
-                    summary: photoStore.summary
-                ) {
-                    photosAccordionBody
-                }
-
-                accordionBlock(
-                    section: .alap,
-                    title: "Alap adatok",
-                    summary: alapSummary
-                ) {
-                    alapAccordionBody
-                }
-
-                accordionBlock(
-                    section: .muszaki,
-                    title: "Műszaki adatok",
-                    summary: muszakiSummary
-                ) {
-                    muszakiAccordionBody
-                }
-
-                accordionBlock(
-                    section: .extrak,
-                    title: "Extrák",
-                    summary: extrasValue
-                ) {
-                    extrakAccordionBody
-                }
-
-                leirasAndPostSection
+        formAccordionScroll {
+            accordionBlock(
+                section: .kepek,
+                title: "Képek",
+                summary: photoStore.summary
+            ) {
+                photosAccordionBody
             }
-            .padding(16)
+
+            accordionBlock(
+                section: .alap,
+                title: "Alap adatok",
+                summary: alapSummary
+            ) {
+                alapAccordionBody
+            }
+
+            accordionBlock(
+                section: .muszaki,
+                title: "Műszaki adatok",
+                summary: muszakiSummary
+            ) {
+                muszakiAccordionBody
+            }
+
+            accordionBlock(
+                section: .extrak,
+                title: "Extrák",
+                summary: extrasValue
+            ) {
+                extrakAccordionBody
+            }
+
+            leirasAndPostSection
         }
-        .scrollDismissesKeyboard(.immediately)
+    }
+
+    /// Accordion nyitáskor a szekció tetejére görget (ne a Szín / közép középen nyíljon).
+    private func formAccordionScroll<Content: View>(
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    content()
+                }
+                .padding(16)
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .onChange(of: openAccordion) { _, section in
+                guard let section else { return }
+                // Előző accordion becsukása után a layout lefut, majd a fejléc tetejére
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        proxy.scrollTo(section, anchor: .top)
+                    }
+                }
+            }
+        }
     }
 
     private var photosAccordionBody: some View {
@@ -520,6 +536,7 @@ struct PostAdCarScreen: View {
         }
         .background(AppTheme.bgElevated)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .id(section)
     }
 
     /// Részletes Alap adatok: gyors mezők + Hengerűrtartalom + Állapot / …
