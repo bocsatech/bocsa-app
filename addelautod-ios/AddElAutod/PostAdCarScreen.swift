@@ -58,72 +58,99 @@ struct PostAdCarScreen: View {
             }
     }
 
+    /// Fő űrlap a háttérben marad → almenüből vissza a scroll pozíció megmarad.
+    private var isShowingMainForm: Bool {
+        switch panel {
+        case .simple, .advanced: return true
+        default: return false
+        }
+    }
+
     private var filterStack: some View {
-        VStack(spacing: 0) {
-            switch panel {
-            case .simple:
-                simpleHeader
-                simpleList
-            case .advanced:
-                advancedHeader
-                advancedList
-            case .brand:
-                ScreenHeader(title: "Márka", onBack: goList, rightLabel: "Kész", onRight: finishBrandModelSelection)
-                brandSearchField
-                brandList
-            case .model(let brand):
-                ScreenHeader(
-                    title: brand,
-                    subtitle: "Modell — több is bekapcsolható",
-                    onBack: { panel = .brand },
-                    rightLabel: "Kész",
-                    onRight: finishBrandModelSelection
-                )
-                modelList(for: brand)
-            case .fuel:
-                ScreenHeader(title: "Üzemanyag", onBack: goList, rightLabel: "Kész", onRight: goList)
-                fuelList
-            case .allapot:
-                ScreenHeader(title: "Állapot", onBack: goList, rightLabel: "Kész", onRight: goList)
-                allapotList
-            case .kivitel:
-                ScreenHeader(title: "Kivitel", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Kivitel",
-                    options: DetailedSearchCatalog.kiviteles,
-                    keyPath: \.kiviteles
-                )
-            case .ajtok:
-                ScreenHeader(title: "Ajtók száma", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Ajtók száma",
-                    options: DetailedSearchCatalog.ajtok,
-                    keyPath: \.ajtok
-                )
-            case .szemelyek:
-                ScreenHeader(title: "Szállítható személyek", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Szállítható személyek",
-                    options: DetailedSearchCatalog.szemelyek,
-                    keyPath: \.szemelyek
-                )
-            case .okmanyok:
-                ScreenHeader(title: "Okmányok", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Okmányok",
-                    options: DetailedSearchCatalog.okmanyok,
-                    keyPath: \.okmanyErvenyesseg
-                )
-            case .hirdeto:
-                ScreenHeader(title: "Hirdető", onBack: goList, rightLabel: "Kész", onRight: goList)
-                multiSelectList(
-                    sectionTitle: "Hirdető",
-                    options: DetailedSearchCatalog.hirdetok,
-                    keyPath: \.hirdetok
-                )
+        ZStack {
+            VStack(spacing: 0) {
+                if panel == .advanced || listPanel == .advanced {
+                    advancedHeader
+                    advancedList
+                } else {
+                    simpleHeader
+                    simpleList
+                }
+            }
+            .opacity(isShowingMainForm ? 1 : 0)
+            .allowsHitTesting(isShowingMainForm)
+            .accessibilityHidden(!isShowingMainForm)
+
+            if !isShowingMainForm {
+                VStack(spacing: 0) {
+                    subpanelStack
+                }
+                .background(AppTheme.bgGrouped)
             }
         }
         .background(AppTheme.bgGrouped)
+    }
+
+    @ViewBuilder
+    private var subpanelStack: some View {
+        switch panel {
+        case .simple, .advanced:
+            EmptyView()
+        case .brand:
+            ScreenHeader(title: "Márka", onBack: goList, rightLabel: "Kész", onRight: finishBrandModelSelection)
+            brandSearchField
+            brandList
+        case .model(let brand):
+            ScreenHeader(
+                title: brand,
+                subtitle: "Modell — több is bekapcsolható",
+                onBack: { panel = .brand },
+                rightLabel: "Kész",
+                onRight: finishBrandModelSelection
+            )
+            modelList(for: brand)
+        case .fuel:
+            ScreenHeader(title: "Üzemanyag", onBack: goList, rightLabel: "Kész", onRight: goList)
+            fuelList
+        case .allapot:
+            ScreenHeader(title: "Állapot", onBack: goList, rightLabel: "Kész", onRight: goList)
+            allapotList
+        case .kivitel:
+            ScreenHeader(title: "Kivitel", onBack: goList, rightLabel: "Kész", onRight: goList)
+            multiSelectList(
+                sectionTitle: "Kivitel",
+                options: DetailedSearchCatalog.kiviteles,
+                keyPath: \.kiviteles
+            )
+        case .ajtok:
+            ScreenHeader(title: "Ajtók száma", onBack: goList, rightLabel: "Kész", onRight: goList)
+            multiSelectList(
+                sectionTitle: "Ajtók száma",
+                options: DetailedSearchCatalog.ajtok,
+                keyPath: \.ajtok
+            )
+        case .szemelyek:
+            ScreenHeader(title: "Szállítható személyek", onBack: goList, rightLabel: "Kész", onRight: goList)
+            multiSelectList(
+                sectionTitle: "Szállítható személyek",
+                options: DetailedSearchCatalog.szemelyek,
+                keyPath: \.szemelyek
+            )
+        case .okmanyok:
+            ScreenHeader(title: "Okmányok", onBack: goList, rightLabel: "Kész", onRight: goList)
+            multiSelectList(
+                sectionTitle: "Okmányok",
+                options: DetailedSearchCatalog.okmanyok,
+                keyPath: \.okmanyErvenyesseg
+            )
+        case .hirdeto:
+            ScreenHeader(title: "Hirdető", onBack: goList, rightLabel: "Kész", onRight: goList)
+            multiSelectList(
+                sectionTitle: "Hirdető",
+                options: DetailedSearchCatalog.hirdetok,
+                keyPath: \.hirdetok
+            )
+        }
     }
 
     private var simpleHeader: some View {
