@@ -20,8 +20,6 @@ struct SettingsScreen: View {
     @State private var cityLookupBusy = false
     @State private var lastLookedUpPostal = ""
     @State private var photoItem: PhotosPickerItem?
-    @State private var autoswebURLText = AutoswebBaseURL.currentString()
-    @State private var autoswebTestBusy = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -416,62 +414,7 @@ struct SettingsScreen: View {
     // MARK: - Autosweb LAN
 
     private var autoswebFields: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Telefonon a Mac Wi‑Fi IP-jét add meg (nem localhost). Ugyanazon a Wi‑Fi-n kell lenniük.")
-                .font(.footnote)
-                .foregroundStyle(AppTheme.textSecondary)
-            TextField("http://192.168.0.12:3456", text: $autoswebURLText)
-                .textFieldStyle(.roundedBorder)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .keyboardType(.URL)
-            HStack(spacing: 10) {
-                Button("Mentés") {
-                    if let url = AutoswebBaseURL.set(autoswebURLText) {
-                        autoswebURLText = url.absoluteString
-                        toast = "Autosweb cím: \(url.absoluteString)"
-                    } else {
-                        toast = "Érvénytelen cím."
-                    }
-                }
-                .font(.body.weight(.semibold))
-                Button("Teszt") {
-                    Task { await testAutosweb() }
-                }
-                .font(.body.weight(.semibold))
-                .disabled(autoswebTestBusy)
-                if autoswebTestBusy { ProgressView().scaleEffect(0.8) }
-                Spacer()
-                Button("Localhost") {
-                    autoswebURLText = AutoswebBaseURL.defaultSimulator
-                    _ = AutoswebBaseURL.set(AutoswebBaseURL.defaultSimulator)
-                    toast = "Visszaállítva: localhost (Simulator)."
-                }
-                .font(.footnote)
-            }
-            .foregroundStyle(AppTheme.accent)
-        }
-        .padding(16)
-    }
-
-    private func testAutosweb() async {
-        _ = AutoswebBaseURL.set(autoswebURLText)
-        autoswebTestBusy = true
-        defer { autoswebTestBusy = false }
-        let url = PartnerRecommendationsClient.baseURL.appendingPathComponent("api/db/stats")
-        var req = URLRequest(url: url)
-        req.timeoutInterval = 4
-        do {
-            let (_, response) = try await URLSession.shared.data(for: req)
-            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-            if (200..<500).contains(code) {
-                toast = "Elérhető: \(PartnerRecommendationsClient.baseURL.absoluteString)"
-            } else {
-                toast = "Válasz: HTTP \(code)"
-            }
-        } catch {
-            toast = "Nem elérhető. Macen fusson az Autosweb, ugyanaz a Wi‑Fi, helyes IP."
-        }
+        AutoswebServerSettingsCard(compact: true, onMessage: { toast = $0 })
     }
 
     // MARK: - Kijelentkezés

@@ -58,4 +58,100 @@ enum AutoswebBaseURL {
         _ = path
         return url
     }
+
+    static func testReachability() async -> String {
+        let url = PartnerRecommendationsClient.baseURL.appendingPathComponent("api/db/stats")
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 4
+        do {
+            let (_, response) = try await URLSession.shared.data(for: req)
+            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            if (200..<500).contains(code) {
+                return "Elérhető: \(PartnerRecommendationsClient.baseURL.absoluteString)"
+            }
+            return "Válasz: HTTP \(code)"
+        } catch {
+            return "Nem elérhető. Macen fusson az Autosweb, ugyanaz a Wi‑Fi, helyes IP."
+        }
+    }
+}
+
+/// Belépés előtt is szerkeszthető (vendég mód) — Mac Wi‑Fi IP.
+struct AutoswebServerSettingsCard: View {
+    var compact: Bool = false
+    var onMessage: ((String) -> Void)? = nil
+
+    @State private var urlText = AutoswebBaseURL.currentString()
+    @State private var busy = false
+    @State private var localMessage: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(compact ? "Autosweb (Wi‑Fi)" : "Autosweb szerver")
+                .font(compact ? .subheadline.weight(.semibold) : .headline)
+                .foregroundStyle(AppTheme.text)
+
+            Text("Telefonon a Mac Wi‑Fi IP-jét add meg (pl. 192.168.0.12). Nem localhost.")
+                .font(.footnote)
+                .foregroundStyle(AppTheme.textSecondary)
+
+            TextField("http://192.168.0.12:3456", text: $urlText)
+                .textFieldStyle(.roundedBorder)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.URL)
+
+            HStack(spacing: 12) {
+                Button("Mentés") { save() }
+                    .font(.body.weight(.semibold))
+                Button("Teszt") {
+                    Task { await test() }
+                }
+                .font(.body.weight(.semibold))
+                .disabled(busy)
+                if busy { ProgressView().scaleEffect(0.8) }
+                Spacer()
+            }
+            .foregroundStyle(AppTheme.accent)
+
+            if let localMessage, onMessage == nil {
+                Text(localMessage)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+        }
+        .padding(compact ? 16 : 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(compact ? AppTheme.bgElevated : Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: compact ? 12 : 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: compact ? 12 : 16, style: .continuous)
+                .stroke(AppTheme.border, lineWidth: compact ? 0 : 1)
+        )
+    }
+
+    private func save() {
+        if let url = AutoswebBaseURL.set(urlText) {
+            urlText = url.absoluteString
+            emit("Autosweb cím: \(url.absoluteString)")
+        } else {
+            emit("Érvénytelen cím.")
+        }
+    }
+
+    private func test() async {
+        _ = AutoswebBaseURL.set(urlText)
+        urlText = AutoswebBaseURL.currentString()
+        busy = true
+        defer { busy = false }
+        emit(await AutoswebBaseURL.testReachability())
+    }
+
+    private func emit(_ text: String) {
+        if let onMessage {
+            onMessage(text)
+        } else {
+            localMessage = text
+        }
+    }
 }
