@@ -317,12 +317,15 @@ struct PostAdCarScreen: View {
             .scrollDismissesKeyboard(.immediately)
             .onChange(of: openAccordion) { _, section in
                 guard let section else { return }
-                // Előző accordion becsukása után a layout lefut, majd a fejléc tetejére
-                DispatchQueue.main.async {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        proxy.scrollTo(section, anchor: .top)
-                    }
+                // Előző accordion becsukása + új tartalom layoutja után a fejléc tetejére
+                let scroll = {
+                    proxy.scrollTo(section, anchor: .top)
                 }
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut(duration: 0.25), scroll)
+                }
+                // Második igazítás, ha az első a magasságváltozás előtt futott
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: scroll)
             }
         }
     }
