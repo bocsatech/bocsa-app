@@ -7,6 +7,12 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Az app a Macen futó Autosweb szervert éri el ugyanazon a Wi‑Fi hálózaton.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp</string>
+	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profilkép és hirdetés fényképek feltöltéséhez szükséges a fotókönyvtár hozzáférés.</string>
 	<key>NSCameraUsageDescription</key>

@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from "fs";
 import { join, extname } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { networkInterfaces } from "os";
 import { importListings, openChromeForImport } from "./lib/import-listings.mjs";
 import { findChromeExecutable } from "./lib/chrome-launcher.mjs";
 import {
@@ -61,7 +62,20 @@ import { migrateLegacyAutoswebDb, getDbPaths } from "./lib/db-registry.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "public");
 const PORT = Number(process.env.PORT ?? 3456);
-const HOST = "127.0.0.1";
+/** `127.0.0.1` = csak Mac; `0.0.0.0` = ugyanazon Wi‑Fi (telefon). Env: AUTOSWEB_HOST */
+const HOST = process.env.AUTOSWEB_HOST ?? "0.0.0.0";
+
+function lanIPv4Addresses() {
+  const out = [];
+  const nets = networkInterfaces();
+  for (const list of Object.values(nets)) {
+    for (const net of list ?? []) {
+      const family = net.family === "IPv4" || net.family === 4;
+      if (family && !net.internal) out.push(net.address);
+    }
+  }
+  return out;
+}
 
 let fugvenyBusy = false;
 
@@ -785,7 +799,18 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, async () => {
-  console.log(`Autosweb: http://${HOST}:${PORT}`);
+  console.log(`Autosweb bind: ${HOST}:${PORT}`);
+  console.log(`Helyi:     http://127.0.0.1:${PORT}/`);
+  const lans = lanIPv4Addresses();
+  if (HOST === "0.0.0.0" || HOST === "::") {
+    if (lans.length) {
+      for (const ip of lans) {
+        console.log(`Wi‑Fi/LAN: http://${ip}:${PORT}/  ← telefonon ezt add meg`);
+      }
+    } else {
+      console.log("Wi‑Fi/LAN: (nincs IPv4 cím) — csatlakozz Wi‑Fi-hez");
+    }
+  }
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
   try {
     initAuthSchema();

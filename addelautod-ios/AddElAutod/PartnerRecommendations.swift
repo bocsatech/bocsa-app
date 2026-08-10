@@ -145,8 +145,8 @@ enum PartnerRecommendationsDemo {
 }
 
 enum PartnerRecommendationsClient {
-  /// Asztali Autosweb (Bocsa / partnerek) — 3456
-  static var baseURL = URL(string: "http://127.0.0.1:3456")!
+  /// Asztali Autosweb — alap: localhost; telefonon Beállítások → Mac Wi‑Fi IP
+  static var baseURL = AutoswebBaseURL.currentURL()
 
   /// Irányítószám → település (GET /api/postal-codes/lookup)
   static func lookupCity(postalCode: String) async -> String? {

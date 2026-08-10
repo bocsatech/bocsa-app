@@ -6,6 +6,10 @@ struct AddElAutodApp: App {
     @StateObject private var profileStore = ProfileStore()
     @StateObject private var pageLayoutStore = PageLayoutStore()
 
+    init() {
+        AutoswebBaseURL.applyStored()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

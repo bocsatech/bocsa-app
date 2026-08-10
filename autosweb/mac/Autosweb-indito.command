@@ -171,9 +171,18 @@ if [ -f "$TARGET/scripts/embed-ad-form.mjs" ]; then
 fi
 
 INDEX_VER=$(grep 'autosweb-version' "$INDEX" | head -1 | sed 's/.*content="//;s/".*//' || true)
+# Telefon / ugyanazon Wi‑Fi: 0.0.0.0 (csak belső hálózat, nem internet)
+export AUTOSWEB_HOST="${AUTOSWEB_HOST:-0.0.0.0}"
+LAN_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)
 echo ""
 echo "Autosweb főoldal: ${INDEX_VER:-?}"
-echo "URL: http://127.0.0.1:3456/"
+echo "Mac böngésző:  http://127.0.0.1:3456/"
+if [ -n "$LAN_IP" ]; then
+  echo "Telefon (Wi‑Fi): http://${LAN_IP}:3456/"
+  echo "  → Add el autod app → Beállítások → Autosweb cím: http://${LAN_IP}:3456"
+else
+  echo "Telefon: System Settings → Network → Wi‑Fi → IP, majd http://IP:3456"
+fi
 echo "Bezáráshoz: Ctrl+C"
 echo ""
 

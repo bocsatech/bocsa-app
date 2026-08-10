@@ -13,6 +13,8 @@ A script ellenőrzi, hogy a friss fájlok megvannak.
 
 **Saját iPhone:** USB / Wireless → célpont = a telefonod → Xcode → target **AddElAutod** → **Signing & Capabilities** → ☑ Automatically manage signing → **Team** = Apple ID-d (Personal Team is elég fejlesztéshez). Első telepítés után a telefonon: Beállítások → Általános → VPN és készülékkezelés → Trust.
 
+**Telefon ↔ Autosweb (ugyanaz a Wi‑Fi):** a telefonon a `localhost` nem a Mac. Indítsd az Autosweb-indítót (LAN mód), a Terminál kiírja pl. `http://192.168.x.x:3456/`. Az appban: **Beállítások → Autosweb (Wi‑Fi)** → ezt az URL-t → Mentés → Teszt.
+
 ---
 
 ## Hol legyen a Macen?
