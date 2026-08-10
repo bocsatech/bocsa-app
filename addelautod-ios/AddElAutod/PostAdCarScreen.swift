@@ -896,30 +896,40 @@ struct PostAdCarScreen: View {
         }
     }
 
-    private func multiSelectList(
+    /// Feladás: egy választás (kivitel, ajtók, személyek, okmányok, hirdető).
+    private func singleSelectList(
         sectionTitle: String,
         options: [String],
         keyPath: WritableKeyPath<SearchFilter, [String]>
     ) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: sectionTitle)
-                Button {
-                    store.clearMulti(keyPath)
-                } label: {
-                    Text("Összes kikapcsolása")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(AppTheme.accent)
-                        .padding(.leading, 4)
+                SectionLabel(text: "Válassz egyet")
+                if !store.filter[keyPath: keyPath].isEmpty {
+                    Button {
+                        store.clearMulti(keyPath)
+                    } label: {
+                        Text("Kiválasztás törlése")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.leading, 4)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 SettingsGroup {
                     ForEach(Array(options.enumerated()), id: \.element) { index, option in
                         if index > 0 { Divider().padding(.leading, 16) }
                         Toggle(option, isOn: Binding(
                             get: { store.isMultiOn(keyPath, value: option) },
-                            set: { store.toggleMulti(keyPath, value: option, on: $0) }
+                            set: { on in
+                                if on {
+                                    store.clearMulti(keyPath)
+                                    store.toggleMulti(keyPath, value: option, on: true)
+                                } else {
+                                    store.toggleMulti(keyPath, value: option, on: false)
+                                }
+                            }
                         ))
                         .tint(Color.green)
                         .padding(.horizontal, 16)
