@@ -18,10 +18,14 @@ struct SearchScreen: View {
     @State private var messageTarget: ListingMessageTarget?
     @State private var messagesReturn: Mode = .landing
     @State private var truckSearchKind: PostAdCatalog.TruckKind? = nil
-    @State private var openSearchTeher = false
+    @State private var openSearchTop: SearchTopSection? = .auto
 
     private enum Mode {
         case landing, vehiclePick, search, truckSearch, settings, messages, results, filterResults, postAd
+    }
+
+    private enum SearchTopSection: String {
+        case auto, teher, ingatlan
     }
 
     private enum Panel {
@@ -136,7 +140,7 @@ struct SearchScreen: View {
                         label: "Keresés",
                         tint: AppTheme.accent
                     ) {
-                        openSearchTeher = false
+                        openSearchTop = .auto
                         mode = .vehiclePick
                     }
                     HomeIconButton(
@@ -203,134 +207,262 @@ struct SearchScreen: View {
         .background(Color.white.ignoresSafeArea())
     }
 
-    /// Keresés: Személyautó vagy Teherautó (kisteher / teher).
+    /// Keresés kezdő — ugyanaz a kártyás menü, mint a hirdetésfeladáson.
     private var searchVehiclePicker: some View {
         let pageBg = Color(red: 0.949, green: 0.957, blue: 0.969)
+        let autoTint = AppTheme.accent
         let teherTint = Color(red: 0.85, green: 0.45, blue: 0.12)
+        let ingatlanTint = Color(red: 0.18, green: 0.55, blue: 0.34)
+
         return VStack(spacing: 0) {
             ScreenHeader(
                 title: "Keresés",
-                subtitle: "Milyen járművet keresel?",
+                subtitle: "Mit keresel?",
                 onBack: { mode = .landing }
             )
             ScrollView {
-                VStack(spacing: 14) {
-                    Button {
-                        store.reset()
-                        store.setVehicleKind(nil)
-                        listPanel = .simple
-                        panel = .simple
-                        mode = .search
-                    } label: {
-                        searchCategoryCard(
-                            title: "Személyautó",
-                            subtitle: "Részletes autókereső",
-                            systemImage: "car.fill",
-                            tint: AppTheme.accent
-                        )
-                    }
-                    .buttonStyle(.plain)
-
-                    VStack(spacing: 0) {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                openSearchTeher.toggle()
+                VStack(alignment: .leading, spacing: 14) {
+                    searchCategoryCard(
+                        section: .auto,
+                        title: "Autó keresés",
+                        subtitle: "Személyautó és más",
+                        systemImage: "car.fill",
+                        tint: autoTint
+                    ) {
+                        VStack(spacing: 0) {
+                            ForEach(Array(PostAdCatalog.autoItems.enumerated()), id: \.element.id) { index, item in
+                                if index > 0 { Divider().padding(.leading, 74) }
+                                searchAutoItemRow(item, tint: autoTint)
                             }
-                        } label: {
-                            searchCategoryCard(
-                                title: "Teherautó",
-                                subtitle: "Kisteher és teherautó",
-                                systemImage: "truck.box.fill",
-                                tint: teherTint,
-                                chevronUp: openSearchTeher
-                            )
                         }
-                        .buttonStyle(.plain)
+                    }
 
-                        if openSearchTeher {
+                    searchCategoryCard(
+                        section: .teher,
+                        title: "Teherautó keresés",
+                        subtitle: "Kisteher és teherautó",
+                        systemImage: "truck.box.fill",
+                        tint: teherTint
+                    ) {
+                        VStack(spacing: 0) {
+                            ForEach(Array(PostAdCatalog.teherItems.enumerated()), id: \.element.id) { index, item in
+                                if index > 0 { Divider().padding(.leading, 74) }
+                                searchTeherItemRow(item, tint: teherTint)
+                            }
+                        }
+                    }
+
+                    searchCategoryCard(
+                        section: .ingatlan,
+                        title: "Ingatlan keresés",
+                        subtitle: "Lakás, ház, telek",
+                        systemImage: "house.fill",
+                        tint: ingatlanTint
+                    ) {
+                        VStack(spacing: 0) {
+                            searchSoonRow(title: "Eladó / Kiadó", tint: ingatlanTint)
                             Divider().padding(.leading, 74)
-                            ForEach(PostAdCatalog.TruckKind.allCases) { kind in
-                                Button {
-                                    store.reset()
-                                    store.setVehicleKind(kind.rawValue)
-                                    truckSearchKind = kind
-                                    mode = .truckSearch
-                                } label: {
-                                    HStack(spacing: 12) {
-                                        RoundedRectangle(cornerRadius: 2)
-                                            .fill(teherTint)
-                                            .frame(width: 3, height: 28)
-                                        Image(systemName: "truck.box.fill")
-                                            .foregroundStyle(teherTint)
-                                            .frame(width: 28)
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(kind == .kisteher ? "Kisteher 3,5 t-ig" : "Teherautó 3,5 t-tól")
-                                                .font(.body.weight(.semibold))
-                                                .foregroundStyle(teherTint)
-                                            Text(kind.subtitle)
-                                                .font(.caption)
-                                                .foregroundStyle(AppTheme.textSecondary)
-                                        }
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundStyle(teherTint)
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .frame(minHeight: 56)
-                                    .background(teherTint.opacity(0.06))
-                                }
-                                .buttonStyle(.plain)
-                                if kind != PostAdCatalog.TruckKind.allCases.last {
-                                    Divider().padding(.leading, 74)
-                                }
-                            }
+                            searchSoonRow(title: "Kategóriák", tint: ingatlanTint)
                         }
                     }
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(AppTheme.border.opacity(0.85), lineWidth: 1)
-                    )
                 }
                 .padding(16)
+                .padding(.bottom, 32)
             }
             .background(pageBg)
         }
         .background(pageBg.ignoresSafeArea())
     }
 
-    private func searchCategoryCard(
+    private func searchCategoryCard<Content: View>(
+        section: SearchTopSection,
         title: String,
-        subtitle: String,
+        subtitle: String?,
         systemImage: String,
         tint: Color,
-        chevronUp: Bool? = nil
+        @ViewBuilder content: () -> Content
     ) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle().fill(tint).frame(width: 44, height: 44)
-                Image(systemName: systemImage)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
+        let isOpen = openSearchTop == section
+        return VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.22)) {
+                    openSearchTop = isOpen ? nil : section
+                }
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(tint)
+                            .frame(width: 44, height: 44)
+                        Image(systemName: systemImage)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title)
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(AppTheme.text)
+                        if let subtitle, !subtitle.isEmpty {
+                            Text(subtitle)
+                                .font(.footnote)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    Image(systemName: isOpen ? "chevron.up" : "chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(isOpen ? tint : AppTheme.textTertiary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .contentShape(Rectangle())
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.body.weight(.semibold)).foregroundStyle(AppTheme.text)
-                Text(subtitle).font(.footnote).foregroundStyle(AppTheme.textSecondary)
+            .buttonStyle(.plain)
+
+            if isOpen {
+                Divider().padding(.leading, 74)
+                content()
+                    .padding(.bottom, 6)
             }
-            Spacer()
-            Image(systemName: chevronUp == true ? "chevron.up" : (chevronUp == false ? "chevron.down" : "chevron.right"))
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(tint)
         }
-        .padding(16)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(AppTheme.border.opacity(0.85), lineWidth: 1)
         )
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    private func searchAutoItemRow(_ item: PostAdCatalog.Item, tint: Color) -> some View {
+        let available = item.id == "auto-szemelyauto"
+        return Button {
+            if available {
+                store.reset()
+                store.setVehicleKind(nil)
+                listPanel = .simple
+                panel = .simple
+                mode = .search
+            } else {
+                toast = "\(item.title) keresés — hamarosan."
+            }
+        } label: {
+            HStack(spacing: 12) {
+                if available {
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(tint)
+                        .frame(width: 3, height: 28)
+                } else {
+                    Color.clear.frame(width: 3, height: 28)
+                }
+                Image(systemName: searchIconName(for: item.id))
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(available ? tint : AppTheme.textTertiary)
+                    .frame(width: 28, alignment: .center)
+                Text(item.title)
+                    .font(.body)
+                    .foregroundStyle(available ? tint : AppTheme.text)
+                    .fontWeight(available ? .semibold : .regular)
+                Spacer(minLength: 8)
+                if !available {
+                    Text("Hamarosan")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(AppTheme.border.opacity(0.65))
+                        .clipShape(Capsule())
+                }
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(available ? tint : AppTheme.textTertiary)
+            }
+            .padding(.horizontal, 16)
+            .frame(minHeight: 52)
+            .background(available ? tint.opacity(0.06) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func searchTeherItemRow(_ item: PostAdCatalog.Item, tint: Color) -> some View {
+        Button {
+            if let kind = PostAdCatalog.TruckKind.fromCatalogId(item.id) {
+                store.reset()
+                store.setVehicleKind(kind.rawValue)
+                truckSearchKind = kind
+                mode = .truckSearch
+            }
+        } label: {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(tint)
+                    .frame(width: 3, height: 28)
+                Image(systemName: "truck.box.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(tint)
+                    .frame(width: 28, alignment: .center)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.title)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(tint)
+                    Text(item.id == "teher-kisteher" ? "Max. 3,5 tonna" : "3,5 tonnától")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(tint)
+            }
+            .padding(.horizontal, 16)
+            .frame(minHeight: 56)
+            .background(tint.opacity(0.06))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func searchSoonRow(title: String, tint: Color) -> some View {
+        Button {
+            toast = "\(title) keresés — hamarosan."
+        } label: {
+            HStack(spacing: 12) {
+                Color.clear.frame(width: 3, height: 28)
+                Image(systemName: "house")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(AppTheme.textTertiary)
+                    .frame(width: 28, alignment: .center)
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(AppTheme.text)
+                Spacer(minLength: 8)
+                Text("Hamarosan")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(AppTheme.border.opacity(0.65))
+                    .clipShape(Capsule())
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.textTertiary)
+            }
+            .padding(.horizontal, 16)
+            .frame(minHeight: 52)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func searchIconName(for itemId: String) -> String {
+        switch itemId {
+        case "auto-szemelyauto": return "car"
+        case "auto-leasing": return "doc.text"
+        case "auto-berauto": return "key.fill"
+        case "auto-berlakokocsi": return "bus.fill"
+        default: return "circle"
+        }
     }
 
     private var filterStack: some View {
