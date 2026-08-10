@@ -980,23 +980,32 @@ struct PostAdCarScreen: View {
     private var fuelList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "Kapcsolók — több is")
-                Button {
-                    store.clearFuels()
-                } label: {
-                    Text("Összes kikapcsolása")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(AppTheme.accent)
-                        .padding(.leading, 4)
+                SectionLabel(text: "Válassz egyet")
+                if !store.filter.fuels.isEmpty {
+                    Button {
+                        store.clearFuels()
+                    } label: {
+                        Text("Kiválasztás törlése")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.leading, 4)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 SettingsGroup {
                     ForEach(Array(FuelType.allCases.enumerated()), id: \.element.id) { index, fuel in
                         if index > 0 { Divider().padding(.leading, 16) }
                         Toggle(fuel.label, isOn: Binding(
                             get: { store.isFuelOn(fuel) },
-                            set: { store.setFuel(fuel, on: $0) }
+                            set: { on in
+                                if on {
+                                    store.clearFuels()
+                                    store.setFuel(fuel, on: true)
+                                } else {
+                                    store.setFuel(fuel, on: false)
+                                }
+                            }
                         ))
                         .tint(Color.green)
                         .padding(.horizontal, 16)
