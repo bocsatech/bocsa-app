@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 /// Autosweb API gyökér — Simulator: localhost; telefon: Mac Wi‑Fi IP (UserDefaults).
 enum AutoswebBaseURL {
