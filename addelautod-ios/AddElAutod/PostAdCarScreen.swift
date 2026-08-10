@@ -859,23 +859,32 @@ struct PostAdCarScreen: View {
     private var allapotList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "Kapcsolók — több is")
-                Button {
-                    store.clearMulti(\.allapotok)
-                } label: {
-                    Text("Összes kikapcsolása")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(AppTheme.accent)
-                        .padding(.leading, 4)
+                SectionLabel(text: "Válassz egyet")
+                if !store.filter.allapotok.isEmpty {
+                    Button {
+                        store.clearMulti(\.allapotok)
+                    } label: {
+                        Text("Kiválasztás törlése")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.leading, 4)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 SettingsGroup {
                     ForEach(Array(DetailedSearchCatalog.allapotok.enumerated()), id: \.element) { index, option in
                         if index > 0 { Divider().padding(.leading, 16) }
                         Toggle(option, isOn: Binding(
                             get: { store.isMultiOn(\.allapotok, value: option) },
-                            set: { store.toggleMulti(\.allapotok, value: option, on: $0) }
+                            set: { on in
+                                if on {
+                                    store.clearMulti(\.allapotok)
+                                    store.toggleMulti(\.allapotok, value: option, on: true)
+                                } else {
+                                    store.toggleMulti(\.allapotok, value: option, on: false)
+                                }
+                            }
                         ))
                         .tint(Color.green)
                         .padding(.horizontal, 16)
