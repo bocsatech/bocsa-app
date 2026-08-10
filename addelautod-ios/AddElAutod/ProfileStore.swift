@@ -20,10 +20,14 @@ struct UserProfile: Codable, Equatable {
     var notifyNewsletter: Bool = false
     /// Gyors kategória keresés: km-sugár az irányítószám körül (helyi, nem szerver)
     var searchRadiusKm: Int = 30
+    /// Szerver `displayName` (ha a kereszt-/vezetéknév még üres)
+    var serverDisplayName: String = ""
 
     var displayName: String {
         let n = "\(lastName) \(firstName)".trimmingCharacters(in: .whitespaces)
         if !n.isEmpty { return n }
+        let s = serverDisplayName.trimmingCharacters(in: .whitespaces)
+        if !s.isEmpty { return s }
         if !email.isEmpty { return email }
         return "Fiók"
     }
@@ -96,14 +100,30 @@ final class ProfileStore: ObservableObject {
     func setAvatar(_ image: UIImage) {
         let resized = Self.resize(image, maxSide: 512)
         avatarImage = resized
-        guard let email = avatarEmailKey(), let data = resized.jpegData(compressionQuality: 0.85) else { return }
+        guard let email = avatarEmailKey(), let data = resized.jpegData(compressionQuality: 0.82) else { return }
         try? data.write(to: avatarFileURL(email: email), options: .atomic)
+        if let token {
+            Task {
+                do {
+                    let user = try await AuthAPI.saveAvatar(token: token, jpegData: data)
+                    applyRemote(user)
+                    saveLocal()
+                } catch {
+                    /* helyi kép megmarad; szerver később */
+                }
+            }
+        }
     }
 
     func clearAvatar() {
         avatarImage = nil
         if let email = avatarEmailKey() {
             try? FileManager.default.removeItem(at: avatarFileURL(email: email))
+        }
+        if let token {
+            Task {
+                _ = try? await AuthAPI.saveAvatar(token: token, jpegData: Data())
+            }
         }
     }
 
@@ -118,6 +138,20 @@ final class ProfileStore: ObservableObject {
             return
         }
         avatarImage = image
+    }
+
+    func applyAvatarFromRemote(_ dataUrl: String?) {
+        guard let dataUrl, !dataUrl.isEmpty,
+              let range = dataUrl.range(of: "base64,"),
+              let data = Data(base64Encoded: String(dataUrl[range.upperBound...])),
+              let image = UIImage(data: data) else {
+            return
+        }
+        let resized = Self.resize(image, maxSide: 512)
+        avatarImage = resized
+        if let email = avatarEmailKey(), let jpeg = resized.jpegData(compressionQuality: 0.82) {
+            try? jpeg.write(to: avatarFileURL(email: email), options: .atomic)
+        }
     }
 
     private func avatarEmailKey() -> String? {
@@ -245,7 +279,11 @@ final class ProfileStore: ObservableObject {
     private func applyRemote(_ user: AuthAPI.RemoteUser) {
         userId = user.id
         profile.apply(remote: user)
-        loadAvatarFromDisk()
+        if let remoteAvatar = user.profile.avatarDataUrl, !remoteAvatar.isEmpty {
+            applyAvatarFromRemote(remoteAvatar)
+        } else {
+            loadAvatarFromDisk()
+        }
     }
 
     private func clearSession() {

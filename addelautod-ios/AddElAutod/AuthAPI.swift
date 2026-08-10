@@ -2,7 +2,7 @@ import Foundation
 
 /// Közös Autosweb fiók API (`/api/auth/*`) — ugyanaz a SQLite users tábla, mint a weben.
 enum AuthAPI {
-  static var baseURL = PartnerRecommendationsClient.baseURL
+  static var baseURL: URL { PartnerRecommendationsClient.baseURL }
 
   struct RemoteUser: Decodable {
     let id: Int
@@ -22,6 +22,8 @@ enum AuthAPI {
     var phone: String?
     var company: String?
     var accountType: String?
+    /// data:image/jpeg;base64,... — közös a weben és az appban
+    var avatarDataUrl: String?
   }
 
   struct AuthResponse: Decodable {
@@ -83,6 +85,24 @@ enum AuthAPI {
     if http.statusCode == 401 { throw AuthError.server(decoded.error ?? "Nem vagy bejelentkezve.") }
     guard http.statusCode < 400, let user = decoded.user else {
       throw AuthError.server(decoded.error ?? "Session érvénytelen.")
+    }
+    return user
+  }
+
+  static func saveAvatar(token: String, jpegData: Data) async throws -> RemoteUser {
+    let b64 = jpegData.base64EncodedString()
+    let dataUrl = "data:image/jpeg;base64,\(b64)"
+    var req = URLRequest(url: baseURL.appendingPathComponent("api/auth/avatar"))
+    req.httpMethod = "PUT"
+    req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    req.setValue("application/json", forHTTPHeaderField: "Accept")
+    req.httpBody = try JSONSerialization.data(withJSONObject: ["avatarDataUrl": dataUrl])
+    let (data, response) = try await perform(req)
+    guard let http = response as? HTTPURLResponse else { throw AuthError.unreachable }
+    let decoded = try JSONDecoder().decode(AuthResponse.self, from: data)
+    guard http.statusCode < 400, let user = decoded.user else {
+      throw AuthError.server(decoded.error ?? "Profilkép mentése sikertelen.")
     }
     return user
   }
@@ -182,6 +202,7 @@ enum AuthAPI {
 extension UserProfile {
   mutating func apply(remote: AuthAPI.RemoteUser) {
     email = remote.email
+    serverDisplayName = remote.displayName
     let p = remote.profile
     if let v = p.salutation { salutation = v }
     if let v = p.firstName { firstName = v }

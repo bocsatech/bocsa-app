@@ -77,6 +77,15 @@ struct SettingsScreen: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(profile.profile.displayName)
                     .font(.body.weight(.semibold))
+                if profile.profile.firstName.isEmpty || profile.profile.lastName.isEmpty {
+                    Text("Töltsd ki a neved a Személyes adatoknál, majd Mentés.")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                } else if !profile.profile.email.isEmpty {
+                    Text(profile.profile.email)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
 
                 HStack(spacing: 8) {
                     PhotosPicker(selection: $photoItem, matching: .images, photoLibrary: .shared()) {

@@ -263,6 +263,15 @@ export async function saveProfile(profile) {
   return data.user.profile;
 }
 
+export async function saveAvatar(avatarDataUrl) {
+  const data = await api("/api/auth/avatar", {
+    method: "PUT",
+    body: { avatarDataUrl: avatarDataUrl || "" },
+  });
+  setSession(data.user, getToken());
+  return data.user;
+}
+
 function loginUrl(nextPath = "/hirdetesfeladas.html") {
   return `/belepes.html?next=${encodeURIComponent(nextPath)}`;
 }

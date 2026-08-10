@@ -145,8 +145,11 @@ enum PartnerRecommendationsDemo {
 }
 
 enum PartnerRecommendationsClient {
-  /// Asztali Autosweb — alap: localhost; telefonon Beállítások → Mac Wi‑Fi IP
-  static var baseURL = AutoswebBaseURL.currentURL()
+  /// Mindig az aktuális Autosweb cím (UserDefaults / Belépés képernyő).
+  static var baseURL: URL {
+    get { AutoswebBaseURL.currentURL() }
+    set { _ = AutoswebBaseURL.set(newValue.absoluteString) }
+  }
 
   /// Irányítószám → település (GET /api/postal-codes/lookup)
   static func lookupCity(postalCode: String) async -> String? {

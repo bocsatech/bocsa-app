@@ -67,7 +67,18 @@ function emptyProfile() {
     phone: "",
     company: "",
     accountType: "private",
+    avatarDataUrl: "",
   };
+}
+
+const MAX_AVATAR_DATA_URL = 350_000;
+
+function sanitizeAvatarDataUrl(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  if (!/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(raw)) return "";
+  if (raw.length > MAX_AVATAR_DATA_URL) return "";
+  return raw;
 }
 
 function parseProfile(raw) {
@@ -83,7 +94,7 @@ function publicUser(row) {
   const profile = parseProfile(row.profile_json);
   const displayName =
     row.display_name ||
-    [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
+    [profile.lastName, profile.firstName].filter(Boolean).join(" ") ||
     row.email.split("@")[0];
   return {
     id: row.id,
@@ -213,6 +224,10 @@ export function saveUserProfile(token, profileInput) {
     throw err;
   }
 
+  const existing = parseProfile(
+    getUsersDb().prepare("SELECT profile_json FROM users WHERE id = ?").get(user.id)?.profile_json
+  );
+
   const next = {
     salutation: String(profileInput.salutation ?? "").trim(),
     firstName: String(profileInput.firstName ?? "").trim(),
@@ -228,7 +243,12 @@ export function saveUserProfile(token, profileInput) {
       : profileInput.accountType === "dealer"
         ? "dealer"
         : "private",
+    avatarDataUrl: existing.avatarDataUrl || "",
   };
+
+  if (Object.prototype.hasOwnProperty.call(profileInput, "avatarDataUrl")) {
+    next.avatarDataUrl = sanitizeAvatarDataUrl(profileInput.avatarDataUrl);
+  }
 
   if (!next.firstName || !next.lastName) {
     const err = new Error("A keresztnév és a vezetéknév kötelező.");
@@ -241,12 +261,30 @@ export function saveUserProfile(token, profileInput) {
     throw err;
   }
 
-  const displayName = [next.firstName, next.lastName].filter(Boolean).join(" ");
+  const displayName = [next.lastName, next.firstName].filter(Boolean).join(" ");
   const db = getUsersDb();
   db.prepare(
     `UPDATE users SET profile_json = ?, display_name = ?, updated_at = datetime('now') WHERE id = ?`
   ).run(JSON.stringify(next), displayName, user.id);
 
+  return { ok: true, user: getUserByToken(token) };
+}
+
+/** Csak profilkép — név/cím kötelező mezők nélkül. */
+export function saveUserAvatar(token, avatarDataUrl) {
+  const user = getUserByToken(token);
+  if (!user) {
+    const err = new Error("Nem vagy bejelentkezve.");
+    err.status = 401;
+    throw err;
+  }
+  const db = getUsersDb();
+  const row = db.prepare("SELECT profile_json, display_name FROM users WHERE id = ?").get(user.id);
+  const profile = parseProfile(row?.profile_json);
+  profile.avatarDataUrl = sanitizeAvatarDataUrl(avatarDataUrl);
+  db.prepare(
+    `UPDATE users SET profile_json = ?, updated_at = datetime('now') WHERE id = ?`
+  ).run(JSON.stringify(profile), user.id);
   return { ok: true, user: getUserByToken(token) };
 }
 
@@ -420,6 +458,12 @@ export async function handleAuthApi(req, res, pathname) {
     if (pathname === "/api/auth/profile" && req.method === "PUT") {
       const body = await readJsonBody(req);
       sendJson(res, 200, saveUserProfile(extractBearerToken(req), body));
+      return true;
+    }
+
+    if (pathname === "/api/auth/avatar" && req.method === "PUT") {
+      const body = await readJsonBody(req);
+      sendJson(res, 200, saveUserAvatar(extractBearerToken(req), body.avatarDataUrl ?? body.avatar ?? ""));
       return true;
     }
 

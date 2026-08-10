@@ -6,9 +6,9 @@ enum AutoswebBaseURL {
     static let defaultsKey = "autosweb.baseURL"
     static let defaultSimulator = "http://127.0.0.1:3456"
 
-    /// Betöltés indításkor + Beállításokból.
+    /// Betöltés indításkor — a baseURL mindig `currentURL()`-t olvas.
     static func applyStored() {
-        PartnerRecommendationsClient.baseURL = currentURL()
+        _ = currentURL()
     }
 
     static func currentString() -> String {

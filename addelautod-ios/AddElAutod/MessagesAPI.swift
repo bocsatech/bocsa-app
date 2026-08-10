@@ -2,7 +2,7 @@ import Foundation
 
 /// Autosweb `/api/messages/*` — szerveren tárolt chat (később VPS-re költöztethető).
 enum MessagesAPI {
-  static var baseURL = PartnerRecommendationsClient.baseURL
+  static var baseURL: URL { PartnerRecommendationsClient.baseURL }
 
   struct ListingInfo: Codable, Equatable {
     let id: String

@@ -2,7 +2,7 @@ import Foundation
 
 /// Autosweb `GET /api/listings` — ugyanaz, mint a webes főoldal rács.
 enum ListingsAPI {
-  static var baseURL = PartnerRecommendationsClient.baseURL
+  static var baseURL: URL { PartnerRecommendationsClient.baseURL }
   static let homeFetchLimit = 500
 
   struct HomeListing: Identifiable, Equatable {
