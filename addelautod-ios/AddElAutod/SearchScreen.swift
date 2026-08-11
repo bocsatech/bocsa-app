@@ -396,8 +396,7 @@ struct SearchScreen: View {
     }
 
     private func searchTeherItemRow(_ item: PostAdCatalog.Item, tint: Color) -> some View {
-        let isKisteher = item.id == "teher-kisteher"
-        return Button {
+        Button {
             if let kind = PostAdCatalog.TruckKind.fromCatalogId(item.id) {
                 store.reset()
                 store.setVehicleKind(kind.rawValue)
@@ -409,23 +408,16 @@ struct SearchScreen: View {
                 RoundedRectangle(cornerRadius: 2, style: .continuous)
                     .fill(tint)
                     .frame(width: 3, height: 28)
-                if isKisteher {
-                    AutoswebCategoryPhotoView(
-                        imageName: AutoswebCategoryPhoto.assetName(forTeherItemId: item.id),
-                        size: AutoswebCategoryPhoto.rowSize
-                    )
-                    .frame(width: AutoswebCategoryPhoto.rowSize, alignment: .center)
-                } else {
-                    Image(systemName: "truck.box.fill")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(tint)
-                        .frame(width: AutoswebCategoryPhoto.rowSize, alignment: .center)
-                }
+                AutoswebCategoryPhotoView(
+                    imageName: AutoswebCategoryPhoto.assetName(forTeherItemId: item.id),
+                    size: AutoswebCategoryPhoto.rowSize
+                )
+                .frame(width: AutoswebCategoryPhoto.rowSize, alignment: .center)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title)
                         .font(.body.weight(.semibold))
                         .foregroundStyle(tint)
-                    Text(isKisteher ? "Max. 3,5 tonna" : "3,5 tonnától")
+                    Text(item.id == "teher-kisteher" ? "Max. 3,5 tonna" : "3,5 tonnától")
                         .font(.caption)
                         .foregroundStyle(AppTheme.textSecondary)
                 }

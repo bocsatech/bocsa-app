@@ -29,7 +29,7 @@ enum AutoswebCategoryPhoto {
         case "teher-kisteher":
             return "kisteher"
         case "teher-teherauto":
-            return "kisteher" // amíg nincs külön teherautó kép
+            return "teherauto"
         default:
             return "kisteher"
         }
