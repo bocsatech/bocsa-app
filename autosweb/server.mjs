@@ -343,6 +343,19 @@ async function handleListingsApi(req, res, pathname) {
     const url = new URL(req.url ?? "", `http://${HOST}`);
     const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 50), 1), 500);
     const status = url.searchParams.get("status");
+    const mineFlag = url.searchParams.get("mine");
+    // Compat: GET /api/listings?mine=1 — ugyanaz, mint /api/listings/mine
+    if (mineFlag === "1" || mineFlag === "true") {
+      const user = getUserByToken(extractBearerToken(req));
+      if (!user) {
+        sendJson(res, 401, { error: "Nem vagy bejelentkezve." });
+        return;
+      }
+      sendJson(res, 200, {
+        listings: listMyListingsWithPreview(user, { limit }),
+      });
+      return;
+    }
     sendJson(res, 200, { listings: listListingsWithPreview({ limit, status }) });
     return;
   }
@@ -736,6 +749,8 @@ const server = createServer(async (req, res) => {
       chrome: findChromeExecutable(),
       haSearch: true,
       users,
+      listingsMine: true,
+      listingPhotos: true,
     });
     return;
   }

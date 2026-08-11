@@ -196,43 +196,103 @@ enum ListingsAPI {
     return try await fetchListings(url: url, token: nil, statusBadge: false)
   }
 
-  /// Bejelentkezett user saját hirdetései (+ eszközön feladott ID-k visszaesés).
+  /// Bejelentkezett user saját hirdetései (+ visszaesés régi Autoswebre).
   static func fetchMyListings(token: String?, limit: Int = 200) async throws -> [HomeListing] {
     guard let token, !token.isEmpty else { throw ListingsError.notLoggedIn }
 
     var byId: [String: HomeListing] = [:]
     var mineError: Error?
 
+    // 1) Modern: /api/listings/mine
     if let mineURL = apiURL("api/listings/mine", query: [URLQueryItem(name: "limit", value: String(limit))]) {
       do {
         let mine = try await fetchListings(url: mineURL, token: token, statusBadge: true)
         for item in mine { byId[item.id] = item }
+        if !byId.isEmpty {
+          return byId.values.sorted { $0.updatedAt > $1.updatedAt }
+        }
       } catch {
         mineError = error
       }
     }
 
+    // 2) Compat: /api/listings?mine=1
+    if byId.isEmpty,
+       let compatURL = apiURL(
+         "api/listings",
+         query: [
+           URLQueryItem(name: "mine", value: "1"),
+           URLQueryItem(name: "limit", value: String(limit)),
+         ]
+       ) {
+      do {
+        let mine = try await fetchListings(url: compatURL, token: token, statusBadge: true)
+        for item in mine { byId[item.id] = item }
+        if !byId.isEmpty {
+          return byId.values.sorted { $0.updatedAt > $1.updatedAt }
+        }
+      } catch {
+        if mineError == nil { mineError = error }
+      }
+    }
+
+    // 3) Eszközön feladott ID-k
     let localIds = PostedListingsStore.ids()
     if !localIds.isEmpty {
       do {
-        let all = try await fetchHomeListings(limit: homeFetchLimit)
+        let all = try await fetchListings(
+          url: apiURL("api/listings", query: [URLQueryItem(name: "limit", value: String(homeFetchLimit))])
+            ?? baseURL,
+          token: nil,
+          statusBadge: true
+        )
         for item in all where localIds.contains(item.id) {
-          if byId[item.id] == nil {
-            byId[item.id] = item.withBadge(item.badge ?? "Feladott")
-          }
+          byId[item.id] = item.withBadge(item.badge ?? "Feladott")
         }
       } catch {
         if byId.isEmpty { throw error }
       }
     }
 
+    // 4) Régi Autosweb (nincs /mine): helyi egyfelhasználós — minden „Feladott” hirdetés
+    if byId.isEmpty, isUnsupportedMineError(mineError) {
+      let all = try await fetchListings(
+        url: apiURL("api/listings", query: [URLQueryItem(name: "limit", value: String(homeFetchLimit))])
+          ?? baseURL,
+        token: nil,
+        statusBadge: true
+      )
+      let feladott = all.filter { $0.badge == "Feladott" }
+      if !feladott.isEmpty { return feladott }
+      throw ListingsError.server(
+        "Régi Autosweb (nincs Hirdetéseim API). Zárdd be, indítsd újra az Autosweb-indito.command-ot online, majd Frissítés."
+      )
+    }
+
     if byId.isEmpty, let mineError {
-      throw mineError
+      throw remapMineError(mineError)
     }
 
     return byId.values.sorted { a, b in
       a.updatedAt > b.updatedAt
     }
+  }
+
+  private static func isUnsupportedMineError(_ error: Error?) -> Bool {
+    guard let error else { return false }
+    let msg = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+    return msg.localizedCaseInsensitiveContains("Nem támogatott")
+      || msg.localizedCaseInsensitiveContains("405")
+      || msg.localizedCaseInsensitiveContains("Ismeretlen API")
+  }
+
+  private static func remapMineError(_ error: Error) -> Error {
+    if isUnsupportedMineError(error) {
+      return ListingsError.server(
+        "Régi Autosweb. Indítsd újra az Autosweb-indito.command-ot online (feature ág), majd Frissítés."
+      )
+    }
+    return error
   }
 
   // MARK: - Fetch helper
@@ -257,6 +317,9 @@ enum ListingsAPI {
       let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
       if http.statusCode == 401 {
         throw ListingsError.notLoggedIn
+      }
+      if http.statusCode == 405 || err == "Nem támogatott művelet." {
+        throw ListingsError.server("Nem támogatott művelet.")
       }
       if err == "Ismeretlen API." {
         throw ListingsError.server("Régi Autosweb — indítsd újra az Autosweb-indito.command-ot.")
