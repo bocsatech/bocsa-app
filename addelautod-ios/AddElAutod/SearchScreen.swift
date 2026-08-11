@@ -3,7 +3,9 @@ import UIKit
 
 struct SearchScreen: View {
     @EnvironmentObject private var store: SearchStore
-    /// Beállítások — auth-guard mint a weben
+    /// Főoldal „Fiók” ikon → fiókmenü
+    var onOpenAccount: (() -> Void)? = nil
+    /// Keresési körzet / irányítószám — Beállítások
     var onOpenSettings: (() -> Void)? = nil
 
     @State private var mode: Mode = .landing
@@ -130,7 +132,7 @@ struct SearchScreen: View {
         }
     }
 
-    /// Felső sor: Keresés, Közelben, Új hirdetések, Hirdetés feladás → autóikonok → Üzenetek / Beállítások
+    /// Felső sor: Keresés, Közelben, Új hirdetések, Hirdetés feladás → autóikonok → Üzenetek / Fiók
     private var searchLanding: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -189,14 +191,12 @@ struct SearchScreen: View {
                         openMessages(from: .landing, target: nil)
                     }
                     HomeIconButton(
-                        systemName: "gearshape.fill",
-                        label: "Beállítások",
+                        systemName: "person.crop.circle.fill",
+                        label: "Fiók",
                         tint: Color(red: 0.55, green: 0.58, blue: 0.62)
                     ) {
-                        if let onOpenSettings {
-                            onOpenSettings()
-                        } else {
-                            mode = .settings
+                        if let onOpenAccount {
+                            onOpenAccount()
                         }
                     }
                 }

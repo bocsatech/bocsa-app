@@ -128,7 +128,10 @@ struct ContentView: View {
         case .kiemeltek:
             FeaturedScreen()
         case .foOldal:
-            SearchScreen(onOpenSettings: { showSettings = true })
+            SearchScreen(
+                onOpenAccount: { showAccountMenu = true },
+                onOpenSettings: { showSettings = true }
+            )
         case .mentettKeresesek:
             SavedSearchesScreen(onOpenSearch: {
                 if let idx = pageLayout.index(of: .foOldal) {
