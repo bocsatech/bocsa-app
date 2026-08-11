@@ -295,13 +295,14 @@ final class ProfileStore: ObservableObject {
             applyAvatarFromRemote(remote)
         } else if preferLocalAvatar {
             // Feltöltés után: ha a szerver nem adta vissza a képet, tartsd a helyit.
-            if avatarImage == nil { loadAvatarFromDisk() }
-            else { persistAvatarToDisk(avatarImage!) }
-        } else {
-            // Session restore: előbb lemez, ne nil-ezd a memóriát ha a fájl hiányzik.
-            if avatarImage == nil {
+            if let avatarImage {
+                persistAvatarToDisk(avatarImage)
+            } else {
                 loadAvatarFromDisk()
             }
+        } else if avatarImage == nil {
+            // Session restore: ne nil-ezd a memóriát, ha a fájl hiányzik.
+            loadAvatarFromDisk()
         }
     }
 
