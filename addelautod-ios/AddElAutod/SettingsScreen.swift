@@ -46,8 +46,6 @@ struct SettingsScreen: View {
                     accordion(.autosweb, title: "Autosweb (Wi‑Fi)") {
                         autoswebFields
                     }
-
-                    logoutCard
                 }
                 .padding(16)
                 .padding(.bottom, 32)
@@ -424,27 +422,6 @@ struct SettingsScreen: View {
 
     private var autoswebFields: some View {
         AutoswebServerSettingsCard(compact: true, onMessage: { toast = $0 })
-    }
-
-    // MARK: - Kijelentkezés
-
-    private var logoutCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Kijelentkezés")
-                .font(.headline)
-            Button {
-                Task { await profile.logout() }
-            } label: {
-                Text("Kijelentkezés")
-                    .font(.body.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-            }
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     // MARK: - Shared
