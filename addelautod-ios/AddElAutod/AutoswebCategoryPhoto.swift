@@ -22,6 +22,18 @@ enum AutoswebCategoryPhoto {
             return QuickCategory.uj.imageName
         }
     }
+
+    /// Teher menüpont → asset név.
+    static func assetName(forTeherItemId id: String) -> String {
+        switch id {
+        case "teher-kisteher":
+            return "kisteher"
+        case "teher-teherauto":
+            return "kisteher" // amíg nincs külön teherautó kép
+        default:
+            return "kisteher"
+        }
+    }
 }
 
 /// Ugyanaz a képstílus, mint a főoldali Autókeresés kategóriakártyákon.

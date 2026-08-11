@@ -89,7 +89,7 @@ struct PostAdScreen: View {
                     section: .teher,
                     title: "Teherautó hirdetés",
                     subtitle: "Kisteher és teherautó",
-                    systemImage: "truck.box.fill",
+                    photoAsset: AutoswebCategoryPhoto.assetName(forTeherItemId: "teher-kisteher"),
                     tint: teherTint
                 ) {
                     teherItemList
@@ -266,7 +266,8 @@ struct PostAdScreen: View {
     }
 
     private func teherItemRow(_ item: PostAdCatalog.Item) -> some View {
-        Button {
+        let isKisteher = item.id == "teher-kisteher"
+        return Button {
             if let kind = PostAdCatalog.TruckKind.fromCatalogId(item.id) {
                 truckKind = kind
             }
@@ -276,16 +277,24 @@ struct PostAdScreen: View {
                     .fill(teherTint)
                     .frame(width: 3, height: 28)
 
-                Image(systemName: "truck.box.fill")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(teherTint)
-                    .frame(width: 28, alignment: .center)
+                if isKisteher {
+                    AutoswebCategoryPhotoView(
+                        imageName: AutoswebCategoryPhoto.assetName(forTeherItemId: item.id),
+                        size: AutoswebCategoryPhoto.rowSize
+                    )
+                    .frame(width: AutoswebCategoryPhoto.rowSize, alignment: .center)
+                } else {
+                    Image(systemName: "truck.box.fill")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(teherTint)
+                        .frame(width: AutoswebCategoryPhoto.rowSize, alignment: .center)
+                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title)
                         .font(.body.weight(.semibold))
                         .foregroundStyle(teherTint)
-                    Text(item.id == "teher-kisteher" ? "Max. 3,5 tonna" : "3,5 tonnától")
+                    Text(isKisteher ? "Max. 3,5 tonna" : "3,5 tonnától")
                         .font(.caption)
                         .foregroundStyle(AppTheme.textSecondary)
                 }
