@@ -130,18 +130,19 @@ enum ListingsAPI {
     }
   }
 
-  /// Új hirdetés feladása → `POST /api/listings` (listings.db, status: feladott).
-  /// `photos`: base64 JPEG lista, első = főkép.
-  /// `token`: kötelező feladáskor → user_id (Hirdetéseim).
+  /// Új / szerkesztett hirdetés → `POST /api/listings` (`id` = frissítés).
+  /// `photos`: base64 JPEG lista; szerkesztéskor üres = megmaradnak a régi képek.
   @discardableResult
   static func saveListing(
     form: [String: Any],
     status: String = "feladott",
     photos: [String] = [],
-    token: String? = nil
+    token: String? = nil,
+    listingId: Int? = nil
   ) async throws -> Int {
     guard let token, !token.isEmpty else { throw ListingsError.notLoggedIn }
-    if status == "feladott", photos.isEmpty { throw ListingsError.needsPhoto }
+    let isEdit = listingId != nil
+    if status == "feladott", photos.isEmpty, !isEdit { throw ListingsError.needsPhoto }
     guard let url = apiURL("api/listings") else { throw ListingsError.unreachable }
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
@@ -150,6 +151,7 @@ enum ListingsAPI {
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     var body: [String: Any] = ["form": form, "status": status]
+    if let listingId { body["id"] = listingId }
     if !photos.isEmpty {
       body["photos"] = photos
     }
@@ -188,6 +190,92 @@ enum ListingsAPI {
     return id
   }
 
+  static func deleteListing(id: String, token: String?) async throws {
+    guard let token, !token.isEmpty else { throw ListingsError.notLoggedIn }
+    guard let url = apiURL("api/listings/\(id)") else { throw ListingsError.unreachable }
+    var request = URLRequest(url: url)
+    request.httpMethod = "DELETE"
+    request.timeoutInterval = 25
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    let data: Data
+    let response: URLResponse
+    do {
+      (data, response) = try await URLSession.shared.data(for: request)
+    } catch {
+      throw ListingsError.unreachable
+    }
+    guard let http = response as? HTTPURLResponse else { throw ListingsError.unreachable }
+    if http.statusCode >= 400 {
+      let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+      if http.statusCode == 401 { throw ListingsError.notLoggedIn }
+      throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
+    }
+  }
+
+  /// Szerkesztéshez: nyers form mezők stringként.
+  static func fetchFormStrings(id: String) async throws -> [String: String] {
+    guard let url = apiURL("api/listings/\(id)") else { throw ListingsError.unreachable }
+    var request = URLRequest(url: url)
+    request.timeoutInterval = 25
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    let data: Data
+    let response: URLResponse
+    do {
+      (data, response) = try await URLSession.shared.data(for: request)
+    } catch {
+      throw ListingsError.unreachable
+    }
+    guard let http = response as? HTTPURLResponse else { throw ListingsError.unreachable }
+    if http.statusCode >= 400 {
+      let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+      throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
+    }
+    struct Wrap: Decodable {
+      let listing: FormListing?
+    }
+    struct FormListing: Decodable {
+      let form: [String: FormJSONValue]?
+    }
+    let wrap = try JSONDecoder().decode(Wrap.self, from: data)
+    guard let form = wrap.listing?.form else {
+      throw ListingsError.server("Hirdetés nem található.")
+    }
+    var out: [String: String] = [:]
+    for (k, v) in form {
+      if let s = v.stringValue, !s.isEmpty { out[k] = s }
+    }
+    return out
+  }
+
+  private enum FormJSONValue: Decodable {
+    case string(String)
+    case number(Double)
+    case bool(Bool)
+    case array([String])
+    case null
+
+    init(from decoder: Decoder) throws {
+      let c = try decoder.singleValueContainer()
+      if c.decodeNil() { self = .null; return }
+      if let b = try? c.decode(Bool.self) { self = .bool(b); return }
+      if let n = try? c.decode(Double.self) { self = .number(n); return }
+      if let s = try? c.decode(String.self) { self = .string(s); return }
+      if let a = try? c.decode([String].self) { self = .array(a); return }
+      self = .null
+    }
+
+    var stringValue: String? {
+      switch self {
+      case .string(let s): return s
+      case .number(let n): return n == floor(n) ? String(Int(n)) : String(n)
+      case .bool(let b): return b ? "1" : "0"
+      case .array(let a): return a.joined(separator: ", ")
+      case .null: return nil
+      }
+    }
+  }
+
   /// Webes főoldal: összes hirdetés, legújabb elöl.
   static func fetchHomeListings(limit: Int = homeFetchLimit) async throws -> [HomeListing] {
     guard let url = apiURL("api/listings", query: [URLQueryItem(name: "limit", value: String(limit))]) else {
@@ -204,20 +292,20 @@ enum ListingsAPI {
     var mineError: Error?
 
     // 1) Modern: /api/listings/mine
+    var mineOK = false
     if let mineURL = apiURL("api/listings/mine", query: [URLQueryItem(name: "limit", value: String(limit))]) {
       do {
         let mine = try await fetchListings(url: mineURL, token: token, statusBadge: true)
+        mineOK = true
         for item in mine { byId[item.id] = item }
-        if !byId.isEmpty {
-          return byId.values.sorted { $0.updatedAt > $1.updatedAt }
-        }
+        return byId.values.sorted { $0.updatedAt > $1.updatedAt }
       } catch {
         mineError = error
       }
     }
 
     // 2) Compat: /api/listings?mine=1
-    if byId.isEmpty,
+    if !mineOK,
        let compatURL = apiURL(
          "api/listings",
          query: [
@@ -228,24 +316,24 @@ enum ListingsAPI {
       do {
         let mine = try await fetchListings(url: compatURL, token: token, statusBadge: true)
         for item in mine { byId[item.id] = item }
-        if !byId.isEmpty {
-          return byId.values.sorted { $0.updatedAt > $1.updatedAt }
-        }
+        return byId.values.sorted { $0.updatedAt > $1.updatedAt }
       } catch {
         if mineError == nil { mineError = error }
       }
+    }
+
+    guard let listURL = apiURL(
+      "api/listings",
+      query: [URLQueryItem(name: "limit", value: String(homeFetchLimit))]
+    ) else {
+      throw ListingsError.unreachable
     }
 
     // 3) Eszközön feladott ID-k
     let localIds = PostedListingsStore.ids()
     if !localIds.isEmpty {
       do {
-        let all = try await fetchListings(
-          url: apiURL("api/listings", query: [URLQueryItem(name: "limit", value: String(homeFetchLimit))])
-            ?? baseURL,
-          token: nil,
-          statusBadge: true
-        )
+        let all = try await fetchListings(url: listURL, token: nil, statusBadge: true)
         for item in all where localIds.contains(item.id) {
           byId[item.id] = item.withBadge(item.badge ?? "Feladott")
         }
@@ -254,14 +342,13 @@ enum ListingsAPI {
       }
     }
 
-    // 4) Régi Autosweb (nincs /mine): helyi egyfelhasználós — minden „Feladott” hirdetés
-    if byId.isEmpty, isUnsupportedMineError(mineError) {
-      let all = try await fetchListings(
-        url: apiURL("api/listings", query: [URLQueryItem(name: "limit", value: String(homeFetchLimit))])
-          ?? baseURL,
-        token: nil,
-        statusBadge: true
-      )
+    if !byId.isEmpty {
+      return byId.values.sorted { $0.updatedAt > $1.updatedAt }
+    }
+
+    // 4) Régi Autosweb (nincs /mine): minden „Feladott” (helyi egyfelhasználós)
+    if isUnsupportedMineError(mineError) {
+      let all = try await fetchListings(url: listURL, token: nil, statusBadge: true)
       let feladott = all.filter { $0.badge == "Feladott" }
       if !feladott.isEmpty { return feladott }
       throw ListingsError.server(
@@ -269,13 +356,11 @@ enum ListingsAPI {
       )
     }
 
-    if byId.isEmpty, let mineError {
+    if let mineError {
       throw remapMineError(mineError)
     }
 
-    return byId.values.sorted { a, b in
-      a.updatedAt > b.updatedAt
-    }
+    return []
   }
 
   private static func isUnsupportedMineError(_ error: Error?) -> Bool {

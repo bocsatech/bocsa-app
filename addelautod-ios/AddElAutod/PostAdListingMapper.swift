@@ -153,6 +153,125 @@ enum PostAdListingMapper {
         return form
     }
 
+    /// Név + telefon a hirdetés űrlapba (Beállításokból előtöltve, szerkeszthető).
+    static func applyContact(
+        to form: inout [String: Any],
+        name: String,
+        phone: String,
+        email: String
+    ) {
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !n.isEmpty { form["hirdeto_nev"] = n }
+        let e = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !e.isEmpty { form["email"] = e }
+        let parts = parsePhoneParts(phone)
+        if let orszag = parts.orszag { form["telefon1_orszag"] = orszag }
+        if let korzet = parts.korzet { form["telefon1_korzet"] = korzet }
+        if let szam = parts.szam { form["telefon1_szam"] = szam }
+    }
+
+    static func parsePhoneParts(_ raw: String) -> (orszag: String?, korzet: String?, szam: String?) {
+        var digits = raw.filter(\.isNumber)
+        guard !digits.isEmpty else { return (nil, nil, nil) }
+        var orszag = "+36"
+        if digits.hasPrefix("36"), digits.count > 2 {
+            digits = String(digits.dropFirst(2))
+        } else if digits.hasPrefix("06"), digits.count > 2 {
+            digits = String(digits.dropFirst(2))
+        }
+        guard digits.count >= 7 else {
+            return (orszag, nil, digits)
+        }
+        let korzet = String(digits.prefix(2))
+        let rest = String(digits.dropFirst(2))
+        let formatted: String = {
+            if rest.count > 3 {
+                let i = rest.index(rest.startIndex, offsetBy: 3)
+                return "\(rest[..<i]) \(rest[i...])"
+            }
+            return rest
+        }()
+        return (orszag, korzet, formatted)
+    }
+
+    static func joinPhone(orszag: String, korzet: String, szam: String) -> String {
+        let parts = [orszag, korzet, szam]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return parts.joined(separator: " ")
+    }
+
+    /// Mentett űrlap → szerkesztő filter + leírás + elérhetőség.
+    static func loadEditState(from form: [String: String]) -> (
+        filter: SearchFilter,
+        leiras: String,
+        contactName: String,
+        contactPhone: String
+    ) {
+        var filter = SearchFilter()
+        func s(_ key: String) -> String {
+            (form[key] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        func i(_ key: String) -> Int? {
+            let digits = s(key).filter(\.isNumber)
+            return digits.isEmpty ? nil : Int(digits)
+        }
+
+        if !s("gyartmany").isEmpty { filter.gyartmanyok = [s("gyartmany")] }
+        if !s("modell").isEmpty { filter.modellek = [s("modell")] }
+        if let y = i("gyartasi_ev") { filter.evTol = y; filter.evIg = y }
+        if let km = i("km") { filter.kmTol = km; filter.kmIg = km }
+        if let ar = i("vetelar") ?? i("akcios_ar") { filter.arTol = ar; filter.arIg = ar }
+        if let fuel = fuelFromLabel(s("uzemanyag")) { filter.fuels = [fuel] }
+        if !s("allapot").isEmpty { filter.allapotok = [s("allapot")] }
+        if !s("kivitel").isEmpty { filter.kiviteles = [s("kivitel")] }
+        if !s("ajtok").isEmpty { filter.ajtok = [s("ajtok")] }
+        if !s("szemelyek").isEmpty { filter.szemelyek = [s("szemelyek")] }
+        if !s("hajtas").isEmpty { filter.hajtasok = [s("hajtas")] }
+        if !s("okmany_jelleg").isEmpty { filter.okmanyJellegek = [s("okmany_jelleg")] }
+        if !s("okmany_ervenyesseg").isEmpty { filter.okmanyErvenyesseg = [s("okmany_ervenyesseg")] }
+        if !s("hirdeto").isEmpty { filter.hirdetok = [s("hirdeto")] }
+        if let h = i("hengerurtartalom") { filter.hengerCm3Tol = h; filter.hengerCm3Ig = h }
+        if let kw = i("teljesitmeny_kw") { filter.kwTol = kw; filter.kwIg = kw }
+        if !s("sebessegvalto").isEmpty { filter.sebessegvaltok = [s("sebessegvalto")] }
+        if !s("szin").isEmpty { filter.szinek = [s("szin")] }
+        if !s("klima").isEmpty { filter.klima = s("klima") }
+        if !s("jarmu_kategoria").isEmpty { filter.vehicleKind = s("jarmu_kategoria") }
+
+        let leiras = s("leiras")
+        let name = s("hirdeto_nev")
+        let phone = joinPhone(orszag: s("telefon1_orszag"), korzet: s("telefon1_korzet"), szam: s("telefon1_szam"))
+        return (filter, leiras, name, phone)
+    }
+
+    /// Szerkesztéskor: meglévő form + új mezők; gyártmány/típus (modell) + képek megmaradnak, ha nincs új fotó.
+    static func mergeForEdit(
+        base: [String: String],
+        overlay: [String: Any],
+        lockBrandAndType: Bool
+    ) -> [String: Any] {
+        var out: [String: Any] = [:]
+        for (k, v) in base where !v.isEmpty {
+            out[k] = v
+        }
+        for (k, v) in overlay {
+            out[k] = v
+        }
+        if lockBrandAndType {
+            if let g = base["gyartmany"], !g.isEmpty { out["gyartmany"] = g }
+            if let m = base["modell"], !m.isEmpty { out["modell"] = m }
+            if let t = base["tipus"], !t.isEmpty { out["tipus"] = t }
+        }
+        // Képek: ha az overlay nem küld új fo_kep-et, marad a régi
+        if out["fo_kep"] == nil, let fo = base["fo_kep"], !fo.isEmpty {
+            out["fo_kep"] = fo
+        }
+        if out["kepek"] == nil, let k = base["kepek"], !k.isEmpty {
+            out["kepek"] = k
+        }
+        return out
+    }
+
     private static func fuelFormLabel(_ fuel: FuelType) -> String {
         switch fuel {
         case .benzin: return "Benzin"
@@ -161,5 +280,15 @@ enum PostAdListingMapper {
         case .elektromos: return "Elektromos"
         case .benzinGaz: return "Benzin/Gáz"
         }
+    }
+
+    private static func fuelFromLabel(_ raw: String) -> FuelType? {
+        let v = raw.lowercased()
+        if v.contains("dízel") || v.contains("diesel") { return .diesel }
+        if v.contains("hibrid") || v.contains("hybrid") { return .hybrid }
+        if v.contains("elektrom") { return .elektromos }
+        if v.contains("gáz") || v.contains("gaz") { return .benzinGaz }
+        if v.contains("benzin") { return .benzin }
+        return nil
     }
 }

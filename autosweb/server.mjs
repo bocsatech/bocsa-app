@@ -388,10 +388,22 @@ async function handleListingsApi(req, res, pathname) {
 
     const user = getUserByToken(extractBearerToken(req));
     const wantsPhotos = Array.isArray(body.photos) && body.photos.length > 0;
-    // Mobil kép-feltöltés: kötelező bejelentkezés → user_id / Hirdetéseim
-    if (wantsPhotos && !user) {
+    const isUpdate = listingId != null && Number.isFinite(listingId);
+    // Mobil kép-feltöltés / feladás / szerkesztés: bejelentkezés
+    if ((wantsPhotos || isUpdate) && !user) {
       sendJson(res, 401, { error: "Bejelentkezés szükséges a hirdetésfeladáshoz." });
       return;
+    }
+    if (isUpdate) {
+      const existing = getListing(listingId);
+      if (!existing) {
+        sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
+        return;
+      }
+      if (existing.user_id != null && Number(existing.user_id) !== Number(user.id)) {
+        sendJson(res, 403, { error: "Ehhez a hirdetéshez nincs jogosultságod." });
+        return;
+      }
     }
     const ownerOpts =
       user != null
@@ -424,7 +436,22 @@ async function handleListingsApi(req, res, pathname) {
   }
 
   if (idMatch && req.method === "DELETE") {
-    deleteListing(Number(idMatch[1]));
+    const user = getUserByToken(extractBearerToken(req));
+    if (!user) {
+      sendJson(res, 401, { error: "Bejelentkezés szükséges." });
+      return;
+    }
+    const id = Number(idMatch[1]);
+    const existing = getListing(id);
+    if (!existing) {
+      sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
+      return;
+    }
+    if (existing.user_id != null && Number(existing.user_id) !== Number(user.id)) {
+      sendJson(res, 403, { error: "Ehhez a hirdetéshez nincs jogosultságod." });
+      return;
+    }
+    deleteListing(id);
     sendJson(res, 200, { ok: true });
     return;
   }

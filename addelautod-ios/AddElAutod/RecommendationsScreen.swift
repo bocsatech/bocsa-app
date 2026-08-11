@@ -26,8 +26,8 @@ struct RecommendationsScreen: View {
       ScreenHeader(
         title: "Ajánlások",
         subtitle: subtitle,
-        rightLabel: loading ? nil : "Frissítés",
-        onRight: loading ? nil : { Task { await loadRecommendations() } }
+        rightLabel: "Frissítés",
+        onRight: { Task { await loadRecommendations() } }
       )
 
       if loading {

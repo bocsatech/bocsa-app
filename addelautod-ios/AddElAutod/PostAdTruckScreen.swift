@@ -7,6 +7,8 @@ struct PostAdTruckScreen: View {
     @EnvironmentObject private var profile: ProfileStore
     let kind: PostAdCatalog.TruckKind
     var onClose: () -> Void
+    var editingListingId: Int? = nil
+    var onSaved: (() -> Void)? = nil
 
     @StateObject private var store = SearchStore(persistSavedSearches: false)
     @StateObject private var photoStore = PostAdPhotoStore()
@@ -15,11 +17,17 @@ struct PostAdTruckScreen: View {
     @State private var panel: Panel = .list
     @State private var brandQuery = ""
     @State private var leiras = ""
+    @State private var contactName = ""
+    @State private var contactPhone = ""
     @State private var toast: String?
     @State private var posting = false
+    @State private var loadingEdit = false
+    @State private var editBaseline: [String: String]?
     @State private var libraryItems: [PhotosPickerItem] = []
     @State private var showCamera = false
     @FocusState private var focusedField: FormFocus?
+
+    private var isEditing: Bool { editingListingId != nil }
 
     private enum AccordionSection: String, Hashable {
         case kepek, alap, muszaki, akku, rakter, extrak
@@ -38,7 +46,7 @@ struct PostAdTruckScreen: View {
         case year, km, price, henger, kw, nyomatek, sajatTomeg, osszTomeg
         case akku, akkuJelen, acKw, dcKw, wltp, autopalya, teli
         case rakterTerf, rakterH, rakterSz, rakterM, doblemez
-        case leiras, brandSearch
+        case leiras, brandSearch, contactName, contactPhone
     }
 
     private var isShowingMainForm: Bool {
@@ -50,11 +58,13 @@ struct PostAdTruckScreen: View {
         ZStack {
             VStack(spacing: 0) {
                 ScreenHeader(
-                    title: kind.title,
-                    subtitle: "\(kind.subtitle) · Hirdetés feladás",
+                    title: isEditing ? "Szerkesztés" : kind.title,
+                    subtitle: isEditing
+                        ? "Gyártmány és típus nem módosítható"
+                        : "\(kind.subtitle) · Hirdetés feladás",
                     onBack: onClose,
-                    rightLabel: "Törlés",
-                    onRight: resetDraft
+                    rightLabel: isEditing ? nil : "Törlés",
+                    onRight: isEditing ? nil : resetDraft
                 )
                 mainScroll
             }
@@ -70,10 +80,24 @@ struct PostAdTruckScreen: View {
                 .background(AppTheme.bgGrouped)
                 .onAppear { dismissKeyboard() }
             }
+
+            if loadingEdit {
+                ZStack {
+                    Color.black.opacity(0.12).ignoresSafeArea()
+                    ProgressView("Betöltés…")
+                        .padding(20)
+                        .background(AppTheme.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
         }
         .background(AppTheme.bgGrouped)
-        .onAppear {
+        .task {
             store.filter.vehicleKind = kind.rawValue
+            if isEditing {
+                await loadForEdit()
+            } else {
+                prefillContactFromProfile()
+            }
         }
         .onChange(of: panel) { _, _ in dismissKeyboard() }
         .onChange(of: openAccordion) { _, _ in dismissKeyboard() }
@@ -83,7 +107,7 @@ struct PostAdTruckScreen: View {
                 Button("Kész") { dismissKeyboard() }.fontWeight(.semibold)
             }
         }
-        .alert(kind.title, isPresented: Binding(
+        .alert(isEditing ? "Szerkesztés" : kind.title, isPresented: Binding(
             get: { toast != nil },
             set: { if !$0 { toast = nil } }
         )) {
@@ -105,6 +129,36 @@ struct PostAdTruckScreen: View {
         .onChange(of: libraryItems) { _, items in
             guard !items.isEmpty else { return }
             Task { await importLibraryItems(items) }
+        }
+    }
+
+    private func prefillContactFromProfile() {
+        if contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            contactName = profile.profile.displayName
+        }
+        if contactPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            contactPhone = profile.profile.phone
+        }
+    }
+
+    @MainActor
+    private func loadForEdit() async {
+        guard let id = editingListingId else { return }
+        loadingEdit = true
+        defer { loadingEdit = false }
+        do {
+            let form = try await ListingsAPI.fetchFormStrings(id: String(id))
+            let state = PostAdListingMapper.loadEditState(from: form)
+            store.filter = state.filter
+            store.filter.vehicleKind = kind.rawValue
+            leiras = state.leiras
+            contactName = state.contactName
+            contactPhone = state.contactPhone
+            prefillContactFromProfile()
+            editBaseline = form
+            openAccordion = .alap
+        } catch {
+            toast = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
 
@@ -224,7 +278,11 @@ struct PostAdTruckScreen: View {
 
     private var alapBody: some View {
         VStack(spacing: 0) {
-            SettingsRow(title: "Márka", value: store.filter.brandLabel) { open(.brand) }
+            if isEditing {
+                SettingsRow(title: "Márka / Modell", value: brandModelLockedValue, showChevron: false, action: nil)
+            } else {
+                SettingsRow(title: "Márka", value: store.filter.brandLabel) { open(.brand) }
+            }
             Divider().padding(.leading, 16)
             numberRow("Évjárat", placeholder: "pl. 2018", focus: .year, binding: intBinding(\.evTol, \.evIg))
             Divider().padding(.leading, 16)
@@ -333,8 +391,26 @@ struct PostAdTruckScreen: View {
         }
     }
 
+    private var brandModelLockedValue: String {
+        let brand = store.filter.brandLabel
+        let model = store.filter.modelLabel
+        if brand == "Mindegy" || brand.isEmpty { return "—" }
+        if model == "Mindegy" || model.isEmpty { return brand }
+        return "\(brand) · \(model)"
+    }
+
     private var leirasAndPost: some View {
         VStack(alignment: .leading, spacing: 12) {
+            SectionLabel(text: "Elérhetőség")
+            Text("Beállításokból előtöltve — módosíthatod.")
+                .font(.caption)
+                .foregroundStyle(AppTheme.textTertiary)
+            SettingsGroup {
+                contactRow(title: "Név", placeholder: "Kapcsolattartó neve", text: $contactName, focus: .contactName, phone: false)
+                Divider().padding(.leading, 16)
+                contactRow(title: "Telefon", placeholder: "+36 …", text: $contactPhone, focus: .contactPhone, phone: true)
+            }
+
             SectionLabel(text: "Leírás")
             Group {
                 if isShowingMainForm {
@@ -353,20 +429,58 @@ struct PostAdTruckScreen: View {
             .background(AppTheme.bgElevated)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
+            if isEditing {
+                Text("Új kép opcionális — ha nem választasz, a meglévők megmaradnak.")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textTertiary)
+            }
+
             Button {
                 Task { await submit() }
             } label: {
-                Text(posting ? "Küldés…" : "Hirdetés feladás")
+                Text(posting
+                     ? "Mentés…"
+                     : (isEditing ? "Módosítások mentése" : "Hirdetés feladás"))
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .foregroundStyle(.white)
-                    .background(AppTheme.accent)
+                    .background(AppTheme.accent.opacity(posting || loadingEdit ? 0.45 : 1))
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .disabled(posting)
+            .disabled(posting || loadingEdit)
             .buttonStyle(.plain)
         }
+    }
+
+    private func contactRow(
+        title: String,
+        placeholder: String,
+        text: Binding<String>,
+        focus: FormFocus,
+        phone: Bool
+    ) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .foregroundStyle(AppTheme.text)
+                .font(.body)
+            if isShowingMainForm {
+                TextField(placeholder, text: text)
+                    .keyboardType(phone ? .phonePad : .default)
+                    .textContentType(phone ? .telephoneNumber : .name)
+                    .textInputAutocapitalization(phone ? .never : .words)
+                    .focused($focusedField, equals: focus)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(AppTheme.textSecondary)
+            } else {
+                Text(text.wrappedValue.isEmpty ? placeholder : text.wrappedValue)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .padding(.horizontal, 16)
+        .frame(minHeight: 52)
     }
 
     // MARK: - Subpanels
@@ -618,6 +732,9 @@ struct PostAdTruckScreen: View {
         store.filter.vehicleKind = kind.rawValue
         photoStore.clear()
         leiras = ""
+        contactName = ""
+        contactPhone = ""
+        prefillContactFromProfile()
     }
 
     private func dismissKeyboard() {
@@ -753,7 +870,7 @@ struct PostAdTruckScreen: View {
             toast = "A feladáshoz be kell jelentkezned."
             return
         }
-        if photoStore.photos.isEmpty {
+        if !isEditing, photoStore.photos.isEmpty {
             openAccordion = .kepek
             toast = "Legalább egy fénykép kell a feladáshoz."
             return
@@ -762,19 +879,38 @@ struct PostAdTruckScreen: View {
         defer { posting = false }
         store.filter.vehicleKind = kind.rawValue
         var form = PostAdListingMapper.formData(from: store.filter, leiras: leiras, vehicleTitle: kind.title)
-        let email = profile.profile.email.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !email.isEmpty { form["email"] = email }
+        PostAdListingMapper.applyContact(
+            to: &form,
+            name: contactName,
+            phone: contactPhone,
+            email: profile.profile.email
+        )
+        if isEditing, let baseline = editBaseline {
+            form = PostAdListingMapper.mergeForEdit(
+                base: baseline,
+                overlay: form,
+                lockBrandAndType: true
+            )
+        }
         do {
             let photos = photoStore.base64Payloads()
-            _ = try await ListingsAPI.saveListing(
+            let id = try await ListingsAPI.saveListing(
                 form: form,
                 status: "feladott",
                 photos: photos,
-                token: profile.token
+                token: profile.token,
+                listingId: editingListingId
             )
-            toast = "Hirdetés elmentve. Megjelenik a Kiemeltek / Hirdetéseim között."
-            resetDraft()
-            openAccordion = .kepek
+            if isEditing {
+                toast = "Módosítások elmentve (#\(id))."
+                onSaved?()
+                onClose()
+            } else {
+                toast = "Hirdetés elmentve. Megjelenik a Kiemeltek / Hirdetéseim között."
+                resetDraft()
+                openAccordion = .kepek
+                onSaved?()
+            }
         } catch {
             toast = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }

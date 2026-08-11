@@ -81,6 +81,7 @@ export const FORM_FIELD_CATALOG = [
   { field_key: "megtekintesi_cim", label: "Megtekintési cím", step: 5 },
   { field_key: "email_megjelenik", label: "Megjelenjen az email címe", step: 5 },
   { field_key: "email", label: "E-mail", step: 5 },
+  { field_key: "hirdeto_nev", label: "Hirdető neve", step: 5 },
   { field_key: "telefon1_orszag", label: "Telefon 1 országkód", step: 5 },
   { field_key: "telefon1_korzet", label: "Telefon 1 körzet", step: 5 },
   { field_key: "telefon1_szam", label: "Telefon 1 szám", step: 5 },

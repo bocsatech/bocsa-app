@@ -8,6 +8,9 @@ struct PostAdCarScreen: View {
     @StateObject private var store = SearchStore(persistSavedSearches: false)
     @StateObject private var photoStore = PostAdPhotoStore()
     var onClose: () -> Void
+    /// Ha meg van adva: szerkesztés (gyártmány / típus zárolva).
+    var editingListingId: Int? = nil
+    var onSaved: (() -> Void)? = nil
 
     @State private var panel: Panel = .simple
     @State private var listPanel: Panel = .simple
@@ -15,10 +18,16 @@ struct PostAdCarScreen: View {
     @State private var brandQuery = ""
     @State private var toast: String?
     @State private var leiras: String = ""
+    @State private var contactName: String = ""
+    @State private var contactPhone: String = ""
     @State private var posting = false
+    @State private var loadingEdit = false
+    @State private var editBaseline: [String: String]?
     @State private var libraryItems: [PhotosPickerItem] = []
     @State private var showCamera = false
     @FocusState private var focusedField: FormFocus?
+
+    private var isEditing: Bool { editingListingId != nil }
 
     private enum Panel: Equatable {
         case simple, advanced, brand, model(String), fuel, allapot, kivitel
@@ -32,13 +41,13 @@ struct PostAdCarScreen: View {
     }
 
     private enum FormFocus: Hashable {
-        case year, km, price, henger, leiras, brandSearch
+        case year, km, price, henger, leiras, brandSearch, contactName, contactPhone
     }
 
     var body: some View {
         filterStack
             .background(AppTheme.bgGrouped)
-            .alert("Személyautó", isPresented: Binding(
+            .alert(isEditing ? "Szerkesztés" : "Személyautó", isPresented: Binding(
                 get: { toast != nil },
                 set: { if !$0 { toast = nil } }
             )) {
@@ -64,6 +73,52 @@ struct PostAdCarScreen: View {
                 guard !items.isEmpty else { return }
                 Task { await importLibraryItems(items) }
             }
+            .task {
+                if isEditing {
+                    await loadForEdit()
+                } else {
+                    prefillContactFromProfile()
+                }
+            }
+            .overlay {
+                if loadingEdit {
+                    ZStack {
+                        Color.black.opacity(0.12).ignoresSafeArea()
+                        ProgressView("Betöltés…")
+                            .padding(20)
+                            .background(AppTheme.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                }
+            }
+    }
+
+    private func prefillContactFromProfile() {
+        if contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            contactName = profile.profile.displayName
+        }
+        if contactPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            contactPhone = profile.profile.phone
+        }
+    }
+
+    @MainActor
+    private func loadForEdit() async {
+        guard let id = editingListingId else { return }
+        loadingEdit = true
+        defer { loadingEdit = false }
+        do {
+            let form = try await ListingsAPI.fetchFormStrings(id: String(id))
+            let state = PostAdListingMapper.loadEditState(from: form)
+            store.filter = state.filter
+            leiras = state.leiras
+            contactName = state.contactName
+            contactPhone = state.contactPhone
+            prefillContactFromProfile()
+            editBaseline = form
+            openAccordion = .alap
+        } catch {
+            toast = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
     }
 
     /// Fő űrlap a háttérben marad → almenüből vissza a scroll pozíció megmarad.
@@ -215,11 +270,11 @@ struct PostAdCarScreen: View {
 
     private var simpleHeader: some View {
         ScreenHeader(
-            title: "Személyautó",
-            subtitle: "Hirdetés feladás",
+            title: isEditing ? "Szerkesztés" : "Személyautó",
+            subtitle: isEditing ? "Gyártmány és típus nem módosítható" : "Hirdetés feladás",
             onBack: onClose,
-            rightLabel: "Törlés",
-            onRight: resetDraft
+            rightLabel: isEditing ? nil : "Törlés",
+            onRight: isEditing ? nil : resetDraft
         )
     }
 
@@ -230,8 +285,8 @@ struct PostAdCarScreen: View {
                 listPanel = .simple
                 panel = .simple
             },
-            rightLabel: "Törlés",
-            onRight: resetDraft
+            rightLabel: isEditing ? nil : "Törlés",
+            onRight: isEditing ? nil : resetDraft
         )
     }
 
@@ -239,6 +294,9 @@ struct PostAdCarScreen: View {
         store.reset()
         photoStore.clear()
         leiras = ""
+        contactName = ""
+        contactPhone = ""
+        prefillContactFromProfile()
     }
 
     /// Kezdőoldal: Képek → Alap / Műszaki / Extrák → Leírás + Feladás.
@@ -283,8 +341,12 @@ struct PostAdCarScreen: View {
     /// Gyors mezők (részletes Alap adatok tetején is) — évjárat / km / ár: sima számmező.
     @ViewBuilder
     private var quickSearchRows: some View {
-        SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
-            openSubpanel(.brand)
+        if isEditing {
+            SettingsRow(title: "Márka / Modell", value: brandModelRootValue, showChevron: false, action: nil)
+        } else {
+            SettingsRow(title: "Márka / Modell", value: brandModelRootValue) {
+                openSubpanel(.brand)
+            }
         }
         Divider().padding(.leading, 16)
         numberFieldRow(title: "Évjárat", placeholder: "pl. 2018", binding: yearTextBinding, focus: .year)
@@ -414,7 +476,9 @@ struct PostAdCarScreen: View {
             .padding(.horizontal, 16)
 
             if photoStore.photos.isEmpty {
-                Text("Még nincs feltöltött fénykép.")
+                Text(isEditing
+                     ? "Ha nem választasz új képet, a meglévők megmaradnak."
+                     : "Még nincs feltöltött fénykép.")
                     .font(.footnote)
                     .foregroundStyle(AppTheme.textTertiary)
                     .padding(.horizontal, 16)
@@ -809,9 +873,11 @@ struct PostAdCarScreen: View {
         return "\(n) bekapcsolva"
     }
 
-    /// Legalul: leírás, alatta Hirdetés feladás.
+    /// Legalul: kapcsolattartó, leírás, alatta Feladás / Mentés.
     private var leirasAndPostSection: some View {
         VStack(alignment: .leading, spacing: 12) {
+            contactFieldsBlock
+
             VStack(alignment: .leading, spacing: 8) {
                 SectionLabel(text: "Leírás")
                 Group {
@@ -850,6 +916,65 @@ struct PostAdCarScreen: View {
         }
     }
 
+    private var contactFieldsBlock: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(text: "Elérhetőség")
+            Text("Beállításokból előtöltve — módosíthatod.")
+                .font(.caption)
+                .foregroundStyle(AppTheme.textTertiary)
+            SettingsGroup {
+                contactTextRow(
+                    title: "Név",
+                    placeholder: "Kapcsolattartó neve",
+                    text: $contactName,
+                    focus: .contactName,
+                    keyboard: .default,
+                    contentType: .name
+                )
+                Divider().padding(.leading, 16)
+                contactTextRow(
+                    title: "Telefon",
+                    placeholder: "+36 …",
+                    text: $contactPhone,
+                    focus: .contactPhone,
+                    keyboard: .phonePad,
+                    contentType: .telephoneNumber
+                )
+            }
+        }
+    }
+
+    private func contactTextRow(
+        title: String,
+        placeholder: String,
+        text: Binding<String>,
+        focus: FormFocus,
+        keyboard: UIKeyboardType,
+        contentType: UITextContentType?
+    ) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .foregroundStyle(AppTheme.text)
+                .font(.body)
+            if isShowingMainForm {
+                TextField(placeholder, text: text)
+                    .keyboardType(keyboard)
+                    .textContentType(contentType)
+                    .textInputAutocapitalization(focus == .contactName ? .words : .never)
+                    .focused($focusedField, equals: focus)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(AppTheme.textSecondary)
+            } else {
+                Text(text.wrappedValue.isEmpty ? placeholder : text.wrappedValue)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .padding(.horizontal, 16)
+        .frame(minHeight: 52)
+    }
+
     /// Kötelező Alap adatok — hiánylisták megjelenítéshez / gomb tiltáshoz.
     private var missingAlapFields: [String] {
         var missing: [String] = []
@@ -880,21 +1005,23 @@ struct PostAdCarScreen: View {
         } label: {
             HStack {
                 if posting { ProgressView().tint(.white) }
-                Text(posting ? "Mentés…" : "Hirdetés feladás")
+                Text(posting
+                     ? "Mentés…"
+                     : (isEditing ? "Módosítások mentése" : "Hirdetés feladás"))
                     .font(.body.weight(.semibold))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .foregroundStyle(.white)
             .background(
-                (!canSubmitListing || posting)
+                (!canSubmitListing || posting || loadingEdit)
                     ? AppTheme.accent.opacity(0.45)
                     : AppTheme.accent
             )
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
-        .disabled(posting || !canSubmitListing)
+        .disabled(posting || loadingEdit || !canSubmitListing)
     }
 
     private func submitListing() async {
@@ -903,7 +1030,7 @@ struct PostAdCarScreen: View {
             toast = "A feladáshoz be kell jelentkezned."
             return
         }
-        if photoStore.photos.isEmpty {
+        if !isEditing, photoStore.photos.isEmpty {
             openAccordion = .kepek
             toast = "Legalább egy fénykép kell a feladáshoz."
             return
@@ -916,22 +1043,47 @@ struct PostAdCarScreen: View {
         }
         posting = true
         defer { posting = false }
+        if store.filter.vehicleKind == nil || store.filter.vehicleKind?.isEmpty == true {
+            store.filter.vehicleKind = "szemelyauto"
+        }
         var form = PostAdListingMapper.formData(from: store.filter, leiras: leiras)
-        let email = profile.profile.email.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !email.isEmpty { form["email"] = email }
+        PostAdListingMapper.applyContact(
+            to: &form,
+            name: contactName,
+            phone: contactPhone,
+            email: profile.profile.email
+        )
+        if isEditing, let baseline = editBaseline {
+            form = PostAdListingMapper.mergeForEdit(
+                base: baseline,
+                overlay: form,
+                lockBrandAndType: true
+            )
+        }
         let photos = photoStore.base64Payloads()
         do {
             let id = try await ListingsAPI.saveListing(
                 form: form,
                 status: "feladott",
                 photos: photos,
-                token: profile.token
+                token: profile.token,
+                listingId: editingListingId
             )
-            toast = "Hirdetés feladva (#\(id)). Megjelenik a Kiemeltek / Hirdetéseim között."
-            store.reset()
-            photoStore.clear()
-            leiras = ""
-            openAccordion = .kepek
+            if isEditing {
+                toast = "Módosítások elmentve (#\(id))."
+                onSaved?()
+                onClose()
+            } else {
+                toast = "Hirdetés feladva (#\(id)). Megjelenik a Kiemeltek / Hirdetéseim között."
+                store.reset()
+                photoStore.clear()
+                leiras = ""
+                contactName = ""
+                contactPhone = ""
+                prefillContactFromProfile()
+                openAccordion = .kepek
+                onSaved?()
+            }
         } catch {
             toast = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }

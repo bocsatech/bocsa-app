@@ -189,6 +189,8 @@ extension ListingsAPI {
       return (mapParts + ["Magyarország"]).joined(separator: ", ")
     }()
     let sellerName: String = {
+      let named = str("hirdeto_nev")
+      if !named.isEmpty { return named }
       let email = str("email")
       if !email.isEmpty, let local = email.split(separator: "@").first, !local.isEmpty {
         return String(local)

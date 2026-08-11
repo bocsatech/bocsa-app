@@ -202,6 +202,10 @@ struct MyListingsScreen: View {
     @State private var loading = true
     @State private var errorText: String?
     @State private var openRequest: ListingOpenRequest?
+    @State private var editTarget: MyListingEditTarget?
+    @State private var deleteTarget: ListingsAPI.HomeListing?
+    @State private var busyId: String?
+    @State private var actionError: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -251,10 +255,41 @@ struct MyListingsScreen: View {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         ForEach(listings) { ad in
-                            ListingFeedCard(
-                                detail: ad.cardDetail,
-                                onOpen: { openRequest = .remote(id: ad.id) }
-                            )
+                            VStack(alignment: .leading, spacing: 10) {
+                                ListingFeedCard(
+                                    detail: ad.cardDetail,
+                                    onOpen: { openRequest = .remote(id: ad.id) }
+                                )
+                                HStack(spacing: 10) {
+                                    Button {
+                                        Task { await beginEdit(ad) }
+                                    } label: {
+                                        Text(busyId == ad.id ? "…" : "Szerkesztés")
+                                            .font(.subheadline.weight(.semibold))
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 10)
+                                            .foregroundStyle(AppTheme.accent)
+                                            .background(AppTheme.accent.opacity(0.12))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .disabled(busyId != nil)
+
+                                    Button {
+                                        deleteTarget = ad
+                                    } label: {
+                                        Text("Törlés")
+                                            .font(.subheadline.weight(.semibold))
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 10)
+                                            .foregroundStyle(Color.red.opacity(0.9))
+                                            .background(Color.red.opacity(0.08))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .disabled(busyId != nil)
+                                }
+                            }
                         }
                     }
                     .padding(16)
@@ -267,6 +302,53 @@ struct MyListingsScreen: View {
         .fullScreenCover(item: $openRequest) { req in
             ListingDetailLoader(request: req, onClose: { openRequest = nil })
                 .environmentObject(profile)
+        }
+        .fullScreenCover(item: $editTarget) { target in
+            Group {
+                switch target {
+                case .car(let id):
+                    PostAdCarScreen(
+                        onClose: { editTarget = nil },
+                        editingListingId: id,
+                        onSaved: { Task { await reload() } }
+                    )
+                case .truck(let kind, let id):
+                    PostAdTruckScreen(
+                        kind: kind,
+                        onClose: { editTarget = nil },
+                        editingListingId: id,
+                        onSaved: { Task { await reload() } }
+                    )
+                }
+            }
+            .environmentObject(profile)
+        }
+        .alert(
+            "Hirdetés törlése",
+            isPresented: Binding(
+                get: { deleteTarget != nil },
+                set: { if !$0 { deleteTarget = nil } }
+            )
+        ) {
+            Button("Mégsem", role: .cancel) { deleteTarget = nil }
+            Button("Törlés", role: .destructive) {
+                if let ad = deleteTarget {
+                    Task { await deleteListing(ad) }
+                }
+            }
+        } message: {
+            Text(deleteTarget.map { "Biztosan törlöd: \($0.title)?" } ?? "")
+        }
+        .alert(
+            "Hiba",
+            isPresented: Binding(
+                get: { actionError != nil },
+                set: { if !$0 { actionError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) { actionError = nil }
+        } message: {
+            Text(actionError ?? "")
         }
     }
 
@@ -285,6 +367,56 @@ struct MyListingsScreen: View {
             listings = try await ListingsAPI.fetchMyListings(token: profile.token)
         } catch {
             errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func beginEdit(_ ad: ListingsAPI.HomeListing) async {
+        guard busyId == nil else { return }
+        guard let id = Int(ad.id) else {
+            actionError = "Érvénytelen hirdetés-azonosító."
+            return
+        }
+        busyId = ad.id
+        defer { busyId = nil }
+        do {
+            let form = try await ListingsAPI.fetchFormStrings(id: ad.id)
+            let kindRaw = (form["jarmu_kategoria"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            if kindRaw == PostAdCatalog.TruckKind.kisteher.rawValue {
+                editTarget = .truck(.kisteher, id)
+            } else if kindRaw == PostAdCatalog.TruckKind.teherauto.rawValue {
+                editTarget = .truck(.teherauto, id)
+            } else {
+                editTarget = .car(id)
+            }
+        } catch {
+            actionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func deleteListing(_ ad: ListingsAPI.HomeListing) async {
+        deleteTarget = nil
+        guard busyId == nil else { return }
+        busyId = ad.id
+        defer { busyId = nil }
+        do {
+            try await ListingsAPI.deleteListing(id: ad.id, token: profile.token)
+            listings.removeAll { $0.id == ad.id }
+        } catch {
+            actionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+}
+
+private enum MyListingEditTarget: Identifiable {
+    case car(Int)
+    case truck(PostAdCatalog.TruckKind, Int)
+
+    var id: String {
+        switch self {
+        case .car(let id): return "car-\(id)"
+        case .truck(let kind, let id): return "truck-\(kind.rawValue)-\(id)"
         }
     }
 }
