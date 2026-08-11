@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		507BBB86C4C74A5C966F91C2 /* AutoswebCategoryPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5F8B9EA24E418F9797981A /* AutoswebCategoryPhoto.swift */; };
 		7669DAAB7CD44197B5DB9569 /* AddElAutodApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1398B4CEB8BE4DDCAF96D11D /* AddElAutodApp.swift */; };
 		4E4A054B6A794CAAB12CA9AB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B4A4D1FF4749A3869C8AD7 /* ContentView.swift */; };
 		054C268AE8BC4CC2835B3718 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71858E9000D643608B066981 /* Theme.swift */; };
@@ -73,6 +74,7 @@
 		06D03F70F75E4340965F21D0 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 		4EA38AC378A84D3A91E2BD2B /* HomeIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeIconButton.swift; sourceTree = "<group>"; };
 		E04F260009AB4D16A23FB255 /* QuickCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCategory.swift; sourceTree = "<group>"; };
+		8A5F8B9EA24E418F9797981A /* AutoswebCategoryPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoswebCategoryPhoto.swift; sourceTree = "<group>"; };
 		FFB84F97E8F542859F95EA52 /* CategoryIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryIconButton.swift; sourceTree = "<group>"; };
 		EE63FA243C6D4C498FA5FBCE /* CategoryResultsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryResultsScreen.swift; sourceTree = "<group>"; };
 		A1LISTQ001B /* ListingQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingQuery.swift; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 				06D03F70F75E4340965F21D0 /* SettingsScreen.swift */,
 				4EA38AC378A84D3A91E2BD2B /* HomeIconButton.swift */,
 				E04F260009AB4D16A23FB255 /* QuickCategory.swift */,
+				8A5F8B9EA24E418F9797981A /* AutoswebCategoryPhoto.swift */,
 				FFB84F97E8F542859F95EA52 /* CategoryIconButton.swift */,
 				EE63FA243C6D4C498FA5FBCE /* CategoryResultsScreen.swift */,
 				A1LISTQ001B /* ListingQuery.swift */,
@@ -310,6 +313,7 @@
 				A1PPHO002B /* PostAdPhotos.swift in Sources */,
 				A1ABASE002B /* AutoswebBaseURL.swift in Sources */,
 				B8C221795D9B4B66B8B5B267 /* CategoryIconButton.swift in Sources */,
+				507BBB86C4C74A5C966F91C2 /* AutoswebCategoryPhoto.swift in Sources */,
 				6851CEF42EBD48A98A7E0783 /* QuickCategory.swift in Sources */,
 				DF2B1A37C381486F8EDD4D2A /* HomeIconButton.swift in Sources */,
 				B674E1A81A9946258753FA6A /* SettingsScreen.swift in Sources */,

@@ -226,7 +226,7 @@ struct SearchScreen: View {
                         section: .auto,
                         title: "Autó keresés",
                         subtitle: "Személyautó és más",
-                        systemImage: "car.fill",
+                        photoAsset: QuickCategory.uj.imageName,
                         tint: autoTint
                     ) {
                         VStack(spacing: 0) {
@@ -278,7 +278,8 @@ struct SearchScreen: View {
         section: SearchTopSection,
         title: String,
         subtitle: String?,
-        systemImage: String,
+        systemImage: String? = nil,
+        photoAsset: String? = nil,
         tint: Color,
         @ViewBuilder content: () -> Content
     ) -> some View {
@@ -290,13 +291,20 @@ struct SearchScreen: View {
                 }
             } label: {
                 HStack(spacing: 14) {
-                    ZStack {
-                        Circle()
-                            .fill(tint)
-                            .frame(width: 44, height: 44)
-                        Image(systemName: systemImage)
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
+                    if let photoAsset {
+                        AutoswebCategoryPhotoView(
+                            imageName: photoAsset,
+                            size: AutoswebCategoryPhoto.headerSize
+                        )
+                    } else if let systemImage {
+                        ZStack {
+                            Circle()
+                                .fill(tint)
+                                .frame(width: AutoswebCategoryPhoto.headerSize, height: AutoswebCategoryPhoto.headerSize)
+                            Image(systemName: systemImage)
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.white)
+                        }
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title)
@@ -355,10 +363,12 @@ struct SearchScreen: View {
                 } else {
                     Color.clear.frame(width: 3, height: 28)
                 }
-                Image(systemName: searchIconName(for: item.id))
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(available ? tint : AppTheme.textTertiary)
-                    .frame(width: 28, alignment: .center)
+                AutoswebCategoryPhotoView(
+                    imageName: AutoswebCategoryPhoto.assetName(forAutoItemId: item.id),
+                    size: AutoswebCategoryPhoto.rowSize,
+                    dimmed: !available
+                )
+                .frame(width: AutoswebCategoryPhoto.rowSize, alignment: .center)
                 Text(item.title)
                     .font(.body)
                     .foregroundStyle(available ? tint : AppTheme.text)
@@ -453,16 +463,6 @@ struct SearchScreen: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-
-    private func searchIconName(for itemId: String) -> String {
-        switch itemId {
-        case "auto-szemelyauto": return "car"
-        case "auto-leasing": return "doc.text"
-        case "auto-berauto": return "key.fill"
-        case "auto-berlakokocsi": return "bus.fill"
-        default: return "circle"
-        }
     }
 
     private var filterStack: some View {
