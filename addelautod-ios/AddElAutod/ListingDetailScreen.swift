@@ -95,19 +95,10 @@ struct ListingDetailScreen: View {
           }
         } else {
           ForEach(Array(detail.imageURLs.enumerated()), id: \.offset) { i, url in
-            AsyncImage(url: url) { phase in
-              switch phase {
-              case .success(let img):
-                img.resizable().scaledToFill()
-              case .failure:
-                placeholderSlide(index: i)
-              default:
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-              }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
-            .tag(i)
+            ListingRemoteImage(url: url)
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .clipped()
+              .tag(i)
           }
         }
       }
@@ -382,26 +373,14 @@ struct ListingFeedCard: View {
         TabView(selection: $photoIndex) {
           if detail.imageURLs.isEmpty {
             ForEach(0..<2, id: \.self) { i in
-              ZStack {
-                Color(.tertiarySystemFill)
-                Image(systemName: "car.fill")
-                  .font(.largeTitle)
-                  .foregroundStyle(.secondary)
-              }
-              .tag(i)
+              listingImagePlaceholder
+                .tag(i)
             }
           } else {
             ForEach(Array(detail.imageURLs.enumerated()), id: \.offset) { i, url in
-              AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let img):
-                  img.resizable().scaledToFill()
-                default:
-                  Color(.tertiarySystemFill)
-                }
-              }
-              .clipped()
-              .tag(i)
+              ListingRemoteImage(url: url)
+                .clipped()
+                .tag(i)
             }
           }
         }
@@ -447,6 +426,67 @@ struct ListingFeedCard: View {
       RoundedRectangle(cornerRadius: 16, style: .continuous)
         .stroke(AppTheme.border, lineWidth: 0.5)
     )
+  }
+
+  private var listingImagePlaceholder: some View {
+    ZStack {
+      Color(.tertiarySystemFill)
+      Image(systemName: "car.fill")
+        .font(.largeTitle)
+        .foregroundStyle(.secondary)
+    }
+  }
+}
+
+/// TabView-barát képbetöltő (AsyncImage TabView-ban gyakran üresen marad).
+struct ListingRemoteImage: View {
+  let url: URL
+  @State private var image: UIImage?
+  @State private var failed = false
+
+  var body: some View {
+    Group {
+      if let image {
+        Image(uiImage: image)
+          .resizable()
+          .scaledToFill()
+      } else if failed {
+        ZStack {
+          Color(.tertiarySystemFill)
+          Image(systemName: "car.fill")
+            .font(.largeTitle)
+            .foregroundStyle(.secondary)
+        }
+      } else {
+        ZStack {
+          Color(.tertiarySystemFill)
+          ProgressView()
+        }
+      }
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .task(id: url.absoluteString) {
+      await load()
+    }
+  }
+
+  private func load() async {
+    failed = false
+    image = nil
+    do {
+      var req = URLRequest(url: url)
+      req.timeoutInterval = 20
+      req.cachePolicy = .returnCacheDataElseLoad
+      let (data, response) = try await URLSession.shared.data(for: req)
+      let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+      guard (200..<300).contains(code), let ui = UIImage(data: data) else {
+        failed = true
+        return
+      }
+      image = ui
+    } catch {
+      failed = true
+    }
   }
 }
 

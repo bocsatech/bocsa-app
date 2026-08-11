@@ -4,6 +4,7 @@ import UIKit
 
 /// Személyautó hirdetés feladás — kezdő: Képek + Alap / Műszaki / Extrák, legalul Leírás + Feladás.
 struct PostAdCarScreen: View {
+    @EnvironmentObject private var profile: ProfileStore
     @StateObject private var store = SearchStore(persistSavedSearches: false)
     @StateObject private var photoStore = PostAdPhotoStore()
     var onClose: () -> Void
@@ -906,11 +907,18 @@ struct PostAdCarScreen: View {
         }
         posting = true
         defer { posting = false }
-        let form = PostAdListingMapper.formData(from: store.filter, leiras: leiras)
+        var form = PostAdListingMapper.formData(from: store.filter, leiras: leiras)
+        let email = profile.profile.email.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !email.isEmpty { form["email"] = email }
         let photos = photoStore.base64Payloads()
         do {
-            let id = try await ListingsAPI.saveListing(form: form, status: "feladott", photos: photos)
-            toast = "Hirdetés feladva (#\(id)). Megjelenik a Kiemeltek között és kereshető."
+            let id = try await ListingsAPI.saveListing(
+                form: form,
+                status: "feladott",
+                photos: photos,
+                token: profile.token
+            )
+            toast = "Hirdetés feladva (#\(id)). Megjelenik a Kiemeltek / Hirdetéseim között."
             store.reset()
             photoStore.clear()
             leiras = ""

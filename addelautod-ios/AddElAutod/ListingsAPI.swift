@@ -13,6 +13,8 @@ enum ListingsAPI {
     let badge: String?
     let updatedAt: String
     let imageURLs: [URL]
+    /// Tulajdonos (Autosweb users.id), ha van.
+    var userId: String? = nil
     /// Keresőszűréshez (preview)
     var brand: String? = nil
     var model: String? = nil
@@ -60,6 +62,25 @@ enum ListingsAPI {
         mapQuery: nil
       )
     }
+
+    func withBadge(_ badge: String?) -> HomeListing {
+      HomeListing(
+        id: id,
+        title: title,
+        priceLabel: priceLabel,
+        meta: meta,
+        badge: badge,
+        updatedAt: updatedAt,
+        imageURLs: imageURLs,
+        userId: userId,
+        brand: brand,
+        model: model,
+        year: year,
+        km: km,
+        priceFt: priceFt,
+        fuelRaw: fuelRaw
+      )
+    }
   }
 
   /// Relatív `/uploads/...` vagy abszolút URL → betölthető kép.
@@ -69,13 +90,16 @@ enum ListingsAPI {
     if raw.hasPrefix("http://") || raw.hasPrefix("https://") {
       return URL(string: raw)
     }
-    let trimmed = raw.hasPrefix("/") ? String(raw.dropFirst()) : raw
-    return URL(string: trimmed, relativeTo: baseURL)?.absoluteURL
+    var base = baseURL.absoluteString
+    while base.hasSuffix("/") { base.removeLast() }
+    let pathPart = raw.hasPrefix("/") ? raw : "/\(raw)"
+    return URL(string: base + pathPart)
   }
 
   enum ListingsError: LocalizedError {
     case unreachable
     case server(String)
+    case notLoggedIn
 
     var errorDescription: String? {
       switch self {
@@ -83,17 +107,21 @@ enum ListingsAPI {
         return "Autosweb nem elérhető (3456). Indítsd az Autosweb-indítót."
       case .server(let m):
         return m
+      case .notLoggedIn:
+        return "A Hirdetéseimhez be kell jelentkezned."
       }
     }
   }
 
   /// Új hirdetés feladása → `POST /api/listings` (listings.db, status: feladott).
   /// `photos`: base64 JPEG lista, első = főkép.
+  /// `token`: bejelentkezett user → user_id mentés (Hirdetéseim).
   @discardableResult
   static func saveListing(
     form: [String: Any],
     status: String = "feladott",
-    photos: [String] = []
+    photos: [String] = [],
+    token: String? = nil
   ) async throws -> Int {
     let url = baseURL.appendingPathComponent("api/listings")
     var request = URLRequest(url: url)
@@ -101,6 +129,9 @@ enum ListingsAPI {
     request.timeoutInterval = photos.isEmpty ? 30 : 120
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let token, !token.isEmpty {
+      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
     var body: [String: Any] = ["form": form, "status": status]
     if !photos.isEmpty {
       body["photos"] = photos
@@ -123,6 +154,7 @@ enum ListingsAPI {
     guard let id = decoded.listing?.id else {
       throw ListingsError.server("Mentés sikertelen — nincs azonosító.")
     }
+    PostedListingsStore.remember(id)
     return id
   }
 
@@ -134,10 +166,55 @@ enum ListingsAPI {
     )!
     components.queryItems = [URLQueryItem(name: "limit", value: String(limit))]
     guard let url = components.url else { throw ListingsError.unreachable }
+    return try await fetchListings(url: url, token: nil, statusBadge: false)
+  }
 
+  /// Bejelentkezett user saját hirdetései (+ eszközön feladott ID-k visszaesés).
+  static func fetchMyListings(token: String?, limit: Int = 200) async throws -> [HomeListing] {
+    var byId: [String: HomeListing] = [:]
+
+    if let token, !token.isEmpty {
+      let url = baseURL.appendingPathComponent("api/listings/mine")
+      var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+      components.queryItems = [URLQueryItem(name: "limit", value: String(limit))]
+      if let mineURL = components.url {
+        do {
+          let mine = try await fetchListings(url: mineURL, token: token, statusBadge: true)
+          for item in mine { byId[item.id] = item }
+        } catch {
+          // Régi Autosweb / hálózat: helyi ID-kkal folytatjuk
+        }
+      }
+    }
+
+    let localIds = PostedListingsStore.ids()
+    if !localIds.isEmpty {
+      let all = try await fetchHomeListings(limit: homeFetchLimit)
+      for item in all where localIds.contains(item.id) {
+        if byId[item.id] == nil {
+          byId[item.id] = item.withBadge(item.badge ?? "Feladott")
+        }
+      }
+    }
+
+    if byId.isEmpty, token == nil || token?.isEmpty == true {
+      throw ListingsError.notLoggedIn
+    }
+
+    return byId.values.sorted { a, b in
+      a.updatedAt > b.updatedAt
+    }
+  }
+
+  // MARK: - Fetch helper
+
+  private static func fetchListings(url: URL, token: String?, statusBadge: Bool) async throws -> [HomeListing] {
     var request = URLRequest(url: url)
     request.timeoutInterval = 25
     request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let token, !token.isEmpty {
+      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
 
     let data: Data
     let response: URLResponse
@@ -149,6 +226,9 @@ enum ListingsAPI {
     guard let http = response as? HTTPURLResponse else { throw ListingsError.unreachable }
     if http.statusCode >= 400 {
       let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+      if http.statusCode == 401 {
+        throw ListingsError.notLoggedIn
+      }
       if err == "Ismeretlen API." {
         throw ListingsError.server("Régi Autosweb — indítsd újra az Autosweb-indito.command-ot.")
       }
@@ -156,7 +236,7 @@ enum ListingsAPI {
     }
 
     let decoded = try JSONDecoder().decode(ListResponse.self, from: data)
-    let cards = decoded.listings.map(Self.mapListing)
+    let cards = decoded.listings.map { mapListing($0, statusBadge: statusBadge) }
     return cards.sorted { a, b in
       a.updatedAt > b.updatedAt
     }
@@ -164,7 +244,7 @@ enum ListingsAPI {
 
   // MARK: - Mapping
 
-  private static func mapListing(_ row: RemoteListing) -> HomeListing {
+  private static func mapListing(_ row: RemoteListing, statusBadge: Bool) -> HomeListing {
     let preview = row.preview
     let rawTitle = preview?.title ?? row.hirdetes_cime ?? "Hirdetés #\(row.id)"
     var title = displayTitle(rawTitle, year: preview?.filter?.gyartasi_ev, specLine: preview?.specLine)
@@ -178,15 +258,22 @@ enum ListingsAPI {
     let fuel = fuelLabel(preview?.filter?.uzemanyag)
     let meta = [year, km, fuel].joined(separator: " · ")
     let badge: String? = {
-      if row.status == "feladott" { return "Feladott" }
-      return nil
+      guard statusBadge, row.status == "feladott" else { return nil }
+      return "Feladott"
     }()
-    var images: [URL] = []
-    if let u = absoluteImageURL(row.fo_kep) { images.append(u) }
-    if let u = absoluteImageURL(preview?.imageUrl), !images.contains(u) { images.append(u) }
+    let images = collectImageURLs(
+      foKep: row.fo_kep,
+      previewURL: preview?.imageUrl,
+      previewURLs: preview?.imageUrls
+    )
     let kmNum: Int? = {
       let digits = (preview?.km ?? "").filter(\.isNumber)
       return digits.isEmpty ? nil : Int(digits)
+    }()
+    let owner: String? = {
+      if let n = row.user_id { return String(n) }
+      if let s = row.userId, !s.isEmpty { return s }
+      return nil
     }()
     return HomeListing(
       id: String(row.id),
@@ -196,6 +283,7 @@ enum ListingsAPI {
       badge: badge,
       updatedAt: row.updated_at ?? row.created_at ?? "",
       imageURLs: images,
+      userId: owner,
       brand: preview?.filter?.gyartmany,
       model: preview?.filter?.modell,
       year: preview?.filter?.gyartasi_ev,
@@ -203,6 +291,24 @@ enum ListingsAPI {
       priceFt: preview?.priceNum,
       fuelRaw: preview?.filter?.uzemanyag
     )
+  }
+
+  static func collectImageURLs(foKep: String?, previewURL: String?, previewURLs: [String]?) -> [URL] {
+    var seen = Set<String>()
+    var images: [URL] = []
+    func append(_ raw: String?) {
+      guard let url = absoluteImageURL(raw) else { return }
+      let key = url.absoluteString
+      guard !seen.contains(key) else { return }
+      seen.insert(key)
+      images.append(url)
+    }
+    append(foKep)
+    append(previewURL)
+    for path in previewURLs ?? [] {
+      append(path)
+    }
+    return images
   }
 
   private static func displayTitle(_ raw: String, year: Int?, specLine: String?) -> String {
@@ -261,6 +367,8 @@ enum ListingsAPI {
     let status: String?
     let created_at: String?
     let updated_at: String?
+    let user_id: Int?
+    let userId: String?
     let preview: RemotePreview?
   }
 
@@ -271,6 +379,7 @@ enum ListingsAPI {
     let km: String?
     let specLine: String?
     let imageUrl: String?
+    let imageUrls: [String]?
     let filter: RemoteFilter?
   }
 
@@ -319,5 +428,21 @@ enum ListingsAPI {
     if let tol = filter.arTol, let p = ad.priceFt, p < tol { return false }
     if let ig = filter.arIg, let p = ad.priceFt, p > ig { return false }
     return true
+  }
+}
+
+/// Eszközön feladott hirdetés-ID-k — Hirdetéseim visszaesés, ha a szerveren még nincs user_id.
+enum PostedListingsStore {
+  private static let key = "addelautod.postedListingIds.v1"
+
+  static func remember(_ id: Int) {
+    var ids = Set(ids().compactMap(Int.init))
+    ids.insert(id)
+    UserDefaults.standard.set(ids.sorted().map(String.init), forKey: key)
+  }
+
+  static func ids() -> Set<String> {
+    let raw = UserDefaults.standard.stringArray(forKey: key) ?? []
+    return Set(raw.filter { !$0.isEmpty })
   }
 }

@@ -11,6 +11,7 @@ import {
   getListing,
   getLatestListing,
   listListingsWithPreview,
+  listMyListingsWithPreview,
   deleteListing,
   dbStats,
   listFieldDefs,
@@ -55,7 +56,13 @@ import {
   listModelYears,
 } from "./lib/vehicle-catalog.mjs";
 import { searchHasznaltauto } from "./lib/ha-search.mjs";
-import { handleAuthApi, initAuthSchema, authStats } from "./lib/auth-users.mjs";
+import {
+  handleAuthApi,
+  initAuthSchema,
+  authStats,
+  getUserByToken,
+  extractBearerToken,
+} from "./lib/auth-users.mjs";
 import { handleMessagesApi, initMessagingSchema } from "./lib/messaging.mjs";
 import { migrateLegacyAutoswebDb, getDbPaths } from "./lib/db-registry.mjs";
 
@@ -299,6 +306,7 @@ async function handleImport(req, res) {
 
 async function handleListingsApi(req, res, pathname) {
   const latestMatch = pathname === "/api/listings/latest";
+  const mineMatch = pathname === "/api/listings/mine";
   const listMatch = pathname === "/api/listings";
   const idMatch = pathname.match(/^\/api\/listings\/(\d+)$/);
 
@@ -314,6 +322,20 @@ async function handleListingsApi(req, res, pathname) {
 
   if (latestMatch && req.method === "GET") {
     sendJson(res, 200, { listing: getLatestListing() });
+    return;
+  }
+
+  if (mineMatch && req.method === "GET") {
+    const user = getUserByToken(extractBearerToken(req));
+    if (!user) {
+      sendJson(res, 401, { error: "Nem vagy bejelentkezve." });
+      return;
+    }
+    const url = new URL(req.url ?? "", `http://${HOST}`);
+    const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 100), 1), 500);
+    sendJson(res, 200, {
+      listings: listMyListingsWithPreview(user, { limit }),
+    });
     return;
   }
 
@@ -351,15 +373,29 @@ async function handleListingsApi(req, res, pathname) {
       return;
     }
 
-    let saved = saveListing(formData, listingId, { status: body.status });
+    const user = getUserByToken(extractBearerToken(req));
+    const ownerOpts =
+      user != null
+        ? { status: body.status, userId: user.id }
+        : { status: body.status };
+
+    let saved = saveListing(formData, listingId, ownerOpts);
     if (!saved) {
       sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
       return;
     }
-    if (Array.isArray(body.photos)) {
+    const createdNew = listingId == null;
+    if (Array.isArray(body.photos) && body.photos.length > 0) {
       try {
         saved = saveListingPhotos(saved.id, body.photos);
       } catch (error) {
+        if (createdNew) {
+          try {
+            deleteListing(saved.id);
+          } catch {
+            /* ignore */
+          }
+        }
         sendJson(res, 400, { error: error.message ?? "Képek mentése sikertelen." });
         return;
       }

@@ -44,7 +44,7 @@ enum PostAdListingMapper {
             form["ajtok"] = ajtok
         }
         if let szemelyek = filter.szemelyek.first {
-            form["szallithato_szemelyek"] = szemelyek
+            form["szemelyek"] = szemelyek
         }
         if let hajtas = filter.hajtasok.first {
             form["hajtas"] = hajtas

@@ -109,9 +109,18 @@ extension ListingsAPI {
       title = "Hirdetés #\(row.id)"
     }
 
-    var images: [URL] = []
-    if let u = absoluteImageURL(row.fo_kep) { images.append(u) }
-    if let u = absoluteImageURL(str("fo_kep")), !images.contains(u) { images.append(u) }
+    var kepekPaths: [String] = []
+    let kepekRaw = str("kepek")
+    if !kepekRaw.isEmpty,
+       let data = kepekRaw.data(using: .utf8),
+       let arr = try? JSONDecoder().decode([String].self, from: data) {
+      kepekPaths = arr
+    }
+    let images = collectImageURLs(
+      foKep: row.fo_kep ?? str("fo_kep"),
+      previewURL: str("fo_kep").isEmpty ? nil : str("fo_kep"),
+      previewURLs: kepekPaths
+    )
 
     let kw = str("teljesitmeny_kw")
     let le = str("teljesitmeny_le")

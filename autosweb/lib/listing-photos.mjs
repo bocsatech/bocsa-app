@@ -1,10 +1,14 @@
 import { mkdirSync, writeFileSync, existsSync, rmSync, readdirSync, readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { join } from "path";
 import { getListing, saveListing } from "./db.mjs";
+import { resolveDataDir } from "./db-registry.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-export const LISTING_PHOTOS_DIR = join(__dirname, "..", "data", "listing-photos");
+export function listingPhotosDir() {
+  return join(resolveDataDir(), "listing-photos");
+}
+
+/** @deprecated Használd listingPhotosDir() — a data dir futásidőben változhat. */
+export const LISTING_PHOTOS_DIR = listingPhotosDir();
 
 export const LISTING_PHOTO_RULES = {
   maxCount: 12,
@@ -16,7 +20,7 @@ function ensureDir(path) {
 }
 
 function listingDir(listingId) {
-  return join(LISTING_PHOTOS_DIR, String(listingId));
+  return join(listingPhotosDir(), String(listingId));
 }
 
 function decodePhotoPayload(raw) {
@@ -66,7 +70,10 @@ export function saveListingPhotos(listingId, photos = []) {
     const form = { ...(listing.form ?? {}) };
     delete form.fo_kep;
     delete form.kepek;
-    return saveListing(form, id, { status: listing.status });
+    return saveListing(form, id, {
+      status: listing.status,
+      userId: listing.user_id ?? null,
+    });
   }
 
   ensureDir(dir);
@@ -95,7 +102,10 @@ export function saveListingPhotos(listingId, photos = []) {
     fo_kep: urls[0],
     kepek: JSON.stringify(urls),
   };
-  return saveListing(form, id, { status: listing.status });
+  return saveListing(form, id, {
+    status: listing.status,
+    userId: listing.user_id ?? null,
+  });
 }
 
 /** GET /uploads/listings/:id/:file */

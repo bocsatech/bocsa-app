@@ -4,6 +4,7 @@ import UIKit
 
 /// Kisteher / Teherautó feladás — felépítés mint a személyautónál (lista mezőkkel).
 struct PostAdTruckScreen: View {
+    @EnvironmentObject private var profile: ProfileStore
     let kind: PostAdCatalog.TruckKind
     var onClose: () -> Void
 
@@ -751,11 +752,18 @@ struct PostAdTruckScreen: View {
         posting = true
         defer { posting = false }
         store.filter.vehicleKind = kind.rawValue
-        let form = PostAdListingMapper.formData(from: store.filter, leiras: leiras, vehicleTitle: kind.title)
+        var form = PostAdListingMapper.formData(from: store.filter, leiras: leiras, vehicleTitle: kind.title)
+        let email = profile.profile.email.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !email.isEmpty { form["email"] = email }
         do {
             let photos = photoStore.base64Payloads()
-            _ = try await ListingsAPI.saveListing(form: form, status: "feladott", photos: photos)
-            toast = "Hirdetés elmentve."
+            _ = try await ListingsAPI.saveListing(
+                form: form,
+                status: "feladott",
+                photos: photos,
+                token: profile.token
+            )
+            toast = "Hirdetés elmentve. Megjelenik a Kiemeltek / Hirdetéseim között."
             resetDraft()
             openAccordion = .kepek
         } catch {

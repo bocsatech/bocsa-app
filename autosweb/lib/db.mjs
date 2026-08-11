@@ -5,7 +5,7 @@ import {
   sanitizeListingPlainText,
 } from "./listing-preview.mjs";
 import { initPartnerSchema } from "./partner-schema.mjs";
-import { getListingsDb, getListingsDbPath, getDbPaths } from "./db-registry.mjs";
+import { getListingsDb, getListingsDbPath, getDbPaths, getUsersDb } from "./db-registry.mjs";
 
 /** Hirdetések DB (listings.db) — séma init path szerint. */
 let listingsSchemaPath = null;
@@ -35,6 +35,7 @@ function initSchema(db) {
       forras_url TEXT,
       hasznaltauto_hirdetes_id TEXT,
       status TEXT NOT NULL DEFAULT 'mentett',
+      user_id INTEGER,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -62,6 +63,7 @@ function initSchema(db) {
   });
 
   migrateListingsStatus(db);
+  migrateListingsUserId(db);
   initPartnerSchema(db);
 }
 
@@ -70,6 +72,14 @@ function migrateListingsStatus(db) {
   if (!columns.some((col) => col.name === "status")) {
     db.exec("ALTER TABLE listings ADD COLUMN status TEXT NOT NULL DEFAULT 'mentett'");
   }
+}
+
+function migrateListingsUserId(db) {
+  const columns = db.prepare("PRAGMA table_info(listings)").all();
+  if (!columns.some((col) => col.name === "user_id")) {
+    db.exec("ALTER TABLE listings ADD COLUMN user_id INTEGER");
+  }
+  db.exec("CREATE INDEX IF NOT EXISTS idx_listings_user ON listings(user_id)");
 }
 
 export const LISTING_STATUSES = ["mentett", "feladott"];
@@ -91,24 +101,44 @@ export function listFieldDefs() {
   return db.prepare("SELECT field_key, label, step FROM field_defs ORDER BY sort_order").all();
 }
 
-export function listListings({ limit = 50, status = null } = {}) {
+const LISTING_ROW_SQL = `l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.status,
+                l.user_id, l.created_at, l.updated_at,
+                (SELECT COUNT(*) FROM listing_cells c WHERE c.listing_id = l.id) AS cell_count`;
+
+export function listListings({ limit = 50, status = null, userId = null } = {}) {
   const db = getDb();
   const normalizedStatus = status ? normalizeListingStatus(status) : null;
+  const uid = userId != null && Number.isFinite(Number(userId)) ? Number(userId) : null;
+
+  if (uid != null && normalizedStatus) {
+    return db
+      .prepare(
+        `SELECT ${LISTING_ROW_SQL}
+         FROM listings l WHERE l.user_id = ? AND l.status = ?
+         ORDER BY l.updated_at DESC LIMIT ?`
+      )
+      .all(uid, normalizedStatus, limit);
+  }
+  if (uid != null) {
+    return db
+      .prepare(
+        `SELECT ${LISTING_ROW_SQL}
+         FROM listings l WHERE l.user_id = ?
+         ORDER BY l.updated_at DESC LIMIT ?`
+      )
+      .all(uid, limit);
+  }
   if (normalizedStatus) {
     return db
       .prepare(
-        `SELECT l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.status,
-                l.created_at, l.updated_at,
-                (SELECT COUNT(*) FROM listing_cells c WHERE c.listing_id = l.id) AS cell_count
+        `SELECT ${LISTING_ROW_SQL}
          FROM listings l WHERE l.status = ? ORDER BY l.updated_at DESC LIMIT ?`
       )
       .all(normalizedStatus, limit);
   }
   return db
     .prepare(
-      `SELECT l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hirdetes_id, l.status,
-              l.created_at, l.updated_at,
-              (SELECT COUNT(*) FROM listing_cells c WHERE c.listing_id = l.id) AS cell_count
+      `SELECT ${LISTING_ROW_SQL}
        FROM listings l ORDER BY l.updated_at DESC LIMIT ?`
     )
     .all(limit);
@@ -132,8 +162,8 @@ function loadCellsByListingIds(ids) {
   return map;
 }
 
-export function listListingsWithPreview({ limit = 50, status = null } = {}) {
-  const rows = listListings({ limit, status });
+export function listListingsWithPreview({ limit = 50, status = null, userId = null } = {}) {
+  const rows = listListings({ limit, status, userId });
   const cellsById = loadCellsByListingIds(rows.map((row) => row.id));
   return rows.map((row) => {
     const cells = (cellsById.get(row.id) ?? []).map((cell) => sanitizeListingCell(cell));
@@ -143,17 +173,72 @@ export function listListingsWithPreview({ limit = 50, status = null } = {}) {
     return {
       ...row,
       hirdetes_cime,
+      user_id: row.user_id ?? null,
       fo_kep: preview.imageUrl || null,
       preview,
     };
   });
 }
 
+/**
+ * Saját hirdetések: user_id egyezés + orphan visszaigénylés.
+ * - email mező egyezés (ha a feladáskor mentve volt)
+ * - helyi Autosweb: ha csak 1 felhasználó van, a tulajdonos nélküli feladott hirdetések az övéi
+ */
+export function listMyListingsWithPreview(user, { limit = 100, claimOrphans = true } = {}) {
+  const uid = Number(user?.id);
+  const email = String(user?.email ?? "")
+    .trim()
+    .toLowerCase();
+  if (!Number.isFinite(uid) || uid <= 0) return [];
+
+  const byId = new Map();
+  for (const row of listListingsWithPreview({ limit, userId: uid })) {
+    byId.set(row.id, row);
+  }
+
+  let soleUser = false;
+  try {
+    const n = getUsersDb().prepare("SELECT COUNT(*) AS n FROM users").get()?.n ?? 0;
+    soleUser = Number(n) === 1;
+  } catch {
+    soleUser = false;
+  }
+
+  const candidates = listListingsWithPreview({ limit: Math.max(limit, 200) });
+  for (const row of candidates) {
+    if (byId.has(row.id)) continue;
+    if (row.user_id != null && Number(row.user_id) !== uid) continue;
+
+    const listing = getListing(row.id);
+    const formEmail = String(listing?.form?.email ?? "")
+      .trim()
+      .toLowerCase();
+    const emailMatch = Boolean(email && formEmail && formEmail === email);
+    const soleOrphan =
+      soleUser && (row.user_id == null || row.user_id === "") && row.status === "feladott";
+
+    if (!emailMatch && !soleOrphan) continue;
+
+    if (claimOrphans && (listing.user_id == null || listing.user_id === "")) {
+      getDb()
+        .prepare("UPDATE listings SET user_id = ?, updated_at = datetime('now') WHERE id = ?")
+        .run(uid, row.id);
+    }
+    byId.set(row.id, { ...row, user_id: uid });
+  }
+
+  return [...byId.values()]
+    .sort((a, b) => String(b.updated_at ?? "").localeCompare(String(a.updated_at ?? "")))
+    .slice(0, limit);
+}
+
 export function getListing(id) {
   const db = getDb();
   const listing = db
     .prepare(
-      `SELECT id, hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, status, created_at, updated_at
+      `SELECT id, hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, status, user_id,
+              created_at, updated_at
        FROM listings WHERE id = ?`
     )
     .get(id);
@@ -169,12 +254,15 @@ export function getListing(id) {
 
   const hirdetes_cime =
     sanitizeListingPlainText(listing.hirdetes_cime) || `Hirdetés #${listing.id}`;
+  const form = cellsToFormData(cells);
 
   return {
     ...listing,
     hirdetes_cime,
+    user_id: listing.user_id ?? null,
     cells,
-    form: cellsToFormData(cells),
+    form,
+    fo_kep: form.fo_kep || null,
   };
 }
 
@@ -232,7 +320,27 @@ export function findListingBySourceUrl(url) {
   return row ? getListing(row.id) : null;
 }
 
-function upsertListingMeta(db, id, formData, status) {
+function upsertListingMeta(db, id, formData, status, userId = undefined) {
+  if (userId !== undefined) {
+    db.prepare(
+      `UPDATE listings SET
+        hirdetes_cime = ?,
+        forras_url = ?,
+        hasznaltauto_hirdetes_id = ?,
+        status = ?,
+        user_id = ?,
+        updated_at = datetime('now')
+       WHERE id = ?`
+    ).run(
+      formData.hirdetes_cime ?? "",
+      formData.forras_url ?? "",
+      formData.hasznaltauto_hirdetes_id ?? "",
+      normalizeListingStatus(status ?? formData.status),
+      userId,
+      id
+    );
+    return;
+  }
   db.prepare(
     `UPDATE listings SET
       hirdetes_cime = ?,
@@ -261,29 +369,36 @@ function replaceCells(db, listingId, cells) {
   }
 }
 
-export function saveListing(formData, listingId = null, { status = null } = {}) {
+export function saveListing(formData, listingId = null, { status = null, userId = undefined } = {}) {
   const db = getDb();
   const clean = sanitizeFormDataForSave(formData);
   const cells = formDataToCells(clean);
   const listingStatus = normalizeListingStatus(status ?? clean.status);
+  const ownerId =
+    userId === undefined
+      ? undefined
+      : userId == null || !Number.isFinite(Number(userId))
+        ? null
+        : Number(userId);
 
   if (listingId) {
     const existing = db.prepare("SELECT id FROM listings WHERE id = ?").get(listingId);
     if (!existing) return null;
-    upsertListingMeta(db, listingId, clean, listingStatus);
+    upsertListingMeta(db, listingId, clean, listingStatus, ownerId);
     replaceCells(db, listingId, cells);
     return getListing(listingId);
   }
 
   const insert = db.prepare(
-    `INSERT INTO listings (hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, status)
-     VALUES (?, ?, ?, ?)`
+    `INSERT INTO listings (hirdetes_cime, forras_url, hasznaltauto_hirdetes_id, status, user_id)
+     VALUES (?, ?, ?, ?, ?)`
   );
   const result = insert.run(
     clean.hirdetes_cime ?? "",
     clean.forras_url ?? "",
     clean.hasznaltauto_hirdetes_id ?? "",
-    listingStatus
+    listingStatus,
+    ownerId === undefined ? null : ownerId
   );
   const id = Number(result.lastInsertRowid);
   replaceCells(db, id, cells);

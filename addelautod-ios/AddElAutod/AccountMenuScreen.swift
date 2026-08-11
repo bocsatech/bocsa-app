@@ -166,7 +166,8 @@ struct AccountMenuScreen: View {
         case .favorites:
             accountPlaceholder(title: "Kedvencek", message: "Itt jelennek meg a kedvenc hirdetéseid.")
         case .myAds:
-            accountPlaceholder(title: "Hirdetéseim", message: "Itt jelennek meg a feladott hirdetéseid.")
+            MyListingsScreen(onBack: { destination = nil })
+                .environmentObject(profile)
         case .prints:
             accountPlaceholder(title: "Nyomtatások", message: "Nyomtatási előzmények és dokumentumok.")
         case .reviews:
@@ -188,6 +189,102 @@ struct AccountMenuScreen: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppTheme.bgGrouped)
+        }
+    }
+}
+
+/// Fiók → Hirdetéseim — a bejelentkezett user feladott hirdetései.
+struct MyListingsScreen: View {
+    @EnvironmentObject private var profile: ProfileStore
+    var onBack: () -> Void
+
+    @State private var listings: [ListingsAPI.HomeListing] = []
+    @State private var loading = true
+    @State private var errorText: String?
+    @State private var openRequest: ListingOpenRequest?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ScreenHeader(
+                title: "Hirdetéseim",
+                subtitle: subtitleText,
+                onBack: onBack,
+                rightLabel: "Frissítés",
+                onRight: { Task { await reload() } }
+            )
+
+            if loading && listings.isEmpty {
+                ProgressView("Betöltés…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let errorText, listings.isEmpty {
+                VStack(spacing: 12) {
+                    Text(errorText)
+                        .font(.subheadline)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                    Button("Újra") { Task { await reload() } }
+                        .font(.body.weight(.semibold))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if listings.isEmpty {
+                VStack(spacing: 12) {
+                    Spacer()
+                    Image(systemName: "car.side")
+                        .font(.system(size: 36))
+                        .foregroundStyle(AppTheme.textTertiary)
+                    Text("Itt jelennek meg a feladott hirdetéseid.")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                    Text("Adj fel hirdetést bejelentkezve — utána itt listázzuk.")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textTertiary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(AppTheme.bgGrouped)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(listings) { ad in
+                            ListingFeedCard(
+                                detail: ad.cardDetail,
+                                onOpen: { openRequest = .remote(id: ad.id) }
+                            )
+                        }
+                    }
+                    .padding(16)
+                }
+                .refreshable { await reload() }
+            }
+        }
+        .background(AppTheme.bg)
+        .task { await reload() }
+        .fullScreenCover(item: $openRequest) { req in
+            ListingDetailLoader(request: req, onClose: { openRequest = nil })
+                .environmentObject(profile)
+        }
+    }
+
+    private var subtitleText: String {
+        if loading && listings.isEmpty { return "Autosweb…" }
+        if errorText != nil, listings.isEmpty { return "Hiba" }
+        if listings.isEmpty { return "Nincs hirdetés" }
+        return "\(listings.count) hirdetés"
+    }
+
+    private func reload() async {
+        loading = true
+        errorText = nil
+        defer { loading = false }
+        do {
+            listings = try await ListingsAPI.fetchMyListings(token: profile.token)
+        } catch {
+            errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
 }
