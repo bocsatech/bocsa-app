@@ -17,8 +17,7 @@ enum AutoswebCategoryPhoto {
         case "auto-berauto":
             return QuickCategory.berelheto.imageName
         case "auto-berlakokocsi":
-            // Nincs külön lakókocsi asset a weben — OT (más kinézet), amíg nincs saját kép.
-            return QuickCategory.ot.imageName
+            return "lakokocsi"
         default:
             return QuickCategory.uj.imageName
         }
