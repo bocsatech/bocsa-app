@@ -54,19 +54,19 @@ struct ProfileAvatarView: View {
     ZStack {
       Circle()
         .fill(AppTheme.accent.opacity(0.15))
-        .frame(width: size, height: size)
       if let image {
         Image(uiImage: image)
           .resizable()
           .scaledToFill()
-          .frame(width: size, height: size)
-          .clipShape(Circle())
       } else {
-        Text(letter)
-          .font(size >= 56 ? .title.weight(.semibold) : .caption.weight(.semibold))
+        Text(letter.isEmpty ? "?" : letter)
+          .font(size >= 56 ? .title.weight(.semibold) : .subheadline.weight(.semibold))
           .foregroundStyle(AppTheme.accent)
       }
     }
+    .frame(width: size, height: size)
+    .clipShape(Circle())
+    .contentShape(Circle())
   }
 }
 

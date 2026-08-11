@@ -98,15 +98,18 @@ final class ProfileStore: ObservableObject {
     // MARK: - Profilkép
 
     func setAvatar(_ image: UIImage) {
-        let resized = Self.resize(image, maxSide: 512)
-        avatarImage = resized
-        guard let email = avatarEmailKey(), let data = resized.jpegData(compressionQuality: 0.82) else { return }
-        try? data.write(to: avatarFileURL(email: email), options: .atomic)
-        if let token {
+        let display = Self.resize(image, maxSide: 512)
+        avatarImage = display
+        persistAvatarToDisk(display)
+        // Szerverre kisebb JPEG (data URL limit + gyorsabb sync)
+        let upload = Self.resize(image, maxSide: 256).jpegData(compressionQuality: 0.72)
+        if let token, let upload {
             Task {
                 do {
-                    let user = try await AuthAPI.saveAvatar(token: token, jpegData: data)
-                    applyRemote(user)
+                    let user = try await AuthAPI.saveAvatar(token: token, jpegData: upload)
+                    // Profilmezők frissülhetnek — a helyi (jobb minőségű) képet ne töröljük,
+                    // ha a szerver üres/invalid avatart ad vissza.
+                    applyRemote(user, preferLocalAvatar: true)
                     saveLocal()
                 } catch {
                     /* helyi kép megmarad; szerver később */
@@ -128,30 +131,38 @@ final class ProfileStore: ObservableObject {
     }
 
     func loadAvatarFromDisk() {
-        guard let email = avatarEmailKey() else {
-            avatarImage = nil
-            return
-        }
+        guard let email = avatarEmailKey() else { return }
         let url = avatarFileURL(email: email)
         guard let data = try? Data(contentsOf: url), let image = UIImage(data: data) else {
-            avatarImage = nil
             return
         }
         avatarImage = image
     }
 
     func applyAvatarFromRemote(_ dataUrl: String?) {
-        guard let dataUrl, !dataUrl.isEmpty,
-              let range = dataUrl.range(of: "base64,"),
-              let data = Data(base64Encoded: String(dataUrl[range.upperBound...])),
-              let image = UIImage(data: data) else {
-            return
-        }
+        guard let dataUrl, !dataUrl.isEmpty else { return }
+        guard let image = Self.imageFromDataURL(dataUrl) else { return }
         let resized = Self.resize(image, maxSide: 512)
         avatarImage = resized
-        if let email = avatarEmailKey(), let jpeg = resized.jpegData(compressionQuality: 0.82) {
-            try? jpeg.write(to: avatarFileURL(email: email), options: .atomic)
-        }
+        persistAvatarToDisk(resized)
+    }
+
+    private func persistAvatarToDisk(_ image: UIImage) {
+        guard let email = avatarEmailKey(),
+              let data = image.jpegData(compressionQuality: 0.82) else { return }
+        try? data.write(to: avatarFileURL(email: email), options: .atomic)
+    }
+
+    private static func imageFromDataURL(_ dataUrl: String) -> UIImage? {
+        let trimmed = dataUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let range = trimmed.range(of: "base64,", options: .caseInsensitive) else { return nil }
+        var b64 = String(trimmed[range.upperBound...])
+        b64 = b64.replacingOccurrences(of: "\n", with: "")
+            .replacingOccurrences(of: "\r", with: "")
+            .replacingOccurrences(of: " ", with: "")
+        guard let data = Data(base64Encoded: b64, options: .ignoreUnknownCharacters),
+              let image = UIImage(data: data) else { return nil }
+        return image
     }
 
     private func avatarEmailKey() -> String? {
@@ -276,13 +287,21 @@ final class ProfileStore: ObservableObject {
         clearSession()
     }
 
-    private func applyRemote(_ user: AuthAPI.RemoteUser) {
+    private func applyRemote(_ user: AuthAPI.RemoteUser, preferLocalAvatar: Bool = false) {
         userId = user.id
         profile.apply(remote: user)
-        if let remoteAvatar = user.profile.avatarDataUrl, !remoteAvatar.isEmpty {
-            applyAvatarFromRemote(remoteAvatar)
+        let remote = user.profile.avatarDataUrl?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !remote.isEmpty {
+            applyAvatarFromRemote(remote)
+        } else if preferLocalAvatar {
+            // Feltöltés után: ha a szerver nem adta vissza a képet, tartsd a helyit.
+            if avatarImage == nil { loadAvatarFromDisk() }
+            else { persistAvatarToDisk(avatarImage!) }
         } else {
-            loadAvatarFromDisk()
+            // Session restore: előbb lemez, ne nil-ezd a memóriát ha a fájl hiányzik.
+            if avatarImage == nil {
+                loadAvatarFromDisk()
+            }
         }
     }
 

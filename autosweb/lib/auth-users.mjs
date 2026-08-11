@@ -71,7 +71,8 @@ function emptyProfile() {
   };
 }
 
-const MAX_AVATAR_DATA_URL = 350_000;
+/** data URL (base64) — iOS/web profilkép; ~1.5 MB raw JPEG is enough headroom */
+const MAX_AVATAR_DATA_URL = 2_000_000;
 
 function sanitizeAvatarDataUrl(value) {
   const raw = String(value ?? "").trim();

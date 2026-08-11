@@ -27,11 +27,15 @@ struct SiteAuthBar: View {
                     ProfileAvatarView(
                         image: profile.avatarImage,
                         letter: profile.profile.avatarLetter,
-                        size: 34
+                        size: 36
                     )
+                    .frame(width: 36, height: 36)
+                    .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Fiók menü")
+                // Újraindításkor / sync után biztosan betöltődik a helyi kép
+                .onAppear { profile.loadAvatarFromDisk() }
             } else {
                 menuButton("Belépés", selected: selectedPage == .login, action: onLogin)
                 menuButton("Regisztráció", selected: selectedPage == .register, action: onRegister)
