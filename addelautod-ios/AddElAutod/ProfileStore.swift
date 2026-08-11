@@ -20,6 +20,8 @@ struct UserProfile: Codable, Equatable {
     var notifyNewsletter: Bool = false
     /// Gyors kategória keresés: km-sugár az irányítószám körül (helyi, nem szerver)
     var searchRadiusKm: Int = 30
+    /// Ajánlások (partnerek) km-sugár — max 30 (Autosweb)
+    var recommendationsRadiusKm: Int = 30
     /// Szerver `displayName` (ha a kereszt-/vezetéknév még üres)
     var serverDisplayName: String = ""
 

@@ -1,26 +1,39 @@
 import SwiftUI
 import UIKit
 
-/// Autós oldal fizetős partner-ajánlói (Autosweb / irányítószám, max ~30 km)
+/// Autós oldal fizetős partner-ajánlói (Autosweb / irányítószám).
+/// Körzet szerkesztés: Beállítások → Ajánlások körzete.
 struct RecommendationsScreen: View {
   @EnvironmentObject private var profile: ProfileStore
 
-  @State private var postalCode: String = ""
   @State private var cityLabel: String?
   @State private var categories: [PartnerCategoryGroup] = PartnerRecommendationsDemo.categories
   @State private var loading = false
-  @State private var sourceNote: String = "Demo ajánlások — Autosweb élő listához indítsd a 3456-ot."
+  @State private var sourceNote: String = "Körzet: Beállítások → Ajánlások körzete"
   /// Accordion: egyszerre legfeljebb egy kategória nyitva (nil = mind zárva)
   @State private var expandedCategoryId: String? = nil
+
+  private var postalCode: String {
+    String(profile.profile.postalCode.filter(\.isNumber).prefix(4))
+  }
+
+  private var radiusKm: Int {
+    min(30, max(5, profile.profile.recommendationsRadiusKm))
+  }
 
   var body: some View {
     VStack(spacing: 0) {
       ScreenHeader(
         title: "Ajánlások",
-        subtitle: subtitle
+        subtitle: subtitle,
+        rightLabel: loading ? nil : "Frissítés",
+        onRight: loading ? nil : { Task { await loadRecommendations() } }
       )
 
-      postalBar
+      if loading {
+        ProgressView()
+          .padding(.vertical, 8)
+      }
 
       if !sourceNote.isEmpty {
         Text(sourceNote)
@@ -42,46 +55,19 @@ struct RecommendationsScreen: View {
       }
     }
     .background(AppTheme.bg)
-    .onAppear {
-      if postalCode.isEmpty {
-        let fromProfile = profile.profile.postalCode.trimmingCharacters(in: .whitespaces)
-        postalCode = fromProfile.count == 4 ? fromProfile : "8000"
-      }
-    }
-    .task(id: postalCode) {
+    .task(id: "\(postalCode)-\(radiusKm)") {
       await loadRecommendations()
     }
   }
 
   private var subtitle: String {
+    if postalCode.count != 4 {
+      return "Állítsd be a körzetet a Beállításokban"
+    }
     if let city = cityLabel, !city.isEmpty {
-      return "\(city) · szolgáltatók 30 km-en belül"
+      return "\(city) · szolgáltatók \(radiusKm) km-en belül"
     }
-    return "Szolgáltatók az irányítószámod körül"
-  }
-
-  private var postalBar: some View {
-    HStack(spacing: 10) {
-      TextField("Irányítószám", text: $postalCode)
-        .keyboardType(.numberPad)
-        .textFieldStyle(.roundedBorder)
-        .frame(maxWidth: 120)
-
-      Button("Keresés") {
-        let trimmed = String(postalCode.filter(\.isNumber).prefix(4))
-        postalCode = trimmed
-        Task { await loadRecommendations() }
-      }
-      .buttonStyle(.borderedProminent)
-      .disabled(postalCode.filter(\.isNumber).count != 4 || loading)
-
-      if loading {
-        ProgressView()
-      }
-      Spacer(minLength: 0)
-    }
-    .padding(.horizontal, 16)
-    .padding(.vertical, 10)
+    return "\(postalCode) · szolgáltatók \(radiusKm) km-en belül"
   }
 
   @ViewBuilder
@@ -198,30 +184,51 @@ struct RecommendationsScreen: View {
     return String(format: "★ %.1f", rating)
   }
 
+  private func filterByRadius(_ groups: [PartnerCategoryGroup]) -> [PartnerCategoryGroup] {
+    let maxKm = Double(radiusKm)
+    return groups.map { group in
+      let filtered = group.partners.filter { partner in
+        guard let km = partner.distanceKm else { return true }
+        return km <= maxKm + 0.05
+      }
+      return PartnerCategoryGroup(id: group.id, label: group.label, partners: filtered)
+    }
+  }
+
   @MainActor
   private func loadRecommendations() async {
-    let code = String(postalCode.filter(\.isNumber).prefix(4))
-    guard code.count == 4 else { return }
+    guard postalCode.count == 4 else {
+      cityLabel = nil
+      categories = []
+      expandedCategoryId = nil
+      sourceNote = "Állítsd be az irányítószámot: Beállítások → Ajánlások körzete"
+      return
+    }
 
     loading = true
     defer { loading = false }
 
     do {
-      let result = try await PartnerRecommendationsClient.fetch(postalCode: code)
+      let result = try await PartnerRecommendationsClient.fetch(postalCode: postalCode)
       cityLabel = result.city
-      let withPartners = result.categories.filter { !$0.partners.isEmpty }
-      categories = withPartners.isEmpty ? result.categories : withPartners
+      let filtered = filterByRadius(result.categories)
+      let withPartners = filtered.filter { !$0.partners.isEmpty }
+      categories = withPartners.isEmpty ? filtered : withPartners
       expandedCategoryId = nil
-      sourceNote = "Élő Autosweb ajánlások (\(code))."
-      if profile.profile.postalCode != code {
-        profile.profile.postalCode = code
-        profile.save()
-      }
+      sourceNote = "Élő Autosweb · \(postalCode) · \(radiusKm) km"
     } catch {
-      cityLabel = code == "8000" ? "Székesfehérvár" : nil
-      categories = PartnerRecommendationsDemo.categories
+      cityLabel = postalCode == "8000" ? "Székesfehérvár" : profile.profile.city.nilIfEmpty
+      let demo = filterByRadius(PartnerRecommendationsDemo.categories)
+      categories = demo
       expandedCategoryId = nil
-      sourceNote = "Autosweb nem elérhető (3456) — demo ajánlások. Élőhöz: Autosweb-indito."
+      sourceNote = "Autosweb nem elérhető — demo. Körzet: Beállítások → Ajánlások körzete"
     }
+  }
+}
+
+private extension String {
+  var nilIfEmpty: String? {
+    let t = trimmingCharacters(in: .whitespacesAndNewlines)
+    return t.isEmpty ? nil : t
   }
 }

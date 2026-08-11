@@ -9,7 +9,7 @@ struct SettingsScreen: View {
     var onClose: () -> Void
 
     private enum Accordion: String {
-        case personal, searchArea, password, notify, pages, autosweb
+        case personal, searchArea, recommendationsArea, password, notify, pages, autosweb
     }
 
     @State private var openAccordion: Accordion? = nil
@@ -33,6 +33,9 @@ struct SettingsScreen: View {
                     }
                     accordion(.searchArea, title: "Keresési körzet") {
                         searchAreaFields
+                    }
+                    accordion(.recommendationsArea, title: "Ajánlások körzete") {
+                        recommendationsAreaFields
                     }
                     accordion(.password, title: "Jelszó módosítása") {
                         passwordFields
@@ -293,6 +296,51 @@ struct SettingsScreen: View {
             Button {
                 profile.save()
                 toast = "Keresési körzet mentve."
+            } label: {
+                Text("Körzet mentése")
+                    .font(.body.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .foregroundStyle(.white)
+                    .background(AppTheme.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+        }
+    }
+
+    // MARK: - Ajánlások körzete
+
+    private var recommendationsAreaFields: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Az Ajánlások oldal ezzel az irányítószámmal és km-sugárral listázza a szolgáltatókat.")
+                .font(.footnote)
+                .foregroundStyle(AppTheme.textSecondary)
+
+            postalAndCityRow
+
+            fieldLabel("Sugár (km)")
+            Picker("Sugár", selection: $profile.profile.recommendationsRadiusKm) {
+                ForEach([5, 10, 15, 20, 30], id: \.self) { km in
+                    Text("\(km) km").tag(km)
+                }
+            }
+            .pickerStyle(.wheel)
+            .frame(height: 120)
+
+            Text("Maximum 30 km (Autosweb).")
+                .font(.caption)
+                .foregroundStyle(AppTheme.textTertiary)
+
+            Button {
+                let digits = String(profile.profile.postalCode.filter(\.isNumber).prefix(4))
+                if digits.count == 4 {
+                    profile.profile.postalCode = digits
+                }
+                if profile.profile.recommendationsRadiusKm > 30 {
+                    profile.profile.recommendationsRadiusKm = 30
+                }
+                profile.save()
+                toast = "Ajánlások körzete mentve."
             } label: {
                 Text("Körzet mentése")
                     .font(.body.weight(.semibold))
