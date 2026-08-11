@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Autosweb header: Belépés | Regisztráció gombok (vendég), vagy avatar + Kijelentkezés.
+/// Autosweb header: Belépés | Regisztráció (vendég), vagy avatar → fiókmenü.
 struct SiteAuthBar: View {
     @EnvironmentObject private var profile: ProfileStore
 
@@ -65,20 +65,4 @@ struct SiteAuthBar: View {
         .buttonStyle(.plain)
     }
 
-    private func outlineButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(Color(red: 0.267, green: 0.267, blue: 0.267))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(Color.white)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(AppTheme.border, lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        }
-        .buttonStyle(.plain)
-    }
 }
