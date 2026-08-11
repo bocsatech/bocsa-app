@@ -1,5 +1,5 @@
 #!/bin/bash
-# Autosweb indító (Asztal) — induláskor GitHub main-ről frissít, majd elindítja a szervert.
+# Autosweb indító (Asztal) — induláskor GitHub feature ágról frissít, majd elindítja a szervert.
 # Nincs szükség külön frissites.command / második terminálra.
 #
 # Kihagyás (ha offline / gyors újraindítás): AUTOSWEB_SKIP_UPDATE=1
@@ -151,6 +151,18 @@ fi
 
 if [ ! -f "$INDEX" ]; then
   osascript -e 'display alert "Hiányzik a főoldal!" message "public/index.html nincs."' 2>/dev/null || true
+  exit 1
+fi
+
+# Mobil: fotók + Hirdetéseim — e nélkül a feladott hirdetésnek nincs képe / üres a lista
+if [ ! -f "$TARGET/lib/listing-photos.mjs" ]; then
+  osascript -e 'display alert "Régi Autosweb!" message "Hiányzik a listing-photos.mjs (képmentés).\n\nIndítsd újra ONLINE az Autosweb-indito.command-ot.\nNe futtass régi frissites.command-ot main ágról."' 2>/dev/null || \
+    echo "HIBA: lib/listing-photos.mjs hiányzik — régi szerver"
+  exit 1
+fi
+if ! grep -q 'listings/mine' "$TARGET/server.mjs" 2>/dev/null; then
+  osascript -e 'display alert "Régi Autosweb!" message "Nincs /api/listings/mine (Hirdetéseim).\n\nIndítsd újra ONLINE az indítót a feature ágról."' 2>/dev/null || \
+    echo "HIBA: /api/listings/mine hiányzik — régi szerver"
   exit 1
 fi
 

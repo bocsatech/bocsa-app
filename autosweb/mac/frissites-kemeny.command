@@ -12,7 +12,9 @@ echo ""
 
 cd "$REPO"
 git fetch origin main
-git reset --hard origin/main
+AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/addelautod-mobile-de62}"
+git fetch origin "$AUTOSWEB_BRANCH"
+git reset --hard "origin/${AUTOSWEB_BRANCH}"
 
 if [ ! -d "$TARGET" ]; then
   echo "Nincs ~/Downloads/autosweb — telepites.command futtatása…"

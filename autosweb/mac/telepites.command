@@ -12,9 +12,12 @@ echo "  Forrás: $SOURCE"
 echo "  Cél:    $TARGET"
 echo ""
 
+# Mobil feature ág (fotók + Hirdetéseim). Main: AUTOSWEB_BRANCH=main
+AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/addelautod-mobile-de62}"
+
 cd "$REPO"
-git fetch origin main 2>/dev/null || true
-git checkout origin/main -- autosweb/ 2>/dev/null || true
+git fetch origin "$AUTOSWEB_BRANCH" 2>/dev/null || true
+git checkout "origin/${AUTOSWEB_BRANCH}" -- autosweb/ 2>/dev/null || true
 
 mkdir -p "$TARGET/public" "$HOME/Desktop"
 

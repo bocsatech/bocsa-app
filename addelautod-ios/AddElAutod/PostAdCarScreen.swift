@@ -899,6 +899,15 @@ struct PostAdCarScreen: View {
 
     private func submitListing() async {
         guard !posting else { return }
+        guard profile.token != nil, profile.isLoggedIn else {
+            toast = "A feladáshoz be kell jelentkezned."
+            return
+        }
+        if photoStore.photos.isEmpty {
+            openAccordion = .kepek
+            toast = "Legalább egy fénykép kell a feladáshoz."
+            return
+        }
         let missing = missingAlapFields
         if !missing.isEmpty {
             openAccordion = .alap

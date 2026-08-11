@@ -749,6 +749,15 @@ struct PostAdTruckScreen: View {
     }
 
     private func submit() async {
+        guard profile.token != nil, profile.isLoggedIn else {
+            toast = "A feladáshoz be kell jelentkezned."
+            return
+        }
+        if photoStore.photos.isEmpty {
+            openAccordion = .kepek
+            toast = "Legalább egy fénykép kell a feladáshoz."
+            return
+        }
         posting = true
         defer { posting = false }
         store.filter.vehicleKind = kind.rawValue

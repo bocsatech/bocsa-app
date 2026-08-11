@@ -33,7 +33,7 @@ enum AutoswebBaseURL {
         } else {
             UserDefaults.standard.set(url.absoluteString, forKey: defaultsKey)
         }
-        PartnerRecommendationsClient.baseURL = url
+        // Ne írj PartnerRecommendationsClient.baseURL-t — az getter ide hív vissza (végtelen rekurzió).
         return url
     }
 

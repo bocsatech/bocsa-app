@@ -374,6 +374,12 @@ async function handleListingsApi(req, res, pathname) {
     }
 
     const user = getUserByToken(extractBearerToken(req));
+    const wantsPhotos = Array.isArray(body.photos) && body.photos.length > 0;
+    // Mobil kép-feltöltés: kötelező bejelentkezés → user_id / Hirdetéseim
+    if (wantsPhotos && !user) {
+      sendJson(res, 401, { error: "Bejelentkezés szükséges a hirdetésfeladáshoz." });
+      return;
+    }
     const ownerOpts =
       user != null
         ? { status: body.status, userId: user.id }

@@ -38,7 +38,7 @@ struct ListingKV: Identifiable, Equatable {
 extension ListingsAPI {
   /// Teljes hirdetés: `GET /api/listings/:id`
   static func fetchDetail(id: String) async throws -> ListingDetail {
-    guard let url = URL(string: "api/listings/\(id)", relativeTo: baseURL)?.absoluteURL else {
+    guard let url = apiURL("api/listings/\(id)") else {
       throw ListingsError.unreachable
     }
     var request = URLRequest(url: url)

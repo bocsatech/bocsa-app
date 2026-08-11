@@ -164,10 +164,7 @@ enum PartnerRecommendationsDemo {
 
 enum PartnerRecommendationsClient {
   /// Mindig az aktuális Autosweb cím (UserDefaults / Belépés képernyő).
-  static var baseURL: URL {
-    get { AutoswebBaseURL.currentURL() }
-    set { _ = AutoswebBaseURL.set(newValue.absoluteString) }
-  }
+  static var baseURL: URL { AutoswebBaseURL.currentURL() }
 
   /// Irányítószám → település (GET /api/postal-codes/lookup)
   static func lookupCity(postalCode: String) async -> String? {

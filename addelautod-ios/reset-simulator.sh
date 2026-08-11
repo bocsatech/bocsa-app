@@ -81,6 +81,11 @@ if grep -A2 "case .okmanyok:" "$SEARCH" | grep -q "multiSelectList"; then
   exit 1
 fi
 grep -q "MARKETING_VERSION = 1.0.9" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
+# Feladott képek + Hirdetéseim
+grep -q "fetchMyListings" "$DEST/AddElAutod/ListingsAPI.swift"
+grep -q "ListingRemoteImage" "$DEST/AddElAutod/ListingDetailScreen.swift"
+grep -q "MyListingsScreen" "$DEST/AddElAutod/AccountMenuScreen.swift"
+grep -q "api/listings/mine" "$DEST/AddElAutod/ListingsAPI.swift"
 if grep -A3 "case .hirdeto:" "$SEARCH" | grep -q "multiSelectList"; then
   echo "HIBA: SearchScreen Hirdető még multiSelectList"
   exit 1

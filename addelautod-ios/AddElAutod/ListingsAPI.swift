@@ -83,6 +83,20 @@ enum ListingsAPI {
     }
   }
 
+  /// Relatív API út — NE `appendingPathComponent("a/b/c")` (a `/` %-kódolódhat).
+  static func apiURL(_ path: String, query: [URLQueryItem] = []) -> URL? {
+    let trimmed = path.hasPrefix("/") ? String(path.dropFirst()) : path
+    guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
+      return nil
+    }
+    let basePath = components.path.hasSuffix("/") ? String(components.path.dropLast()) : components.path
+    components.path = basePath + "/" + trimmed
+    if !query.isEmpty {
+      components.queryItems = query
+    }
+    return components.url
+  }
+
   /// Relatív `/uploads/...` vagy abszolút URL → betölthető kép.
   static func absoluteImageURL(_ path: String?) -> URL? {
     let raw = (path ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -100,22 +114,25 @@ enum ListingsAPI {
     case unreachable
     case server(String)
     case notLoggedIn
+    case needsPhoto
 
     var errorDescription: String? {
       switch self {
       case .unreachable:
-        return "Autosweb nem elérhető (3456). Indítsd az Autosweb-indítót."
+        return "Autosweb nem elérhető (3456). Indítsd az Autosweb-indítót (feature ág)."
       case .server(let m):
         return m
       case .notLoggedIn:
-        return "A Hirdetéseimhez be kell jelentkezned."
+        return "A feladáshoz / Hirdetéseimhez be kell jelentkezned."
+      case .needsPhoto:
+        return "Legalább egy fénykép kell a feladáshoz."
       }
     }
   }
 
   /// Új hirdetés feladása → `POST /api/listings` (listings.db, status: feladott).
   /// `photos`: base64 JPEG lista, első = főkép.
-  /// `token`: bejelentkezett user → user_id mentés (Hirdetéseim).
+  /// `token`: kötelező feladáskor → user_id (Hirdetéseim).
   @discardableResult
   static func saveListing(
     form: [String: Any],
@@ -123,15 +140,15 @@ enum ListingsAPI {
     photos: [String] = [],
     token: String? = nil
   ) async throws -> Int {
-    let url = baseURL.appendingPathComponent("api/listings")
+    guard let token, !token.isEmpty else { throw ListingsError.notLoggedIn }
+    if status == "feladott", photos.isEmpty { throw ListingsError.needsPhoto }
+    guard let url = apiURL("api/listings") else { throw ListingsError.unreachable }
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.timeoutInterval = photos.isEmpty ? 30 : 120
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
-    if let token, !token.isEmpty {
-      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-    }
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     var body: [String: Any] = ["form": form, "status": status]
     if !photos.isEmpty {
       body["photos"] = photos
@@ -148,11 +165,24 @@ enum ListingsAPI {
     guard let http = response as? HTTPURLResponse else { throw ListingsError.unreachable }
     if http.statusCode >= 400 {
       let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+      if http.statusCode == 401 { throw ListingsError.notLoggedIn }
+      if err == "Ismeretlen API." || err?.contains("Ismeretlen") == true {
+        throw ListingsError.server("Régi Autosweb — zárd be, indítsd újra az Autosweb-indito.command-ot (online).")
+      }
       throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
     }
     let decoded = try JSONDecoder().decode(SaveResponse.self, from: data)
     guard let id = decoded.listing?.id else {
       throw ListingsError.server("Mentés sikertelen — nincs azonosító.")
+    }
+    // Ha a szerver nem mentett képet, jelezzük (régi Autosweb — nincs listing-photos).
+    if status == "feladott", !photos.isEmpty {
+      let foKep = (decoded.listing?.fo_kep ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+      if foKep.isEmpty {
+        throw ListingsError.server(
+          "A kép nem mentődött el. Indítsd újra az Autosweb-indito.command-ot (online frissítés), majd add fel újra."
+        )
+      }
     }
     PostedListingsStore.remember(id)
     return id
@@ -160,45 +190,44 @@ enum ListingsAPI {
 
   /// Webes főoldal: összes hirdetés, legújabb elöl.
   static func fetchHomeListings(limit: Int = homeFetchLimit) async throws -> [HomeListing] {
-    var components = URLComponents(
-      url: baseURL.appendingPathComponent("api/listings"),
-      resolvingAgainstBaseURL: false
-    )!
-    components.queryItems = [URLQueryItem(name: "limit", value: String(limit))]
-    guard let url = components.url else { throw ListingsError.unreachable }
+    guard let url = apiURL("api/listings", query: [URLQueryItem(name: "limit", value: String(limit))]) else {
+      throw ListingsError.unreachable
+    }
     return try await fetchListings(url: url, token: nil, statusBadge: false)
   }
 
   /// Bejelentkezett user saját hirdetései (+ eszközön feladott ID-k visszaesés).
   static func fetchMyListings(token: String?, limit: Int = 200) async throws -> [HomeListing] {
-    var byId: [String: HomeListing] = [:]
+    guard let token, !token.isEmpty else { throw ListingsError.notLoggedIn }
 
-    if let token, !token.isEmpty {
-      let url = baseURL.appendingPathComponent("api/listings/mine")
-      var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-      components.queryItems = [URLQueryItem(name: "limit", value: String(limit))]
-      if let mineURL = components.url {
-        do {
-          let mine = try await fetchListings(url: mineURL, token: token, statusBadge: true)
-          for item in mine { byId[item.id] = item }
-        } catch {
-          // Régi Autosweb / hálózat: helyi ID-kkal folytatjuk
-        }
+    var byId: [String: HomeListing] = [:]
+    var mineError: Error?
+
+    if let mineURL = apiURL("api/listings/mine", query: [URLQueryItem(name: "limit", value: String(limit))]) {
+      do {
+        let mine = try await fetchListings(url: mineURL, token: token, statusBadge: true)
+        for item in mine { byId[item.id] = item }
+      } catch {
+        mineError = error
       }
     }
 
     let localIds = PostedListingsStore.ids()
     if !localIds.isEmpty {
-      let all = try await fetchHomeListings(limit: homeFetchLimit)
-      for item in all where localIds.contains(item.id) {
-        if byId[item.id] == nil {
-          byId[item.id] = item.withBadge(item.badge ?? "Feladott")
+      do {
+        let all = try await fetchHomeListings(limit: homeFetchLimit)
+        for item in all where localIds.contains(item.id) {
+          if byId[item.id] == nil {
+            byId[item.id] = item.withBadge(item.badge ?? "Feladott")
+          }
         }
+      } catch {
+        if byId.isEmpty { throw error }
       }
     }
 
-    if byId.isEmpty, token == nil || token?.isEmpty == true {
-      throw ListingsError.notLoggedIn
+    if byId.isEmpty, let mineError {
+      throw mineError
     }
 
     return byId.values.sorted { a, b in
@@ -358,6 +387,7 @@ enum ListingsAPI {
 
   private struct SavedListing: Decodable {
     let id: Int
+    let fo_kep: String?
   }
 
   private struct RemoteListing: Decodable {

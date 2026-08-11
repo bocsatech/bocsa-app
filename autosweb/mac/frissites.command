@@ -6,13 +6,17 @@ REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 SOURCE="$REPO/autosweb"
 TARGET="$HOME/Downloads/autosweb"
 
-echo "Autosweb frissítés (GitHub main → Letöltések)…"
+# Mobil feature ág (fotók + Hirdetéseim). Main: AUTOSWEB_BRANCH=main
+AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/addelautod-mobile-de62}"
+
+echo "Autosweb frissítés (GitHub ${AUTOSWEB_BRANCH} → Letöltések)…"
 echo "  Repo: $REPO"
 echo ""
 
 cd "$REPO"
-git fetch origin main
-git pull origin main -- autosweb/ 2>/dev/null || git checkout origin/main -- autosweb/
+git fetch origin "$AUTOSWEB_BRANCH"
+git pull origin "$AUTOSWEB_BRANCH" -- autosweb/ 2>/dev/null \
+  || git checkout "origin/${AUTOSWEB_BRANCH}" -- autosweb/
 
 if [ ! -d "$TARGET" ]; then
   echo "Nincs telepítve. Futtasd: ./telepites.command"
