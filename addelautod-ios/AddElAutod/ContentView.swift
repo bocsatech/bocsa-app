@@ -9,9 +9,11 @@ enum AuthPage: String {
 struct ContentView: View {
     @EnvironmentObject private var profile: ProfileStore
     @EnvironmentObject private var pageLayout: PageLayoutStore
+    @EnvironmentObject private var searchStore: SearchStore
     @State private var page = 0
     @State private var authPage: AuthPage = .login
     @State private var showSettings = false
+    @State private var showAccountMenu = false
 
     var body: some View {
         Group {
@@ -29,6 +31,19 @@ struct ContentView: View {
             SettingsScreen(onClose: { showSettings = false })
                 .environmentObject(profile)
                 .environmentObject(pageLayout)
+        }
+        .fullScreenCover(isPresented: $showAccountMenu) {
+            AccountMenuScreen(
+                onClose: { showAccountMenu = false },
+                onOpenSearch: {
+                    if let idx = pageLayout.index(of: .foOldal) {
+                        page = idx
+                    }
+                }
+            )
+            .environmentObject(profile)
+            .environmentObject(searchStore)
+            .environmentObject(pageLayout)
         }
     }
 
@@ -67,7 +82,7 @@ struct ContentView: View {
                 selectedPage: nil,
                 onLogin: {},
                 onRegister: {},
-                onAccount: { showSettings = true }
+                onAccount: { showAccountMenu = true }
             )
 
             TabView(selection: $page) {

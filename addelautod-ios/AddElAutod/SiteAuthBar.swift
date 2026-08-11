@@ -31,11 +31,7 @@ struct SiteAuthBar: View {
                     )
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Fiók")
-
-                outlineButton("Kijelentkezés") {
-                    Task { await profile.logout() }
-                }
+                .accessibilityLabel("Fiók menü")
             } else {
                 menuButton("Belépés", selected: selectedPage == .login, action: onLogin)
                 menuButton("Regisztráció", selected: selectedPage == .register, action: onRegister)

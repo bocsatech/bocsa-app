@@ -50,6 +50,7 @@
 		A1PCAR002B /* PostAdCarScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1PCAR001B /* PostAdCarScreen.swift */; };
 		A1PTRK002B /* PostAdTruckScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1PTRK001B /* PostAdTruckScreen.swift */; };
 		A1STRK002B /* SearchTruckScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1STRK001B /* SearchTruckScreen.swift */; };
+		A1AMEN002B /* AccountMenuScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AMEN001B /* AccountMenuScreen.swift */; };
 		A1PMAP002B /* PostAdListingMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1PMAP001B /* PostAdListingMapper.swift */; };
 		A1PPHO002B /* PostAdPhotos.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1PPHO001B /* PostAdPhotos.swift */; };
 		A1ABASE002B /* AutoswebBaseURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1ABASE001B /* AutoswebBaseURL.swift */; };
@@ -101,6 +102,7 @@
 		A1PCAR001B /* PostAdCarScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAdCarScreen.swift; sourceTree = "<group>"; };
 		A1PTRK001B /* PostAdTruckScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAdTruckScreen.swift; sourceTree = "<group>"; };
 		A1STRK001B /* SearchTruckScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTruckScreen.swift; sourceTree = "<group>"; };
+		A1AMEN001B /* AccountMenuScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountMenuScreen.swift; sourceTree = "<group>"; };
 		A1PMAP001B /* PostAdListingMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAdListingMapper.swift; sourceTree = "<group>"; };
 		A1PPHO001B /* PostAdPhotos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAdPhotos.swift; sourceTree = "<group>"; };
 		A1ABASE001B /* AutoswebBaseURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoswebBaseURL.swift; sourceTree = "<group>"; };
@@ -186,6 +188,7 @@
 				A1PCAR001B /* PostAdCarScreen.swift */,
 				A1PTRK001B /* PostAdTruckScreen.swift */,
 				A1STRK001B /* SearchTruckScreen.swift */,
+				A1AMEN001B /* AccountMenuScreen.swift */,
 				A1PMAP001B /* PostAdListingMapper.swift */,
 				A1PPHO001B /* PostAdPhotos.swift */,
 				A1ABASE001B /* AutoswebBaseURL.swift */,
@@ -302,6 +305,7 @@
 				A1PCAR002B /* PostAdCarScreen.swift in Sources */,
 				A1PTRK002B /* PostAdTruckScreen.swift in Sources */,
 				A1STRK002B /* SearchTruckScreen.swift in Sources */,
+				A1AMEN002B /* AccountMenuScreen.swift in Sources */,
 				A1PMAP002B /* PostAdListingMapper.swift in Sources */,
 				A1PPHO002B /* PostAdPhotos.swift in Sources */,
 				A1ABASE002B /* AutoswebBaseURL.swift in Sources */,

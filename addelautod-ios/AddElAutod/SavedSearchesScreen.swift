@@ -3,6 +3,7 @@ import SwiftUI
 struct SavedSearchesScreen: View {
     @EnvironmentObject private var store: SearchStore
     var onOpenSearch: () -> Void
+    var onBack: (() -> Void)? = nil
 
     @State private var alertTitle = ""
     @State private var alertMessage = ""
@@ -10,7 +11,11 @@ struct SavedSearchesScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenHeader(title: "Mentett keresések", subtitle: "Feltételek ikonokra")
+            ScreenHeader(
+                title: "Mentett kereséseim",
+                subtitle: "Feltételek ikonokra",
+                onBack: onBack
+            )
             ScrollView {
                 if store.saved.isEmpty {
                     VStack(spacing: 12) {
