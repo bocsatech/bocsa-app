@@ -76,6 +76,24 @@ enum PartnerRecommendationsDemo {
       ]
     ),
     PartnerCategoryGroup(
+      id: "autoatvizsgalas",
+      label: "Autoátvizsgálás",
+      partners: [
+        PartnerRecommendation(
+          id: "d2c",
+          name: "Autóátvizsgálás Fejér",
+          address: "Gáz utca 8.",
+          postalCode: "8000",
+          phone: "+36 22 456 7890",
+          openingHours: "H–P 8–17",
+          rating: 4.6,
+          reviewCount: 48,
+          distanceKm: 2.7,
+          mapsURL: URL(string: "https://www.google.com/maps/search/?api=1&query=Aut%C3%B3%C3%A1tvizsg%C3%A1l%C3%A1s%20Sz%C3%A9kesfeh%C3%A9rv%C3%A1r")
+        ),
+      ]
+    ),
+    PartnerCategoryGroup(
       id: "autoszerelo",
       label: "Autószerelő",
       partners: [

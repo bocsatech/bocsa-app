@@ -1,7 +1,7 @@
-import { PARTNER_CATEGORIES } from "./partner-categories-data.js?v=partners20260726acc4";
+import { PARTNER_CATEGORIES } from "./partner-categories-data.js?v=partners20260811atv";
 
 const STORAGE_KEY = "autosweb_partner_postal_code";
-const PARTNER_UI_VERSION = "partners20260726acc4";
+const PARTNER_UI_VERSION = "partners20260811atv";
 let partnerUiInitialized = false;
 
 function isLocalAutoswebHost() {

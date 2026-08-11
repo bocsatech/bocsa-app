@@ -27,7 +27,7 @@ test("partner widget: összecsukva indul, kinyitás után accordion működik", 
     await page.waitForSelector("#home-partner-accordion", { timeout: 15000 });
 
     const toggleCount = await page.locator(".home-partner-category-toggle").count();
-    assert.ok(toggleCount >= 9, "legalább 9 kategória");
+    assert.ok(toggleCount >= 10, "legalább 10 kategória");
 
     assert.equal(
       await page.locator(".home-partner-category-panel:not([hidden])").count(),
