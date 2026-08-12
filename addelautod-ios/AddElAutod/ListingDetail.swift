@@ -18,6 +18,7 @@ struct ListingDetail: Identifiable, Equatable {
   let sellerPhone: String?
   let addressLines: [String]
   let mapQuery: String?
+  let ownerUserId: Int?
 
   var messageTarget: ListingMessageTarget {
     ListingMessageTarget(
@@ -28,8 +29,15 @@ struct ListingDetail: Identifiable, Equatable {
     )
   }
 
-  /// Saját hirdetés: ha a formban nincs telefon/név, a profilból pótoljuk (UI).
-  func enrichedWithProfileContact(name: String, phone: String) -> ListingDetail {
+  /// Saját hirdetés: ha a formban nincs telefon/név/cím, a profilból pótoljuk (UI).
+  func enrichedWithProfileContact(
+    name: String,
+    phone: String,
+    street: String = "",
+    postalCode: String = "",
+    city: String = "",
+    country: String = "Magyarország"
+  ) -> ListingDetail {
     let nextName: String = {
       if sellerName != "Eladó", !sellerName.isEmpty { return sellerName }
       let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -40,6 +48,15 @@ struct ListingDetail: Identifiable, Equatable {
       let p = phone.trimmingCharacters(in: .whitespacesAndNewlines)
       return p.isEmpty ? nil : p
     }()
+    let nextAddress: [String]
+    let nextMap: String?
+    if addressLines.isEmpty {
+      nextAddress = Self.makeAddressLines(street: street, postal: postalCode, city: city)
+      nextMap = Self.makeMapQuery(street: street, postal: postalCode, city: city, country: country)
+    } else {
+      nextAddress = addressLines
+      nextMap = mapQuery
+    }
     return ListingDetail(
       id: id,
       title: title,
@@ -54,9 +71,36 @@ struct ListingDetail: Identifiable, Equatable {
       description: description,
       sellerName: nextName,
       sellerPhone: nextPhone,
-      addressLines: addressLines,
-      mapQuery: mapQuery
+      addressLines: nextAddress,
+      mapQuery: nextMap ?? mapQuery,
+      ownerUserId: ownerUserId
     )
+  }
+
+  static func makeAddressLines(street: String, postal: String, city: String, megye: String = "") -> [String] {
+    var address: [String] = []
+    let s = street.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !s.isEmpty { address.append(s) }
+    let cityLine = [postal, city, megye]
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .filter { !$0.isEmpty }
+      .joined(separator: " ")
+    if !cityLine.isEmpty { address.append(cityLine) }
+    return address
+  }
+
+  static func makeMapQuery(
+    street: String,
+    postal: String,
+    city: String,
+    megye: String = "",
+    country: String = "Magyarország"
+  ) -> String? {
+    let parts = [street, postal, city, megye, country]
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .filter { !$0.isEmpty }
+    guard parts.count >= 2 else { return nil }
+    return parts.joined(separator: ", ")
   }
 }
 
@@ -238,16 +282,8 @@ extension ListingsAPI {
     let postal = sanitizeListingField(str("iranyitoszam"))
     let street = sanitizeListingField(str("megtekintesi_cim"))
     let megye = sanitizeListingField(str("megye"))
-    var address: [String] = []
-    if !street.isEmpty { address.append(street) }
-    let cityLine = [postal, city, megye].filter { !$0.isEmpty }.joined(separator: " ")
-    if !cityLine.isEmpty { address.append(cityLine) }
-
-    let mapParts = [street, postal, city, megye].filter { !$0.isEmpty }
-    let mapQuery: String? = {
-      guard !mapParts.isEmpty else { return nil }
-      return (mapParts + ["Magyarország"]).joined(separator: ", ")
-    }()
+    let address = ListingDetail.makeAddressLines(street: street, postal: postal, city: city, megye: megye)
+    let mapQuery = ListingDetail.makeMapQuery(street: street, postal: postal, city: city, megye: megye)
     let sellerName: String = {
       let named = str("hirdeto_nev")
       if !named.isEmpty { return named }
@@ -278,7 +314,8 @@ extension ListingsAPI {
       sellerName: sellerName,
       sellerPhone: phoneFallback.isEmpty ? nil : phoneFallback,
       addressLines: address,
-      mapQuery: mapQuery
+      mapQuery: mapQuery,
+      ownerUserId: row.user_id
     )
   }
 
@@ -336,6 +373,7 @@ extension ListingsAPI {
     let hirdetes_cime: String?
     let fo_kep: String?
     let status: String?
+    let user_id: Int?
     let form: [String: FormValue]?
   }
 
@@ -481,7 +519,8 @@ extension DemoListing {
       sellerName: "Demo Eladó",
       sellerPhone: "+36 30 000 0000",
       addressLines: ["\(postalCode) \(cityGuess)"],
-      mapQuery: "\(postalCode) \(cityGuess), Magyarország"
+      mapQuery: "\(postalCode) \(cityGuess), Magyarország",
+      ownerUserId: nil
     )
   }
 }

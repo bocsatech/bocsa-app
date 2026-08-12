@@ -153,12 +153,15 @@ enum PostAdListingMapper {
         return form
     }
 
-    /// Név + telefon a hirdetés űrlapba (Beállításokból előtöltve, szerkeszthető).
+    /// Név + telefon + cím a hirdetés űrlapba (Beállításokból előtöltve).
     static func applyContact(
         to form: inout [String: Any],
         name: String,
         phone: String,
-        email: String
+        email: String,
+        street: String = "",
+        postalCode: String = "",
+        city: String = ""
     ) {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if !n.isEmpty { form["hirdeto_nev"] = n }
@@ -178,6 +181,16 @@ enum PostAdListingMapper {
                 form["telefon1_szam"] = rawPhone.filter(\.isNumber)
             }
         }
+        func empty(_ key: String) -> Bool {
+            guard let v = form[key] else { return true }
+            return String(describing: v).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        let c = city.trimmingCharacters(in: .whitespacesAndNewlines)
+        if empty("telepules"), !c.isEmpty { form["telepules"] = c }
+        let p = postalCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        if empty("iranyitoszam"), !p.isEmpty { form["iranyitoszam"] = p }
+        let s = street.trimmingCharacters(in: .whitespacesAndNewlines)
+        if empty("megtekintesi_cim"), !s.isEmpty { form["megtekintesi_cim"] = s }
     }
 
     static func parsePhoneParts(_ raw: String) -> (orszag: String?, korzet: String?, szam: String?) {

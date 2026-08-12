@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import MapKit
 
 /// Willhaben-szerű hirdetésnézet — magyar feliratok, fix Üzenet alul.
 struct ListingDetailScreen: View {
@@ -253,21 +254,9 @@ struct ListingDetailScreen: View {
           openMaps(query)
         } label: {
           ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-              .fill(Color(.tertiarySystemFill))
-              .frame(height: 140)
-              .overlay {
-                VStack(spacing: 6) {
-                  Image(systemName: "map.fill")
-                    .font(.title)
-                    .foregroundStyle(AppTheme.accent)
-                  Text(query)
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                }
-              }
+            ListingMapPreview(query: query)
+              .frame(height: 160)
+              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             Label("Térkép nagyítása", systemImage: "magnifyingglass")
               .font(.caption.weight(.medium))
               .padding(8)
@@ -276,6 +265,7 @@ struct ListingDetailScreen: View {
           }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Térkép: \(query)")
       }
     }
     .padding(16)
@@ -546,11 +536,13 @@ struct ListingDetailLoader: View {
     case .remote(let id):
       do {
         var loaded = try await ListingsAPI.fetchDetail(id: id, token: profile.token)
-        // Ha a hirdetésen nincs elérhetőség, saját profilból pótoljuk (saját hirdetés / hiányos mentés)
-        if loaded.sellerPhone == nil || loaded.sellerName == "Eladó" {
+        if shouldEnrichFromProfile(loaded) {
           loaded = loaded.enrichedWithProfileContact(
             name: profile.profile.displayName,
-            phone: profile.profile.phone
+            phone: profile.profile.phone,
+            street: profile.profile.street,
+            postalCode: profile.profile.postalCode,
+            city: profile.profile.city
           )
         }
         detail = loaded
@@ -558,5 +550,72 @@ struct ListingDetailLoader: View {
         errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
       }
     }
+  }
+
+  private func shouldEnrichFromProfile(_ detail: ListingDetail) -> Bool {
+    if let oid = detail.ownerUserId, let uid = profile.userId, oid == uid {
+      return true
+    }
+    let mine = profile.profile.phone.filter(\.isNumber)
+    if let theirs = detail.sellerPhone?.filter(\.isNumber), mine.count >= 7, theirs.count >= 7 {
+      if mine.suffix(9) == theirs.suffix(9) { return true }
+    }
+    let name = profile.profile.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !name.isEmpty, detail.sellerName.caseInsensitiveCompare(name) == .orderedSame {
+      return true
+    }
+    return false
+  }
+}
+
+/// Beágyazott térkép a hirdetés címére (geokódolás, nem kell helyengedély).
+private struct ListingMapPreview: View {
+  let query: String
+  @State private var camera: MapCameraPosition = .region(
+    MKCoordinateRegion(
+      center: CLLocationCoordinate2D(latitude: 47.1625, longitude: 19.5033),
+      span: MKCoordinateSpan(latitudeDelta: 3.2, longitudeDelta: 3.2)
+    )
+  )
+  @State private var pin: CLLocationCoordinate2D?
+
+  var body: some View {
+    Map(position: $camera, interactionModes: []) {
+      if let pin {
+        Marker(query, coordinate: pin)
+      }
+    }
+    .mapStyle(.standard)
+    .overlay {
+      if pin == nil {
+        VStack(spacing: 6) {
+          Image(systemName: "map.fill")
+            .font(.title)
+            .foregroundStyle(AppTheme.accent)
+          Text(query)
+            .font(.caption)
+            .foregroundStyle(AppTheme.textSecondary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.tertiarySystemFill).opacity(0.85))
+      }
+    }
+    .task { await geocode() }
+  }
+
+  private func geocode() async {
+    let geocoder = CLGeocoder()
+    guard let mark = try? await geocoder.geocodeAddressString(query),
+          let loc = mark.first?.location else { return }
+    let c = loc.coordinate
+    pin = c
+    camera = .region(
+      MKCoordinateRegion(
+        center: c,
+        span: MKCoordinateSpan(latitudeDelta: 0.045, longitudeDelta: 0.045)
+      )
+    )
   }
 }

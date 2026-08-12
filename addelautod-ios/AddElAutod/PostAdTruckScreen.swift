@@ -883,7 +883,10 @@ struct PostAdTruckScreen: View {
             to: &form,
             name: contactName,
             phone: contactPhone,
-            email: profile.profile.email
+            email: profile.profile.email,
+            street: profile.profile.street,
+            postalCode: profile.profile.postalCode,
+            city: profile.profile.city
         )
         if isEditing, let baseline = editBaseline {
             form = PostAdListingMapper.mergeForEdit(

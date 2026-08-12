@@ -102,3 +102,39 @@ test("saveListing: sqlite fájlba ment", async () => {
   rmSync(tempDir, { recursive: true, force: true });
   delete process.env.AUTOSWEB_DB_PATH;
 });
+
+test("getListing: település és cím a tulajdonos profiljából", async () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "autosweb-db-addr-"));
+  process.env.AUTOSWEB_DB_PATH = join(tempDir, "test.db");
+  const stamp = Date.now();
+  const { initAuthSchema, registerUser, saveUserProfile } = await import(`./auth-users.mjs?t=${stamp}`);
+  const { saveListing, getListing } = await import(`./db.mjs?t=${stamp}`);
+
+  initAuthSchema();
+  const reg = registerUser({
+    email: "cim@pelda.hu",
+    password: "titok1",
+    password_confirm: "titok1",
+  });
+  saveUserProfile(reg.token, {
+    firstName: "Anna",
+    lastName: "Teszt",
+    postalCode: "8000",
+    city: "Székesfehérvár",
+    street: "Fő utca 1.",
+    phone: "+36301234567",
+  });
+
+  const saved = saveListing(
+    { hirdetes_cime: "SKODA OCTAVIA (2023)", gyartmany: "SKODA" },
+    null,
+    { status: "feladott", userId: reg.user.id }
+  );
+  const loaded = getListing(saved.id);
+  assert.equal(loaded.form.telepules, "Székesfehérvár");
+  assert.equal(loaded.form.iranyitoszam, "8000");
+  assert.equal(loaded.form.megtekintesi_cim, "Fő utca 1.");
+
+  rmSync(tempDir, { recursive: true, force: true });
+  delete process.env.AUTOSWEB_DB_PATH;
+});

@@ -64,7 +64,8 @@ enum ListingsAPI {
         sellerName: "Eladó",
         sellerPhone: nil,
         addressLines: [],
-        mapQuery: nil
+        mapQuery: nil,
+        ownerUserId: userId.flatMap(Int.init)
       )
     }
 

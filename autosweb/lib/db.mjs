@@ -280,8 +280,8 @@ export function getListing(id) {
   };
 }
 
-/** Ha a hirdetésen nincs név/telefon, a tulajdonos profiljából pótoljuk (megjelenítéshez). */
-function enrichFormContactFromOwner(form, userId) {
+/** Ha a hirdetésen nincs név/telefon/cím, a tulajdonos profiljából pótoljuk (megjelenítéshez). */
+export function enrichFormContactFromOwner(form, userId) {
   const out = { ...(form && typeof form === "object" ? form : {}) };
   const uid = Number(userId);
   if (!Number.isFinite(uid) || uid <= 0) return out;
@@ -292,7 +292,10 @@ function enrichFormContactFromOwner(form, userId) {
     String(out.telefonszam ?? "").trim() ||
     String(out.telefon ?? "").trim();
   const hasName = String(out.hirdeto_nev ?? "").trim();
-  if (hasPhone && hasName) return out;
+  const hasCity = String(out.telepules ?? "").trim();
+  const hasPostal = String(out.iranyitoszam ?? "").trim();
+  const hasStreet = String(out.megtekintesi_cim ?? "").trim();
+  if (hasPhone && hasName && hasCity && hasPostal && hasStreet) return out;
 
   try {
     const row = getUsersDb().prepare("SELECT display_name, profile_json, email FROM users WHERE id = ?").get(uid);
@@ -320,6 +323,18 @@ function enrichFormContactFromOwner(form, userId) {
           out.telefon1_szam = parts.szam;
         }
       }
+    }
+    if (!hasCity) {
+      const city = String(profile.city ?? "").trim();
+      if (city) out.telepules = city;
+    }
+    if (!hasPostal) {
+      const postal = String(profile.postalCode ?? "").trim();
+      if (postal) out.iranyitoszam = postal;
+    }
+    if (!hasStreet) {
+      const street = String(profile.street ?? "").trim();
+      if (street) out.megtekintesi_cim = street;
     }
   } catch {
     /* users.db hiány / teszt */
