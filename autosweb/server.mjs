@@ -4,6 +4,7 @@ import { join, extname } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { spawn } from "child_process";
+import { createSocket } from "dgram";
 import { networkInterfaces } from "os";
 import { importListings, openChromeForImport } from "./lib/import-listings.mjs";
 import { findChromeExecutable } from "./lib/chrome-launcher.mjs";
@@ -87,6 +88,38 @@ function lanIPv4Addresses() {
 }
 
 let bonjourProc = null;
+let udpDiscovery = null;
+
+/** Telefon UDP unicast: `BYMY?` → JSON { service, port, lan }. TCP 3456 marad a HTTP. */
+function advertiseUdpDiscovery(port) {
+  if (udpDiscovery) return;
+  try {
+    const sock = createSocket("udp4");
+    sock.on("error", (error) => {
+      console.warn("UDP discovery:", error.message ?? error);
+    });
+    sock.on("message", (msg, rinfo) => {
+      const text = String(msg);
+      if (!text.includes("BYMY")) return;
+      const body = Buffer.from(
+        JSON.stringify({
+          ok: true,
+          service: "bymy-autosweb",
+          port,
+          lan: lanIPv4Addresses(),
+        })
+      );
+      sock.send(body, rinfo.port, rinfo.address, () => {});
+    });
+    sock.bind(port, "0.0.0.0", () => {
+      console.log(`UDP discovery: 0.0.0.0:${port} (BYMY?)`);
+    });
+    udpDiscovery = sock;
+  } catch (error) {
+    console.warn("UDP discovery:", error.message ?? error);
+  }
+}
+
 function advertiseBonjour(port) {
   if (process.platform !== "darwin") return;
   try {
@@ -902,6 +935,7 @@ const server = createServer(async (req, res) => {
     }
     sendJson(res, 200, {
       ok: true,
+      service: "bymy-autosweb",
       version,
       chrome: findChromeExecutable(),
       haSearch: true,
@@ -909,6 +943,8 @@ const server = createServer(async (req, res) => {
       listingsMine: true,
       listingPhotos: true,
       listingStatusToggle: true,
+      lan: lanIPv4Addresses(),
+      port: PORT,
     });
     return;
   }
@@ -1026,6 +1062,7 @@ server.listen(PORT, HOST, async () => {
       console.log("Wi‑Fi/LAN: (nincs IPv4 cím) — csatlakozz Wi‑Fi-hez");
     }
     advertiseBonjour(PORT);
+    advertiseUdpDiscovery(PORT);
   }
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
   try {

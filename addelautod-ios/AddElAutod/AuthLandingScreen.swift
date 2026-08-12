@@ -161,6 +161,14 @@ struct AuthLandingScreen: View {
                 showServer = true
             }
         }
+        .task {
+            if AutoswebBaseURL.isPhysicalDevice {
+                _ = await AutoswebBaseURL.ensureLANBase()
+                if !AutoswebBaseURL.isLoopbackOnPhysicalDevice {
+                    showServer = false
+                }
+            }
+        }
     }
 
     private var topBar: some View {

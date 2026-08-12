@@ -226,12 +226,23 @@ enum AuthAPI {
   }()
 
   private static func perform(_ request: URLRequest) async throws -> (Data, URLResponse) {
+    await AutoswebBaseURL.ensureLANBase()
+    let req = AutoswebBaseURL.rebasing(request, onto: AutoswebBaseURL.currentURL())
     if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
       throw AuthError.unreachable
     }
     do {
-      return try await session.data(for: request)
+      return try await session.data(for: req)
     } catch {
+      if let found = await AutoswebBaseURL.ensureLANBase(),
+         !AutoswebBaseURL.isLoopback(found) {
+        let retry = AutoswebBaseURL.rebasing(request, onto: found)
+        do {
+          return try await session.data(for: retry)
+        } catch {
+          throw AuthError.unreachable
+        }
+      }
       throw AuthError.unreachable
     }
   }
