@@ -233,24 +233,6 @@ struct ListingDetailScreen: View {
         Spacer(minLength: 0)
       }
 
-      if detail.sellerPhone != nil {
-        Button(action: startCall) {
-          HStack(spacing: 8) {
-            Image(systemName: "phone.fill")
-            Text("Hívás")
-              .fontWeight(.semibold)
-          }
-          .foregroundStyle(.white)
-          .frame(maxWidth: .infinity)
-          .padding(.vertical, 12)
-          .background(AppTheme.accent)
-          .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Hívás")
-        .accessibilityHint("Azonnali hívás indítása")
-      }
-
       if !detail.addressLines.isEmpty {
         VStack(alignment: .leading, spacing: 2) {
           ForEach(detail.addressLines, id: \.self) { line in
@@ -326,25 +308,42 @@ struct ListingDetailScreen: View {
   private var messageBar: some View {
     VStack(spacing: 0) {
       Divider()
-      Button {
-        showMessages = true
-      } label: {
-        HStack(spacing: 10) {
-          Image(systemName: "bubble.left.fill")
-          Text("Üzenet")
-            .fontWeight(.semibold)
+      HStack(spacing: 10) {
+        if detail.sellerPhone != nil {
+          Button(action: startCall) {
+            barButtonLabel(title: "Hívás", systemImage: "phone.fill")
+          }
+          .buttonStyle(.plain)
+          .frame(maxWidth: .infinity)
+          .accessibilityLabel("Hívás")
+          .accessibilityHint("Azonnali hívás indítása")
         }
-        .foregroundStyle(.white)
+
+        Button {
+          showMessages = true
+        } label: {
+          barButtonLabel(title: "Üzenet", systemImage: "bubble.left.fill")
+        }
+        .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(AppTheme.accent)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
       }
-      .buttonStyle(.plain)
       .padding(.horizontal, 16)
       .padding(.vertical, 10)
       .background(Color.white)
     }
+  }
+
+  private func barButtonLabel(title: String, systemImage: String) -> some View {
+    HStack(spacing: 8) {
+      Image(systemName: systemImage)
+      Text(title)
+        .fontWeight(.semibold)
+    }
+    .foregroundStyle(.white)
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 14)
+    .background(AppTheme.accent)
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
   }
 
   private func share() {
