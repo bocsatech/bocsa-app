@@ -228,15 +228,27 @@ struct ListingDetailScreen: View {
             Image(systemName: "person.fill")
               .foregroundStyle(.white)
           }
-        VStack(alignment: .leading, spacing: 2) {
-          Text(detail.sellerName)
-            .font(.headline)
-          if let phone = detail.sellerPhone {
-            Link(phone, destination: URL(string: "tel:\(phone.filter { $0.isNumber || $0 == "+" })") ?? URL(string: "tel://")!)
-              .font(.subheadline)
-              .foregroundStyle(AppTheme.accent)
+        Text(detail.sellerName)
+          .font(.headline)
+        Spacer(minLength: 0)
+      }
+
+      if detail.sellerPhone != nil {
+        Button(action: startCall) {
+          HStack(spacing: 8) {
+            Image(systemName: "phone.fill")
+            Text("Hívás")
+              .fontWeight(.semibold)
           }
+          .foregroundStyle(.white)
+          .frame(maxWidth: .infinity)
+          .padding(.vertical, 12)
+          .background(AppTheme.accent)
+          .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Hívás")
+        .accessibilityHint("Azonnali hívás indítása")
       }
 
       if !detail.addressLines.isEmpty {
@@ -348,6 +360,14 @@ struct ListingDetailScreen: View {
     if let url = URL(string: "http://maps.apple.com/?q=\(q)") {
       UIApplication.shared.open(url)
     }
+  }
+
+  /// A szám nem jelenik meg a felületen; `tel:` azonnal a Tárcsázót nyitja (nem `telprompt:`).
+  private func startCall() {
+    guard let raw = detail.sellerPhone else { return }
+    let digits = raw.filter { $0.isNumber || $0 == "+" }
+    guard digits.count >= 7, let url = URL(string: "tel:\(digits)") else { return }
+    UIApplication.shared.open(url, options: [:], completionHandler: nil)
   }
 }
 
