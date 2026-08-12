@@ -154,7 +154,13 @@ struct AuthLandingScreen: View {
                 Text(toast ?? "")
             }
         }
-        .onAppear { profile.authError = nil }
+        .onAppear {
+            profile.authError = nil
+            AutoswebBonjour.shared.start()
+            if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
+                showServer = true
+            }
+        }
     }
 
     private var topBar: some View {

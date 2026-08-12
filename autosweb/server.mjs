@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from "fs";
 import { join, extname } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { spawn } from "child_process";
 import { networkInterfaces } from "os";
 import { importListings, openChromeForImport } from "./lib/import-listings.mjs";
 import { findChromeExecutable } from "./lib/chrome-launcher.mjs";
@@ -83,6 +84,32 @@ function lanIPv4Addresses() {
     }
   }
   return out;
+}
+
+let bonjourProc = null;
+function advertiseBonjour(port) {
+  if (process.platform !== "darwin") return;
+  try {
+    bonjourProc = spawn(
+      "dns-sd",
+      ["-R", "Bymy Autosweb", "_autosweb._tcp", "local.", String(port)],
+      { stdio: "ignore" }
+    );
+    bonjourProc.on("error", () => {});
+    const stop = () => {
+      if (!bonjourProc) return;
+      try {
+        bonjourProc.kill("SIGTERM");
+      } catch {
+        /* ignore */
+      }
+      bonjourProc = null;
+    };
+    process.on("exit", stop);
+    console.log(`Bonjour: Bymy Autosweb._autosweb._tcp (port ${port})`);
+  } catch (error) {
+    console.warn("Bonjour:", error.message ?? error);
+  }
 }
 
 let fugvenyBusy = false;
@@ -998,6 +1025,7 @@ server.listen(PORT, HOST, async () => {
     } else {
       console.log("Wi‑Fi/LAN: (nincs IPv4 cím) — csatlakozz Wi‑Fi-hez");
     }
+    advertiseBonjour(PORT);
   }
   console.log("Import: hasznaltauto.hu → helyi űrlap (nem ad fel hirdetést).");
   try {

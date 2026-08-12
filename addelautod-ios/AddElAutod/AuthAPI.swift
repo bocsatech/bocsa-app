@@ -56,7 +56,8 @@ enum AuthAPI {
       switch self {
       case .server(let msg): return msg
       case .unauthorized(let msg): return msg
-      case .unreachable: return "Autosweb nem elérhető (3456). Indítsd az Autosweb-indítót."
+      case .unreachable:
+        return AutoswebBaseURL.unreachableMessage()
       case .decoding: return "Érvénytelen válasz a szervertől."
       }
     }
@@ -217,13 +218,17 @@ enum AuthAPI {
 
   private static let session: URLSession = {
     let config = URLSessionConfiguration.ephemeral
-    config.timeoutIntervalForRequest = 3
-    config.timeoutIntervalForResource = 5
+    // LAN első csatlakozás + helyi hálózat engedély: 3 mp kevés
+    config.timeoutIntervalForRequest = 15
+    config.timeoutIntervalForResource = 20
     config.waitsForConnectivity = false
     return URLSession(configuration: config)
   }()
 
   private static func perform(_ request: URLRequest) async throws -> (Data, URLResponse) {
+    if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
+      throw AuthError.unreachable
+    }
     do {
       return try await session.data(for: request)
     } catch {

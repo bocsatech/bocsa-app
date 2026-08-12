@@ -141,8 +141,7 @@ enum ListingsAPI {
     var errorDescription: String? {
       switch self {
       case .unreachable:
-        let host = AutoswebBaseURL.currentURL().absoluteString
-        return "Autosweb nem elérhető (\(host)). Telefonon a Mac Wi‑Fi IP kell (ne localhost). Indítsd az Autosweb-indítót, Beállítások → Autosweb → Teszt."
+        return AutoswebBaseURL.unreachableMessage()
       case .server(let m):
         return m
       case .notLoggedIn:
