@@ -127,7 +127,17 @@ update_from_github() {
 if [ "${AUTOSWEB_SKIP_UPDATE:-0}" = "1" ]; then
   echo "Frissítés kihagyva (AUTOSWEB_SKIP_UPDATE=1)"
 else
-  update_from_github || true
+  if ! update_from_github; then
+    echo "⚠ Teljes archívum sikertelen — próbálok legalább server.mjs + db.mjs raw letöltést…"
+    mkdir -p "$TARGET/lib"
+    RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/${AUTOSWEB_BRANCH}/autosweb"
+    if curl -fsSL --connect-timeout 15 --max-time 60 "$RAW/server.mjs" -o "$TARGET/server.mjs" \
+      && curl -fsSL --connect-timeout 15 --max-time 60 "$RAW/lib/db.mjs" -o "$TARGET/lib/db.mjs"; then
+      echo "  ✓ server.mjs + lib/db.mjs frissítve (raw)"
+    else
+      echo "  ✗ Raw frissítés is sikertelen"
+    fi
+  fi
 fi
 
 # --- Telepítés ellenőrzés ---

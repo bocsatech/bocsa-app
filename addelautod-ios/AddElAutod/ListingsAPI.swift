@@ -98,7 +98,7 @@ enum ListingsAPI {
       switch (status ?? "").lowercased() {
       case "feladott": return "Aktív"
       case "inaktiv": return "Inaktív"
-      case "mentett": return "Piszkozat"
+      case "mentett": return "Inaktív"
       default: return nil
       }
     }
@@ -235,38 +235,83 @@ enum ListingsAPI {
   }
 
   /// Aktív / inaktív: aktív (`feladott`) megjelenik a találati listában, inaktív nem.
+  /// Először dedikált API, ha nincs (régi Autosweb): meglévő mentés endpointra esik vissza.
   @discardableResult
   static func setListingActive(id: String, active: Bool, token: String?) async throws -> String {
     guard let token, !token.isEmpty else { throw ListingsError.notLoggedIn }
-    let status = active ? "feladott" : "inaktiv"
-    let body = try JSONSerialization.data(withJSONObject: ["status": status])
+    guard let listingId = Int(id) else {
+      throw ListingsError.server("Érvénytelen hirdetés-azonosító.")
+    }
+    let desired = active ? "feladott" : "inaktiv"
+    let body = try JSONSerialization.data(withJSONObject: ["status": desired, "active": active])
 
-    // 1) POST /api/listings/:id/status — új Autosweb (mobil-barát)
+    // 1) POST /api/listings/:id/status
     if let statusURL = apiURL("api/listings/\(id)/status") {
       do {
-        return try await postListingStatus(url: statusURL, token: token, body: body, fallbackStatus: status)
+        return try await postListingStatus(url: statusURL, token: token, body: body, fallbackStatus: desired)
       } catch let error as ListingsError {
         if !isUnsupportedStatusEndpoint(error) { throw error }
-      } catch {
-        throw error
       }
     }
 
     // 2) PATCH /api/listings/:id
     if let patchURL = apiURL("api/listings/\(id)") {
       do {
-        return try await patchListingStatus(url: patchURL, token: token, body: body, fallbackStatus: status)
+        return try await patchListingStatus(url: patchURL, token: token, body: body, fallbackStatus: desired)
       } catch let error as ListingsError {
-        if isUnsupportedStatusEndpoint(error) {
-          throw ListingsError.server(
-            "Régi Autosweb — nincs aktív/inaktív API. Indítsd újra ONLINE az Autosweb-indito.command-ot, majd próbáld újra."
-          )
-        }
-        throw error
+        if !isUnsupportedStatusEndpoint(error) { throw error }
       }
     }
 
-    throw ListingsError.unreachable
+    // 3) Régi Autosweb: teljes form újra mentése az új státusszal (POST /api/listings).
+    return try await setListingActiveViaSave(
+      id: id,
+      listingId: listingId,
+      active: active,
+      token: token
+    )
+  }
+
+  /// Régi szerver: GET form → POST mentés status-szal. Nem igényel PATCH-et.
+  private static func setListingActiveViaSave(
+    id: String,
+    listingId: Int,
+    active: Bool,
+    token: String
+  ) async throws -> String {
+    let form = try await fetchFormDictionary(id: id, token: token)
+    // Először inaktiv/feladott; ha a szerver nem ismeri az inaktivot → mentett.
+    let primary = active ? "feladott" : "inaktiv"
+    _ = try await saveListing(
+      form: form,
+      status: primary,
+      photos: [],
+      token: token,
+      listingId: listingId
+    )
+    var actual = (try? await fetchListingStatus(id: id, token: token)) ?? primary
+    if !active, actual == "feladott" {
+      // Régi db: inaktiv → mentett-re normalizálódik; próbáljuk közvetlenül.
+      _ = try await saveListing(
+        form: form,
+        status: "mentett",
+        photos: [],
+        token: token,
+        listingId: listingId
+      )
+      actual = (try? await fetchListingStatus(id: id, token: token)) ?? "mentett"
+    }
+    if active {
+      guard actual == "feladott" else {
+        throw ListingsError.server("Nem sikerült aktiválni a hirdetést (státusz: \(actual)).")
+      }
+      return "feladott"
+    }
+    // UI: inaktív (akár inaktiv, akár mentett a szerveren)
+    if actual == "feladott" {
+      throw ListingsError.server("Nem sikerült inaktiválni a hirdetést.")
+    }
+    return actual == "inaktiv" ? "inaktiv" : "inaktiv"
   }
 
   private static func isUnsupportedStatusEndpoint(_ error: ListingsError) -> Bool {
@@ -320,7 +365,8 @@ enum ListingsAPI {
     if http.statusCode >= 400 {
       let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
       if http.statusCode == 401 { throw ListingsError.notLoggedIn }
-      if http.statusCode == 404 || http.statusCode == 405 {
+      // Csak 405 = nincs ilyen művelet; 404 lehet „nincs hirdetés” is.
+      if http.statusCode == 405 || err == "Nem támogatott művelet." || err == "Ismeretlen API." {
         throw ListingsError.server(err ?? "Nem támogatott művelet.")
       }
       throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
@@ -333,6 +379,68 @@ enum ListingsAPI {
     }
     let wrap = try? JSONDecoder().decode(Wrap.self, from: data)
     return wrap?.listing?.status ?? fallbackStatus
+  }
+
+  /// Nyers form (tömbök megmaradnak) — státusz váltáshoz / szerkesztéshez.
+  static func fetchFormDictionary(id: String, token: String? = nil) async throws -> [String: Any] {
+    guard let url = apiURL("api/listings/\(id)") else { throw ListingsError.unreachable }
+    var request = URLRequest(url: url)
+    request.timeoutInterval = 25
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let token, !token.isEmpty {
+      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
+    let data: Data
+    let response: URLResponse
+    do {
+      (data, response) = try await URLSession.shared.data(for: request)
+    } catch {
+      throw ListingsError.unreachable
+    }
+    guard let http = response as? HTTPURLResponse else { throw ListingsError.unreachable }
+    if http.statusCode >= 400 {
+      let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+      if http.statusCode == 401 { throw ListingsError.notLoggedIn }
+      throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
+    }
+    guard
+      let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+      let listing = root["listing"] as? [String: Any],
+      let form = listing["form"] as? [String: Any]
+    else {
+      throw ListingsError.server("Hirdetés nem található.")
+    }
+    return form
+  }
+
+  static func fetchListingStatus(id: String, token: String? = nil) async throws -> String {
+    guard let url = apiURL("api/listings/\(id)") else { throw ListingsError.unreachable }
+    var request = URLRequest(url: url)
+    request.timeoutInterval = 25
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let token, !token.isEmpty {
+      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
+    let data: Data
+    let response: URLResponse
+    do {
+      (data, response) = try await URLSession.shared.data(for: request)
+    } catch {
+      throw ListingsError.unreachable
+    }
+    guard let http = response as? HTTPURLResponse else { throw ListingsError.unreachable }
+    if http.statusCode >= 400 {
+      let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+      throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
+    }
+    struct Wrap: Decodable {
+      let listing: St?
+    }
+    struct St: Decodable {
+      let status: String?
+    }
+    let wrap = try JSONDecoder().decode(Wrap.self, from: data)
+    return (wrap.listing?.status ?? "").lowercased()
   }
 
   /// Szerkesztéshez: nyers form mezők stringként.
@@ -401,12 +509,17 @@ enum ListingsAPI {
     }
   }
 
-  /// Webes főoldal: összes hirdetés, legújabb elöl.
+  /// Webes főoldal: összes aktív (feladott) hirdetés, legújabb elöl.
   static func fetchHomeListings(limit: Int = homeFetchLimit) async throws -> [HomeListing] {
     guard let url = apiURL("api/listings", query: [URLQueryItem(name: "limit", value: String(limit))]) else {
       throw ListingsError.unreachable
     }
-    return try await fetchListings(url: url, token: nil, statusBadge: false)
+    let all = try await fetchListings(url: url, token: nil, statusBadge: false)
+    // Régi Autosweb is hozhat mentett/inaktív sort — keresőben csak aktív.
+    return all.filter { listing in
+      let s = (listing.status ?? "feladott").lowercased()
+      return s == "feladott" || s.isEmpty
+    }
   }
 
   /// Bejelentkezett user saját hirdetései (+ visszaesés régi Autoswebre).

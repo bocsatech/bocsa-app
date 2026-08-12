@@ -442,6 +442,46 @@ async function handleListingsApi(req, res, pathname) {
       return;
     }
 
+    // Státusz-only: { id, status } / { id, active } — form nélkül (mobil kapcsoló)
+    const listingIdEarly = body.id != null ? Number(body.id) : null;
+    const keys = Object.keys(body ?? {});
+    const statusOnly =
+      listingIdEarly != null &&
+      Number.isFinite(listingIdEarly) &&
+      body.form == null &&
+      !Array.isArray(body.photos) &&
+      keys.every((k) => ["id", "status", "active"].includes(k)) &&
+      (body.status != null || body.active != null);
+    if (statusOnly) {
+      const user = getUserByToken(extractBearerToken(req));
+      if (!user) {
+        sendJson(res, 401, { error: "Bejelentkezés szükséges." });
+        return;
+      }
+      const nextStatus =
+        body.status ??
+        (body.active === false || body.active === "false"
+          ? "inaktiv"
+          : body.active === true || body.active === "true"
+            ? "feladott"
+            : null);
+      if (!nextStatus) {
+        sendJson(res, 400, { error: "Hiányzó status (feladott / inaktiv)." });
+        return;
+      }
+      try {
+        const saved = setListingStatus(listingIdEarly, nextStatus, user.id);
+        if (!saved) {
+          sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
+          return;
+        }
+        sendJson(res, 200, { listing: saved });
+      } catch (error) {
+        sendJson(res, error.status ?? 400, { error: error.message ?? "Státusz mentése sikertelen." });
+      }
+      return;
+    }
+
     const formData = body.form ?? body;
     const listingId = body.id != null ? Number(body.id) : null;
     if (!formData || typeof formData !== "object") {
@@ -841,6 +881,7 @@ const server = createServer(async (req, res) => {
       users,
       listingsMine: true,
       listingPhotos: true,
+      listingStatusToggle: true,
     });
     return;
   }
