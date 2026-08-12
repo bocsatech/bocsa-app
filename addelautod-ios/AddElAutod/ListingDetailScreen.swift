@@ -29,9 +29,9 @@ struct ListingDetailScreen: View {
             titleBlock
             Divider().padding(.horizontal, 16)
             vehicleSection
-            sellerSection
             equipmentSection
             descriptionSection
+            sellerSection
             Color.clear.frame(height: 24)
           }
           .simultaneousGesture(backSwipeGesture)
