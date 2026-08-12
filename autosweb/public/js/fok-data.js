@@ -118,7 +118,7 @@ export function ensureDemoMessages(email) {
     },
     {
       id: "m2",
-      from: "Add el autod.hu",
+      from: "Bymy",
       subject: "Üdvözlünk a fiókodban",
       body: "Itt kezelheted a parkolót, mentett kereséseket és a fiókadatokat.",
       read: true,

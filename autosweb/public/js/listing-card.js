@@ -37,6 +37,7 @@ function isSiteChromeLine(line) {
     .replace(/\bbelepes\b/g, " ")
     .replace(/\bregisztracio\b/g, " ")
     .replace(/\badd el autod(\.hu)?\b/g, " ")
+    .replace(/\bbymy(\.hu)?\b/g, " ")
     .replace(/[|·•\-–—./:!]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -46,6 +47,7 @@ function isSiteChromeLine(line) {
   if (/^belepes([.!|]*)?$/.test(n)) return true;
   if (/^regisztracio([.!|]*)?$/.test(n)) return true;
   if (/^add el autod(\.hu)?$/.test(n)) return true;
+  if (/^bymy(\.hu)?$/.test(n)) return true;
   return false;
 }
 

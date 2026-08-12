@@ -12,7 +12,7 @@ echo ""
 
 cd "$REPO"
 git fetch origin main
-AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/addelautod-mobile-de62}"
+AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/bymy-brand-de62}"
 git fetch origin "$AUTOSWEB_BRANCH"
 git reset --hard "origin/${AUTOSWEB_BRANCH}"
 

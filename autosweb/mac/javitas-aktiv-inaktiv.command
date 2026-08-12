@@ -2,7 +2,7 @@
 # Gyors javítás: aktív/inaktív API fájlok kényszerített letöltése + szerver újraindítás.
 set -euo pipefail
 
-AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/addelautod-mobile-de62}"
+AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/bymy-brand-de62}"
 RAW="https://raw.githubusercontent.com/bocsatech/bocsa-app/${AUTOSWEB_BRANCH}/autosweb"
 
 if [ -d "${HOME}/Downloads/autosweb" ]; then

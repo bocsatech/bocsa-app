@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Bymy",
+    "slug": "bymy-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#eef0f3"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "hu.bymy.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#eef0f3",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "hu.bymy.mobile",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

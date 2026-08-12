@@ -13,7 +13,7 @@ echo "  Cél:    $TARGET"
 echo ""
 
 # Mobil feature ág (fotók + Hirdetéseim). Main: AUTOSWEB_BRANCH=main
-AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/addelautod-mobile-de62}"
+AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/bymy-brand-de62}"
 
 cd "$REPO"
 git fetch origin "$AUTOSWEB_BRANCH" 2>/dev/null || true

@@ -7,7 +7,7 @@ SOURCE="$REPO/autosweb"
 TARGET="$HOME/Downloads/autosweb"
 
 # Mobil feature ág (fotók + Hirdetéseim). Main: AUTOSWEB_BRANCH=main
-AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/addelautod-mobile-de62}"
+AUTOSWEB_BRANCH="${AUTOSWEB_BRANCH:-cursor/bymy-brand-de62}"
 
 echo "Autosweb frissítés (GitHub ${AUTOSWEB_BRANCH} → Letöltések)…"
 echo "  Repo: $REPO"

@@ -40,6 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 node_modules/
-addelautod-mobile/.claude/
-addelautod-mobile/AGENTS.md
-addelautod-mobile/CLAUDE.md
+bymy-mobile/.claude/
+bymy-mobile/AGENTS.md
+bymy-mobile/CLAUDE.md
