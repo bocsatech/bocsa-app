@@ -24,6 +24,13 @@ enum AuthAPI {
     var accountType: String?
     /// data:image/jpeg;base64,... — közös a weben és az appban
     var avatarDataUrl: String?
+    /// iOS megjelenített lapok (szerveren tárolva)
+    var pageLayout: PageLayoutDTO?
+  }
+
+  struct PageLayoutDTO: Codable, Equatable {
+    var order: [String]?
+    var enabled: [String]?
   }
 
   struct AuthResponse: Decodable {
@@ -105,6 +112,30 @@ enum AuthAPI {
     let decoded = try JSONDecoder().decode(AuthResponse.self, from: data)
     guard http.statusCode < 400, let user = decoded.user else {
       throw AuthError.server(decoded.error ?? "Profilkép mentése sikertelen.")
+    }
+    return user
+  }
+
+  /// Megjelenített lapok / prefs — szerveren a profilban.
+  @discardableResult
+  static func savePrefs(token: String, pageLayout: PageLayoutDTO) async throws -> RemoteUser {
+    var req = URLRequest(url: baseURL.appendingPathComponent("api/auth/prefs"))
+    req.httpMethod = "PUT"
+    req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    req.setValue("application/json", forHTTPHeaderField: "Accept")
+    let body: [String: Any] = [
+      "pageLayout": [
+        "order": pageLayout.order ?? [],
+        "enabled": pageLayout.enabled ?? [],
+      ],
+    ]
+    req.httpBody = try JSONSerialization.data(withJSONObject: body)
+    let (data, response) = try await perform(req)
+    guard let http = response as? HTTPURLResponse else { throw AuthError.unreachable }
+    let decoded = try JSONDecoder().decode(AuthResponse.self, from: data)
+    guard http.statusCode < 400, let user = decoded.user else {
+      throw AuthError.server(decoded.error ?? "Beállítások mentése sikertelen.")
     }
     return user
   }

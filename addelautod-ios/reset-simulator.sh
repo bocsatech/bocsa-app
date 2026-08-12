@@ -8,6 +8,9 @@ BUNDLE_ID="hu.addelautod.app"
 DEST="${HOME}/Downloads/autosapp"
 BRANCH="cursor/addelautod-mobile-de62"
 ERASE_ALL="${ERASE_ALL:-0}"
+# Alapból NE töröld az appot — profilkép / oldalsorrend UserDefaults-ban van.
+# Teljes tiszta telepítés: UNINSTALL=1 bash reset-simulator.sh
+UNINSTALL="${UNINSTALL:-0}"
 
 echo "==> 1) Xcode / Simulator leállítás"
 killall Xcode 2>/dev/null || true
@@ -23,12 +26,15 @@ sleep 1
 if [ "$ERASE_ALL" = "1" ]; then
   echo "    ERASE_ALL=1 — minden szimulátor törlése…"
   xcrun simctl erase all 2>/dev/null || true
-else
-  echo "    App törlése a szimulátorokról (erase nélkül — stabilabb)"
+elif [ "$UNINSTALL" = "1" ]; then
+  echo "    UNINSTALL=1 — app törlése (profilkép / beállítások elvesznek)"
   while IFS= read -r udid; do
     [ -n "$udid" ] || continue
     xcrun simctl uninstall "$udid" "$BUNDLE_ID" 2>/dev/null || true
   done < <(xcrun simctl list devices available 2>/dev/null | sed -n 's/.*(\([A-F0-9-]\{36\}\)).*/\1/p')
+else
+  echo "    App adat megmarad (profilkép, megjelenített oldalak)."
+  echo "    Teljes újratelepítéshez: UNINSTALL=1 …"
 fi
 
 echo "==> 3) DerivedData törlés (AddElAutod)"

@@ -47,6 +47,9 @@ final class PageLayoutStore: ObservableObject {
     @Published private(set) var enabled: Set<MainPageID>
 
     private let storageKey = "addelautod.pageLayout.v1"
+    private let tokenKey = "addelautod.authToken.v1"
+    /// Szerver sync közben ne írjunk visszacsatolást.
+    private var suppressServerSync = false
 
     init() {
         if let data = UserDefaults.standard.data(forKey: storageKey),
@@ -54,7 +57,7 @@ final class PageLayoutStore: ObservableObject {
             order = Self.normalizedOrder(saved.order)
             var on = Set(saved.enabled.compactMap(MainPageID.init(rawValue:)))
             on.insert(.foOldal)
-            // Ismeretlen / hiányzó lapok alapból be
+            // Új (még nem mentett order-beli) lapok alapból be
             for id in MainPageID.allCases where !saved.order.contains(id.rawValue) {
                 on.insert(id)
             }
@@ -99,7 +102,32 @@ final class PageLayoutStore: ObservableObject {
         visible.firstIndex(of: id)
     }
 
+    /// Belépés / session restore: szerver beállítás felülírja a helyit (ha van).
+    func applyFromRemote(_ dto: AuthAPI.PageLayoutDTO?) {
+        guard let dto else { return }
+        let remoteOrder = Self.normalizedOrder(dto.order ?? [])
+        guard !remoteOrder.isEmpty || !(dto.enabled ?? []).isEmpty else { return }
+        suppressServerSync = true
+        defer { suppressServerSync = false }
+        if !remoteOrder.isEmpty {
+            order = remoteOrder
+        }
+        var on = Set((dto.enabled ?? []).compactMap(MainPageID.init(rawValue:)))
+        on.insert(.foOldal)
+        if on.isEmpty {
+            on = Set(MainPageID.allCases)
+        }
+        enabled = on
+        persistLocalOnly()
+    }
+
     private func persist() {
+        persistLocalOnly()
+        guard !suppressServerSync else { return }
+        syncToServer()
+    }
+
+    private func persistLocalOnly() {
         enabled.insert(.foOldal)
         let saved = Saved(
             order: order.map(\.rawValue),
@@ -109,6 +137,17 @@ final class PageLayoutStore: ObservableObject {
             UserDefaults.standard.set(data, forKey: storageKey)
         }
         objectWillChange.send()
+    }
+
+    private func syncToServer() {
+        guard let token = UserDefaults.standard.string(forKey: tokenKey), !token.isEmpty else { return }
+        let dto = AuthAPI.PageLayoutDTO(
+            order: order.map(\.rawValue),
+            enabled: enabled.map(\.rawValue)
+        )
+        Task {
+            _ = try? await AuthAPI.savePrefs(token: token, pageLayout: dto)
+        }
     }
 
     private static func normalizedOrder(_ raw: [String]) -> [MainPageID] {

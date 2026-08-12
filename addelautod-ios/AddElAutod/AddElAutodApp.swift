@@ -16,6 +16,9 @@ struct AddElAutodApp: App {
                 .environmentObject(searchStore)
                 .environmentObject(profileStore)
                 .environmentObject(pageLayoutStore)
+                .onReceive(NotificationCenter.default.publisher(for: .bymyRemoteProfileApplied)) { note in
+                    pageLayoutStore.applyFromRemote(note.object as? AuthAPI.PageLayoutDTO)
+                }
         }
     }
 }

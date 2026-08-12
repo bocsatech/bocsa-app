@@ -68,6 +68,8 @@ function emptyProfile() {
     company: "",
     accountType: "private",
     avatarDataUrl: "",
+    /** { order: string[], enabled: string[] } — iOS megjelenített lapok */
+    pageLayout: null,
   };
 }
 
@@ -80,6 +82,27 @@ function sanitizeAvatarDataUrl(value) {
   if (!/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(raw)) return "";
   if (raw.length > MAX_AVATAR_DATA_URL) return "";
   return raw;
+}
+
+function sanitizePageLayout(value) {
+  if (value == null || value === "") return null;
+  let obj = value;
+  if (typeof value === "string") {
+    try {
+      obj = JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  if (!obj || typeof obj !== "object") return null;
+  const order = Array.isArray(obj.order)
+    ? obj.order.map((x) => String(x)).filter(Boolean).slice(0, 20)
+    : [];
+  const enabled = Array.isArray(obj.enabled)
+    ? obj.enabled.map((x) => String(x)).filter(Boolean).slice(0, 20)
+    : [];
+  if (!order.length && !enabled.length) return null;
+  return { order, enabled };
 }
 
 function parseProfile(raw) {
@@ -230,6 +253,7 @@ export function saveUserProfile(token, profileInput) {
   );
 
   const next = {
+    ...existing,
     salutation: String(profileInput.salutation ?? "").trim(),
     firstName: String(profileInput.firstName ?? "").trim(),
     lastName: String(profileInput.lastName ?? "").trim(),
@@ -244,11 +268,16 @@ export function saveUserProfile(token, profileInput) {
       : profileInput.accountType === "dealer"
         ? "dealer"
         : "private",
+    // Profil mentés SOHA ne törölje a képet / pageLayoutot, hacsak nincs explicit mező
     avatarDataUrl: existing.avatarDataUrl || "",
+    pageLayout: existing.pageLayout ?? null,
   };
 
   if (Object.prototype.hasOwnProperty.call(profileInput, "avatarDataUrl")) {
     next.avatarDataUrl = sanitizeAvatarDataUrl(profileInput.avatarDataUrl);
+  }
+  if (Object.prototype.hasOwnProperty.call(profileInput, "pageLayout")) {
+    next.pageLayout = sanitizePageLayout(profileInput.pageLayout);
   }
 
   if (!next.firstName || !next.lastName) {
@@ -282,7 +311,37 @@ export function saveUserAvatar(token, avatarDataUrl) {
   const db = getUsersDb();
   const row = db.prepare("SELECT profile_json, display_name FROM users WHERE id = ?").get(user.id);
   const profile = parseProfile(row?.profile_json);
-  profile.avatarDataUrl = sanitizeAvatarDataUrl(avatarDataUrl);
+  const cleaned = sanitizeAvatarDataUrl(avatarDataUrl);
+  // Üres string = törlés; érvénytelen payload esetén ne töröljük a meglévőt
+  if (String(avatarDataUrl ?? "").trim() === "") {
+    profile.avatarDataUrl = "";
+  } else if (cleaned) {
+    profile.avatarDataUrl = cleaned;
+  } else {
+    const err = new Error("Érvénytelen profilkép (max ~1,5 MB JPEG/PNG).");
+    err.status = 400;
+    throw err;
+  }
+  db.prepare(
+    `UPDATE users SET profile_json = ?, updated_at = datetime('now') WHERE id = ?`
+  ).run(JSON.stringify(profile), user.id);
+  return { ok: true, user: getUserByToken(token) };
+}
+
+/** iOS megjelenített lapok / egyéb prefs — név kötelező mezők nélkül. */
+export function saveUserPrefs(token, prefsInput = {}) {
+  const user = getUserByToken(token);
+  if (!user) {
+    const err = new Error("Nem vagy bejelentkezve.");
+    err.status = 401;
+    throw err;
+  }
+  const db = getUsersDb();
+  const row = db.prepare("SELECT profile_json FROM users WHERE id = ?").get(user.id);
+  const profile = parseProfile(row?.profile_json);
+  if (Object.prototype.hasOwnProperty.call(prefsInput, "pageLayout")) {
+    profile.pageLayout = sanitizePageLayout(prefsInput.pageLayout);
+  }
   db.prepare(
     `UPDATE users SET profile_json = ?, updated_at = datetime('now') WHERE id = ?`
   ).run(JSON.stringify(profile), user.id);
@@ -465,6 +524,12 @@ export async function handleAuthApi(req, res, pathname) {
     if (pathname === "/api/auth/avatar" && req.method === "PUT") {
       const body = await readJsonBody(req);
       sendJson(res, 200, saveUserAvatar(extractBearerToken(req), body.avatarDataUrl ?? body.avatar ?? ""));
+      return true;
+    }
+
+    if (pathname === "/api/auth/prefs" && req.method === "PUT") {
+      const body = await readJsonBody(req);
+      sendJson(res, 200, saveUserPrefs(extractBearerToken(req), body));
       return true;
     }
 
