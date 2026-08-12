@@ -388,8 +388,14 @@ async function handleListingsApi(req, res, pathname) {
     return;
   }
 
-  // Aktív / inaktív kapcsoló — PATCH /api/listings/:id  { status: "feladott"|"inaktiv" }
-  if (idMatch && req.method === "PATCH") {
+  // Aktív / inaktív kapcsoló
+  // PATCH /api/listings/:id  { status: "feladott"|"inaktiv" }
+  // POST  /api/listings/:id/status  { status | active }  — mobil / proxy-barát
+  const statusMatch = pathname.match(/^\/api\/listings\/(\d+)\/status$/);
+  if (
+    (idMatch && req.method === "PATCH") ||
+    (statusMatch && req.method === "POST")
+  ) {
     const user = getUserByToken(extractBearerToken(req));
     if (!user) {
       sendJson(res, 401, { error: "Bejelentkezés szükséges." });
@@ -402,13 +408,20 @@ async function handleListingsApi(req, res, pathname) {
       sendJson(res, 400, { error: "Érvénytelen JSON." });
       return;
     }
-    const nextStatus = body.status ?? (body.active === false || body.active === "false" ? "inaktiv" : body.active === true || body.active === "true" ? "feladott" : null);
+    const nextStatus =
+      body.status ??
+      (body.active === false || body.active === "false"
+        ? "inaktiv"
+        : body.active === true || body.active === "true"
+          ? "feladott"
+          : null);
     if (!nextStatus) {
       sendJson(res, 400, { error: "Hiányzó status (feladott / inaktiv)." });
       return;
     }
+    const listingId = Number((idMatch ?? statusMatch)[1]);
     try {
-      const saved = setListingStatus(Number(idMatch[1]), nextStatus, user.id);
+      const saved = setListingStatus(listingId, nextStatus, user.id);
       if (!saved) {
         sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
         return;

@@ -238,15 +238,77 @@ enum ListingsAPI {
   @discardableResult
   static func setListingActive(id: String, active: Bool, token: String?) async throws -> String {
     guard let token, !token.isEmpty else { throw ListingsError.notLoggedIn }
-    guard let url = apiURL("api/listings/\(id)") else { throw ListingsError.unreachable }
+    let status = active ? "feladott" : "inaktiv"
+    let body = try JSONSerialization.data(withJSONObject: ["status": status])
+
+    // 1) POST /api/listings/:id/status — új Autosweb (mobil-barát)
+    if let statusURL = apiURL("api/listings/\(id)/status") {
+      do {
+        return try await postListingStatus(url: statusURL, token: token, body: body, fallbackStatus: status)
+      } catch let error as ListingsError {
+        if !isUnsupportedStatusEndpoint(error) { throw error }
+      } catch {
+        throw error
+      }
+    }
+
+    // 2) PATCH /api/listings/:id
+    if let patchURL = apiURL("api/listings/\(id)") {
+      do {
+        return try await patchListingStatus(url: patchURL, token: token, body: body, fallbackStatus: status)
+      } catch let error as ListingsError {
+        if isUnsupportedStatusEndpoint(error) {
+          throw ListingsError.server(
+            "Régi Autosweb — nincs aktív/inaktív API. Indítsd újra ONLINE az Autosweb-indito.command-ot, majd próbáld újra."
+          )
+        }
+        throw error
+      }
+    }
+
+    throw ListingsError.unreachable
+  }
+
+  private static func isUnsupportedStatusEndpoint(_ error: ListingsError) -> Bool {
+    guard case .server(let msg) = error else { return false }
+    return msg.localizedCaseInsensitiveContains("Nem támogatott")
+      || msg.localizedCaseInsensitiveContains("405")
+      || msg.localizedCaseInsensitiveContains("Ismeretlen API")
+  }
+
+  private static func postListingStatus(
+    url: URL,
+    token: String,
+    body: Data,
+    fallbackStatus: String
+  ) async throws -> String {
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.timeoutInterval = 25
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.httpBody = body
+    return try await performStatusRequest(request, fallbackStatus: fallbackStatus)
+  }
+
+  private static func patchListingStatus(
+    url: URL,
+    token: String,
+    body: Data,
+    fallbackStatus: String
+  ) async throws -> String {
     var request = URLRequest(url: url)
     request.httpMethod = "PATCH"
     request.timeoutInterval = 25
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-    let status = active ? "feladott" : "inaktiv"
-    request.httpBody = try JSONSerialization.data(withJSONObject: ["status": status])
+    request.httpBody = body
+    return try await performStatusRequest(request, fallbackStatus: fallbackStatus)
+  }
+
+  private static func performStatusRequest(_ request: URLRequest, fallbackStatus: String) async throws -> String {
     let data: Data
     let response: URLResponse
     do {
@@ -258,6 +320,9 @@ enum ListingsAPI {
     if http.statusCode >= 400 {
       let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
       if http.statusCode == 401 { throw ListingsError.notLoggedIn }
+      if http.statusCode == 404 || http.statusCode == 405 {
+        throw ListingsError.server(err ?? "Nem támogatott művelet.")
+      }
       throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
     }
     struct Wrap: Decodable {
@@ -267,7 +332,7 @@ enum ListingsAPI {
       let status: String?
     }
     let wrap = try? JSONDecoder().decode(Wrap.self, from: data)
-    return wrap?.listing?.status ?? status
+    return wrap?.listing?.status ?? fallbackStatus
   }
 
   /// Szerkesztéshez: nyers form mezők stringként.

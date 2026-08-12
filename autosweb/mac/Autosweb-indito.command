@@ -165,6 +165,11 @@ if ! grep -q 'listings/mine' "$TARGET/server.mjs" 2>/dev/null; then
     echo "HIBA: /api/listings/mine hiányzik — régi szerver"
   exit 1
 fi
+if ! grep -q 'setListingStatus' "$TARGET/server.mjs" 2>/dev/null; then
+  osascript -e 'display alert "Régi Autosweb!" message "Nincs aktív/inaktív kapcsoló API.\n\nIndítsd újra ONLINE az Autosweb-indito.command-ot (feature ág)."' 2>/dev/null || \
+    echo "HIBA: setListingStatus hiányzik — régi szerver"
+  exit 1
+fi
 
 # --- npm + katalógus ---
 if [ ! -d node_modules ]; then
