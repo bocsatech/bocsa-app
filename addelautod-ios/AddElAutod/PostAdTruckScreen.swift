@@ -147,7 +147,7 @@ struct PostAdTruckScreen: View {
         loadingEdit = true
         defer { loadingEdit = false }
         do {
-            let form = try await ListingsAPI.fetchFormStrings(id: String(id))
+            let form = try await ListingsAPI.fetchFormStrings(id: String(id), token: profile.token)
             let state = PostAdListingMapper.loadEditState(from: form)
             store.filter = state.filter
             store.filter.vehicleKind = kind.rawValue

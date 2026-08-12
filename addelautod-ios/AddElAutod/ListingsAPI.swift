@@ -140,7 +140,8 @@ enum ListingsAPI {
     var errorDescription: String? {
       switch self {
       case .unreachable:
-        return "Autosweb nem elérhető (3456). Indítsd az Autosweb-indítót (feature ág)."
+        let host = AutoswebBaseURL.currentURL().absoluteString
+        return "Autosweb nem elérhető (\(host)). Telefonon a Mac Wi‑Fi IP kell (ne localhost). Indítsd az Autosweb-indítót, Beállítások → Autosweb → Teszt."
       case .server(let m):
         return m
       case .notLoggedIn:
@@ -462,6 +463,7 @@ enum ListingsAPI {
     guard let http = response as? HTTPURLResponse else { throw ListingsError.unreachable }
     if http.statusCode >= 400 {
       let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+      if http.statusCode == 401 { throw ListingsError.notLoggedIn }
       throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
     }
     struct Wrap: Decodable {
