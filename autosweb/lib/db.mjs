@@ -268,7 +268,7 @@ export function getListing(id) {
 
   const hirdetes_cime =
     sanitizeListingPlainText(listing.hirdetes_cime) || `Hirdetés #${listing.id}`;
-  const form = cellsToFormData(cells);
+  const form = enrichFormContactFromOwner(cellsToFormData(cells), listing.user_id);
 
   return {
     ...listing,
@@ -278,6 +278,67 @@ export function getListing(id) {
     form,
     fo_kep: form.fo_kep || null,
   };
+}
+
+/** Ha a hirdetésen nincs név/telefon, a tulajdonos profiljából pótoljuk (megjelenítéshez). */
+function enrichFormContactFromOwner(form, userId) {
+  const out = { ...(form && typeof form === "object" ? form : {}) };
+  const uid = Number(userId);
+  if (!Number.isFinite(uid) || uid <= 0) return out;
+
+  const hasPhone =
+    String(out.telefon1_szam ?? "").trim() ||
+    String(out.telefon1_korzet ?? "").trim() ||
+    String(out.telefonszam ?? "").trim() ||
+    String(out.telefon ?? "").trim();
+  const hasName = String(out.hirdeto_nev ?? "").trim();
+  if (hasPhone && hasName) return out;
+
+  try {
+    const row = getUsersDb().prepare("SELECT display_name, profile_json, email FROM users WHERE id = ?").get(uid);
+    if (!row) return out;
+    let profile = {};
+    try {
+      profile = JSON.parse(row.profile_json || "{}") || {};
+    } catch {
+      profile = {};
+    }
+    if (!hasName) {
+      const named =
+        String(row.display_name ?? "").trim() ||
+        [profile.lastName, profile.firstName].filter(Boolean).join(" ").trim();
+      if (named) out.hirdeto_nev = named;
+    }
+    if (!hasPhone) {
+      const phone = String(profile.phone ?? "").trim();
+      if (phone) {
+        out.telefonszam = phone;
+        const parts = splitHuPhone(phone);
+        if (parts) {
+          out.telefon1_orszag = parts.orszag;
+          out.telefon1_korzet = parts.korzet;
+          out.telefon1_szam = parts.szam;
+        }
+      }
+    }
+  } catch {
+    /* users.db hiány / teszt */
+  }
+  return out;
+}
+
+function splitHuPhone(raw) {
+  let digits = String(raw ?? "").replace(/\D/g, "");
+  if (!digits) return null;
+  let orszag = "+36";
+  if (digits.startsWith("36") && digits.length > 2) digits = digits.slice(2);
+  else if (digits.startsWith("06") && digits.length > 2) digits = digits.slice(2);
+  if (digits.length < 7) return { orszag, korzet: "", szam: digits };
+  const korzet = digits.slice(0, 2);
+  const rest = digits.slice(2);
+  const szam =
+    rest.length > 3 ? `${rest.slice(0, 3)} ${rest.slice(3)}` : rest;
+  return { orszag, korzet, szam };
 }
 
 const CHROME_FIELD_KEYS = new Set([

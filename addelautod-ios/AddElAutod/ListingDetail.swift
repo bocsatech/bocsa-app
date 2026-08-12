@@ -27,6 +27,37 @@ struct ListingDetail: Identifiable, Equatable {
       meta: meta
     )
   }
+
+  /// Saját hirdetés: ha a formban nincs telefon/név, a profilból pótoljuk (UI).
+  func enrichedWithProfileContact(name: String, phone: String) -> ListingDetail {
+    let nextName: String = {
+      if sellerName != "Eladó", !sellerName.isEmpty { return sellerName }
+      let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
+      return n.isEmpty ? sellerName : n
+    }()
+    let nextPhone: String? = {
+      if let sellerPhone, !sellerPhone.isEmpty { return sellerPhone }
+      let p = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+      return p.isEmpty ? nil : p
+    }()
+    return ListingDetail(
+      id: id,
+      title: title,
+      priceLabel: priceLabel,
+      kmLabel: kmLabel,
+      registrationLabel: registrationLabel,
+      imageURLs: imageURLs,
+      meta: meta,
+      badge: badge,
+      vehicleRows: vehicleRows,
+      equipment: equipment,
+      description: description,
+      sellerName: nextName,
+      sellerPhone: nextPhone,
+      addressLines: addressLines,
+      mapQuery: mapQuery
+    )
+  }
 }
 
 struct ListingKV: Identifiable, Equatable {
@@ -177,6 +208,14 @@ extension ListingsAPI {
       area: str("telefon1_korzet"),
       number: str("telefon1_szam")
     )
+    let phoneFallback: String = {
+      if !phone.isEmpty { return phone }
+      for key in ["telefonszam", "telefon", "phone", "mobil"] {
+        let v = str(key).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !v.isEmpty { return v }
+      }
+      return ""
+    }()
     // Scrape gyakran a település/cím mezőbe is belerakja a Használtautó.hu / Belépés fejlécet
     let city = sanitizeListingField(str("telepules"))
     let postal = sanitizeListingField(str("iranyitoszam"))
@@ -197,7 +236,12 @@ extension ListingsAPI {
       if !named.isEmpty { return named }
       let email = str("email")
       if !email.isEmpty, let local = email.split(separator: "@").first, !local.isEmpty {
-        return String(local)
+        let s = String(local)
+        // Ne mutassuk a telefonos fiók t…@phone.bymy.local lokális részét névként
+        if s.hasPrefix("t"), s.count > 8, s.allSatisfy({ $0.isNumber || $0 == "t" }) {
+          return "Eladó"
+        }
+        return s
       }
       return "Eladó"
     }()
@@ -215,7 +259,7 @@ extension ListingsAPI {
       equipment: equipment,
       description: sanitizeListingText(str("leiras")),
       sellerName: sellerName,
-      sellerPhone: phone.isEmpty ? nil : phone,
+      sellerPhone: phoneFallback.isEmpty ? nil : phoneFallback,
       addressLines: address,
       mapQuery: mapQuery
     )

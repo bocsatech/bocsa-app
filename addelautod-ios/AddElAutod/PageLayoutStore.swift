@@ -104,15 +104,19 @@ final class PageLayoutStore: ObservableObject {
 
     /// Belépés / session restore: szerver beállítás felülírja a helyit (ha van).
     func applyFromRemote(_ dto: AuthAPI.PageLayoutDTO?) {
-        guard let dto else { return }
-        let remoteOrder = Self.normalizedOrder(dto.order ?? [])
-        guard !remoteOrder.isEmpty || !(dto.enabled ?? []).isEmpty else { return }
+        let remoteOrder = Self.normalizedOrder(dto?.order ?? [])
+        let remoteEnabled = dto?.enabled ?? []
+        if remoteOrder.isEmpty && remoteEnabled.isEmpty {
+            // Szerveren még nincs — feltöltjük a helyi beállítást
+            syncToServer()
+            return
+        }
         suppressServerSync = true
         defer { suppressServerSync = false }
         if !remoteOrder.isEmpty {
             order = remoteOrder
         }
-        var on = Set((dto.enabled ?? []).compactMap(MainPageID.init(rawValue:)))
+        var on = Set(remoteEnabled.compactMap(MainPageID.init(rawValue:)))
         on.insert(.foOldal)
         if on.isEmpty {
             on = Set(MainPageID.allCases)

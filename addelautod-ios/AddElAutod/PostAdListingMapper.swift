@@ -164,10 +164,20 @@ enum PostAdListingMapper {
         if !n.isEmpty { form["hirdeto_nev"] = n }
         let e = email.trimmingCharacters(in: .whitespacesAndNewlines)
         if !e.isEmpty { form["email"] = e }
-        let parts = parsePhoneParts(phone)
-        if let orszag = parts.orszag { form["telefon1_orszag"] = orszag }
-        if let korzet = parts.korzet { form["telefon1_korzet"] = korzet }
-        if let szam = parts.szam { form["telefon1_szam"] = szam }
+        let rawPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !rawPhone.isEmpty {
+            // Egységes megjelenítési mező + részmezők (részletes oldal mindkettőt olvassa)
+            form["telefonszam"] = rawPhone
+            let parts = parsePhoneParts(rawPhone)
+            if let orszag = parts.orszag { form["telefon1_orszag"] = orszag }
+            if let korzet = parts.korzet { form["telefon1_korzet"] = korzet }
+            // Ha nincs elég szám a körzet/szám bontáshoz, a teljes számot mentsük
+            if let szam = parts.szam, !szam.isEmpty {
+                form["telefon1_szam"] = szam
+            } else {
+                form["telefon1_szam"] = rawPhone.filter(\.isNumber)
+            }
+        }
     }
 
     static func parsePhoneParts(_ raw: String) -> (orszag: String?, korzet: String?, szam: String?) {
