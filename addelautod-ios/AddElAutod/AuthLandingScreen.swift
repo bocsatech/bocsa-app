@@ -273,12 +273,21 @@ struct AuthCredentialScreen: View {
     @State private var password = ""
     @State private var passwordConfirm = ""
     @State private var busy = false
+    @State private var serverNote: String?
 
     private let cream = Color(red: 0.980, green: 0.965, blue: 0.945)
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                AutoswebServerSettingsCard(onMessage: { serverNote = $0 })
+
+                if let serverNote, !serverNote.isEmpty {
+                    Text(serverNote)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+
                 Text(title)
                     .font(.title2.weight(.bold))
                     .foregroundStyle(AppTheme.text)
@@ -286,6 +295,10 @@ struct AuthCredentialScreen: View {
                 Text(subtitle)
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textSecondary)
+
+                Text("Először állítsd be fent a Mac Autosweb címét (Wi‑Fi IP), majd jelentkezz be.")
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.textTertiary)
 
                 if method == .email {
                     fieldLabel("Email")
