@@ -122,9 +122,7 @@ final class ProfileStore: ObservableObject {
 
     func clearAvatar() {
         avatarImage = nil
-        if let email = avatarEmailKey() {
-            try? FileManager.default.removeItem(at: avatarFileURL(email: email))
-        }
+        removeAvatarFiles()
         if let token {
             Task {
                 _ = try? await AuthAPI.saveAvatar(token: token, jpegData: Data())
@@ -132,13 +130,15 @@ final class ProfileStore: ObservableObject {
         }
     }
 
+    /// Mindig próbálja a lemezről (email + userId kulcs).
     func loadAvatarFromDisk() {
-        guard let email = avatarEmailKey() else { return }
-        let url = avatarFileURL(email: email)
-        guard let data = try? Data(contentsOf: url), let image = UIImage(data: data) else {
+        for url in avatarCandidateURLs() {
+            guard let data = try? Data(contentsOf: url), let image = UIImage(data: data) else { continue }
+            avatarImage = image
+            // Másodlagos kulcsra is mentsük, ha még nincs
+            persistAvatarToDisk(image)
             return
         }
-        avatarImage = image
     }
 
     func applyAvatarFromRemote(_ dataUrl: String?) {
@@ -150,9 +150,16 @@ final class ProfileStore: ObservableObject {
     }
 
     private func persistAvatarToDisk(_ image: UIImage) {
-        guard let email = avatarEmailKey(),
-              let data = image.jpegData(compressionQuality: 0.82) else { return }
-        try? data.write(to: avatarFileURL(email: email), options: .atomic)
+        guard let data = image.jpegData(compressionQuality: 0.82) else { return }
+        for url in avatarCandidateURLs(createDir: true) {
+            try? data.write(to: url, options: .atomic)
+        }
+    }
+
+    private func removeAvatarFiles() {
+        for url in avatarCandidateURLs() {
+            try? FileManager.default.removeItem(at: url)
+        }
     }
 
     private static func imageFromDataURL(_ dataUrl: String) -> UIImage? {
@@ -172,12 +179,21 @@ final class ProfileStore: ObservableObject {
         return email.isEmpty ? nil : email
     }
 
-    private func avatarFileURL(email: String) -> URL {
+    private func avatarCandidateURLs(createDir: Bool = false) -> [URL] {
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("avatars", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let safe = email.replacingOccurrences(of: "@", with: "_at_").replacingOccurrences(of: "/", with: "_")
-        return dir.appendingPathComponent("\(safe).jpg")
+        if createDir {
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        }
+        var urls: [URL] = []
+        if let uid = userId, uid > 0 {
+            urls.append(dir.appendingPathComponent("uid_\(uid).jpg"))
+        }
+        if let email = avatarEmailKey() {
+            let safe = email.replacingOccurrences(of: "@", with: "_at_").replacingOccurrences(of: "/", with: "_")
+            urls.append(dir.appendingPathComponent("\(safe).jpg"))
+        }
+        return urls
     }
 
     private static func resize(_ image: UIImage, maxSide: CGFloat) -> UIImage {
@@ -194,17 +210,24 @@ final class ProfileStore: ObservableObject {
         isRestoring = true
         defer { isRestoring = false }
         guard let token else { return }
+        // Offline / hibás válasz előtt is legyen meg a helyi kép
+        if avatarImage == nil {
+            loadAvatarFromDisk()
+        }
         do {
             let user = try await AuthAPI.me(token: token)
-            applyRemote(user)
+            applyRemote(user, preferLocalAvatar: true)
             saveLocal()
             authError = nil
         } catch {
-            // Token érvénytelen vagy szerver offline — kijelentkeztetünk ha 401 jellegű
-            if let auth = error as? AuthAPI.AuthError, case .server = auth {
-                clearSession()
+            // Csak érvénytelen tokennél lépünk ki — ne töröljük a profilképet offline / 5xx miatt
+            if let auth = error as? AuthAPI.AuthError, case .unauthorized = auth {
+                clearSession(removeAvatarFiles: false)
             }
-            // Offline: megtartjuk a helyi session-t, amíg a szerver újra él
+            // Offline / egyéb hiba: helyi session + avatar megmarad
+            if avatarImage == nil {
+                loadAvatarFromDisk()
+            }
         }
     }
 
@@ -213,7 +236,7 @@ final class ProfileStore: ObservableObject {
         do {
             let result = try await AuthAPI.login(email: email, password: password)
             token = result.token
-            applyRemote(result.user)
+            applyRemote(result.user, preferLocalAvatar: true)
             saveLocal()
             return true
         } catch {
@@ -231,7 +254,7 @@ final class ProfileStore: ObservableObject {
                 passwordConfirm: passwordConfirm
             )
             token = result.token
-            applyRemote(result.user)
+            applyRemote(result.user, preferLocalAvatar: true)
             saveLocal()
             return true
         } catch {
@@ -244,14 +267,15 @@ final class ProfileStore: ObservableObject {
         if let token {
             await AuthAPI.logout(token: token)
         }
-        clearSession()
+        // Kilépéskor a helyi kép fájl megmarad — következő belépésnél visszajön
+        clearSession(removeAvatarFiles: false)
     }
 
     func saveProfileToServer() async -> String? {
         guard let token else { return "Nem vagy bejelentkezve." }
         do {
             let user = try await AuthAPI.saveProfile(token: token, profile: profile.remotePayload())
-            applyRemote(user)
+            applyRemote(user, preferLocalAvatar: true)
             saveLocal()
             return nil
         } catch {
@@ -278,7 +302,7 @@ final class ProfileStore: ObservableObject {
         guard let token else { return "Nem vagy bejelentkezve." }
         do {
             try await AuthAPI.deleteAccount(token: token)
-            clearSession()
+            clearSession(removeAvatarFiles: true)
             return nil
         } catch {
             return (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -286,30 +310,40 @@ final class ProfileStore: ObservableObject {
     }
 
     func reset() {
-        clearSession()
+        clearSession(removeAvatarFiles: false)
     }
 
     private func applyRemote(_ user: AuthAPI.RemoteUser, preferLocalAvatar: Bool = false) {
         userId = user.id
         profile.apply(remote: user)
         let remote = user.profile.avatarDataUrl?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        if !remote.isEmpty {
-            applyAvatarFromRemote(remote)
-        } else if preferLocalAvatar {
-            // Feltöltés után: ha a szerver nem adta vissza a képet, tartsd a helyit.
+        if !remote.isEmpty, let decoded = Self.imageFromDataURL(remote) {
+            let resized = Self.resize(decoded, maxSide: 512)
+            // Ha a helyi kép már megvan és a szerver ugyanazt / gyengébbet adná,
+            // preferLocalAvatar esetén tartsuk a helyit, de mentsük mindkét kulcsra.
+            if preferLocalAvatar, avatarImage != nil {
+                if let avatarImage {
+                    persistAvatarToDisk(avatarImage)
+                }
+            } else {
+                avatarImage = resized
+                persistAvatarToDisk(resized)
+            }
+        } else {
+            // Szerveren nincs (vagy hibás) avatar — soha ne töröljük a helyi képet
             if let avatarImage {
                 persistAvatarToDisk(avatarImage)
             } else {
                 loadAvatarFromDisk()
             }
-        } else if avatarImage == nil {
-            // Session restore: ne nil-ezd a memóriát, ha a fájl hiányzik.
-            loadAvatarFromDisk()
         }
     }
 
-    private func clearSession() {
-        clearAvatar()
+    private func clearSession(removeAvatarFiles: Bool) {
+        avatarImage = nil
+        if removeAvatarFiles {
+            self.removeAvatarFiles()
+        }
         token = nil
         userId = nil
         profile = UserProfile()

@@ -41,12 +41,14 @@ enum AuthAPI {
 
   enum AuthError: LocalizedError {
     case server(String)
+    case unauthorized(String)
     case unreachable
     case decoding
 
     var errorDescription: String? {
       switch self {
       case .server(let msg): return msg
+      case .unauthorized(let msg): return msg
       case .unreachable: return "Autosweb nem elérhető (3456). Indítsd az Autosweb-indítót."
       case .decoding: return "Érvénytelen válasz a szervertől."
       }
@@ -82,7 +84,7 @@ enum AuthAPI {
     let (data, response) = try await perform(req)
     guard let http = response as? HTTPURLResponse else { throw AuthError.unreachable }
     let decoded = try JSONDecoder().decode(MeResponse.self, from: data)
-    if http.statusCode == 401 { throw AuthError.server(decoded.error ?? "Nem vagy bejelentkezve.") }
+    if http.statusCode == 401 { throw AuthError.unauthorized(decoded.error ?? "Nem vagy bejelentkezve.") }
     guard http.statusCode < 400, let user = decoded.user else {
       throw AuthError.server(decoded.error ?? "Session érvénytelen.")
     }
