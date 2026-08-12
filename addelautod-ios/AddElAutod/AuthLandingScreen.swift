@@ -1,5 +1,4 @@
 import SwiftUI
-import AuthenticationServices
 
 /// Vendég belépő — krém háttér, Bejelentkezés / Regisztráció + módszer gombok.
 struct AuthLandingScreen: View {
@@ -10,7 +9,6 @@ struct AuthLandingScreen: View {
     @State private var toast: String?
     @State private var showServer = false
     @State private var serverNote: String?
-    @State private var appleBusy = false
 
     /// Krém háttér (Temu-stílusú belépő).
     private let cream = Color(red: 0.980, green: 0.965, blue: 0.945)
@@ -46,7 +44,14 @@ struct AuthLandingScreen: View {
                             .padding(.horizontal, 24)
 
                         VStack(spacing: 12) {
-                            appleButton
+                            methodButton(
+                                title: mode == .login ? "Tovább Apple-lel" : "Regisztráció Apple-lel",
+                                systemImage: "apple.logo",
+                                tint: .white,
+                                filled: true
+                            ) {
+                                toast = "Az Apple belépéshez fizetős Apple Developer fiók és „Sign in with Apple” kell. Addig használd az emailt vagy a telefont."
+                            }
                             methodButton(
                                 title: mode == .login ? "Tovább Google-lal" : "Regisztráció Google-lal",
                                 systemImage: nil,
@@ -197,25 +202,6 @@ struct AuthLandingScreen: View {
         .buttonStyle(.plain)
     }
 
-    private var appleButton: some View {
-        SignInWithAppleButton(mode == .login ? .signIn : .signUp) { request in
-            request.requestedScopes = [.fullName, .email]
-        } onCompletion: { result in
-            Task { await handleApple(result) }
-        }
-        .signInWithAppleButtonStyle(.black)
-        .frame(height: 52)
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .disabled(appleBusy)
-        .overlay {
-            if appleBusy {
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .fill(Color.black.opacity(0.35))
-                ProgressView().tint(.white)
-            }
-        }
-    }
-
     private func methodButton(
         title: String,
         systemImage: String?,
@@ -264,79 +250,6 @@ struct AuthLandingScreen: View {
             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         }
         .buttonStyle(.plain)
-    }
-
-    @MainActor
-    private func handleApple(_ result: Result<ASAuthorization, Error>) async {
-        switch result {
-        case .failure(let error):
-            let ns = error as NSError
-            if ns.code == ASAuthorizationError.canceled.rawValue { return }
-            toast = error.localizedDescription
-        case .success(let auth):
-            guard let cred = auth.credential as? ASAuthorizationAppleIDCredential else {
-                toast = "Apple belépés sikertelen."
-                return
-            }
-            appleBusy = true
-            defer { appleBusy = false }
-            let userId = cred.user
-            let email = (cred.email ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            let accountEmail = email.isEmpty
-                ? "apple_\(stableHash(userId))@apple.addelautod.local"
-                : email.lowercased()
-            let password = "Apple!\(stableHash(userId))x9"
-            let given = cred.fullName?.givenName ?? ""
-            let family = cred.fullName?.familyName ?? ""
-
-            if mode == .register {
-                var ok = await profile.register(
-                    email: accountEmail,
-                    password: password,
-                    passwordConfirm: password
-                )
-                if !ok, let err = profile.authError, err.localizedCaseInsensitiveContains("már regisztrálva") {
-                    ok = await profile.login(email: accountEmail, password: password)
-                }
-                if ok {
-                    if !given.isEmpty || !family.isEmpty {
-                        profile.profile.firstName = given
-                        profile.profile.lastName = family
-                        profile.saveLocal()
-                        _ = await profile.saveProfileToServer()
-                    }
-                } else {
-                    toast = profile.authError ?? "Apple regisztráció sikertelen."
-                }
-            } else {
-                var ok = await profile.login(email: accountEmail, password: password)
-                if !ok {
-                    // Első Apple belépés → fiók létrehozása
-                    ok = await profile.register(
-                        email: accountEmail,
-                        password: password,
-                        passwordConfirm: password
-                    )
-                    if ok, !given.isEmpty || !family.isEmpty {
-                        profile.profile.firstName = given
-                        profile.profile.lastName = family
-                        profile.saveLocal()
-                        _ = await profile.saveProfileToServer()
-                    }
-                }
-                if !ok {
-                    toast = profile.authError ?? "Apple belépés sikertelen."
-                }
-            }
-        }
-    }
-
-    private func stableHash(_ raw: String) -> String {
-        var hash: UInt64 = 5381
-        for b in raw.utf8 {
-            hash = ((hash << 5) &+ hash) &+ UInt64(b)
-        }
-        return String(hash, radix: 16)
     }
 }
 
