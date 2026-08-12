@@ -37,13 +37,17 @@ struct ListingKV: Identifiable, Equatable {
 
 extension ListingsAPI {
   /// Teljes hirdetés: `GET /api/listings/:id`
-  static func fetchDetail(id: String) async throws -> ListingDetail {
+  /// Token kell inaktív saját hirdetéshez (csak tulajdonos látja).
+  static func fetchDetail(id: String, token: String? = nil) async throws -> ListingDetail {
     guard let url = apiURL("api/listings/\(id)") else {
       throw ListingsError.unreachable
     }
     var request = URLRequest(url: url)
     request.timeoutInterval = 25
     request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let token, !token.isEmpty {
+      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
     let data: Data
     let response: URLResponse
     do {
@@ -206,7 +210,7 @@ extension ListingsAPI {
       registrationLabel: registration,
       imageURLs: images,
       meta: meta,
-      badge: row.status == "feladott" ? "Feladott" : nil,
+      badge: HomeListing.statusBadgeLabel(row.status),
       vehicleRows: rows,
       equipment: equipment,
       description: sanitizeListingText(str("leiras")),

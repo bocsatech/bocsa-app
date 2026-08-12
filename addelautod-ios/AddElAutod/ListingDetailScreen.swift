@@ -543,7 +543,7 @@ struct ListingDetailLoader: View {
       detail = car.asDetail
     case .remote(let id):
       do {
-        detail = try await ListingsAPI.fetchDetail(id: id)
+        detail = try await ListingsAPI.fetchDetail(id: id, token: profile.token)
       } catch {
         errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
       }

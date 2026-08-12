@@ -13,6 +13,8 @@ enum ListingsAPI {
     let badge: String?
     let updatedAt: String
     let imageURLs: [URL]
+    /// Autosweb status: feladott | inaktiv | mentett
+    var status: String? = nil
     /// Tulajdonos (Autosweb users.id), ha van.
     var userId: String? = nil
     /// Keresőszűréshez (preview)
@@ -22,6 +24,9 @@ enum ListingsAPI {
     var km: Int? = nil
     var priceFt: Int? = nil
     var fuelRaw: String? = nil
+
+    /// Aktív = megjelenik a nyilvános találati listában.
+    var isActiveInSearch: Bool { (status ?? "").lowercased() == "feladott" }
 
     var featuredAd: FeaturedAd {
       FeaturedAd(
@@ -64,14 +69,21 @@ enum ListingsAPI {
     }
 
     func withBadge(_ badge: String?) -> HomeListing {
-      HomeListing(
+      with(status: status, badge: badge)
+    }
+
+    func with(status: String?, badge: String? = nil) -> HomeListing {
+      let nextStatus = status
+      let nextBadge = badge ?? Self.statusBadgeLabel(nextStatus)
+      return HomeListing(
         id: id,
         title: title,
         priceLabel: priceLabel,
         meta: meta,
-        badge: badge,
+        badge: nextBadge,
         updatedAt: updatedAt,
         imageURLs: imageURLs,
+        status: nextStatus,
         userId: userId,
         brand: brand,
         model: model,
@@ -80,6 +92,15 @@ enum ListingsAPI {
         priceFt: priceFt,
         fuelRaw: fuelRaw
       )
+    }
+
+    static func statusBadgeLabel(_ status: String?) -> String? {
+      switch (status ?? "").lowercased() {
+      case "feladott": return "Aktív"
+      case "inaktiv": return "Inaktív"
+      case "mentett": return "Piszkozat"
+      default: return nil
+      }
     }
   }
 
@@ -213,12 +234,51 @@ enum ListingsAPI {
     }
   }
 
+  /// Aktív / inaktív: aktív (`feladott`) megjelenik a találati listában, inaktív nem.
+  @discardableResult
+  static func setListingActive(id: String, active: Bool, token: String?) async throws -> String {
+    guard let token, !token.isEmpty else { throw ListingsError.notLoggedIn }
+    guard let url = apiURL("api/listings/\(id)") else { throw ListingsError.unreachable }
+    var request = URLRequest(url: url)
+    request.httpMethod = "PATCH"
+    request.timeoutInterval = 25
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    let status = active ? "feladott" : "inaktiv"
+    request.httpBody = try JSONSerialization.data(withJSONObject: ["status": status])
+    let data: Data
+    let response: URLResponse
+    do {
+      (data, response) = try await URLSession.shared.data(for: request)
+    } catch {
+      throw ListingsError.unreachable
+    }
+    guard let http = response as? HTTPURLResponse else { throw ListingsError.unreachable }
+    if http.statusCode >= 400 {
+      let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
+      if http.statusCode == 401 { throw ListingsError.notLoggedIn }
+      throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
+    }
+    struct Wrap: Decodable {
+      let listing: StatusListing?
+    }
+    struct StatusListing: Decodable {
+      let status: String?
+    }
+    let wrap = try? JSONDecoder().decode(Wrap.self, from: data)
+    return wrap?.listing?.status ?? status
+  }
+
   /// Szerkesztéshez: nyers form mezők stringként.
-  static func fetchFormStrings(id: String) async throws -> [String: String] {
+  static func fetchFormStrings(id: String, token: String? = nil) async throws -> [String: String] {
     guard let url = apiURL("api/listings/\(id)") else { throw ListingsError.unreachable }
     var request = URLRequest(url: url)
     request.timeoutInterval = 25
     request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if let token, !token.isEmpty {
+      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
     let data: Data
     let response: URLResponse
     do {
@@ -335,7 +395,7 @@ enum ListingsAPI {
       do {
         let all = try await fetchListings(url: listURL, token: nil, statusBadge: true)
         for item in all where localIds.contains(item.id) {
-          byId[item.id] = item.withBadge(item.badge ?? "Feladott")
+          byId[item.id] = item.withBadge(item.badge ?? "Aktív")
         }
       } catch {
         if byId.isEmpty { throw error }
@@ -346,10 +406,10 @@ enum ListingsAPI {
       return byId.values.sorted { $0.updatedAt > $1.updatedAt }
     }
 
-    // 4) Régi Autosweb (nincs /mine): minden „Feladott” (helyi egyfelhasználós)
+    // 4) Régi Autosweb (nincs /mine): minden aktív / feladott (helyi egyfelhasználós)
     if isUnsupportedMineError(mineError) {
       let all = try await fetchListings(url: listURL, token: nil, statusBadge: true)
-      let feladott = all.filter { $0.badge == "Feladott" }
+      let feladott = all.filter { $0.isActiveInSearch || $0.badge == "Aktív" || $0.badge == "Feladott" }
       if !feladott.isEmpty { return feladott }
       throw ListingsError.server(
         "Régi Autosweb (nincs Hirdetéseim API). Zárdd be, indítsd újra az Autosweb-indito.command-ot online, majd Frissítés."
@@ -434,9 +494,10 @@ enum ListingsAPI {
     let km = (preview?.km).flatMap { $0.isEmpty ? nil : $0 } ?? "—"
     let fuel = fuelLabel(preview?.filter?.uzemanyag)
     let meta = [year, km, fuel].joined(separator: " · ")
+    let status = row.status
     let badge: String? = {
-      guard statusBadge, row.status == "feladott" else { return nil }
-      return "Feladott"
+      guard statusBadge else { return nil }
+      return HomeListing.statusBadgeLabel(status)
     }()
     let images = collectImageURLs(
       foKep: row.fo_kep,
@@ -460,6 +521,7 @@ enum ListingsAPI {
       badge: badge,
       updatedAt: row.updated_at ?? row.created_at ?? "",
       imageURLs: images,
+      status: status,
       userId: owner,
       brand: preview?.filter?.gyartmany,
       model: preview?.filter?.modell,

@@ -261,6 +261,34 @@ struct MyListingsScreen: View {
                                     onOpen: { openRequest = .remote(id: ad.id) }
                                 )
                                 HStack(spacing: 10) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(ad.isActiveInSearch ? "Aktív" : "Inaktív")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(ad.isActiveInSearch ? AppTheme.accent : AppTheme.textSecondary)
+                                        Text(ad.isActiveInSearch
+                                             ? "Megjelenik a keresőben"
+                                             : "Nem látszik a keresőben")
+                                            .font(.caption2)
+                                            .foregroundStyle(AppTheme.textTertiary)
+                                    }
+                                    Spacer(minLength: 8)
+                                    Toggle(
+                                        "",
+                                        isOn: Binding(
+                                            get: { ad.isActiveInSearch },
+                                            set: { newValue in
+                                                Task { await setActive(ad, active: newValue) }
+                                            }
+                                        )
+                                    )
+                                    .labelsHidden()
+                                    .tint(AppTheme.accent)
+                                    .disabled(busyId != nil)
+                                }
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+
+                                HStack(spacing: 10) {
                                     Button {
                                         Task { await beginEdit(ad) }
                                     } label: {
@@ -380,7 +408,7 @@ struct MyListingsScreen: View {
         busyId = ad.id
         defer { busyId = nil }
         do {
-            let form = try await ListingsAPI.fetchFormStrings(id: ad.id)
+            let form = try await ListingsAPI.fetchFormStrings(id: ad.id, token: profile.token)
             let kindRaw = (form["jarmu_kategoria"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             if kindRaw == PostAdCatalog.TruckKind.kisteher.rawValue {
                 editTarget = .truck(.kisteher, id)
@@ -388,6 +416,26 @@ struct MyListingsScreen: View {
                 editTarget = .truck(.teherauto, id)
             } else {
                 editTarget = .car(id)
+            }
+        } catch {
+            actionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func setActive(_ ad: ListingsAPI.HomeListing, active: Bool) async {
+        guard busyId == nil else { return }
+        if ad.isActiveInSearch == active { return }
+        busyId = ad.id
+        defer { busyId = nil }
+        do {
+            let status = try await ListingsAPI.setListingActive(
+                id: ad.id,
+                active: active,
+                token: profile.token
+            )
+            if let idx = listings.firstIndex(where: { $0.id == ad.id }) {
+                listings[idx] = listings[idx].with(status: status)
             }
         } catch {
             actionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription

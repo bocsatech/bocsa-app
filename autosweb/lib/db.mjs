@@ -82,7 +82,7 @@ function migrateListingsUserId(db) {
   db.exec("CREATE INDEX IF NOT EXISTS idx_listings_user ON listings(user_id)");
 }
 
-export const LISTING_STATUSES = ["mentett", "feladott"];
+export const LISTING_STATUSES = ["mentett", "feladott", "inaktiv"];
 
 export function normalizeListingStatus(status) {
   const value = String(status ?? "mentett").trim().toLowerCase();
@@ -105,7 +105,7 @@ const LISTING_ROW_SQL = `l.id, l.hirdetes_cime, l.forras_url, l.hasznaltauto_hir
                 l.user_id, l.created_at, l.updated_at,
                 (SELECT COUNT(*) FROM listing_cells c WHERE c.listing_id = l.id) AS cell_count`;
 
-export function listListings({ limit = 50, status = null, userId = null } = {}) {
+export function listListings({ limit = 50, status = null, userId = null, excludeInactive = false } = {}) {
   const db = getDb();
   const normalizedStatus = status ? normalizeListingStatus(status) : null;
   const uid = userId != null && Number.isFinite(Number(userId)) ? Number(userId) : null;
@@ -136,6 +136,15 @@ export function listListings({ limit = 50, status = null, userId = null } = {}) 
       )
       .all(normalizedStatus, limit);
   }
+  if (excludeInactive) {
+    return db
+      .prepare(
+        `SELECT ${LISTING_ROW_SQL}
+         FROM listings l WHERE l.status != 'inaktiv'
+         ORDER BY l.updated_at DESC LIMIT ?`
+      )
+      .all(limit);
+  }
   return db
     .prepare(
       `SELECT ${LISTING_ROW_SQL}
@@ -162,8 +171,13 @@ function loadCellsByListingIds(ids) {
   return map;
 }
 
-export function listListingsWithPreview({ limit = 50, status = null, userId = null } = {}) {
-  const rows = listListings({ limit, status, userId });
+export function listListingsWithPreview({
+  limit = 50,
+  status = null,
+  userId = null,
+  excludeInactive = false,
+} = {}) {
+  const rows = listListings({ limit, status, userId, excludeInactive });
   const cellsById = loadCellsByListingIds(rows.map((row) => row.id));
   return rows.map((row) => {
     const cells = (cellsById.get(row.id) ?? []).map((cell) => sanitizeListingCell(cell));
@@ -409,6 +423,32 @@ export function deleteListing(id) {
   const db = getDb();
   db.prepare("DELETE FROM listings WHERE id = ?").run(id);
   return { ok: true };
+}
+
+/** Tulajdonos: aktív (feladott) / inaktív váltás. */
+export function setListingStatus(id, status, userId) {
+  const db = getDb();
+  const listingId = Number(id);
+  const uid = Number(userId);
+  if (!Number.isFinite(listingId) || listingId <= 0) return null;
+  if (!Number.isFinite(uid) || uid <= 0) return null;
+  const next = normalizeListingStatus(status);
+  if (next !== "feladott" && next !== "inaktiv") {
+    const err = new Error("Érvénytelen státusz (feladott vagy inaktiv).");
+    err.status = 400;
+    throw err;
+  }
+  const existing = db.prepare("SELECT id, user_id, status FROM listings WHERE id = ?").get(listingId);
+  if (!existing) return null;
+  if (existing.user_id != null && Number(existing.user_id) !== uid) {
+    const err = new Error("Ehhez a hirdetéshez nincs jogosultságod.");
+    err.status = 403;
+    throw err;
+  }
+  db.prepare(
+    `UPDATE listings SET status = ?, user_id = COALESCE(user_id, ?), updated_at = datetime('now') WHERE id = ?`
+  ).run(next, uid, listingId);
+  return getListing(listingId);
 }
 
 export function dbStats() {

@@ -66,6 +66,16 @@ test("saveListing: sqlite fájlba ment", async () => {
   assert.equal(feladott.status, "feladott");
   assert.equal(listListings({ status: "feladott" }).length, 1);
 
+  const { setListingStatus } = await import(`./db.mjs?t=${Date.now() + 1}`);
+  const inactive = setListingStatus(feladott.id, "inaktiv", 1);
+  assert.equal(inactive.status, "inaktiv");
+  assert.equal(listListings({ status: "feladott" }).length, 0);
+  assert.equal(listListings({ excludeInactive: true }).some((r) => r.id === feladott.id), false);
+  assert.equal(listListings({ status: "inaktiv" }).length, 1);
+  const reactivated = setListingStatus(feladott.id, "feladott", 1);
+  assert.equal(reactivated.status, "feladott");
+  assert.equal(listListings({ status: "feladott" }).length, 1);
+
   rmSync(tempDir, { recursive: true, force: true });
   delete process.env.AUTOSWEB_DB_PATH;
 });

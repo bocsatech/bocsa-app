@@ -13,6 +13,7 @@ import {
   listListingsWithPreview,
   listMyListingsWithPreview,
   deleteListing,
+  setListingStatus,
   dbStats,
   listFieldDefs,
   findListingBySourceUrl,
@@ -356,7 +357,12 @@ async function handleListingsApi(req, res, pathname) {
       });
       return;
     }
-    sendJson(res, 200, { listings: listListingsWithPreview({ limit, status }) });
+    // Nyilvános találati lista: csak aktív (feladott) hirdetések — inaktív / mentett rejtve.
+    const publicOpts =
+      status != null && String(status).trim() !== ""
+        ? { limit, status }
+        : { limit, status: "feladott" };
+    sendJson(res, 200, { listings: listListingsWithPreview(publicOpts) });
     return;
   }
 
@@ -366,7 +372,51 @@ async function handleListingsApi(req, res, pathname) {
       sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
       return;
     }
+    // Inaktív: csak a tulajdonos láthatja a részleteket
+    if (listing.status === "inaktiv") {
+      const user = getUserByToken(extractBearerToken(req));
+      const isOwner =
+        user &&
+        listing.user_id != null &&
+        Number(listing.user_id) === Number(user.id);
+      if (!isOwner) {
+        sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
+        return;
+      }
+    }
     sendJson(res, 200, { listing });
+    return;
+  }
+
+  // Aktív / inaktív kapcsoló — PATCH /api/listings/:id  { status: "feladott"|"inaktiv" }
+  if (idMatch && req.method === "PATCH") {
+    const user = getUserByToken(extractBearerToken(req));
+    if (!user) {
+      sendJson(res, 401, { error: "Bejelentkezés szükséges." });
+      return;
+    }
+    let body;
+    try {
+      body = await readBody(req);
+    } catch {
+      sendJson(res, 400, { error: "Érvénytelen JSON." });
+      return;
+    }
+    const nextStatus = body.status ?? (body.active === false || body.active === "false" ? "inaktiv" : body.active === true || body.active === "true" ? "feladott" : null);
+    if (!nextStatus) {
+      sendJson(res, 400, { error: "Hiányzó status (feladott / inaktiv)." });
+      return;
+    }
+    try {
+      const saved = setListingStatus(Number(idMatch[1]), nextStatus, user.id);
+      if (!saved) {
+        sendJson(res, 404, { error: "Nincs ilyen hirdetés." });
+        return;
+      }
+      sendJson(res, 200, { listing: saved });
+    } catch (error) {
+      sendJson(res, error.status ?? 400, { error: error.message ?? "Státusz mentése sikertelen." });
+    }
     return;
   }
 
