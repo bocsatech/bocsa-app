@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C7005C38556740C7AC8AAC9B /* AuthLandingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A8EA4835534A6A815C9EEA /* AuthLandingScreen.swift */; };
 		507BBB86C4C74A5C966F91C2 /* AutoswebCategoryPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5F8B9EA24E418F9797981A /* AutoswebCategoryPhoto.swift */; };
 		7669DAAB7CD44197B5DB9569 /* AddElAutodApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1398B4CEB8BE4DDCAF96D11D /* AddElAutodApp.swift */; };
 		4E4A054B6A794CAAB12CA9AB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B4A4D1FF4749A3869C8AD7 /* ContentView.swift */; };
@@ -58,6 +59,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A1ENTL001B /* AddElAutod.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AddElAutod.entitlements; sourceTree = "<group>"; };
 		1398B4CEB8BE4DDCAF96D11D /* AddElAutodApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddElAutodApp.swift; sourceTree = "<group>"; };
 		10B4A4D1FF4749A3869C8AD7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		71858E9000D643608B066981 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -85,6 +87,7 @@
 		A1PREO001B /* PartnerRecommendations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartnerRecommendations.swift; sourceTree = "<group>"; };
 		A1AUTH001B /* AuthAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthAPI.swift; sourceTree = "<group>"; };
 		A1LOGI001B /* LoginScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginScreen.swift; sourceTree = "<group>"; };
+		42A8EA4835534A6A815C9EEA /* AuthLandingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLandingScreen.swift; sourceTree = "<group>"; };
 		A1REGI001B /* RegisterScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterScreen.swift; sourceTree = "<group>"; };
 		A1SAUTH001B /* SiteAuthBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteAuthBar.swift; sourceTree = "<group>"; };
 		A1SOCL001B /* SocialWebScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialWebScreens.swift; sourceTree = "<group>"; };
@@ -151,6 +154,7 @@
 			isa = PBXGroup;
 			children = (
 				1398B4CEB8BE4DDCAF96D11D /* AddElAutodApp.swift */,
+				A1ENTL001B /* AddElAutod.entitlements */,
 				10B4A4D1FF4749A3869C8AD7 /* ContentView.swift */,
 				71858E9000D643608B066981 /* Theme.swift */,
 				2DED661A8646464A8691D774 /* Models.swift */,
@@ -174,6 +178,7 @@
 				A1PREO001B /* PartnerRecommendations.swift */,
 				A1AUTH001B /* AuthAPI.swift */,
 				A1LOGI001B /* LoginScreen.swift */,
+				42A8EA4835534A6A815C9EEA /* AuthLandingScreen.swift */,
 				A1REGI001B /* RegisterScreen.swift */,
 				A1SAUTH001B /* SiteAuthBar.swift */,
 				A1SOCL001B /* SocialWebScreens.swift */,
@@ -291,6 +296,7 @@
 				A1PREO002B /* PartnerRecommendations.swift in Sources */,
 				A1AUTH002B /* AuthAPI.swift in Sources */,
 				A1LOGI002B /* LoginScreen.swift in Sources */,
+				C7005C38556740C7AC8AAC9B /* AuthLandingScreen.swift in Sources */,
 				A1REGI002B /* RegisterScreen.swift in Sources */,
 				A1SAUTH002B /* SiteAuthBar.swift in Sources */,
 				A1SOCL002B /* SocialWebScreens.swift in Sources */,
@@ -363,6 +369,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = AddElAutod/AddElAutod.entitlements;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				/* Automatikus aláírás: Simulator OK; fizikai telefonhoz Xcode → Signing → Team (Apple ID). */
 				CODE_SIGN_STYLE = Automatic;
@@ -401,6 +408,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = AddElAutod/AddElAutod.entitlements;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				/* Automatikus aláírás: Simulator OK; fizikai telefonhoz Xcode → Signing → Team (Apple ID). */
 				CODE_SIGN_STYLE = Automatic;

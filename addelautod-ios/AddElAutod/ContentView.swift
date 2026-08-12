@@ -11,7 +11,6 @@ struct ContentView: View {
     @EnvironmentObject private var pageLayout: PageLayoutStore
     @EnvironmentObject private var searchStore: SearchStore
     @State private var page = 0
-    @State private var authPage: AuthPage = .login
     @State private var showSettings = false
     @State private var showAccountMenu = false
 
@@ -47,32 +46,11 @@ struct ContentView: View {
         }
     }
 
-    /// Belépés nélkül: egyetlen oldal, nincs jobbra/balra swipe.
+    /// Belépés nélkül: krém belépő oldal (Apple / Google / Facebook / email / telefon).
     private var guestAuthOnly: some View {
-        VStack(spacing: 0) {
-            SiteAuthBar(
-                selectedPage: authPage,
-                onLogin: { authPage = .login },
-                onRegister: { authPage = .register },
-                onAccount: nil
-            )
-
-            Group {
-                if authPage == .login {
-                    LoginScreen(
-                        onGoRegister: { authPage = .register },
-                        onSuccess: nil
-                    )
-                } else {
-                    RegisterScreen(
-                        onGoLogin: { authPage = .login },
-                        onSuccess: nil
-                    )
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .background(AppTheme.bg.ignoresSafeArea())
+        AuthLandingScreen()
+            .environmentObject(profile)
+            .background(Color(red: 0.980, green: 0.965, blue: 0.945).ignoresSafeArea())
     }
 
     private var mainTabs: some View {
