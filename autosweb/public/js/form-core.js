@@ -534,7 +534,12 @@ function applyFormData(data, { fromImport = false } = {}) {
     }
   }
 
-  for (const item of data.felszereltseg ?? []) {
+  const felszereltsegList = Array.isArray(data.felszereltseg)
+    ? data.felszereltseg
+    : typeof data.felszereltseg === "string"
+      ? data.felszereltseg.split(",").map((s) => s.trim()).filter((s) => s.length >= 2)
+      : [];
+  for (const item of felszereltsegList) {
     const needle = String(item).toLowerCase();
     const box = [...form.querySelectorAll('input[name="felszereltseg"]')].find(
       (el) => el.value === item || el.value.toLowerCase() === needle || el.value.toLowerCase().includes(needle)
@@ -542,7 +547,12 @@ function applyFormData(data, { fromImport = false } = {}) {
     if (box) box.checked = true;
   }
 
-  for (const item of data.egyeb_info ?? []) {
+  const egyebInfoList = Array.isArray(data.egyeb_info)
+    ? data.egyeb_info
+    : typeof data.egyeb_info === "string"
+      ? data.egyeb_info.split(",").map((s) => s.trim()).filter((s) => s.length >= 2)
+      : [];
+  for (const item of egyebInfoList) {
     const needle = String(item).toLowerCase();
     const box = [...form.querySelectorAll('input[name="egyeb_info"]')].find(
       (el) => el.value === item || el.value.toLowerCase() === needle

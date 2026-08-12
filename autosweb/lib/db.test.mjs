@@ -29,6 +29,29 @@ test("cellsToFormData: visszaállítás", () => {
   assert.deepEqual(data.felszereltseg, ["bluetooth-os kihangosító"]);
 });
 
+test("formDataToCells: felszereltseg string nem karaktereződik szét", () => {
+  const cells = formDataToCells({
+    felszereltseg: "digitális klíma, automata",
+  });
+  const labels = cells.filter((c) => c.field_key?.startsWith("extra:")).map((c) => c.label);
+  assert.deepEqual(labels, ["digitális klíma", "automata"]);
+});
+
+test("formDataToCells: egyetlen felszereltseg string egy tétel", () => {
+  const cells = formDataToCells({ felszereltseg: "tempomat" });
+  const labels = cells.filter((c) => c.field_key?.startsWith("extra:")).map((c) => c.label);
+  assert.deepEqual(labels, ["tempomat"]);
+});
+
+test("cellsToFormData: 1 betűs extra szemét kiszűrése", () => {
+  const data = cellsToFormData([
+    { field_key: "extra:digitalis_klima", label: "digitális klíma", value: "1" },
+    { field_key: "extra:a", label: "a", value: "1" },
+    { field_key: "extra:m", label: "m", value: "1" },
+  ]);
+  assert.deepEqual(data.felszereltseg, ["digitális klíma"]);
+});
+
 test("saveListing: sqlite fájlba ment", async () => {
   const tempDir = mkdtempSync(join(tmpdir(), "autosweb-db-"));
   process.env.AUTOSWEB_DB_PATH = join(tempDir, "test.db");

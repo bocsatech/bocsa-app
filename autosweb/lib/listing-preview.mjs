@@ -133,7 +133,12 @@ function collectBadges(form) {
     if (hay.includes(needle)) found.add(token);
   }
 
-  for (const item of form.felszereltseg ?? []) {
+  const equipment = Array.isArray(form.felszereltseg)
+    ? form.felszereltseg
+    : typeof form.felszereltseg === "string"
+      ? form.felszereltseg.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+  for (const item of equipment) {
     const token = shortBadgeLabel(item);
     if (token.length >= 2) found.add(token);
   }

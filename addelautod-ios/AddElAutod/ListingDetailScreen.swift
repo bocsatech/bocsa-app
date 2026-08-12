@@ -287,12 +287,14 @@ struct ListingDetailScreen: View {
         VStack(alignment: .leading, spacing: 10) {
           Text("Felszereltség")
             .font(.headline)
-          let cols = Array(repeating: GridItem(.flexible(), alignment: .leading), count: 2)
+          let cols = Array(repeating: GridItem(.flexible(minimum: 120), alignment: .leading), count: 2)
           LazyVGrid(columns: cols, alignment: .leading, spacing: 8) {
-            ForEach(detail.equipment, id: \.self) { item in
+            ForEach(Array(detail.equipment.enumerated()), id: \.offset) { _, item in
               Text(item)
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.text)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             }
           }
         }
@@ -543,7 +545,15 @@ struct ListingDetailLoader: View {
       detail = car.asDetail
     case .remote(let id):
       do {
-        detail = try await ListingsAPI.fetchDetail(id: id, token: profile.token)
+        var loaded = try await ListingsAPI.fetchDetail(id: id, token: profile.token)
+        // Ha a hirdetésen nincs elérhetőség, saját profilból pótoljuk (saját hirdetés / hiányos mentés)
+        if loaded.sellerPhone == nil || loaded.sellerName == "Eladó" {
+          loaded = loaded.enrichedWithProfileContact(
+            name: profile.profile.displayName,
+            phone: profile.profile.phone
+          )
+        }
+        detail = loaded
       } catch {
         errorText = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
       }

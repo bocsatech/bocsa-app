@@ -121,6 +121,34 @@ function hasValue(value) {
   return String(value).trim() !== "";
 }
 
+/**
+ * Lista mező normalizálás.
+ * Fontos: stringen NE futtassunk for...of-ot — az karakterenként bontaná
+ * (pl. "automata" → "a","u","t","o","m","a"), és a Felszereltség szétesik.
+ */
+export function asStringList(value) {
+  if (value == null) return [];
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((item) => asStringList(item))
+      .map((s) => s.trim())
+      .filter((s) => s.length >= 2);
+  }
+  if (typeof value === "string") {
+    const t = value.trim();
+    if (!t) return [];
+    if (t.includes(",")) {
+      return t
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s.length >= 2);
+    }
+    return t.length >= 2 ? [t] : [];
+  }
+  const s = String(value).trim();
+  return s.length >= 2 ? [s] : [];
+}
+
 /** Űrlap adat → DB cellák (felirat + érték, segéd szövegek nélkül). */
 export function formDataToCells(formData) {
   const cells = [];
@@ -137,9 +165,7 @@ export function formDataToCells(formData) {
     });
   }
 
-  for (const item of formData.felszereltseg ?? []) {
-    const text = String(item).trim();
-    if (!text) continue;
+  for (const text of asStringList(formData.felszereltseg)) {
     cells.push({
       field_key: `extra:${slugify(text)}`,
       label: text,
@@ -148,9 +174,7 @@ export function formDataToCells(formData) {
     });
   }
 
-  for (const item of formData.egyeb_info ?? []) {
-    const text = String(item).trim();
-    if (!text) continue;
+  for (const text of asStringList(formData.egyeb_info)) {
     cells.push({
       field_key: `info:${slugify(text)}`,
       label: text,
@@ -170,9 +194,12 @@ export function cellsToFormData(cells) {
 
   for (const cell of cells ?? []) {
     if (cell.field_key?.startsWith("extra:")) {
-      felszereltseg.push(cell.label);
+      const label = String(cell.label ?? "").trim();
+      // 1 betűs „extrák” = korábbi string-iteráció szemete
+      if (label.length >= 2) felszereltseg.push(label);
     } else if (cell.field_key?.startsWith("info:")) {
-      egyeb_info.push(cell.label);
+      const label = String(cell.label ?? "").trim();
+      if (label.length >= 2) egyeb_info.push(label);
     } else if (cell.field_key) {
       data[cell.field_key] = cell.value;
     }

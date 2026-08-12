@@ -115,8 +115,25 @@ extension ListingsAPI {
       }
     }
     func arr(_ key: String) -> [String] {
-      guard let v = form[key], case .array(let items) = v else { return [] }
-      return items.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+      guard let v = form[key] else { return [] }
+      let raw: [String]
+      switch v {
+      case .array(let items):
+        raw = items
+      case .string(let s):
+        // Ha stringként jön, ne karakterezzük — vesszővel bontjuk vagy egy tételként kezeljük
+        let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else { return [] }
+        raw = t.contains(",")
+          ? t.split(separator: ",").map { String($0) }
+          : [t]
+      default:
+        return []
+      }
+      // 1 betűs elemek: korábbi szerver bug (string for...of) szemete
+      return raw
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .filter { $0.count >= 2 }
     }
 
     let year = str("gyartasi_ev")
