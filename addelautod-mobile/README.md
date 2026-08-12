@@ -1,9 +1,9 @@
-# Add el autod — mobil (Expo)
+# Bymy — mobil (Expo)
 
 4 oldalas iPhone-stílusú app: **Hírfolyam → Kiemeltek → Keresés → Mentett keresések**.  
 Jobbra–balra húzással váltasz (mint a kezdőképernyő).
 
-**Nem** a Bocsa CRM — az Autosweb / **Add el autod.hu** koncepció mobil héja.
+**Nem** a Bocsa CRM — az Autosweb / **Bymy.hu** koncepció mobil héja.
 
 ## Mac + iOS Simulator
 

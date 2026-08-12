@@ -319,7 +319,7 @@ struct ChatThreadScreen: View {
       VStack(spacing: 2) {
         Text(conv.peer.displayName)
           .font(.headline)
-        Text("Add el autod üzenet")
+        Text("Bymy üzenet")
           .font(.caption2)
           .foregroundStyle(AppTheme.textSecondary)
       }
@@ -350,7 +350,7 @@ struct ChatThreadScreen: View {
         Text(conv.listing.priceLabel)
           .font(.subheadline.weight(.bold))
           .foregroundStyle(AppTheme.accent)
-        Text("Add el autod kód: \(conv.listing.code)")
+        Text("Bymy kód: \(conv.listing.code)")
           .font(.caption2)
           .foregroundStyle(AppTheme.textTertiary)
       }

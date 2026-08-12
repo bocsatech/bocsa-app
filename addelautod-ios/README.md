@@ -1,4 +1,4 @@
-# Add el autod — iOS (Xcode)
+# Bymy — iOS (Xcode)
 
 ## Ha „semmi sem működik” / nem indul / régi UI
 

@@ -135,7 +135,7 @@ struct RegisterScreen: View {
                     .font(.body.weight(.medium))
             }
             Spacer()
-            Text("Add el autod.hu")
+            Text("Bymy")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(AppTheme.text)
             Spacer()

@@ -89,7 +89,7 @@ enum SampleContent {
             kind: .youtube,
             title: "Használtautó vásárlás — mire figyelj 2026-ban",
             source: "YouTube",
-            subtitle: "Add el autod · tippek",
+            subtitle: "Bymy · tippek",
             url: URL(string: "https://www.youtube.com")
         ),
         FeedItem(

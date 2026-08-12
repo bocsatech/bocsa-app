@@ -211,7 +211,7 @@ echo "Autosweb főoldal: ${INDEX_VER:-?}"
 echo "Mac böngésző:  http://127.0.0.1:3456/"
 if [ -n "$LAN_IP" ]; then
   echo "Telefon (Wi‑Fi): http://${LAN_IP}:3456/"
-  echo "  → Add el autod app → Beállítások → Autosweb cím: http://${LAN_IP}:3456"
+  echo "  → Bymy app → Beállítások → Autosweb cím: http://${LAN_IP}:3456"
 else
   echo "Telefon: System Settings → Network → Wi‑Fi → IP, majd http://IP:3456"
 fi

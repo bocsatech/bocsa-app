@@ -1,4 +1,4 @@
-/** Add el autod — mobil téma (Autosweb kék) */
+/** Bymy — mobil téma (Autosweb kék) */
 export const colors = {
   bg: "#eef0f3",
   bgElevated: "#ffffff",

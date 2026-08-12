@@ -86,6 +86,8 @@ grep -q "fetchMyListings" "$DEST/AddElAutod/ListingsAPI.swift"
 grep -q "ListingRemoteImage" "$DEST/AddElAutod/ListingDetailScreen.swift"
 grep -q "MyListingsScreen" "$DEST/AddElAutod/AccountMenuScreen.swift"
 grep -q "api/listings/mine" "$DEST/AddElAutod/ListingsAPI.swift"
+grep -q 'Text("Bymy")' "$DEST/AddElAutod/SiteAuthBar.swift"
+grep -q 'INFOPLIST_KEY_CFBundleDisplayName = "Bymy"' "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 if grep -A3 "case .hirdeto:" "$SEARCH" | grep -q "multiSelectList"; then
   echo "HIBA: SearchScreen Hirdető még multiSelectList"
   exit 1

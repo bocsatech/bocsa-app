@@ -377,7 +377,7 @@
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AddElAutod/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Add el autod";
+				INFOPLIST_KEY_CFBundleDisplayName = "Bymy";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Profilkép és hirdetés fényképek feltöltéséhez szükséges a fotókönyvtár hozzáférés.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Hirdetés fényképek készítéséhez szükséges a kamera hozzáférés.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Az app a Macen futó Autosweb szervert éri el ugyanazon a Wi‑Fi hálózaton.";
@@ -415,7 +415,7 @@
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AddElAutod/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Add el autod";
+				INFOPLIST_KEY_CFBundleDisplayName = "Bymy";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Profilkép és hirdetés fényképek feltöltéséhez szükséges a fotókönyvtár hozzáférés.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Hirdetés fényképek készítéséhez szükséges a kamera hozzáférés.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Az app a Macen futó Autosweb szervert éri el ugyanazon a Wi‑Fi hálózaton.";

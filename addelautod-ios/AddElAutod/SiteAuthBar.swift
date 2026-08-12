@@ -12,7 +12,7 @@ struct SiteAuthBar: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text("Add el autod.hu")
+            Text("Bymy")
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(AppTheme.text)
                 .lineLimit(1)

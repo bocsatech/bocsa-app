@@ -148,7 +148,7 @@ struct AuthLandingScreen: View {
 
     private var topBar: some View {
         HStack {
-            Text("Add el autod.hu")
+            Text("Bymy")
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(AppTheme.text)
             Spacer()
@@ -452,7 +452,7 @@ struct AuthCredentialScreen: View {
 
     private func phoneAccountEmail(_ raw: String) -> String {
         let digits = raw.filter(\.isNumber)
-        return "t\(digits)@phone.addelautod.local"
+        return "t\(digits)@phone.bymy.local"
     }
 
     @MainActor

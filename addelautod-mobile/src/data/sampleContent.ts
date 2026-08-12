@@ -6,7 +6,7 @@ export const FEED_ITEMS: FeedItem[] = [
     kind: "youtube",
     title: "Használtautó vásárlás — mire figyelj 2026-ban",
     source: "YouTube",
-    subtitle: "Add el autod · tippek",
+    subtitle: "Bymy · tippek",
     url: "https://www.youtube.com",
   },
   {

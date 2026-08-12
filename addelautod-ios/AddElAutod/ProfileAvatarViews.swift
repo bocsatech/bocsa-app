@@ -18,7 +18,7 @@ enum ProfileQRCode {
     ]
     if !email.isEmpty { lines.append("EMAIL;TYPE=INTERNET:\(email)") }
     if !phone.isEmpty { lines.append("TEL;TYPE=CELL:\(phone)") }
-    lines.append("NOTE:Add el autod profil")
+    lines.append("NOTE:Bymy profil")
     lines.append("END:VCARD")
     return lines.joined(separator: "\n")
   }

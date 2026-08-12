@@ -363,6 +363,7 @@ private func isListingSiteChromeLine(_ line: String) -> Bool {
   onlyChrome = onlyChrome.replacingOccurrences(of: #"\bbelepes\b"#, with: " ", options: .regularExpression)
   onlyChrome = onlyChrome.replacingOccurrences(of: #"\bregisztracio\b"#, with: " ", options: .regularExpression)
   onlyChrome = onlyChrome.replacingOccurrences(of: #"\badd el autod(\.hu)?\b"#, with: " ", options: .regularExpression)
+  onlyChrome = onlyChrome.replacingOccurrences(of: #"\bbymy(\.hu)?\b"#, with: " ", options: .regularExpression)
   onlyChrome = onlyChrome.replacingOccurrences(of: #"[|·•\-–—./:!]+"#, with: " ", options: .regularExpression)
   onlyChrome = onlyChrome.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
     .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -371,6 +372,7 @@ private func isListingSiteChromeLine(_ line: String) -> Bool {
   if folded.contains("belepes"), folded.count <= 24 { return true }
   if folded == "belepes" || folded == "regisztracio" { return true }
   if folded == "add el autod" || folded == "add el autod.hu" { return true }
+  if folded == "bymy" || folded == "bymy.hu" { return true }
   return false
 }
 
