@@ -24,79 +24,90 @@ struct AuthLandingScreen: View {
             VStack(spacing: 0) {
                 topBar
 
-                ScrollView {
-                    VStack(spacing: 18) {
-                        modePicker
-                            .padding(.top, 28)
+                GeometryReader { geo in
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 0) {
+                            brandLogo
+                                .padding(.top, 8)
+                                .padding(.bottom, 12)
 
-                        Text(mode == .login ? "Bejelentkezés" : "Regisztráció")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundStyle(Color(red: 0.35, green: 0.22, blue: 0.14))
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.top, 8)
+                            // A cím + gombok lejjebb kerülnek; a kapcsoló a VStack alján marad.
+                            Spacer(minLength: max(32, geo.size.height * 0.12))
 
-                        Text(mode == .login
-                             ? "Válaszd ki, hogyan lépsz be."
-                             : "Válaszd ki, hogyan hozod létre a fiókot.")
-                            .font(.subheadline)
-                            .foregroundStyle(Color(red: 0.45, green: 0.40, blue: 0.36))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
+                            Text(mode == .login ? "Bejelentkezés" : "Regisztráció")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundStyle(Color(red: 0.35, green: 0.22, blue: 0.14))
+                                .frame(maxWidth: .infinity, alignment: .center)
 
-                        VStack(spacing: 12) {
-                            methodButton(
-                                title: mode == .login ? "Tovább Apple-lel" : "Regisztráció Apple-lel",
-                                systemImage: "apple.logo",
-                                tint: .white,
-                                filled: true
-                            ) {
-                                toast = "Az Apple belépéshez fizetős Apple Developer fiók és „Sign in with Apple” kell. Addig használd az emailt vagy a telefont."
+                            Text(mode == .login
+                                 ? "Válaszd ki, hogyan lépsz be."
+                                 : "Válaszd ki, hogyan hozod létre a fiókot.")
+                                .font(.subheadline)
+                                .foregroundStyle(Color(red: 0.45, green: 0.40, blue: 0.36))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                                .padding(.top, 8)
+
+                            VStack(spacing: 12) {
+                                methodButton(
+                                    title: mode == .login ? "Tovább Apple-lel" : "Regisztráció Apple-lel",
+                                    systemImage: "apple.logo",
+                                    tint: .white,
+                                    filled: true
+                                ) {
+                                    toast = "Az Apple belépéshez fizetős Apple Developer fiók és „Sign in with Apple” kell. Addig használd az emailt vagy a telefont."
+                                }
+                                methodButton(
+                                    title: mode == .login ? "Tovább Google-lal" : "Regisztráció Google-lal",
+                                    systemImage: nil,
+                                    googleColors: true,
+                                    filled: false
+                                ) {
+                                    toast = "A Google belépés hamarosan elérhető. Addig használd az emailt vagy a telefont."
+                                }
+                                methodButton(
+                                    title: mode == .login ? "Tovább Facebookkal" : "Regisztráció Facebookkal",
+                                    systemImage: "f.circle.fill",
+                                    tint: Color(red: 0.09, green: 0.47, blue: 0.95),
+                                    filled: false
+                                ) {
+                                    toast = "A Facebook belépés hamarosan elérhető. Addig használd az emailt vagy a telefont."
+                                }
+                                methodButton(
+                                    title: mode == .login ? "Tovább e-maillel" : "Regisztráció e-maillel",
+                                    systemImage: "envelope",
+                                    tint: .primary,
+                                    filled: false
+                                ) {
+                                    path = .email
+                                }
+                                methodButton(
+                                    title: mode == .login ? "Tovább telefonszámmal" : "Regisztráció telefonszámmal",
+                                    systemImage: "iphone",
+                                    tint: .primary,
+                                    filled: false
+                                ) {
+                                    path = .phone
+                                }
                             }
-                            methodButton(
-                                title: mode == .login ? "Tovább Google-lal" : "Regisztráció Google-lal",
-                                systemImage: nil,
-                                googleColors: true,
-                                filled: false
-                            ) {
-                                toast = "A Google belépés hamarosan elérhető. Addig használd az emailt vagy a telefont."
+                            .padding(.horizontal, 28)
+                            .padding(.top, 16)
+
+                            Button("Probléma a bejelentkezéssel?") {
+                                showServer = true
                             }
-                            methodButton(
-                                title: mode == .login ? "Tovább Facebookkal" : "Regisztráció Facebookkal",
-                                systemImage: "f.circle.fill",
-                                tint: Color(red: 0.09, green: 0.47, blue: 0.95),
-                                filled: false
-                            ) {
-                                toast = "A Facebook belépés hamarosan elérhető. Addig használd az emailt vagy a telefont."
-                            }
-                            methodButton(
-                                title: mode == .login ? "Tovább e-maillel" : "Regisztráció e-maillel",
-                                systemImage: "envelope",
-                                tint: .primary,
-                                filled: false
-                            ) {
-                                path = .email
-                            }
-                            methodButton(
-                                title: mode == .login ? "Tovább telefonszámmal" : "Regisztráció telefonszámmal",
-                                systemImage: "iphone",
-                                tint: .primary,
-                                filled: false
-                            ) {
-                                path = .phone
-                            }
+                            .font(.footnote)
+                            .foregroundStyle(Color(red: 0.55, green: 0.52, blue: 0.48))
+                            .padding(.top, 14)
+                            .padding(.bottom, 20)
                         }
-                        .padding(.horizontal, 28)
-                        .padding(.top, 12)
-
-                        Button("Probléma a bejelentkezéssel?") {
-                            showServer = true
-                        }
-                        .font(.footnote)
-                        .foregroundStyle(Color(red: 0.55, green: 0.52, blue: 0.48))
-                        .padding(.top, 8)
-                        .padding(.bottom, 32)
+                        .frame(minHeight: geo.size.height, alignment: .top)
                     }
                 }
+
+                modePicker
+                    .padding(.top, 6)
+                    .padding(.bottom, 6)
             }
             .background(cream.ignoresSafeArea())
             .navigationDestination(item: $path) { route in
@@ -148,9 +159,6 @@ struct AuthLandingScreen: View {
 
     private var topBar: some View {
         HStack {
-            Text("Bymy")
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(AppTheme.text)
             Spacer()
             Button {
                 showServer = true
@@ -163,8 +171,18 @@ struct AuthLandingScreen: View {
             .accessibilityLabel("Szerver beállítás")
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
         .background(cream.opacity(0.95))
+    }
+
+    /// Teljes wordmark, scaledToFit — nem vágódik.
+    private var brandLogo: some View {
+        Image("BymyLogo")
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 28)
+            .accessibilityLabel("Bymy")
     }
 
     private var modePicker: some View {
