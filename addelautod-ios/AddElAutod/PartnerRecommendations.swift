@@ -19,6 +19,22 @@ struct PartnerCategoryGroup: Identifiable, Hashable {
   let partners: [PartnerRecommendation]
 }
 
+/// Fizetős partner ajánló kategóriák — ugyanaz a lista, mint az Autosweben.
+enum PartnerCategoryCatalog {
+  static let items: [(id: String, label: String)] = [
+    ("atiras_ugyintezes", "Átírás ügyintézés"),
+    ("eredetvizsga", "Eredetvizsga"),
+    ("muszakivizsga", "Műszaki vizsga"),
+    ("autoatvizsgalas", "Autoátvizsgálás"),
+    ("autoszerelo", "Autószerelő"),
+    ("gumiszerelo", "Gumiszerelő"),
+    ("lakatos", "Lakatos"),
+    ("klimaszerelo", "Klímaszerelő"),
+    ("autokozmetika", "Autókozmetika"),
+    ("autovillamossag", "Autóvillamosság"),
+  ]
+}
+
 enum PartnerRecommendationsDemo {
   static let categories: [PartnerCategoryGroup] = [
     PartnerCategoryGroup(

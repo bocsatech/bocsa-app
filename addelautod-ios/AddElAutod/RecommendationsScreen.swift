@@ -5,6 +5,7 @@ import UIKit
 /// Körzet szerkesztés: Beállítások → Ajánlások körzete.
 struct RecommendationsScreen: View {
   @EnvironmentObject private var profile: ProfileStore
+  var onClose: (() -> Void)? = nil
 
   @State private var cityLabel: String?
   @State private var categories: [PartnerCategoryGroup] = PartnerRecommendationsDemo.categories
@@ -26,6 +27,7 @@ struct RecommendationsScreen: View {
       ScreenHeader(
         title: "Ajánlások",
         subtitle: subtitle,
+        onBack: onClose,
         rightLabel: "Frissítés",
         onRight: { Task { await loadRecommendations() } }
       )

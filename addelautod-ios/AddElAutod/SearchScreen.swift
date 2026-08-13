@@ -31,7 +31,7 @@ struct SearchScreen: View {
     @State private var openSearchTop: SearchTopSection? = .auto
 
     private enum Mode {
-        case landing, vehiclePick, search, truckSearch, settings, messages, results, filterResults, postAd
+        case landing, vehiclePick, search, truckSearch, settings, messages, results, filterResults, postAd, recommendations
     }
 
     private enum SearchTopSection: String {
@@ -136,6 +136,8 @@ struct SearchScreen: View {
                 )
             case .postAd:
                 PostAdScreen(onClose: { goRoot() })
+            case .recommendations:
+                RecommendationsScreen(onClose: { goRoot() })
             }
         }
         /// Főoldal TabView a státuszsáv alá nyúlik; listák / kereső ne menjen az óra mögé.
@@ -256,17 +258,57 @@ struct SearchScreen: View {
                 .foregroundStyle(AppTheme.text)
                 .padding(.horizontal, 16)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 14) {
-                    ForEach(QuickCategory.allCases) { category in
-                        CategoryIconButton(category: category) {
-                            openHomeRailItem(section, category: category)
+            if section == .ajanlasok {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 14) {
+                        ForEach(PartnerCategoryCatalog.items, id: \.id) { item in
+                            homeEmptyTile(title: item.label) {
+                                mode = .recommendations
+                            }
                         }
                     }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 14) {
+                        ForEach(QuickCategory.allCases) { category in
+                            CategoryIconButton(category: category) {
+                                openHomeRailItem(section, category: category)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
             }
         }
+    }
+
+    /// Még nincs ikon: üres kocka, alatta a kategória neve.
+    private func homeEmptyTile(title: String, action: @escaping () -> Void) -> some View {
+        let size: CGFloat = 88
+        let corner: CGFloat = 16
+        return Button(action: action) {
+            VStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: corner, style: .continuous)
+                    .fill(Color(red: 0.965, green: 0.969, blue: 0.976))
+                    .frame(width: size, height: size)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: corner, style: .continuous)
+                            .stroke(AppTheme.border, lineWidth: 0.5)
+                    )
+                    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(AppTheme.text)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .frame(width: size)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
     }
 
     private func openHomeRailItem(_ section: HomeFeedSection, category: QuickCategory) {
