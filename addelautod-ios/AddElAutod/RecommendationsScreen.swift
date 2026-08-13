@@ -81,7 +81,13 @@ struct RecommendationsScreen: View {
           expandedCategoryId = isOpen ? nil : group.id
         }
       } label: {
-        HStack {
+        HStack(spacing: 12) {
+          Image(PartnerCategoryCatalog.imageName(forCategoryId: group.id))
+            .resizable()
+            .scaledToFill()
+            .frame(width: 44, height: 44)
+            .clipped()
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           Text(group.label)
             .font(.headline)
             .foregroundStyle(AppTheme.text)

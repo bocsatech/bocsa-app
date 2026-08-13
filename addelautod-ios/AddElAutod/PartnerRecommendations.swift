@@ -21,18 +21,22 @@ struct PartnerCategoryGroup: Identifiable, Hashable {
 
 /// Fizetős partner ajánló kategóriák — ugyanaz a lista, mint az Autosweben.
 enum PartnerCategoryCatalog {
-  static let items: [(id: String, label: String)] = [
-    ("atiras_ugyintezes", "Átírás ügyintézés"),
-    ("eredetvizsga", "Eredetvizsga"),
-    ("muszakivizsga", "Műszaki vizsga"),
-    ("autoatvizsgalas", "Autoátvizsgálás"),
-    ("autoszerelo", "Autószerelő"),
-    ("gumiszerelo", "Gumiszerelő"),
-    ("lakatos", "Lakatos"),
-    ("klimaszerelo", "Klímaszerelő"),
-    ("autokozmetika", "Autókozmetika"),
-    ("autovillamossag", "Autóvillamosság"),
+  static let items: [(id: String, label: String, imageName: String)] = [
+    ("atiras_ugyintezes", "Átírás ügyintézés", "ajanlas-atiras"),
+    ("eredetvizsga", "Eredetvizsga", "ajanlas-eredet"),
+    ("muszakivizsga", "Műszaki vizsga", "ajanlas-muszaki"),
+    ("autoatvizsgalas", "Autoátvizsgálás", "ajanlas-atvizsgalas"),
+    ("autoszerelo", "Autószerelő", "ajanlas-szerelo"),
+    ("gumiszerelo", "Gumiszerelő", "ajanlas-gumi"),
+    ("lakatos", "Lakatos", "ajanlas-lakatos"),
+    ("klimaszerelo", "Klímaszerelő", "ajanlas-klima"),
+    ("autokozmetika", "Autókozmetika", "ajanlas-kozmetika"),
+    ("autovillamossag", "Autóvillamosság", "ajanlas-villamos"),
   ]
+
+  static func imageName(forCategoryId id: String) -> String {
+    items.first(where: { $0.id == id })?.imageName ?? "ajanlas-szerelo"
+  }
 }
 
 enum PartnerRecommendationsDemo {

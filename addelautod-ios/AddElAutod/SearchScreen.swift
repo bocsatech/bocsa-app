@@ -269,7 +269,7 @@ struct SearchScreen: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
                         ForEach(PartnerCategoryCatalog.items, id: \.id) { item in
-                            homeEmptyTile(title: item.label) {
+                            homePhotoTile(title: item.label, imageName: item.imageName) {
                                 mode = .recommendations
                             }
                         }
@@ -350,7 +350,37 @@ struct SearchScreen: View {
         .accessibilityLabel("\(item.kind.label): \(item.title)")
     }
 
-    /// Még nincs ikon: üres kocka, alatta a kategória neve.
+    /// Fotószerű demókép a kategória kockában (Ajánlások).
+    private func homePhotoTile(title: String, imageName: String, action: @escaping () -> Void) -> some View {
+        let size: CGFloat = 88
+        let corner: CGFloat = 16
+        return Button(action: action) {
+            VStack(spacing: 8) {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: size, height: size)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: corner, style: .continuous)
+                            .stroke(AppTheme.border, lineWidth: 0.5)
+                    )
+                    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(AppTheme.text)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .frame(width: size)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+    }
+
+    /// Még nincs fotó: üres kocka, alatta a kategória neve.
     private func homeEmptyTile(title: String, systemImage: String? = nil, action: (() -> Void)? = nil) -> some View {
         let size: CGFloat = 88
         let corner: CGFloat = 16
