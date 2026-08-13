@@ -43,7 +43,7 @@ struct SettingsScreen: View {
                     accordion(.notify, title: "Hírlevél és értesítések") {
                         notifyFields
                     }
-                    accordion(.pages, title: "Oldalak szerkesztése") {
+                    accordion(.pages, title: "Alsó menü") {
                         pagesEditor
                     }
                     accordion(.autosweb, title: "Autosweb (Wi‑Fi)") {
@@ -421,50 +421,46 @@ struct SettingsScreen: View {
         }
     }
 
-    // MARK: - Oldalak szerkesztése
+    // MARK: - Alsó menü (rögzített)
 
     private var pagesEditor: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Kapcsold be/ki a lapokat, és húzd a sorrendet. A Fő oldal mindig látszik. Azonnal mentődik.")
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Az alsó ikonok helye rögzített, a sorrend nem módosítható.")
                 .font(.footnote)
                 .foregroundStyle(AppTheme.textSecondary)
 
-            List {
-                ForEach(pageLayout.order) { id in
+            VStack(spacing: 0) {
+                ForEach(Array(BottomTab.allCases.enumerated()), id: \.element) { index, tab in
                     HStack(spacing: 12) {
-                        Image(systemName: "line.3.horizontal")
+                        Text("\(index + 1).")
+                            .font(.caption.weight(.semibold))
                             .foregroundStyle(AppTheme.textTertiary)
-                        Image(id.assetName)
-                            .resizable()
-                            .scaledToFit()
+                            .frame(width: 22, alignment: .leading)
+                        bottomTabIcon(tab)
                             .frame(width: 28, height: 28)
-                        Text(id.title)
+                        Text(tab.title)
                             .font(.body)
                         Spacer()
-                        if id.canDisable {
-                            Toggle("", isOn: Binding(
-                                get: { pageLayout.isEnabled(id) },
-                                set: { pageLayout.setEnabled(id, $0) }
-                            ))
-                            .labelsHidden()
-                            .tint(AppTheme.accent)
-                        } else {
-                            Text("Mindig")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(AppTheme.accent)
-                        }
                     }
-                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                    .padding(.vertical, 10)
+                    if index < BottomTab.allCases.count - 1 {
+                        Divider()
+                    }
                 }
-                .onMove(perform: pageLayout.move)
-                .deleteDisabled(true)
             }
-            .listStyle(.plain)
-            .scrollDisabled(true)
-            .environment(\.editMode, .constant(.active))
-            .frame(height: CGFloat(pageLayout.order.count) * 52)
+        }
+    }
+
+    @ViewBuilder
+    private func bottomTabIcon(_ tab: BottomTab) -> some View {
+        if let asset = tab.assetName {
+            Image(asset)
+                .resizable()
+                .scaledToFit()
+        } else if let systemImage = tab.systemImage {
+            Image(systemName: systemImage)
+                .font(.system(size: 18))
+                .foregroundStyle(AppTheme.text)
         }
     }
 

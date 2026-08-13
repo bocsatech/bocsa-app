@@ -10,7 +10,7 @@ struct ContentView: View {
     @EnvironmentObject private var profile: ProfileStore
     @EnvironmentObject private var pageLayout: PageLayoutStore
     @EnvironmentObject private var searchStore: SearchStore
-    @State private var page = 0
+    @State private var tab: BottomTab = .fooldal
     @State private var showSettings = false
     @State private var showAccountMenu = false
 
@@ -34,11 +34,7 @@ struct ContentView: View {
         .fullScreenCover(isPresented: $showAccountMenu) {
             AccountMenuScreen(
                 onClose: { showAccountMenu = false },
-                onOpenSearch: {
-                    if let idx = pageLayout.index(of: .foOldal) {
-                        page = idx
-                    }
-                }
+                onOpenSearch: { tab = .kereses }
             )
             .environmentObject(profile)
             .environmentObject(searchStore)
@@ -54,8 +50,7 @@ struct ContentView: View {
     }
 
     private var mainTabs: some View {
-        let pages = pageLayout.visible
-        return VStack(spacing: 0) {
+        VStack(spacing: 0) {
             SiteAuthBar(
                 selectedPage: nil,
                 onLogin: {},
@@ -63,21 +58,36 @@ struct ContentView: View {
                 onAccount: { showAccountMenu = true }
             )
 
-            TabView(selection: $page) {
-                ForEach(Array(pages.enumerated()), id: \.element) { index, id in
-                    mainPageView(id, tabIndex: index)
-                        .tag(index)
-                }
+            TabView(selection: $tab) {
+                SearchScreen(
+                    searchRoot: .homeLanding,
+                    onOpenAccount: { showAccountMenu = true },
+                    onOpenSettings: { showSettings = true },
+                    onOpenSearchTab: { tab = .kereses },
+                    onOpenPostAdTab: { tab = .hirdetesFeladas },
+                    onOpenMessagesTab: { tab = .uzenetek }
+                )
+                .tag(BottomTab.fooldal)
+
+                SearchScreen(
+                    searchRoot: .searchMenu,
+                    onOpenAccount: { showAccountMenu = true },
+                    onOpenSettings: { showSettings = true }
+                )
+                .tag(BottomTab.kereses)
+
+                PostAdScreen()
+                    .tag(BottomTab.hirdetesFeladas)
+
+                MessagesScreen()
+                    .tag(BottomTab.uzenetek)
+
+                FeedScreen()
+                    .tag(BottomTab.hirfolyam)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .id(pages.map(\.rawValue).joined(separator: "-"))
-            .onChange(of: pages.map(\.rawValue)) { _, newIds in
-                if page >= newIds.count {
-                    page = max(0, newIds.count - 1)
-                }
-            }
 
-            PageIconBar(pages: pages, index: $page)
+            PageIconBar(selection: $tab)
                 .padding(.bottom, 4)
         }
         .background(AppTheme.bg.ignoresSafeArea())
@@ -89,33 +99,6 @@ struct ContentView: View {
             let store = profile
             await PushNotificationService.shared.requestPermissionAndRegister(authToken: token)
             PushNotificationService.shared.startPolling { store.token }
-        }
-    }
-
-    @ViewBuilder
-    private func mainPageView(_ id: MainPageID, tabIndex: Int) -> some View {
-        switch id {
-        case .hirfolyam:
-            FeedScreen()
-        case .facebook:
-            SocialWebScreen(kind: .facebookReel, isActive: page == tabIndex)
-        case .youtube:
-            SocialWebScreen(kind: .youTube, isActive: page == tabIndex)
-        case .ajanlasok:
-            RecommendationsScreen()
-        case .kiemeltek:
-            FeaturedScreen()
-        case .foOldal:
-            SearchScreen(
-                onOpenAccount: { showAccountMenu = true },
-                onOpenSettings: { showSettings = true }
-            )
-        case .mentettKeresesek:
-            SavedSearchesScreen(onOpenSearch: {
-                if let idx = pageLayout.index(of: .foOldal) {
-                    page = idx
-                }
-            })
         }
     }
 }

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Hirdetés feladás — kategóriaválasztó (1. demó: accordion kártyák ikonokkal).
 struct PostAdScreen: View {
-    var onClose: () -> Void
+    var onClose: (() -> Void)? = nil
 
     private enum TopSection: String {
         case auto, teher, ingatlan

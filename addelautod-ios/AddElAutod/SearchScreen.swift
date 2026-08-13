@@ -2,11 +2,21 @@ import SwiftUI
 import UIKit
 
 struct SearchScreen: View {
+    enum SearchRoot {
+        case homeLanding
+        case searchMenu
+    }
+
     @EnvironmentObject private var store: SearchStore
+    /// Főoldal tab vs. Keresés tab (járműválasztó).
+    var searchRoot: SearchRoot = .homeLanding
     /// Főoldal „Fiók” ikon → fiókmenü
     var onOpenAccount: (() -> Void)? = nil
     /// Keresési körzet / irányítószám — Beállítások
     var onOpenSettings: (() -> Void)? = nil
+    var onOpenSearchTab: (() -> Void)? = nil
+    var onOpenPostAdTab: (() -> Void)? = nil
+    var onOpenMessagesTab: (() -> Void)? = nil
 
     @State private var mode: Mode = .landing
     @State private var panel: Panel = .simple
@@ -39,6 +49,14 @@ struct SearchScreen: View {
         case alap, muszaki, extrak
     }
 
+    private var menuRootMode: Mode {
+        searchRoot == .searchMenu ? .vehiclePick : .landing
+    }
+
+    private func goRoot() {
+        mode = menuRootMode
+    }
+
     var body: some View {
         Group {
             switch mode {
@@ -68,7 +86,7 @@ struct SearchScreen: View {
                     if activeQuery != nil {
                         mode = .results
                     } else {
-                        mode = .landing
+                        goRoot()
                     }
                 })
             case .messages:
@@ -94,7 +112,7 @@ struct SearchScreen: View {
                         query: query,
                         onBack: {
                             activeQuery = nil
-                            mode = .landing
+                            goRoot()
                         },
                         onOpenSettings: {
                             if let onOpenSettings {
@@ -119,7 +137,12 @@ struct SearchScreen: View {
                     }
                 )
             case .postAd:
-                PostAdScreen(onClose: { mode = .landing })
+                PostAdScreen(onClose: { goRoot() })
+            }
+        }
+        .onAppear {
+            if searchRoot == .searchMenu, mode == .landing {
+                mode = .vehiclePick
             }
         }
         .alert("Mentés", isPresented: Binding(
@@ -142,8 +165,12 @@ struct SearchScreen: View {
                         label: "Keresés",
                         tint: AppTheme.accent
                     ) {
-                        openSearchTop = .auto
-                        mode = .vehiclePick
+                        if let onOpenSearchTab {
+                            onOpenSearchTab()
+                        } else {
+                            openSearchTop = .auto
+                            mode = .vehiclePick
+                        }
                     }
                     HomeIconButton(
                         systemName: "mappin.and.ellipse",
@@ -164,7 +191,11 @@ struct SearchScreen: View {
                         label: "Hirdetés feladás",
                         tint: Color(red: 0.72, green: 0.18, blue: 0.22)
                     ) {
-                        mode = .postAd
+                        if let onOpenPostAdTab {
+                            onOpenPostAdTab()
+                        } else {
+                            mode = .postAd
+                        }
                     }
                 }
                 .padding(.top, 12)
@@ -188,7 +219,11 @@ struct SearchScreen: View {
                         label: "Üzenetek",
                         tint: Color(red: 0.20, green: 0.55, blue: 0.85)
                     ) {
-                        openMessages(from: .landing, target: nil)
+                        if let onOpenMessagesTab {
+                            onOpenMessagesTab()
+                        } else {
+                            openMessages(from: .landing, target: nil)
+                        }
                     }
                     HomeIconButton(
                         systemName: "person.crop.circle.fill",
@@ -218,7 +253,7 @@ struct SearchScreen: View {
             ScreenHeader(
                 title: "Keresés",
                 subtitle: "Mit keresel?",
-                onBack: { mode = .landing }
+                onBack: searchRoot == .searchMenu ? nil : { mode = .landing }
             )
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
@@ -547,7 +582,7 @@ struct SearchScreen: View {
             onBack: {
                 panel = .simple
                 listPanel = .simple
-                mode = .landing
+                mode = menuRootMode
             },
             rightLabel: "Törlés",
             onRight: store.reset

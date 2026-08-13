@@ -65,7 +65,7 @@ struct StartChatScreen: View {
 /// Összesített üzenetek + chat (willhaben-szerű, magyarul). Csak az inbox menüből.
 struct MessagesScreen: View {
   @EnvironmentObject private var profile: ProfileStore
-  var onClose: () -> Void
+  var onClose: (() -> Void)? = nil
 
   @State private var conversations: [MessagesAPI.Conversation] = []
   @State private var loading = true

@@ -16,31 +16,67 @@ struct PageDots: View {
     }
 }
 
-/// Alsó lapikonok: látható oldalak sorrendje; az aktuális kék.
+/// Alsó menü — rögzített sorrend, nem szerkeszthető.
+enum BottomTab: Int, CaseIterable, Identifiable, Hashable {
+    case fooldal
+    case kereses
+    case hirdetesFeladas
+    case uzenetek
+    case hirfolyam
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .fooldal: return "Főoldal"
+        case .kereses: return "Keresés"
+        case .hirdetesFeladas: return "Hirdetés feladás"
+        case .uzenetek: return "Üzenetek"
+        case .hirfolyam: return "Hírfolyam"
+        }
+    }
+
+    /// Asset a ház+ gombhoz / hírfolyamhoz; a többi SF Symbol.
+    var assetName: String? {
+        switch self {
+        case .hirdetesFeladas: return "demo-fo-oldal"
+        case .hirfolyam: return "demo-hirfolyam"
+        default: return nil
+        }
+    }
+
+    var systemImage: String? {
+        switch self {
+        case .fooldal: return "house.fill"
+        case .kereses: return "magnifyingglass"
+        case .uzenetek: return "bubble.left.and.bubble.right.fill"
+        default: return nil
+        }
+    }
+}
+
+/// Alsó lapikonok: rögzített 5 pont; az aktuális kék.
 struct PageIconBar: View {
-    let pages: [MainPageID]
-    @Binding var index: Int
+    @Binding var selection: BottomTab
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(Array(pages.enumerated()), id: \.element) { i, item in
-                let selected = i == index
+            ForEach(BottomTab.allCases) { tab in
+                let selected = tab == selection
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        index = i
+                        selection = tab
                     }
                 } label: {
                     VStack(spacing: 3) {
-                        Image(item.assetName)
-                            .resizable()
-                            .scaledToFit()
+                        tabIcon(tab)
                             .frame(width: 28, height: 28)
                             .opacity(selected ? 1 : 0.7)
-                        Text(item.title)
+                        Text(tab.title)
                             .font(.system(size: 9, weight: selected ? .semibold : .regular))
                             .foregroundStyle(selected ? AppTheme.accent : AppTheme.textTertiary)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.65)
+                            .minimumScaleFactor(0.55)
                         Capsule()
                             .fill(selected ? AppTheme.accent : Color.clear)
                             .frame(width: 14, height: 3)
@@ -53,15 +89,27 @@ struct PageIconBar: View {
                     )
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(item.title)
+                .accessibilityLabel(tab.title)
                 .accessibilityAddTraits(selected ? [.isSelected] : [])
             }
         }
         .padding(.horizontal, 4)
         .padding(.top, 2)
         .padding(.bottom, 4)
-        .animation(.easeInOut(duration: 0.2), value: index)
-        .animation(.easeInOut(duration: 0.2), value: pages)
+        .animation(.easeInOut(duration: 0.2), value: selection)
+    }
+
+    @ViewBuilder
+    private func tabIcon(_ tab: BottomTab) -> some View {
+        if let asset = tab.assetName {
+            Image(asset)
+                .resizable()
+                .scaledToFit()
+        } else if let systemImage = tab.systemImage {
+            Image(systemName: systemImage)
+                .font(.system(size: 20, weight: .regular))
+                .foregroundStyle(AppTheme.text)
+        }
     }
 }
 
