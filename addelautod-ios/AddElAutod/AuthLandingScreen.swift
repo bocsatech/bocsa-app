@@ -7,8 +7,6 @@ struct AuthLandingScreen: View {
     @State private var mode: AuthPage = .login
     @State private var path: AuthPath?
     @State private var toast: String?
-    @State private var showServer = false
-    @State private var serverNote: String?
 
     /// Krém háttér (Temu-stílusú belépő).
     private let cream = Color(red: 0.980, green: 0.965, blue: 0.945)
@@ -22,8 +20,6 @@ struct AuthLandingScreen: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                topBar
-
                 GeometryReader { geo in
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 0) {
@@ -92,13 +88,6 @@ struct AuthLandingScreen: View {
                             }
                             .padding(.horizontal, 28)
                             .padding(.top, 16)
-
-                            Button("Probléma a bejelentkezéssel?") {
-                                showServer = true
-                            }
-                            .font(.footnote)
-                            .foregroundStyle(Color(red: 0.55, green: 0.52, blue: 0.48))
-                            .padding(.top, 14)
                             .padding(.bottom, 20)
                         }
                         .frame(minHeight: geo.size.height, alignment: .top)
@@ -119,32 +108,6 @@ struct AuthLandingScreen: View {
                 )
                 .environmentObject(profile)
             }
-            .sheet(isPresented: $showServer) {
-                NavigationStack {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            AutoswebServerSettingsCard(onMessage: { serverNote = $0 })
-                            if let serverNote, !serverNote.isEmpty {
-                                Text(serverNote)
-                                    .font(.caption)
-                                    .foregroundStyle(AppTheme.textSecondary)
-                            }
-                            Text("Ha a telefonon nem megy a belépés, add meg a Mac Autosweb Wi‑Fi IP-jét.")
-                                .font(.footnote)
-                                .foregroundStyle(AppTheme.textSecondary)
-                        }
-                        .padding(16)
-                    }
-                    .navigationTitle("Szerver")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Kész") { showServer = false }
-                        }
-                    }
-                }
-                .presentationDetents([.medium, .large])
-            }
             .alert("Belépés", isPresented: Binding(
                 get: { toast != nil },
                 set: { if !$0 { toast = nil } }
@@ -157,36 +120,12 @@ struct AuthLandingScreen: View {
         .onAppear {
             profile.authError = nil
             AutoswebBonjour.shared.start()
-            if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
-                showServer = true
-            }
         }
         .task {
             if AutoswebBaseURL.isPhysicalDevice {
                 _ = await AutoswebBaseURL.ensureLANBase()
-                if !AutoswebBaseURL.isLoopbackOnPhysicalDevice {
-                    showServer = false
-                }
             }
         }
-    }
-
-    private var topBar: some View {
-        HStack {
-            Spacer()
-            Button {
-                showServer = true
-            } label: {
-                Image(systemName: "gearshape")
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(AppTheme.textSecondary)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Szerver beállítás")
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(cream.opacity(0.95))
     }
 
     /// Teljes wordmark, scaledToFit — nem vágódik.
@@ -305,21 +244,12 @@ struct AuthCredentialScreen: View {
     @State private var password = ""
     @State private var passwordConfirm = ""
     @State private var busy = false
-    @State private var serverNote: String?
 
     private let cream = Color(red: 0.980, green: 0.965, blue: 0.945)
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                AutoswebServerSettingsCard(onMessage: { serverNote = $0 })
-
-                if let serverNote, !serverNote.isEmpty {
-                    Text(serverNote)
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.textSecondary)
-                }
-
                 Text(title)
                     .font(.title2.weight(.bold))
                     .foregroundStyle(AppTheme.text)
@@ -327,10 +257,6 @@ struct AuthCredentialScreen: View {
                 Text(subtitle)
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textSecondary)
-
-                Text("Először állítsd be fent a Mac Autosweb címét (Wi‑Fi IP), majd jelentkezz be.")
-                    .font(.footnote)
-                    .foregroundStyle(AppTheme.textTertiary)
 
                 if method == .email {
                     fieldLabel("Email")

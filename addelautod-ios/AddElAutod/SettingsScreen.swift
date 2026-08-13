@@ -9,7 +9,7 @@ struct SettingsScreen: View {
     var onClose: () -> Void
 
     private enum Accordion: String {
-        case personal, searchArea, recommendationsArea, password, notify, pages, autosweb
+        case personal, searchArea, recommendationsArea, password, notify, pages
     }
 
     @State private var openAccordion: Accordion? = nil
@@ -45,9 +45,6 @@ struct SettingsScreen: View {
                     }
                     accordion(.pages, title: "Alsó menü") {
                         pagesEditor
-                    }
-                    accordion(.autosweb, title: "Autosweb (Wi‑Fi)") {
-                        autoswebFields
                     }
                 }
                 .padding(16)
@@ -462,12 +459,6 @@ struct SettingsScreen: View {
                 .font(.system(size: 18))
                 .foregroundStyle(AppTheme.text)
         }
-    }
-
-    // MARK: - Autosweb LAN
-
-    private var autoswebFields: some View {
-        AutoswebServerSettingsCard(compact: true, onMessage: { toast = $0 })
     }
 
     // MARK: - Shared

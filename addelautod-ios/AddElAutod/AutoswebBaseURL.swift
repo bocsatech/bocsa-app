@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 import Network
 #if canImport(Darwin)
 import Darwin
@@ -51,11 +50,11 @@ enum AutoswebBaseURL {
         let wifi = AutoswebLAN.wifiIPv4Addresses()
         if isLoopbackOnPhysicalDevice {
             if wifi.isEmpty {
-                return "A telefonon a localhost a készülék, nem a Mac. Kapcsold be a Wi‑Fi-t (ugyanaz, mint a Mac). iOS: Beállítások → Bymy → Helyi hálózat."
+                return "Kapcsold be a Wi‑Fi-t (ugyanaz, mint a Mac), és engedélyezd a helyi hálózatot: iOS Beállítások → Bymy."
             }
-            return "A telefonon a localhost a készülék, nem a Mac. Telefon: \(wifi.joined(separator: ", ")). Add meg a Mac utolsó számát, vagy Keresés. Most: \(url)"
+            return "A szerver nem található a Wi‑Fi-n. Macen fusson az Autosweb-indító, ugyanaz a hálózat. Most: \(url)"
         }
-        return "Autosweb nem elérhető (\(url)). Ugyanaz a Wi‑Fi, Macen fusson az indító, iOS: Beállítások → Bymy → Helyi hálózat."
+        return "Autosweb nem elérhető (\(url)). Ugyanaz a Wi‑Fi, Macen fusson az indító."
     }
 
     @discardableResult
@@ -70,14 +69,6 @@ enum AutoswebBaseURL {
             UserDefaults.standard.set(url.absoluteString, forKey: defaultsKey)
         }
         return url
-    }
-
-    static func setLastOctet(_ last: Int) -> URL? {
-        guard (1...254).contains(last),
-              let ip = AutoswebLAN.wifiIPv4Addresses().first else { return nil }
-        let parts = ip.split(separator: ".")
-        guard parts.count == 4 else { return nil }
-        return set("http://\(parts[0]).\(parts[1]).\(parts[2]).\(last):\(port)")
     }
 
     static func normalizedURL(from raw: String) -> URL? {
@@ -95,13 +86,6 @@ enum AutoswebBaseURL {
     @discardableResult
     static func ensureLANBase() async -> URL? {
         await AutoswebLAN.search()
-    }
-
-    static func testReachability() async -> String {
-        if let found = await ensureLANBase(), await AutoswebLAN.probe(found) {
-            return "Elérhető: \(found.absoluteString)"
-        }
-        return unreachableMessage()
     }
 
     static func rebasing(_ request: URLRequest, onto newBase: URL) -> URLRequest {
@@ -252,13 +236,6 @@ enum AutoswebLAN {
         return out
     }
 
-    static func wifiPrefix() -> String? {
-        guard let ip = wifiIPv4Addresses().first else { return nil }
-        let parts = ip.split(separator: ".")
-        guard parts.count == 4 else { return nil }
-        return "\(parts[0]).\(parts[1]).\(parts[2])"
-    }
-
     static func isPrivateIPv4(_ ip: String) -> Bool {
         let parts = ip.split(separator: ".").compactMap { Int($0) }
         guard parts.count == 4 else { return false }
@@ -400,156 +377,3 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
 }
 
 extension AutoswebBonjour: @unchecked Sendable {}
-
-/// Belépés előtt is szerkeszthető — Mac Wi‑Fi IP, vagy csak az utolsó szám.
-struct AutoswebServerSettingsCard: View {
-    var compact: Bool = false
-    var onMessage: ((String) -> Void)? = nil
-
-    @State private var urlText = AutoswebBaseURL.currentString()
-    @State private var lastOctet = ""
-    @State private var busy = false
-    @State private var localMessage: String?
-
-    private var wifiPrefix: String? { AutoswebLAN.wifiPrefix() }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(compact ? "Autosweb (Wi‑Fi)" : "Autosweb szerver")
-                .font(compact ? .subheadline.weight(.semibold) : .headline)
-                .foregroundStyle(AppTheme.text)
-
-            Text("A telefon localhostja a telefon. Ugyanaz a Wi‑Fi, engedélyezd a helyi hálózatot, majd Keresés — vagy írd be a Mac utolsó számát az Autosweb-indítóból (pl. 12, ha http://192.168.0.12:3456).")
-                .font(.footnote)
-                .foregroundStyle(AppTheme.textSecondary)
-
-            if let prefix = wifiPrefix {
-                Text("Telefon Wi‑Fi: \(prefix).x")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(AppTheme.text)
-                HStack(spacing: 8) {
-                    Text("http://\(prefix).")
-                        .font(.footnote.monospaced())
-                    TextField("12", text: $lastOctet)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.numberPad)
-                        .frame(width: 64)
-                    Text(":3456")
-                        .font(.footnote.monospaced())
-                    Button("OK") { saveLastOctet() }
-                        .font(.body.weight(.semibold))
-                }
-            } else {
-                Text("Nincs Wi‑Fi IPv4. Kapcsold be a Wi‑Fi-t (ne vendéghálózat).")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(Color(red: 0.75, green: 0.12, blue: 0.12))
-            }
-
-            if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
-                Text("Most localhost van beállítva. iOS: Beállítások → Bymy → Helyi hálózat = be, majd Keresés.")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(Color(red: 0.75, green: 0.12, blue: 0.12))
-            }
-
-            TextField("http://192.168.0.12:3456", text: $urlText)
-                .textFieldStyle(.roundedBorder)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .keyboardType(.URL)
-
-            HStack(spacing: 12) {
-                Button("Mentés") { save() }
-                    .font(.body.weight(.semibold))
-                Button("Teszt") {
-                    Task { await test() }
-                }
-                .font(.body.weight(.semibold))
-                .disabled(busy)
-                Button("Keresés Wi‑Fi-n") {
-                    Task { await searchLAN() }
-                }
-                .font(.body.weight(.semibold))
-                .disabled(busy)
-                if busy { ProgressView().scaleEffect(0.8) }
-                Spacer()
-            }
-            .foregroundStyle(AppTheme.accent)
-
-            if let localMessage, onMessage == nil {
-                Text(localMessage)
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.textSecondary)
-            }
-        }
-        .padding(compact ? 16 : 20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(compact ? AppTheme.bgElevated : Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: compact ? 12 : 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: compact ? 12 : 16, style: .continuous)
-                .stroke(AppTheme.border, lineWidth: compact ? 0 : 1)
-        )
-        .onAppear {
-            AutoswebBonjour.shared.start()
-            AutoswebBonjour.shared.onFound = { url in
-                urlText = url.absoluteString
-                emit("Megtalálva: \(url.absoluteString)")
-            }
-            urlText = AutoswebBaseURL.currentString()
-            if AutoswebBaseURL.isPhysicalDevice {
-                Task { await searchLAN() }
-            }
-        }
-    }
-
-    private func saveLastOctet() {
-        let n = Int(lastOctet.filter(\.isNumber)) ?? 0
-        if let url = AutoswebBaseURL.setLastOctet(n) {
-            urlText = url.absoluteString
-            emit("Autosweb cím: \(url.absoluteString)")
-            Task { await test() }
-        } else {
-            emit("Írd be a Mac utolsó számát (1–254), amit az Autosweb-indító kiír.")
-        }
-    }
-
-    private func save() {
-        if let url = AutoswebBaseURL.set(urlText) {
-            urlText = url.absoluteString
-            emit("Autosweb cím: \(url.absoluteString)")
-        } else {
-            emit("Érvénytelen cím.")
-        }
-    }
-
-    private func searchLAN() async {
-        busy = true
-        defer { busy = false }
-        emit("Keresés a Wi‑Fi-n…")
-        AutoswebBonjour.shared.start()
-        if let found = await AutoswebBaseURL.ensureLANBase() {
-            urlText = found.absoluteString
-            emit("Megtalálva: \(found.absoluteString)")
-        } else if let prefix = wifiPrefix {
-            emit("Nem található a \(prefix).x hálózaton. Írd be a Mac utolsó számát az indítóból. iOS: Beállítások → Bymy → Helyi hálózat.")
-        } else {
-            emit("Nincs Wi‑Fi IPv4. Kapcsold be a Wi‑Fi-t, ugyanaz mint a Mac.")
-        }
-    }
-
-    private func test() async {
-        _ = AutoswebBaseURL.set(urlText)
-        urlText = AutoswebBaseURL.currentString()
-        busy = true
-        defer { busy = false }
-        emit(await AutoswebBaseURL.testReachability())
-    }
-
-    private func emit(_ text: String) {
-        if let onMessage {
-            onMessage(text)
-        } else {
-            localMessage = text
-        }
-    }
-}

@@ -12,7 +12,6 @@ struct LoginScreen: View {
     @State private var email = ""
     @State private var password = ""
     @State private var busy = false
-    @State private var serverNote: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,22 +21,13 @@ struct LoginScreen: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    AutoswebServerSettingsCard(onMessage: { serverNote = $0 })
-
-                    if let serverNote, !serverNote.isEmpty {
-                        Text(serverNote)
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.textSecondary)
-                            .padding(.horizontal, 4)
-                    }
-
                     authCard {
                         Text("Belépés")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(AppTheme.text)
                             .padding(.bottom, 6)
 
-                        Text("Először állítsd be fent a Mac Autosweb címét (Wi‑Fi IP), majd jelentkezz be.")
+                        Text("Lépj be a fiókodba e-mail címmel és jelszóval.")
                             .font(.subheadline)
                             .foregroundStyle(AppTheme.textSecondary)
                             .padding(.bottom, 16)
