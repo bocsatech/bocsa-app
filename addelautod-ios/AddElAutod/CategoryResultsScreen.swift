@@ -22,6 +22,15 @@ struct CategoryResultsScreen: View {
         DemoListing.filtered(for: query, maxDistanceKm: radiusKm)
     }
 
+    private var emptyMessage: String {
+        switch query {
+        case .newListings, .category(.uj):
+            return "Még nincs új autóhirdetés."
+        default:
+            return "Nincs találat ebben a körzetben."
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScreenHeader(
@@ -55,11 +64,20 @@ struct CategoryResultsScreen: View {
                         .foregroundStyle(AppTheme.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    ForEach(cars) { car in
-                        ListingFeedCard(
-                            detail: car.asDetail,
-                            onOpen: { openRequest = .demo(car) }
-                        )
+                    if cars.isEmpty {
+                        Text(emptyMessage)
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 40)
+                    } else {
+                        ForEach(cars) { car in
+                            ListingFeedCard(
+                                detail: car.asDetail,
+                                onOpen: { openRequest = .demo(car) }
+                            )
+                        }
                     }
                 }
                 .padding(16)
@@ -118,12 +136,10 @@ struct DemoListing: Identifiable, Equatable {
             case .nearby:
                 return true
             case .newListings:
-                return car.year >= 2024
-                    || car.badge == "Új"
-                    || car.badge == "Friss"
+                return false
             case .category(let category):
                 switch category {
-                case .uj: return car.year >= 2024
+                case .uj: return false
                 case .benzin: return car.fuel == .benzin && !car.isOldtimer
                 case .diesel: return car.fuel == .diesel
                 case .elektromos: return car.fuel == .elektromos
