@@ -24,6 +24,8 @@ enum BottomTab: Int, CaseIterable, Identifiable, Hashable {
     case uzenetek
     case hirfolyam
 
+    var id: Int { rawValue }
+
     /// Hely a lebegő sziget alatt, hogy a lista ne takaródjon.
     static let islandClearance: CGFloat = 96
 
