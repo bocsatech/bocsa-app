@@ -356,17 +356,7 @@ struct SearchScreen: View {
         let corner: CGFloat = 16
         return Button(action: action) {
             VStack(spacing: 8) {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: size, height: size)
-                    .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: corner, style: .continuous)
-                            .stroke(AppTheme.border, lineWidth: 0.5)
-                    )
-                    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+                PartnerCategoryPhotoView(imageName: imageName, size: size, corner: corner)
                 Text(title)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(AppTheme.text)

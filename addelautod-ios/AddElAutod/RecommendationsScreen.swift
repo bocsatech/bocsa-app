@@ -82,12 +82,11 @@ struct RecommendationsScreen: View {
         }
       } label: {
         HStack(spacing: 12) {
-          Image(PartnerCategoryCatalog.imageName(forCategoryId: group.id))
-            .resizable()
-            .scaledToFill()
-            .frame(width: 44, height: 44)
-            .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+          PartnerCategoryPhotoView(
+            imageName: PartnerCategoryCatalog.imageName(forCategoryId: group.id),
+            size: 44,
+            corner: 10
+          )
           Text(group.label)
             .font(.headline)
             .foregroundStyle(AppTheme.text)

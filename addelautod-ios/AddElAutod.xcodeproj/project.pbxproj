@@ -57,6 +57,7 @@
 		A1PPHO002B /* PostAdPhotos.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1PPHO001B /* PostAdPhotos.swift */; };
 		A1ABASE002B /* AutoswebBaseURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1ABASE001B /* AutoswebBaseURL.swift */; };
 		A1SAVL002B /* SavedListingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1SAVL001B /* SavedListingsStore.swift */; };
+		A1PPHOT02B /* PartnerPhotos in Resources */ = {isa = PBXBuildFile; fileRef = A1PPHOT01B /* PartnerPhotos */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -112,6 +113,7 @@
 		A1PPHO001B /* PostAdPhotos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAdPhotos.swift; sourceTree = "<group>"; };
 		A1ABASE001B /* AutoswebBaseURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoswebBaseURL.swift; sourceTree = "<group>"; };
 		A1SAVL001B /* SavedListingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedListingsStore.swift; sourceTree = "<group>"; };
+		A1PPHOT01B /* PartnerPhotos */ = {isa = PBXFileReference; lastKnownFileType = folder; path = PartnerPhotos; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,6 +204,7 @@
 				A1ABASE001B /* AutoswebBaseURL.swift */,
 				A1SAVL001B /* SavedListingsStore.swift */,
 				A1VCAT001B /* VehicleCatalog.json */,
+				A1PPHOT01B /* PartnerPhotos */,
 				A1INFO001B /* Info.plist */,
 				D5E540509006439B81E2A510 /* Assets.xcassets */,
 			);
@@ -269,6 +272,7 @@
 			files = (
 				9D806392D1924CCFB5E2A93B /* Assets.xcassets in Resources */,
 				A1VCAT002B /* VehicleCatalog.json in Resources */,
+				A1PPHOT02B /* PartnerPhotos in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -376,7 +380,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGNING_REQUIRED = YES;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -414,7 +418,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGNING_REQUIRED = YES;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;

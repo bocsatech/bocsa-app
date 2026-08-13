@@ -1,4 +1,6 @@
 import Foundation
+import SwiftUI
+import UIKit
 
 struct PartnerRecommendation: Identifiable, Hashable {
   let id: String
@@ -36,6 +38,53 @@ enum PartnerCategoryCatalog {
 
   static func imageName(forCategoryId id: String) -> String {
     items.first(where: { $0.id == id })?.imageName ?? "ajanlas-szerelo"
+  }
+}
+
+/// Fotó a kategória kockában: asset catalog, majd PartnerPhotos mappa a bundle-ben.
+struct PartnerCategoryPhotoView: View {
+  let imageName: String
+  var size: CGFloat = 88
+  var corner: CGFloat = 16
+
+  var body: some View {
+    ZStack {
+      Color.white
+      if let ui = Self.uiImage(named: imageName) {
+        Image(uiImage: ui)
+          .resizable()
+          .scaledToFill()
+          .frame(width: size, height: size)
+      }
+    }
+    .frame(width: size, height: size)
+    .clipped()
+    .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: corner, style: .continuous)
+        .stroke(AppTheme.border, lineWidth: 0.5)
+    )
+    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+    .accessibilityHidden(true)
+  }
+
+  static func uiImage(named name: String) -> UIImage? {
+    if let img = UIImage(named: name), img.size.width > 1 {
+      return img
+    }
+    let bundle = Bundle.main
+    let candidates: [URL?] = [
+      bundle.url(forResource: name, withExtension: "png", subdirectory: "PartnerPhotos"),
+      bundle.url(forResource: name, withExtension: "jpg", subdirectory: "PartnerPhotos"),
+      bundle.url(forResource: name, withExtension: "png"),
+    ]
+    for url in candidates {
+      guard let url, let data = try? Data(contentsOf: url), let img = UIImage(data: data) else {
+        continue
+      }
+      return img
+    }
+    return nil
   }
 }
 
