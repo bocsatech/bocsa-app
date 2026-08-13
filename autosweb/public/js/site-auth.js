@@ -340,6 +340,20 @@ export function requireAuthForPage() {
   window.location.replace(loginUrl(next));
 }
 
+function friendlyAuthError(error) {
+  const msg = String(error?.message ?? "");
+  if (
+    !msg ||
+    /failed to fetch|load failed|networkerror|network request failed|offline/i.test(msg)
+  ) {
+    return "A belépés most nem sikerült. Próbáld újra.";
+  }
+  if (/localhost|127\.0\.0\.1|3456|autosweb-indító|autosweb-indito/i.test(msg)) {
+    return "A belépés most nem sikerült. Próbáld újra.";
+  }
+  return msg;
+}
+
 export function initRegisterPage() {
   const form = document.getElementById("register-form");
   const errorEl = document.getElementById("register-error");
@@ -357,7 +371,7 @@ export function initRegisterPage() {
       window.location.href = next;
     } catch (error) {
       errorEl.hidden = false;
-      errorEl.textContent = error.message ?? "Sikertelen regisztráció.";
+      errorEl.textContent = friendlyAuthError(error);
     }
   });
 }
@@ -379,7 +393,7 @@ export function initLoginPage() {
       window.location.href = next;
     } catch (error) {
       errorEl.hidden = false;
-      errorEl.textContent = error.message ?? "Sikertelen belépés.";
+      errorEl.textContent = friendlyAuthError(error);
     }
   });
 }

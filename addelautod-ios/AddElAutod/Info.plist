@@ -10,7 +10,7 @@
 		<true/>
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Az app a Macen futó Autosweb szervert éri el ugyanazon a Wi‑Fi hálózaton.</string>
+	<string>A Bymy a közelben lévő szolgáltatásokat használja.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>

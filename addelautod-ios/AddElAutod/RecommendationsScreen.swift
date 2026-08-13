@@ -223,7 +223,7 @@ struct RecommendationsScreen: View {
       let demo = filterByRadius(PartnerRecommendationsDemo.categories)
       categories = demo
       expandedCategoryId = nil
-      sourceNote = "Autosweb nem elérhető — demo. Körzet: Beállítások → Ajánlások körzete"
+      sourceNote = "A szolgáltatók most nem elérhetők."
     }
   }
 }

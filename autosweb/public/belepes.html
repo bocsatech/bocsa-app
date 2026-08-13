@@ -8,12 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=auth20260725" />
+    <link rel="stylesheet" href="/css/style.css?v=auth20260813nobanner" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260730avatar3" />
   </head>
-  <body class="site-app login-page" data-site-page="belepes" data-auth-init="manual">
-    <div class="local-banner">LOCALHOST — belépés a hirdetésfeladáshoz</div>
-
+    <body class="site-app login-page" data-site-page="belepes" data-auth-init="manual">
     <header class="site-header site-app-header">
       <div class="site-app-header-inner">
         <a class="site-app-logo" href="/">Bymy</a>
@@ -133,7 +131,7 @@
     <main class="login-main">
       <section class="login-card" aria-labelledby="login-title">
         <h1 class="login-title" id="login-title">Belépés</h1>
-        <p class="login-lead">A hirdetésfeladáshoz jelentkezz be a fiókodba.</p>
+        <p class="login-lead">Jelentkezz be a Bymy fiókodba.</p>
         <form id="login-form" class="login-form">
           <label class="login-field">
             <span class="login-label">Email</span>
@@ -146,13 +144,13 @@
           <p id="login-error" class="login-error" role="alert" hidden></p>
           <button type="submit" class="site-header-btn site-header-btn--primary login-submit">Belépés</button>
         </form>
-        <p class="login-hint">Nincs még fiókod? <a href="/regisztracio.html">Regisztráció</a> · Localhost demó</p>
+        <p class="login-hint">Nincs még fiókod? <a href="/regisztracio.html">Regisztráció</a></p>
       </section>
     </main>
 
     <script src="/js/site-avatar-menu.js?v=auth20260730avatar3" type="module"></script>
     <script type="module">
-      import { initLoginPage, initSiteAuth } from "/js/site-auth.js?v=auth20260730avatar3";
+      import { initLoginPage, initSiteAuth } from "/js/site-auth.js?v=auth20260813nobanner";
       initSiteAuth();
       initLoginPage();
     </script>

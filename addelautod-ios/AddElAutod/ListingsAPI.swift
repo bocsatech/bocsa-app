@@ -191,7 +191,7 @@ enum ListingsAPI {
       let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
       if http.statusCode == 401 { throw ListingsError.notLoggedIn }
       if err == "Ismeretlen API." || err?.contains("Ismeretlen") == true {
-        throw ListingsError.server("Régi Autosweb — zárd be, indítsd újra az Autosweb-indito.command-ot (online).")
+        throw ListingsError.server("A mentés most nem sikerült. Próbáld újra.")
       }
       throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
     }
@@ -204,7 +204,7 @@ enum ListingsAPI {
       let foKep = (decoded.listing?.fo_kep ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
       if foKep.isEmpty {
         throw ListingsError.server(
-          "A kép nem mentődött el. Indítsd újra az Autosweb-indito.command-ot (online frissítés), majd add fel újra."
+          "A kép nem mentődött el. Próbáld újra."
         )
       }
     }
@@ -592,7 +592,7 @@ enum ListingsAPI {
       let feladott = all.filter { $0.isActiveInSearch || $0.badge == "Aktív" || $0.badge == "Feladott" }
       if !feladott.isEmpty { return feladott }
       throw ListingsError.server(
-        "Régi Autosweb (nincs Hirdetéseim API). Zárdd be, indítsd újra az Autosweb-indito.command-ot online, majd Frissítés."
+        "A hirdetéseid most nem tölthetők be. Próbáld újra."
       )
     }
 
@@ -614,7 +614,7 @@ enum ListingsAPI {
   private static func remapMineError(_ error: Error) -> Error {
     if isUnsupportedMineError(error) {
       return ListingsError.server(
-        "Régi Autosweb. Indítsd újra az Autosweb-indito.command-ot online (feature ág), majd Frissítés."
+        "A lista most nem tölthető be. Próbáld újra."
       )
     }
     return error
@@ -647,7 +647,7 @@ enum ListingsAPI {
         throw ListingsError.server("Nem támogatott művelet.")
       }
       if err == "Ismeretlen API." {
-        throw ListingsError.server("Régi Autosweb — indítsd újra az Autosweb-indito.command-ot.")
+        throw ListingsError.server("A művelet most nem sikerült. Próbáld újra.")
       }
       throw ListingsError.server(err ?? "HTTP \(http.statusCode)")
     }

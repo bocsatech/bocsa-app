@@ -68,7 +68,7 @@ enum MessagesAPI {
     var errorDescription: String? {
       switch self {
       case .server(let m): return m
-      case .unreachable: return "Autosweb nem elérhető (3456)."
+      case .unreachable: return "A szerver most nem elérhető. Próbáld újra."
       case .notLoggedIn: return "Jelentkezz be az üzenetekhez."
       }
     }
@@ -202,9 +202,7 @@ enum MessagesAPI {
       if http.statusCode >= 400 {
         let err = (try? JSONDecoder().decode(ErrBody.self, from: data))?.error
         if err == "Ismeretlen API." {
-          throw MsgError.server(
-            "Régi Autosweb fut (nincs üzenet API). Indítsd újra az Autosweb-indito.command-ot online, majd Újra."
-          )
+          throw MsgError.server("Az üzenetek most nem elérhetők. Próbáld újra.")
         }
         throw MsgError.server(err ?? "HTTP \(http.statusCode)")
       }

@@ -376,7 +376,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGNING_REQUIRED = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -384,7 +384,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Bymy";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Profilkép és hirdetés fényképek feltöltéséhez szükséges a fotókönyvtár hozzáférés.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Hirdetés fényképek készítéséhez szükséges a kamera hozzáférés.";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Az app a Macen futó Autosweb szervert éri el ugyanazon a Wi‑Fi hálózaton.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "A Bymy a közelben lévő szolgáltatásokat használja.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -414,7 +414,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGNING_REQUIRED = YES;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -422,7 +422,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Bymy";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Profilkép és hirdetés fényképek feltöltéséhez szükséges a fotókönyvtár hozzáférés.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Hirdetés fényképek készítéséhez szükséges a kamera hozzáférés.";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Az app a Macen futó Autosweb szervert éri el ugyanazon a Wi‑Fi hálózaton.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "A Bymy a közelben lévő szolgáltatásokat használja.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
