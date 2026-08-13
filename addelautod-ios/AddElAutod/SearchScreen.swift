@@ -9,6 +9,7 @@ struct SearchScreen: View {
 
     @EnvironmentObject private var store: SearchStore
     @EnvironmentObject private var profile: ProfileStore
+    @EnvironmentObject private var savedListings: SavedListingsStore
     /// Főoldal tab vs. Keresés tab (járműválasztó).
     var searchRoot: SearchRoot = .homeLanding
     /// Keresési körzet / irányítószám — Beállítások
@@ -29,6 +30,7 @@ struct SearchScreen: View {
     @State private var messagesReturn: Mode = .landing
     @State private var truckSearchKind: PostAdCatalog.TruckKind? = nil
     @State private var openSearchTop: SearchTopSection? = .auto
+    @State private var openSaved: ListingOpenRequest?
 
     private enum Mode {
         case landing, vehiclePick, search, truckSearch, settings, messages, results, filterResults, postAd, recommendations
@@ -142,6 +144,11 @@ struct SearchScreen: View {
         }
         /// Főoldal TabView a státuszsáv alá nyúlik; listák / kereső ne menjen az óra mögé.
         .padding(.top, searchRoot == .homeLanding && mode != .landing ? statusBarHeight : 0)
+        .fullScreenCover(item: $openSaved) { req in
+            ListingDetailLoader(request: req, onClose: { openSaved = nil })
+                .environmentObject(profile)
+                .environmentObject(savedListings)
+        }
         .onAppear {
             if searchRoot == .searchMenu, mode == .landing {
                 mode = .vehiclePick
@@ -269,6 +276,8 @@ struct SearchScreen: View {
                     }
                     .padding(.horizontal, 16)
                 }
+            } else if section == .elmentett {
+                homeSavedRail
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
@@ -284,20 +293,87 @@ struct SearchScreen: View {
         }
     }
 
-    /// Még nincs ikon: üres kocka, alatta a kategória neve.
-    private func homeEmptyTile(title: String, action: @escaping () -> Void) -> some View {
+    private var homeSavedRail: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 14) {
+                if savedListings.items.isEmpty {
+                    ForEach(SavedListingKind.allCases, id: \.self) { kind in
+                        homeEmptyTile(title: kind.label, systemImage: kind.placeholderSystemImage)
+                    }
+                } else {
+                    ForEach(savedListings.items) { item in
+                        homeSavedListingTile(item)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func homeSavedListingTile(_ item: SavedListingItem) -> some View {
         let size: CGFloat = 88
         let corner: CGFloat = 16
-        return Button(action: action) {
+        return Button {
+            openSaved = savedListings.openRequest(for: item)
+        } label: {
             VStack(spacing: 8) {
-                RoundedRectangle(cornerRadius: corner, style: .continuous)
-                    .fill(Color(red: 0.965, green: 0.969, blue: 0.976))
-                    .frame(width: size, height: size)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: corner, style: .continuous)
-                            .stroke(AppTheme.border, lineWidth: 0.5)
-                    )
-                    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+                ZStack {
+                    RoundedRectangle(cornerRadius: corner, style: .continuous)
+                        .fill(Color(red: 0.965, green: 0.969, blue: 0.976))
+                    if let url = item.imageURL {
+                        ListingRemoteImage(url: url)
+                            .frame(width: size, height: size)
+                            .clipped()
+                    } else {
+                        Image(systemName: item.kind.placeholderSystemImage)
+                            .font(.system(size: 28, weight: .medium))
+                            .foregroundStyle(AppTheme.textTertiary)
+                    }
+                }
+                .frame(width: size, height: size)
+                .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: corner, style: .continuous)
+                        .stroke(AppTheme.border, lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+                Text(item.title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(AppTheme.text)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .frame(width: size)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(item.kind.label): \(item.title)")
+    }
+
+    /// Még nincs ikon: üres kocka, alatta a kategória neve.
+    private func homeEmptyTile(title: String, systemImage: String? = nil, action: (() -> Void)? = nil) -> some View {
+        let size: CGFloat = 88
+        let corner: CGFloat = 16
+        return Button {
+            action?()
+        } label: {
+            VStack(spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: corner, style: .continuous)
+                        .fill(Color(red: 0.965, green: 0.969, blue: 0.976))
+                    if let systemImage {
+                        Image(systemName: systemImage)
+                            .font(.system(size: 28, weight: .medium))
+                            .foregroundStyle(AppTheme.textTertiary)
+                    }
+                }
+                .frame(width: size, height: size)
+                .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: corner, style: .continuous)
+                        .stroke(AppTheme.border, lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
                 Text(title)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(AppTheme.text)
@@ -308,6 +384,7 @@ struct SearchScreen: View {
             }
         }
         .buttonStyle(.plain)
+        .disabled(action == nil)
         .accessibilityLabel(title)
     }
 

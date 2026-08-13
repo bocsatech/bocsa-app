@@ -5,12 +5,14 @@ import MapKit
 /// Willhaben-szerű hirdetésnézet — magyar feliratok, fix Üzenet alul.
 struct ListingDetailScreen: View {
   @EnvironmentObject private var profile: ProfileStore
+  @EnvironmentObject private var savedListings: SavedListingsStore
   let detail: ListingDetail
   var onClose: () -> Void
+  var isDemo: Bool = false
+  var kind: SavedListingKind = .auto
 
   @State private var showMessages = false
   @State private var photoIndex = 0
-  @State private var favorited = false
   @State private var backDragX: CGFloat = 0
 
   /// Status bar / Dynamic Island magasság (ignoresSafeArea után is stabil).
@@ -123,8 +125,8 @@ struct ListingDetailScreen: View {
           circleBtn(system: "square.and.arrow.up") {
             share()
           }
-          circleBtn(system: favorited ? "star.fill" : "star") {
-            favorited.toggle()
+          circleBtn(system: savedListings.contains(listingId: detail.id) ? "star.fill" : "star") {
+            savedListings.toggle(detail: detail, kind: kind, isDemo: isDemo)
           }
         }
       }
@@ -516,6 +518,7 @@ enum ListingOpenRequest: Identifiable, Equatable {
 
 struct ListingDetailLoader: View {
   @EnvironmentObject private var profile: ProfileStore
+  @EnvironmentObject private var savedListings: SavedListingsStore
   let request: ListingOpenRequest
   var onClose: () -> Void
 
@@ -526,7 +529,14 @@ struct ListingDetailLoader: View {
   var body: some View {
     Group {
       if let detail {
-        ListingDetailScreen(detail: detail, onClose: onClose)
+        ListingDetailScreen(
+          detail: detail,
+          onClose: onClose,
+          isDemo: {
+            if case .demo = request { return true }
+            return false
+          }()
+        )
       } else if loading {
         ProgressView("Hirdetés…")
           .frame(maxWidth: .infinity, maxHeight: .infinity)

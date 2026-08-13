@@ -4,6 +4,7 @@ import SwiftUI
 struct CategoryResultsScreen: View {
     @EnvironmentObject private var store: SearchStore
     @EnvironmentObject private var profile: ProfileStore
+    @EnvironmentObject private var savedListings: SavedListingsStore
 
     let query: ListingQuery
     var onBack: () -> Void
@@ -72,6 +73,7 @@ struct CategoryResultsScreen: View {
         .fullScreenCover(item: $openRequest) { req in
             ListingDetailLoader(request: req, onClose: { openRequest = nil })
                 .environmentObject(profile)
+                .environmentObject(savedListings)
         }
     }
 }

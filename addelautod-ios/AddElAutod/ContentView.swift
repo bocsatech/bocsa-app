@@ -10,6 +10,7 @@ struct ContentView: View {
     @EnvironmentObject private var profile: ProfileStore
     @EnvironmentObject private var pageLayout: PageLayoutStore
     @EnvironmentObject private var searchStore: SearchStore
+    @EnvironmentObject private var savedListings: SavedListingsStore
     @State private var tab: BottomTab = .fooldal
     @State private var showSettings = false
     @State private var showAccountMenu = false
@@ -39,6 +40,7 @@ struct ContentView: View {
             .environmentObject(profile)
             .environmentObject(searchStore)
             .environmentObject(pageLayout)
+            .environmentObject(savedListings)
         }
     }
 
@@ -113,4 +115,5 @@ struct ContentView: View {
         .environmentObject(SearchStore())
         .environmentObject(ProfileStore())
         .environmentObject(PageLayoutStore())
+        .environmentObject(SavedListingsStore())
 }

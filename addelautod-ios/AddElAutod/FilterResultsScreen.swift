@@ -4,6 +4,7 @@ import SwiftUI
 struct FilterResultsScreen: View {
   @EnvironmentObject private var store: SearchStore
   @EnvironmentObject private var profile: ProfileStore
+  @EnvironmentObject private var savedListings: SavedListingsStore
   var onBack: () -> Void
 
   @State private var openRequest: ListingOpenRequest?
@@ -67,6 +68,7 @@ struct FilterResultsScreen: View {
     .fullScreenCover(item: $openRequest) { req in
       ListingDetailLoader(request: req, onClose: { openRequest = nil })
         .environmentObject(profile)
+        .environmentObject(savedListings)
     }
   }
 

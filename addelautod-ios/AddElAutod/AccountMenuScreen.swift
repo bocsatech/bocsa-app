@@ -5,6 +5,7 @@ struct AccountMenuScreen: View {
     @EnvironmentObject private var profile: ProfileStore
     @EnvironmentObject private var searchStore: SearchStore
     @EnvironmentObject private var pageLayout: PageLayoutStore
+    @EnvironmentObject private var savedListings: SavedListingsStore
 
     var onClose: () -> Void
     /// Mentett keresés → főoldal kereső
@@ -196,6 +197,7 @@ struct AccountMenuScreen: View {
 /// Fiók → Hirdetéseim — a bejelentkezett user feladott hirdetései.
 struct MyListingsScreen: View {
     @EnvironmentObject private var profile: ProfileStore
+    @EnvironmentObject private var savedListings: SavedListingsStore
     var onBack: () -> Void
 
     @State private var listings: [ListingsAPI.HomeListing] = []
@@ -330,6 +332,7 @@ struct MyListingsScreen: View {
         .fullScreenCover(item: $openRequest) { req in
             ListingDetailLoader(request: req, onClose: { openRequest = nil })
                 .environmentObject(profile)
+                .environmentObject(savedListings)
         }
         .fullScreenCover(item: $editTarget) { target in
             Group {

@@ -6,6 +6,7 @@ struct AddElAutodApp: App {
     @StateObject private var searchStore = SearchStore()
     @StateObject private var profileStore = ProfileStore()
     @StateObject private var pageLayoutStore = PageLayoutStore()
+    @StateObject private var savedListingsStore = SavedListingsStore()
 
     init() {
         AutoswebBaseURL.applyStored()
@@ -17,6 +18,7 @@ struct AddElAutodApp: App {
                 .environmentObject(searchStore)
                 .environmentObject(profileStore)
                 .environmentObject(pageLayoutStore)
+                .environmentObject(savedListingsStore)
                 .onReceive(NotificationCenter.default.publisher(for: .bymyRemoteProfileApplied)) { note in
                     pageLayoutStore.applyFromRemote(note.object as? AuthAPI.PageLayoutDTO)
                 }

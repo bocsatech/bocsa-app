@@ -66,6 +66,7 @@ private struct FeedCard: View {
 /// Ugyanazok a hirdetések, mint a webes főoldalon (`GET /api/listings`).
 struct FeaturedScreen: View {
     @EnvironmentObject private var profile: ProfileStore
+    @EnvironmentObject private var savedListings: SavedListingsStore
     @State private var openRequest: ListingOpenRequest?
     @State private var listings: [ListingsAPI.HomeListing] = []
     @State private var loading = true
@@ -133,6 +134,7 @@ struct FeaturedScreen: View {
         .fullScreenCover(item: $openRequest) { req in
             ListingDetailLoader(request: req, onClose: { openRequest = nil })
                 .environmentObject(profile)
+                .environmentObject(savedListings)
         }
     }
 
