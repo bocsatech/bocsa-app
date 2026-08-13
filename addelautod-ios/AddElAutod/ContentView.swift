@@ -50,40 +50,46 @@ struct ContentView: View {
     }
 
     private var mainTabs: some View {
-        VStack(spacing: 0) {
-            SiteAuthBar(
-                selectedPage: nil,
-                onLogin: {},
-                onRegister: {},
-                onAccount: { showAccountMenu = true }
-            )
-
-            TabView(selection: $tab) {
-                SearchScreen(
-                    searchRoot: .homeLanding,
-                    onOpenSettings: { showSettings = true }
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                SiteAuthBar(
+                    selectedPage: nil,
+                    onLogin: {},
+                    onRegister: {},
+                    onAccount: { showAccountMenu = true }
                 )
-                .tag(BottomTab.fooldal)
 
-                SearchScreen(
-                    searchRoot: .searchMenu,
-                    onOpenSettings: { showSettings = true }
-                )
-                .tag(BottomTab.kereses)
+                TabView(selection: $tab) {
+                    SearchScreen(
+                        searchRoot: .homeLanding,
+                        onOpenSettings: { showSettings = true }
+                    )
+                    .contentMargins(.bottom, BottomTab.islandClearance, for: .scrollContent)
+                    .tag(BottomTab.fooldal)
 
-                PostAdScreen()
-                    .tag(BottomTab.hirdetesFeladas)
+                    SearchScreen(
+                        searchRoot: .searchMenu,
+                        onOpenSettings: { showSettings = true }
+                    )
+                    .contentMargins(.bottom, BottomTab.islandClearance, for: .scrollContent)
+                    .tag(BottomTab.kereses)
 
-                MessagesScreen()
-                    .tag(BottomTab.uzenetek)
+                    PostAdScreen()
+                        .contentMargins(.bottom, BottomTab.islandClearance, for: .scrollContent)
+                        .tag(BottomTab.hirdetesFeladas)
 
-                FeedScreen()
-                    .tag(BottomTab.hirfolyam)
+                    MessagesScreen()
+                        .contentMargins(.bottom, BottomTab.islandClearance, for: .scrollContent)
+                        .tag(BottomTab.uzenetek)
+
+                    FeedScreen()
+                        .contentMargins(.bottom, BottomTab.islandClearance, for: .scrollContent)
+                        .tag(BottomTab.hirfolyam)
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-        }
-        .background(AppTheme.bg.ignoresSafeArea())
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+            .background(AppTheme.bg.ignoresSafeArea())
+
             PageIconBar(selection: $tab)
         }
         .task(id: profile.token) {

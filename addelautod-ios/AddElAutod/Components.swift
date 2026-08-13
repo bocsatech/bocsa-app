@@ -24,7 +24,8 @@ enum BottomTab: Int, CaseIterable, Identifiable, Hashable {
     case uzenetek
     case hirfolyam
 
-    var id: Int { rawValue }
+    /// Hely a lebegő sziget alatt, hogy a lista ne takaródjon.
+    static let islandClearance: CGFloat = 96
 
     var title: String {
         switch self {
@@ -55,7 +56,7 @@ enum BottomTab: Int, CaseIterable, Identifiable, Hashable {
     }
 }
 
-/// Lebegő, áttetsző alsó ikonsziget.
+/// Lebegő, áttetsző alsó ikonsziget — a tartalom mögötte látszik.
 struct PageIconBar: View {
     @Binding var selection: BottomTab
 
@@ -71,35 +72,42 @@ struct PageIconBar: View {
                     VStack(spacing: 2) {
                         ZStack {
                             Circle()
-                                .fill(selected ? AppTheme.accent.opacity(0.22) : Color.clear)
-                                .frame(width: 40, height: 40)
+                                .fill(selected ? AppTheme.accent.opacity(0.28) : Color.clear)
+                                .frame(width: 42, height: 42)
                             tabIcon(tab, selected: selected)
-                                .frame(width: 24, height: 24)
+                                .frame(width: 22, height: 22)
                         }
                         Text(tab.title)
                             .font(.system(size: 8, weight: selected ? .semibold : .regular))
-                            .foregroundStyle(selected ? AppTheme.accent : AppTheme.text)
+                            .foregroundStyle(selected ? AppTheme.accent : AppTheme.text.opacity(0.9))
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(tab.title)
                 .accessibilityAddTraits(selected ? [.isSelected] : [])
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(.ultraThinMaterial, in: Capsule())
-        .overlay(
-            Capsule()
-                .strokeBorder(Color.white.opacity(0.65), lineWidth: 0.8)
-        )
-        .shadow(color: Color.black.opacity(0.14), radius: 18, y: 6)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
+        .padding(.horizontal, 8)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+        .background {
+            Capsule(style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    Capsule(style: .continuous)
+                        .fill(Color.white.opacity(0.38))
+                }
+                .overlay {
+                    Capsule(style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.75), lineWidth: 1)
+                }
+                .shadow(color: Color.black.opacity(0.16), radius: 20, y: 8)
+        }
+        .padding(.horizontal, 18)
+        .padding(.bottom, 10)
         .animation(.easeInOut(duration: 0.2), value: selection)
     }
 
@@ -109,10 +117,10 @@ struct PageIconBar: View {
             Image(asset)
                 .resizable()
                 .scaledToFit()
-                .opacity(selected ? 1 : 0.78)
+                .opacity(selected ? 1 : 0.8)
         } else if let systemImage = tab.systemImage {
             Image(systemName: systemImage)
-                .font(.system(size: 18, weight: selected ? .semibold : .regular))
+                .font(.system(size: 17, weight: selected ? .semibold : .regular))
                 .foregroundStyle(selected ? AppTheme.accent : AppTheme.text)
         }
     }
