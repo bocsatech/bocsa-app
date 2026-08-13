@@ -81,11 +81,11 @@ struct ContentView: View {
                     .tag(BottomTab.hirfolyam)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-
-            PageIconBar(selection: $tab)
-                .padding(.bottom, 4)
         }
         .background(AppTheme.bg.ignoresSafeArea())
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            PageIconBar(selection: $tab)
+        }
         .task(id: profile.token) {
             guard profile.isLoggedIn, let token = profile.token else {
                 PushNotificationService.shared.stopPolling()

@@ -55,7 +55,7 @@ enum BottomTab: Int, CaseIterable, Identifiable, Hashable {
     }
 }
 
-/// Alsó lapikonok: rögzített 5 pont; az aktuális kék.
+/// Lebegő, áttetsző alsó ikonsziget.
 struct PageIconBar: View {
     @Binding var selection: BottomTab
 
@@ -68,47 +68,52 @@ struct PageIconBar: View {
                         selection = tab
                     }
                 } label: {
-                    VStack(spacing: 3) {
-                        tabIcon(tab)
-                            .frame(width: 28, height: 28)
-                            .opacity(selected ? 1 : 0.7)
+                    VStack(spacing: 2) {
+                        ZStack {
+                            Circle()
+                                .fill(selected ? AppTheme.accent.opacity(0.22) : Color.clear)
+                                .frame(width: 40, height: 40)
+                            tabIcon(tab, selected: selected)
+                                .frame(width: 24, height: 24)
+                        }
                         Text(tab.title)
-                            .font(.system(size: 9, weight: selected ? .semibold : .regular))
-                            .foregroundStyle(selected ? AppTheme.accent : AppTheme.textTertiary)
+                            .font(.system(size: 8, weight: selected ? .semibold : .regular))
+                            .foregroundStyle(selected ? AppTheme.accent : AppTheme.text)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.55)
-                        Capsule()
-                            .fill(selected ? AppTheme.accent : Color.clear)
-                            .frame(width: 14, height: 3)
+                            .minimumScaleFactor(0.5)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(selected ? AppTheme.accent.opacity(0.08) : Color.clear)
-                    )
+                    .padding(.vertical, 4)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(tab.title)
                 .accessibilityAddTraits(selected ? [.isSelected] : [])
             }
         }
-        .padding(.horizontal, 4)
-        .padding(.top, 2)
-        .padding(.bottom, 4)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay(
+            Capsule()
+                .strokeBorder(Color.white.opacity(0.65), lineWidth: 0.8)
+        )
+        .shadow(color: Color.black.opacity(0.14), radius: 18, y: 6)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
         .animation(.easeInOut(duration: 0.2), value: selection)
     }
 
     @ViewBuilder
-    private func tabIcon(_ tab: BottomTab) -> some View {
+    private func tabIcon(_ tab: BottomTab, selected: Bool) -> some View {
         if let asset = tab.assetName {
             Image(asset)
                 .resizable()
                 .scaledToFit()
+                .opacity(selected ? 1 : 0.78)
         } else if let systemImage = tab.systemImage {
             Image(systemName: systemImage)
-                .font(.system(size: 20, weight: .regular))
-                .foregroundStyle(AppTheme.text)
+                .font(.system(size: 18, weight: selected ? .semibold : .regular))
+                .foregroundStyle(selected ? AppTheme.accent : AppTheme.text)
         }
     }
 }
