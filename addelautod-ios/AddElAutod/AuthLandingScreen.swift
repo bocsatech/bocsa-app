@@ -1,10 +1,9 @@
 import SwiftUI
 
-/// Vendég belépő — krém háttér, Bejelentkezés / Regisztráció + módszer gombok.
+/// Vendég belépő — krém háttér, belépési módszerek. A fiók automatikusan létrejön, ha még nincs.
 struct AuthLandingScreen: View {
     @EnvironmentObject private var profile: ProfileStore
 
-    @State private var mode: AuthPage = .login
     @State private var path: AuthPath?
     @State private var toast: String?
 
@@ -19,92 +18,81 @@ struct AuthLandingScreen: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                GeometryReader { geo in
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: 0) {
-                            brandLogo
-                                .padding(.top, 8)
-                                .padding(.bottom, 12)
+            GeometryReader { geo in
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        brandLogo
+                            .padding(.top, 8)
+                            .padding(.bottom, 12)
 
-                            // A cím + gombok lejjebb kerülnek; a kapcsoló a VStack alján marad.
-                            Spacer(minLength: max(32, geo.size.height * 0.12))
+                        Spacer(minLength: max(32, geo.size.height * 0.12))
 
-                            Text(mode == .login ? "Bejelentkezés" : "Regisztráció")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundStyle(Color(red: 0.35, green: 0.22, blue: 0.14))
-                                .frame(maxWidth: .infinity, alignment: .center)
+                        Text("Belépés")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundStyle(Color(red: 0.35, green: 0.22, blue: 0.14))
+                            .frame(maxWidth: .infinity, alignment: .center)
 
-                            Text(mode == .login
-                                 ? "Válaszd ki, hogyan lépsz be."
-                                 : "Válaszd ki, hogyan hozod létre a fiókot.")
-                                .font(.subheadline)
-                                .foregroundStyle(Color(red: 0.45, green: 0.40, blue: 0.36))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 24)
-                                .padding(.top, 8)
+                        Text("Válaszd ki, hogyan lépsz be. Ha még nincs fiókod, létrehozzuk.")
+                            .font(.subheadline)
+                            .foregroundStyle(Color(red: 0.45, green: 0.40, blue: 0.36))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 8)
 
-                            VStack(spacing: 12) {
-                                methodButton(
-                                    title: mode == .login ? "Tovább Apple-lel" : "Regisztráció Apple-lel",
-                                    systemImage: "apple.logo",
-                                    tint: .white,
-                                    filled: true
-                                ) {
-                                    toast = "Az Apple belépéshez fizetős Apple Developer fiók és „Sign in with Apple” kell. Addig használd az emailt vagy a telefont."
-                                }
-                                methodButton(
-                                    title: mode == .login ? "Tovább Google-lal" : "Regisztráció Google-lal",
-                                    systemImage: nil,
-                                    googleColors: true,
-                                    filled: false
-                                ) {
-                                    toast = "A Google belépés hamarosan elérhető. Addig használd az emailt vagy a telefont."
-                                }
-                                methodButton(
-                                    title: mode == .login ? "Tovább Facebookkal" : "Regisztráció Facebookkal",
-                                    systemImage: "f.circle.fill",
-                                    tint: Color(red: 0.09, green: 0.47, blue: 0.95),
-                                    filled: false
-                                ) {
-                                    toast = "A Facebook belépés hamarosan elérhető. Addig használd az emailt vagy a telefont."
-                                }
-                                methodButton(
-                                    title: mode == .login ? "Tovább e-maillel" : "Regisztráció e-maillel",
-                                    systemImage: "envelope",
-                                    tint: .primary,
-                                    filled: false
-                                ) {
-                                    path = .email
-                                }
-                                methodButton(
-                                    title: mode == .login ? "Tovább telefonszámmal" : "Regisztráció telefonszámmal",
-                                    systemImage: "iphone",
-                                    tint: .primary,
-                                    filled: false
-                                ) {
-                                    path = .phone
-                                }
+                        VStack(spacing: 12) {
+                            methodButton(
+                                title: "Tovább Apple-lel",
+                                systemImage: "apple.logo",
+                                tint: .white,
+                                filled: true
+                            ) {
+                                toast = "Az Apple belépéshez fizetős Apple Developer fiók és „Sign in with Apple” kell. Addig használd az emailt vagy a telefont."
                             }
-                            .padding(.horizontal, 28)
-                            .padding(.top, 16)
-                            .padding(.bottom, 20)
+                            methodButton(
+                                title: "Tovább Google-lal",
+                                systemImage: nil,
+                                googleColors: true,
+                                filled: false
+                            ) {
+                                toast = "A Google belépés hamarosan elérhető. Addig használd az emailt vagy a telefont."
+                            }
+                            methodButton(
+                                title: "Tovább Facebookkal",
+                                systemImage: "f.circle.fill",
+                                tint: Color(red: 0.09, green: 0.47, blue: 0.95),
+                                filled: false
+                            ) {
+                                toast = "A Facebook belépés hamarosan elérhető. Addig használd az emailt vagy a telefont."
+                            }
+                            methodButton(
+                                title: "Tovább e-maillel",
+                                systemImage: "envelope",
+                                tint: .primary,
+                                filled: false
+                            ) {
+                                path = .email
+                            }
+                            methodButton(
+                                title: "Tovább telefonszámmal",
+                                systemImage: "iphone",
+                                tint: .primary,
+                                filled: false
+                            ) {
+                                path = .phone
+                            }
                         }
-                        .frame(minHeight: geo.size.height, alignment: .top)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 16)
+                        .padding(.bottom, 28)
                     }
+                    .frame(minHeight: geo.size.height, alignment: .top)
                 }
-
-                modePicker
-                    .padding(.top, 6)
-                    .padding(.bottom, 6)
             }
             .background(cream.ignoresSafeArea())
             .navigationDestination(item: $path) { route in
                 AuthCredentialScreen(
-                    mode: mode,
                     method: route == .email ? .email : .phone,
-                    onBack: { path = nil },
-                    onSwitchMode: { mode = $0 }
+                    onBack: { path = nil }
                 )
                 .environmentObject(profile)
             }
@@ -130,41 +118,6 @@ struct AuthLandingScreen: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 28)
             .accessibilityLabel("Bymy")
-    }
-
-    private var modePicker: some View {
-        HStack(spacing: 0) {
-            modeChip("Bejelentkezés", .login)
-            modeChip("Regisztráció", .register)
-        }
-        .padding(4)
-        .background(Color.white.opacity(0.7))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(AppTheme.border.opacity(0.7), lineWidth: 1)
-        )
-        .padding(.horizontal, 28)
-    }
-
-    private func modeChip(_ title: String, _ value: AuthPage) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.18)) { mode = value }
-            profile.authError = nil
-        } label: {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(mode == value ? Color.white : Color(red: 0.2, green: 0.15, blue: 0.12))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 11)
-                .background(
-                    mode == value
-                        ? Color(red: 0.067, green: 0.067, blue: 0.067)
-                        : Color.clear
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-        }
-        .buttonStyle(.plain)
     }
 
     private func methodButton(
@@ -227,16 +180,12 @@ struct AuthCredentialScreen: View {
         case email, phone
     }
 
-    let mode: AuthPage
     let method: Method
     var onBack: () -> Void
-    var onSwitchMode: (AuthPage) -> Void
 
-    @State private var activeMode: AuthPage = .login
     @State private var email = ""
     @State private var phone = ""
     @State private var password = ""
-    @State private var passwordConfirm = ""
     @State private var busy = false
 
     private let cream = Color(red: 0.980, green: 0.965, blue: 0.945)
@@ -292,21 +241,7 @@ struct AuthCredentialScreen: View {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .stroke(AppTheme.border, lineWidth: 1)
                     )
-                    .textContentType(activeMode == .register ? .newPassword : .password)
-
-                if activeMode == .register {
-                    fieldLabel("Jelszó megerősítése")
-                    SecureField("", text: $passwordConfirm)
-                        .textFieldStyle(.plain)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 11)
-                        .background(Color.white)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(AppTheme.border, lineWidth: 1)
-                        )
-                        .textContentType(.newPassword)
-                }
+                    .textContentType(.password)
 
                 if let err = profile.authError, !err.isEmpty {
                     Text(err)
@@ -321,7 +256,7 @@ struct AuthCredentialScreen: View {
                         if busy {
                             ProgressView().tint(.white)
                         } else {
-                            Text(activeMode == .login ? "Belépés" : "Regisztráció")
+                            Text("Tovább")
                                 .font(.body.weight(.semibold))
                         }
                     }
@@ -333,21 +268,6 @@ struct AuthCredentialScreen: View {
                 }
                 .disabled(busy || !canSubmit)
                 .padding(.top, 4)
-
-                HStack(spacing: 4) {
-                    Text(activeMode == .login ? "Nincs még fiókod?" : "Már van fiókod?")
-                        .foregroundStyle(AppTheme.textSecondary)
-                    Button(activeMode == .login ? "Regisztráció" : "Belépés") {
-                        profile.authError = nil
-                        let next: AuthPage = activeMode == .login ? .register : .login
-                        activeMode = next
-                        onSwitchMode(next)
-                    }
-                    .fontWeight(.medium)
-                    .foregroundStyle(AppTheme.accent)
-                }
-                .font(.footnote)
-                .padding(.top, 8)
             }
             .padding(20)
             .background(Color.white)
@@ -367,29 +287,22 @@ struct AuthCredentialScreen: View {
             }
         }
         .onAppear {
-            activeMode = mode
             profile.authError = nil
         }
     }
 
     private var title: String {
-        switch (activeMode, method) {
-        case (.login, .email): return "Belépés e-maillel"
-        case (.register, .email): return "Regisztráció e-maillel"
-        case (.login, .phone): return "Belépés telefonszámmal"
-        case (.register, .phone): return "Regisztráció telefonszámmal"
-        }
+        method == .email ? "Belépés e-maillel" : "Belépés telefonszámmal"
     }
 
     private var subtitle: String {
         method == .email
-            ? "A Bymy fiókod email címe és jelszava."
-            : "A telefonszám lesz a fiókod azonosítója."
+            ? "Add meg az email címed és a jelszavad. Ha még nincs fiókod, létrehozzuk."
+            : "A telefonszám lesz a fiókod azonosítója. Ha még nincs fiókod, létrehozzuk."
     }
 
     private var canSubmit: Bool {
         if password.isEmpty { return false }
-        if activeMode == .register, passwordConfirm.isEmpty { return false }
         if method == .email {
             return !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
@@ -421,24 +334,14 @@ struct AuthCredentialScreen: View {
             accountEmail = phoneAccountEmail(phoneValue)
         }
 
-        let ok: Bool
-        if activeMode == .login {
-            ok = await profile.login(email: accountEmail, password: password)
-        } else {
-            ok = await profile.register(
-                email: accountEmail,
-                password: password,
-                passwordConfirm: passwordConfirm
-            )
-            if ok, method == .phone, !phoneValue.isEmpty {
+        let result = await profile.loginOrRegister(email: accountEmail, password: password)
+        if result.ok {
+            if result.created, method == .phone, !phoneValue.isEmpty {
                 profile.profile.phone = phoneValue
                 profile.saveLocal()
                 _ = await profile.saveProfileToServer()
             }
-        }
-        if ok {
             password = ""
-            passwordConfirm = ""
         }
     }
 }

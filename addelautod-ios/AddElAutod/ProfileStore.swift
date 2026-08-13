@@ -304,13 +304,7 @@ final class ProfileStore: ObservableObject {
         authError = nil
         do {
             let result = try await AuthAPI.login(email: email, password: password)
-            token = result.token
-            // Először töltsük a helyi képet az új email/userId kulcsokkal
-            profile.email = result.user.email
-            userId = result.user.id
-            loadAvatarFromDisk()
-            applyRemote(result.user, preferLocalAvatar: true)
-            saveLocal()
+            applyAuthSuccess(result)
             return true
         } catch {
             authError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -326,14 +320,54 @@ final class ProfileStore: ObservableObject {
                 password: password,
                 passwordConfirm: passwordConfirm
             )
-            token = result.token
-            applyRemote(result.user, preferLocalAvatar: true)
-            saveLocal()
+            applyAuthSuccess(result)
             return true
         } catch {
             authError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             return false
         }
+    }
+
+    /// Belép, vagy ha nincs ilyen fiók, létrehozza. Hibás jelszónál nem nyit új fiókot.
+    func loginOrRegister(email: String, password: String) async -> (ok: Bool, created: Bool) {
+        authError = nil
+        do {
+            let result = try await AuthAPI.login(email: email, password: password)
+            applyAuthSuccess(result)
+            return (true, false)
+        } catch {
+            let auth = error as? AuthAPI.AuthError
+            guard auth?.isWrongEmailOrPassword == true else {
+                authError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                return (false, false)
+            }
+        }
+        do {
+            let result = try await AuthAPI.register(
+                email: email,
+                password: password,
+                passwordConfirm: password
+            )
+            applyAuthSuccess(result)
+            return (true, true)
+        } catch {
+            let auth = error as? AuthAPI.AuthError
+            if auth?.isEmailAlreadyRegistered == true {
+                authError = "Hibás jelszó."
+            } else {
+                authError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            }
+            return (false, false)
+        }
+    }
+
+    private func applyAuthSuccess(_ result: (token: String, user: AuthAPI.RemoteUser)) {
+        token = result.token
+        profile.email = result.user.email
+        userId = result.user.id
+        loadAvatarFromDisk()
+        applyRemote(result.user, preferLocalAvatar: true)
+        saveLocal()
     }
 
     func logout() async {

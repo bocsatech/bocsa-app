@@ -61,6 +61,26 @@ enum AuthAPI {
       case .decoding: return "Érvénytelen válasz a szervertől."
       }
     }
+
+    /// Login 401 — a szerver nem árulja el, hogy a fiók létezik-e.
+    var isWrongEmailOrPassword: Bool {
+      switch self {
+      case .server(let msg), .unauthorized(let msg):
+        return msg.localizedCaseInsensitiveContains("Hibás email")
+          || msg.localizedCaseInsensitiveContains("Hibás jelszó")
+      default:
+        return false
+      }
+    }
+
+    var isEmailAlreadyRegistered: Bool {
+      switch self {
+      case .server(let msg):
+        return msg.localizedCaseInsensitiveContains("már regisztrálva")
+      default:
+        return false
+      }
+    }
   }
 
   static func register(email: String, password: String, passwordConfirm: String) async throws -> (token: String, user: RemoteUser) {
