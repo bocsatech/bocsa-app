@@ -84,7 +84,7 @@ test("import.html: videó oldalsávok", () => {
   assert.ok(html.includes("import-top-alert"));
   assert.match(html, /class="[^"]*site-app[^"]*"/);
   assert.match(html, /site-app\.css/);
-  assert.match(html, /Bymy/);
+  assert.match(html, /Add el autod\.hu/);
   assert.match(html, /site-app-nav/);
   assert.match(html, /site-app-header/);
   assert.doesNotMatch(html, /theme-automax/);
@@ -113,6 +113,6 @@ test("hirdetesfeladas.html: egységes fejléc és wizard", () => {
   const html = readFileSync(join(PUBLIC, "hirdetesfeladas.html"), "utf8");
   assert.match(html, /class="[^"]*site-app[^"]*"/);
   assert.match(html, /site-app-wizard-steps/);
-  assert.match(html, /Bymy/);
+  assert.match(html, /Add el autod\.hu/);
   assert.doesNotMatch(html, /theme-automax/);
 });

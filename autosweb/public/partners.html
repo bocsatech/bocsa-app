@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="autosweb-version" content="partners20260725" />
-    <title>Partnerek — Bymy</title>
+    <title>Partnerek — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,9 +13,11 @@
     <link rel="stylesheet" href="/css/partners.css?v=partners20260725" />
   </head>
   <body class="site-app partners-page" data-site-page="partners">
-<header class="site-header site-app-header">
+    <div class="local-banner">LOCALHOST — fizetős partner adatbázis kezelése</div>
+
+    <header class="site-header site-app-header">
       <div class="site-app-header-inner">
-        <a class="site-app-logo" href="/">Bymy</a>
+        <a class="site-app-logo" href="/">Add el autod.hu</a>
         <nav class="import-nav site-app-nav" aria-label="Oldalak">
           <a class="import-nav-link" href="/">Főoldal</a>
           <a class="import-nav-link" href="/import.html">Import</a>
@@ -117,7 +119,7 @@
     </main>
 
     <script type="module">
-      import { PARTNER_CATEGORIES } from "/js/partner-categories-data.js?v=partners20260811atv";
+      import { PARTNER_CATEGORIES } from "/js/partner-categories-data.js?v=partners20260725";
       const grid = document.getElementById("partner-services-grid");
       for (const cat of PARTNER_CATEGORIES) {
         const label = document.createElement("label");

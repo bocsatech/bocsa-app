@@ -39,7 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-node_modules/
-addelautod-mobile/.claude/
-addelautod-mobile/AGENTS.md
-addelautod-mobile/CLAUDE.md

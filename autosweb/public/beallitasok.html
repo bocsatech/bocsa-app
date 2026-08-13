@@ -3,18 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="autosweb-version" content="meinmobile20260730" />
-    <title>Fiókom — Bymy</title>
+    <meta name="autosweb-version" content="auth20260805localdb9" />
+    <title>Fiókom — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=auth20260725" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730mein1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=auth20260805localdb9" />
   </head>
   <body class="site-app settings-page mm-page" data-site-page="beallitasok" data-auth-init="manual">
-<header class="site-header site-app-header">
+    <div class="local-banner">LOCALHOST — Fiókom · user DB: ~/.autosweb/ · v=localdb9</div>
+
+    <header class="site-header site-app-header">
       <div class="site-app-header-inner">
-        <a class="site-app-logo" href="/">Bymy</a>
+        <a class="site-app-logo" href="/">Add el autod.hu</a>
         <nav class="import-nav site-app-nav" aria-label="Oldalak">
           <a class="import-nav-link" href="/">Főoldal</a>
           <a class="import-nav-link" href="/import.html">Import</a>
@@ -239,6 +241,8 @@
 
           <div class="settings-card">
             <h3 class="settings-card-title">Személyes adatok</h3>
+            <p id="settings-profile-summary" class="mm-panel-lead">Mentett név: még nincs</p>
+            <p id="settings-profile-flash" class="settings-flash" role="status" hidden></p>
             <div class="settings-avatar-row">
               <div class="settings-avatar" aria-hidden="true">
                 <span id="settings-avatar-letter">A</span>
@@ -252,7 +256,7 @@
             </div>
             <p id="settings-avatar-flash" class="settings-flash" role="status" hidden></p>
 
-            <form id="mm-profile-form" class="settings-form">
+            <form id="mm-profile-form" class="settings-form" action="#" method="post" onsubmit="return false;">
               <label class="login-field">
                 <span class="login-label">Megszólítás</span>
                 <select name="salutation">
@@ -279,11 +283,11 @@
               <div class="mm-grid-2">
                 <label class="login-field">
                   <span class="login-label">Irányítószám</span>
-                  <input type="text" name="postalCode" required autocomplete="postal-code" />
+                  <input type="text" name="postalCode" autocomplete="postal-code" />
                 </label>
                 <label class="login-field">
                   <span class="login-label">Város</span>
-                  <input type="text" name="city" required autocomplete="address-level2" />
+                  <input type="text" name="city" autocomplete="address-level2" />
                 </label>
               </div>
               <label class="login-field">
@@ -303,16 +307,22 @@
                 <select name="accountType">
                   <option value="private">Magánszemély</option>
                   <option value="business">Vállalkozás (nem kereskedő)</option>
-                  <option value="dealer">Autókereskedő</option>
                 </select>
               </label>
               <label class="login-field" data-mm-company-wrap hidden>
-                <span class="login-label" data-mm-company-label>Cégnév</span>
+                <span class="login-label">Cégnév</span>
                 <input type="text" name="company" autocomplete="organization" />
               </label>
-              <p id="settings-profile-flash" class="settings-flash" role="status" hidden></p>
-              <button type="submit" class="site-header-btn site-header-btn--primary">Adatok mentése</button>
+              <p id="settings-profile-path" class="mm-panel-lead" hidden></p>
+              <button type="submit" class="site-header-btn site-header-btn--primary" id="mm-profile-save">Adatok mentése</button>
             </form>
+          </div>
+
+          <div class="settings-card" id="settings-db-card">
+            <h3 class="settings-card-title">Helyi adatbázis (Autosweb)</h3>
+            <p class="mm-panel-lead">Ez NEM a Supabase — csak a gépeden: ~/.autosweb/</p>
+            <pre id="settings-db-inspect" class="settings-db-inspect">Betöltés…</pre>
+            <button type="button" class="site-header-btn site-header-btn--outline" id="settings-db-refresh">Adatbázis frissítése</button>
           </div>
 
           <div class="settings-card">
@@ -358,7 +368,7 @@
       </div>
     </main>
 
-    <script src="/js/site-avatar-menu.js?v=auth20260730mein1" type="module"></script>
-    <script src="/js/beallitasok-app.js?v=auth20260730mein1" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=auth20260805localdb9" type="module"></script>
+    <script src="/js/beallitasok-app.js?v=auth20260805localdb9" type="module"></script>
   </body>
 </html>

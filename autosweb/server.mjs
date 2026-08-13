@@ -104,7 +104,7 @@ function advertiseUdpDiscovery(port) {
       const body = Buffer.from(
         JSON.stringify({
           ok: true,
-          service: "bymy-autosweb",
+          service: "autosweb",
           port,
           lan: lanIPv4Addresses(),
         })
@@ -125,7 +125,7 @@ function advertiseBonjour(port) {
   try {
     bonjourProc = spawn(
       "dns-sd",
-      ["-R", "Bymy Autosweb", "_autosweb._tcp", "local.", String(port)],
+      ["-R", "Autosweb", "_autosweb._tcp", "local.", String(port)],
       { stdio: ["ignore", "pipe", "pipe"] }
     );
     bonjourProc.stdout?.on("data", () => {});
@@ -141,7 +141,7 @@ function advertiseBonjour(port) {
       bonjourProc = null;
     };
     process.on("exit", stop);
-    console.log(`Bonjour: Bymy Autosweb._autosweb._tcp (port ${port})`);
+    console.log(`Bonjour: Autosweb._autosweb._tcp (port ${port})`);
   } catch (error) {
     console.warn("Bonjour:", error.message ?? error);
   }
@@ -937,7 +937,7 @@ const server = createServer(async (req, res) => {
     }
     sendJson(res, 200, {
       ok: true,
-      service: "bymy-autosweb",
+      service: "autosweb",
       version,
       chrome: findChromeExecutable(),
       haSearch: true,

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="autosweb-version" content="auth20260725reg" />
-    <title>Regisztráció — Bymy</title>
+    <title>Regisztráció — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -12,9 +12,11 @@
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260730avatar3" />
   </head>
   <body class="site-app login-page" data-site-page="regisztracio" data-auth-init="manual">
-<header class="site-header site-app-header">
+    <div class="local-banner">LOCALHOST — fiók létrehozása a hirdetésfeladáshoz</div>
+
+    <header class="site-header site-app-header">
       <div class="site-app-header-inner">
-        <a class="site-app-logo" href="/">Bymy</a>
+        <a class="site-app-logo" href="/">Add el autod.hu</a>
         <nav class="import-nav site-app-nav" aria-label="Oldalak">
           <a class="import-nav-link" href="/">Főoldal</a>
           <a class="import-nav-link" href="/import.html">Import</a>
@@ -132,6 +134,22 @@
       <section class="login-card" aria-labelledby="register-title">
         <h1 class="login-title" id="register-title">Regisztráció</h1>
         <p class="login-lead">Hozz létre fiókot, és add fel autód hirdetését.</p>
+        <div class="oauth-block" data-oauth-buttons>
+          <button type="button" class="oauth-btn oauth-btn--google" data-oauth-provider="google">
+            <span class="oauth-btn-icon" aria-hidden="true">G</span>
+            Folytatás Google-lal
+          </button>
+          <button type="button" class="oauth-btn oauth-btn--apple" data-oauth-provider="apple">
+            <span class="oauth-btn-icon" aria-hidden="true"></span>
+            Folytatás Apple-lel
+          </button>
+          <button type="button" class="oauth-btn oauth-btn--facebook" data-oauth-provider="facebook">
+            <span class="oauth-btn-icon" aria-hidden="true">f</span>
+            Folytatás Facebookkal
+          </button>
+          <p class="oauth-hint" data-oauth-hint hidden></p>
+        </div>
+        <div class="login-divider" aria-hidden="true"><span>vagy emaillel</span></div>
         <form id="register-form" class="login-form">
           <label class="login-field">
             <span class="login-label">Email</span>
@@ -148,13 +166,15 @@
           <p id="register-error" class="login-error" role="alert" hidden></p>
           <button type="submit" class="site-header-btn site-header-btn--primary login-submit">Regisztráció</button>
         </form>
+        <div id="register-ok" class="login-lead" hidden></div>
+        <p class="login-hint">Email regisztrációnál aktiváló link kell; social belépésnél azonnal beléphetsz.</p>
         <p class="login-hint">Már van fiókod? <a href="/belepes.html">Belépés</a></p>
       </section>
     </main>
 
-    <script src="/js/site-avatar-menu.js?v=auth20260730avatar3" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=auth20260806oauth1" type="module"></script>
     <script type="module">
-      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=auth20260813nobanner";
+      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=auth20260806oauth1";
       initSiteAuth();
       initRegisterPage();
     </script>

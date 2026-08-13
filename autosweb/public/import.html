@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="autosweb-version" content="katalogus20260727" />
-    <title>Import — Bymy</title>
+    <title>Import — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,9 +13,11 @@
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260730avatar3" />
   </head>
   <body class="site-app import-page site-page" data-site-page="import">
-<header class="site-header site-app-header">
+    <div class="local-banner" id="local-banner">LOCALHOST — hasznaltauto.hu import (olvasás). Nem ad fel hirdetést sehova.</div>
+
+    <header class="site-header site-app-header">
       <div class="site-app-header-inner">
-        <a class="site-app-logo" href="/">Bymy</a>
+        <a class="site-app-logo" href="/">Add el autod.hu</a>
         <nav class="import-nav site-app-nav" aria-label="Oldalak">
           <a class="import-nav-link" href="/">Főoldal</a>
           <a class="import-nav-link active" href="/import.html">Import</a>
@@ -134,7 +136,7 @@
       <div class="import-page-main">
         <div class="automax-step-header">
           <h1 class="automax-step-title">Hasznaltauto.hu import</h1>
-          <p class="automax-step-lead">Az alábbi űrlap minden cellája itt látható. Import után kattints egy autóra — kitölti a mezőket. Mentés gomb → SQLite adatbázis.</p>
+          <p class="automax-step-lead">Import után az „Összes mentése” gomb egyszerre menti az összes betöltött hirdetést (nem kell egyesével). Import közben is mentődnek; a gomb a hiányzókat pótolja, a duplikátumokat átugorja.</p>
         </div>
 
         <div id="import-top-alert" class="import-top-alert" role="alert" hidden></div>
@@ -148,16 +150,17 @@
           </div>
           <div class="card-body">
             <p class="hint">
-              Lista vagy egy hirdetés URL-jét illeszd be — max. 50 db, képek nélkül. Csak adatolvasás; <strong>nem ad fel hirdetést</strong> a Használtautó.hu-ra.
+              Lista vagy egy hirdetés URL-jét illeszd be — első 20 db, fő képpel. Csak adatolvasás; <strong>nem ad fel hirdetést</strong> a Használtautó.hu-ra.
             </p>
             <div class="import-url-row">
               <input id="import-url" type="url" placeholder="https://www.hasznaltauto.hu/szemelyauto/… vagy talalatilista/…" />
               <button type="button" class="btn btn-secondary" id="import-chrome-btn">Chrome megnyitása</button>
-              <button type="button" class="btn btn-primary" id="import-start-btn">Import indítása (max 50)</button>
+              <button type="button" class="btn btn-primary" id="import-start-btn">Import indítása (max 20)</button>
             </div>
             <p class="hint import-hint-steps">
-              1) <strong>Import indítása</strong> → látható Chrome ablak &nbsp;
-              2) Cloudflare ha kell &nbsp; 3) Válassz hirdetést a listából
+              1) <strong>Import indítása</strong> → látható Chrome + első 20 auto mentése (feladott) &nbsp;
+              2) Cloudflare pipa ha kell &nbsp;
+              3) Duplikátumok kimaradnak; új lista URL = hozzáadódik (pl. 80 autó)
             </p>
             <p id="import-upgrade-warn" class="import-upgrade-warn" data-version-warn hidden></p>
             <div id="import-log" class="import-log" hidden></div>
@@ -783,16 +786,17 @@
 
           </form>
           <div class="import-save-bar">
-            <button type="button" class="btn btn-primary btn-lg" id="import-save-btn">Mentés az adatbázisba</button>
+            <button type="button" class="btn btn-primary btn-lg" id="import-save-btn">Összes mentése az adatbázisba</button>
+            <button type="button" class="btn btn-secondary btn-lg" id="import-clear-all-btn">Összes hirdetés törlése</button>
             <span class="import-save-status" id="import-save-status"></span>
           </div>
         </section>
       </div>
     </main>
 
-    <script src="/js/import-app.js?v=katalogus20260727" type="module"></script>
-    <script src="/js/site-avatar-menu.js?v=auth20260730avatar3" type="module"></script>
+    <script src="/js/import-app.js?v=clearall20260807" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=auth20260805localdb9" type="module"></script>
 
-    <script src="/js/site-auth.js?v=auth20260730avatar3" type="module"></script>
+    <script src="/js/site-auth.js?v=auth20260805localdb9" type="module"></script>
   </body>
 </html>

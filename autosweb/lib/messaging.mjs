@@ -22,7 +22,7 @@ const ALLOWED_MIME = new Set([
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 
-const DEMO_SELLER_EMAIL = "eladas@bymy.demo";
+const DEMO_SELLER_EMAIL = "eladas@addelautod.demo";
 
 export function initMessagingSchema(db = getMessagesDb()) {
   // Felhasználók külön DB-ben
@@ -102,7 +102,7 @@ function ensureDemoSeller() {
   const info = users
     .prepare(
       `INSERT INTO users (email, password_hash, password_salt, display_name, profile_json)
-       VALUES (?, ?, ?, 'Bymy Eladó', ?)`
+       VALUES (?, ?, ?, 'Add el autod Eladó', ?)`
     )
     .run(
       DEMO_SELLER_EMAIL,

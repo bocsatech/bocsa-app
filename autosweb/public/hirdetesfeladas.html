@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="autosweb-version" content="auth20260730powerfix7" />
-    <title>Hirdetésfeladás — Bymy</title>
+    <title>Hirdetésfeladás — Add el autod.hu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -14,9 +14,11 @@
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
-<header class="site-header site-app-header">
+    <div class="local-banner" id="local-banner">LOCALHOST — hirdetésfeladás varázsló</div>
+
+    <header class="site-header site-app-header">
       <div class="site-app-header-inner">
-        <a class="site-app-logo" href="/">Bymy</a>
+        <a class="site-app-logo" href="/">Add el autod.hu</a>
         <nav class="import-nav site-app-nav" aria-label="Oldalak">
           <a class="import-nav-link" href="/">Főoldal</a>
           <a class="import-nav-link" href="/import.html">Import</a>
@@ -918,10 +920,10 @@
       </div>
     </footer>
 
-    <script src="/js/site-avatar-menu.js?v=auth20260730avatar3" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=auth20260805localdb9" type="module"></script>
     <script type="module">
-      import { requireAuthForPage, initSiteAuth } from "/js/site-auth.js?v=auth20260730avatar3";
-      requireAuthForPage();
+      import { requireAuthForPage, initSiteAuth } from "/js/site-auth.js?v=auth20260805localdb9";
+      await requireAuthForPage();
       initSiteAuth();
     </script>
     <script src="/js/app.js?v=auth20260730gridfix2" type="module"></script>
