@@ -5,7 +5,7 @@ import Network
 import Darwin
 #endif
 
-/// Autosweb API gyökér — Simulator: localhost; telefon: Mac Wi‑Fi IP (UserDefaults / LAN-keresés).
+/// Autosweb API gyökér — Simulator: localhost; telefon: Mac Wi‑Fi IP.
 enum AutoswebBaseURL {
     static let defaultsKey = "autosweb.baseURL"
     static let defaultSimulator = "http://127.0.0.1:3456"
@@ -28,9 +28,6 @@ enum AutoswebBaseURL {
     static func applyStored() {
         _ = currentURL()
         AutoswebBonjour.shared.start()
-        if isPhysicalDevice {
-            Task { await ensureLANBase() }
-        }
     }
 
     static func currentString() -> String {
@@ -54,9 +51,9 @@ enum AutoswebBaseURL {
         let wifi = AutoswebLAN.wifiIPv4Addresses()
         if isLoopbackOnPhysicalDevice {
             if wifi.isEmpty {
-                return "A telefonon a localhost a készülék, nem a Mac. Kapcsold be a Wi‑Fi-t (ugyanaz, mint a Mac), majd Keresés Wi‑Fi-n. iOS: Beállítások → Bymy → Helyi hálózat."
+                return "A telefonon a localhost a készülék, nem a Mac. Kapcsold be a Wi‑Fi-t (ugyanaz, mint a Mac). iOS: Beállítások → Bymy → Helyi hálózat."
             }
-            return "A telefonon a localhost a készülék, nem a Mac. Telefon Wi‑Fi: \(wifi.joined(separator: ", ")). Fogaskerék → Keresés, vagy a Mac IP (Autosweb-indító). Most: \(url)"
+            return "A telefonon a localhost a készülék, nem a Mac. Telefon: \(wifi.joined(separator: ", ")). Add meg a Mac utolsó számát, vagy Keresés. Most: \(url)"
         }
         return "Autosweb nem elérhető (\(url)). Ugyanaz a Wi‑Fi, Macen fusson az indító, iOS: Beállítások → Bymy → Helyi hálózat."
     }
@@ -75,6 +72,14 @@ enum AutoswebBaseURL {
         return url
     }
 
+    static func setLastOctet(_ last: Int) -> URL? {
+        guard (1...254).contains(last),
+              let ip = AutoswebLAN.wifiIPv4Addresses().first else { return nil }
+        let parts = ip.split(separator: ".")
+        guard parts.count == 4 else { return nil }
+        return set("http://\(parts[0]).\(parts[1]).\(parts[2]).\(last):\(port)")
+    }
+
     static func normalizedURL(from raw: String) -> URL? {
         var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if s.isEmpty { return URL(string: defaultSimulator) }
@@ -87,10 +92,9 @@ enum AutoswebBaseURL {
         return url
     }
 
-    /// Készüléken: ha localhost / nem válaszol, Wi‑Fi-n megkeresi az Autoswebt.
     @discardableResult
     static func ensureLANBase() async -> URL? {
-        await AutoswebLAN.ensureBase()
+        await AutoswebLAN.search()
     }
 
     static func testReachability() async -> String {
@@ -113,64 +117,40 @@ enum AutoswebBaseURL {
     }
 }
 
-/// Wi‑Fi alhálózat: UDP ping + HTTP `/api/health`. Csak `en*` (Wi‑Fi), nem VPN/mobilnet.
 enum AutoswebLAN {
-    private static var inFlight: Task<URL?, Never>?
-
-    static func ensureBase() async -> URL? {
-        if let existing = inFlight {
-            return await existing.value
-        }
-        let task = Task<URL?, Never> { await search() }
-        inFlight = task
-        let result = await task.value
-        inFlight = nil
-        return result
+    private struct Health: Decodable {
+        let ok: Bool?
+        let service: String?
+        let listingsMine: Bool?
     }
 
-    private static func search() async -> URL? {
+    static func search() async -> URL? {
         AutoswebBonjour.shared.start()
         let current = AutoswebBaseURL.currentURL()
         let skipLoopback = AutoswebBaseURL.isPhysicalDevice && AutoswebBaseURL.isLoopback(current)
         if !skipLoopback, await probe(current) {
             return current
         }
-
-        // Először a helyi hálózat engedély (felugró) — e nélkül a keresés üresen lefut.
-        await AutoswebBonjour.shared.waitUntilReady(timeout: 8)
         if let bonjour = AutoswebBonjour.shared.lastFoundURL, await probe(bonjour) {
             _ = AutoswebBaseURL.set(bonjour.absoluteString)
             return bonjour
         }
-
         let wifi = wifiIPv4Addresses()
-        if wifi.isEmpty, AutoswebBaseURL.isPhysicalDevice {
-            return nil
-        }
-
-        if let found = await udpDiscover(from: wifi), await probe(found) {
-            _ = AutoswebBaseURL.set(found.absoluteString)
-            return found
-        }
         if let found = await scanSubnet(wifiIPs: wifi) {
             _ = AutoswebBaseURL.set(found.absoluteString)
             return found
         }
+        if let bonjour = AutoswebBonjour.shared.lastFoundURL, await probe(bonjour) {
+            _ = AutoswebBaseURL.set(bonjour.absoluteString)
+            return bonjour
+        }
         return nil
-    }
-
-    private struct Health: Decodable {
-        let ok: Bool?
-        let service: String?
-        let listingsMine: Bool?
-        let lan: [String]?
-        let port: Int?
     }
 
     static func probe(_ base: URL) async -> Bool {
         let url = base.appendingPathComponent("api/health")
         var req = URLRequest(url: url)
-        req.timeoutInterval = 1.4
+        req.timeoutInterval = 1.2
         req.cachePolicy = .reloadIgnoringLocalCacheData
         do {
             let (data, response) = try await URLSession.shared.data(for: req)
@@ -197,7 +177,6 @@ enum AutoswebLAN {
             let parts = ip.split(separator: ".").compactMap { Int($0) }
             guard parts.count == 4 else { continue }
             let prefix = "\(parts[0]).\(parts[1]).\(parts[2])"
-            // DHCP gyakran az alsó tartományba rakja a Macet — először 1…40.
             var ordered: [Int] = Array(1...40) + Array(41...254)
             ordered.removeAll { $0 == parts[3] }
             for last in ordered {
@@ -211,10 +190,12 @@ enum AutoswebLAN {
 
         return await withTaskGroup(of: URL?.self) { group in
             var iterator = candidates.makeIterator()
-            let workers = min(48, candidates.count)
+            let workers = min(24, candidates.count)
             for _ in 0..<workers {
                 guard let ip = iterator.next() else { break }
-                group.addTask { await probeIP(ip) }
+                group.addTask {
+                    await probeIP(ip)
+                }
             }
             while let result = await group.next() {
                 if let url = result {
@@ -222,7 +203,9 @@ enum AutoswebLAN {
                     return url
                 }
                 if let ip = iterator.next() {
-                    group.addTask { await probeIP(ip) }
+                    group.addTask {
+                        await probeIP(ip)
+                    }
                 }
             }
             return nil
@@ -234,7 +217,7 @@ enum AutoswebLAN {
         return await probe(url) ? url : nil
     }
 
-    /// Csak Wi‑Fi (`en0`/`en1`…), nem VPN (`utun`) és nem mobilnet (`pdp_ip`).
+    /// Csak Wi‑Fi (`en0`…), nem VPN / mobilnet.
     static func wifiIPv4Addresses() -> [String] {
         var ifaddr: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddr) == 0, let first = ifaddr else { return [] }
@@ -250,7 +233,15 @@ enum AutoswebLAN {
                let addr = p.pointee.ifa_addr,
                addr.pointee.sa_family == UInt8(AF_INET) {
                 var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-                getnameinfo(addr, socklen_t(addr.pointee.sa_len), &host, socklen_t(host.count), nil, 0, NI_NUMERICHOST)
+                getnameinfo(
+                    addr,
+                    socklen_t(addr.pointee.sa_len),
+                    &host,
+                    socklen_t(host.count),
+                    nil,
+                    0,
+                    NI_NUMERICHOST
+                )
                 let ip = String(cString: host)
                 if isPrivateIPv4(ip), !out.contains(ip) {
                     out.append(ip)
@@ -261,6 +252,13 @@ enum AutoswebLAN {
         return out
     }
 
+    static func wifiPrefix() -> String? {
+        guard let ip = wifiIPv4Addresses().first else { return nil }
+        let parts = ip.split(separator: ".")
+        guard parts.count == 4 else { return nil }
+        return "\(parts[0]).\(parts[1]).\(parts[2])"
+    }
+
     static func isPrivateIPv4(_ ip: String) -> Bool {
         let parts = ip.split(separator: ".").compactMap { Int($0) }
         guard parts.count == 4 else { return false }
@@ -269,82 +267,8 @@ enum AutoswebLAN {
         if parts[0] == 172, (16...31).contains(parts[1]) { return true }
         return false
     }
-
-    /// UDP unicast a Wi‑Fi /24-re — a szerver `BYMY?` üzenetre válaszol. Nem broadcast (nincs multicast entitlement).
-    static func udpDiscover(from wifiIPs: [String]) async -> URL? {
-        let candidates = udpCandidates(from: wifiIPs)
-        guard !candidates.isEmpty else { return nil }
-        return await withCheckedContinuation { cont in
-            DispatchQueue.global(qos: .userInitiated).async {
-                let found = udpPing(candidates: candidates)
-                cont.resume(returning: found)
-            }
-        }
-    }
-
-    private static func udpCandidates(from wifiIPs: [String]) -> [String] {
-        var out: [String] = []
-        var seen = Set<String>()
-        for ip in wifiIPs {
-            let parts = ip.split(separator: ".").compactMap { Int($0) }
-            guard parts.count == 4 else { continue }
-            let prefix = "\(parts[0]).\(parts[1]).\(parts[2])"
-            for last in 1...254 where last != parts[3] {
-                let cand = "\(prefix).\(last)"
-                if seen.insert(cand).inserted { out.append(cand) }
-            }
-        }
-        return out
-    }
-
-    private static func udpPing(candidates: [String]) -> URL? {
-        let fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
-        guard fd >= 0 else { return nil }
-        defer { close(fd) }
-
-        var timeout = timeval(tv_sec: 2, tv_usec: 0)
-        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
-
-        let payload = Array("BYMY?".utf8)
-        let port = UInt16(AutoswebBaseURL.port).bigEndian
-        for ip in candidates {
-            var addr = sockaddr_in()
-            addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
-            addr.sin_family = sa_family_t(AF_INET)
-            addr.sin_port = port
-            _ = ip.withCString { inet_pton(AF_INET, $0, &addr.sin_addr) }
-            _ = payload.withUnsafeBytes { buf in
-                guard let base = buf.baseAddress else { return 0 }
-                return withUnsafePointer(to: &addr) { ptr in
-                    ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sa in
-                        sendto(fd, base, buf.count, 0, sa, socklen_t(MemoryLayout<sockaddr_in>.size))
-                    }
-                }
-            }
-        }
-
-        var buf = [UInt8](repeating: 0, count: 2048)
-        var from = sockaddr_in()
-        var fromLen = socklen_t(MemoryLayout<sockaddr_in>.size)
-        let n: Int = withUnsafeMutablePointer(to: &from) { fromPtr in
-            fromPtr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sa in
-                recvfrom(fd, &buf, buf.count, 0, sa, &fromLen)
-            }
-        }
-        guard n > 0 else { return nil }
-        let data = Data(buf.prefix(n))
-        guard isAutosweb(data) || (String(data: data, encoding: .utf8)?.contains("bymy-autosweb") == true) else {
-            return nil
-        }
-        var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-        inet_ntop(AF_INET, &from.sin_addr, &host, socklen_t(NI_MAXHOST))
-        let ip = String(cString: host)
-        guard !ip.isEmpty, ip != "0.0.0.0" else { return nil }
-        return URL(string: "http://\(ip):\(AutoswebBaseURL.port)")
-    }
 }
 
-/// Bonjour + NWBrowser: helyi hálózat engedély + Mac IP.
 final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
     static let shared = AutoswebBonjour()
 
@@ -353,35 +277,13 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
     private var nwBrowser: NWBrowser?
     private var connections: [NWConnection] = []
     private(set) var lastFoundURL: URL?
-    private var isReady = false
     var onFound: ((URL) -> Void)?
 
     func start() {
         DispatchQueue.main.async {
-            let me = AutoswebBonjour.shared
-            me.browser.delegate = me
-            me.browser.searchForServices(ofType: "_autosweb._tcp.", inDomain: "local.")
-            me.startNWBrowser()
-        }
-    }
-
-    /// Vár, amíg az iOS helyi hálózat engedély megvan, vagy van Bonjour találat.
-    func waitUntilReady(timeout: TimeInterval) async {
-        if isReady || lastFoundURL != nil { return }
-        start()
-        let deadline = Date().addingTimeInterval(timeout)
-        while Date() < deadline {
-            if isReady || lastFoundURL != nil { return }
-            try? await Task.sleep(nanoseconds: 200_000_000)
-        }
-    }
-
-    private func markReady() {
-        isReady = true
-        Task {
-            if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
-                _ = await AutoswebBaseURL.ensureLANBase()
-            }
+            AutoswebBonjour.shared.browser.delegate = AutoswebBonjour.shared
+            AutoswebBonjour.shared.browser.searchForServices(ofType: "_autosweb._tcp.", inDomain: "local.")
+            AutoswebBonjour.shared.startNWBrowser()
         }
     }
 
@@ -390,16 +292,12 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
         let params = NWParameters()
         params.includePeerToPeer = true
         let b = NWBrowser(for: .bonjour(type: "_autosweb._tcp", domain: "local."), using: params)
-        b.stateUpdateHandler = { state in
-            guard case .ready = state else { return }
-            DispatchQueue.main.async {
-                AutoswebBonjour.shared.markReady()
-            }
-        }
+        b.stateUpdateHandler = { _ in }
         b.browseResultsChangedHandler = { results, _ in
+            let endpoints = results.map(\.endpoint)
             DispatchQueue.main.async {
-                for result in results {
-                    AutoswebBonjour.shared.resolve(result.endpoint)
+                for endpoint in endpoints {
+                    AutoswebBonjour.shared.resolve(endpoint)
                 }
             }
         }
@@ -501,20 +399,19 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
     }
 }
 
-/// Belépés előtt is szerkeszthető (vendég mód) — Mac Wi‑Fi IP.
+extension AutoswebBonjour: @unchecked Sendable {}
+
+/// Belépés előtt is szerkeszthető — Mac Wi‑Fi IP, vagy csak az utolsó szám.
 struct AutoswebServerSettingsCard: View {
     var compact: Bool = false
     var onMessage: ((String) -> Void)? = nil
 
     @State private var urlText = AutoswebBaseURL.currentString()
+    @State private var lastOctet = ""
     @State private var busy = false
     @State private var localMessage: String?
 
-    private var wifiLabel: String {
-        let ips = AutoswebLAN.wifiIPv4Addresses()
-        if ips.isEmpty { return "A telefonon nincs Wi‑Fi IPv4. Kapcsold be a Wi‑Fi-t (ne vendéghálózat)." }
-        return "Telefon Wi‑Fi: \(ips.joined(separator: ", ")) — a Mac ugyanígy kezdődjön, nem localhost."
-    }
+    private var wifiPrefix: String? { AutoswebLAN.wifiPrefix() }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -522,16 +419,34 @@ struct AutoswebServerSettingsCard: View {
                 .font(compact ? .subheadline.weight(.semibold) : .headline)
                 .foregroundStyle(AppTheme.text)
 
-            Text("A telefon localhostja a telefon, nem a Mac. Ugyanaz a Wi‑Fi, engedélyezd a helyi hálózatot, majd Keresés — vagy írd be a Mac IP-t az Autosweb-indítóból.")
+            Text("A telefon localhostja a telefon. Ugyanaz a Wi‑Fi, engedélyezd a helyi hálózatot, majd Keresés — vagy írd be a Mac utolsó számát az Autosweb-indítóból (pl. 12, ha http://192.168.0.12:3456).")
                 .font(.footnote)
                 .foregroundStyle(AppTheme.textSecondary)
 
-            Text(wifiLabel)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(AppTheme.text)
+            if let prefix = wifiPrefix {
+                Text("Telefon Wi‑Fi: \(prefix).x")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(AppTheme.text)
+                HStack(spacing: 8) {
+                    Text("http://\(prefix).")
+                        .font(.footnote.monospaced())
+                    TextField("12", text: $lastOctet)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(.numberPad)
+                        .frame(width: 64)
+                    Text(":3456")
+                        .font(.footnote.monospaced())
+                    Button("OK") { saveLastOctet() }
+                        .font(.body.weight(.semibold))
+                }
+            } else {
+                Text("Nincs Wi‑Fi IPv4. Kapcsold be a Wi‑Fi-t (ne vendéghálózat).")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Color(red: 0.75, green: 0.12, blue: 0.12))
+            }
 
             if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
-                Text("Most localhost van beállítva. Nyomj Keresés Wi‑Fi-n, és iOS-en: Beállítások → Bymy → Helyi hálózat = be.")
+                Text("Most localhost van beállítva. iOS: Beállítások → Bymy → Helyi hálózat = be, majd Keresés.")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(Color(red: 0.75, green: 0.12, blue: 0.12))
             }
@@ -587,6 +502,17 @@ struct AutoswebServerSettingsCard: View {
         }
     }
 
+    private func saveLastOctet() {
+        let n = Int(lastOctet.filter(\.isNumber)) ?? 0
+        if let url = AutoswebBaseURL.setLastOctet(n) {
+            urlText = url.absoluteString
+            emit("Autosweb cím: \(url.absoluteString)")
+            Task { await test() }
+        } else {
+            emit("Írd be a Mac utolsó számát (1–254), amit az Autosweb-indító kiír.")
+        }
+    }
+
     private func save() {
         if let url = AutoswebBaseURL.set(urlText) {
             urlText = url.absoluteString
@@ -604,13 +530,10 @@ struct AutoswebServerSettingsCard: View {
         if let found = await AutoswebBaseURL.ensureLANBase() {
             urlText = found.absoluteString
             emit("Megtalálva: \(found.absoluteString)")
+        } else if let prefix = wifiPrefix {
+            emit("Nem található a \(prefix).x hálózaton. Írd be a Mac utolsó számát az indítóból. iOS: Beállítások → Bymy → Helyi hálózat.")
         } else {
-            let wifi = AutoswebLAN.wifiIPv4Addresses()
-            if wifi.isEmpty {
-                emit("Nincs Wi‑Fi IPv4 a telefonon. Kapcsold be a Wi‑Fi-t, ugyanaz mint a Mac.")
-            } else {
-                emit("Nem található a \(wifi[0].split(separator: ".").prefix(3).joined(separator: ".")).x hálózaton. Macen fusson az Autosweb-indító, iOS: Beállítások → Bymy → Helyi hálózat.")
-            }
+            emit("Nincs Wi‑Fi IPv4. Kapcsold be a Wi‑Fi-t, ugyanaz mint a Mac.")
         }
     }
 

@@ -67,6 +67,8 @@ struct SettingsScreen: View {
 
     // MARK: - Profil fejléc (mindig látszik)
 
+    private var hasAvatar: Bool { profile.avatarImage != nil }
+
     private var profileHeader: some View {
         HStack(alignment: .center, spacing: 14) {
             ProfileAvatarView(
@@ -89,7 +91,6 @@ struct SettingsScreen: View {
                 }
 
                 HStack(spacing: 8) {
-                    let hasAvatar = profile.avatarImage != nil
                     PhotosPicker(selection: $photoItem, matching: .images, photoLibrary: .shared()) {
                         Text(hasAvatar ? "Csere" : "Feltöltés")
                             .font(.caption.weight(.semibold))

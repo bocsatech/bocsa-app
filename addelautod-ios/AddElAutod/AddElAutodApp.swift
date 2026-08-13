@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct AddElAutodApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var searchStore = SearchStore()
     @StateObject private var profileStore = ProfileStore()
     @StateObject private var pageLayoutStore = PageLayoutStore()
@@ -18,6 +19,13 @@ struct AddElAutodApp: App {
                 .environmentObject(pageLayoutStore)
                 .onReceive(NotificationCenter.default.publisher(for: .bymyRemoteProfileApplied)) { note in
                     pageLayoutStore.applyFromRemote(note.object as? AuthAPI.PageLayoutDTO)
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active, AutoswebBaseURL.isPhysicalDevice else { return }
+                    AutoswebBonjour.shared.start()
+                    Task {
+                        _ = await AutoswebBaseURL.ensureLANBase()
+                    }
                 }
         }
     }

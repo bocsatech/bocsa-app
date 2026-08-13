@@ -126,8 +126,10 @@ function advertiseBonjour(port) {
     bonjourProc = spawn(
       "dns-sd",
       ["-R", "Bymy Autosweb", "_autosweb._tcp", "local.", String(port)],
-      { stdio: "ignore" }
+      { stdio: ["ignore", "pipe", "pipe"] }
     );
+    bonjourProc.stdout?.on("data", () => {});
+    bonjourProc.stderr?.on("data", () => {});
     bonjourProc.on("error", () => {});
     const stop = () => {
       if (!bonjourProc) return;
