@@ -10,13 +10,8 @@ struct SearchScreen: View {
     @EnvironmentObject private var store: SearchStore
     /// Főoldal tab vs. Keresés tab (járműválasztó).
     var searchRoot: SearchRoot = .homeLanding
-    /// Főoldal „Fiók” ikon → fiókmenü
-    var onOpenAccount: (() -> Void)? = nil
     /// Keresési körzet / irányítószám — Beállítások
     var onOpenSettings: (() -> Void)? = nil
-    var onOpenSearchTab: (() -> Void)? = nil
-    var onOpenPostAdTab: (() -> Void)? = nil
-    var onOpenMessagesTab: (() -> Void)? = nil
 
     @State private var mode: Mode = .landing
     @State private var panel: Panel = .simple

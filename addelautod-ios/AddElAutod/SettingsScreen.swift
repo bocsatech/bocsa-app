@@ -430,7 +430,7 @@ struct SettingsScreen: View {
                 .foregroundStyle(AppTheme.textSecondary)
 
             VStack(spacing: 0) {
-                ForEach(Array(BottomTab.allCases.enumerated()), id: \.element) { index, tab in
+                ForEach(Array(BottomTab.allCases.enumerated()), id: \.offset) { index, tab in
                     HStack(spacing: 12) {
                         Text("\(index + 1).")
                             .font(.caption.weight(.semibold))

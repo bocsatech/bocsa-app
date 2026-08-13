@@ -17,14 +17,12 @@ struct PageDots: View {
 }
 
 /// Alsó menü — rögzített sorrend, nem szerkeszthető.
-enum BottomTab: Int, CaseIterable, Identifiable, Hashable {
+enum BottomTab: Int, CaseIterable, Hashable {
     case fooldal
     case kereses
     case hirdetesFeladas
     case uzenetek
     case hirfolyam
-
-    var id: Int { rawValue }
 
     /// Hely a lebegő sziget alatt, hogy a lista ne takaródjon.
     static let islandClearance: CGFloat = 96
@@ -64,7 +62,7 @@ struct PageIconBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(BottomTab.allCases) { tab in
+            ForEach(BottomTab.allCases, id: \.self) { tab in
                 let selected = tab == selection
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
