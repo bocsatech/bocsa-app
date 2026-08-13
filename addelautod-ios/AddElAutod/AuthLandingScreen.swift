@@ -119,12 +119,6 @@ struct AuthLandingScreen: View {
         }
         .onAppear {
             profile.authError = nil
-            AutoswebBonjour.shared.start()
-        }
-        .task {
-            if AutoswebBaseURL.isPhysicalDevice {
-                _ = await AutoswebBaseURL.ensureLANBase()
-            }
         }
     }
 
@@ -389,8 +383,8 @@ struct AuthCredentialScreen: View {
 
     private var subtitle: String {
         method == .email
-            ? "Az Autosweb fiókod email címe és jelszava."
-            : "A telefonszám lesz a fiókod azonosítója (Autosweb)."
+            ? "A Bymy fiókod email címe és jelszava."
+            : "A telefonszám lesz a fiókod azonosítója."
     }
 
     private var canSubmit: Bool {

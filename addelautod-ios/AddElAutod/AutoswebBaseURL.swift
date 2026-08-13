@@ -4,10 +4,10 @@ import Network
 import Darwin
 #endif
 
-/// Autosweb API gyökér — Simulator: localhost; telefon: Mac Wi‑Fi IP.
+/// Autosweb / Bymy API gyökér — éles: bymy.vercel.app (nem a telefon localhostja).
 enum AutoswebBaseURL {
     static let defaultsKey = "autosweb.baseURL"
-    static let defaultSimulator = "http://127.0.0.1:3456"
+    static let defaultProduction = "https://bymy.vercel.app"
     static let port = 3456
 
     static var isSimulator: Bool {
@@ -25,19 +25,25 @@ enum AutoswebBaseURL {
     }
 
     static func applyStored() {
+        if let stored = UserDefaults.standard.string(forKey: defaultsKey),
+           let url = normalizedURL(from: stored),
+           isLoopback(url) {
+            UserDefaults.standard.removeObject(forKey: defaultsKey)
+        }
         _ = currentURL()
-        AutoswebBonjour.shared.start()
     }
 
     static func currentString() -> String {
         let stored = UserDefaults.standard.string(forKey: defaultsKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        if stored.isEmpty { return defaultSimulator }
-        return stored
+        if let url = normalizedURL(from: stored), !isLoopback(url) {
+            return url.absoluteString
+        }
+        return defaultProduction
     }
 
     static func currentURL() -> URL {
-        normalizedURL(from: currentString()) ?? URL(string: defaultSimulator)!
+        normalizedURL(from: currentString()) ?? URL(string: defaultProduction)!
     }
 
     static func isLoopback(_ url: URL) -> Bool {
@@ -46,25 +52,18 @@ enum AutoswebBaseURL {
     }
 
     static func unreachableMessage() -> String {
-        let url = currentURL().absoluteString
-        let wifi = AutoswebLAN.wifiIPv4Addresses()
-        if isLoopbackOnPhysicalDevice {
-            if wifi.isEmpty {
-                return "Kapcsold be a Wi‑Fi-t (ugyanaz, mint a Mac), és engedélyezd a helyi hálózatot: iOS Beállítások → Bymy."
-            }
-            return "A szerver nem található a Wi‑Fi-n. Macen fusson az Autosweb-indító, ugyanaz a hálózat. Most: \(url)"
-        }
-        return "Autosweb nem elérhető (\(url)). Ugyanaz a Wi‑Fi, Macen fusson az indító."
+        "A belépés most nem sikerült. Próbáld újra."
     }
 
     @discardableResult
     static func set(_ raw: String) -> URL? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let url = normalizedURL(from: trimmed.isEmpty ? defaultSimulator : trimmed) else {
+        guard let url = normalizedURL(from: trimmed.isEmpty ? defaultProduction : trimmed) else {
             return nil
         }
-        if trimmed.isEmpty || url.absoluteString == defaultSimulator {
+        if trimmed.isEmpty || url.absoluteString == defaultProduction || isLoopback(url) {
             UserDefaults.standard.removeObject(forKey: defaultsKey)
+            return normalizedURL(from: defaultProduction)
         } else {
             UserDefaults.standard.set(url.absoluteString, forKey: defaultsKey)
         }
@@ -73,11 +72,15 @@ enum AutoswebBaseURL {
 
     static func normalizedURL(from raw: String) -> URL? {
         var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        if s.isEmpty { return URL(string: defaultSimulator) }
-        if !s.contains("://") { s = "http://\(s)" }
+        if s.isEmpty { return URL(string: defaultProduction) }
+        if !s.contains("://") { s = "https://\(s)" }
         guard var components = URLComponents(string: s) else { return nil }
-        if components.scheme == nil { components.scheme = "http" }
-        if components.port == nil { components.port = port }
+        if components.scheme == nil { components.scheme = "https" }
+        let hostName = (components.host ?? "").lowercased()
+        if components.port == nil, components.scheme == "http",
+           hostName == "127.0.0.1" || hostName == "localhost" || AutoswebLAN.isPrivateIPv4(hostName) {
+            components.port = port
+        }
         if components.path == "/" { components.path = "" }
         guard let url = components.url, let host = components.host, !host.isEmpty else { return nil }
         return url

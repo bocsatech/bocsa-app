@@ -23,11 +23,8 @@ struct AddElAutodApp: App {
                     pageLayoutStore.applyFromRemote(note.object as? AuthAPI.PageLayoutDTO)
                 }
                 .onChange(of: scenePhase) { _, phase in
-                    guard phase == .active, AutoswebBaseURL.isPhysicalDevice else { return }
-                    AutoswebBonjour.shared.start()
-                    Task {
-                        _ = await AutoswebBaseURL.ensureLANBase()
-                    }
+                    guard phase == .active else { return }
+                    AutoswebBaseURL.applyStored()
                 }
         }
     }
