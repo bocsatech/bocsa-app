@@ -86,7 +86,7 @@ struct ListingDetailScreen: View {
   // MARK: - Gallery
 
   private func gallery(topInset: CGFloat) -> some View {
-    let photoHeight: CGFloat = 280
+    let photoHeight: CGFloat = 420
     return ZStack(alignment: .top) {
       TabView(selection: $photoIndex) {
         if detail.imageURLs.isEmpty {
@@ -396,7 +396,7 @@ struct ListingFeedCard: View {
           }
         }
         .tabViewStyle(.page(indexDisplayMode: .automatic))
-        .frame(height: 160)
+        .frame(height: 240)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
       }
       .padding(.bottom, 10)
