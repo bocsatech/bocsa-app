@@ -8,10 +8,13 @@ struct SearchScreen: View {
     }
 
     @EnvironmentObject private var store: SearchStore
+    @EnvironmentObject private var profile: ProfileStore
     /// Főoldal tab vs. Keresés tab (járműválasztó).
     var searchRoot: SearchRoot = .homeLanding
     /// Keresési körzet / irányítószám — Beállítások
     var onOpenSettings: (() -> Void)? = nil
+    /// Profilkép → fiókmenü (a főoldalon a scrollban van, nem ragad fent).
+    var onOpenAccount: (() -> Void)? = nil
 
     @State private var mode: Mode = .landing
     @State private var panel: Panel = .simple
@@ -135,6 +138,8 @@ struct SearchScreen: View {
                 PostAdScreen(onClose: { goRoot() })
             }
         }
+        /// Főoldal TabView a státuszsáv alá nyúlik; listák / kereső ne menjen az óra mögé.
+        .padding(.top, searchRoot == .homeLanding && mode != .landing ? statusBarHeight : 0)
         .onAppear {
             if searchRoot == .searchMenu, mode == .landing {
                 mode = .vehiclePick
@@ -150,44 +155,129 @@ struct SearchScreen: View {
         }
     }
 
-    /// Főoldal: Közelben, Új hirdetések, kategóriaikonok. Keresés / feladás / üzenetek / fiók az alsó menüben.
+    /// Óra / Dynamic Island / térerő sáv magassága — a céges logo mögéjük kerül.
+    private var statusBarHeight: CGFloat {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let window = scenes.flatMap(\.windows).first(where: \.isKeyWindow) ?? scenes.flatMap(\.windows).first
+        return window?.safeAreaInsets.top ?? 59
+    }
+
+    private enum HomeFeedSection: String, CaseIterable, Identifiable {
+        case kiemelt, autokKozel, szolgaltatasok, ingatlanok
+        case ajanlasok, elmentett, ajanlottVideok, kereseseid
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .kiemelt: return "Kiemelt hirdetések"
+            case .autokKozel: return "Autók a közelben"
+            case .szolgaltatasok: return "Szolgáltatások"
+            case .ingatlanok: return "Ingatlanok"
+            case .ajanlasok: return "Ajánlások"
+            case .elmentett: return "Elmentett hirdetések"
+            case .ajanlottVideok: return "Ajánlott videók"
+            case .kereseseid: return "Kereséseid"
+            }
+        }
+    }
+
+    /// Főoldal: logo a státuszsáv mögött, profil a scrollban, vízszintes sávok. Az alsó sziget külön, rögzített.
     private var searchLanding: some View {
         ScrollView {
             VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    HomeIconButton(
-                        systemName: "mappin.and.ellipse",
-                        label: "Közelben",
-                        tint: Color(red: 0.18, green: 0.55, blue: 0.34)
-                    ) {
-                        openListing(.nearby)
-                    }
-                    HomeIconButton(
-                        systemName: "sparkles",
-                        label: "Új hirdetések",
-                        tint: Color(red: 0.85, green: 0.45, blue: 0.12)
-                    ) {
-                        openListing(.newListings)
-                    }
-                }
-                .padding(.top, 12)
-                .padding(.bottom, 22)
+                homeBrandStrip
+                homeProfileRow
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        ForEach(QuickCategory.allCases) { category in
-                            CategoryIconButton(category: category) {
-                                openListing(.category(category))
-                            }
-                        }
+                VStack(alignment: .leading, spacing: 22) {
+                    ForEach(HomeFeedSection.allCases) { section in
+                        homeRail(section)
                     }
-                    .padding(.horizontal, 16)
                 }
+                .padding(.top, 16)
                 .padding(.bottom, 28)
             }
             .frame(maxWidth: .infinity)
         }
+        .contentMargins(.top, 0, for: .scrollContent)
+        .ignoresSafeArea(edges: .top)
         .background(Color.white.ignoresSafeArea())
+    }
+
+    /// Céges logo a státuszsáv sávjában — óra, kamerasziget, térerő, akkumulátor mögött.
+    private var homeBrandStrip: some View {
+        let cream = Color(red: 0.980, green: 0.965, blue: 0.945)
+        let h = statusBarHeight
+        return HStack(spacing: 0) {
+            Image("BymyLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: h)
+                .padding(.leading, 8)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: h)
+        .background(cream)
+        .clipped()
+        .accessibilityLabel("Bymy")
+    }
+
+    private var homeProfileRow: some View {
+        HStack {
+            Spacer(minLength: 6)
+            Button {
+                onOpenAccount?()
+            } label: {
+                ProfileAvatarView(
+                    image: profile.avatarImage,
+                    letter: profile.profile.avatarLetter,
+                    size: 36
+                )
+                .frame(width: 36, height: 36)
+                .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Fiók menü")
+            .onAppear { profile.loadAvatarFromDisk() }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color.white)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(AppTheme.border).frame(height: 1)
+        }
+    }
+
+    private func homeRail(_ section: HomeFeedSection) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(section.title)
+                .font(.title3.weight(.bold))
+                .foregroundStyle(AppTheme.text)
+                .padding(.horizontal, 16)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 14) {
+                    ForEach(QuickCategory.allCases) { category in
+                        CategoryIconButton(category: category) {
+                            openHomeRailItem(section, category: category)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+        }
+    }
+
+    private func openHomeRailItem(_ section: HomeFeedSection, category: QuickCategory) {
+        switch section {
+        case .kiemelt:
+            openListing(.newListings)
+        case .autokKozel:
+            openListing(.nearby)
+        default:
+            openListing(.category(category))
+        }
     }
 
     /// Keresés kezdő — ugyanaz a kártyás menü, mint a hirdetésfeladáson.

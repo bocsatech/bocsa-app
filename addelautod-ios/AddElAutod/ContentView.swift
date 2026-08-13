@@ -52,17 +52,20 @@ struct ContentView: View {
     private var mainTabs: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
-                SiteAuthBar(
-                    selectedPage: nil,
-                    onLogin: {},
-                    onRegister: {},
-                    onAccount: { showAccountMenu = true }
-                )
+                if tab != .fooldal {
+                    SiteAuthBar(
+                        selectedPage: nil,
+                        onLogin: {},
+                        onRegister: {},
+                        onAccount: { showAccountMenu = true }
+                    )
+                }
 
                 TabView(selection: $tab) {
                     SearchScreen(
                         searchRoot: .homeLanding,
-                        onOpenSettings: { showSettings = true }
+                        onOpenSettings: { showSettings = true },
+                        onOpenAccount: { showAccountMenu = true }
                     )
                     .contentMargins(.bottom, BottomTab.islandClearance, for: .scrollContent)
                     .tag(BottomTab.fooldal)
@@ -88,6 +91,7 @@ struct ContentView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
+            .ignoresSafeArea(edges: tab == .fooldal ? .top : [])
             .background(AppTheme.bg.ignoresSafeArea())
 
             PageIconBar(selection: $tab)
