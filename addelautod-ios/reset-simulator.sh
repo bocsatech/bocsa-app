@@ -87,7 +87,7 @@ if grep -A2 "case .okmanyok:" "$SEARCH" | grep -q "multiSelectList"; then
   exit 1
 fi
 grep -q "MARKETING_VERSION = 1.0.10" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
-grep -q "CURRENT_PROJECT_VERSION = 27" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
+grep -q "CURRENT_PROJECT_VERSION = 28" "$DEST/AddElAutod.xcodeproj/project.pbxproj"
 test -f "$DEST/AddElAutod/PartnerPhotos/ajanlas-lakatos.png"
 test -f "$DEST/AddElAutod/Assets.xcassets/ajanlas-lakatos.imageset/ajanlas-lakatos.png"
 grep -q "PartnerCategoryPhotoView" "$DEST/AddElAutod/PartnerRecommendations.swift"
@@ -107,7 +107,7 @@ if grep -A3 "case .hirdeto:" "$POSTAD" | grep -q "multiSelectList"; then
   echo "HIBA: PostAdCarScreen Hirdető még multiSelectList"
   exit 1
 fi
-echo "    OK — commit: $COMMIT — app verzió 1.0.10 (build 27), Ajánlások fotók a csomagban"
+echo "    OK — commit: $COMMIT — app verzió 1.0.10 (build 28), Ajánlások fotók a csomagban"
 echo "    Ha Hirdető/Okmányok képernyőn „Összes kikapcsolása” látszik → RÉGI BUILD, nem ez a projekt."
 
 echo "==> 6) Egy Simulator boot (iPhone)"

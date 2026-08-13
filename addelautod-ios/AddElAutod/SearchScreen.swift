@@ -191,12 +191,11 @@ struct SearchScreen: View {
         }
     }
 
-    /// Főoldal: logo a státuszsáv mögött, profil a scrollban, vízszintes sávok. Az alsó sziget külön, rögzített.
+    /// Főoldal: logo kitölti a felső sávot, profilkép ráül, vízszintes sávok. Az alsó sziget külön, rögzített.
     private var searchLanding: some View {
         ScrollView {
             VStack(spacing: 0) {
-                homeBrandStrip
-                homeProfileRow
+                homeHeader
 
                 VStack(alignment: .leading, spacing: 22) {
                     ForEach(HomeFeedSection.allCases) { section in
@@ -213,28 +212,22 @@ struct SearchScreen: View {
         .background(Color.white.ignoresSafeArea())
     }
 
-    /// Céges logo a státuszsáv sávjában — óra, kamerasziget, térerő, akkumulátor mögött.
-    private var homeBrandStrip: some View {
-        let cream = Color(red: 0.980, green: 0.965, blue: 0.945)
-        let h = statusBarHeight
-        return HStack(spacing: 0) {
+    /// Logo kitölti a státuszsáv + fejléc sávot (fehér), a profilkép jobbra ráül és kattintható.
+    private var homeHeader: some View {
+        let top = statusBarHeight
+        let row: CGFloat = 56
+        let total = top + row
+        return ZStack(alignment: .topTrailing) {
+            Color.white
             Image("BymyLogo")
                 .resizable()
-                .scaledToFit()
-                .frame(height: h)
-                .padding(.leading, 8)
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: h)
-        .background(cream)
-        .clipped()
-        .accessibilityLabel("Bymy")
-    }
+                .scaledToFill()
+                .frame(maxWidth: .infinity)
+                .frame(height: total)
+                .clipped()
+                .allowsHitTesting(false)
+                .accessibilityLabel("Bymy")
 
-    private var homeProfileRow: some View {
-        HStack {
-            Spacer(minLength: 6)
             Button {
                 onOpenAccount?()
             } label: {
@@ -245,14 +238,18 @@ struct SearchScreen: View {
                 )
                 .frame(width: 36, height: 36)
                 .clipShape(Circle())
+                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Fiók menü")
+            .padding(.top, top + 8)
+            .padding(.trailing, 12)
             .onAppear { profile.loadAvatarFromDisk() }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color.white)
+        .frame(maxWidth: .infinity)
+        .frame(height: total)
+        .clipped()
         .overlay(alignment: .bottom) {
             Rectangle().fill(AppTheme.border).frame(height: 1)
         }
