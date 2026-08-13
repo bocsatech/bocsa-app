@@ -212,47 +212,43 @@ struct SearchScreen: View {
         .background(Color.white.ignoresSafeArea())
     }
 
-    /// Logo kitölti a státuszsáv + fejléc sávot (fehér), a profilkép jobbra ráül és kattintható.
+    /// Fehér fejléc: a logo a státuszsáv ALATT, teljes egészében látszik; a vonal alatta.
     private var homeHeader: some View {
         let top = statusBarHeight
-        let row: CGFloat = 56
-        let total = top + row
-        return ZStack(alignment: .topTrailing) {
-            Color.white
-            Image("BymyLogo")
-                .resizable()
-                .scaledToFill()
-                .frame(maxWidth: .infinity)
-                .frame(height: total)
-                .clipped()
-                .allowsHitTesting(false)
-                .accessibilityLabel("Bymy")
-
-            Button {
-                onOpenAccount?()
-            } label: {
-                ProfileAvatarView(
-                    image: profile.avatarImage,
-                    letter: profile.profile.avatarLetter,
-                    size: 36
-                )
-                .frame(width: 36, height: 36)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
+        let logoHeight: CGFloat = 78
+        let pad: CGFloat = 12
+        return VStack(spacing: 0) {
+            Color.white.frame(height: top)
+            HStack(alignment: .center, spacing: 12) {
+                Image("BymyLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: logoHeight)
+                    .accessibilityLabel("Bymy")
+                Spacer(minLength: 8)
+                Button {
+                    onOpenAccount?()
+                } label: {
+                    ProfileAvatarView(
+                        image: profile.avatarImage,
+                        letter: profile.profile.avatarLetter,
+                        size: 36
+                    )
+                    .frame(width: 36, height: 36)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                    .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Fiók menü")
+                .onAppear { profile.loadAvatarFromDisk() }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Fiók menü")
-            .padding(.top, top + 8)
-            .padding(.trailing, 12)
-            .onAppear { profile.loadAvatarFromDisk() }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: total)
-        .clipped()
-        .overlay(alignment: .bottom) {
+            .padding(.horizontal, 12)
+            .padding(.vertical, pad)
+            .background(Color.white)
             Rectangle().fill(AppTheme.border).frame(height: 1)
         }
+        .background(Color.white)
     }
 
     private func homeRail(_ section: HomeFeedSection) -> some View {
