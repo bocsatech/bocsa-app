@@ -155,23 +155,11 @@ struct SearchScreen: View {
         }
     }
 
-    /// Felső sor: Keresés, Közelben, Új hirdetések, Hirdetés feladás → autóikonok → Üzenetek / Fiók
+    /// Főoldal: Közelben, Új hirdetések, kategóriaikonok. Keresés / feladás / üzenetek / fiók az alsó menüben.
     private var searchLanding: some View {
         ScrollView {
             VStack(spacing: 0) {
                 HStack(spacing: 12) {
-                    HomeIconButton(
-                        systemName: "magnifyingglass",
-                        label: "Keresés",
-                        tint: AppTheme.accent
-                    ) {
-                        if let onOpenSearchTab {
-                            onOpenSearchTab()
-                        } else {
-                            openSearchTop = .auto
-                            mode = .vehiclePick
-                        }
-                    }
                     HomeIconButton(
                         systemName: "mappin.and.ellipse",
                         label: "Közelben",
@@ -185,17 +173,6 @@ struct SearchScreen: View {
                         tint: Color(red: 0.85, green: 0.45, blue: 0.12)
                     ) {
                         openListing(.newListings)
-                    }
-                    HomeIconButton(
-                        systemName: "plus.app.fill",
-                        label: "Hirdetés feladás",
-                        tint: Color(red: 0.72, green: 0.18, blue: 0.22)
-                    ) {
-                        if let onOpenPostAdTab {
-                            onOpenPostAdTab()
-                        } else {
-                            mode = .postAd
-                        }
                     }
                 }
                 .padding(.top, 12)
@@ -212,30 +189,6 @@ struct SearchScreen: View {
                     .padding(.horizontal, 16)
                 }
                 .padding(.bottom, 28)
-
-                HStack(spacing: 20) {
-                    HomeIconButton(
-                        systemName: "bubble.left.and.bubble.right.fill",
-                        label: "Üzenetek",
-                        tint: Color(red: 0.20, green: 0.55, blue: 0.85)
-                    ) {
-                        if let onOpenMessagesTab {
-                            onOpenMessagesTab()
-                        } else {
-                            openMessages(from: .landing, target: nil)
-                        }
-                    }
-                    HomeIconButton(
-                        systemName: "person.crop.circle.fill",
-                        label: "Fiók",
-                        tint: Color(red: 0.55, green: 0.58, blue: 0.62)
-                    ) {
-                        if let onOpenAccount {
-                            onOpenAccount()
-                        }
-                    }
-                }
-                .padding(.bottom, 24)
             }
             .frame(maxWidth: .infinity)
         }

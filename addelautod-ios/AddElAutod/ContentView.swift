@@ -61,17 +61,12 @@ struct ContentView: View {
             TabView(selection: $tab) {
                 SearchScreen(
                     searchRoot: .homeLanding,
-                    onOpenAccount: { showAccountMenu = true },
-                    onOpenSettings: { showSettings = true },
-                    onOpenSearchTab: { tab = .kereses },
-                    onOpenPostAdTab: { tab = .hirdetesFeladas },
-                    onOpenMessagesTab: { tab = .uzenetek }
+                    onOpenSettings: { showSettings = true }
                 )
                 .tag(BottomTab.fooldal)
 
                 SearchScreen(
                     searchRoot: .searchMenu,
-                    onOpenAccount: { showAccountMenu = true },
                     onOpenSettings: { showSettings = true }
                 )
                 .tag(BottomTab.kereses)
