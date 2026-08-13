@@ -89,8 +89,9 @@ struct SettingsScreen: View {
                 }
 
                 HStack(spacing: 8) {
+                    let hasAvatar = profile.avatarImage != nil
                     PhotosPicker(selection: $photoItem, matching: .images, photoLibrary: .shared()) {
-                        Text(profile.avatarImage == nil ? "Feltöltés" : "Csere")
+                        Text(hasAvatar ? "Csere" : "Feltöltés")
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -98,7 +99,7 @@ struct SettingsScreen: View {
                             .background(AppTheme.accent)
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }
-                    if profile.avatarImage != nil {
+                    if hasAvatar {
                         Button("Törlés") {
                             profile.clearAvatar()
                             toast = "Profilkép törölve."

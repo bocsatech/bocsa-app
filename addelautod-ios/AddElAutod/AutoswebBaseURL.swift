@@ -115,22 +115,16 @@ enum AutoswebBaseURL {
 
 /// Wi‑Fi alhálózat: UDP ping + HTTP `/api/health`. Csak `en*` (Wi‑Fi), nem VPN/mobilnet.
 enum AutoswebLAN {
-    private static let lock = NSLock()
     private static var inFlight: Task<URL?, Never>?
 
     static func ensureBase() async -> URL? {
-        lock.lock()
         if let existing = inFlight {
-            lock.unlock()
             return await existing.value
         }
         let task = Task<URL?, Never> { await search() }
         inFlight = task
-        lock.unlock()
         let result = await task.value
-        lock.lock()
         inFlight = nil
-        lock.unlock()
         return result
     }
 
@@ -362,14 +356,12 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
     private var isReady = false
     var onFound: ((URL) -> Void)?
 
-    private let lock = NSLock()
-    private var waiters: [(URL?) -> Void] = []
-
     func start() {
-        DispatchQueue.main.async { [self] in
-            browser.delegate = self
-            browser.searchForServices(ofType: "_autosweb._tcp.", inDomain: "local.")
-            startNWBrowser()
+        DispatchQueue.main.async {
+            let me = AutoswebBonjour.shared
+            me.browser.delegate = me
+            me.browser.searchForServices(ofType: "_autosweb._tcp.", inDomain: "local.")
+            me.startNWBrowser()
         }
     }
 
@@ -384,24 +376,11 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
         }
     }
 
-    /// Vár Bonjour találatra vagy a helyi hálózat engedélyre.
-    func waitForURL(timeout: TimeInterval) async -> URL? {
-        if let url = lastFoundURL { return url }
-        start()
-        return await withCheckedContinuation { cont in
-            var resumed = false
-            let finish: (URL?) -> Void = { url in
-                lock.lock()
-                defer { lock.unlock() }
-                guard !resumed else { return }
-                resumed = true
-                cont.resume(returning: url)
-            }
-            lock.lock()
-            waiters.append(finish)
-            lock.unlock()
-            DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { [weak self] in
-                finish(self?.lastFoundURL)
+    private func markReady() {
+        isReady = true
+        Task {
+            if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
+                _ = await AutoswebBaseURL.ensureLANBase()
             }
         }
     }
@@ -411,19 +390,17 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
         let params = NWParameters()
         params.includePeerToPeer = true
         let b = NWBrowser(for: .bonjour(type: "_autosweb._tcp", domain: "local."), using: params)
-        b.stateUpdateHandler = { [weak self] state in
-            if case .ready = state {
-                self?.isReady = true
-                Task {
-                    if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
-                        _ = await AutoswebBaseURL.ensureLANBase()
-                    }
-                }
+        b.stateUpdateHandler = { state in
+            guard case .ready = state else { return }
+            DispatchQueue.main.async {
+                AutoswebBonjour.shared.markReady()
             }
         }
-        b.browseResultsChangedHandler = { [weak self] results, _ in
-            for result in results {
-                self?.resolve(result.endpoint)
+        b.browseResultsChangedHandler = { results, _ in
+            DispatchQueue.main.async {
+                for result in results {
+                    AutoswebBonjour.shared.resolve(result.endpoint)
+                }
             }
         }
         b.start(queue: .main)
@@ -438,14 +415,15 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
             return
         }
         let conn = NWConnection(to: endpoint, using: .tcp)
-        conn.stateUpdateHandler = { [weak self] state in
-            if case .ready = state {
-                if let remote = conn.currentPath?.remoteEndpoint,
-                   case .hostPort(let host, let port) = remote,
-                   let url = self?.url(host: host, port: port) {
-                    self?.found(url)
+        conn.stateUpdateHandler = { state in
+            guard case .ready = state else { return }
+            let remote = conn.currentPath?.remoteEndpoint
+            conn.cancel()
+            DispatchQueue.main.async {
+                if case .hostPort(let host, let port) = remote,
+                   let url = AutoswebBonjour.shared.url(host: host, port: port) {
+                    AutoswebBonjour.shared.found(url)
                 }
-                conn.cancel()
             }
         }
         connections.append(conn)
@@ -475,15 +453,9 @@ final class AutoswebBonjour: NSObject, NetServiceBrowserDelegate, NetServiceDele
         if AutoswebBaseURL.isLoopbackOnPhysicalDevice {
             _ = AutoswebBaseURL.set(url.absoluteString)
         }
-        DispatchQueue.main.async { [onFound] in
-            onFound?(url)
-        }
-        lock.lock()
-        let pending = waiters
-        waiters.removeAll()
-        lock.unlock()
-        for waiter in pending {
-            waiter(url)
+        let handler = onFound
+        DispatchQueue.main.async {
+            handler?(url)
         }
     }
 
