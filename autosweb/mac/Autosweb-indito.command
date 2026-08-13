@@ -211,8 +211,8 @@ echo "Autosweb főoldal: ${INDEX_VER:-?}"
 echo "Mac böngésző:  http://127.0.0.1:3456/"
 if [ -n "$LAN_IP" ]; then
   echo "Telefon (Wi‑Fi): http://${LAN_IP}:3456/"
-  echo "  → Bymy: fogaskerék → Keresés Wi‑Fi-n  VAGY  írd be: http://${LAN_IP}:3456"
-  echo "  A telefonon a localhost NEM ez a gép. Ugyanaz a Wi‑Fi, iOS: Bymy → Helyi hálózat."
+  echo "  Telefonon írd be: http://${LAN_IP}:3456"
+  echo "  A telefonon a localhost NEM ez a gép. Ugyanaz a Wi‑Fi kell."
 else
   echo "Telefon: System Settings → Network → Wi‑Fi → IP, majd http://IP:3456"
 fi
