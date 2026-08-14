@@ -39,8 +39,9 @@ jobs:
       - name: Deploy Bymy (autosweb) to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          # bymy project id (GET /v9/projects/bymy without teamId)
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BYMY_PROJECT_ID || 'prj_aePUcCV4V7oLKwxxHnuOYupl1QlN' }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          # bymy Vercel project (discovered via API without teamId)
+          VERCEL_PROJECT_ID: prj_aePUcCV4V7oLKwxxHnuOYupl1QlN
         run: |
           set -euo pipefail
 
@@ -49,6 +50,4 @@ jobs:
 
           echo "Deploy autosweb/ → ${VERCEL_PROJECT_ID}"
           cd autosweb
-          # Ne örökölje a CRM team ORG_ID-t — a bymy GET teamId-vel 403-at ad.
-          unset VERCEL_ORG_ID || true
           npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
