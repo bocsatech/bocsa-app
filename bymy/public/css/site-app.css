@@ -56,7 +56,7 @@ body.site-app .site-app-logo {
   letter-spacing: -0.02em;
   display: inline-flex;
   align-items: center;
-  line-height: 0;
+  line-height: 1;
 }
 
 body.site-app .bymy-logo-img,
@@ -1053,27 +1053,28 @@ body.site-app .settings-danger-btn:hover {
 body.site-app .home-nav-link,
 body.site-app .site-app-nav-link,
 body.site-app .import-nav-link {
-  padding: 0.45rem 0.85rem;
-  border-radius: 999px;
-  color: #444;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0;
+  color: #555;
   text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   background: transparent;
 }
 
 body.site-app .home-nav-link:hover,
 body.site-app .site-app-nav-link:hover,
 body.site-app .import-nav-link:hover {
-  background: #f0f2f5;
+  background: transparent;
   color: #111;
 }
 
 body.site-app .home-nav-link.active,
 body.site-app .site-app-nav-link.active,
 body.site-app .import-nav-link.active {
-  background: #111;
-  color: #fff;
+  background: transparent;
+  color: #111;
+  font-weight: 700;
 }
 
 body.site-app .import-db-badge {
