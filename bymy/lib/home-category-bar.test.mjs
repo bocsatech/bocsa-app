@@ -50,4 +50,4 @@ test("auto.html: kategória sáv 8 gombbal", () => {
   assert.ok(html.includes("/images/categories/diesel.png"));
   assert.ok(html.includes("/images/categories/berelheto.png"));
   assert.ok(html.includes("/images/categories/uj.png"));
-}
+});
