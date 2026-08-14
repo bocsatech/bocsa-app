@@ -91,10 +91,21 @@ export function initMessagingSchema(db = getDb()) {
       FOREIGN KEY (user_id) REFERENCES web_users(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS conversation_reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      conversation_id INTEGER NOT NULL,
+      reporter_id INTEGER NOT NULL,
+      reason TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+      FOREIGN KEY (reporter_id) REFERENCES web_users(id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_conversations_buyer ON conversations(buyer_id);
     CREATE INDEX IF NOT EXISTS idx_conversations_seller ON conversations(seller_id);
     CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
     CREATE INDEX IF NOT EXISTS idx_push_outbox_user ON push_outbox(user_id);
+    CREATE INDEX IF NOT EXISTS idx_conversation_reports_conv ON conversation_reports(conversation_id);
   `);
 
   ensureDemoSeller(db);
@@ -501,6 +512,21 @@ export function deleteConversation(userId, conversationId) {
   return { ok: true };
 }
 
+export function reportConversation(userId, conversationId, reason = "") {
+  initMessagingSchema();
+  const db = getDb();
+  const conv = conversationForUser(db, conversationId, userId);
+  if (!conv) {
+    const err = new Error("Beszélgetés nem található.");
+    err.status = 404;
+    throw err;
+  }
+  db.prepare(
+    `INSERT INTO conversation_reports (conversation_id, reporter_id, reason) VALUES (?, ?, ?)`
+  ).run(conversationId, userId, String(reason || "").slice(0, 500));
+  return { ok: true, message: "Köszönjük, a jelentést megkaptuk." };
+}
+
 export function blockUser(blockerId, blockedId) {
   initMessagingSchema();
   const db = getDb();
@@ -678,6 +704,14 @@ export async function handleMessagesApi(req, res, pathname) {
     if (convUnread && req.method === "POST") {
       const user = requireUser(req);
       sendJson(res, 200, markUnread(user.id, Number(convUnread[1])));
+      return true;
+    }
+
+    const convReport = pathname.match(/^\/api\/messages\/conversations\/(\d+)\/report$/);
+    if (convReport && req.method === "POST") {
+      const user = requireUser(req);
+      const body = await readJsonBody(req);
+      sendJson(res, 200, reportConversation(user.id, Number(convReport[1]), body.reason ?? ""));
       return true;
     }
 

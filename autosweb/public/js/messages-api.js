@@ -122,6 +122,13 @@ export async function deleteConversation(conversationId) {
   });
 }
 
+export async function reportConversation(conversationId, reason = "") {
+  return messagesFetch(`/api/messages/conversations/${conversationId}/report`, {
+    method: "POST",
+    body: { reason },
+  });
+}
+
 export async function blockUser(userId) {
   return messagesFetch("/api/messages/block", {
     method: "POST",

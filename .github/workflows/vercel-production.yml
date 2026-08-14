@@ -51,6 +51,10 @@ jobs:
           echo "UI overlay ebből a repóból (hub, kategóriaválasztó, …)…"
           cp -a bymy/public/. /tmp/bymy-prod/public/
 
+          echo "Messages API overlay (jelentés / schema)…"
+          mkdir -p /tmp/bymy-prod/lib
+          cp bymy/lib/messaging.mjs /tmp/bymy-prod/lib/messaging.mjs
+
           # Bridge tükör (opcionális helyi/alias használatra)
           mkdir -p autosweb/public
           cp -a bymy/public/. autosweb/public/
