@@ -23,10 +23,9 @@ import {
   addSavedSearch,
   removeSavedSearch,
   toggleSavedSearchNotify,
-  ensureDemoMessages,
-  markMessageRead,
-  deleteMessage,
 } from "./fok-data.js?v=auth20260805localdb9";
+import { initMessagesUi } from "./messages-ui.js?v=messagesSync1";
+import { listConversations } from "./messages-api.js?v=messagesSync1";
 
 const PHOTO_KEY = "bymy-avatar-photos";
 const NOTIFY_KEY = "bymy-notify-prefs";
@@ -164,11 +163,16 @@ function fmtDate(ts) {
   }
 }
 
-function refreshStats(email) {
+async function refreshStats(email) {
   const park = getParkplatz(email);
   const searches = getSavedSearches(email);
-  const messages = ensureDemoMessages(email);
-  const unread = messages.filter((m) => !m.read).length;
+  let unread = 0;
+  try {
+    const conversations = await listConversations();
+    unread = conversations.reduce((sum, c) => sum + (Number(c.unread) || 0), 0);
+  } catch {
+    unread = 0;
+  }
 
   const parkStat = document.querySelector("[data-mm-stat-park]");
   const searchStat = document.querySelector("[data-mm-stat-search]");
@@ -255,39 +259,7 @@ function renderSearches(email) {
   }
 }
 
-function renderMessages(email) {
-  const list = document.getElementById("mm-msg-list");
-  const empty = document.getElementById("mm-msg-empty");
-  const items = ensureDemoMessages(email);
-  if (!list) return;
-  list.innerHTML = "";
-  if (empty) empty.hidden = items.length > 0;
-  for (const item of items) {
-    const row = document.createElement("article");
-    row.className = `mm-list-item${item.read ? "" : " is-unread"}`;
-    row.innerHTML = `
-      <div class="mm-list-main">
-        <strong>${escapeHtml(item.subject)}</strong>
-        <span class="mm-list-meta">${escapeHtml(item.from)} · ${fmtDate(item.at)}</span>
-        <p class="mm-msg-body">${escapeHtml(item.body)}</p>
-      </div>
-      <div class="mm-list-actions">
-        <button type="button" class="settings-link-btn" data-msg-read>Olvasott</button>
-        <button type="button" class="settings-danger-btn" data-msg-del>Törlés</button>
-      </div>`;
-    row.querySelector("[data-msg-read]")?.addEventListener("click", () => {
-      markMessageRead(email, item.id);
-      renderMessages(email);
-      refreshStats(email);
-    });
-    row.querySelector("[data-msg-del]")?.addEventListener("click", () => {
-      deleteMessage(email, item.id);
-      renderMessages(email);
-      refreshStats(email);
-    });
-    list.appendChild(row);
-  }
-}
+let messagesUi = null;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -611,10 +583,20 @@ export async function initSettingsPage() {
   if (hello) hello.textContent = getDisplayName() || user.email.split("@")[0];
 
   setSection(currentSection());
-  refreshStats(user.email);
+  await refreshStats(user.email);
   renderPark(user.email);
   renderSearches(user.email);
-  renderMessages(user.email);
+  messagesUi = initMessagesUi(document.getElementById("mm-msg-root"), {
+    onUnreadChange: (n) => {
+      const badge = document.querySelector("[data-mm-msg-count]");
+      const msgStat = document.querySelector("[data-mm-stat-msg]");
+      if (badge) {
+        badge.hidden = n === 0;
+        badge.textContent = String(n);
+      }
+      if (msgStat) msgStat.textContent = `${n} olvasatlan`;
+    },
+  });
   fillProfileForm(user, loadedProfile);
   // Második kör: ha a panel most vált láthatóra, biztosan kitöltjük.
   requestAnimationFrame(() => fillProfileForm(getAuthUser(), loadedProfile || getProfile()));
@@ -626,9 +608,13 @@ export async function initSettingsPage() {
   document.querySelectorAll("[data-mm-nav]").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      setSection(link.getAttribute("data-mm-nav"));
-      if (link.getAttribute("data-mm-nav") === "fiok") {
+      const next = link.getAttribute("data-mm-nav");
+      setSection(next);
+      if (next === "fiok") {
         fillProfileForm(getAuthUser(), getProfile());
+      }
+      if (next === "uzenetek") {
+        messagesUi?.refresh?.();
       }
     });
   });

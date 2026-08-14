@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=auth20260725" />
-    <link rel="stylesheet" href="/css/site-app.css?v=settingsMobile1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=messagesSync1" />
   </head>
   <body class="site-app settings-page mm-page" data-site-page="beallitasok" data-auth-init="manual">
     <div class="local-banner">Bymy — Fiókom · user DB: ~/.bymy/ · v=localdb9</div>
@@ -208,14 +208,13 @@
           <p class="mm-empty" id="mm-search-empty" hidden>Nincs mentett keresésed.</p>
         </section>
 
-        <!-- Üzenetek -->
+        <!-- Üzenetek — ugyanaz az API, mint a mobilapp (/api/messages/*) -->
         <section class="mm-panel" data-mm-panel="uzenetek" hidden>
           <header class="mm-panel-head">
             <h2 class="mm-panel-title">Üzenetek</h2>
-            <p class="mm-panel-lead">A platformon belüli üzenetek — így biztonságosabb a kommunikáció.</p>
+            <p class="mm-panel-lead">Szerveren tárolt chat — ugyanaz a mobilappban és a weben.</p>
           </header>
-          <div id="mm-msg-list" class="mm-list"></div>
-          <p class="mm-empty" id="mm-msg-empty" hidden>Nincs üzeneted.</p>
+          <div id="mm-msg-root" class="msg-root"></div>
         </section>
 
         <!-- Hirdetésem -->
@@ -437,6 +436,6 @@
     </main>
 
     <script src="/js/site-avatar-menu.js?v=fiokMenu2" type="module"></script>
-    <script src="/js/beallitasok-app.js?v=settingsMobile1" type="module"></script>
+    <script src="/js/beallitasok-app.js?v=messagesSync1" type="module"></script>
   </body>
 </html>
