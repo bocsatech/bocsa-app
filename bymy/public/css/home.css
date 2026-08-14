@@ -656,6 +656,17 @@ body.home-page .local-banner {
   color: #111;
   text-decoration: none;
   letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.home-logo .bymy-logo-img {
+  display: block;
+  height: 40px;
+  width: auto;
+  max-width: min(160px, 46vw);
+  object-fit: contain;
 }
 
 .home-nav {

@@ -55,10 +55,27 @@ body.hub-page .local-banner {
   letter-spacing: -0.03em;
   color: var(--hub-ink);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
 }
 
 .hub-logo:hover {
   color: var(--hub-accent);
+  opacity: 0.92;
+}
+
+.bymy-logo-img {
+  display: block;
+  height: 42px;
+  width: auto;
+  max-width: min(168px, 42vw);
+  object-fit: contain;
+}
+
+.bymy-logo-img--hero {
+  height: clamp(52px, 10vw, 78px);
+  max-width: min(280px, 70vw);
 }
 
 .hub-nav {

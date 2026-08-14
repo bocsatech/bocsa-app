@@ -54,6 +54,19 @@ body.site-app .site-app-logo {
   color: #111;
   text-decoration: none;
   letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+}
+
+body.site-app .bymy-logo-img,
+body.site-app .home-logo .bymy-logo-img,
+body.site-app .site-app-logo .bymy-logo-img {
+  display: block;
+  height: 40px;
+  width: auto;
+  max-width: min(160px, 46vw);
+  object-fit: contain;
 }
 
 body.site-app .home-nav,
