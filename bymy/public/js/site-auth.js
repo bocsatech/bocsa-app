@@ -346,7 +346,7 @@ export async function saveProfile(profile) {
   return { ...data.profile, _savedTo: data.savedTo || null };
 }
 
-function loginUrl(nextPath = "/hirdetesfeladas.html") {
+export function loginUrl(nextPath = "/hirdetesfeladas.html") {
   return `/belepes.html?next=${encodeURIComponent(nextPath)}`;
 }
 

@@ -1,13 +1,5 @@
 const STORAGE_KEY = "bymy-hirdetes-category";
-
-const ICONS = {
-  chevron: `<svg class="cp-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  arrow: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  car: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 14.5h2.2l1.3-2.5h7l1.4 2.5H18a2 2 0 0 1 2 2v2.2a1.3 1.3 0 0 1-1.3 1.3h-.7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7.2" cy="18.7" r="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="15.5" cy="18.7" r="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 14.5 6.5 9.8h11L19 14.5" stroke="currentColor" stroke-width="1.5"/></svg>`,
-  van: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 15.5V9.2A1.7 1.7 0 0 1 5.2 7.5h8.3L17 11.2h2.3A1.7 1.7 0 0 1 21 12.9v2.6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7.2" cy="17.2" r="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="16.5" cy="17.2" r="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 15.5h17" stroke="currentColor" stroke-width="1.5"/></svg>`,
-  truck: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.8 15.2V7.8h10.4v7.4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.2 10.2h4.2L20 13v2.2h-6.8" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="6.2" cy="17" r="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="16.6" cy="17" r="1.5" stroke="currentColor" stroke-width="1.5"/></svg>`,
-  house: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 11.5 12 5l7.5 6.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7 10.8V19h10v-8.2" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 19v-4.5h4V19" stroke="currentColor" stroke-width="1.7"/></svg>`,
-};
+const STORAGE_VERSION = 2;
 
 const IMMO_TIPUS = [
   { id: "elado", label: "Eladó" },
@@ -36,7 +28,9 @@ function labelList(ids, catalog) {
 
 function readStored() {
   try {
-    return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null");
+    const raw = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null");
+    if (!raw || raw.v !== STORAGE_VERSION) return null;
+    return raw;
   } catch {
     return null;
   }
@@ -47,10 +41,15 @@ function writeStored(value) {
     sessionStorage.removeItem(STORAGE_KEY);
     return;
   }
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...value, v: STORAGE_VERSION }));
 }
 
-export function initCategoryPicker({ onVehicleSelected, onIngatlanSelected, onReset } = {}) {
+export function initCategoryPicker({
+  onVehicleSelected,
+  onIngatlanSelected,
+  onReset,
+  requireLogin,
+} = {}) {
   const root = document.getElementById("category-picker");
   if (!root) return null;
 
@@ -75,106 +74,6 @@ export function initCategoryPicker({ onVehicleSelected, onIngatlanSelected, onRe
   if (stored?.immoTipus) state.immoTipus = stored.immoTipus;
   if (stored?.immoKategoria) state.immoKategoria = stored.immoKategoria;
 
-  root.innerHTML = `
-    <header class="category-picker-head">
-      <h1>Hirdetés feladás</h1>
-      <p>Milyen hirdetést adsz fel?</p>
-    </header>
-    <div class="cp-stack" role="list">
-      <section class="cp-group" data-accent="car" data-group="auto" role="listitem">
-        <button type="button" class="cp-group-toggle" data-toggle-group="auto" aria-expanded="true">
-          <img class="cp-group-thumb" src="/images/categories/benzin.jpg" alt="" width="52" height="52" />
-          <span class="cp-group-copy">
-            <strong>Autó hirdetés</strong>
-            <span>Személyautó és más</span>
-          </span>
-          ${ICONS.chevron}
-        </button>
-        <div class="cp-group-body" data-group-body="auto">
-          <button type="button" class="cp-option" data-pick='{"vertical":"auto","subtype":"szemelyauto","label":"Személyautó"}'>
-            <span class="cp-option-bar" aria-hidden="true"></span>
-            <span class="cp-option-icon">${ICONS.car}</span>
-            <span class="cp-option-copy"><strong>Személyautó</strong></span>
-            <span class="cp-option-trail">${ICONS.arrow}</span>
-          </button>
-          <button type="button" class="cp-option is-soon" disabled aria-disabled="true">
-            <span class="cp-option-bar" aria-hidden="true"></span>
-            <span class="cp-option-icon">${ICONS.car}</span>
-            <span class="cp-option-copy"><strong>Leasing hirdetés</strong></span>
-            <span class="cp-option-trail"><span class="cp-soon">Hamarosan</span></span>
-          </button>
-          <button type="button" class="cp-option is-soon" disabled aria-disabled="true">
-            <span class="cp-option-bar" aria-hidden="true"></span>
-            <span class="cp-option-icon">${ICONS.car}</span>
-            <span class="cp-option-copy"><strong>Bérautó hirdetés</strong></span>
-            <span class="cp-option-trail"><span class="cp-soon">Hamarosan</span></span>
-          </button>
-          <button type="button" class="cp-option is-soon" disabled aria-disabled="true">
-            <span class="cp-option-bar" aria-hidden="true"></span>
-            <span class="cp-option-icon">${ICONS.van}</span>
-            <span class="cp-option-copy"><strong>Bérelhető lakókocsi hirdetés</strong></span>
-            <span class="cp-option-trail"><span class="cp-soon">Hamarosan</span></span>
-          </button>
-        </div>
-      </section>
-
-      <section class="cp-group" data-accent="truck" data-group="teher" role="listitem">
-        <button type="button" class="cp-group-toggle" data-toggle-group="teher" aria-expanded="false">
-          <img class="cp-group-thumb" src="/images/categories/diesel.png" alt="" width="52" height="52" />
-          <span class="cp-group-copy">
-            <strong>Teherautó hirdetés</strong>
-            <span>Kisteher és teherautó</span>
-          </span>
-          ${ICONS.chevron}
-        </button>
-        <div class="cp-group-body" data-group-body="teher">
-          <button type="button" class="cp-option" data-pick='{"vertical":"teher","subtype":"kisteher","label":"Kisteher 3,5 t-ig"}'>
-            <span class="cp-option-bar" aria-hidden="true"></span>
-            <span class="cp-option-icon">${ICONS.van}</span>
-            <span class="cp-option-copy">
-              <strong>Kisteher 3,5 t-ig</strong>
-              <span>Max. 3,5 tonna</span>
-            </span>
-            <span class="cp-option-trail">${ICONS.arrow}</span>
-          </button>
-          <button type="button" class="cp-option" data-pick='{"vertical":"teher","subtype":"teherauto","label":"Teherautó 3,5 t-tól"}'>
-            <span class="cp-option-bar" aria-hidden="true"></span>
-            <span class="cp-option-icon">${ICONS.truck}</span>
-            <span class="cp-option-copy">
-              <strong>Teherautó 3,5 t-tól</strong>
-              <span>3,5 tonnától</span>
-            </span>
-            <span class="cp-option-trail">${ICONS.arrow}</span>
-          </button>
-        </div>
-      </section>
-
-      <section class="cp-group" data-accent="immo" data-group="ingatlan" role="listitem">
-        <button type="button" class="cp-group-toggle" data-toggle-group="ingatlan" aria-expanded="false">
-          <span class="cp-group-thumb cp-group-thumb--icon" aria-hidden="true">${ICONS.house}</span>
-          <span class="cp-group-copy">
-            <strong>Ingatlan hirdetések</strong>
-            <span>Eladó, kiadó, kategóriák</span>
-          </span>
-          ${ICONS.chevron}
-        </button>
-        <div class="cp-group-body" data-group-body="ingatlan">
-          <div class="cp-immo-rows">
-            <button type="button" class="cp-immo-row" data-open-sheet="tipus">
-              <strong>Típus</strong>
-              <span class="cp-immo-row-value"><span data-immo-tipus-label>Mindegy</span>${ICONS.arrow}</span>
-            </button>
-            <button type="button" class="cp-immo-row" data-open-sheet="kategoria">
-              <strong>Kategória</strong>
-              <span class="cp-immo-row-value"><span data-immo-kat-label>Mindegy</span>${ICONS.arrow}</span>
-            </button>
-          </div>
-          <button type="button" class="cp-immo-continue" data-immo-continue>Tovább az ingatlan feladáshoz</button>
-        </div>
-      </section>
-    </div>
-  `;
-
   const backdrop = document.createElement("div");
   backdrop.className = "cp-sheet-backdrop";
   backdrop.hidden = true;
@@ -196,7 +95,6 @@ export function initCategoryPicker({ onVehicleSelected, onIngatlanSelected, onRe
       <div class="cp-toggle-list" data-sheet-list></div>
     </div>
   `;
-
   document.body.append(backdrop, sheet);
 
   function syncOpenGroups() {
@@ -240,17 +138,22 @@ export function initCategoryPicker({ onVehicleSelected, onIngatlanSelected, onRe
     onReset?.();
   }
 
-  function showVehicleWizard(selection) {
+  async function showVehicleWizard(selection) {
     writeStored(selection);
     setHiddenFields(selection);
+
+    if (typeof requireLogin === "function") {
+      const ok = await requireLogin(selection);
+      if (!ok) return;
+    }
+
     pickerShell?.setAttribute("hidden", "");
     stub?.setAttribute("hidden", "");
     wizardShell?.removeAttribute("hidden");
     stepsBar?.removeAttribute("hidden");
     if (contextBar && contextLabel) {
       contextBar.removeAttribute("hidden");
-      const group =
-        selection.vertical === "teher" ? "Teherautó" : "Autó";
+      const group = selection.vertical === "teher" ? "Teherautó" : "Autó";
       contextLabel.textContent = `${group} · ${selection.label}`;
     }
     onVehicleSelected?.(selection);
@@ -334,7 +237,7 @@ export function initCategoryPicker({ onVehicleSelected, onIngatlanSelected, onRe
     }
 
     const pick = event.target.closest("[data-pick]");
-    if (pick) {
+    if (pick && !pick.disabled) {
       root.querySelectorAll(".cp-option.is-active").forEach((el) => el.classList.remove("is-active"));
       pick.classList.add("is-active");
       let payload;
@@ -343,7 +246,7 @@ export function initCategoryPicker({ onVehicleSelected, onIngatlanSelected, onRe
       } catch {
         return;
       }
-      showVehicleWizard(payload);
+      void showVehicleWizard(payload);
       return;
     }
 
@@ -386,10 +289,14 @@ export function initCategoryPicker({ onVehicleSelected, onIngatlanSelected, onRe
   syncOpenGroups();
   syncImmoLabels();
 
-  // Restore previous vehicle selection only if user refreshed mid-flow
-  if (stored?.vertical === "auto" || stored?.vertical === "teher") {
-    showVehicleWizard(stored);
-  } else if (stored?.vertical === "ingatlan") {
+  const params = new URLSearchParams(window.location.search);
+  const shouldContinue =
+    params.get("continue") === "1" &&
+    (stored?.vertical === "auto" || stored?.vertical === "teher");
+
+  if (shouldContinue) {
+    void showVehicleWizard(stored);
+  } else if (stored?.vertical === "ingatlan" && params.get("continue") === "1") {
     showIngatlanStub(stored);
   } else {
     showPicker();

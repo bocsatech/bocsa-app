@@ -32,7 +32,9 @@ test("belepes.html: belépő űrlap", () => {
   assert.ok(html.includes('name="password"'));
 });
 
-test("hirdetesfeladas.html: auth védelem", () => {
+test("hirdetesfeladas.html: kategóriaválasztó belépés nélkül is látszik", () => {
   const html = readFileSync(join(PUBLIC, "hirdetesfeladas.html"), "utf8");
-  assert.ok(html.includes("requireAuthForPage"));
+  assert.ok(html.includes("category-picker"));
+  assert.ok(html.includes("Személyautó"));
+  assert.ok(!html.includes("requireAuthForPage"));
 });
