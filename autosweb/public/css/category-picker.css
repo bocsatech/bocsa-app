@@ -20,13 +20,19 @@
   background: var(--cp-bg, #e8edf3);
   border-radius: 16px;
   padding: 1rem 1rem 1.25rem;
-  margin: 0 0 1rem;
+  margin: 0;
+  color: var(--cp-ink, #1a1d24);
 }
 
 .category-picker {
   max-width: 560px;
   margin: 0 auto;
   padding: 0.25rem 0 0.5rem;
+  color: inherit;
+}
+
+.category-picker button {
+  color: inherit;
 }
 
 .category-picker[hidden],
