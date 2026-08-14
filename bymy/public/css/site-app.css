@@ -63,9 +63,9 @@ body.site-app .bymy-logo-img,
 body.site-app .home-logo .bymy-logo-img,
 body.site-app .site-app-logo .bymy-logo-img {
   display: block;
-  height: 40px;
+  height: 36px;
   width: auto;
-  max-width: min(160px, 46vw);
+  max-width: min(150px, 28vw);
   object-fit: contain;
 }
 
