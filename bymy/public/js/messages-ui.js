@@ -342,7 +342,6 @@ export function initMessagesUi(root, { onUnreadChange } = {}) {
     try {
       await sendMessage(openConv.id, { body: text });
       if (els.draft) els.draft.value = "";
-      draft = "";
       const data = await listMessages(openConv.id);
       openConv = data.conversation || openConv;
       messages = data.messages;
