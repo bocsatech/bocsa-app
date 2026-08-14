@@ -46,15 +46,15 @@ Gyártmány, Modell, Típus, Üzemanyag, Gyártási év, Hengerűrtartalom, kW, 
 
 A listából tanult modell becsli a vételárat.
 
-### Webes felület (Autosweb)
+### Webes felület (Bymy)
 
-http://127.0.0.1:3456/fugveny.html
+https://bymy.vercel.app/fugveny.html
 
 - listák betöltése (`~/Downloads/fugveny`)
 - CatBoost tanítás / lista pontozás
 - árbecslés + mentett lekérdezések
 
-Autosweb indítás után nyisd meg a **Függvény** menüpontot.
+Bymy indítás után nyisd meg a **Függvény** menüpontot.
 
 ### Parancssor
 

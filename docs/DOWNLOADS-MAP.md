@@ -10,12 +10,12 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 | **Hasznaltauto Pro** | `hasznaltauto pro` | `cd ~/Downloads/hasznaltauto\ pro && npm start` | slot / 3848 |
 | **Mobile.de Pro** | `mobilede pro` | `cd ~/Downloads/mobilede\ pro && npm start` | slot / SMS +49 |
 | Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
-| **Autosweb** (hirdetésfeladás) | `autosweb` | Asztal: Autosweb-indito.command | http://127.0.0.1:3456 |
+| **Bymy** (hirdetésfeladás) | `bymy` | Asztal: Bymy-indito.command | https://bymy.vercel.app |
 | **BOCSA Pro Linux** (vékony kliens) | `bocsa Pro linux` | `~/Desktop/bocsa-pro-linux-indito.sh` | SSH tunell → szerver :3850 |
 | Hasznaltauto scraper | `hasznaltauto-scraper` | `npm start` | — |
 | **Függvény / átlagszámolás** | `fugveny` | `cd ~/Downloads/fugveny/program && npm start` | CSV/JSON export |
 | **Függvény CatBoost** | `fugveny/uj lista/catboost` | `~/Downloads/fugveny/Catboost-tanitas.command` | ár-modell |
-| **Függvény web** | Autosweb oldal | http://127.0.0.1:3456/fugveny.html | listák + tanítás + lekérdezés |
+| **Függvény web** | Bymy oldal | https://bymy.vercel.app/fugveny.html | listák + tanítás + lekérdezés |
 
 ## Telepítés / szétválasztás (Mac, egyszer)
 
