@@ -1,0 +1,6 @@
+{
+  "framework": null,
+  "installCommand": "echo skip-install",
+  "buildCommand": "cp -a ../bymy/public/. ./public/",
+  "outputDirectory": "public"
+}

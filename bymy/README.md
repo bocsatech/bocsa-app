@@ -3,7 +3,7 @@
 **Élő oldal:** https://bymy.vercel.app  
 **Későbbi domain:** bymy.hu
 
-> **Vercel:** a repo gyökerében az `autosweb` → `bymy` symlink, hogy a régi Root Directory (`autosweb`) is a friss kódot kapja — nem kell kézzel átállítani.
+> **Vercel:** az `autosweb/` mappa bridge a régi Root Directory-hoz — buildkor a `bymy/public` tartalmát másolja. Nem kell kézzel átállítani.
 
 Hasznaltauto.hu-ról importál (olvasás), de soha nem ad fel hirdetést oda.
 
