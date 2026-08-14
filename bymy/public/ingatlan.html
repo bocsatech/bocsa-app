@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/images/bymy-logo.png?v=1" type="image/png" />
-    <meta name="bymy-version" content="iadHub20260814" />
+    <meta name="bymy-version" content="hubNav1" />
     <title>Ingatlan — Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,7 +13,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/site-app.css?v=settingsMobile1" />
-    <link rel="stylesheet" href="/css/hub.css?v=iadHub20260814" />
+    <link rel="stylesheet" href="/css/hub.css?v=hubNav1" />
     <style>
       .immo-search {
         margin-top: 1.25rem;
@@ -72,21 +72,17 @@
     </style>
   </head>
   <body class="hub-page site-page site-app" data-site-page="ingatlan">
-    <div class="local-banner">Bymy — Ingatlan</div>
-
     <header class="hub-header">
       <div class="hub-header-inner">
-        <a class="hub-logo" href="/" aria-label="Bymy.hu"><img class="bymy-logo-img" src="/images/bymy-logo.png?v=1" alt="Bymy.hu" width="132" height="62" decoding="async" /></a>
-        <nav class="hub-nav" aria-label="Fő kategóriák">
+        <a class="hub-logo" href="/">Bymy</a>
+        <nav class="hub-nav" aria-label="Főmenü">
           <a class="hub-nav-link" href="/">Kezdőlap</a>
+          <a class="hub-nav-link" href="/auto.html">Auto</a>
+          <a class="hub-nav-link" href="/teherauto.html">Teherauto</a>
           <a class="hub-nav-link active" href="/ingatlan.html">Ingatlan</a>
-          <a class="hub-nav-link" href="/auto.html">Autó &amp; Motor</a>
-        </nav>
-        <nav class="hub-nav hub-nav--tools" aria-label="Eszközök">
-          <a class="hub-nav-link" href="/import.html">Import</a>
-          <a class="hub-nav-link" href="/listings.html">Hirdetések</a>
-          <a class="hub-nav-link" href="/fugveny.html">Függvény</a>
-          <a class="hub-nav-link" href="/partners.html">Partnerek</a>
+          <a class="hub-nav-link" href="/partners.html">Ajánlások</a>
+          <a class="hub-nav-link" href="/beallitasok.html?szekcio=uzenetek">Üzenetek</a>
+          <a class="hub-nav-link" href="/beallitasok.html">Beállítások</a>
         </nav>
         <div class="hub-header-actions site-header-actions">
           <div class="site-header-auth-row">
@@ -94,13 +90,13 @@
             <a class="hub-btn hub-btn--ghost" href="/regisztracio.html" data-auth-register>Regisztráció</a>
             <a class="hub-btn hub-btn--primary" href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás</a>
           </div>
-            <div class="site-header-avatar-wrap" data-avatar-menu>
-              <button type="button" class="site-header-avatar" data-auth-avatar data-avatar-toggle aria-expanded="false" aria-haspopup="menu" aria-label="Fiók" title="Fiók">
-                <span data-avatar-letter>A</span>
-                <img data-avatar-img alt="" hidden width="44" height="44" />
-              </button>
-              <div class="site-avatar-dropdown site-avatar-dropdown--fiok" data-avatar-dropdown role="menu" hidden></div>
-            </div>
+          <div class="site-header-avatar-wrap" data-avatar-menu>
+            <button type="button" class="site-header-avatar" data-auth-avatar data-avatar-toggle aria-expanded="false" aria-haspopup="menu" aria-label="Fiók" title="Fiók">
+              <span data-avatar-letter>A</span>
+              <img data-avatar-img alt="" hidden width="44" height="44" />
+            </button>
+            <div class="site-avatar-dropdown site-avatar-dropdown--fiok" data-avatar-dropdown role="menu" hidden></div>
+          </div>
         </div>
       </div>
     </header>
