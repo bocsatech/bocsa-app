@@ -1,55 +1,47 @@
 #!/bin/bash
-# Dupla katt / Terminál: feltölti a ~/Downloads/bymy web (vagy Letöltések/bymy web) mappát.
-# Csak a bymy/ fa — NEM a teljes monorepo (elkerüli az ékezetes .app unzip hibákat).
+# Megbízható másoló: tar.gz + csak bymy/ (nincs unzip, nincs ékezetes .app)
 set -euo pipefail
+export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
-export LANG="${LANG:-en_US.UTF-8}"
-export LC_ALL="${LC_ALL:-en_US.UTF-8}"
-
-if [ -d "${HOME}/Letöltések" ]; then
-  ROOT="${HOME}/Letöltések"
-else
-  ROOT="${HOME}/Downloads"
-fi
+if [ -d "${HOME}/Letöltések" ]; then ROOT="${HOME}/Letöltések"; else ROOT="${HOME}/Downloads"; fi
 DEST="${ROOT}/bymy web"
 mkdir -p "$DEST"
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
 
 echo "Bymy web → $DEST"
-TMP=$(mktemp -d)
-cleanup() { rm -rf "$TMP"; }
-trap cleanup EXIT
+echo "Letöltés (tar.gz, csak bymy/)…"
+curl -sfL "https://codeload.github.com/bocsatech/bocsa-app/tar.gz/refs/heads/main" -o "$TMP/repo.tgz"
 
-echo "Letöltés GitHub main (csak bymy/)…"
+# Csak a bymy mappa a tarballból
+mkdir -p "$TMP/extract"
+tar -xzf "$TMP/repo.tgz" -C "$TMP/extract" --strip-components=2 \
+  "$(tar -tzf "$TMP/repo.tgz" | head -1 | cut -d/ -f1)/bymy"
 
-# Sparse clone — nincs teljes zip, nincs ékezetes launcher unzip
-if command -v git >/dev/null 2>&1; then
-  git clone --depth 1 --filter=blob:none --sparse \
-    https://github.com/bocsatech/bocsa-app.git "$TMP/repo"
-  (
-    cd "$TMP/repo"
-    git sparse-checkout set bymy
-  )
-  SRC="$TMP/repo/bymy"
+# strip-components néha máshogy nestel — keressük a public-ot
+SRC=""
+if [ -d "$TMP/extract/public" ]; then
+  SRC="$TMP/extract"
+elif [ -d "$TMP/extract/bymy/public" ]; then
+  SRC="$TMP/extract/bymy"
 else
-  # Fallback: zip, de CSAK bymy/ kicsomagolása, overwrite, UTF-8
-  curl -sfL "https://github.com/bocsatech/bocsa-app/archive/refs/heads/main.zip" -o "$TMP/repo.zip"
-  mkdir -p "$TMP/extract"
-  if unzip -O UTF-8 -o -q "$TMP/repo.zip" "bocsa-app-main/bymy/*" -d "$TMP/extract" 2>/dev/null; then
-    :
-  elif ditto -x -k "$TMP/repo.zip" "$TMP/extract" 2>/dev/null; then
-    :
-  else
-    unzip -o -q "$TMP/repo.zip" "bocsa-app-main/bymy/*" -d "$TMP/extract" || true
-  fi
-  SRC="$TMP/extract/bocsa-app-main/bymy"
+  SRC=$(find "$TMP/extract" -type d -name public -path '*/bymy/public' 2>/dev/null | head -1 | sed 's|/public$||')
 fi
 
-if [ ! -d "$SRC/public" ]; then
-  echo "✗ HIBA: nincs bymy/public a letöltésben"
+if [ -z "${SRC}" ] || [ ! -d "${SRC}/public" ]; then
+  # Fallback: teljes bymy fa kinyerése név szerint
+  tar -xzf "$TMP/repo.tgz" -C "$TMP/extract" --wildcards '*/bymy/*' 2>/dev/null || \
+  tar -xzf "$TMP/repo.tgz" -C "$TMP/extract"
+  SRC=$(find "$TMP/extract" -type d -name bymy | head -1)
+fi
+
+if [ ! -d "${SRC}/public" ]; then
+  echo "✗ HIBA: nem találom a bymy/public mappát"
+  find "$TMP/extract" -maxdepth 3 -type d | head -40
   exit 1
 fi
 
-echo "Másolás…"
+echo "Másolás innen: $SRC"
 cp "$SRC/package.json" "$SRC/server.mjs" "$DEST/" 2>/dev/null || true
 cp "$SRC/package-lock.json" "$SRC/vercel.json" "$DEST/" 2>/dev/null || true
 rm -rf "$DEST/lib" "$DEST/public" "$DEST/scripts" "$DEST/data"
@@ -59,21 +51,10 @@ cp -R "$SRC/public" "$DEST/public"
 [ -d "$SRC/data" ] && cp -R "$SRC/data" "$DEST/data"
 
 cat > "$DEST/README-HELYI.txt" <<'EOR'
-Bymy weboldal — helyi másolat
-==============================
-Ez a mappa a weboldal gépen tartandó helye.
-Ne a bocsa-app-ba mentsd a webes munkát.
+Bymy web — helyi másolat (Letöltések/bymy web)
 Élő: https://bymy.vercel.app
 EOR
 
-COUNT=$(find "$DEST" -type f | wc -l | tr -d ' ')
-echo ""
-echo "Kész: $DEST"
-echo "Fájlok: $COUNT"
-if [ ! -f "$DEST/public/index.html" ]; then
-  echo "✗ HIBA: index.html hiányzik"
-  exit 1
-fi
+echo "Kész. Fájlok: $(find "$DEST" -type f | wc -l | tr -d ' ')"
+test -f "$DEST/public/index.html"
 open "$DEST" 2>/dev/null || true
-echo ""
-echo "Ha Terminálból futtattad: ablak bezárható."
