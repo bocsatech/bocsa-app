@@ -70,15 +70,26 @@ body.hub-page .local-banner {
 
 .bymy-logo-img {
   display: block;
-  height: 42px;
+  height: 36px;
   width: auto;
-  max-width: min(168px, 42vw);
+  max-width: min(150px, 28vw);
   object-fit: contain;
 }
 
 .bymy-logo-img--hero {
   height: clamp(52px, 10vw, 78px);
   max-width: min(280px, 70vw);
+}
+
+.hub-home-logo {
+  margin: 0 0 1rem;
+  text-align: center;
+}
+
+.bymy-logo-img--home {
+  height: clamp(64px, 12vw, 96px);
+  max-width: min(320px, 70vw);
+  margin: 0 auto;
 }
 
 .hub-nav {
