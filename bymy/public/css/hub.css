@@ -361,3 +361,139 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
     width: 100%;
   }
 }
+
+/* —— Kezdőlap feed (willhaben-szerű szekciók) —— */
+body.hub-page--feed {
+  background: #fff;
+  font-family: "DM Sans", system-ui, sans-serif;
+  color: #111;
+}
+
+.hub-feed {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.25rem 0 3rem;
+}
+
+.hf-section {
+  margin: 0 0 1.75rem;
+  padding: 0;
+}
+
+.hf-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.hf-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #111;
+}
+
+.hf-all {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1565c0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.hf-all:hover {
+  text-decoration: underline;
+}
+
+.hf-rail {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0 1.25rem 0.35rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.hf-rail::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hf-rail::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.hf-card {
+  flex: 0 0 148px;
+  scroll-snap-align: start;
+  text-decoration: none;
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.hf-card--wide {
+  flex-basis: 200px;
+}
+
+.hf-card-media {
+  display: block;
+  aspect-ratio: 1;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #c8c8c8;
+  border-radius: 12px;
+}
+
+.hf-card-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.25;
+}
+
+.hf-rail--tiles {
+  gap: 0.85rem;
+}
+
+.hf-tile {
+  flex: 0 0 120px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  color: #111;
+  background: #f3f3f3;
+  border: 1px solid #c8c8c8;
+  border-radius: 12px;
+  padding: 0.85rem 0.5rem;
+}
+
+.hf-tile-icon {
+  color: #555;
+  display: flex;
+}
+
+.hf-tile-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .hf-title {
+    font-size: 1.1rem;
+  }
+
+  .hf-card {
+    flex-basis: 132px;
+  }
+}

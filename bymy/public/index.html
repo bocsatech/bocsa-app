@@ -2,23 +2,23 @@
 <html lang="hu">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="navInk1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-    <meta name="bymy-version" content="navInk1" />
+    <meta name="bymy-version" content="homeFeed1" />
     <title>Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;650;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/site-app.css?v=navInk1" />
-    <link rel="stylesheet" href="/css/hub.css?v=navInk1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=homeFeed1" />
+    <link rel="stylesheet" href="/css/hub.css?v=homeFeed1" />
   </head>
-  <body class="hub-page site-page site-app" data-site-page="hub">
+  <body class="hub-page site-page site-app hub-page--feed" data-site-page="hub">
     <header class="hub-header">
       <div class="hub-header-inner">
-                <a class="hub-logo" href="/">Bymy</a>
+        <a class="hub-logo" href="/">Bymy</a>
         <nav class="hub-nav" aria-label="Főmenü">
           <a class="hub-nav-link active" href="/">Kezdőlap</a>
           <a class="hub-nav-link" href="/auto.html">Auto</a>
@@ -45,47 +45,111 @@
       </div>
     </header>
 
-    <section class="hub-hero hub-hero--empty" aria-hidden="true"></section>
-
-    <main class="hub-main">
-      <section class="hub-verticals" aria-label="Fő kategóriák">
-        <a class="hub-card hub-card--ingatlan" href="/ingatlan.html">
-          <div>
-            <p class="hub-card-kicker">Ingatlan</p>
-            <h2 class="hub-card-title">Találd meg az új otthonod</h2>
-            <p class="hub-card-text">Lakás, ház, telek — vétel és bérlés egy átlátható felületen.</p>
-          </div>
-          <span class="hub-card-cta">Ingatlan keresése →</span>
-        </a>
-        <a class="hub-card hub-card--auto" href="/auto.html">
-          <div>
-            <p class="hub-card-kicker">Autó &amp; Motor</p>
-            <h2 class="hub-card-title">Autók és motorok</h2>
-            <p class="hub-card-text">Használt és új járművek, szűrés, lista és hirdetésfeladás.</p>
-          </div>
-          <span class="hub-card-cta">Járművek böngészése →</span>
-        </a>
-      </section>
-
-      <section class="hub-sell" aria-label="Hirdetésfeladás">
-        <div>
-          <h2>Eladnád az autódat vagy az ingatlanodat?</h2>
-          <p>Hozz létre hirdetést pár lépésben — ugyanazzal a Bymy fiókkal.</p>
+    <main class="hub-feed" aria-label="Kezdőlap">
+      <section class="hf-section" data-hf="kiemelt">
+        <div class="hf-head">
+          <h2 class="hf-title">Kiemelt hirdetések</h2>
+          <a class="hf-all" href="/auto.html">Összes</a>
         </div>
-        <a class="hub-btn hub-btn--primary" href="/hirdetesfeladas.html" data-auth-guard>Új hirdetés</a>
+        <div class="hf-rail" role="list">
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+        </div>
       </section>
 
-      <section class="hub-more" aria-label="További oldalak">
-        <h2>További oldalak</h2>
-        <div class="hub-more-grid">
-          <a href="/import.html">Import<span>Használtautó.hu beolvasás</span></a>
-          <a href="/listings.html">Hirdetések<span>Mentett és feladott listák</span></a>
-          <a href="/fugveny.html">Függvény<span>Árbecslés / CatBoost</span></a>
-          <a href="/partners.html">Partnerek<span>Szolgáltató ajánlók</span></a>
-          <a href="/beallitasok.html">Fiókom<span>Profil és beállítások</span></a>
-          <a href="/belepes.html">Belépés<span>Meglévő fiók</span></a>
-          <a href="/regisztracio.html">Regisztráció<span>Új fiók</span></a>
-          <a href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás<span>Új hirdetés varázsló</span></a>
+      <section class="hf-section" data-hf="kozelben">
+        <div class="hf-head">
+          <h2 class="hf-title">Autók a közelben</h2>
+          <a class="hf-all" href="/auto.html">Összes</a>
+        </div>
+        <div class="hf-rail" role="list">
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+        </div>
+      </section>
+
+      <section class="hf-section" data-hf="szolgaltatasok">
+        <div class="hf-head">
+          <h2 class="hf-title">Szolgáltatások</h2>
+          <a class="hf-all" href="/partners.html">Összes</a>
+        </div>
+        <div class="hf-rail" role="list">
+          <a class="hf-card" href="/partners.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/partners.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/partners.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+        </div>
+      </section>
+
+      <section class="hf-section" data-hf="ingatlanok">
+        <div class="hf-head">
+          <h2 class="hf-title">Ingatlanok</h2>
+          <a class="hf-all" href="/ingatlan.html">Összes</a>
+        </div>
+        <div class="hf-rail" role="list">
+          <a class="hf-card" href="/ingatlan.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/ingatlan.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/ingatlan.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+        </div>
+      </section>
+
+      <section class="hf-section" data-hf="ajanlasok">
+        <div class="hf-head">
+          <h2 class="hf-title">Ajánlások</h2>
+          <a class="hf-all" href="/partners.html">Összes</a>
+        </div>
+        <div class="hf-rail" role="list">
+          <a class="hf-card hf-card--wide" href="/partners.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card hf-card--wide" href="/partners.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card hf-card--wide" href="/partners.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+        </div>
+      </section>
+
+      <section class="hf-section" data-hf="elmentett">
+        <div class="hf-head">
+          <h2 class="hf-title">Elmentett hirdetések</h2>
+        </div>
+        <div class="hf-rail hf-rail--tiles" role="list">
+          <a class="hf-tile" href="/beallitasok.html?szekcio=parkolo" role="listitem">
+            <span class="hf-tile-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 16h14M6.5 16l1.2-6.5h8.6L17.5 16M8 9.5h8M9 16v2.2M15 16v2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.2 9.5 9.4 6.8h5.2l1.2 2.7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="hf-tile-label">Autó</span>
+          </a>
+          <a class="hf-tile" href="/ingatlan.html" role="listitem">
+            <span class="hf-tile-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4.5 11.5 12 5l7.5 6.5V19a1 1 0 0 1-1 1h-4.2v-4.5h-4.6V20H5.5a1 1 0 0 1-1-1v-7.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="hf-tile-label">Ingatlan</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="hf-section" data-hf="videok">
+        <div class="hf-head">
+          <h2 class="hf-title">Ajánlott videók</h2>
+          <a class="hf-all" href="/auto.html">Összes</a>
+        </div>
+        <div class="hf-rail" role="list">
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/auto.html" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+        </div>
+      </section>
+
+      <section class="hf-section" data-hf="kereseseid">
+        <div class="hf-head">
+          <h2 class="hf-title">Kereséseid</h2>
+          <a class="hf-all" href="/beallitasok.html?szekcio=keresesek">Összes</a>
+        </div>
+        <div class="hf-rail" role="list">
+          <a class="hf-card" href="/beallitasok.html?szekcio=keresesek" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/beallitasok.html?szekcio=keresesek" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
+          <a class="hf-card" href="/beallitasok.html?szekcio=keresesek" role="listitem"><span class="hf-card-media"></span><span class="hf-card-label">Hamarosan</span></a>
         </div>
       </section>
     </main>
