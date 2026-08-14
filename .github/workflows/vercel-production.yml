@@ -1,5 +1,6 @@
 # Deploy main → Vercel Production
-# Részletes lépések: .github/DEPLOY-WEB.md
+# 1) bocsa-app (Next.js CRM)
+# 2) bymy / autosweb (statikus oldal → bymy.vercel.app)
 name: Deploy Production
 
 on:
@@ -28,9 +29,58 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Deploy to Vercel
+      - name: Deploy bocsa-app (CRM) to Vercel
         run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy Bymy (autosweb) to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          set -euo pipefail
+
+          TEAM_QS=""
+          if [ -n "${VERCEL_ORG_ID}" ]; then
+            TEAM_QS="teamId=${VERCEL_ORG_ID}"
+          fi
+
+          echo "Bymy projekt keresése…"
+          RESP=$(curl -fsS -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            "https://api.vercel.com/v9/projects?${TEAM_QS}&search=bymy&limit=20")
+
+          export VERCEL_PROJECT_ID
+          VERCEL_PROJECT_ID=$(node <<'NODE' "$RESP"
+          const fs = require("fs");
+          const raw = fs.readFileSync(0, "utf8");
+          const d = JSON.parse(raw);
+          const list = d.projects || [];
+          const hit =
+            list.find((p) => p.name === "bymy") ||
+            list.find((p) =>
+              (p.targets?.production?.alias || []).some((a) =>
+                String(a).includes("bymy.vercel.app")
+              )
+            ) ||
+            list.find((p) => String(p.name || "").toLowerCase().includes("bymy"));
+          if (!hit) {
+            console.error(
+              "Nincs bymy projekt. Találatok:",
+              list.map((p) => p.name).join(", ") || "(üres)"
+            );
+            process.exit(1);
+          }
+          console.error("Talált projekt:", hit.name, hit.id);
+          process.stdout.write(hit.id);
+          NODE
+          )
+
+          echo "Sync bymy/public → autosweb/public"
+          cp -a bymy/public/. autosweb/public/
+
+          echo "Deploy autosweb/ → ${VERCEL_PROJECT_ID}"
+          cd autosweb
+          npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
