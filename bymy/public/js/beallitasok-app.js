@@ -24,8 +24,8 @@ import {
   removeSavedSearch,
   toggleSavedSearchNotify,
 } from "./fok-data.js?v=auth20260805localdb9";
-import { initMessagesUi } from "./messages-ui.js?v=messagesWh1";
-import { listConversations } from "./messages-api.js?v=messagesWh1";
+import { initMessagesUi } from "./messages-ui.js?v=messagesWh2";
+import { listConversations } from "./messages-api.js?v=messagesWh2";
 
 const PHOTO_KEY = "bymy-avatar-photos";
 const NOTIFY_KEY = "bymy-notify-prefs";
