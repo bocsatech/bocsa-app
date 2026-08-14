@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=partners20260725" />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730avatar2" />
+    <link rel="stylesheet" href="/css/site-app.css?v=fiokMenu2" />
     <link rel="stylesheet" href="/css/partners.css?v=partners20260725" />
   </head>
   <body class="site-app partners-page" data-site-page="partners">
@@ -26,6 +26,15 @@
           <a class="import-nav-link" href="/fugveny.html">Függvény</a>
           <a class="import-nav-link active" href="/partners.html">Partnerek</a>
         </nav>
+        <div class="header-actions site-header-actions">
+            <div class="site-header-avatar-wrap" data-avatar-menu>
+              <button type="button" class="site-header-avatar" data-auth-avatar data-avatar-toggle aria-expanded="false" aria-haspopup="menu" aria-label="Fiók" title="Fiók">
+                <span data-avatar-letter>A</span>
+                <img data-avatar-img alt="" hidden width="44" height="44" />
+              </button>
+              <div class="site-avatar-dropdown site-avatar-dropdown--fiok" data-avatar-dropdown role="menu" hidden></div>
+            </div>
+        </div>
       </div>
     </header>
 
@@ -130,5 +139,7 @@
       }
     </script>
     <script type="module" src="/js/partners-app.js?v=partners20260725"></script>
+      <script src="/js/site-auth.js?v=fiokMenu2" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=fiokMenu2" type="module"></script>
   </body>
 </html>

@@ -12,7 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;650;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/site-app.css?v=auth20260730avatar3" />
+    <link rel="stylesheet" href="/css/site-app.css?v=fiokMenu2" />
     <link rel="stylesheet" href="/css/hub.css?v=iadHub20260814" />
     <style>
       .immo-search {
@@ -94,6 +94,13 @@
             <a class="hub-btn hub-btn--ghost" href="/regisztracio.html" data-auth-register>Regisztráció</a>
             <a class="hub-btn hub-btn--primary" href="/hirdetesfeladas.html" data-auth-guard>Hirdetésfeladás</a>
           </div>
+            <div class="site-header-avatar-wrap" data-avatar-menu>
+              <button type="button" class="site-header-avatar" data-auth-avatar data-avatar-toggle aria-expanded="false" aria-haspopup="menu" aria-label="Fiók" title="Fiók">
+                <span data-avatar-letter>A</span>
+                <img data-avatar-img alt="" hidden width="44" height="44" />
+              </button>
+              <div class="site-avatar-dropdown site-avatar-dropdown--fiok" data-avatar-dropdown role="menu" hidden></div>
+            </div>
         </div>
       </div>
     </header>
@@ -132,5 +139,6 @@
     </main>
 
     <script src="/js/site-auth.js?v=auth20260805localdb9" type="module"></script>
+      <script src="/js/site-avatar-menu.js?v=fiokMenu2" type="module"></script>
   </body>
 </html>
