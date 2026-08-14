@@ -120,7 +120,14 @@ async function authFetch(url, options = {}) {
     data = {};
   }
   if (!response.ok) {
-    if (response.status === 404 || /NOT_FOUND|could not be found/i.test(raw)) {
+    const looksLikeAuthJson =
+      Object.prototype.hasOwnProperty.call(data, "user") ||
+      Object.prototype.hasOwnProperty.call(data, "error") ||
+      Object.prototype.hasOwnProperty.call(data, "token");
+    if (
+      !looksLikeAuthJson &&
+      (response.status === 404 || /NOT_FOUND|could not be found/i.test(raw))
+    ) {
       throw new Error(
         "A belépő szerver most nem elérhető (API hiányzik). Próbáld újra pár perc múlva — nem a jelszó a gond."
       );
