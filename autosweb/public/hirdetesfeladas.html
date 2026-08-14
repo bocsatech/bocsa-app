@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="bymy-version" content="catPick20260814b" />
+    <meta name="bymy-version" content="catPick20260814c" />
     <title>Hirdetésfeladás — Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260730powerfix7" />
-    <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
-    <link rel="stylesheet" href="/css/category-picker.css?v=catPick20260814b" />
+    <link rel="stylesheet" href="/css/site-side.css?v=catPick20260814c" />
+    <link rel="stylesheet" href="/css/category-picker.css?v=catPick20260814c" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas">
     <div class="local-banner" id="local-banner">Bymy — hirdetésfeladás varázsló</div>
@@ -145,7 +145,12 @@
 
     <main class="page page-automax site-page-main">
       <div class="site-layout site-layout--wide">
-        <!-- SITE_SIDE_LEFT -->
+        <aside class="site-side site-side--left" data-site-side="left">
+          <div class="site-side-card">
+            <h2 class="site-side-title" data-side-title>Videók</h2>
+            <div class="site-video-list" data-side-videos></div>
+          </div>
+        </aside>
         <div class="site-center site-center--automax">
       <div class="automax-main">
 
@@ -1051,7 +1056,12 @@
         </div>
       </aside>
         </div>
-        <!-- SITE_SIDE_RIGHT -->
+        <aside class="site-side site-side--right" data-site-side="right">
+          <div class="site-side-card">
+            <h2 class="site-side-title" data-side-title>Videók</h2>
+            <div class="site-video-list" data-side-videos></div>
+          </div>
+        </aside>
       </div>
     </main>
 
@@ -1066,6 +1076,6 @@
     </footer>
 
     <script src="/js/site-avatar-menu.js?v=auth20260805localdb9" type="module"></script>
-    <script src="/js/app.js?v=catPick20260814b" type="module"></script>
+    <script src="/js/app.js?v=catPick20260814c" type="module"></script>
   </body>
 </html>
