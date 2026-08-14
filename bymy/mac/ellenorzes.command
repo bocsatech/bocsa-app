@@ -1,8 +1,11 @@
 #!/bin/bash
-# Gyors ellenőrzés: frissült-e a ~/Downloads/bymy
+# Gyors ellenőrzés: frissült-e a ~/Downloads/bymy web
 set -euo pipefail
 
-TARGET="$HOME/Downloads/bymy"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=_target.sh
+source "$SCRIPT_DIR/_target.sh"
+TARGET="$(bymy_canonical_target)"
 HTML="$TARGET/public/index.html"
 
 echo "Bymy ellenőrzés: $TARGET"

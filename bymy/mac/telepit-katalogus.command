@@ -8,14 +8,14 @@ SOURCE="$REPO/bymy"
 BRANCH="cursor/mentesmarka-csv-katalogus-2aa0"
 
 # Cél: ahol tényleg fut (nálad: ~/Downloads/bymy)
-if [ -d "${HOME}/Downloads/bymy" ]; then
-  TARGET="${HOME}/Downloads/bymy"
-elif [ -d "${HOME}/Letöltések/bymy" ]; then
-  TARGET="${HOME}/Letöltések/bymy"
+if [ -d "${HOME}/Downloads/bymy web" ]; then
+  TARGET="${HOME}/Downloads/bymy web"
+elif [ -d "${HOME}/Letöltések/bymy web" ]; then
+  TARGET="${HOME}/Letöltések/bymy web"
 elif [ -d "${HOME}/Letöltések" ]; then
-  TARGET="${HOME}/Letöltések/bymy"
+  TARGET="${HOME}/Letöltések/bymy web"
 else
-  TARGET="${HOME}/Downloads/bymy"
+  TARGET="${HOME}/Downloads/bymy web"
 fi
 
 echo "══════════════════════════════════════"

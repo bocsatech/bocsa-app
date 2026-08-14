@@ -25,6 +25,7 @@ DEST_WHW="$DL/willhaben-watcher"
 DEST_HAS="$DL/hasznaltauto-scraper"
 DEST_HIR="$DL/hirdetes-local"
 DEST_MEN="$DL/mentesmarka"
+DEST_BYMY_WEB="$DL/bymy web"
 
 SKIP_DIRS="pro-orchestrator|willhaben-pro|hasznaltauto-pro|hasznaltauto-scraper|willhaben-watcher|hirdetes-local|mentesmarka|node_modules|.git|.next"
 
@@ -167,6 +168,23 @@ if [ -d "$SOURCE/mobilede-pro" ]; then
   copy_tree "$SOURCE/mobilede-pro" "$DEST_MD"
 fi
 
+# 4c. Bymy web (weboldal — csak Letöltések/bymy web)
+if [ -d "$SOURCE/bymy" ]; then
+  echo "📁 bymy web"
+  mkdir -p "$DEST_BYMY_WEB"
+  # Runtime fájlok (nem a teljes monorepo)
+  cp "$SOURCE/bymy/package.json" "$SOURCE/bymy/server.mjs" "$DEST_BYMY_WEB/" 2>/dev/null || true
+  [ -d "$SOURCE/bymy/lib" ] && { rm -rf "$DEST_BYMY_WEB/lib"; cp -a "$SOURCE/bymy/lib" "$DEST_BYMY_WEB/lib"; }
+  [ -d "$SOURCE/bymy/public" ] && { rm -rf "$DEST_BYMY_WEB/public"; cp -a "$SOURCE/bymy/public" "$DEST_BYMY_WEB/public"; }
+  [ -d "$SOURCE/bymy/scripts" ] && { rm -rf "$DEST_BYMY_WEB/scripts"; cp -a "$SOURCE/bymy/scripts" "$DEST_BYMY_WEB/scripts"; }
+  # Régi Downloads/bymy átnevezés, ha üres volt a cél
+  if [ -d "$DL/bymy" ] && [ ! -f "$DEST_BYMY_WEB/server.mjs" ]; then
+    echo "  → régi $DL/bymy → $DEST_BYMY_WEB"
+    rsync -a "$DL/bymy/" "$DEST_BYMY_WEB/" 2>/dev/null || cp -a "$DL/bymy/." "$DEST_BYMY_WEB/"
+  fi
+  echo "  ✓ $DEST_BYMY_WEB"
+fi
+
 # 5. Egyéb programok (ha vannak a forrásban)
 for pair in \
   "willhaben-watcher:$DEST_WHW" \
@@ -228,6 +246,9 @@ willhaben-watcher             → $DEST_WHW
 hasznaltauto-scraper          → $DEST_HAS
 hirdetes-local                → $DEST_HIR
 mentesmarka                   → $DEST_MEN
+bymy web (weboldal)           → $DEST_BYMY_WEB
+  Indítás: Asztali Bymy-indito.command  VAGY  cd "$DEST_BYMY_WEB" && npm start
+  Böngésző: https://bymy.vercel.app
 
 Telepítő újrafuttatás:
   curl -sf $RAW/scripts/MAC-TELEPIT-MINDEN.sh | bash

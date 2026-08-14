@@ -4,7 +4,7 @@ set -euo pipefail
 
 DB="$HOME/.bymy/bymy.db"
 PROFILES="$HOME/.bymy/profiles.json"
-LEGACY="$HOME/Downloads/bymy/data/bymy.db"
+LEGACY="$HOME/Downloads/bymy web/data/bymy.db"
 
 echo "══════════════════════════════════════"
 echo " Bymy — helyi user adatbázis"

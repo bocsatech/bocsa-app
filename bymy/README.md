@@ -3,6 +3,9 @@
 **Élő oldal:** https://bymy.vercel.app  
 **Későbbi domain:** bymy.hu
 
+> **Helyi tárolás (Mac):** csak `~/Downloads/bymy web` vagy `~/Letöltések/bymy web`.  
+> A weboldalt **ne** a `bocsa-app` mappába mentsd futásra — a monorepo csak git forrás.
+
 > **Vercel:** az `autosweb/` mappa bridge a régi Root Directory-hoz — buildkor a `bymy/public` tartalmát másolja. Nem kell kézzel átállítani.
 
 Hasznaltauto.hu-ról importál (olvasás), de soha nem ad fel hirdetést oda.
@@ -12,15 +15,16 @@ Hasznaltauto.hu-ról importál (olvasás), de soha nem ad fel hirdetést oda.
 | Hely | Mi |
 |------|-----|
 | **https://bymy.vercel.app** | Élő weboldal |
-| **`~/bocsa-app/bymy`** | Forrás a git repóban |
+| **`~/Downloads/bymy web`** | Helyi web másolat (Letöltések) — **ez a gépen tartandó hely** |
+| **`bocsatech/bocsa-app` → `bymy/`** | Git forrás (monorepo) |
 | **`~/.autosweb` vagy `~/.bymy`** | Tartós adatok (DB, képek, SMTP, OAuth) — a régi mappa megmarad |
 
 ## Asztali indító
 
 ```bash
-cd ~/bocsa-app/bymy/mac
+cd ~/bocsa-app/bymy/mac   # vagy a klónozott repo
 chmod +x Bymy-indito.command telepites.command
-./telepites.command   # egyszer: Asztalra teszi a Bymy-indito.command-ot
+./telepites.command   # → ~/Downloads/bymy web + Asztali indító
 ```
 
 Asztalon: **Bymy-indito.command** → megnyitja a https://bymy.vercel.app oldalt.
@@ -28,7 +32,7 @@ Asztalon: **Bymy-indito.command** → megnyitja a https://bymy.vercel.app oldalt
 ## Helyi fejlesztés / import (opcionális)
 
 ```bash
-cd ~/bocsa-app/bymy
+cd ~/Downloads/bymy\ web
 npm install
 npm start
 ```

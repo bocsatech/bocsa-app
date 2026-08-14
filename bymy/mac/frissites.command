@@ -1,10 +1,13 @@
 #!/bin/bash
-# Frissítés: GitHub-ról CSAK bymy → ~/Downloads/bymy
+# Frissítés: GitHub-ról CSAK bymy → ~/Downloads/bymy web
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 SOURCE="$REPO/bymy"
-TARGET="$HOME/Downloads/bymy"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=_target.sh
+source "$SCRIPT_DIR/_target.sh"
+TARGET="$(bymy_canonical_target)"
 
 echo "Bymy frissítés (GitHub main → Letöltések)…"
 echo "  Repo: $REPO"
@@ -45,7 +48,7 @@ elif [ -f "$HOME/Downloads/lista.csv" ]; then
 else
   echo ""
   echo "  ⚠ Nincs lista.csv az Asztalon — márka/modell legördülők üresek maradhatnak."
-  echo "    Import kézzel: cd ~/Downloads/bymy && npm run import:catalog -- ~/Desktop/lista.csv"
+  echo "    Import kézzel: cd ~/Downloads/bymy web && npm run import:catalog -- ~/Desktop/lista.csv"
 fi
 
 if grep -q 'vehicle-catalog-client.js' "$TARGET/public/js/form-core.js" 2>/dev/null; then

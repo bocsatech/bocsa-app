@@ -1,10 +1,25 @@
 #!/bin/bash
-# Csak a futtatáshoz kellő fájlok → ~/Downloads/bymy (sem mac/, sem README)
+# Csak a futtatáshoz kellő fájlok → ~/Downloads/bymy web (vagy Letöltések/bymy web)
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 SOURCE="$REPO/bymy"
-TARGET="$HOME/Downloads/bymy"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=_target.sh
+source "$SCRIPT_DIR/_target.sh"
+TARGET="$(bymy_canonical_target)"
+# Régi ~/Downloads/bymy → átmozgatás, ha még nincs bymy web
+OLD="$HOME/Downloads/bymy"
+OLD2="$HOME/Letöltések/bymy"
+if [ ! -d "$TARGET" ]; then
+  for legacy in "$OLD" "$OLD2"; do
+    if [ -d "$legacy" ]; then
+      echo "  → régi mappa átnevezése: $legacy → $TARGET"
+      mv "$legacy" "$TARGET"
+      break
+    fi
+  done
+fi
 DESKTOP="$HOME/Desktop/Bymy-indito.command"
 
 echo "Bymy telepítés"

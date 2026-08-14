@@ -3,7 +3,10 @@
 set -euo pipefail
 
 SOURCE="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET="$HOME/Downloads/bymy"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=_target.sh
+source "$SCRIPT_DIR/_target.sh"
+TARGET="$(bymy_canonical_target)"
 
 if [ ! -d "$TARGET" ]; then
   echo "Először: ./telepites.command"

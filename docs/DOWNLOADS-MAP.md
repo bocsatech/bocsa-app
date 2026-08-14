@@ -10,7 +10,7 @@ Minden program **külön mappa** a `~/Downloads/` (Letöltések) alatt.
 | **Hasznaltauto Pro** | `hasznaltauto pro` | `cd ~/Downloads/hasznaltauto\ pro && npm start` | slot / 3848 |
 | **Mobile.de Pro** | `mobilede pro` | `cd ~/Downloads/mobilede\ pro && npm start` | slot / SMS +49 |
 | Willhaben Watcher | `willhaben-watcher` | Chrome bővítmény | — |
-| **Bymy** (hirdetésfeladás) | `bymy` | Asztal: Bymy-indito.command | https://bymy.vercel.app |
+| **Bymy web** (weboldal) | `bymy web` | Asztal: Bymy-indito.command · helyi: `~/Downloads/bymy web` | https://bymy.vercel.app |
 | **BOCSA Pro Linux** (vékony kliens) | `bocsa Pro linux` | `~/Desktop/bocsa-pro-linux-indito.sh` | SSH tunell → szerver :3850 |
 | Hasznaltauto scraper | `hasznaltauto-scraper` | `npm start` | — |
 | **Függvény / átlagszámolás** | `fugveny` | `cd ~/Downloads/fugveny/program && npm start` | CSV/JSON export |

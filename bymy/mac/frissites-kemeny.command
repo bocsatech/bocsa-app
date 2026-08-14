@@ -4,7 +4,10 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 SOURCE="$REPO/bymy"
-TARGET="$HOME/Downloads/bymy"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=_target.sh
+source "$SCRIPT_DIR/_target.sh"
+TARGET="$(bymy_canonical_target)"
 
 echo "=== Bymy KÉNYSZERÍTETT frissítés ==="
 echo "Repo: $REPO"
@@ -15,7 +18,7 @@ git fetch origin main
 git reset --hard origin/main
 
 if [ ! -d "$TARGET" ]; then
-  echo "Nincs ~/Downloads/bymy — telepites.command futtatása…"
+  echo "Nincs ~/Downloads/bymy web web — telepites.command futtatása…"
   exec "$(dirname "$0")/telepites.command"
 fi
 
