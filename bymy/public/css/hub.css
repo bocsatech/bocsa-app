@@ -41,25 +41,27 @@ body.hub-page .local-banner {
 }
 
 .hub-header-inner {
-  max-width: var(--hub-max);
+  max-width: min(1280px, 100%);
   margin: 0 auto;
-  padding: 0.7rem 1.25rem;
+  padding: 0.55rem 1rem;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.65rem 1.1rem;
+  gap: 0.45rem 0.75rem;
 }
 
 .hub-logo {
   font-family: "DM Sans", system-ui, sans-serif;
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   letter-spacing: -0.02em;
-  color: #222;
+  color: #111;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   line-height: 1;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .hub-logo:hover {
@@ -81,21 +83,31 @@ body.hub-page .local-banner {
 
 .hub-nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem 0.1rem;
+  flex-wrap: nowrap;
+  gap: 0.05rem;
   align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.hub-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .hub-nav-link {
   font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #111;
   text-decoration: none;
-  padding: 0.4rem 0.55rem;
+  padding: 0.35rem 0.45rem;
   border-radius: 0;
   background: transparent;
   opacity: 1;
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .hub-nav-link:hover {
@@ -119,41 +131,76 @@ body.hub-page .local-banner {
 .hub-header-actions {
   margin-left: auto;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  gap: 0.4rem;
   align-items: center;
+  flex: 0 0 auto;
+}
+
+/* site-app oszlopos actions ne törje a hub sort */
+.hub-header .site-header-actions,
+.hub-header-actions.site-header-actions {
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+}
+
+.hub-header .site-header-auth-row {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .hub-btn {
   font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.82rem;
-  font-weight: 650;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-decoration: none;
-  border-radius: 999px;
-  padding: 0.5rem 0.95rem;
-  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #c8c8c8;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  height: 2.2rem;
+  box-sizing: border-box;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .hub-btn--ghost {
-  color: var(--hub-ink);
-  border-color: var(--hub-line);
+  color: #111;
+  border-color: #c8c8c8;
   background: #fff;
 }
 
 .hub-btn--ghost:hover {
-  border-color: var(--hub-ink);
+  border-color: #999;
 }
 
 .hub-btn--primary {
   color: #fff;
-  background: var(--hub-accent);
+  background: #c45c26;
+  border-color: #c45c26;
 }
 
 .hub-btn--primary:hover {
   filter: brightness(1.05);
+}
+
+.hub-header .site-header-avatar {
+  width: 2.2rem;
+  height: 2.2rem;
+  margin-left: 0;
+  border: 1px solid #c8c8c8;
+  box-shadow: none;
+}
+
+.hub-header .site-header-avatar-wrap {
+  display: inline-flex;
+  align-items: center;
 }
 
 .hub-hero {
@@ -356,9 +403,25 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
     grid-template-columns: 1fr;
   }
 
-  .hub-header-actions {
-    margin-left: 0;
-    width: 100%;
+  .hub-header-inner {
+    gap: 0.35rem 0.5rem;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .hub-nav-link {
+    font-size: 0.82rem;
+    padding: 0.3rem 0.35rem;
+  }
+
+  .hub-btn {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.55rem;
+    height: 2rem;
+  }
+
+  .hub-header .site-header-avatar {
+    width: 2rem;
+    height: 2rem;
   }
 }
 
