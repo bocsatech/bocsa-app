@@ -88,24 +88,27 @@ body.hub-page .local-banner {
 
 .hub-nav-link {
   font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #555;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111;
   text-decoration: none;
   padding: 0.4rem 0.55rem;
   border-radius: 0;
   background: transparent;
+  opacity: 1;
 }
 
 .hub-nav-link:hover {
   color: #111;
   background: transparent;
+  text-decoration: underline;
 }
 
 .hub-nav-link.active {
   color: #111;
   font-weight: 700;
   background: transparent;
+  text-decoration: underline;
 }
 
 .hub-nav--tools .hub-nav-link {

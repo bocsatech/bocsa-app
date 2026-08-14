@@ -683,22 +683,25 @@ body.home-page .local-banner {
 .home-nav-link {
   padding: 0.4rem 0.55rem;
   border-radius: 0;
-  color: #555;
+  color: #111;
   text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   background: transparent;
+  opacity: 1;
 }
 
 .home-nav-link:hover {
   background: transparent;
   color: #111;
+  text-decoration: underline;
 }
 
 .home-nav-link.active {
   background: transparent;
   color: #111;
   font-weight: 700;
+  text-decoration: underline;
 }
 
 body.home-page[data-site-page="auto"] .home-header-inner {
