@@ -113,6 +113,17 @@ test("hirdetesfeladas.html: egységes fejléc és wizard", () => {
   const html = readFileSync(join(PUBLIC, "hirdetesfeladas.html"), "utf8");
   assert.match(html, /class="[^"]*site-app[^"]*"/);
   assert.match(html, /site-app-wizard-steps/);
-  assert.match(html, /Bymy\.hu/);
+  assert.ok(html.includes("category-picker"));
+  assert.ok(html.includes("ad-wizard-shell"));
+  assert.ok(html.includes("category-picker.css"));
   assert.doesNotMatch(html, /theme-automax/);
+});
+
+test("category-picker.js: autó / teher / ingatlan", () => {
+  const js = readFileSync(join(PUBLIC, "js", "category-picker.js"), "utf8");
+  assert.ok(js.includes("Személyautó"));
+  assert.ok(js.includes("Kisteher 3,5 t-ig"));
+  assert.ok(js.includes("Ingatlan hirdetések"));
+  assert.ok(js.includes("Családi házak"));
+  assert.ok(js.includes("Hamarosan"));
 });

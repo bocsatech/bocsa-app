@@ -2,10 +2,17 @@ import { saveListingToDb, getStoredListingId } from "./db-client.js";
 import { createAdForm } from "./form-core.js";
 import { initTireSizes } from "./tire-sizes-ui.js";
 import { initPhoneLanguages } from "./phone-lang-ui.js";
+import { initCategoryPicker } from "./category-picker.js";
 
 const adForm = document.getElementById("ad-form");
 const tireSizes = initTireSizes(adForm);
 const phoneLanguages = initPhoneLanguages(adForm);
+
+const categoryPicker = initCategoryPicker({
+  onReset: () => {
+    // form stays mounted; user returns to category list
+  },
+});
 
 createAdForm({
   mode: "wizard",
@@ -37,6 +44,9 @@ createAdForm({
         summary.appendChild(document.createTextNode(` Mentés hiba: ${error.message ?? error}`));
       }
     }
+  },
+  onNewAd: () => {
+    categoryPicker?.reset();
   },
 });
 

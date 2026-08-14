@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="bymy-version" content="auth20260730powerfix7" />
+    <meta name="bymy-version" content="catPick20260814" />
     <title>Hirdetésfeladás — Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/css/automax.css?v=automax20260720homelist" />
     <link rel="stylesheet" href="/css/site-app.css?v=auth20260730powerfix7" />
     <link rel="stylesheet" href="/css/site-side.css?v=automax20260720homelist" />
+    <link rel="stylesheet" href="/css/category-picker.css?v=catPick20260814" />
   </head>
   <body class="site-app site-page" data-site-page="hirdetesfeladas" data-auth-init="manual">
     <div class="local-banner" id="local-banner">Bymy — hirdetésfeladás varázsló</div>
@@ -132,7 +133,7 @@
       </div>
     </header>
 
-    <div class="site-app-wizard-steps">
+    <div class="site-app-wizard-steps" id="wizard-steps-bar" hidden>
       <nav class="steps" aria-label="Lépések">
         <div class="step active" data-step-indicator="1">Alapadatok</div>
         <div class="step" data-step-indicator="2">Műszaki adatok</div>
@@ -147,12 +148,33 @@
         <!-- SITE_SIDE_LEFT -->
         <div class="site-center site-center--automax">
       <div class="automax-main">
+
+      <div id="category-picker-shell" class="category-picker-shell">
+        <div id="category-picker" class="category-picker" aria-label="Hirdetés kategória"></div>
+      </div>
+
+      <div id="ingatlan-stub" class="ingatlan-stub" hidden>
+        <h2>Ingatlan hirdetés</h2>
+        <p id="ingatlan-stub-summary"></p>
+        <button type="button" class="cp-immo-continue" id="ingatlan-stub-back">Vissza a kategóriákhoz</button>
+      </div>
+
+      <div id="wizard-context-bar" class="wizard-context-bar" hidden>
+        <span>Kategória: <strong id="wizard-context-label">—</strong></span>
+        <button type="button" id="wizard-change-category">Kategória váltása</button>
+      </div>
+
+      <div id="ad-wizard-shell" class="ad-wizard-shell" hidden>
       <form id="ad-form" novalidate>
         <section class="step-panel" data-step="1">
           <h2 class="import-step-label">Alapadatok</h2>
           <div class="card">
             <div class="card-body">
               <input type="hidden" id="hirdetes_cime" name="hirdetes_cime" />
+              <input type="hidden" id="hirdetes_vertical" name="hirdetes_vertical" />
+              <input type="hidden" id="hirdetes_alkategoria" name="hirdetes_alkategoria" />
+              <input type="hidden" id="ingatlan_tipus" name="ingatlan_tipus" />
+              <input type="hidden" id="ingatlan_kategoria" name="ingatlan_kategoria" />
 
               <div class="form-grid">
                 <div class="field-row full field-row--vehicle-year field-row--year-km">
@@ -844,6 +866,7 @@
         </div>
 
       </form>
+      </div><!-- /ad-wizard-shell -->
       </div>
 
       <aside class="automax-panel">
@@ -926,6 +949,6 @@
       await requireAuthForPage();
       initSiteAuth();
     </script>
-    <script src="/js/app.js?v=auth20260730gridfix2" type="module"></script>
+    <script src="/js/app.js?v=catPick20260814" type="module"></script>
   </body>
 </html>
