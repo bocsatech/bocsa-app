@@ -39,70 +39,16 @@ jobs:
       - name: Deploy Bymy (autosweb) to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          # Opcionális: ha a lista/link API 403, állítsd be a bymy project id-t
-          VERCEL_BYMY_PROJECT_ID: ${{ secrets.VERCEL_BYMY_PROJECT_ID }}
+          # bymy project id (GET /v9/projects/bymy without teamId)
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BYMY_PROJECT_ID || 'prj_aePUcCV4V7oLKwxxHnuOYupl1QlN' }}
         run: |
           set -euo pipefail
 
           echo "Sync bymy/public → autosweb/public"
           cp -a bymy/public/. autosweb/public/
 
+          echo "Deploy autosweb/ → ${VERCEL_PROJECT_ID}"
           cd autosweb
-          unset VERCEL_PROJECT_ID || true
-
-          resolve_bymy_project_id() {
-            if [ -n "${VERCEL_BYMY_PROJECT_ID:-}" ]; then
-              echo "VERCEL_BYMY_PROJECT_ID secret használata" >&2
-              printf '%s' "$VERCEL_BYMY_PROJECT_ID"
-              return 0
-            fi
-
-            # 1) Közvetlen GET név alapján (lista API gyakran 403)
-            for NAME in bymy autosweb autosoldal; do
-              for QS in "teamId=${VERCEL_ORG_ID}" ""; do
-                URL="https://api.vercel.com/v9/projects/${NAME}"
-                if [ -n "$QS" ]; then URL="${URL}?${QS}"; fi
-                CODE=$(curl -sS -o /tmp/vproj.json -w "%{http_code}" \
-                  -H "Authorization: Bearer ${VERCEL_TOKEN}" "$URL" || true)
-                echo "GET ${NAME} (${QS:-no-team}) → HTTP ${CODE}" >&2
-                if [ "$CODE" = "200" ]; then
-                  node -e 'const d=JSON.parse(require("fs").readFileSync("/tmp/vproj.json","utf8")); process.stdout.write(d.id||"");'
-                  return 0
-                fi
-              done
-            done
-
-            # 2) vercel link projektnévvel (ugyanaz a team, mint a CRM)
-            for NAME in bymy autosweb; do
-              echo "vercel link --project ${NAME}…" >&2
-              if npx vercel@latest link --yes --project "$NAME" \
-                  --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"; then
-                if [ -f .vercel/project.json ]; then
-                  node -e 'const d=JSON.parse(require("fs").readFileSync(".vercel/project.json","utf8")); process.stdout.write(d.projectId||"");'
-                  return 0
-                fi
-              fi
-            done
-
-            # 3) Team slug a CRM deploy logból
-            echo "vercel link scope=bocsarobert-3405s-projects…" >&2
-            if npx vercel@latest link --yes --project bymy \
-                --token "$VERCEL_TOKEN" --scope "bocsarobert-3405s-projects"; then
-              if [ -f .vercel/project.json ]; then
-                node -e 'const d=JSON.parse(require("fs").readFileSync(".vercel/project.json","utf8")); process.stdout.write(d.projectId||"");'
-                return 0
-              fi
-            fi
-
-            echo "::error::A VERCEL_TOKEN nem éri el a bymy projektet (API 403 / link fail)."
-            echo "::error::GitHub → Settings → Secrets: add hozzá VERCEL_BYMY_PROJECT_ID-t,"
-            echo "::error::vagy cseréld a VERCEL_TOKEN-t olyanra, ami látja a bymy Vercel projektet."
-            echo "::error::Alternatíva: hívd meg a projektet a Cursor cloud agenthez / küldj új tokent."
-            return 1
-          }
-
-          export VERCEL_PROJECT_ID
-          VERCEL_PROJECT_ID="$(resolve_bymy_project_id)"
-          echo "Deploy autosweb/ → project ${VERCEL_PROJECT_ID}"
+          # Ne örökölje a CRM team ORG_ID-t — a bymy GET teamId-vel 403-at ad.
+          unset VERCEL_ORG_ID || true
           npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
