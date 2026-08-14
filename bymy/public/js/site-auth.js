@@ -112,13 +112,19 @@ async function authFetch(url, options = {}) {
       ...(optHeaders || {}),
     },
   });
+  const raw = await response.text();
   let data = {};
   try {
-    data = await response.json();
+    data = raw ? JSON.parse(raw) : {};
   } catch {
     data = {};
   }
   if (!response.ok) {
+    if (response.status === 404 || /NOT_FOUND|could not be found/i.test(raw)) {
+      throw new Error(
+        "A belépő szerver most nem elérhető (API hiányzik). Próbáld újra pár perc múlva — nem a jelszó a gond."
+      );
+    }
     throw new Error(data.error || "Kérés sikertelen.");
   }
   if (data.token) setStoredToken(data.token);

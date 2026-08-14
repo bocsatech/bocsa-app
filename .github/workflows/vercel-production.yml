@@ -1,6 +1,6 @@
 # Deploy main → Vercel Production
 # 1) bocsa-app (Next.js CRM)
-# 2) bymy / autosweb (statikus oldal → bymy.vercel.app)
+# 2) bymy.vercel.app — teljes app API-val (bocsatech/bymy) + UI overlay ebből a repóból
 name: Deploy Production
 
 on:
@@ -36,18 +36,25 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Deploy Bymy (autosweb) to Vercel
+      - name: Deploy Bymy (API + UI) to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          # bymy Vercel project (discovered via API without teamId)
           VERCEL_PROJECT_ID: prj_aePUcCV4V7oLKwxxHnuOYupl1QlN
         run: |
           set -euo pipefail
 
-          echo "Sync bymy/public → autosweb/public"
+          echo "bocsatech/bymy klónozása (API + Supabase auth)…"
+          rm -rf /tmp/bymy-prod
+          git clone --depth 1 https://github.com/bocsatech/bymy.git /tmp/bymy-prod
+
+          echo "UI overlay ebből a repóból (hub, kategóriaválasztó, …)…"
+          cp -a bymy/public/. /tmp/bymy-prod/public/
+
+          # Bridge tükör (opcionális helyi/alias használatra)
+          mkdir -p autosweb/public
           cp -a bymy/public/. autosweb/public/
 
-          echo "Deploy autosweb/ → ${VERCEL_PROJECT_ID}"
-          cd autosweb
+          echo "Deploy bymy-prod → ${VERCEL_PROJECT_ID}"
+          cd /tmp/bymy-prod
           npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
