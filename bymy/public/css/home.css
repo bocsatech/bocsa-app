@@ -688,6 +688,14 @@ body.home-page .local-banner {
   color: #fff;
 }
 
+body.home-page[data-site-page="auto"] .home-header-inner {
+  grid-template-columns: auto 1fr auto;
+}
+
+body.home-page[data-site-page="auto"] .home-nav {
+  justify-self: start;
+}
+
 .home-search-wrap {
   max-width: 1320px;
   margin: 0 auto;

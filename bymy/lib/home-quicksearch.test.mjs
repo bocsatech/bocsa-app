@@ -7,8 +7,8 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "..", "public");
 
-test("index.html: gyorskereső 3 sora a megadott mezőkkel", () => {
-  const html = readFileSync(join(PUBLIC, "index.html"), "utf8");
+test("auto.html: gyorskereső 3 sora a megadott mezőkkel", () => {
+  const html = readFileSync(join(PUBLIC, "auto.html"), "utf8");
   const formMatch = html.match(/id="home-qs-form"[\s\S]*?<\/form>/);
   assert.ok(formMatch, "van home-qs-form");
   const form = formMatch[0];

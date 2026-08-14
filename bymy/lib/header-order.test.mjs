@@ -7,8 +7,8 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, "..", "public");
 
-test("index.html: fejléc sorrend Belépés → Regisztráció → Hirdetésfeladás, ikonok alatta", () => {
-  const html = readFileSync(join(PUBLIC, "index.html"), "utf8");
+test("auto.html: fejléc sorrend Belépés → Regisztráció → Hirdetésfeladás, ikonok alatta", () => {
+  const html = readFileSync(join(PUBLIC, "auto.html"), "utf8");
   const actions = html.match(/class="header-actions site-header-actions"[\s\S]*?<\/div>\s*<\/div>\s*<\/header>/);
   assert.ok(actions, "van header-actions blokk");
   const block = actions[0];

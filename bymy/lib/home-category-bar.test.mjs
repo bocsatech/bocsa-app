@@ -36,17 +36,18 @@ test("filterByCategory: elektromos", () => {
   assert.equal(filtered.length, 1);
 });
 
-test("index.html: kategória sáv 8 gombbal", () => {
-  const html = readFileSync(join(__dirname, "..", "public", "index.html"), "utf8");
+test("auto.html: kategória sáv 8 gombbal", () => {
+  const html = readFileSync(join(__dirname, "..", "public", "auto.html"), "utf8");
   assert.ok(html.includes("home-category-bar"));
   for (const id of HOME_CATEGORY_IDS) {
     assert.ok(html.includes(`data-category="${id}"`), `hiányzik: ${id}`);
   }
-  assert.ok(html.includes("/images/categories/elektromos.jpg"));
-  assert.ok(html.includes("/images/categories/benzin.jpg"));
-  assert.ok(html.includes("/images/categories/ot.jpg"));
-  assert.ok(html.includes("/images/categories/leasing.jpg"));
-  assert.ok(html.includes("/images/categories/hybrid.jpg"));
-  assert.ok(html.includes("/images/categories/diesel.jpg"));
-  assert.ok(html.includes("/images/categories/berelheto.jpg"));
-});
+  assert.ok(html.includes("/images/categories/elektromos.png"));
+  assert.ok(html.includes("/images/categories/benzin.png"));
+  assert.ok(html.includes("/images/categories/ot.png"));
+  assert.ok(html.includes("/images/categories/leasing.png"));
+  assert.ok(html.includes("/images/categories/hybrid.png"));
+  assert.ok(html.includes("/images/categories/diesel.png"));
+  assert.ok(html.includes("/images/categories/berelheto.png"));
+  assert.ok(html.includes("/images/categories/uj.png"));
+}
