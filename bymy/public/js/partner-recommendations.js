@@ -1,8 +1,12 @@
-import { PARTNER_CATEGORIES } from "./partner-categories-data.js?v=partners20260726acc4";
+import {
+  PARTNER_CATEGORIES,
+  partnerCategoryImageUrl,
+} from "./partner-categories-data.js?v=ajanlasMobile1";
 
 const STORAGE_KEY = "bymy_partner_postal_code";
 const LEGACY_STORAGE_KEY = "autosweb_partner_postal_code";
-const PARTNER_UI_VERSION = "partners20260726acc4";
+const RADIUS_KEY = "bymy_partner_radius_km";
+const PARTNER_UI_VERSION = "ajanlasMobile1";
 let partnerUiInitialized = false;
 
 function partnerApiErrorMessage(response, data) {
@@ -122,10 +126,14 @@ function renderCategoryAccordionItem(category) {
   toggle.className = "home-partner-category-toggle";
   toggle.setAttribute("aria-expanded", "false");
   toggle.setAttribute("aria-controls", `home-partner-panel-${category.id}`);
+  const imageUrl = partnerCategoryImageUrl(category.id);
   toggle.innerHTML = `
+    <span class="home-partner-category-photo" aria-hidden="true">
+      <img src="${escapeHtml(imageUrl)}?v=ajanlasMobile1" alt="" width="44" height="44" loading="lazy" decoding="async" />
+    </span>
     <span class="home-partner-category-label">${escapeHtml(category.label)}</span>
     <span class="home-partner-category-meta">
-      <span class="home-partner-category-count">${count > 0 ? count : "—"}</span>
+      <span class="home-partner-category-count">${count > 0 ? count : "0"}</span>
       <span class="home-partner-category-chevron" aria-hidden="true"></span>
     </span>
   `;

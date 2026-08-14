@@ -362,6 +362,15 @@ function initAccordionExclusive() {
       });
     });
   });
+
+  const hash = String(window.location.hash || "").replace(/^#/, "");
+  if (hash) {
+    const target = root.querySelector(`details.settings-acc[data-acc="${hash}"]`);
+    if (target) {
+      target.open = true;
+      target.scrollIntoView({ block: "nearest" });
+    }
+  }
 }
 
 function initPostalLookups(root = document) {

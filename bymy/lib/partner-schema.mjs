@@ -52,12 +52,15 @@ export function initPartnerSchema(db) {
 }
 
 function seedCategories(db) {
-  const insert = db.prepare(`
-    INSERT OR IGNORE INTO service_categories (id, label, sort_order)
+  const upsert = db.prepare(`
+    INSERT INTO service_categories (id, label, sort_order)
     VALUES (?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      label = excluded.label,
+      sort_order = excluded.sort_order
   `);
   for (const cat of PARTNER_CATEGORIES) {
-    insert.run(cat.id, cat.label, cat.sort_order);
+    upsert.run(cat.id, cat.label, cat.sort_order);
   }
 }
 

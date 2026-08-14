@@ -9,8 +9,19 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 test("home-app.js: partner ajánló külön init scriptben", () => {
   const homeApp = readFileSync(join(__dirname, "..", "public", "js", "home-app.js"), "utf8");
   assert.ok(!homeApp.includes("initPartnerRecommendations"));
-  const html = readFileSync(join(__dirname, "..", "public", "index.html"), "utf8");
-  assert.ok(html.includes("partner-recommendations-init.js"));
+  const autoHtml = readFileSync(join(__dirname, "..", "public", "auto.html"), "utf8");
+  assert.ok(autoHtml.includes("partner-recommendations-init.js"));
+});
+
+test("partner-categories: mobil katalógussal egyező lista + képek", () => {
+  const cats = readFileSync(join(__dirname, "..", "lib", "partner-categories.mjs"), "utf8");
+  assert.ok(cats.includes("autoatvizsgalas"));
+  assert.ok(cats.includes("ajanlas-atiras"));
+  const index = readFileSync(join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.ok(index.includes("/ajanlasok.html"));
+  assert.ok(index.includes("/images/ajanlas/ajanlas-szerelo.png"));
+  const ajanlasPage = readFileSync(join(__dirname, "..", "public", "ajanlasok.html"), "utf8");
+  assert.ok(ajanlasPage.includes("ajanlasok-app.js"));
 });
 
 test("partner-recommendations.js: böngészőben elérhető kategória import", () => {

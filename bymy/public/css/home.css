@@ -307,6 +307,24 @@ body.home-page .local-banner {
   cursor: pointer;
 }
 
+.home-partner-category-photo {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.home-partner-category-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .home-partner-category.is-open .home-partner-category-toggle {
   background: #eef4ff;
 }
@@ -316,6 +334,8 @@ body.home-page .local-banner {
 }
 
 .home-partner-category-label {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 0.8rem;
   font-weight: 700;
   color: #222;

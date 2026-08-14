@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
+    <meta name="bymy-version" content="ajanlasMobile1" />
+    <title>Ajánlások — Bymy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css?v=ajanlasMobile1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=ajanlasMobile1" />
+    <link rel="stylesheet" href="/css/ajanlasok.css?v=ajanlasMobile1" />
+    <style>
+      body.ajanlas-page .import-nav-link,
+      body.ajanlas-page .site-app-nav .import-nav-link {
+        color: #111 !important;
+        font-weight: 600 !important;
+        opacity: 1 !important;
+        background: transparent !important;
+      }
+      body.ajanlas-page .import-nav-link.active {
+        font-weight: 700 !important;
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body class="site-app ajanlas-page" data-site-page="ajanlasok">
+    <header class="site-header site-app-header">
+      <div class="site-app-header-inner">
+        <a class="site-app-logo" href="/" aria-label="Bymy.hu"><img class="bymy-logo-img" src="/images/bymy-logo.png?v=2" alt="Bymy.hu" width="132" height="62" decoding="async" /></a>
+        <nav class="import-nav site-app-nav" aria-label="Főmenü">
+          <a class="import-nav-link" href="/">Kezdőlap</a>
+          <a class="import-nav-link" href="/auto.html">Autó</a>
+          <a class="import-nav-link" href="/teherauto.html">Teherautó</a>
+          <a class="import-nav-link" href="/ingatlan.html">Ingatlan</a>
+          <a class="import-nav-link active" href="/ajanlasok.html">Ajánlások</a>
+          <a class="import-nav-link" href="/beallitasok.html?szekcio=uzenetek">Üzenetek</a>
+          <a class="import-nav-link" href="/beallitasok.html">Beállítások</a>
+        </nav>
+        <div class="header-actions site-header-actions">
+          <div class="site-header-avatar-wrap" data-avatar-menu>
+            <button type="button" class="site-header-avatar" data-auth-avatar data-avatar-toggle aria-expanded="false" aria-haspopup="menu" aria-label="Fiók" title="Fiók">
+              <span data-avatar-letter>A</span>
+              <img data-avatar-img alt="" hidden width="44" height="44" />
+            </button>
+            <div class="site-avatar-dropdown site-avatar-dropdown--fiok" data-avatar-dropdown role="menu" hidden></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="ajanlas-main">
+      <header class="ajanlas-header">
+        <div>
+          <h1 class="ajanlas-title">Ajánlások</h1>
+          <p class="ajanlas-subtitle" id="ajanlas-subtitle">Körzet: Beállítások → Ajánlások körzete</p>
+        </div>
+        <button type="button" class="ajanlas-refresh" id="ajanlas-refresh">Frissítés</button>
+      </header>
+      <p class="ajanlas-note" id="ajanlas-note">Körzet: Beállítások → Ajánlások körzete</p>
+      <div class="ajanlas-list" id="ajanlas-list" role="list"></div>
+      <a class="ajanlas-settings-link" href="/beallitasok.html?szekcio=fiok#recommendationsArea">Ajánlások körzete beállítása</a>
+    </main>
+
+    <script type="module" src="/js/ajanlasok-app.js?v=ajanlasMobile1"></script>
+    <script src="/js/site-auth.js?v=fiokMenu2" type="module"></script>
+    <script src="/js/site-avatar-menu.js?v=fiokMenu2" type="module"></script>
+  </body>
+</html>
