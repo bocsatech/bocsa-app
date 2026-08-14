@@ -4,14 +4,28 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-    <meta name="bymy-version" content="partners20260725" />
-    <title>Partnerek — Bymy</title>
+    <meta name="bymy-version" content="navInk1" />
+    <title>Ajánlások — Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=partners20260725" />
-    <link rel="stylesheet" href="/css/site-app.css?v=hubNavAll1" />
-    <link rel="stylesheet" href="/css/partners.css?v=partners20260725" />
+    <link rel="stylesheet" href="/css/style.css?v=navInk1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=navInk1" />
+    <link rel="stylesheet" href="/css/partners.css?v=navInk1" />
+    <style>
+      /* Főmenü: minden pont ugyanolyan fekete — ne legyen halvány/szürke */
+      body.partners-page .import-nav-link,
+      body.partners-page .site-app-nav .import-nav-link {
+        color: #111 !important;
+        font-weight: 600 !important;
+        opacity: 1 !important;
+        background: transparent !important;
+      }
+      body.partners-page .import-nav-link.active {
+        font-weight: 700 !important;
+        text-decoration: underline;
+      }
+    </style>
   </head>
   <body class="site-app partners-page" data-site-page="partners">
     <div class="local-banner">Bymy — fizetős partner adatbázis kezelése</div>
