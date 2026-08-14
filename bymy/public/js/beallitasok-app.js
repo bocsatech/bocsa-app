@@ -24,8 +24,8 @@ import {
   removeSavedSearch,
   toggleSavedSearchNotify,
 } from "./fok-data.js?v=auth20260805localdb9";
-import { initMessagesUi } from "./messages-ui.js?v=messagesUi2";
-import { listConversations } from "./messages-api.js?v=messagesUi2";
+import { initMessagesUi } from "./messages-ui.js?v=messagesWh1";
+import { listConversations } from "./messages-api.js?v=messagesWh1";
 
 const PHOTO_KEY = "bymy-avatar-photos";
 const NOTIFY_KEY = "bymy-notify-prefs";
@@ -144,6 +144,7 @@ function setSection(section) {
   document.querySelectorAll("[data-mm-nav]").forEach((link) => {
     link.classList.toggle("is-active", link.getAttribute("data-mm-nav") === next);
   });
+  document.body.classList.toggle("mm-messages-open", next === "uzenetek");
   document.title =
     {
       attekintes: "Áttekintés",

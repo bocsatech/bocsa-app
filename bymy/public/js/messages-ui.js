@@ -14,7 +14,7 @@ import {
   reportConversation,
   blockUser,
   fileToAttachment,
-} from "./messages-api.js?v=messagesUi2";
+} from "./messages-api.js?v=messagesWh1";
 
 const ICONS = {
   unread: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7.5h10.5A2.5 2.5 0 0 1 18 10v5.5A2.5 2.5 0 0 1 15.5 18H9l-3.2 2.2V18H5A2.5 2.5 0 0 1 2.5 15.5V10A2.5 2.5 0 0 1 5 7.5Z" stroke="currentColor" stroke-width="1.6"/><path d="M7.2 11.2h7.2M7.2 14h4.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
@@ -24,6 +24,9 @@ const ICONS = {
   checks: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4.5 12.5 3 3 6.5-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="m10.5 12.5 3 3 6-6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   menu: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="6" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="18" r="1.5" fill="currentColor"/></svg>`,
   back: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6 9 12l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  paperclip: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16.5 7.5v8.2a4.5 4.5 0 0 1-9 0V7.2a3 3 0 0 1 6 0v8.1a1.5 1.5 0 0 1-3 0V8.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+  send: `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 11.2 19.2 3.8c.7-.3 1.4.4 1.1 1.1L13 20.5c-.3.7-1.3.6-1.5-.1l-1.8-6.1-6.2-1.6c-.8-.2-.9-1.2-.1-1.5Z"/></svg>`,
+  car: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 14.2h2.1l1.2-2.4h7.2l1.3 2.4H18a1.8 1.8 0 0 1 1.8 1.8v1.8a1.2 1.2 0 0 1-1.2 1.2h-.6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="7.2" cy="18.4" r="1.35" stroke="currentColor" stroke-width="1.4"/><circle cx="15.2" cy="18.4" r="1.35" stroke="currentColor" stroke-width="1.4"/><path d="M5 14.2 6.4 9.8h11.2L19 14.2" stroke="currentColor" stroke-width="1.4"/></svg>`,
 };
 
 function escapeHtml(value) {
@@ -94,7 +97,10 @@ export function initMessagesUi(root, { onUnreadChange } = {}) {
 
       <section class="msg-thread" data-msg-thread>
         <div class="msg-thread-placeholder" data-msg-placeholder>
-          <p>Válassz egy beszélgetést a bal oldali listából.</p>
+          <div class="msg-placeholder-inner">
+            <p class="msg-placeholder-title">Üzenetek</p>
+            <p>Válassz egy beszélgetést a listából.</p>
+          </div>
         </div>
         <div class="msg-thread-main" data-msg-thread-main hidden>
           <header class="msg-thread-head">
@@ -133,11 +139,11 @@ export function initMessagesUi(root, { onUnreadChange } = {}) {
           <p class="msg-error" data-msg-thread-error hidden></p>
           <form class="msg-composer" data-msg-composer>
             <label class="msg-attach-btn" title="Csatolmány">
-              <span aria-hidden="true">+</span>
+              ${ICONS.paperclip}
               <input type="file" accept="image/*,.pdf,.doc,.docx,application/pdf" hidden data-msg-file />
             </label>
-            <input type="text" name="body" placeholder="Üzenet…" autocomplete="off" data-msg-draft />
-            <button type="submit" class="msg-send-btn" data-msg-send>Küldés</button>
+            <input type="text" name="body" placeholder="Írj üzenetet…" autocomplete="off" data-msg-draft />
+            <button type="submit" class="msg-send-btn" data-msg-send aria-label="Küldés">${ICONS.send}</button>
           </form>
         </div>
       </section>
@@ -220,7 +226,7 @@ export function initMessagesUi(root, { onUnreadChange } = {}) {
       const preview = conv.lastMessage?.body || "Új beszélgetés";
       row.innerHTML = `
         <div class="msg-conv-thumb" aria-hidden="true">
-          <span class="msg-conv-photo"></span>
+          <span class="msg-conv-photo">${ICONS.car}</span>
           <span class="msg-conv-letter">${escapeHtml(letter)}</span>
         </div>
         <div class="msg-conv-main">
@@ -307,7 +313,7 @@ export function initMessagesUi(root, { onUnreadChange } = {}) {
   function renderListingBar() {
     if (!els.listing || !openConv) return;
     els.listing.innerHTML = `
-      <div class="msg-listing-thumb" aria-hidden="true"></div>
+      <div class="msg-listing-thumb" aria-hidden="true">${ICONS.car}</div>
       <div class="msg-listing-meta">
         <strong>${escapeHtml(openConv.listing?.title || "")}</strong>
         <p class="msg-listing-price">${escapeHtml(openConv.listing?.priceLabel || "")}</p>
