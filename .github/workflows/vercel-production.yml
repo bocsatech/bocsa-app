@@ -79,7 +79,7 @@ jobs:
               if npx vercel@latest link --yes --project "$NAME" \
                   --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"; then
                 if [ -f .vercel/project.json ]; then
-                  node -e 'const d=require("./.vercel/project.json"); process.stdout.write(d.projectId||"");'
+                  node -e 'const d=JSON.parse(require("fs").readFileSync(".vercel/project.json","utf8")); process.stdout.write(d.projectId||"");'
                   return 0
                 fi
               fi
@@ -90,7 +90,7 @@ jobs:
             if npx vercel@latest link --yes --project bymy \
                 --token "$VERCEL_TOKEN" --scope "bocsarobert-3405s-projects"; then
               if [ -f .vercel/project.json ]; then
-                node -e 'const d=require("./.vercel/project.json"); process.stdout.write(d.projectId||"");'
+                node -e 'const d=JSON.parse(require("fs").readFileSync(".vercel/project.json","utf8")); process.stdout.write(d.projectId||"");'
                 return 0
               fi
             fi
