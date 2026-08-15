@@ -454,4 +454,38 @@ export function dbStats() {
   return { listings, cells, mentett, feladott, path: resolveDbPath() };
 }
 
+/** Főmenü kategória-hirdetésszámok (feladott + mentett). */
+export function navCategoryCounts() {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      `SELECT LOWER(TRIM(c.value)) AS vertical, COUNT(DISTINCT c.listing_id) AS n
+       FROM listing_cells c
+       INNER JOIN listings l ON l.id = c.listing_id
+       WHERE c.field_key = 'hirdetes_vertical'
+         AND c.value IS NOT NULL
+         AND TRIM(c.value) != ''
+       GROUP BY LOWER(TRIM(c.value))`
+    )
+    .all();
+
+  const byVertical = Object.fromEntries(rows.map((r) => [r.vertical, Number(r.n) || 0]));
+  const totalListings = Number(db.prepare("SELECT COUNT(*) AS n FROM listings").get()?.n ?? 0);
+
+  // Ha nincs vertical cella, az összes hirdetés az Autó alá megy (legacy).
+  const auto =
+    Number(byVertical.auto || 0) +
+    Number(byVertical.szemelyauto || 0) +
+    (Object.keys(byVertical).length === 0 ? totalListings : 0);
+  const teher = Number(byVertical.teher || 0) + Number(byVertical.teherauto || 0);
+  const ingatlan = Number(byVertical.ingatlan || 0);
+
+  return {
+    auto,
+    teher,
+    ingatlan,
+    total: totalListings,
+  };
+}
+
 export { formDataToCells, cellsToFormData };

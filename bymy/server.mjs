@@ -13,6 +13,7 @@ import {
   deleteListing,
   deleteAllListings,
   dbStats,
+  navCategoryCounts,
   listFieldDefs,
   findListingBySourceUrl,
   listingSourceExists,
@@ -326,6 +327,11 @@ async function handleListingsApi(req, res, pathname) {
 
   if (pathname === "/api/db/stats" && req.method === "GET") {
     sendJson(res, 200, dbStats());
+    return;
+  }
+
+  if (pathname === "/api/nav/counts" && req.method === "GET") {
+    sendJson(res, 200, navCategoryCounts());
     return;
   }
 
@@ -1097,6 +1103,7 @@ const server = createServer(async (req, res) => {
 
   if (
     pathname === "/api/db/stats" ||
+    pathname === "/api/nav/counts" ||
     pathname === "/api/field-defs" ||
     pathname === "/api/listings" ||
     pathname === "/api/listings/latest" ||

@@ -43,9 +43,9 @@ body.hub-page .local-banner {
 .hub-header-inner {
   max-width: min(1280px, 100%);
   margin: 0 auto;
-  padding: 0.55rem 1rem;
+  padding: 0.45rem 1rem 0;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.45rem 0.75rem;
 }
@@ -95,12 +95,19 @@ body.hub-page .local-banner {
 .hub-nav {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.05rem;
-  align-items: center;
-  flex: 1 1 auto;
+  gap: 1.35rem;
+  align-items: stretch;
+  justify-content: center;
+  order: 3;
+  flex: 1 1 100%;
+  width: 100%;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
+  margin: 0.15rem 0 0;
+  padding: 0.15rem 0 0;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .hub-nav::-webkit-scrollbar {
@@ -109,29 +116,44 @@ body.hub-page .local-banner {
 
 .hub-nav-link {
   font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   color: #111;
   text-decoration: none;
-  padding: 0.35rem 0.45rem;
+  padding: 0.7rem 0.1rem 0.65rem;
   border-radius: 0;
   background: transparent;
   opacity: 1;
   white-space: nowrap;
   line-height: 1.2;
+  border-bottom: 3px solid transparent;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
 }
 
 .hub-nav-link:hover {
   color: #111;
   background: transparent;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .hub-nav-link.active {
-  color: #111;
+  color: #6b7280;
   font-weight: 700;
   background: transparent;
-  text-decoration: underline;
+  text-decoration: none;
+  border-bottom-color: #9ca3af;
+}
+
+.hub-nav-link .nav-count {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.hub-nav-link.active .nav-count {
+  color: #9ca3af;
 }
 
 .hub-nav--tools .hub-nav-link {
