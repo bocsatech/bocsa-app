@@ -38,6 +38,7 @@ body.hub-page .local-banner {
   position: sticky;
   top: 0;
   z-index: 40;
+  overflow: visible;
 }
 
 .hub-header-inner {
@@ -48,6 +49,7 @@ body.hub-page .local-banner {
   flex-direction: column;
   align-items: stretch;
   gap: 0;
+  overflow: visible;
 }
 
 .hub-header-top {
@@ -55,8 +57,12 @@ body.hub-page .local-banner {
   justify-content: flex-end;
   align-items: center;
   padding: 0.4rem 1rem 0.35rem;
+  /* Hely a felfelé növő logónak (nem tolja le az alsó vonalat) */
+  min-height: 5.75rem;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  z-index: 4;
 }
 
 .hub-logo {
@@ -67,12 +73,16 @@ body.hub-page .local-banner {
   color: #111;
   text-decoration: none;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end;
   line-height: 1;
   flex: 0 0 auto;
   white-space: nowrap;
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  left: 1rem;
+  bottom: 0.05rem;
+  z-index: 3;
+  height: auto;
+  pointer-events: auto;
 }
 
 .hub-logo:hover {
@@ -87,9 +97,11 @@ body.hub-page .local-banner {
   object-fit: contain;
 }
 
+/* 3× a korábbi 48px — felfelé nő, az alsó vonalat nem tolja */
 .bymy-logo-img--nav {
-  height: 48px;
-  max-width: min(190px, 42vw);
+  height: 144px;
+  max-width: min(520px, 58vw);
+  width: auto;
 }
 
 .bymy-logo-img--hero {
@@ -113,12 +125,17 @@ body.hub-page .local-banner {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  /* Rögzített sávmagasság — a nagy logó felfelé lóg, lefelé nem tol */
+  height: 3.35rem;
   min-height: 3.35rem;
+  max-height: 3.35rem;
   padding: 0.15rem 1rem;
+  padding-left: min(14rem, 42vw);
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
   box-sizing: border-box;
   width: 100%;
+  overflow: visible;
 }
 
 .hub-nav {
@@ -721,16 +738,25 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
 
   .hub-nav-band {
     padding: 0.1rem 0.65rem;
+    padding-left: min(9.5rem, 46vw);
+    height: 3rem;
     min-height: 3rem;
+    max-height: 3rem;
+  }
+
+  .hub-logo {
+    left: 0.65rem;
+    bottom: 0.02rem;
   }
 
   .bymy-logo-img--nav {
-    height: 40px;
+    height: 108px;
+    max-width: min(360px, 62vw);
   }
 
   .hub-nav {
     gap: 0.9rem;
-    padding-left: 3.5rem;
+    padding-left: 0;
     justify-content: flex-start;
   }
 

@@ -677,18 +677,20 @@ body.home-page .local-banner {
   text-decoration: none;
   letter-spacing: -0.02em;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end;
   line-height: 1;
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  left: 1rem;
+  bottom: 0.05rem;
+  z-index: 3;
   flex: 0 0 auto;
 }
 
 .home-logo .bymy-logo-img {
   display: block;
-  height: 48px;
+  height: 144px;
   width: auto;
-  max-width: min(190px, 42vw);
+  max-width: min(520px, 58vw);
   object-fit: contain;
 }
 

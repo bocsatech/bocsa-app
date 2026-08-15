@@ -53,8 +53,11 @@ body.site-app .site-header-top {
   justify-content: flex-end;
   align-items: center;
   padding: 0.4rem 1rem 0.35rem;
+  min-height: 5.75rem;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  z-index: 4;
 }
 
 body.site-app .home-logo,
@@ -66,10 +69,12 @@ body.site-app .site-app-logo {
   text-decoration: none;
   letter-spacing: -0.02em;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end;
   line-height: 1;
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  left: 1rem;
+  bottom: 0.05rem;
+  z-index: 3;
   flex: 0 0 auto;
 }
 
@@ -84,8 +89,9 @@ body.site-app .site-app-logo .bymy-logo-img {
 }
 
 body.site-app .bymy-logo-img--nav {
-  height: 48px;
-  max-width: min(190px, 42vw);
+  height: 144px;
+  max-width: min(520px, 58vw);
+  width: auto;
 }
 
 body.site-app .hub-nav-band,
@@ -94,12 +100,16 @@ body.site-app .site-nav-band {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  height: 3.35rem;
   min-height: 3.35rem;
+  max-height: 3.35rem;
   padding: 0.15rem 1rem;
+  padding-left: min(14rem, 42vw);
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
   box-sizing: border-box;
   width: 100%;
+  overflow: visible;
 }
 
 body.site-app .home-nav,
