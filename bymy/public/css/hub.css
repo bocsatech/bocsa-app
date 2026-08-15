@@ -488,6 +488,22 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   --promo-accent: #e31c23;
 }
 
+/* Teljes kész kártyakép (hub-ingatlan.png) — egy keret, nincs dupla szöveg */
+.hub-promo--fullimg {
+  display: block;
+  padding: 0;
+  background: #fff;
+}
+
+.hub-promo--fullimg .hub-promo__full {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: inherit;
+}
+
 .hub-promo:hover {
   border-color: #bdbdbd;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
