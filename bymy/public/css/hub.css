@@ -1116,3 +1116,29 @@ html[data-theme="dark"] .hub-home-logo {
 html[data-theme="dark"] .hf-all {
   color: #9ca3af;
 }
+
+html[data-theme="dark"] .hf-card-label,
+html[data-theme="dark"] .hf-card--ajanlas .hf-card-label,
+html[data-theme="dark"] .hf-card--kategoria .hf-card-label,
+html[data-theme="dark"] .hf-tile-label {
+  color: #e8eaed;
+}
+
+html[data-theme="dark"] .hf-card-sub {
+  color: #9ca3af;
+}
+
+html[data-theme="dark"] .hf-card-media {
+  background: #1a1f26;
+  border-color: #3b4450;
+}
+
+html[data-theme="dark"] .hf-tile {
+  background: #1a1f26;
+  border-color: #3b4450;
+  color: #e8eaed;
+}
+
+html[data-theme="dark"] .hf-tile-icon {
+  color: #9ca3af;
+}
