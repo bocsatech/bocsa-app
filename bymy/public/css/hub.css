@@ -295,33 +295,36 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   border-color: #999;
 }
 
-.hub-card--auto,
 .hub-card--ingatlan {
   background: #fff;
 }
 
+/* A képben már benne van a kártya + árnyék — ne legyen második CSS-keret */
 .hub-card--auto {
-  position: relative;
   display: block;
   padding: 0;
-  overflow: hidden;
-  min-height: 220px;
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  margin: 0;
+  min-height: 0;
+  background: transparent;
+  border: none !important;
+  border-radius: 0;
+  box-shadow: none !important;
+  overflow: visible;
 }
 
 .hub-card--auto:hover {
-  border: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: none !important;
+  box-shadow: none !important;
+  border-color: transparent;
 }
 
 .hub-card-auto-img {
   display: block;
   width: 100%;
-  height: 100%;
-  min-height: 220px;
-  object-fit: cover;
-  object-position: center;
+  height: auto;
+  min-height: 0;
+  object-fit: contain;
+  vertical-align: top;
 }
 
 .hub-card-kicker {
@@ -439,11 +442,11 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   }
 
   .hub-card--auto {
-    min-height: 200px;
+    min-height: 0;
   }
 
   .hub-card-auto-img {
-    min-height: 200px;
+    min-height: 0;
   }
 
   .hub-header-inner {
