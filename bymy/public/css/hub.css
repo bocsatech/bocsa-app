@@ -275,6 +275,132 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   align-items: stretch;
 }
 
+/* Egyforma promo kártyák — saját komponens, nem .hub-card leszármazott */
+.hub-promo {
+  --promo-accent: #a16207;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+  align-items: stretch;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  text-decoration: none;
+  color: #111;
+  background: #fff;
+  border: 1px solid #d4d4d4;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.hub-promo[data-promo="auto"] {
+  --promo-accent: #e31c23;
+}
+
+.hub-promo:hover {
+  border-color: #bdbdbd;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
+}
+
+.hub-promo__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  padding: clamp(0.85rem, 2.2vw, 1.35rem) clamp(0.85rem, 2vw, 1.25rem);
+  min-width: 0;
+  background: #fff;
+}
+
+.hub-promo__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.5rem;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #333;
+}
+
+.hub-promo__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 0.3rem;
+  background: var(--promo-accent);
+  flex: 0 0 auto;
+}
+
+.hub-promo__title {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 0.4rem;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: clamp(1.1rem, 2.15vw, 1.55rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  color: #111;
+}
+
+.hub-promo__accent {
+  color: var(--promo-accent);
+}
+
+.hub-promo__text {
+  margin: 0;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: clamp(0.78rem, 1.15vw, 0.9rem);
+  line-height: 1.35;
+  color: #6b7280;
+}
+
+.hub-promo__cta {
+  margin-top: 0.9rem;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--promo-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+.hub-promo__media {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #e8e8e8;
+}
+
+.hub-promo__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hub-promo__media::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 28%;
+  z-index: 1;
+  background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
 .hub-card {
   display: flex;
   flex-direction: column;
@@ -294,147 +420,6 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   transform: none;
   box-shadow: none;
   border-color: #999;
-}
-
-/* Egyforma méret + egyforma belső elhelyezés (Ingatlan / Autó) */
-.hub-card--promo {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  align-items: stretch;
-  gap: 0;
-  padding: 0;
-  margin: 0;
-  min-height: 0;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid #d0d0d0;
-  border-radius: 18px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-}
-
-.hub-card--promo:hover {
-  border-color: #b8b8b8;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09);
-}
-
-.hub-promo-copy {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0;
-  padding: 1.15rem 1.1rem 1.15rem 1.25rem;
-  background: linear-gradient(90deg, #fff 78%, rgba(255, 255, 255, 0) 100%);
-}
-
-.hub-promo-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin: 0 0 0.55rem;
-  font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #333;
-}
-
-.hub-promo-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.35rem;
-  height: 1.35rem;
-  border-radius: 0.35rem;
-  flex: 0 0 auto;
-}
-
-.hub-promo-icon--ingatlan {
-  background: #a16207;
-}
-
-.hub-promo-icon--auto {
-  background: #e31c23;
-}
-
-.hub-promo-title {
-  display: flex;
-  flex-direction: column;
-  gap: 0.02rem;
-  margin: 0 0 0.45rem;
-  font-family: "DM Sans", system-ui, sans-serif;
-  font-size: clamp(1.15rem, 2.1vw, 1.55rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.12;
-}
-
-.hub-card--ingatlan .hub-promo-title-accent {
-  color: #a16207;
-}
-
-.hub-card--auto .hub-promo-title-accent {
-  color: #e31c23;
-}
-
-.hub-promo-title-rest {
-  color: #111;
-}
-
-.hub-promo-text {
-  margin: 0;
-  max-width: 18rem;
-  font-family: "DM Sans", system-ui, sans-serif;
-  font-size: clamp(0.78rem, 1.2vw, 0.92rem);
-  line-height: 1.35;
-  color: #6b7280;
-}
-
-.hub-promo-cta {
-  margin-top: 0.95rem;
-  font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.88rem;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-  text-decoration-thickness: 1px;
-}
-
-.hub-card--ingatlan .hub-promo-cta {
-  color: #a16207;
-}
-
-.hub-card--auto .hub-promo-cta {
-  color: #e31c23;
-}
-
-.hub-promo-media {
-  position: absolute;
-  inset: 0 0 0 42%;
-  z-index: 1;
-  display: block;
-  pointer-events: none;
-}
-
-.hub-promo-media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.hub-promo-media::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0.88) 16%, rgba(255, 255, 255, 0) 48%);
-  pointer-events: none;
 }
 
 .hub-card-kicker {
