@@ -78,7 +78,7 @@ body.hub-page .local-banner {
   flex: 0 0 auto;
   white-space: nowrap;
   position: absolute;
-  left: 1rem;
+  left: calc(1rem - 1.5cm);
   bottom: 0.05rem;
   z-index: 3;
   height: auto;
