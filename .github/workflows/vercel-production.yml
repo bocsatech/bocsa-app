@@ -7,6 +7,26 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      set_smtp:
+        description: "Állítsd be a bymy SMTP env-eket a Vercelen (egyszeri setup)"
+        type: boolean
+        default: false
+      smtp_user:
+        description: "SMTP_USER (pl. Gmail cím)"
+        type: string
+        required: false
+        default: ""
+      smtp_pass:
+        description: "SMTP_PASS (Gmail app jelszó)"
+        type: string
+        required: false
+        default: ""
+      smtp_from:
+        description: "SMTP_FROM"
+        type: string
+        required: false
+        default: "Bymy <bocsa.robert@gmail.com>"
 
 jobs:
   deploy:
@@ -29,6 +49,75 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Set bymy SMTP env on Vercel (optional)
+        if: ${{ inputs.set_smtp == true }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          BYMY_PROJECT_ID: prj_aePUcCV4V7oLKwxxHnuOYupl1QlN
+          SMTP_USER: ${{ inputs.smtp_user }}
+          SMTP_PASS: ${{ inputs.smtp_pass }}
+          SMTP_FROM: ${{ inputs.smtp_from }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SMTP_USER}" ] || [ -z "${SMTP_PASS}" ]; then
+            echo "::error::set_smtp=true, de smtp_user / smtp_pass üres"
+            exit 1
+          fi
+          python3 <<'PY'
+          import json, os, urllib.error, urllib.request
+
+          token = os.environ["VERCEL_TOKEN"]
+          team = os.environ["VERCEL_ORG_ID"]
+          proj = os.environ["BYMY_PROJECT_ID"]
+          pairs = [
+              ("SMTP_USER", os.environ["SMTP_USER"].strip()),
+              ("SMTP_PASS", os.environ["SMTP_PASS"].replace(" ", "")),
+              ("SMTP_FROM", (os.environ.get("SMTP_FROM") or "").strip() or f"Bymy <{os.environ['SMTP_USER'].strip()}>"),
+          ]
+
+          def req(method, url, body=None):
+              data = None if body is None else json.dumps(body).encode()
+              r = urllib.request.Request(
+                  url,
+                  data=data,
+                  method=method,
+                  headers={
+                      "Authorization": f"Bearer {token}",
+                      "Content-Type": "application/json",
+                  },
+              )
+              try:
+                  with urllib.request.urlopen(r) as res:
+                      raw = res.read().decode()
+                      return json.loads(raw) if raw else {}
+              except urllib.error.HTTPError as e:
+                  detail = e.read().decode()
+                  raise SystemExit(f"{method} {url} -> {e.code}: {detail}") from e
+
+          listed = req("GET", f"https://api.vercel.com/v9/projects/{proj}/env?teamId={team}")
+          envs = listed.get("envs") or []
+
+          for key, value in pairs:
+              for e in envs:
+                  if e.get("key") == key and "production" in (e.get("target") or []):
+                      eid = e["id"]
+                      req("DELETE", f"https://api.vercel.com/v9/projects/{proj}/env/{eid}?teamId={team}")
+                      print(f"deleted existing {key}")
+              created = req(
+                  "POST",
+                  f"https://api.vercel.com/v10/projects/{proj}/env?teamId={team}",
+                  {
+                      "key": key,
+                      "value": value,
+                      "type": "encrypted",
+                      "target": ["production"],
+                  },
+              )
+              print(f"created {key}: {created.get('created') or created.get('id') or 'ok'}")
+
+          print("SMTP env beállítva a bymy production projekten.")
+          PY
       - name: Deploy bocsa-app (CRM) to Vercel
         run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
         env:
