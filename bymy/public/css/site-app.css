@@ -204,6 +204,25 @@ body.site-app [data-auth-member][hidden] {
   display: none !important;
 }
 
+/* Korai auth állapot (html data-auth) — ne villanjon Belépés ↔ profil oldalváltáskor */
+html[data-auth="member"] body.site-app [data-auth-guest] {
+  display: none !important;
+}
+
+html[data-auth="member"] body.site-app [data-auth-member],
+html[data-auth="member"] body.site-app [data-avatar-menu] {
+  display: inline-flex !important;
+}
+
+html[data-auth="guest"] body.site-app [data-auth-member],
+html[data-auth="guest"] body.site-app [data-avatar-menu] {
+  display: none !important;
+}
+
+html[data-auth="guest"] body.site-app [data-auth-guest] {
+  display: inline-flex !important;
+}
+
 body.site-app .hub-header-msg,
 body.site-app .site-header-msg {
   display: inline-flex;

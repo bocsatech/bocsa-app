@@ -408,11 +408,28 @@ function updateHeaderAuthUi() {
 }
 
 export function initSiteAuth(options = {}) {
-  if (options.skipRefresh) {
-    updateHeaderAuthUi();
-  } else {
+  // Azonnali UI a session cache-ből — ne várjuk meg a hálózatot (FOUC / Belépés-villanás).
+  updateHeaderAuthUi();
+  try {
+    document.documentElement.setAttribute(
+      "data-auth",
+      isLoggedIn() ? "member" : "guest"
+    );
+  } catch {
+    /* ignore */
+  }
+
+  if (!options.skipRefresh) {
     refreshAuthSession().finally(() => {
       updateHeaderAuthUi();
+      try {
+        document.documentElement.setAttribute(
+          "data-auth",
+          isLoggedIn() ? "member" : "guest"
+        );
+      } catch {
+        /* ignore */
+      }
     });
   }
 
