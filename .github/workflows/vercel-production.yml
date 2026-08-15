@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       set_smtp:
-        description: "Állítsd be a bymy SMTP env-eket a Vercelen (egyszeri setup)"
+        description: "Állítsd be / frissítsd a bymy SMTP env-eket a Vercelen"
         type: boolean
         default: false
       smtp_user:
@@ -49,21 +49,19 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      # TEMP: hardcoded defaults until project env is set; scrub after success.
-      - name: Set bymy SMTP env on Vercel
-        continue-on-error: true
-        if: ${{ inputs.set_smtp == true || github.event_name == 'push' }}
+      - name: Set bymy SMTP env on Vercel (optional)
+        if: ${{ inputs.set_smtp == true }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           BYMY_PROJECT_ID: prj_aePUcCV4V7oLKwxxHnuOYupl1QlN
-          SMTP_USER: ${{ inputs.smtp_user || 'bocsa.robert@gmail.com' }}
-          SMTP_PASS: ${{ inputs.smtp_pass || 'rgtvepjmkkbulgir' }}
-          SMTP_FROM: ${{ inputs.smtp_from || 'Bymy <bocsa.robert@gmail.com>' }}
+          SMTP_USER: ${{ inputs.smtp_user }}
+          SMTP_PASS: ${{ inputs.smtp_pass }}
+          SMTP_FROM: ${{ inputs.smtp_from }}
         run: |
           set -euo pipefail
           if [ -z "${SMTP_USER}" ] || [ -z "${SMTP_PASS}" ]; then
-            echo "::error::SMTP_USER / SMTP_PASS üres"
+            echo "::error::set_smtp=true, de smtp_user / smtp_pass üres"
             exit 1
           fi
           python3 <<'PY'
@@ -134,7 +132,7 @@ jobs:
                       "target": ["production"],
                   },
               )
-              print(f"created {key}: {created.get('created') or created.get('id') or 'ok'}")
+              print(f"upserted {key}: {created.get('id') or 'ok'}")
 
           print("SMTP env beállítva a bymy production projekten.")
           PY
@@ -151,9 +149,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: prj_aePUcCV4V7oLKwxxHnuOYupl1QlN
-          SMTP_USER: ${{ inputs.smtp_user || 'bocsa.robert@gmail.com' }}
-          SMTP_PASS: ${{ inputs.smtp_pass || 'rgtvepjmkkbulgir' }}
-          SMTP_FROM: ${{ inputs.smtp_from || 'Bymy <bocsa.robert@gmail.com>' }}
         run: |
           set -euo pipefail
 
@@ -185,8 +180,4 @@ jobs:
 
           echo "Deploy bymy-prod → ${VERCEL_PROJECT_ID}"
           cd /tmp/bymy-prod
-          # -e ensures runtime env even if project env API is restricted
-          npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN" \
-            -e "SMTP_USER=${SMTP_USER}" \
-            -e "SMTP_PASS=${SMTP_PASS}" \
-            -e "SMTP_FROM=${SMTP_FROM}"
+          npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
