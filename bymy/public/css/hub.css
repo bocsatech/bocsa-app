@@ -536,12 +536,8 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
     grid-template-columns: 1fr;
   }
 
-  .hub-card--promo {
+  .hub-promo {
     aspect-ratio: 16 / 10;
-  }
-
-  .hub-promo-copy {
-    padding: 1rem 0.9rem 1rem 1rem;
   }
 
   .hub-header-inner {
