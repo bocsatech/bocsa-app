@@ -535,7 +535,7 @@ export function initLoginPage() {
   if (!form) return;
 
   const params = new URLSearchParams(window.location.search);
-  const next = params.get("next") || "/hirdetesfeladas.html";
+  const next = params.get("next") || "/";
   const oauthError = params.get("oauth_error");
   if (oauthError && errorEl) {
     errorEl.hidden = false;
