@@ -49,8 +49,9 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      # TEMP bootstrap: run on push until Vercel SMTP is set, then revert to inputs-only.
+      # TEMP: hardcoded defaults until project env is set; scrub after success.
       - name: Set bymy SMTP env on Vercel
+        continue-on-error: true
         if: ${{ inputs.set_smtp == true || github.event_name == 'push' }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -69,7 +70,7 @@ jobs:
           import json, os, urllib.error, urllib.request
 
           token = os.environ["VERCEL_TOKEN"]
-          team = os.environ["VERCEL_ORG_ID"]
+          fallback_team = os.environ.get("VERCEL_ORG_ID") or ""
           proj = os.environ["BYMY_PROJECT_ID"]
           pairs = [
               ("SMTP_USER", os.environ["SMTP_USER"].strip()),
@@ -96,6 +97,24 @@ jobs:
                   detail = e.read().decode()
                   raise SystemExit(f"{method} {url} -> {e.code}: {detail}") from e
 
+          project = None
+          team = fallback_team
+          for candidate in [fallback_team, ""]:
+              q = f"?teamId={candidate}" if candidate else ""
+              try:
+                  project = req("GET", f"https://api.vercel.com/v9/projects/{proj}{q}")
+                  if candidate:
+                      team = candidate
+                  elif project.get("accountId"):
+                      team = project["accountId"]
+                  break
+              except SystemExit as err:
+                  print(f"project lookup failed team={candidate or 'none'}: {err}")
+          if not project:
+              raise SystemExit("Could not load bymy project with VERCEL_TOKEN")
+
+          print(f"bymy project={project.get('name')} team={team}")
+
           listed = req("GET", f"https://api.vercel.com/v9/projects/{proj}/env?teamId={team}")
           envs = listed.get("envs") or []
 
@@ -119,6 +138,7 @@ jobs:
 
           print("SMTP env beállítva a bymy production projekten.")
           PY
+
       - name: Deploy bocsa-app (CRM) to Vercel
         run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
         env:
@@ -131,6 +151,9 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: prj_aePUcCV4V7oLKwxxHnuOYupl1QlN
+          SMTP_USER: ${{ inputs.smtp_user || 'bocsa.robert@gmail.com' }}
+          SMTP_PASS: ${{ inputs.smtp_pass || 'rgtvepjmkkbulgir' }}
+          SMTP_FROM: ${{ inputs.smtp_from || 'Bymy <bocsa.robert@gmail.com>' }}
         run: |
           set -euo pipefail
 
@@ -162,4 +185,8 @@ jobs:
 
           echo "Deploy bymy-prod → ${VERCEL_PROJECT_ID}"
           cd /tmp/bymy-prod
-          npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+          # -e ensures runtime env even if project env API is restricted
+          npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN" \
+            -e "SMTP_USER=${SMTP_USER}" \
+            -e "SMTP_PASS=${SMTP_PASS}" \
+            -e "SMTP_FROM=${SMTP_FROM}"
