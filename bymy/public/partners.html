@@ -15,13 +15,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-    <meta name="bymy-version" content="stickyHdr1" />
+    <meta name="bymy-version" content="hdrUnify1" />
     <title>Ajánlások — Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=headerRow1" />
-    <link rel="stylesheet" href="/css/site-app.css?v=stickyHdr1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=hdrUnify1" />
     <link rel="stylesheet" href="/css/partners.css?v=headerRow1" />
     <style>
       body.partners-page .import-nav-link,
@@ -45,14 +45,14 @@
     <header class="site-header site-app-header">
       <div class="site-app-header-inner">
         <div class="hub-header-top">
-        <div class="header-actions site-header-actions">
+        <div class="hub-header-actions site-header-actions">
           <a class="hub-header-msg" href="/beallitasok.html?szekcio=uzenetek">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.8h9.5a2.2 2.2 0 0 1 2.2 2.2v4.2a2.2 2.2 0 0 1-2.2 2.2H10l-3.2 2.4V15.2H5A2.2 2.2 0 0 1 2.8 13V9a2.2 2.2 0 0 1 2.2-2.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.2 8.2h4A2.2 2.2 0 0 1 20.4 10.4v3.4a2.2 2.2 0 0 1-2.2 2.2h-.7v1.7l-2.2-1.7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
             <span>Üzenetek</span>
           </a>
           <div class="site-header-auth-row" data-auth-guest>
-            <a class="site-header-btn site-header-btn--ghost" href="/belepes.html" data-auth-login>Belépés</a>
-            <a class="site-header-btn site-header-btn--ghost" href="/regisztracio.html" data-auth-register>Regisztráció</a>
+            <a class="hub-btn hub-btn--ghost" href="/belepes.html" data-auth-login>Belépés</a>
+            <a class="hub-btn hub-btn--ghost" href="/regisztracio.html" data-auth-register>Regisztráció</a>
           </div>
           <div class="site-header-avatar-wrap" data-avatar-menu data-auth-member hidden>
             <button type="button" class="site-header-profile" data-auth-avatar data-avatar-toggle aria-expanded="false" aria-haspopup="menu" aria-label="Fiók" title="Fiók">
@@ -65,7 +65,7 @@
             </button>
             <div class="site-avatar-dropdown site-avatar-dropdown--fiok" data-avatar-dropdown role="menu" hidden></div>
           </div>
-          <a class="site-header-btn site-header-btn--post" href="/hirdetesfeladas.html" data-auth-guard>+ Hirdetésfeladás</a>
+          <a class="hub-btn hub-btn--post" href="/hirdetesfeladas.html" data-auth-guard>+ Hirdetésfeladás</a>
           <button type="button" class="hub-theme-toggle" data-theme-toggle aria-label="Színmód" title="Színmód"></button>
         </div>
         </div>
@@ -145,7 +145,7 @@
             </label>
             <div class="partners-form-actions">
               <button type="submit" class="site-header-btn site-header-btn--primary">Mentés</button>
-              <button type="button" class="site-header-btn site-header-btn--ghost" id="partner-form-reset">Új űrlap</button>
+              <button type="button" class="hub-btn hub-btn--ghost" id="partner-form-reset">Új űrlap</button>
             </div>
           </form>
         </section>
@@ -160,7 +160,7 @@
         <h2 class="partners-panel-title">JSON import</h2>
         <p class="partners-help">Tömb formátum: <code>[{ "name": "...", "postal_code": "8000", "services": ["autoszerelo"], "is_paid": true }]</code></p>
         <textarea id="partner-import-json" class="partners-import" rows="8" placeholder='[{"name":"...", "address":"...", "postal_code":"8000", "phone":"...", "services":["autoszerelo"], "is_paid":true}]'></textarea>
-        <button type="button" class="site-header-btn site-header-btn--ghost" id="partner-import-btn">Importálás</button>
+        <button type="button" class="hub-btn hub-btn--ghost" id="partner-import-btn">Importálás</button>
         <p id="partner-import-status" class="partners-import-status" hidden></p>
       </section>
 
@@ -168,7 +168,7 @@
         <h2 class="partners-panel-title">Ajánló előnézet</h2>
         <div class="partners-preview-row">
           <input id="partner-preview-postal" type="text" inputmode="numeric" maxlength="4" placeholder="8000" />
-          <button type="button" class="site-header-btn site-header-btn--ghost" id="partner-preview-btn">Lekérdezés</button>
+          <button type="button" class="hub-btn hub-btn--ghost" id="partner-preview-btn">Lekérdezés</button>
         </div>
         <pre id="partner-preview-out" class="partners-preview-out">—</pre>
       </section>

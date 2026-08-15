@@ -251,7 +251,7 @@ body.hub-page .local-banner {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-family: "DM Sans", system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
   color: #333;
@@ -271,7 +271,7 @@ body.hub-page .local-banner {
 }
 
 .hub-btn {
-  font-family: "DM Sans", system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;

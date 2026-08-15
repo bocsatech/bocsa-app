@@ -209,6 +209,7 @@ body.site-app .site-header-msg {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
   color: #333;
@@ -559,42 +560,49 @@ body.site-app .site-avatar-logout:hover {
   }
 }
 
-body.site-app .site-header-btn {
+body.site-app .site-header-btn,
+body.site-app .hub-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.95rem;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 0.84rem;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid transparent;
-  cursor: pointer;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #c8c8c8;
+  height: 2.2rem;
+  box-sizing: border-box;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, filter 0.15s;
 }
 
 /* A display:inline-flex felülírná a natív [hidden]-t — belépve a Regisztráció ne látszódjon. */
 body.site-app .site-header-btn[hidden],
+body.site-app .hub-btn[hidden],
 body.site-app [data-auth-register][hidden] {
   display: none !important;
 }
 
-body.site-app .site-header-btn--primary {
-  background: #111;
+body.site-app .site-header-btn--primary,
+body.site-app .hub-btn--primary {
+  background: #c45c26;
   color: #fff;
-  border-color: #111;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border-color: #c45c26;
+  box-shadow: none;
 }
 
-body.site-app .site-header-btn--primary:hover {
-  background: #333;
-  border-color: #333;
+body.site-app .site-header-btn--primary:hover,
+body.site-app .hub-btn--primary:hover {
+  filter: brightness(1.05);
   color: #fff;
 }
 
-body.site-app .site-header-btn--post {
+body.site-app .site-header-btn--post,
+body.site-app .hub-btn--post {
   background: #e3a861;
   color: #fff;
   border-color: #e3a861;
@@ -602,23 +610,29 @@ body.site-app .site-header-btn--post {
   font-weight: 700;
   box-shadow: none;
   padding: 0.5rem 1.05rem;
+  height: auto;
+  min-height: 2.35rem;
 }
 
-body.site-app .site-header-btn--post:hover {
+body.site-app .site-header-btn--post:hover,
+body.site-app .hub-btn--post:hover {
   filter: brightness(1.04);
   background: #e3a861;
   border-color: #e3a861;
   color: #fff;
+  text-decoration: none;
 }
 
-body.site-app .site-header-btn--ghost {
+body.site-app .site-header-btn--ghost,
+body.site-app .hub-btn--ghost {
   background: #fff;
   color: #111;
-  border-color: #d5d9e0;
+  border-color: #c8c8c8;
 }
 
-body.site-app .site-header-btn--ghost:hover {
-  border-color: #111;
+body.site-app .site-header-btn--ghost:hover,
+body.site-app .hub-btn--ghost:hover {
+  border-color: #999;
   color: #111;
 }
 
@@ -3628,7 +3642,8 @@ html[data-theme="dark"] body.site-app .site-header-profile {
   color: #d1d5db;
 }
 
-html[data-theme="dark"] body.site-app .site-header-btn--ghost {
+html[data-theme="dark"] body.site-app .site-header-btn--ghost,
+html[data-theme="dark"] body.site-app .hub-btn--ghost {
   background: #1a1f26;
   color: #e8eaed;
   border-color: #3b4450;
