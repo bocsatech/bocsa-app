@@ -299,8 +299,10 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   background: #fff;
 }
 
-/* A képben már benne van a kártya + árnyék — ne legyen második CSS-keret */
-.hub-card--auto {
+/* Promo képek (Autó / Ingatlan): a képben van a keret — ne legyen második CSS-keret */
+.hub-card--promo,
+.hub-card--auto,
+.hub-card--ingatlan.hub-card--promo {
   display: block;
   padding: 0;
   margin: 0;
@@ -312,12 +314,15 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   overflow: visible;
 }
 
-.hub-card--auto:hover {
+.hub-card--promo:hover,
+.hub-card--auto:hover,
+.hub-card--ingatlan.hub-card--promo:hover {
   border: none !important;
   box-shadow: none !important;
   border-color: transparent;
 }
 
+.hub-card-promo-img,
 .hub-card-auto-img {
   display: block;
   width: 100%;
@@ -441,10 +446,12 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
     grid-template-columns: 1fr;
   }
 
+  .hub-card--promo,
   .hub-card--auto {
     min-height: 0;
   }
 
+  .hub-card-promo-img,
   .hub-card-auto-img {
     min-height: 0;
   }
