@@ -1,9 +1,9 @@
-/** Gmail SMTP (vagy más) — config: ~/.bymy (vagy ~/.bymy)/smtp.json */
+/** Gmail SMTP (vagy más) — file (~/.bymy|~/.autosweb/smtp.json) vagy env (Vercel). */
 
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
+import { homedir } from "os";
 import nodemailer from "nodemailer";
-import { bymyHomeDir, ensureBymyHomeDir, envPath } from "./data-home.mjs";
 
 const EXAMPLE = {
   host: "smtp.gmail.com",
@@ -14,14 +14,25 @@ const EXAMPLE = {
   from: "Bymy <te@gmail.com>",
 };
 
+function homeCandidates() {
+  const fromEnv = process.env.BYMY_DATA_DIR || process.env.AUTOSWEB_DATA_DIR;
+  if (fromEnv) return [fromEnv];
+  return [join(homedir(), ".bymy"), join(homedir(), ".autosweb")];
+}
+
 export function smtpConfigPath() {
-  const fromEnv = envPath("BYMY_SMTP_PATH", "AUTOSWEB_SMTP_PATH");
-  if (fromEnv) return fromEnv;
-  return join(bymyHomeDir(), "smtp.json");
+  if (process.env.BYMY_SMTP_PATH) return process.env.BYMY_SMTP_PATH;
+  if (process.env.AUTOSWEB_SMTP_PATH) return process.env.AUTOSWEB_SMTP_PATH;
+  for (const dir of homeCandidates()) {
+    const p = join(dir, "smtp.json");
+    if (existsSync(p)) return p;
+  }
+  return join(homeCandidates()[0], "smtp.json");
 }
 
 export function ensureSmtpExample() {
-  const dir = ensureBymyHomeDir();
+  const dir = homeCandidates()[0];
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   const examplePath = join(dir, "smtp.example.json");
   if (!existsSync(examplePath)) {
     writeFileSync(examplePath, JSON.stringify(EXAMPLE, null, 2) + "\n", "utf8");
@@ -29,7 +40,22 @@ export function ensureSmtpExample() {
   return examplePath;
 }
 
-export function loadSmtpConfig() {
+function loadSmtpFromEnv() {
+  const user = String(process.env.SMTP_USER || process.env.BYMY_SMTP_USER || "").trim();
+  const pass = String(process.env.SMTP_PASS || process.env.BYMY_SMTP_PASS || "").replace(/\s+/g, "");
+  if (!user || !pass) return null;
+  const fromRaw = String(process.env.SMTP_FROM || process.env.BYMY_SMTP_FROM || user).trim();
+  return {
+    host: String(process.env.SMTP_HOST || process.env.BYMY_SMTP_HOST || "smtp.gmail.com").trim(),
+    port: Number(process.env.SMTP_PORT || process.env.BYMY_SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || "").toLowerCase() === "true",
+    user,
+    pass,
+    from: fromRaw.includes("<") ? fromRaw : `Bymy <${fromRaw}>`,
+  };
+}
+
+function loadSmtpFromFile() {
   const path = smtpConfigPath();
   if (!existsSync(path)) return null;
   try {
@@ -48,6 +74,10 @@ export function loadSmtpConfig() {
   }
 }
 
+export function loadSmtpConfig() {
+  return loadSmtpFromEnv() || loadSmtpFromFile();
+}
+
 export function isSmtpConfigured() {
   return Boolean(loadSmtpConfig());
 }
@@ -56,7 +86,7 @@ export async function sendMail({ to, subject, text, html }) {
   const cfg = loadSmtpConfig();
   if (!cfg) {
     const err = new Error(
-      `Nincs SMTP beállítás. Másold: ${join(bymyHomeDir(), "smtp.example.json")} → smtp.json (Gmail app jelszó).`
+      `Nincs SMTP beállítás. Vercel: SMTP_USER + SMTP_PASS env, vagy smtp.json (Gmail app jelszó) a ${smtpConfigPath()} helyen.`
     );
     err.code = "SMTP_NOT_CONFIGURED";
     throw err;

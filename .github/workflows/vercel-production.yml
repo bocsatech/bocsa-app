@@ -55,6 +55,11 @@ jobs:
           mkdir -p /tmp/bymy-prod/lib
           cp bymy/lib/messaging.mjs /tmp/bymy-prod/lib/messaging.mjs
 
+          echo "SMTP overlay (env: SMTP_USER / SMTP_PASS a Vercel projekten)…"
+          if [ -f bymy/lib/mail.mjs ]; then
+            cp bymy/lib/mail.mjs /tmp/bymy-prod/lib/mail.mjs
+          fi
+
           # Bridge tükör (opcionális helyi/alias használatra)
           mkdir -p autosweb/public
           cp -a bymy/public/. autosweb/public/

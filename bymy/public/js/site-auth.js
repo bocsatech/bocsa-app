@@ -510,8 +510,9 @@ export function initRegisterPage() {
       return;
     }
     const data = new FormData(form);
+    const email = String(data.get("email") || "").trim();
     try {
-      const result = await register(data.get("email"), data.get("password"), data.get("password_confirm"), accountType);
+      const result = await register(email, data.get("password"), data.get("password_confirm"), accountType);
       const msg = result.message || "Regisztráció sikeres.";
       const extra = result.activationLink
         ? `\n\nAktiváló link:\n${result.activationLink}`
@@ -521,7 +522,19 @@ export function initRegisterPage() {
     } catch (error) {
       if (errorEl) {
         errorEl.hidden = false;
-        errorEl.textContent = error.message ?? "Sikertelen regisztráció.";
+        const msg = error.message ?? "Sikertelen regisztráció.";
+        // Már létező fiók: nincs új mail — irányítsuk belépésre / újraküldésre.
+        if (String(msg).includes("már regisztrálva")) {
+          const q = encodeURIComponent(email);
+          errorEl.innerHTML =
+            `Ez az email már regisztrálva van — ezért nem megy ki új aktiváló email.<br>` +
+            `<a href="/belepes.html">Belépés</a>` +
+            (email
+              ? ` · <a href="/aktivalas.html?email=${q}">Aktiváló email újraküldése</a>`
+              : "");
+        } else {
+          errorEl.textContent = msg;
+        }
       }
     }
   });
