@@ -21,14 +21,23 @@ body.site-app .local-banner {
 /* Fejléc + navigáció (home + aloldalak) — willhaben-szerű */
 body.site-app .site-header,
 body.site-app .home-header,
-body.site-app .site-app-header {
+body.site-app .site-app-header,
+body.site-app .hub-header {
   background: #fff;
   border-bottom: 1px solid #e3e6ea;
-  box-shadow: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 100;
   overflow: visible;
+}
+
+html[data-theme="dark"] body.site-app .site-header,
+html[data-theme="dark"] body.site-app .home-header,
+html[data-theme="dark"] body.site-app .site-app-header,
+html[data-theme="dark"] body.site-app .hub-header {
+  background: #1a1f26;
+  border-bottom-color: #2a313c;
 }
 
 body.site-app .home-header-inner,
