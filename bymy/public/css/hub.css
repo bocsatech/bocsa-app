@@ -545,7 +545,7 @@ body.hub-page--feed {
 }
 
 .hf-card--ajanlas {
-  flex: 0 0 88px;
+  /* ugyanakkora, mint a többi hf-card (üres kockák) */
   gap: 0.5rem;
 }
 
