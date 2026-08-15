@@ -96,7 +96,7 @@ body.hub-page .local-banner {
   display: flex;
   flex-wrap: nowrap;
   gap: 1.35rem;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   order: 3;
   flex: 1 1 100%;
@@ -105,13 +105,31 @@ body.hub-page .local-banner {
   overflow-x: auto;
   scrollbar-width: none;
   margin: 0.15rem 0 0;
-  padding: 0.15rem 0 0;
+  padding: 0.2rem 0;
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .hub-nav::-webkit-scrollbar {
   display: none;
+}
+
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  line-height: 0;
+  text-decoration: none;
+  margin-right: 0.2rem;
+}
+
+.bymy-logo-img--nav {
+  display: block;
+  height: 1.4rem;
+  width: auto;
+  max-width: 7.25rem;
+  object-fit: contain;
+  object-position: left center;
 }
 
 .hub-nav-link {
