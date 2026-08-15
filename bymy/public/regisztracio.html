@@ -159,14 +159,14 @@
           <button type="submit" class="site-header-btn site-header-btn--primary login-submit" disabled>Regisztráció</button>
         </form>
         <div id="register-ok" class="login-lead" hidden></div>
-        <p class="login-hint">Ha a szerveren nincs email-küldés, a fiók azonnal aktiválódik (mail nélkül is belépsz). Ha a fiók már létezik, lépj be.</p>
+        <p class="login-hint">Aktiválás: nyisd meg az emailt — a megnyitás elég (nem kell külön oldalra kattintani). Ha a szerveren nincs email-küldés, a fiók azonnal aktiválódik.</p>
         <p class="login-hint">Már van fiókod? <a href="/belepes.html">Belépés</a></p>
       </section>
     </main>
 
     <script src="/js/site-avatar-menu.js?v=willhabenHdr1" type="module"></script>
     <script type="module">
-      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=regAuto1";
+      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=openAct1";
       initSiteAuth();
       initRegisterPage();
     </script>

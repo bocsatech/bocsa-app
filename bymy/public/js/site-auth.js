@@ -534,8 +534,8 @@ export function initRegisterPage() {
 
       const msg = result.message || "Regisztráció sikeres.";
       const extra = result.activationLink
-        ? `\n\nAktiváló link:\n${result.activationLink}`
-        : "\n\nNézd meg a postaládát (és a spam mappát).";
+        ? `\n\nHa a leveleződ nem tölti be a képeket, nyisd meg:\n${result.activationLink}`
+        : "\n\nNyisd meg az aktiváló emailt (spam mappa is) — a megnyitás aktiválja a fiókot.";
       window.alert(`${msg}${extra}`);
       window.location.href = "/belepes.html";
     } catch (error) {
@@ -567,9 +567,14 @@ export function initLoginPage() {
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next") || "/";
   const oauthError = params.get("oauth_error");
+  const okEl = document.getElementById("login-ok");
   if (oauthError && errorEl) {
     errorEl.hidden = false;
     errorEl.textContent = oauthError;
+  }
+  if (params.get("activated") === "1" && okEl) {
+    okEl.hidden = false;
+    okEl.textContent = "Fiók aktiválva. Most már beléphetsz.";
   }
 
   refreshAuthSession().then((user) => {
@@ -590,7 +595,9 @@ export function initLoginPage() {
       errorEl.hidden = false;
       let msg = error.message ?? "Sikertelen belépés.";
       if (String(msg).includes("aktiváld") || String(msg).includes("aktivál")) {
-        msg += ` — <a href="/aktivalas.html?email=${encodeURIComponent(String(email || ""))}">Aktiváló email újraküldése</a>`;
+        msg =
+          `Előbb nyisd meg az aktiváló emailt (a megnyitás aktivál) — nézd a spam mappát is.` +
+          ` — <a href="/aktivalas.html?email=${encodeURIComponent(String(email || ""))}">Aktiváló email újraküldése</a>`;
         errorEl.innerHTML = msg;
       } else {
         errorEl.textContent = msg;
@@ -649,8 +656,8 @@ export function initActivatePage() {
     statusEl.textContent = "Aktiválás…";
     try {
       await activateAccount(tok);
-      statusEl.textContent = "Fiók aktiválva. Átirányítás…";
-      window.location.href = "/beallitasok.html?szekcio=fiok";
+      statusEl.textContent = "Fiók aktiválva. Átirányítás a belépéshez…";
+      window.location.href = "/belepes.html?activated=1";
     } catch (error) {
       statusEl.textContent = error.message ?? "Aktiválás sikertelen.";
     }

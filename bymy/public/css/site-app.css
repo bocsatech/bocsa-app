@@ -910,6 +910,12 @@ body.site-app .login-error {
   color: #c62828;
 }
 
+body.site-app .login-ok {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #2e7d32;
+}
+
 body.site-app .login-submit {
   width: 100%;
   margin-top: 0.25rem;

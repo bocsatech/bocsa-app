@@ -499,7 +499,7 @@ export function loginUser(email, password) {
     throw new Error("Hibás email vagy jelszó.");
   }
   if (Number(row.email_verified ?? 1) !== 1) {
-    const err = new Error("Előbb aktiváld az emailed — nézd meg a postaládád (és a spam mappát).");
+    const err = new Error("Előbb nyisd meg az aktiváló emailt — a megnyitás aktivál (nézd a spam mappát is).");
     err.code = "EMAIL_NOT_VERIFIED";
     throw err;
   }

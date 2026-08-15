@@ -470,7 +470,7 @@ export async function loginUser(email, password, { skipActivationCheck = false }
         .eq("id", row.id);
       row.email_verified = true;
     } else {
-      const err = new Error("Előbb aktiváld az emailed — nézd meg a postaládád (és a spam mappát).");
+      const err = new Error("Előbb nyisd meg az aktiváló emailt — a megnyitás aktivál (nézd a spam mappát is).");
       err.code = "EMAIL_NOT_VERIFIED";
       throw err;
     }

@@ -102,7 +102,7 @@
     <main class="login-main">
       <section class="login-card" aria-labelledby="activate-title">
         <h1 class="login-title" id="activate-title">Fiók aktiválása</h1>
-        <p class="login-lead">Ha az emailben lévő linkre kattintottál, az aktiválás automatikus. Ha nem kaptál levelet, küldd újra.</p>
+        <p class="login-lead">Az új leveleknél elég megnyitni az emailt (a megnyitás aktivál). Ha nem kaptál levelet, küldd újra.</p>
         <p id="activate-status" class="login-lead" role="status" hidden></p>
         <form id="resend-form" class="login-form">
           <label class="login-field">
@@ -115,7 +115,7 @@
       </section>
     </main>
     <script type="module">
-      import { initActivatePage } from "/js/site-auth.js?v=authAcct1";
+      import { initActivatePage } from "/js/site-auth.js?v=openAct1";
       initActivatePage();
     </script>
       <script src="/js/nav-counts.js?v=willhabenHdr1" type="module"></script>
