@@ -79,13 +79,13 @@ body.site-app .import-nav {
   display: flex;
   flex-wrap: nowrap;
   gap: 1.35rem;
-  align-items: stretch;
+  align-items: center;
   background: transparent;
   border: 0;
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
   margin: 0.15rem 0 0;
-  padding: 0.15rem 0 0;
+  padding: 0.2rem 0;
   overflow-x: auto;
   scrollbar-width: none;
   min-width: 0;
@@ -95,6 +95,24 @@ body.site-app .home-nav::-webkit-scrollbar,
 body.site-app .site-app-nav::-webkit-scrollbar,
 body.site-app .import-nav::-webkit-scrollbar {
   display: none;
+}
+
+body.site-app .nav-brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  line-height: 0;
+  text-decoration: none;
+  margin-right: 0.2rem;
+}
+
+body.site-app .bymy-logo-img--nav {
+  display: block;
+  height: 1.4rem;
+  width: auto;
+  max-width: 7.25rem;
+  object-fit: contain;
+  object-position: left center;
 }
 
 body.site-app .home-header-spacer,
