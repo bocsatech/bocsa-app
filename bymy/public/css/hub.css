@@ -302,89 +302,26 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
 
 .hub-card--auto {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 0;
+  display: block;
   padding: 0;
   overflow: hidden;
   min-height: 220px;
+  border: none;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
-.hub-card-auto-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 1.35rem 1.25rem 1.35rem 1.4rem;
-  z-index: 1;
-  background: linear-gradient(90deg, #fff 72%, rgba(255, 255, 255, 0.55) 100%);
+.hub-card--auto:hover {
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.hub-card-kicker--auto {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: #111;
-  letter-spacing: 0.08em;
-}
-
-.hub-card-kicker-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.35rem;
-  height: 1.35rem;
-  border-radius: 0.35rem;
-  background: #e31c23;
-  flex: 0 0 auto;
-}
-
-.hub-card-title--auto {
-  display: flex;
-  flex-direction: column;
-  gap: 0.05rem;
-  font-size: 1.55rem;
-  line-height: 1.15;
-}
-
-.hub-card-title-accent {
-  color: #e31c23;
-}
-
-.hub-card-title-rest {
-  color: #111;
-}
-
-.hub-card-cta--auto {
-  margin-top: 1rem;
-  color: #e31c23;
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-  text-decoration-thickness: 1px;
-}
-
-.hub-card-auto-media {
-  position: absolute;
-  inset: 0 0 0 42%;
+.hub-card-auto-img {
   display: block;
-  pointer-events: none;
-}
-
-.hub-card-auto-media img {
   width: 100%;
   height: 100%;
+  min-height: 220px;
   object-fit: cover;
-  object-position: 55% center;
-  display: block;
-}
-
-.hub-card-auto-media::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0.88) 18%, rgba(255, 255, 255, 0) 48%);
-  pointer-events: none;
+  object-position: center;
 }
 
 .hub-card-kicker {
@@ -502,20 +439,11 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   }
 
   .hub-card--auto {
-    min-height: 210px;
+    min-height: 200px;
   }
 
-  .hub-card-auto-body {
-    padding: 1.15rem 1.1rem;
-    max-width: 62%;
-  }
-
-  .hub-card-title--auto {
-    font-size: 1.35rem;
-  }
-
-  .hub-card-auto-media {
-    inset: 0 0 0 38%;
+  .hub-card-auto-img {
+    min-height: 200px;
   }
 
   .hub-header-inner {
