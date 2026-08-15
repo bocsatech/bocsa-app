@@ -60,6 +60,12 @@ jobs:
             cp bymy/lib/mail.mjs /tmp/bymy-prod/lib/mail.mjs
           fi
 
+          echo "Profil oszlopok overlay (supabase/users.mjs)…"
+          if [ -f bymy/lib/supabase/users.mjs ]; then
+            mkdir -p /tmp/bymy-prod/lib/supabase
+            cp bymy/lib/supabase/users.mjs /tmp/bymy-prod/lib/supabase/users.mjs
+          fi
+
           # Bridge tükör (opcionális helyi/alias használatra)
           mkdir -p autosweb/public
           cp -a bymy/public/. autosweb/public/

@@ -58,9 +58,45 @@ function profileFromRow(row) {
     parsed = {};
   }
   const fromFile = loadProfileFromFile(row.email);
-  // Fájl az elsődleges (túléli DB útvonal-váltást); SQLite a másodlagos.
-  const merged = { ...emptyProfile(), ...parsed, ...(fromFile || {}) };
+
+  const fromCols = {
+    salutation: String(row.salutation ?? "").trim(),
+    firstName: String(row.first_name ?? "").trim(),
+    lastName: String(row.last_name ?? "").trim(),
+    street: String(row.street ?? "").trim(),
+    postalCode: String(row.postal_code ?? "").trim(),
+    city: String(row.city ?? "").trim(),
+    country: String(row.country ?? "").trim(),
+    phone: String(row.phone ?? "").trim(),
+    company: String(row.company ?? "").trim(),
+    accountType:
+      row.account_type === "business" || row.account_type === "dealer"
+        ? row.account_type
+        : row.account_type === "private"
+          ? "private"
+          : "",
+  };
+  // Üres oszlopértékeket ne írják felül a JSON/fájl adatot.
+  for (const [k, v] of Object.entries(fromCols)) {
+    if (v === "" || v == null) delete fromCols[k];
+  }
+
+  const merged = { ...emptyProfile(), ...parsed, ...fromCols, ...(fromFile || {}) };
   delete merged.savedAt;
+
+  const avatar = row.avatar_data_url || merged.avatarDataUrl;
+  if (avatar) merged.avatarDataUrl = avatar;
+  if (row.page_layout) {
+    try {
+      merged.pageLayout = JSON.parse(row.page_layout);
+    } catch {
+      merged.pageLayout = row.page_layout;
+    }
+  }
+  if (row.search_radius_km != null) merged.searchRadiusKm = Number(row.search_radius_km);
+  if (row.recommendations_radius_km != null) {
+    merged.recommendationsRadiusKm = Number(row.recommendations_radius_km);
+  }
   return merged;
 }
 
@@ -130,6 +166,70 @@ export function initWebUsersSchema(db = getDb()) {
   ensureColumn(db, "web_users", "email_verified", "email_verified INTEGER NOT NULL DEFAULT 1");
   ensureColumn(db, "web_users", "activation_token_hash", "activation_token_hash TEXT");
   ensureColumn(db, "web_users", "activation_expires_at", "activation_expires_at TEXT");
+  ensureColumn(db, "web_users", "salutation", "salutation TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "web_users", "first_name", "first_name TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "web_users", "last_name", "last_name TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "web_users", "street", "street TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "web_users", "postal_code", "postal_code TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "web_users", "city", "city TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "web_users", "country", "country TEXT NOT NULL DEFAULT 'Magyarország'");
+  ensureColumn(db, "web_users", "phone", "phone TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "web_users", "company", "company TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "web_users", "account_type", "account_type TEXT NOT NULL DEFAULT 'private'");
+  ensureColumn(db, "web_users", "avatar_data_url", "avatar_data_url TEXT");
+  ensureColumn(db, "web_users", "page_layout", "page_layout TEXT");
+  ensureColumn(db, "web_users", "search_radius_km", "search_radius_km INTEGER");
+  ensureColumn(db, "web_users", "recommendations_radius_km", "recommendations_radius_km INTEGER");
+
+  // Legacy profile_json → oszlopok (egyszeri, ha oszlop üres)
+  try {
+    const rows = db.prepare(`SELECT id, profile_json FROM web_users`).all();
+    const upd = db.prepare(
+      `UPDATE web_users SET
+         salutation = CASE WHEN salutation = '' THEN ? ELSE salutation END,
+         first_name = CASE WHEN first_name = '' THEN ? ELSE first_name END,
+         last_name = CASE WHEN last_name = '' THEN ? ELSE last_name END,
+         street = CASE WHEN street = '' THEN ? ELSE street END,
+         postal_code = CASE WHEN postal_code = '' THEN ? ELSE postal_code END,
+         city = CASE WHEN city = '' THEN ? ELSE city END,
+         country = CASE WHEN country = '' OR country = 'Magyarország' THEN COALESCE(NULLIF(?, ''), country) ELSE country END,
+         phone = CASE WHEN phone = '' THEN ? ELSE phone END,
+         company = CASE WHEN company = '' THEN ? ELSE company END,
+         account_type = CASE WHEN account_type = 'private' AND ? != '' THEN ? ELSE account_type END,
+         avatar_data_url = COALESCE(avatar_data_url, NULLIF(?, '')),
+         search_radius_km = COALESCE(search_radius_km, ?),
+         recommendations_radius_km = COALESCE(recommendations_radius_km, ?)
+       WHERE id = ?`
+    );
+    for (const row of rows) {
+      let p = {};
+      try {
+        p = row.profile_json ? JSON.parse(row.profile_json) : {};
+      } catch {
+        continue;
+      }
+      const type = p.accountType === "business" || p.accountType === "dealer" ? p.accountType : p.accountType === "private" ? "private" : "";
+      upd.run(
+        String(p.salutation ?? ""),
+        String(p.firstName ?? ""),
+        String(p.lastName ?? ""),
+        String(p.street ?? ""),
+        String(p.postalCode ?? ""),
+        String(p.city ?? ""),
+        String(p.country ?? ""),
+        String(p.phone ?? ""),
+        String(p.company ?? ""),
+        type,
+        type,
+        p.avatarDataUrl ? String(p.avatarDataUrl) : "",
+        p.searchRadiusKm != null ? Number(p.searchRadiusKm) : null,
+        p.recommendationsRadiusKm != null ? Number(p.recommendationsRadiusKm) : null,
+        row.id
+      );
+    }
+  } catch {
+    /* ignore migrate errors on fresh DBs */
+  }
 }
 
 function tokenHash(token) {
@@ -354,21 +454,21 @@ export function registerUser(email, password, passwordConfirm, accountType) {
     db.prepare(
       `UPDATE web_users
        SET password_salt = ?, password_hash = ?, email_verified = 0,
-           profile_json = ?,
+           profile_json = ?, account_type = ?,
            activation_token_hash = ?, activation_expires_at = ?,
            updated_at = datetime('now')
        WHERE id = ?`
-    ).run(salt, hash, profileJson, tokenHash(token), expiresAt, existing.id);
+    ).run(salt, hash, profileJson, type, tokenHash(token), expiresAt, existing.id);
     userId = existing.id;
   } else {
     const info = db
       .prepare(
         `INSERT INTO web_users (
-           email, password_salt, password_hash, profile_json,
+           email, password_salt, password_hash, profile_json, account_type,
            email_verified, activation_token_hash, activation_expires_at
-         ) VALUES (?, ?, ?, ?, 0, ?, ?)`
+         ) VALUES (?, ?, ?, ?, ?, 0, ?, ?)`
       )
-      .run(normalized, salt, hash, profileJson, tokenHash(token), expiresAt);
+      .run(normalized, salt, hash, profileJson, type, tokenHash(token), expiresAt);
     userId = Number(info.lastInsertRowid);
   }
 
@@ -496,7 +596,7 @@ export function setUserDisplayName(userId, name) {
 
 export function saveUserProfile(userId, profile) {
   const db = getDb();
-  const row = db.prepare(`SELECT email, profile_json FROM web_users WHERE id = ?`).get(userId);
+  const row = db.prepare(`SELECT * FROM web_users WHERE id = ?`).get(userId);
   if (!row?.email) {
     throw new Error("A profil mentése sikertelen (nincs ilyen felhasználó).");
   }
@@ -528,24 +628,61 @@ export function saveUserProfile(userId, profile) {
     throw new Error("A keresztnév és a vezetéknév kötelező.");
   }
 
+  const avatarDataUrl =
+    profile.avatarDataUrl != null
+      ? String(profile.avatarDataUrl).trim() || null
+      : previous.avatarDataUrl || row.avatar_data_url || null;
+  const searchRadiusKm =
+    profile.searchRadiusKm != null ? Number(profile.searchRadiusKm) : previous.searchRadiusKm ?? null;
+  const recommendationsRadiusKm =
+    profile.recommendationsRadiusKm != null
+      ? Number(profile.recommendationsRadiusKm)
+      : previous.recommendationsRadiusKm ?? null;
+
+  const jsonMirror = { ...next };
+  if (avatarDataUrl) jsonMirror.avatarDataUrl = avatarDataUrl;
+  if (previous.pageLayout != null) jsonMirror.pageLayout = previous.pageLayout;
+  if (searchRadiusKm != null) jsonMirror.searchRadiusKm = searchRadiusKm;
+  if (recommendationsRadiusKm != null) jsonMirror.recommendationsRadiusKm = recommendationsRadiusKm;
+
   const displayName = [next.firstName, next.lastName].filter(Boolean).join(" ");
-  const fileResult = saveProfileToFile(row.email, next);
+  const fileResult = saveProfileToFile(row.email, jsonMirror);
 
   const info = db
     .prepare(
       `UPDATE web_users
-       SET profile_json = ?, display_name = ?, updated_at = datetime('now')
+       SET salutation = ?, first_name = ?, last_name = ?, street = ?, postal_code = ?,
+           city = ?, country = ?, phone = ?, company = ?, account_type = ?,
+           avatar_data_url = ?, search_radius_km = ?, recommendations_radius_km = ?,
+           profile_json = ?, display_name = ?, updated_at = datetime('now')
        WHERE id = ?`
     )
-    .run(JSON.stringify(next), displayName, userId);
+    .run(
+      next.salutation,
+      next.firstName,
+      next.lastName,
+      next.street,
+      next.postalCode,
+      next.city,
+      next.country,
+      next.phone,
+      next.company,
+      next.accountType,
+      avatarDataUrl,
+      searchRadiusKm,
+      recommendationsRadiusKm,
+      JSON.stringify(jsonMirror),
+      displayName,
+      userId
+    );
   if (!info.changes) {
     throw new Error("A profil mentése sikertelen (nincs ilyen felhasználó).");
   }
-  const verify = profileFromRow(db.prepare(`SELECT email, profile_json FROM web_users WHERE id = ?`).get(userId));
+  const verify = profileFromRow(db.prepare(`SELECT * FROM web_users WHERE id = ?`).get(userId));
   if (verify.firstName !== next.firstName) {
     throw new Error("A profil mentése nem íródott a helyi adatbázisba.");
   }
-  return { ...next, _savedTo: fileResult.path };
+  return { ...verify, _savedTo: fileResult.path };
 }
 
 export function deleteUserAccount(userId) {

@@ -154,14 +154,20 @@ function isBlocked(db, a, b) {
 }
 
 function userPublic(db, id) {
-  const row = db.prepare("SELECT id, email, display_name, profile_json FROM web_users WHERE id = ?").get(id);
+  const row = db
+    .prepare(
+      "SELECT id, email, display_name, first_name, last_name, profile_json FROM web_users WHERE id = ?"
+    )
+    .get(id);
   if (!row) return { id, email: "", displayName: "Ismeretlen" };
-  let first = "";
-  try {
-    const p = JSON.parse(row.profile_json || "{}");
-    first = [p.lastName, p.firstName].filter(Boolean).join(" ");
-  } catch {
-    /* ignore */
+  let first = [row.last_name, row.first_name].filter(Boolean).join(" ");
+  if (!first) {
+    try {
+      const p = JSON.parse(row.profile_json || "{}");
+      first = [p.lastName, p.firstName].filter(Boolean).join(" ");
+    } catch {
+      /* ignore */
+    }
   }
   return {
     id: row.id,

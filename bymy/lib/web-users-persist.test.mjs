@@ -19,7 +19,7 @@ test("profil megmarad process újraindítás után (sqlite + profiles.json)", ()
       process.env.BYMY_DB_PATH = ${JSON.stringify(dbPath)};
       process.env.BYMY_PROFILES_PATH = ${JSON.stringify(profilesPath)};
       const { registerUser, activateUserByToken, saveUserProfile, getUserById } = await import("/workspace/bymy/lib/web-users.mjs");
-      const reg = registerUser("persist2@test.dev", "pass1", "pass1");
+      const reg = registerUser("persist2@test.dev", "pass1", "pass1", "private");
       const { user } = activateUserByToken(reg.activationToken);
       saveUserProfile(user.id, { firstName: "Gabor", lastName: "Toth", postalCode: "2000", city: "Szentendre" });
       const u = getUserById(user.id);
@@ -73,10 +73,10 @@ test("profil fájlból visszatöltődik üres sqlite profile_json mellett is", (
       process.env.BYMY_PROFILES_PATH = ${JSON.stringify(profilesPath)};
       const { getDb } = await import("/workspace/bymy/lib/db.mjs");
       const { registerUser, activateUserByToken, saveUserProfile } = await import("/workspace/bymy/lib/web-users.mjs");
-      const reg = registerUser("fileonly@test.dev", "pass1", "pass1");
+      const reg = registerUser("fileonly@test.dev", "pass1", "pass1", "private");
       const { user } = activateUserByToken(reg.activationToken);
       saveUserProfile(user.id, { firstName: "Kata", lastName: "Nagy" });
-      getDb().prepare("UPDATE web_users SET profile_json = '{}' WHERE id = ?").run(user.id);
+      getDb().prepare(\`UPDATE web_users SET profile_json = '{}', first_name = '', last_name = '', postal_code = '', city = '' WHERE id = ?\`).run(user.id);
       `,
     ],
     { encoding: "utf8" }
