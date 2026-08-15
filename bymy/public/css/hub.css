@@ -564,12 +564,16 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
 
   .hub-header-inner {
     gap: 0.35rem 0.5rem;
-    padding: 0.45rem 0.65rem;
+    padding: 0.35rem 0.65rem 0;
+  }
+
+  .hub-nav {
+    gap: 0.9rem;
   }
 
   .hub-nav-link {
-    font-size: 0.82rem;
-    padding: 0.3rem 0.35rem;
+    font-size: 0.78rem;
+    padding: 0.6rem 0.05rem 0.55rem;
   }
 
   .hub-btn {
