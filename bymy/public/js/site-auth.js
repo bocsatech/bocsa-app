@@ -512,14 +512,12 @@ export function initRegisterPage() {
     const data = new FormData(form);
     try {
       const result = await register(data.get("email"), data.get("password"), data.get("password_confirm"), accountType);
-      form.hidden = true;
-      if (okEl) {
-        okEl.hidden = false;
-        const linkHint = result.activationLink
-          ? `<p class="login-hint">SMTP nincs beállítva — használd a linket:<br/><a href="${result.activationLink}">${result.activationLink}</a></p>`
-          : `<p class="login-hint">Nézd meg a postaládát (és a spam mappát).</p>`;
-        okEl.innerHTML = `<strong>${result.message || "Regisztráció sikeres."}</strong>${linkHint}<p class="login-hint"><a href="/belepes.html">Tovább a belépéshez</a></p>`;
-      }
+      const msg = result.message || "Regisztráció sikeres.";
+      const extra = result.activationLink
+        ? `\n\nAktiváló link:\n${result.activationLink}`
+        : "\n\nNézd meg a postaládát (és a spam mappát).";
+      window.alert(`${msg}${extra}`);
+      window.location.href = "/belepes.html";
     } catch (error) {
       if (errorEl) {
         errorEl.hidden = false;
