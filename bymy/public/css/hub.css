@@ -490,16 +490,13 @@ body.hub-page--feed {
   padding: 0 1.25rem 0.35rem;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 .hf-rail::-webkit-scrollbar {
-  height: 6px;
-}
-
-.hf-rail::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .hf-card {
