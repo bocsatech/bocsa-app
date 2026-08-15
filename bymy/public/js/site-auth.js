@@ -374,6 +374,14 @@ function updateHeaderAuthUi() {
   const loggedIn = Boolean(user?.email);
   const firstName = firstNameFromUser(user);
 
+  try {
+    document.documentElement.setAttribute("data-auth", loggedIn ? "member" : "guest");
+    if (firstName) document.documentElement.setAttribute("data-auth-firstname", firstName);
+    else document.documentElement.removeAttribute("data-auth-firstname");
+  } catch {
+    /* ignore */
+  }
+
   registerBtns.forEach((btn) => {
     btn.hidden = loggedIn;
   });
