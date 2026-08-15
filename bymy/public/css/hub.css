@@ -116,7 +116,7 @@ body.hub-page .local-banner {
 
 .hub-nav-link {
   font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 0.82rem;
+  font-size: 1.07rem;
   font-weight: 700;
   color: #111;
   text-decoration: none;
@@ -147,7 +147,7 @@ body.hub-page .local-banner {
 }
 
 .hub-nav-link .nav-count {
-  font-size: 0.72rem;
+  font-size: 0.94rem;
   font-weight: 500;
   color: #9ca3af;
 }
@@ -572,7 +572,7 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   }
 
   .hub-nav-link {
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     padding: 0.6rem 0.05rem 0.55rem;
   }
 
