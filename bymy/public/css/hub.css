@@ -746,7 +746,7 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   }
 
   .hub-logo {
-    left: 0.65rem;
+    left: calc(0.65rem - 1.5cm);
     bottom: 0.02rem;
   }
 
