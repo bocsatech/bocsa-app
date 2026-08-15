@@ -2,3 +2,7 @@ node_modules/
 .import-profile/
 /data/
 .chrome-import-profile/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
