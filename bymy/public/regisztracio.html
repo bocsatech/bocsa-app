@@ -51,7 +51,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-    <meta name="bymy-version" content="regMailHelp1" />
+    <meta name="bymy-version" content="regAuto1" />
     <title>Regisztráció — Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -159,14 +159,14 @@
           <button type="submit" class="site-header-btn site-header-btn--primary login-submit" disabled>Regisztráció</button>
         </form>
         <div id="register-ok" class="login-lead" hidden></div>
-        <p class="login-hint">Email regisztrációnál aktiváló link kell. Ha a fiók már létezik, újra regisztrációnál <strong>nem</strong> megy ki mail — lépj be.</p>
-        <p class="login-hint">Már van fiókod? <a href="/belepes.html">Belépés</a> · <a href="/aktivalas.html">Aktiváló email újraküldése</a></p>
+        <p class="login-hint">Ha a szerveren nincs email-küldés, a fiók azonnal aktiválódik (mail nélkül is belépsz). Ha a fiók már létezik, lépj be.</p>
+        <p class="login-hint">Már van fiókod? <a href="/belepes.html">Belépés</a></p>
       </section>
     </main>
 
     <script src="/js/site-avatar-menu.js?v=willhabenHdr1" type="module"></script>
     <script type="module">
-      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=regMailHelp1";
+      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=regAuto1";
       initSiteAuth();
       initRegisterPage();
     </script>

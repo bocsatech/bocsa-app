@@ -477,6 +477,11 @@ export function initRegisterPage() {
   const submitBtn = form?.querySelector('button[type="submit"]');
   if (!form) return;
 
+  // Már belépve: ne mutassuk a regisztrációs űrlapot.
+  refreshAuthSession().then((user) => {
+    if (user?.email) window.location.replace("/");
+  });
+
   initOAuthButtons();
 
   function selectedAccountType() {
@@ -513,6 +518,20 @@ export function initRegisterPage() {
     const email = String(data.get("email") || "").trim();
     try {
       const result = await register(email, data.get("password"), data.get("password_confirm"), accountType);
+
+      // Felhő + nincs SMTP: a szerver azonnal aktivál + session tokent ad → „be vagy lépve”.
+      const autoLoggedIn = Boolean(result.token || result.user || result.needsActivation === false);
+      if (autoLoggedIn) {
+        if (result.user) rememberAuth(result);
+        else await refreshAuthSession();
+        window.alert(
+          "Regisztráció sikeres — a fiók aktiválva, be is léptél.\n\n" +
+            "Aktiváló email most nincs beállítva a szerveren, ezért mail nélkül is kész a fiók."
+        );
+        window.location.href = "/";
+        return;
+      }
+
       const msg = result.message || "Regisztráció sikeres.";
       const extra = result.activationLink
         ? `\n\nAktiváló link:\n${result.activationLink}`
@@ -552,6 +571,10 @@ export function initLoginPage() {
     errorEl.hidden = false;
     errorEl.textContent = oauthError;
   }
+
+  refreshAuthSession().then((user) => {
+    if (user?.email) window.location.replace(next.startsWith("/") ? next : "/");
+  });
 
   initOAuthButtons({ next });
 
