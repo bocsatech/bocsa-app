@@ -342,12 +342,21 @@ function initWheel(wheel) {
   });
 }
 
+function accountTypeLabel(type) {
+  if (type === "business") return "Céges fiók";
+  if (type === "dealer") return "Autókereskedő";
+  if (type === "private") return "Privát fiók";
+  return "—";
+}
+
 function syncCompanyWrap(form) {
   const wrap = document.querySelector("[data-mm-company-wrap]");
   const label = document.querySelector("[data-mm-company-label]");
   const type = form?.elements?.namedItem("accountType")?.value || "private";
   if (wrap) wrap.hidden = type !== "business" && type !== "dealer";
   if (label) label.textContent = type === "dealer" ? "Kereskedés neve" : "Cégnév";
+  const locked = document.querySelector("[data-account-type-locked]");
+  if (locked) locked.textContent = accountTypeLabel(type);
 }
 
 function initAccordionExclusive() {
@@ -655,9 +664,7 @@ export async function initSettingsPage() {
   });
 
   const profileForm = document.getElementById("mm-profile-form");
-  profileForm?.elements?.namedItem("accountType")?.addEventListener("change", () => {
-    syncCompanyWrap(profileForm);
-  });
+  syncCompanyWrap(profileForm);
 
   // A submit listener korán kötődik (bindProfileFormEarly) — itt csak a hello frissül mentés után.
 

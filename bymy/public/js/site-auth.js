@@ -197,13 +197,14 @@ async function maybeRestoreProfile(user) {
   }
 }
 
-export async function register(email, password, passwordConfirm) {
+export async function register(email, password, passwordConfirm, accountType) {
   const data = await authFetch("/api/auth/register", {
     method: "POST",
     body: JSON.stringify({
       email,
       password,
       passwordConfirm,
+      accountType,
     }),
   });
   // Aktiválás előtt nincs session.
@@ -473,17 +474,44 @@ export function initRegisterPage() {
   const form = document.getElementById("register-form");
   const errorEl = document.getElementById("register-error");
   const okEl = document.getElementById("register-ok");
+  const submitBtn = form?.querySelector('button[type="submit"]');
   if (!form) return;
 
   initOAuthButtons();
+
+  function selectedAccountType() {
+    const checked = form.querySelector('input[name="accountType"]:checked');
+    return checked?.value || "";
+  }
+
+  function syncAccountTypeUi() {
+    const type = selectedAccountType();
+    form.querySelectorAll("[data-account-type-option]").forEach((el) => {
+      el.classList.toggle("is-selected", el.getAttribute("data-account-type-option") === type);
+    });
+    if (submitBtn) submitBtn.disabled = !type;
+  }
+
+  form.querySelectorAll('input[name="accountType"]').forEach((input) => {
+    input.addEventListener("change", syncAccountTypeUi);
+  });
+  syncAccountTypeUi();
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (errorEl) errorEl.hidden = true;
     if (okEl) okEl.hidden = true;
+    const accountType = selectedAccountType();
+    if (!accountType) {
+      if (errorEl) {
+        errorEl.hidden = false;
+        errorEl.textContent = "Válaszd ki: Privát fiók vagy Céges fiók.";
+      }
+      return;
+    }
     const data = new FormData(form);
     try {
-      const result = await register(data.get("email"), data.get("password"), data.get("password_confirm"));
+      const result = await register(data.get("email"), data.get("password"), data.get("password_confirm"), accountType);
       form.hidden = true;
       if (okEl) {
         okEl.hidden = false;
@@ -552,34 +580,23 @@ export async function initOAuthButtons({ next = "/hirdetesfeladas.html" } = {}) 
   }
 
   const byId = new Map(providers.map((p) => [p.id, p]));
-  const enabledCount = providers.filter((p) => p.enabled).length;
 
   for (const btn of buttons) {
     const id = btn.getAttribute("data-oauth-provider");
     const info = byId.get(id);
     const enabled = Boolean(info?.enabled);
     btn.disabled = !enabled;
-    btn.title = enabled
-      ? `Belépés ${info.label}-lal`
-      : `${info?.label || id} még nincs beállítva (~/.bymy/oauth.json)`;
+    btn.title = enabled ? `Belépés ${info.label}-lal` : `${info?.label || id} jelenleg nem elérhető`;
     btn.addEventListener("click", () => {
-      if (!enabled) {
-        if (hint) {
-          hint.hidden = false;
-          hint.textContent =
-            `${info?.label || id} OAuth nincs bekapcsolva. Futtasd: bymy/mac/oauth-beallitas.command, majd töltsd ki a ~/.bymy/oauth.json fájlt.`;
-        }
-        return;
-      }
+      if (!enabled) return;
       const params = new URLSearchParams({ next });
       window.location.href = `/api/auth/oauth/start/${id}?${params}`;
     });
   }
 
-  if (hint && enabledCount === 0) {
-    hint.hidden = false;
-    hint.textContent =
-      "Social belépés: állítsd be a Google / Apple / Facebook appokat (~/.bymy/oauth.json). Email regisztráció továbbra is működik.";
+  if (hint) {
+    hint.hidden = true;
+    hint.textContent = "";
   }
 }
 

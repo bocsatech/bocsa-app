@@ -861,7 +861,12 @@ async function handleAuthApi(req, res, pathname) {
 
     if (pathname === "/api/auth/register" && req.method === "POST") {
       const body = await readBody(req);
-      const registered = registerUser(body.email, body.password, body.passwordConfirm ?? body.password_confirm);
+      const registered = registerUser(
+        body.email,
+        body.password,
+        body.passwordConfirm ?? body.password_confirm,
+        body.accountType
+      );
       let mail = { sent: false, link: null, error: null };
       try {
         mail = await sendActivationEmail(registered.email, registered.activationToken);

@@ -51,13 +51,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-    <meta name="bymy-version" content="authWipe1" />
+    <meta name="bymy-version" content="authAcct1" />
     <title>Fiókom — Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=auth20260725" />
-    <link rel="stylesheet" href="/css/site-app.css?v=authWipe1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=authAcct1" />
   </head>
   <body class="site-app settings-page mm-page" data-site-page="beallitasok" data-auth-init="manual">
     <div class="local-banner">Bymy — Fiókom · user DB: ~/.bymy/ · v=localdb9</div>
@@ -66,7 +66,7 @@
       <div class="site-app-header-inner">
         <div class="hub-header-top">
         <div class="hub-header-actions site-header-actions">
-          <a class="hub-header-msg" href="/beallitasok.html?szekcio=uzenetek">
+          <a class="hub-header-msg" href="/beallitasok.html?szekcio=uzenetek" data-auth-member hidden>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.8h9.5a2.2 2.2 0 0 1 2.2 2.2v4.2a2.2 2.2 0 0 1-2.2 2.2H10l-3.2 2.4V15.2H5A2.2 2.2 0 0 1 2.8 13V9a2.2 2.2 0 0 1 2.2-2.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.2 8.2h4A2.2 2.2 0 0 1 20.4 10.4v3.4a2.2 2.2 0 0 1-2.2 2.2h-.7v1.7l-2.2-1.7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
             <span>Üzenetek</span>
           </a>
@@ -267,14 +267,12 @@
                     <span class="login-label">Email</span>
                     <input type="email" id="settings-email" value="" readonly tabindex="-1" />
                   </label>
-                  <label class="login-field">
+                  <div class="login-field">
                     <span class="login-label">Fióktípus</span>
-                    <select name="accountType">
-                      <option value="private">Magánszemély</option>
-                      <option value="business">Vállalkozás (nem kereskedő)</option>
-                      <option value="dealer">Autókereskedő</option>
-                    </select>
-                  </label>
+                    <p class="settings-account-type-locked" data-account-type-locked>—</p>
+                    <input type="hidden" name="accountType" value="" />
+                    <p class="settings-acc-hint">A fióktípus regisztrációkor rögzül, később nem módosítható.</p>
+                  </div>
                   <label class="login-field" data-mm-company-wrap hidden>
                     <span class="login-label" data-mm-company-label>Cégnév</span>
                     <input type="text" name="company" autocomplete="organization" />
@@ -405,7 +403,7 @@
     </main>
 
     <script src="/js/site-avatar-menu.js?v=willhabenHdr1" type="module"></script>
-    <script src="/js/beallitasok-app.js?v=messagesWh2" type="module"></script>
+    <script src="/js/beallitasok-app.js?v=authAcct1" type="module"></script>
   
     <script>
       (function () {

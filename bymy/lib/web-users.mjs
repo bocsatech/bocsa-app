@@ -317,10 +317,11 @@ function storeActivationToken(userId, token, expiresAt) {
   ).run(tokenHash(token), expiresAt, userId);
 }
 
-export function registerUser(email, password, passwordConfirm) {
+export function registerUser(email, password, passwordConfirm, accountType) {
   const normalized = normalizeEmail(email);
   const pass = String(password ?? "").trim();
   const confirm = String(passwordConfirm ?? "").trim();
+  const type = accountType === "business" ? "business" : accountType === "private" ? "private" : "";
   if (!normalized || !pass) {
     throw new Error("Email és jelszó kötelező.");
   }
@@ -333,6 +334,9 @@ export function registerUser(email, password, passwordConfirm) {
   if (pass !== confirm) {
     throw new Error("A két jelszó nem egyezik.");
   }
+  if (!type) {
+    throw new Error("Válaszd ki: Privát fiók vagy Céges fiók.");
+  }
 
   const db = getDb();
   const existing = db.prepare(`SELECT id, email_verified FROM web_users WHERE email = ?`).get(normalized);
@@ -342,17 +346,19 @@ export function registerUser(email, password, passwordConfirm) {
 
   const { salt, hash } = hashPassword(pass);
   const { token, expiresAt } = makeActivationToken();
+  const profileJson = JSON.stringify({ ...emptyProfile(), accountType: type });
 
   let userId;
   if (existing) {
-    // Újra-regisztráció: még nem aktivált fiók — jelszó + új token.
+    // Újra-regisztráció: még nem aktivált fiók — jelszó + új token + fióktípus.
     db.prepare(
       `UPDATE web_users
        SET password_salt = ?, password_hash = ?, email_verified = 0,
+           profile_json = ?,
            activation_token_hash = ?, activation_expires_at = ?,
            updated_at = datetime('now')
        WHERE id = ?`
-    ).run(salt, hash, tokenHash(token), expiresAt, existing.id);
+    ).run(salt, hash, profileJson, tokenHash(token), expiresAt, existing.id);
     userId = existing.id;
   } else {
     const info = db
@@ -360,9 +366,9 @@ export function registerUser(email, password, passwordConfirm) {
         `INSERT INTO web_users (
            email, password_salt, password_hash, profile_json,
            email_verified, activation_token_hash, activation_expires_at
-         ) VALUES (?, ?, ?, '{}', 0, ?, ?)`
+         ) VALUES (?, ?, ?, ?, 0, ?, ?)`
       )
-      .run(normalized, salt, hash, tokenHash(token), expiresAt);
+      .run(normalized, salt, hash, profileJson, tokenHash(token), expiresAt);
     userId = Number(info.lastInsertRowid);
   }
 
@@ -371,6 +377,7 @@ export function registerUser(email, password, passwordConfirm) {
     email: normalized,
     activationToken: token,
     needsActivation: true,
+    accountType: type,
   };
 }
 
@@ -488,6 +495,22 @@ export function setUserDisplayName(userId, name) {
 }
 
 export function saveUserProfile(userId, profile) {
+  const db = getDb();
+  const row = db.prepare(`SELECT email, profile_json FROM web_users WHERE id = ?`).get(userId);
+  if (!row?.email) {
+    throw new Error("A profil mentése sikertelen (nincs ilyen felhasználó).");
+  }
+
+  const previous = profileFromRow(row);
+  const lockedType =
+    previous.accountType === "business" || previous.accountType === "private"
+      ? previous.accountType
+      : profile.accountType === "business"
+        ? "business"
+        : profile.accountType === "private"
+          ? "private"
+          : "private";
+
   const next = {
     salutation: String(profile.salutation ?? "").trim(),
     firstName: String(profile.firstName ?? "").trim(),
@@ -498,19 +521,14 @@ export function saveUserProfile(userId, profile) {
     country: String(profile.country ?? "Magyarország").trim() || "Magyarország",
     phone: String(profile.phone ?? "").trim(),
     company: String(profile.company ?? "").trim(),
-    accountType: profile.accountType === "business" ? "business" : "private",
+    // Regisztrációnál rögzített fióktípus — később nem módosítható.
+    accountType: lockedType,
   };
   if (!next.firstName || !next.lastName) {
     throw new Error("A keresztnév és a vezetéknév kötelező.");
   }
 
   const displayName = [next.firstName, next.lastName].filter(Boolean).join(" ");
-  const db = getDb();
-  const row = db.prepare(`SELECT email FROM web_users WHERE id = ?`).get(userId);
-  if (!row?.email) {
-    throw new Error("A profil mentése sikertelen (nincs ilyen felhasználó).");
-  }
-
   const fileResult = saveProfileToFile(row.email, next);
 
   const info = db
