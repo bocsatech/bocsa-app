@@ -97,23 +97,7 @@ body.site-app .import-nav::-webkit-scrollbar {
   display: none;
 }
 
-body.site-app .nav-brand {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  line-height: 0;
-  text-decoration: none;
-  margin-right: 0.2rem;
-}
 
-body.site-app .bymy-logo-img--nav {
-  display: block;
-  height: 1.4rem;
-  width: auto;
-  max-width: 7.25rem;
-  object-fit: contain;
-  object-position: left center;
-}
 
 body.site-app .home-header-spacer,
 body.site-app .site-app-header-spacer {

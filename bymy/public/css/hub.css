@@ -114,23 +114,7 @@ body.hub-page .local-banner {
   display: none;
 }
 
-.nav-brand {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  line-height: 0;
-  text-decoration: none;
-  margin-right: 0.2rem;
-}
 
-.bymy-logo-img--nav {
-  display: block;
-  height: 1.4rem;
-  width: auto;
-  max-width: 7.25rem;
-  object-fit: contain;
-  object-position: left center;
-}
 
 .hub-nav-link {
   font-family: "DM Sans", system-ui, sans-serif;
