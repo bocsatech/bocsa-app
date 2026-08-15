@@ -658,13 +658,13 @@ body.home-page .local-banner {
 .home-header-top,
 .home-header-inner {
   width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0.85rem 1.25rem;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 1rem;
+  max-width: min(1280px, 100%);
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
   box-sizing: border-box;
   overflow: visible;
 }
@@ -679,21 +679,26 @@ body.home-page .local-banner {
   display: inline-flex;
   align-items: center;
   line-height: 1;
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
 }
 
 .home-logo .bymy-logo-img {
   display: block;
-  height: 40px;
+  height: 48px;
   width: auto;
-  max-width: min(160px, 46vw);
+  max-width: min(190px, 42vw);
   object-fit: contain;
 }
 
 .home-nav {
   justify-self: center;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem 0.1rem;
+  flex-wrap: nowrap;
+  gap: 1.35rem;
+  align-items: center;
+  justify-content: center;
 }
 
 .home-header-spacer {
@@ -701,35 +706,42 @@ body.home-page .local-banner {
 }
 
 .home-nav-link {
-  padding: 0.4rem 0.55rem;
+  padding: 0.7rem 0.1rem 0.65rem;
   border-radius: 0;
   color: #111;
   text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1.07rem;
+  font-weight: 700;
   background: transparent;
   opacity: 1;
+  border-bottom: 3px solid transparent;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .home-nav-link:hover {
   background: transparent;
   color: #111;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .home-nav-link.active {
   background: transparent;
-  color: #111;
+  color: #6b7280;
   font-weight: 700;
-  text-decoration: underline;
+  text-decoration: none;
+  border-bottom-color: #9ca3af;
 }
 
 body.home-page[data-site-page="auto"] .home-header-inner {
-  grid-template-columns: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
 }
 
 body.home-page[data-site-page="auto"] .home-nav {
-  justify-self: start;
+  justify-content: center;
 }
 
 .home-search-wrap {
@@ -1721,12 +1733,13 @@ body.home-page[data-site-page="auto"] .home-nav {
   }
 
   .home-header-inner {
-    grid-template-columns: 1fr;
-    justify-items: start;
+    display: flex;
+    flex-direction: column;
   }
 
   .home-nav {
-    justify-self: start;
+    justify-content: flex-start;
+    padding-left: 3.5rem;
   }
 
   .home-header-spacer {

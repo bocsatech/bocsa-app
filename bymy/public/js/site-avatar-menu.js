@@ -119,8 +119,22 @@ function displayName(user) {
   return local.charAt(0).toUpperCase() + local.slice(1);
 }
 
+function firstName(user) {
+  const fromProfile = String(user?.profile?.firstName || "").trim();
+  if (fromProfile) return fromProfile;
+  const display = String(user?.displayName || "").trim();
+  if (display && !display.includes("@")) {
+    const part = display.split(/\s+/)[0];
+    if (part) return part;
+  }
+  const email = String(user?.email || "").trim();
+  if (!email) return "";
+  const local = email.split("@")[0] || "";
+  return local ? local.charAt(0).toUpperCase() + local.slice(1) : "";
+}
+
 function letterFromUser(user) {
-  const name = displayName(user);
+  const name = firstName(user) || displayName(user);
   return (name.charAt(0) || "A").toUpperCase();
 }
 
@@ -204,6 +218,8 @@ export function refreshAvatarMenuUi(root = document) {
 
     if (letterEl) letterEl.textContent = letterFromUser(user);
     if (nameEl) nameEl.textContent = displayName(user);
+    const firstNameEl = wrap.querySelector("[data-auth-firstname]");
+    if (firstNameEl) firstNameEl.textContent = firstName(user);
 
     if (imgEl) {
       if (photo) {

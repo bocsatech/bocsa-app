@@ -350,35 +350,58 @@ export function loginUrl(nextPath = "/hirdetesfeladas.html") {
   return `/belepes.html?next=${encodeURIComponent(nextPath)}`;
 }
 
+function firstNameFromUser(user) {
+  const fromProfile = String(user?.profile?.firstName || "").trim();
+  if (fromProfile) return fromProfile;
+  const display = String(user?.displayName || "").trim();
+  if (display && !display.includes("@")) {
+    const first = display.split(/\s+/)[0];
+    if (first) return first;
+  }
+  const email = String(user?.email || "").trim();
+  if (!email) return "";
+  const local = email.split("@")[0] || "";
+  return local ? local.charAt(0).toUpperCase() + local.slice(1) : "";
+}
+
 function updateHeaderAuthUi() {
-  const loginBtn = document.querySelector("[data-auth-login], [data-auth-logout]");
   const registerBtns = document.querySelectorAll("[data-auth-register]");
+  const loginBtns = document.querySelectorAll("[data-auth-login]");
+  const guestBlocks = document.querySelectorAll("[data-auth-guest]");
+  const memberBlocks = document.querySelectorAll("[data-auth-member], [data-avatar-menu]");
+  const firstNameEls = document.querySelectorAll("[data-auth-firstname]");
   const user = getAuthUser();
   const loggedIn = Boolean(user?.email);
+  const firstName = firstNameFromUser(user);
 
   registerBtns.forEach((btn) => {
     btn.hidden = loggedIn;
   });
 
-  if (loginBtn) {
-    if (loggedIn) {
-      loginBtn.textContent = "Kijelentkezés";
-      loginBtn.href = "#";
-      loginBtn.removeAttribute("data-auth-login");
-      loginBtn.setAttribute("data-auth-logout", "");
-      loginBtn.classList.remove("site-header-btn--ghost");
-      loginBtn.classList.add("site-header-btn--outline");
-      loginBtn.title = user.email;
-    } else {
-      loginBtn.textContent = "Belépés";
-      loginBtn.href = "/belepes.html";
-      loginBtn.setAttribute("data-auth-login", "");
-      loginBtn.removeAttribute("data-auth-logout");
-      loginBtn.classList.add("site-header-btn--ghost");
-      loginBtn.classList.remove("site-header-btn--outline");
-      loginBtn.removeAttribute("title");
+  loginBtns.forEach((btn) => {
+    btn.hidden = loggedIn;
+    btn.textContent = "Belépés";
+    btn.href = "/belepes.html";
+    btn.setAttribute("data-auth-login", "");
+    btn.removeAttribute("data-auth-logout");
+    if (btn.classList.contains("site-header-btn")) {
+      btn.classList.add("site-header-btn--ghost");
+      btn.classList.remove("site-header-btn--outline");
     }
-  }
+    btn.removeAttribute("title");
+  });
+
+  guestBlocks.forEach((el) => {
+    el.hidden = loggedIn;
+  });
+
+  memberBlocks.forEach((el) => {
+    el.hidden = !loggedIn;
+  });
+
+  firstNameEls.forEach((el) => {
+    el.textContent = firstName || "";
+  });
 
   // Az avatar menü külön script (site-avatar-menu.js) — ne importáld újra (különben dupla listener).
   window.dispatchEvent(new CustomEvent("bymy-auth-changed"));
