@@ -120,15 +120,10 @@ function ensureDemoSeller(db) {
   const hash = randomBytes(32).toString("hex");
   const info = db
     .prepare(
-      `INSERT INTO web_users (email, password_salt, password_hash, display_name, profile_json, email_verified)
-       VALUES (?, ?, ?, 'Bymy Eladó', ?, 1)`
+      `INSERT INTO web_users (email, password_salt, password_hash, display_name, first_name, last_name, account_type, email_verified)
+       VALUES (?, ?, ?, 'Bymy Eladó', 'Eladó', 'Demo', 'dealer', 1)`
     )
-    .run(
-      DEMO_SELLER_EMAIL,
-      salt,
-      hash,
-      JSON.stringify({ firstName: "Eladó", lastName: "Demo", accountType: "dealer" })
-    );
+    .run(DEMO_SELLER_EMAIL, salt, hash);
   return info.lastInsertRowid;
 }
 
@@ -155,20 +150,10 @@ function isBlocked(db, a, b) {
 
 function userPublic(db, id) {
   const row = db
-    .prepare(
-      "SELECT id, email, display_name, first_name, last_name, profile_json FROM web_users WHERE id = ?"
-    )
+    .prepare("SELECT id, email, display_name, first_name, last_name FROM web_users WHERE id = ?")
     .get(id);
   if (!row) return { id, email: "", displayName: "Ismeretlen" };
-  let first = [row.last_name, row.first_name].filter(Boolean).join(" ");
-  if (!first) {
-    try {
-      const p = JSON.parse(row.profile_json || "{}");
-      first = [p.lastName, p.firstName].filter(Boolean).join(" ");
-    } catch {
-      /* ignore */
-    }
-  }
+  const first = [row.last_name, row.first_name].filter(Boolean).join(" ");
   return {
     id: row.id,
     email: row.email,

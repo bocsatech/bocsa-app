@@ -47,23 +47,12 @@ function emptyProfile() {
   };
 }
 
-/** Oszlopok ↔ API profil objektum. profile_json csak legacy fallback. */
+/** Oszlopok ↔ API profil objektum. */
 function profileFromRow(row) {
   if (!row) return emptyProfile();
-  let parsed = {};
-  try {
-    parsed = row.profile_json ? JSON.parse(row.profile_json) : {};
-  } catch {
-    parsed = {};
-  }
 
-  const hasColumns =
-    row.first_name != null ||
-    row.last_name != null ||
-    row.account_type != null ||
-    row.avatar_data_url != null;
-
-  const fromCols = {
+  const merged = {
+    ...emptyProfile(),
     salutation: String(row.salutation ?? "").trim(),
     firstName: String(row.first_name ?? "").trim(),
     lastName: String(row.last_name ?? "").trim(),
@@ -76,37 +65,23 @@ function profileFromRow(row) {
     accountType:
       row.account_type === "business" || row.account_type === "dealer"
         ? row.account_type
-        : row.account_type === "private"
-          ? "private"
-          : "",
+        : "private",
   };
 
-  const merged = hasColumns
-    ? { ...emptyProfile(), ...parsed, ...fromCols }
-    : { ...emptyProfile(), ...parsed };
+  if (row.avatar_data_url) merged.avatarDataUrl = row.avatar_data_url;
 
-  if (!merged.accountType) merged.accountType = "private";
-
-  const avatar = row.avatar_data_url || parsed.avatarDataUrl;
-  if (avatar) merged.avatarDataUrl = avatar;
-
-  let pageLayout = parsed.pageLayout;
   if (row.page_layout) {
     try {
-      pageLayout = typeof row.page_layout === "string" ? JSON.parse(row.page_layout) : row.page_layout;
+      merged.pageLayout =
+        typeof row.page_layout === "string" ? JSON.parse(row.page_layout) : row.page_layout;
     } catch {
-      pageLayout = row.page_layout;
+      merged.pageLayout = row.page_layout;
     }
   }
-  if (pageLayout != null) merged.pageLayout = pageLayout;
 
   if (row.search_radius_km != null) merged.searchRadiusKm = Number(row.search_radius_km);
-  else if (parsed.searchRadiusKm != null) merged.searchRadiusKm = Number(parsed.searchRadiusKm);
-
   if (row.recommendations_radius_km != null) {
     merged.recommendationsRadiusKm = Number(row.recommendations_radius_km);
-  } else if (parsed.recommendationsRadiusKm != null) {
-    merged.recommendationsRadiusKm = Number(parsed.recommendationsRadiusKm);
   }
 
   return merged;
@@ -153,22 +128,6 @@ function profileToColumns(profile, { preserve } = {}) {
       ? Number(profile.recommendationsRadiusKm)
       : preserve?.recommendations_radius_km ?? null;
 
-  const jsonMirror = { ...next };
-  if (avatarDataUrl) jsonMirror.avatarDataUrl = avatarDataUrl;
-  if (pageLayout) {
-    try {
-      jsonMirror.pageLayout = JSON.parse(pageLayout);
-    } catch {
-      jsonMirror.pageLayout = pageLayout;
-    }
-  }
-  if (searchRadiusKm != null && Number.isFinite(searchRadiusKm)) {
-    jsonMirror.searchRadiusKm = searchRadiusKm;
-  }
-  if (recommendationsRadiusKm != null && Number.isFinite(recommendationsRadiusKm)) {
-    jsonMirror.recommendationsRadiusKm = recommendationsRadiusKm;
-  }
-
   return {
     profile: next,
     columns: {
@@ -188,9 +147,7 @@ function profileToColumns(profile, { preserve } = {}) {
       recommendations_radius_km: Number.isFinite(recommendationsRadiusKm)
         ? recommendationsRadiusKm
         : null,
-      profile_json: JSON.stringify(jsonMirror),
     },
-    jsonMirror,
   };
 }
 
@@ -326,7 +283,6 @@ export async function findOrCreateOAuthUser(identity) {
         password_salt: "",
         password_hash: "",
         display_name: displayName,
-        profile_json: "{}",
         email_verified: true,
       })
       .select("*")
@@ -430,7 +386,6 @@ export async function registerUser(email, password, passwordConfirm) {
         email: normalized,
         password_salt: salt,
         password_hash: hash,
-        profile_json: "{}",
         email_verified: false,
         activation_token_hash: tokenHash(token),
         activation_expires_at: expiresAt,
@@ -635,7 +590,7 @@ export async function inspectWebUsersDb() {
   const { data: users, error } = await sb()
     .from("web_users")
     .select(
-      "id, email, display_name, first_name, last_name, street, postal_code, city, country, phone, company, account_type, avatar_data_url, profile_json, created_at, updated_at"
+      "id, email, display_name, first_name, last_name, street, postal_code, city, country, phone, company, account_type, avatar_data_url, created_at, updated_at"
     )
     .order("id");
   if (error) throw error;
@@ -660,7 +615,7 @@ export async function inspectWebUsersDb() {
     .gte("expires_at", new Date().toISOString());
   return {
     dbPath: `supabase://${supabaseBackendLabel()}`,
-    profilesPath: "(supabase — profil oszlopok + profile_json tükör)",
+    profilesPath: "(supabase — profil oszlopok)",
     userCount: mapped.length,
     sessionCount: sessionCount ?? 0,
     users: mapped,

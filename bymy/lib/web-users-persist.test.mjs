@@ -58,7 +58,7 @@ test("profil megmarad process újraindítás után (sqlite + profiles.json)", ()
   rmSync(dir, { recursive: true, force: true });
 });
 
-test("profil fájlból visszatöltődik üres sqlite profile_json mellett is", () => {
+test("profil fájlból visszatöltődik üres sqlite oszlopok mellett is", () => {
   const dir = mkdtempSync(join(tmpdir(), "aw-file-only-"));
   const dbPath = join(dir, "users.db");
   const profilesPath = join(dir, "profiles.json");
@@ -76,7 +76,7 @@ test("profil fájlból visszatöltődik üres sqlite profile_json mellett is", (
       const reg = registerUser("fileonly@test.dev", "pass1", "pass1", "private");
       const { user } = activateUserByToken(reg.activationToken);
       saveUserProfile(user.id, { firstName: "Kata", lastName: "Nagy" });
-      getDb().prepare(\`UPDATE web_users SET profile_json = '{}', first_name = '', last_name = '', postal_code = '', city = '' WHERE id = ?\`).run(user.id);
+      getDb().prepare(\`UPDATE web_users SET first_name = '', last_name = '', postal_code = '', city = '' WHERE id = ?\`).run(user.id);
       `,
     ],
     { encoding: "utf8" }

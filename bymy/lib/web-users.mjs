@@ -51,12 +51,6 @@ function emptyProfile() {
 
 function profileFromRow(row) {
   if (!row) return emptyProfile();
-  let parsed = {};
-  try {
-    parsed = row.profile_json ? JSON.parse(row.profile_json) : {};
-  } catch {
-    parsed = {};
-  }
   const fromFile = loadProfileFromFile(row.email);
 
   const fromCols = {
@@ -76,12 +70,11 @@ function profileFromRow(row) {
           ? "private"
           : "",
   };
-  // Üres oszlopértékeket ne írják felül a JSON/fájl adatot.
   for (const [k, v] of Object.entries(fromCols)) {
     if (v === "" || v == null) delete fromCols[k];
   }
 
-  const merged = { ...emptyProfile(), ...parsed, ...fromCols, ...(fromFile || {}) };
+  const merged = { ...emptyProfile(), ...fromCols, ...(fromFile || {}) };
   delete merged.savedAt;
 
   const avatar = row.avatar_data_url || merged.avatarDataUrl;
@@ -128,7 +121,6 @@ export function initWebUsersSchema(db = getDb()) {
       password_salt TEXT NOT NULL,
       password_hash TEXT NOT NULL,
       display_name TEXT,
-      profile_json TEXT NOT NULL DEFAULT '{}',
       email_verified INTEGER NOT NULL DEFAULT 1,
       activation_token_hash TEXT,
       activation_expires_at TEXT,
@@ -181,54 +173,14 @@ export function initWebUsersSchema(db = getDb()) {
   ensureColumn(db, "web_users", "search_radius_km", "search_radius_km INTEGER");
   ensureColumn(db, "web_users", "recommendations_radius_km", "recommendations_radius_km INTEGER");
 
-  // Legacy profile_json → oszlopok (egyszeri, ha oszlop üres)
+  // Régi profile_json oszlop törlése (ha még létezik)
   try {
-    const rows = db.prepare(`SELECT id, profile_json FROM web_users`).all();
-    const upd = db.prepare(
-      `UPDATE web_users SET
-         salutation = CASE WHEN salutation = '' THEN ? ELSE salutation END,
-         first_name = CASE WHEN first_name = '' THEN ? ELSE first_name END,
-         last_name = CASE WHEN last_name = '' THEN ? ELSE last_name END,
-         street = CASE WHEN street = '' THEN ? ELSE street END,
-         postal_code = CASE WHEN postal_code = '' THEN ? ELSE postal_code END,
-         city = CASE WHEN city = '' THEN ? ELSE city END,
-         country = CASE WHEN country = '' OR country = 'Magyarország' THEN COALESCE(NULLIF(?, ''), country) ELSE country END,
-         phone = CASE WHEN phone = '' THEN ? ELSE phone END,
-         company = CASE WHEN company = '' THEN ? ELSE company END,
-         account_type = CASE WHEN account_type = 'private' AND ? != '' THEN ? ELSE account_type END,
-         avatar_data_url = COALESCE(avatar_data_url, NULLIF(?, '')),
-         search_radius_km = COALESCE(search_radius_km, ?),
-         recommendations_radius_km = COALESCE(recommendations_radius_km, ?)
-       WHERE id = ?`
-    );
-    for (const row of rows) {
-      let p = {};
-      try {
-        p = row.profile_json ? JSON.parse(row.profile_json) : {};
-      } catch {
-        continue;
-      }
-      const type = p.accountType === "business" || p.accountType === "dealer" ? p.accountType : p.accountType === "private" ? "private" : "";
-      upd.run(
-        String(p.salutation ?? ""),
-        String(p.firstName ?? ""),
-        String(p.lastName ?? ""),
-        String(p.street ?? ""),
-        String(p.postalCode ?? ""),
-        String(p.city ?? ""),
-        String(p.country ?? ""),
-        String(p.phone ?? ""),
-        String(p.company ?? ""),
-        type,
-        type,
-        p.avatarDataUrl ? String(p.avatarDataUrl) : "",
-        p.searchRadiusKm != null ? Number(p.searchRadiusKm) : null,
-        p.recommendationsRadiusKm != null ? Number(p.recommendationsRadiusKm) : null,
-        row.id
-      );
+    const cols = db.prepare(`PRAGMA table_info(web_users)`).all();
+    if (cols.some((c) => c.name === "profile_json")) {
+      db.exec(`ALTER TABLE web_users DROP COLUMN profile_json`);
     }
   } catch {
-    /* ignore migrate errors on fresh DBs */
+    /* régi SQLite nem támogatja a DROP COLUMN-t — figyelmen kívül */
   }
 }
 
@@ -333,8 +285,8 @@ export function findOrCreateOAuthUser(identity) {
     const info = db
       .prepare(
         `INSERT INTO web_users (
-           email, password_salt, password_hash, display_name, profile_json, email_verified
-         ) VALUES (?, '', '', ?, '{}', 1)`
+           email, password_salt, password_hash, display_name, email_verified
+         ) VALUES (?, '', '', ?, 1)`
       )
       .run(email, displayName);
     userRow = db.prepare(`SELECT * FROM web_users WHERE id = ?`).get(Number(info.lastInsertRowid));
@@ -446,7 +398,6 @@ export function registerUser(email, password, passwordConfirm, accountType) {
 
   const { salt, hash } = hashPassword(pass);
   const { token, expiresAt } = makeActivationToken();
-  const profileJson = JSON.stringify({ ...emptyProfile(), accountType: type });
 
   let userId;
   if (existing) {
@@ -454,21 +405,21 @@ export function registerUser(email, password, passwordConfirm, accountType) {
     db.prepare(
       `UPDATE web_users
        SET password_salt = ?, password_hash = ?, email_verified = 0,
-           profile_json = ?, account_type = ?,
+           account_type = ?,
            activation_token_hash = ?, activation_expires_at = ?,
            updated_at = datetime('now')
        WHERE id = ?`
-    ).run(salt, hash, profileJson, type, tokenHash(token), expiresAt, existing.id);
+    ).run(salt, hash, type, tokenHash(token), expiresAt, existing.id);
     userId = existing.id;
   } else {
     const info = db
       .prepare(
         `INSERT INTO web_users (
-           email, password_salt, password_hash, profile_json, account_type,
+           email, password_salt, password_hash, account_type,
            email_verified, activation_token_hash, activation_expires_at
-         ) VALUES (?, ?, ?, ?, ?, 0, ?, ?)`
+         ) VALUES (?, ?, ?, ?, 0, ?, ?)`
       )
-      .run(normalized, salt, hash, profileJson, type, tokenHash(token), expiresAt);
+      .run(normalized, salt, hash, type, tokenHash(token), expiresAt);
     userId = Number(info.lastInsertRowid);
   }
 
@@ -639,14 +590,14 @@ export function saveUserProfile(userId, profile) {
       ? Number(profile.recommendationsRadiusKm)
       : previous.recommendationsRadiusKm ?? null;
 
-  const jsonMirror = { ...next };
-  if (avatarDataUrl) jsonMirror.avatarDataUrl = avatarDataUrl;
-  if (previous.pageLayout != null) jsonMirror.pageLayout = previous.pageLayout;
-  if (searchRadiusKm != null) jsonMirror.searchRadiusKm = searchRadiusKm;
-  if (recommendationsRadiusKm != null) jsonMirror.recommendationsRadiusKm = recommendationsRadiusKm;
+  const forFile = { ...next };
+  if (avatarDataUrl) forFile.avatarDataUrl = avatarDataUrl;
+  if (previous.pageLayout != null) forFile.pageLayout = previous.pageLayout;
+  if (searchRadiusKm != null) forFile.searchRadiusKm = searchRadiusKm;
+  if (recommendationsRadiusKm != null) forFile.recommendationsRadiusKm = recommendationsRadiusKm;
 
   const displayName = [next.firstName, next.lastName].filter(Boolean).join(" ");
-  const fileResult = saveProfileToFile(row.email, jsonMirror);
+  const fileResult = saveProfileToFile(row.email, forFile);
 
   const info = db
     .prepare(
@@ -654,7 +605,7 @@ export function saveUserProfile(userId, profile) {
        SET salutation = ?, first_name = ?, last_name = ?, street = ?, postal_code = ?,
            city = ?, country = ?, phone = ?, company = ?, account_type = ?,
            avatar_data_url = ?, search_radius_km = ?, recommendations_radius_km = ?,
-           profile_json = ?, display_name = ?, updated_at = datetime('now')
+           display_name = ?, updated_at = datetime('now')
        WHERE id = ?`
     )
     .run(
@@ -671,7 +622,6 @@ export function saveUserProfile(userId, profile) {
       avatarDataUrl,
       searchRadiusKm,
       recommendationsRadiusKm,
-      JSON.stringify(jsonMirror),
       displayName,
       userId
     );
@@ -722,15 +672,15 @@ export function inspectWebUsersDb() {
   const db = getDb();
   const users = db
     .prepare(
-      `SELECT id, email, display_name, profile_json, created_at, updated_at FROM web_users ORDER BY id`
+      `SELECT id, email, display_name, first_name, last_name, street, postal_code, city,
+              country, phone, company, account_type, created_at, updated_at
+       FROM web_users ORDER BY id`
     )
     .all()
     .map((row) => {
-      let profile = {};
-      try {
-        profile = row.profile_json ? JSON.parse(row.profile_json) : {};
-      } catch {
-        profile = { _parseError: true, raw: row.profile_json };
+      const profile = profileFromRow(row);
+      if (profile.avatarDataUrl) {
+        profile.avatarDataUrl = `[data-url ${profile.avatarDataUrl.length} chars]`;
       }
       const fromFile = loadProfileFromFile(row.email);
       return {
