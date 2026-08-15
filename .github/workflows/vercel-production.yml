@@ -138,6 +138,7 @@ jobs:
           PY
 
       - name: Deploy bocsa-app (CRM) to Vercel
+        continue-on-error: true
         run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
