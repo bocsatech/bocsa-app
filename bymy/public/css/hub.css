@@ -501,6 +501,23 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
     grid-template-columns: 1fr;
   }
 
+  .hub-card--auto {
+    min-height: 210px;
+  }
+
+  .hub-card-auto-body {
+    padding: 1.15rem 1.1rem;
+    max-width: 62%;
+  }
+
+  .hub-card-title--auto {
+    font-size: 1.35rem;
+  }
+
+  .hub-card-auto-media {
+    inset: 0 0 0 38%;
+  }
+
   .hub-header-inner {
     gap: 0.35rem 0.5rem;
     padding: 0.45rem 0.65rem;
