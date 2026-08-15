@@ -369,15 +369,13 @@ function updateHeaderAuthUi() {
   const loginBtns = document.querySelectorAll("[data-auth-login]");
   const guestBlocks = document.querySelectorAll("[data-auth-guest]");
   const memberBlocks = document.querySelectorAll("[data-auth-member], [data-avatar-menu]");
-  const firstNameEls = document.querySelectorAll("[data-auth-firstname]");
+  const firstNameEls = document.querySelectorAll("span[data-auth-firstname]");
   const user = getAuthUser();
   const loggedIn = Boolean(user?.email);
   const firstName = firstNameFromUser(user);
 
   try {
     document.documentElement.setAttribute("data-auth", loggedIn ? "member" : "guest");
-    if (firstName) document.documentElement.setAttribute("data-auth-firstname", firstName);
-    else document.documentElement.removeAttribute("data-auth-firstname");
   } catch {
     /* ignore */
   }

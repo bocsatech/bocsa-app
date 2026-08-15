@@ -10,7 +10,7 @@
           }
           document.documentElement.setAttribute("data-theme", t);
         } catch (e) {}
-        /* Auth fejléc: ne villanjon Belépés → Robert a modul / API előtt */
+                /* Auth fejléc: ne villanjon vendég gomb → profil a modul / API előtt */
         try {
           var raw = sessionStorage.getItem("bymy-auth-user");
           var user = raw ? JSON.parse(raw) : null;
@@ -32,18 +32,17 @@
               first = local ? local.charAt(0).toUpperCase() + local.slice(1) : "";
             }
           }
-          if (first) document.documentElement.setAttribute("data-auth-firstname", first);
-          document.addEventListener("DOMContentLoaded", function () {
-            var name = document.documentElement.getAttribute("data-auth-firstname") || "";
-            if (!name) return;
-            document.querySelectorAll("[data-auth-firstname]").forEach(function (el) {
-              el.textContent = name;
+          if (first) {
+            document.addEventListener("DOMContentLoaded", function () {
+              document.querySelectorAll("span[data-auth-firstname]").forEach(function (el) {
+                el.textContent = first;
+              });
+              var letter = first.charAt(0).toUpperCase();
+              document.querySelectorAll("[data-avatar-letter]").forEach(function (el) {
+                el.textContent = letter;
+              });
             });
-            var letter = name.charAt(0).toUpperCase();
-            document.querySelectorAll("[data-avatar-letter]").forEach(function (el) {
-              el.textContent = letter;
-            });
-          });
+          }
         } catch (e) {
           document.documentElement.setAttribute("data-auth", "guest");
         }
@@ -52,10 +51,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-    <meta name="bymy-version" content="authBoot1" />
+    <meta name="bymy-version" content="authWipe1" />
     <title>Függvény — CatBoost ár</title>
     <link rel="stylesheet" href="/css/style.css?v=fugveny20260724" />
-    <link rel="stylesheet" href="/css/site-app.css?v=authBoot1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=authWipe1" />
     <link rel="stylesheet" href="/css/fugveny.css?v=fugveny20260724" />
   </head>
   <body class="site-app fugveny-page">
@@ -221,6 +220,6 @@
 
     <script src="/js/nav-counts.js?v=willhabenHdr1" type="module"></script>
     <script src="/js/theme.js?v=willhabenHdr1" type="module"></script>
-    <script src="/js/site-auth.js?v=authBoot1" type="module"></script>
+    <script src="/js/site-auth.js?v=authWipe1" type="module"></script>
   </body>
 </html>

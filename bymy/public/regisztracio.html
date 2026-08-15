@@ -10,7 +10,7 @@
           }
           document.documentElement.setAttribute("data-theme", t);
         } catch (e) {}
-        /* Auth fejléc: ne villanjon Belépés → Robert a modul / API előtt */
+                /* Auth fejléc: ne villanjon vendég gomb → profil a modul / API előtt */
         try {
           var raw = sessionStorage.getItem("bymy-auth-user");
           var user = raw ? JSON.parse(raw) : null;
@@ -32,18 +32,17 @@
               first = local ? local.charAt(0).toUpperCase() + local.slice(1) : "";
             }
           }
-          if (first) document.documentElement.setAttribute("data-auth-firstname", first);
-          document.addEventListener("DOMContentLoaded", function () {
-            var name = document.documentElement.getAttribute("data-auth-firstname") || "";
-            if (!name) return;
-            document.querySelectorAll("[data-auth-firstname]").forEach(function (el) {
-              el.textContent = name;
+          if (first) {
+            document.addEventListener("DOMContentLoaded", function () {
+              document.querySelectorAll("span[data-auth-firstname]").forEach(function (el) {
+                el.textContent = first;
+              });
+              var letter = first.charAt(0).toUpperCase();
+              document.querySelectorAll("[data-avatar-letter]").forEach(function (el) {
+                el.textContent = letter;
+              });
             });
-            var letter = name.charAt(0).toUpperCase();
-            document.querySelectorAll("[data-avatar-letter]").forEach(function (el) {
-              el.textContent = letter;
-            });
-          });
+          }
         } catch (e) {
           document.documentElement.setAttribute("data-auth", "guest");
         }
@@ -52,13 +51,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-    <meta name="bymy-version" content="authBoot1" />
+    <meta name="bymy-version" content="authWipe1" />
     <title>Regisztráció — Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css?v=auth20260725reg" />
-    <link rel="stylesheet" href="/css/site-app.css?v=authBoot1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=authWipe1" />
   </head>
   <body class="site-app login-page" data-site-page="regisztracio" data-auth-init="manual">
     <div class="local-banner">Bymy — fiók létrehozása a hirdetésfeladáshoz</div>
@@ -149,7 +148,7 @@
 
     <script src="/js/site-avatar-menu.js?v=willhabenHdr1" type="module"></script>
     <script type="module">
-      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=authBoot1";
+      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=authWipe1";
       initSiteAuth();
       initRegisterPage();
     </script>
