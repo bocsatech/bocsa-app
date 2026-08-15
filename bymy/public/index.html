@@ -15,7 +15,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-family='system-ui,sans-serif' font-weight='700'%3EB%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-    <meta name="bymy-version" content="hubIngatlan1" />
+    <meta name="bymy-version" content="autoCat1" />
     <title>Bymy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,8 +23,8 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/site-app.css?v=hubIngatlan1" />
-    <link rel="stylesheet" href="/css/hub.css?v=hubIngatlan1" />
+    <link rel="stylesheet" href="/css/site-app.css?v=autoCat1" />
+    <link rel="stylesheet" href="/css/hub.css?v=autoCat1" />
   </head>
   <body class="hub-page site-page site-app hub-page--feed" data-site-page="hub">
     <header class="hub-header">
@@ -120,6 +120,55 @@
       </div>
 
       <div class="hub-feed">
+      <section class="hf-section" data-hf="auto-kategoriak">
+        <div class="hf-head">
+          <h2 class="hf-title">Autó kategóriák</h2>
+          <a class="hf-all" href="/auto.html">Összes</a>
+        </div>
+        <div class="hf-rail hf-rail--ajanlas hf-rail--kategoriak" role="list">
+          <a class="hf-card hf-card--ajanlas hf-card--kategoria" href="/auto.html?cat=uj" role="listitem">
+            <span class="hf-card-media"><img src="/images/categories/uj.png?v=autoCat1" alt="" width="486" height="236" loading="lazy" decoding="async" /></span>
+            <span class="hf-card-label">Új</span>
+            <span class="hf-card-sub">Friss modell</span>
+          </a>
+          <a class="hf-card hf-card--ajanlas hf-card--kategoria" href="/auto.html?cat=benzin" role="listitem">
+            <span class="hf-card-media"><img src="/images/categories/benzin.png?v=autoCat1" alt="" width="486" height="236" loading="lazy" decoding="async" /></span>
+            <span class="hf-card-label">Benzin</span>
+            <span class="hf-card-sub">Otto motor</span>
+          </a>
+          <a class="hf-card hf-card--ajanlas hf-card--kategoria" href="/auto.html?cat=diesel" role="listitem">
+            <span class="hf-card-media"><img src="/images/categories/diesel.png?v=autoCat1" alt="" width="466" height="242" loading="lazy" decoding="async" /></span>
+            <span class="hf-card-label">Diesel</span>
+            <span class="hf-card-sub">Dízelmotor</span>
+          </a>
+          <a class="hf-card hf-card--ajanlas hf-card--kategoria" href="/auto.html?cat=elektromos" role="listitem">
+            <span class="hf-card-media"><img src="/images/categories/elektromos.png?v=autoCat1" alt="" width="462" height="231" loading="lazy" decoding="async" /></span>
+            <span class="hf-card-label">Elektromos</span>
+            <span class="hf-card-sub">Zöld hajtás</span>
+          </a>
+          <a class="hf-card hf-card--ajanlas hf-card--kategoria" href="/auto.html?cat=hybrid" role="listitem">
+            <span class="hf-card-media"><img src="/images/categories/hybrid.png?v=autoCat1" alt="" width="486" height="247" loading="lazy" decoding="async" /></span>
+            <span class="hf-card-label">Hybrid</span>
+            <span class="hf-card-sub">Kombinált</span>
+          </a>
+          <a class="hf-card hf-card--ajanlas hf-card--kategoria" href="/auto.html?cat=leasing" role="listitem">
+            <span class="hf-card-media"><img src="/images/categories/leasing.png?v=autoCat1" alt="" width="460" height="224" loading="lazy" decoding="async" /></span>
+            <span class="hf-card-label">Leasing</span>
+            <span class="hf-card-sub">Havi díj</span>
+          </a>
+          <a class="hf-card hf-card--ajanlas hf-card--kategoria" href="/auto.html?cat=berelheto" role="listitem">
+            <span class="hf-card-media"><img src="/images/categories/berelheto.png?v=autoCat1" alt="" width="470" height="228" loading="lazy" decoding="async" /></span>
+            <span class="hf-card-label">Bérelhető</span>
+            <span class="hf-card-sub">Rövid táv</span>
+          </a>
+          <a class="hf-card hf-card--ajanlas hf-card--kategoria" href="/auto.html?cat=ot" role="listitem">
+            <span class="hf-card-media"><img src="/images/categories/ot.png?v=autoCat1" alt="" width="480" height="233" loading="lazy" decoding="async" /></span>
+            <span class="hf-card-label">OT</span>
+            <span class="hf-card-sub">Oldtimer</span>
+          </a>
+        </div>
+      </section>
+
       <section class="hf-section" data-hf="kiemelt">
         <div class="hf-head">
           <h2 class="hf-title">Kiemelt hirdetések</h2>
@@ -266,7 +315,7 @@
       </div>
     </main>
 
-    <script src="/js/hub-rail-drag.js?v=hfRailDrag1" defer></script>
+    <script src="/js/hub-rail-drag.js?v=autoCat1" defer></script>
     <script src="/js/nav-counts.js?v=willhabenHdr1" type="module"></script>
     <script src="/js/theme.js?v=willhabenHdr1" type="module"></script>
     <script src="/js/site-auth.js?v=willhabenHdr1" type="module"></script>
