@@ -160,9 +160,12 @@ jobs:
           echo "UI overlay ebből a repóból (hub, kategóriaválasztó, …)…"
           cp -a bymy/public/. /tmp/bymy-prod/public/
 
-          echo "Messages API overlay (jelentés / schema)…"
-          mkdir -p /tmp/bymy-prod/lib
+          echo "Messages API overlay (Supabase + jelentés)…"
+          mkdir -p /tmp/bymy-prod/lib /tmp/bymy-prod/lib/supabase
           cp bymy/lib/messaging.mjs /tmp/bymy-prod/lib/messaging.mjs
+          if [ -f bymy/lib/supabase/messaging.mjs ]; then
+            cp bymy/lib/supabase/messaging.mjs /tmp/bymy-prod/lib/supabase/messaging.mjs
+          fi
 
           echo "SMTP overlay (env: SMTP_USER / SMTP_PASS a Vercel projekten)…"
           if [ -f bymy/lib/mail.mjs ]; then
@@ -171,7 +174,6 @@ jobs:
 
           echo "Profil oszlopok overlay (supabase/users.mjs)…"
           if [ -f bymy/lib/supabase/users.mjs ]; then
-            mkdir -p /tmp/bymy-prod/lib/supabase
             cp bymy/lib/supabase/users.mjs /tmp/bymy-prod/lib/supabase/users.mjs
           fi
 

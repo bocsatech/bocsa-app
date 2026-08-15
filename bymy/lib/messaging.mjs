@@ -7,11 +7,13 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from "fs";
 import { join, dirname, extname } from "path";
 import { fileURLToPath } from "url";
 import { getDb } from "./db.mjs";
+import { isSupabaseBackend } from "./supabase/client.mjs";
+import * as sbMessaging from "./supabase/messaging.mjs";
 import {
   getUserBySessionToken,
   getSessionTokenFromRequest,
   initWebUsersSchema,
-} from "./web-users.mjs";
+} from "./web-users-store.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ATTACH_DIR = join(__dirname, "..", "data", "message-attachments");
@@ -28,8 +30,10 @@ const ALLOWED_MIME = new Set([
 
 const DEMO_SELLER_EMAIL = "eladas@addelautod.demo";
 
-export function initMessagingSchema(db = getDb()) {
-  initWebUsersSchema(db);
+export function initMessagingSchema(db) {
+  if (isSupabaseBackend()) return sbMessaging.initMessagingSchema();
+  const database = db ?? getDb();
+  initWebUsersSchema(database);
   db.exec(`
     CREATE TABLE IF NOT EXISTS conversations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,21 +95,10 @@ export function initMessagingSchema(db = getDb()) {
       FOREIGN KEY (user_id) REFERENCES web_users(id) ON DELETE CASCADE
     );
 
-    CREATE TABLE IF NOT EXISTS conversation_reports (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      conversation_id INTEGER NOT NULL,
-      reporter_id INTEGER NOT NULL,
-      reason TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
-      FOREIGN KEY (reporter_id) REFERENCES web_users(id) ON DELETE CASCADE
-    );
-
     CREATE INDEX IF NOT EXISTS idx_conversations_buyer ON conversations(buyer_id);
     CREATE INDEX IF NOT EXISTS idx_conversations_seller ON conversations(seller_id);
     CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
     CREATE INDEX IF NOT EXISTS idx_push_outbox_user ON push_outbox(user_id);
-    CREATE INDEX IF NOT EXISTS idx_conversation_reports_conv ON conversation_reports(conversation_id);
   `);
 
   ensureDemoSeller(db);
@@ -120,15 +113,20 @@ function ensureDemoSeller(db) {
   const hash = randomBytes(32).toString("hex");
   const info = db
     .prepare(
-      `INSERT INTO web_users (email, password_salt, password_hash, display_name, first_name, last_name, account_type, email_verified)
-       VALUES (?, ?, ?, 'Bymy Eladó', 'Eladó', 'Demo', 'dealer', 1)`
+      `INSERT INTO web_users (email, password_salt, password_hash, display_name, profile_json, email_verified)
+       VALUES (?, ?, ?, 'Add el autod Eladó', ?, 1)`
     )
-    .run(DEMO_SELLER_EMAIL, salt, hash);
+    .run(
+      DEMO_SELLER_EMAIL,
+      salt,
+      hash,
+      JSON.stringify({ firstName: "Eladó", lastName: "Demo", accountType: "dealer" })
+    );
   return info.lastInsertRowid;
 }
 
-function requireUser(req) {
-  const user = getUserBySessionToken(getSessionTokenFromRequest(req));
+async function requireUserAsync(req) {
+  const user = await getUserBySessionToken(getSessionTokenFromRequest(req));
   if (!user) {
     const err = new Error("Nem vagy bejelentkezve.");
     err.status = 401;
@@ -149,11 +147,15 @@ function isBlocked(db, a, b) {
 }
 
 function userPublic(db, id) {
-  const row = db
-    .prepare("SELECT id, email, display_name, first_name, last_name FROM web_users WHERE id = ?")
-    .get(id);
+  const row = db.prepare("SELECT id, email, display_name, profile_json FROM web_users WHERE id = ?").get(id);
   if (!row) return { id, email: "", displayName: "Ismeretlen" };
-  const first = [row.last_name, row.first_name].filter(Boolean).join(" ");
+  let first = "";
+  try {
+    const p = JSON.parse(row.profile_json || "{}");
+    first = [p.lastName, p.firstName].filter(Boolean).join(" ");
+  } catch {
+    /* ignore */
+  }
   return {
     id: row.id,
     email: row.email,
@@ -286,7 +288,8 @@ function saveAttachment(conversationId, attachment) {
   };
 }
 
-export function listConversations(userId) {
+export async function listConversations(userId) {
+  if (isSupabaseBackend()) return sbMessaging.listConversations(userId);
   initMessagingSchema();
   const db = getDb();
   const rows = db
@@ -299,7 +302,8 @@ export function listConversations(userId) {
   return rows.map((c) => publicConversation(db, c, userId));
 }
 
-export function startConversation(userId, input) {
+export async function startConversation(userId, input) {
+  if (isSupabaseBackend()) return sbMessaging.startConversation(userId, input);
   initMessagingSchema();
   const db = getDb();
   const listingId = String(input.listing_id ?? input.listingId ?? "").trim();
@@ -358,7 +362,8 @@ export function startConversation(userId, input) {
   return publicConversation(db, conv, userId);
 }
 
-export function listMessages(userId, conversationId) {
+export async function listMessages(userId, conversationId) {
+  if (isSupabaseBackend()) return sbMessaging.listMessages(userId, conversationId);
   initMessagingSchema();
   const db = getDb();
   const conv = conversationForUser(db, conversationId, userId);
@@ -382,7 +387,8 @@ export function listMessages(userId, conversationId) {
   };
 }
 
-export function sendMessage(userId, conversationId, { body, attachment }) {
+export async function sendMessage(userId, conversationId, { body, attachment }) {
+  if (isSupabaseBackend()) return sbMessaging.sendMessage(userId, conversationId, { body, attachment });
   initMessagingSchema();
   const db = getDb();
   const conv = conversationForUser(db, conversationId, userId);
@@ -442,7 +448,8 @@ export function sendMessage(userId, conversationId, { body, attachment }) {
   return publicMessage(db, row);
 }
 
-export function markRead(userId, conversationId) {
+export async function markRead(userId, conversationId) {
+  if (isSupabaseBackend()) return sbMessaging.markRead(userId, conversationId);
   initMessagingSchema();
   const db = getDb();
   const conv = conversationForUser(db, conversationId, userId);
@@ -463,7 +470,8 @@ export function markRead(userId, conversationId) {
   return { ok: true };
 }
 
-export function markUnread(userId, conversationId) {
+export async function markUnread(userId, conversationId) {
+  if (isSupabaseBackend()) return sbMessaging.markUnread(userId, conversationId);
   initMessagingSchema();
   const db = getDb();
   const conv = conversationForUser(db, conversationId, userId);
@@ -489,7 +497,8 @@ export function markUnread(userId, conversationId) {
   return { ok: true };
 }
 
-export function deleteConversation(userId, conversationId) {
+export async function deleteConversation(userId, conversationId) {
+  if (isSupabaseBackend()) return sbMessaging.deleteConversation(userId, conversationId);
   initMessagingSchema();
   const db = getDb();
   const conv = conversationForUser(db, conversationId, userId);
@@ -503,22 +512,8 @@ export function deleteConversation(userId, conversationId) {
   return { ok: true };
 }
 
-export function reportConversation(userId, conversationId, reason = "") {
-  initMessagingSchema();
-  const db = getDb();
-  const conv = conversationForUser(db, conversationId, userId);
-  if (!conv) {
-    const err = new Error("Beszélgetés nem található.");
-    err.status = 404;
-    throw err;
-  }
-  db.prepare(
-    `INSERT INTO conversation_reports (conversation_id, reporter_id, reason) VALUES (?, ?, ?)`
-  ).run(conversationId, userId, String(reason || "").slice(0, 500));
-  return { ok: true, message: "Köszönjük, a jelentést megkaptuk." };
-}
-
-export function blockUser(blockerId, blockedId) {
+export async function blockUser(blockerId, blockedId) {
+  if (isSupabaseBackend()) return sbMessaging.blockUser(blockerId, blockedId);
   initMessagingSchema();
   const db = getDb();
   const id = Number(blockedId);
@@ -533,7 +528,8 @@ export function blockUser(blockerId, blockedId) {
   return { ok: true };
 }
 
-export function unblockUser(blockerId, blockedId) {
+export async function unblockUser(blockerId, blockedId) {
+  if (isSupabaseBackend()) return sbMessaging.unblockUser(blockerId, blockedId);
   initMessagingSchema();
   getDb()
     .prepare(`DELETE FROM message_blocks WHERE blocker_id = ? AND blocked_id = ?`)
@@ -541,7 +537,8 @@ export function unblockUser(blockerId, blockedId) {
   return { ok: true };
 }
 
-export function listBlocks(userId) {
+export async function listBlocks(userId) {
+  if (isSupabaseBackend()) return sbMessaging.listBlocks(userId);
   initMessagingSchema();
   const db = getDb();
   const rows = db
@@ -550,7 +547,8 @@ export function listBlocks(userId) {
   return rows.map((r) => userPublic(db, r.blocked_id));
 }
 
-export function registerDeviceToken(userId, { token, platform = "ios" }) {
+export async function registerDeviceToken(userId, { token, platform = "ios" }) {
+  if (isSupabaseBackend()) return sbMessaging.registerDeviceToken(userId, { token, platform });
   initMessagingSchema();
   const t = String(token ?? "").trim();
   if (!t) {
@@ -570,7 +568,8 @@ export function registerDeviceToken(userId, { token, platform = "ios" }) {
   return { ok: true };
 }
 
-export function getAttachmentForUser(userId, messageId) {
+export async function getAttachmentForUser(userId, messageId) {
+  if (isSupabaseBackend()) return sbMessaging.getAttachmentForUser(userId, messageId);
   initMessagingSchema();
   const db = getDb();
   const row = db.prepare("SELECT * FROM messages WHERE id = ?").get(Number(messageId));
@@ -598,7 +597,8 @@ export function getAttachmentForUser(userId, messageId) {
   };
 }
 
-export function pendingPushForUser(userId) {
+export async function pendingPushForUser(userId) {
+  if (isSupabaseBackend()) return sbMessaging.pendingPushForUser(userId);
   initMessagingSchema();
   const db = getDb();
   const rows = db
@@ -653,103 +653,95 @@ export async function handleMessagesApi(req, res, pathname) {
   }
 
   try {
-    initMessagingSchema();
+    await initMessagingSchema();
 
     if (pathname === "/api/messages/conversations" && req.method === "GET") {
-      const user = requireUser(req);
-      sendJson(res, 200, { ok: true, conversations: listConversations(user.id) });
+      const user = await requireUserAsync(req);
+      sendJson(res, 200, { ok: true, conversations: await listConversations(user.id) });
       return true;
     }
 
     if (pathname === "/api/messages/conversations" && req.method === "POST") {
-      const user = requireUser(req);
+      const user = await requireUserAsync(req);
       const body = await readJsonBody(req);
-      sendJson(res, 201, { ok: true, conversation: startConversation(user.id, body) });
+      sendJson(res, 201, { ok: true, conversation: await startConversation(user.id, body) });
       return true;
     }
 
     const convMsg = pathname.match(/^\/api\/messages\/conversations\/(\d+)\/messages$/);
     if (convMsg && req.method === "GET") {
-      const user = requireUser(req);
-      sendJson(res, 200, { ok: true, ...listMessages(user.id, Number(convMsg[1])) });
+      const user = await requireUserAsync(req);
+      sendJson(res, 200, { ok: true, ...(await listMessages(user.id, Number(convMsg[1]))) });
       return true;
     }
     if (convMsg && req.method === "POST") {
-      const user = requireUser(req);
+      const user = await requireUserAsync(req);
       const body = await readJsonBody(req);
       sendJson(res, 201, {
         ok: true,
-        message: sendMessage(user.id, Number(convMsg[1]), body),
+        message: await sendMessage(user.id, Number(convMsg[1]), body),
       });
       return true;
     }
 
     const convRead = pathname.match(/^\/api\/messages\/conversations\/(\d+)\/read$/);
     if (convRead && req.method === "POST") {
-      const user = requireUser(req);
-      sendJson(res, 200, markRead(user.id, Number(convRead[1])));
+      const user = await requireUserAsync(req);
+      sendJson(res, 200, await markRead(user.id, Number(convRead[1])));
       return true;
     }
 
     const convUnread = pathname.match(/^\/api\/messages\/conversations\/(\d+)\/unread$/);
     if (convUnread && req.method === "POST") {
-      const user = requireUser(req);
-      sendJson(res, 200, markUnread(user.id, Number(convUnread[1])));
-      return true;
-    }
-
-    const convReport = pathname.match(/^\/api\/messages\/conversations\/(\d+)\/report$/);
-    if (convReport && req.method === "POST") {
-      const user = requireUser(req);
-      const body = await readJsonBody(req);
-      sendJson(res, 200, reportConversation(user.id, Number(convReport[1]), body.reason ?? ""));
+      const user = await requireUserAsync(req);
+      sendJson(res, 200, await markUnread(user.id, Number(convUnread[1])));
       return true;
     }
 
     const convId = pathname.match(/^\/api\/messages\/conversations\/(\d+)$/);
     if (convId && req.method === "DELETE") {
-      const user = requireUser(req);
-      sendJson(res, 200, deleteConversation(user.id, Number(convId[1])));
+      const user = await requireUserAsync(req);
+      sendJson(res, 200, await deleteConversation(user.id, Number(convId[1])));
       return true;
     }
 
     if (pathname === "/api/messages/block" && req.method === "POST") {
-      const user = requireUser(req);
+      const user = await requireUserAsync(req);
       const body = await readJsonBody(req);
-      sendJson(res, 200, blockUser(user.id, body.user_id ?? body.userId));
+      sendJson(res, 200, await blockUser(user.id, body.user_id ?? body.userId));
       return true;
     }
 
     if (pathname === "/api/messages/blocks" && req.method === "GET") {
-      const user = requireUser(req);
-      sendJson(res, 200, { ok: true, blocks: listBlocks(user.id) });
+      const user = await requireUserAsync(req);
+      sendJson(res, 200, { ok: true, blocks: await listBlocks(user.id) });
       return true;
     }
 
     const unblock = pathname.match(/^\/api\/messages\/block\/(\d+)$/);
     if (unblock && req.method === "DELETE") {
-      const user = requireUser(req);
-      sendJson(res, 200, unblockUser(user.id, Number(unblock[1])));
+      const user = await requireUserAsync(req);
+      sendJson(res, 200, await unblockUser(user.id, Number(unblock[1])));
       return true;
     }
 
     if (pathname === "/api/messages/device-token" && req.method === "POST") {
-      const user = requireUser(req);
+      const user = await requireUserAsync(req);
       const body = await readJsonBody(req);
-      sendJson(res, 200, registerDeviceToken(user.id, body));
+      sendJson(res, 200, await registerDeviceToken(user.id, body));
       return true;
     }
 
     if (pathname === "/api/messages/push-pending" && req.method === "GET") {
-      const user = requireUser(req);
-      sendJson(res, 200, { ok: true, notifications: pendingPushForUser(user.id) });
+      const user = await requireUserAsync(req);
+      sendJson(res, 200, { ok: true, notifications: await pendingPushForUser(user.id) });
       return true;
     }
 
     const attach = pathname.match(/^\/api\/messages\/attachments\/(\d+)$/);
     if (attach && req.method === "GET") {
-      const user = requireUser(req);
-      const file = getAttachmentForUser(user.id, Number(attach[1]));
+      const user = await requireUserAsync(req);
+      const file = await getAttachmentForUser(user.id, Number(attach[1]));
       res.writeHead(200, {
         "Content-Type": file.mime,
         "Content-Disposition": `inline; filename="${file.name.replace(/"/g, "")}"`,
