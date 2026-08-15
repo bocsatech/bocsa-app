@@ -78,7 +78,8 @@ body.hub-page .local-banner {
   flex: 0 0 auto;
   white-space: nowrap;
   position: absolute;
-  left: calc(1rem - 1.5cm);
+  /* 1.5 cm balra, de ne lógjon ki a viewportból (overflow clip) */
+  left: max(0.5rem, calc(1rem - 1.5cm));
   bottom: 0.05rem;
   z-index: 3;
   height: auto;

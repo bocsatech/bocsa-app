@@ -70,6 +70,7 @@ body.site-app .site-header-top {
 }
 
 body.site-app .home-logo,
+body.site-app .hub-logo,
 body.site-app .site-app-logo {
   justify-self: start;
   font-size: 1.15rem;
@@ -81,7 +82,7 @@ body.site-app .site-app-logo {
   align-items: flex-end;
   line-height: 1;
   position: absolute;
-  left: calc(1rem - 1.5cm);
+  left: max(0.5rem, calc(1rem - 1.5cm));
   bottom: 0.05rem;
   z-index: 3;
   flex: 0 0 auto;
@@ -122,6 +123,7 @@ body.site-app .site-nav-band {
 }
 
 body.site-app .home-nav,
+body.site-app .hub-nav,
 body.site-app .site-app-nav,
 body.site-app .import-nav {
   order: unset;
@@ -148,6 +150,7 @@ body.site-app .import-nav {
 }
 
 body.site-app .home-nav .home-nav-link,
+body.site-app .hub-nav .hub-nav-link,
 body.site-app .site-app-nav .import-nav-link,
 body.site-app .import-nav .import-nav-link,
 body.site-app .site-app-nav a {
@@ -1235,6 +1238,7 @@ body.site-app .settings-danger-btn:hover {
 }
 
 body.site-app .home-nav-link,
+body.site-app .hub-nav-link,
 body.site-app .site-app-nav-link,
 body.site-app .import-nav-link {
   padding: 0.7rem 0.1rem 0.65rem;
@@ -1253,6 +1257,7 @@ body.site-app .import-nav-link {
 }
 
 body.site-app .home-nav-link:hover,
+body.site-app .hub-nav-link:hover,
 body.site-app .site-app-nav-link:hover,
 body.site-app .import-nav-link:hover {
   background: transparent;
@@ -1261,6 +1266,7 @@ body.site-app .import-nav-link:hover {
 }
 
 body.site-app .home-nav-link.active,
+body.site-app .hub-nav-link.active,
 body.site-app .site-app-nav-link.active,
 body.site-app .import-nav-link.active {
   background: transparent;
@@ -2568,6 +2574,7 @@ body.site-app .package.selected {
 
 @media (max-width: 720px) {
   body.site-app .home-header-inner,
+  body.site-app .hub-header-inner,
   body.site-app .site-app-header-inner,
   body.site-app .header-top {
     display: flex;
@@ -2575,6 +2582,7 @@ body.site-app .package.selected {
   }
 
   body.site-app .home-nav,
+  body.site-app .hub-nav,
   body.site-app .import-nav {
     justify-content: flex-start;
     padding-left: 3.5rem;
@@ -3595,17 +3603,20 @@ html[data-theme="dark"] body.site-app .site-nav-band {
 }
 
 html[data-theme="dark"] body.site-app .home-nav-link,
+html[data-theme="dark"] body.site-app .hub-nav-link,
 html[data-theme="dark"] body.site-app .site-app-nav-link,
 html[data-theme="dark"] body.site-app .import-nav-link {
   color: #e8eaed;
 }
 
 html[data-theme="dark"] body.site-app .home-nav-link:hover,
+html[data-theme="dark"] body.site-app .hub-nav-link:hover,
 html[data-theme="dark"] body.site-app .import-nav-link:hover {
   color: #fff;
 }
 
 html[data-theme="dark"] body.site-app .home-nav-link.active,
+html[data-theme="dark"] body.site-app .hub-nav-link.active,
 html[data-theme="dark"] body.site-app .import-nav-link.active {
   color: #9ca3af;
   border-bottom-color: #6b7280;

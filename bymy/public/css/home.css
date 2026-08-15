@@ -681,7 +681,7 @@ body.home-page .local-banner {
   align-items: flex-end;
   line-height: 1;
   position: absolute;
-  left: calc(1rem - 1.5cm);
+  left: max(0.5rem, calc(1rem - 1.5cm));
   bottom: 0.05rem;
   z-index: 3;
   flex: 0 0 auto;
@@ -738,11 +738,13 @@ body.home-page .local-banner {
   border-bottom-color: #9ca3af;
 }
 
+body.home-page[data-site-page="auto"] .hub-header-inner,
 body.home-page[data-site-page="auto"] .home-header-inner {
   display: flex;
   flex-direction: column;
 }
 
+body.home-page[data-site-page="auto"] .hub-nav,
 body.home-page[data-site-page="auto"] .home-nav {
   justify-content: center;
 }
