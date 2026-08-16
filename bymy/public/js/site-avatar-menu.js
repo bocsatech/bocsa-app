@@ -237,6 +237,25 @@ export function refreshAvatarMenuUi(root = document) {
     if (memberBlock) memberBlock.hidden = !loggedIn;
     wrap.dataset.loggedIn = loggedIn ? "1" : "0";
   });
+
+  /* Mobil app fejléc avatar (nincs dropdown menü) — ugyanaz a betű / fotó */
+  root.querySelectorAll(".mw-app-avatar").forEach((el) => {
+    const letterEl = el.querySelector("[data-avatar-letter]");
+    const imgEl = el.querySelector("[data-avatar-img]");
+    if (letterEl) {
+      letterEl.textContent = letterFromUser(user);
+      letterEl.hidden = Boolean(photo);
+    }
+    if (imgEl) {
+      if (photo) {
+        imgEl.src = photo;
+        imgEl.hidden = false;
+      } else {
+        imgEl.removeAttribute("src");
+        imgEl.hidden = true;
+      }
+    }
+  });
 }
 
 function bindWrap(wrap) {

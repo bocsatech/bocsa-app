@@ -37,7 +37,11 @@
     background: #fff;
     padding: 0.55rem 1rem 0.35rem;
     padding-top: max(0.55rem, env(safe-area-inset-top, 0px));
-    min-height: 3.25rem;
+    padding-right: max(1rem, calc(0.75rem + env(safe-area-inset-right, 0px)));
+    padding-left: max(1rem, calc(0.75rem + env(safe-area-inset-left, 0px)));
+    min-height: 3.5rem;
+    overflow: visible;
+    box-sizing: border-box;
   }
 
   body.hub-page--feed .mw-app-logo {
@@ -46,42 +50,68 @@
     justify-content: center;
     text-decoration: none;
     line-height: 0;
+    /* hely a jobb oldali avatárnak — ne tolja ki a szélen */
+    padding-inline: 3rem;
   }
 
   body.hub-page--feed .mw-app-logo img {
     display: block;
     height: clamp(52px, 14vw, 68px);
     width: auto;
-    max-width: min(240px, 70vw);
+    max-width: min(220px, 58vw);
     object-fit: contain;
   }
 
   body.hub-page--feed .mw-app-avatar {
     position: absolute;
-    right: 0.85rem;
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
     top: 50%;
     transform: translateY(-50%);
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     border-radius: 999px;
     overflow: hidden;
     border: 1.5px solid #e5e7eb;
-    background: #f3f4f6;
+    background: #eef2f7;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    color: #374151;
+    color: #1f2937;
     font-family: "DM Sans", system-ui, sans-serif;
     font-weight: 700;
     font-size: 0.95rem;
+    line-height: 1;
+    flex-shrink: 0;
+    z-index: 2;
+    box-sizing: border-box;
+  }
+
+  body.hub-page--feed .mw-app-avatar [data-avatar-letter] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  body.hub-page--feed .mw-app-avatar [data-avatar-letter][hidden] {
+    display: none !important;
   }
 
   body.hub-page--feed .mw-app-avatar img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
+    border-radius: inherit;
+  }
+
+  body.hub-page--feed .mw-app-avatar img[hidden] {
+    display: none !important;
   }
 
   body.hub-page--feed .mw-app-avatar[hidden] {
@@ -91,11 +121,13 @@
   /* Guest: belépés ikon a profil helyén */
   body.hub-page--feed .mw-app-login {
     position: absolute;
-    right: 0.85rem;
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
     top: 50%;
     transform: translateY(-50%);
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     border-radius: 999px;
     border: 1.5px solid #e5e7eb;
     background: #fff;
@@ -104,18 +136,21 @@
     justify-content: center;
     color: #374151;
     text-decoration: none;
+    flex-shrink: 0;
+    z-index: 2;
+    box-sizing: border-box;
   }
 
   html[data-auth="member"] body.hub-page--feed .mw-app-login {
     display: none !important;
   }
 
-  html[data-auth="guest"] body.hub-page--feed .mw-app-avatar,
-  html[data-auth="guest"] body.hub-page--feed [data-avatar-menu] {
+  html[data-auth="guest"] body.hub-page--feed .mw-app-avatar {
     display: none !important;
   }
 
-  html[data-auth="member"] body.hub-page--feed .mw-app-avatar {
+  html[data-auth="member"] body.hub-page--feed .mw-app-avatar,
+  html[data-auth="member"] body.hub-page--feed .mw-app-avatar[hidden] {
     display: inline-flex !important;
   }
 
