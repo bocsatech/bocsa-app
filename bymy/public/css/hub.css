@@ -747,57 +747,92 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
 
   .hub-promo {
     aspect-ratio: 5 / 3;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .hub-promo--fullimg .hub-promo__full {
+    transform: none;
+  }
+
+  .hub-intro {
+    padding: 0.85rem 0.85rem 0.35rem;
+  }
+
+  .hub-header {
+    overflow-x: clip;
   }
 
   .hub-header-inner {
     gap: 0;
     padding: 0;
+    max-width: 100%;
   }
 
   .hub-header-top {
-    padding: 0.35rem 0.65rem 0.3rem;
-    min-height: 4.35rem;
+    padding: 0.3rem 0.65rem 0.25rem;
+    min-height: 3.5rem;
   }
 
   .hub-nav-band {
-    padding: 0.1rem 0.65rem;
-    padding-left: min(9.5rem, 46vw);
-    height: 3rem;
-    min-height: 3rem;
-    max-height: 3rem;
+    padding: 0.1rem 0.55rem;
+    padding-left: min(9rem, 44vw);
+    height: 2.85rem;
+    min-height: 2.85rem;
+    max-height: 2.85rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .hub-logo {
-    left: calc(0.65rem - 1.5cm);
-    bottom: 0.02rem;
+    left: 0.55rem;
+    bottom: 0.05rem;
+    max-width: min(42vw, 9.5rem);
   }
 
   .bymy-logo-img--nav {
-    height: 108px;
-    max-width: min(360px, 62vw);
+    height: clamp(52px, 14vw, 72px);
+    max-width: min(42vw, 9.5rem);
+  }
+
+  .bymy-logo-img--home {
+    height: clamp(48px, 16vw, 72px);
+    max-width: min(240px, 70vw);
   }
 
   .hub-nav {
-    gap: 0.9rem;
-    padding-left: 0;
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    gap: 0.75rem;
+    padding: 0 0.35rem 0 0;
     justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    pointer-events: auto;
   }
 
   .hub-nav-link {
-    font-size: 1.01rem;
-    padding: 0.6rem 0.05rem 0.55rem;
+    font-size: 0.92rem;
+    padding: 0.5rem 0.05rem 0.45rem;
+    flex: 0 0 auto;
   }
 
   .hub-btn {
-    font-size: 0.78rem;
-    padding: 0.35rem 0.55rem;
-    height: 2rem;
+    font-size: 0.75rem;
+    padding: 0.32rem 0.5rem;
+    height: 1.9rem;
   }
 
   .hub-btn--post {
-    min-height: 2.1rem;
-    border-radius: 14px;
-    padding: 0.4rem 0.75rem;
+    min-height: 1.95rem;
+    border-radius: 12px;
+    padding: 0.32rem 0.55rem;
   }
 
   .hub-header-msg span {
@@ -805,13 +840,63 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   }
 
   .hub-header .site-header-firstname {
-    max-width: 5.5rem;
-    font-size: 0.85rem;
+    max-width: 4.5rem;
+    font-size: 0.8rem;
   }
 
   .hub-header .site-header-avatar {
-    width: 2rem;
-    height: 2rem;
+    width: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .hub-header-actions,
+  .hub-header-actions.site-header-actions {
+    gap: 0.35rem;
+    max-width: 100%;
+  }
+
+  .hub-sell {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .hub-sell .hub-btn {
+    width: 100%;
+    height: auto;
+    min-height: 2.4rem;
+  }
+
+  .hf-head,
+  .hf-rail {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hub-header-top {
+    min-height: 3.15rem;
+    padding: 0.25rem 0.5rem 0.2rem;
+  }
+
+  .bymy-logo-img--nav {
+    height: 52px;
+    max-width: min(38vw, 8.25rem);
+  }
+
+  .hub-nav-band {
+    padding-left: min(7.5rem, 40vw);
+  }
+
+  .hub-header-actions a[data-auth-register] {
+    display: none !important;
+  }
+
+  .hub-btn--post {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.45rem;
   }
 }
 
