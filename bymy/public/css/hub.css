@@ -759,6 +759,15 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
     padding: 0.85rem 0.85rem 0.35rem;
   }
 
+  /* Mobilon a nav logó elég — a nagy középső logó csak helyet foglal */
+  .hub-home-logo {
+    display: none;
+  }
+
+  .hub-nav {
+    gap: 0.55rem;
+  }
+
   .hub-header {
     overflow-x: clip;
   }
