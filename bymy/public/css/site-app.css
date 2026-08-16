@@ -98,7 +98,12 @@ body.site-app .site-app-logo .bymy-logo-img {
   object-fit: contain;
 }
 
-body.site-app .bymy-logo-img--nav {
+/* --nav must beat .site-app-logo .bymy-logo-img (0,3,1), else logo stays 36px
+   and the header top row looks empty / broken on Beállítások etc. */
+body.site-app .bymy-logo-img--nav,
+body.site-app .home-logo .bymy-logo-img--nav,
+body.site-app .hub-logo .bymy-logo-img--nav,
+body.site-app .site-app-logo .bymy-logo-img--nav {
   height: 144px;
   max-width: min(520px, 58vw);
   width: auto;

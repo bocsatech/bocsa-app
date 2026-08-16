@@ -8,6 +8,7 @@ const PAGES = [
   "/ajanlasok.html",
   "/belepes.html",
   "/regisztracio.html",
+  "/beallitasok.html",
 ];
 
 test.describe("fejléc — közös elemek minden oldalon", () => {
@@ -33,6 +34,12 @@ test.describe("fejléc — közös elemek minden oldalon", () => {
       const guestVisible = await page.locator("[data-auth-guest]").first().isVisible().catch(() => false);
       const memberVisible = await page.locator("[data-auth-member]").first().isVisible().catch(() => false);
       expect(guestVisible || memberVisible).toBeTruthy();
+
+      /* Nav logo must be the tall overlapping size (not stuck at 36px) */
+      const navLogo = page.locator(".bymy-logo-img--nav").first();
+      await expect(navLogo).toBeVisible();
+      const logoBox = await navLogo.boundingBox();
+      expect(logoBox?.height ?? 0).toBeGreaterThan(100);
     });
   }
 });
