@@ -104,11 +104,28 @@ if (!server.includes("createOAuthState(provider, next)")) {
   );
 }
 
-if (server.includes("await findOrCreateOAuthUser(identity);") && !server.includes("accountType: stateInfo.accountType")) {
+// Fix findOrCreateOAuthUser calls:
+// 1) callback must pass stateInfo.accountType
+// 2) native must NOT reference stateInfo (revert if wrongly patched)
+server = server.replace(
+  /const \{ user, session \} = await findOrCreateOAuthUser\(identity,\s*\{\s*accountType:\s*stateInfo\.accountType\s*\}\);/g,
+  "const { user, session } = await findOrCreateOAuthUser(identity);"
+);
+
+if (server.includes("const stateInfo = parseOAuthState(params.state, provider)")) {
   server = server.replace(
-    "const { user, session } = await findOrCreateOAuthUser(identity);",
-    "const { user, session } = await findOrCreateOAuthUser(identity, { accountType: stateInfo.accountType });"
+    /(const stateInfo = parseOAuthState\(params\.state, provider\);[\s\S]*?)(const \{ user, session \} = await findOrCreateOAuthUser\(identity\);)/,
+    `$1const { user, session } = await findOrCreateOAuthUser(identity, { accountType: stateInfo.accountType });`
   );
+}
+
+if (
+  !server.includes(
+    "findOrCreateOAuthUser(identity, { accountType: stateInfo.accountType })"
+  )
+) {
+  console.error("callback findOrCreateOAuthUser accountType patch sikertelen");
+  process.exit(1);
 }
 
 // Error redirect: ACCOUNT_TYPE_REQUIRED → regisztracio
