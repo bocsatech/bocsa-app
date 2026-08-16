@@ -472,7 +472,8 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   grid-template-rows: 1fr;
   align-items: stretch;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  /* 5/3 ≈ a feltöltött kártyaképek aránya — 16:9 + scale levágta az ikonokat */
+  aspect-ratio: 5 / 3;
   min-height: 0;
   margin: 0;
   padding: 0;
@@ -489,12 +490,12 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   --promo-accent: #e31c23;
 }
 
-/* Teljes kész kártyakép (hub-ingatlan.png) — széltől szélig, a keret clippel */
+/* Teljes kész kártyakép — pontosan kitölti a keretet, tartalom nem vágódik */
 .hub-promo--fullimg {
   display: block;
   position: relative;
   padding: 0;
-  background: #e8e8e8;
+  background: #fff;
 }
 
 .hub-promo--fullimg .hub-promo__full {
@@ -506,9 +507,7 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   object-fit: cover;
   object-position: center;
   border-radius: 0;
-  /* A PNG-ben sült kerekített fehér sarkok / keret ne látszódjon duplán */
-  transform: scale(1.04);
-  transform-origin: center;
+  transform: none;
 }
 
 .hub-promo:hover {
@@ -747,7 +746,7 @@ body.hub-page:has(.hub-hero--empty) .hub-main {
   }
 
   .hub-promo {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 5 / 3;
   }
 
   .hub-header-inner {
