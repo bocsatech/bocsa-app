@@ -182,6 +182,11 @@ jobs:
             node bymy/scripts/patch-activation-open.mjs /tmp/bymy-prod/server.mjs
           fi
 
+          echo "OAuth fióktípus (private/business) patch…"
+          if [ -f bymy/scripts/patch-oauth-account-type.mjs ]; then
+            node bymy/scripts/patch-oauth-account-type.mjs /tmp/bymy-prod
+          fi
+
           # Bridge tükör (opcionális helyi/alias használatra)
           mkdir -p autosweb/public
           cp -a bymy/public/. autosweb/public/

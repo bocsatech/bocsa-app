@@ -239,12 +239,15 @@ function linkIdentity(userId, { provider, subject, email = "", profile = {} }) {
  * Google / Apple / Facebook belépés → helyi user + identity.
  * @param {{ provider: string, subject: string, email?: string, name?: string, emailVerified?: boolean, profile?: object }} identity
  */
-export function findOrCreateOAuthUser(identity) {
+export function findOrCreateOAuthUser(identity, options = {}) {
   const provider = String(identity?.provider ?? "").trim().toLowerCase();
   const subject = String(identity?.subject ?? "").trim();
   if (!provider || !subject) {
     throw new Error("Hiányzó OAuth azonosító.");
   }
+  const accountTypeRaw = String(options.accountType ?? identity?.accountType ?? "").trim();
+  const accountType =
+    accountTypeRaw === "business" ? "business" : accountTypeRaw === "private" ? "private" : "";
 
   const db = getDb();
   const byIdentity = db
@@ -281,14 +284,21 @@ export function findOrCreateOAuthUser(identity) {
   let created = false;
 
   if (!userRow) {
+    if (!accountType) {
+      const err = new Error(
+        "Új fiókhoz válaszd ki a fióktípust a Regisztrációnál (Privát vagy Céges), majd Folytatás Google-lal."
+      );
+      err.code = "ACCOUNT_TYPE_REQUIRED";
+      throw err;
+    }
     const displayName = String(identity.name ?? "").trim().slice(0, 40) || null;
     const info = db
       .prepare(
         `INSERT INTO web_users (
-           email, password_salt, password_hash, display_name, email_verified
-         ) VALUES (?, '', '', ?, 1)`
+           email, password_salt, password_hash, display_name, account_type, email_verified
+         ) VALUES (?, '', '', ?, ?, 1)`
       )
-      .run(email, displayName);
+      .run(email, displayName, accountType);
     userRow = db.prepare(`SELECT * FROM web_users WHERE id = ?`).get(Number(info.lastInsertRowid));
     created = true;
   } else if (Number(userRow.email_verified) !== 1) {

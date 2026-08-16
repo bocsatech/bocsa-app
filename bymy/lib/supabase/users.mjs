@@ -237,10 +237,13 @@ async function linkIdentity(userId, { provider, subject, email = "", profile = {
   return data.id;
 }
 
-export async function findOrCreateOAuthUser(identity) {
+export async function findOrCreateOAuthUser(identity, options = {}) {
   const provider = String(identity?.provider ?? "").trim().toLowerCase();
   const subject = String(identity?.subject ?? "").trim();
   if (!provider || !subject) throw new Error("Hiányzó OAuth azonosító.");
+  const accountTypeRaw = String(options.accountType ?? identity?.accountType ?? "").trim();
+  const accountType =
+    accountTypeRaw === "business" ? "business" : accountTypeRaw === "private" ? "private" : "";
 
   const { data: identityRow } = await sb()
     .from("web_user_identities")
@@ -275,6 +278,13 @@ export async function findOrCreateOAuthUser(identity) {
   let userId;
 
   if (!userRow) {
+    if (!accountType) {
+      const err = new Error(
+        "Új fiókhoz válaszd ki a fióktípust a Regisztrációnál (Privát vagy Céges), majd Folytatás Google-lal."
+      );
+      err.code = "ACCOUNT_TYPE_REQUIRED";
+      throw err;
+    }
     const displayName = String(identity.name ?? "").trim().slice(0, 40) || null;
     const { data: inserted, error } = await sb()
       .from("web_users")
@@ -283,6 +293,7 @@ export async function findOrCreateOAuthUser(identity) {
         password_salt: "",
         password_hash: "",
         display_name: displayName,
+        account_type: accountType,
         email_verified: true,
       })
       .select("*")

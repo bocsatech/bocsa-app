@@ -482,22 +482,47 @@ export function initRegisterPage() {
     if (user?.email) window.location.replace("/");
   });
 
-  initOAuthButtons();
+  const params = new URLSearchParams(window.location.search);
+  const oauthError = params.get("oauth_error");
+  if (oauthError && errorEl) {
+    errorEl.hidden = false;
+    errorEl.textContent = oauthError;
+  }
 
   function selectedAccountType() {
-    const checked = form.querySelector('input[name="accountType"]:checked');
+    const checked = document.querySelector('input[name="accountType"]:checked');
     return checked?.value || "";
   }
 
   function syncAccountTypeUi() {
     const type = selectedAccountType();
-    form.querySelectorAll("[data-account-type-option]").forEach((el) => {
+    document.querySelectorAll("[data-account-type-option]").forEach((el) => {
       el.classList.toggle("is-selected", el.getAttribute("data-account-type-option") === type);
     });
     if (submitBtn) submitBtn.disabled = !type;
+    if (errorEl && type) {
+      // típus kiválasztva — töröld a „válassz típust” hibát, oauth_error-t hagyd
+      if (errorEl.textContent.includes("Privát") || errorEl.textContent.includes("Céges") || errorEl.textContent.includes("fióktípus")) {
+        errorEl.hidden = true;
+        errorEl.textContent = "";
+      }
+    }
   }
 
-  form.querySelectorAll('input[name="accountType"]').forEach((input) => {
+  initOAuthButtons({
+    next: "/",
+    requireAccountType: true,
+    getAccountType: selectedAccountType,
+    onMissingAccountType: () => {
+      if (errorEl) {
+        errorEl.hidden = false;
+        errorEl.textContent = "Előbb válaszd ki: Privát fiók vagy Céges fiók — utána Folytatás Google-lal.";
+      }
+      document.getElementById("account-type-pick")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    },
+  });
+
+  document.querySelectorAll('input[name="accountType"]').forEach((input) => {
     input.addEventListener("change", syncAccountTypeUi);
   });
   syncAccountTypeUi();
@@ -606,7 +631,12 @@ export function initLoginPage() {
   });
 }
 
-export async function initOAuthButtons({ next = "/hirdetesfeladas.html" } = {}) {
+export async function initOAuthButtons({
+  next = "/hirdetesfeladas.html",
+  requireAccountType = false,
+  getAccountType = null,
+  onMissingAccountType = null,
+} = {}) {
   const root = document.querySelector("[data-oauth-buttons]");
   if (!root) return;
   const hint = root.querySelector("[data-oauth-hint]");
@@ -630,7 +660,18 @@ export async function initOAuthButtons({ next = "/hirdetesfeladas.html" } = {}) 
     btn.title = enabled ? `Belépés ${info.label}-lal` : `${info?.label || id} jelenleg nem elérhető`;
     btn.addEventListener("click", () => {
       if (!enabled) return;
+      let accountType = "";
+      if (typeof getAccountType === "function") {
+        accountType = String(getAccountType() || "").trim();
+      }
+      if (requireAccountType && accountType !== "private" && accountType !== "business") {
+        if (typeof onMissingAccountType === "function") onMissingAccountType();
+        return;
+      }
       const params = new URLSearchParams({ next });
+      if (accountType === "private" || accountType === "business") {
+        params.set("accountType", accountType);
+      }
       window.location.href = `/api/auth/oauth/start/${id}?${params}`;
     });
   }

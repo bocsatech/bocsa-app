@@ -108,6 +108,25 @@
       <section class="login-card" aria-labelledby="register-title">
         <h1 class="login-title" id="register-title">Regisztráció</h1>
         <p class="login-lead">Hozz létre fiókot, és add fel autód hirdetését.</p>
+        <fieldset id="account-type-pick" class="account-type-pick">
+          <legend class="account-type-pick__legend">Fióktípus</legend>
+          <p class="account-type-pick__hint">Kötelező választás — Google / email előtt is. Később nem módosítható.</p>
+          <label class="account-type-option" data-account-type-option="private">
+            <input type="radio" name="accountType" value="private" form="register-form" />
+            <span class="account-type-option__text">
+              <strong>Privát fiók</strong>
+              <small>Magánszemélyként hirdetsz</small>
+            </span>
+          </label>
+          <label class="account-type-option" data-account-type-option="business">
+            <input type="radio" name="accountType" value="business" form="register-form" />
+            <span class="account-type-option__text">
+              <strong>Céges fiók</strong>
+              <small>Vállalkozásként / cégként hirdetsz</small>
+            </span>
+          </label>
+        </fieldset>
+        <p id="register-error" class="login-error" role="alert" hidden></p>
         <div class="oauth-block" data-oauth-buttons>
           <button type="button" class="oauth-btn oauth-btn--google" data-oauth-provider="google">
             <span class="oauth-btn-icon" aria-hidden="true">G</span>
@@ -125,24 +144,6 @@
         </div>
         <div class="login-divider" aria-hidden="true"><span>vagy emaillel</span></div>
         <form id="register-form" class="login-form">
-          <fieldset class="account-type-pick">
-            <legend class="account-type-pick__legend">Fióktípus</legend>
-            <p class="account-type-pick__hint">Kötelező választás — később nem módosítható.</p>
-            <label class="account-type-option" data-account-type-option="private">
-              <input type="radio" name="accountType" value="private" />
-              <span class="account-type-option__text">
-                <strong>Privát fiók</strong>
-                <small>Magánszemélyként hirdetsz</small>
-              </span>
-            </label>
-            <label class="account-type-option" data-account-type-option="business">
-              <input type="radio" name="accountType" value="business" />
-              <span class="account-type-option__text">
-                <strong>Céges fiók</strong>
-                <small>Vállalkozásként / cégként hirdetsz</small>
-              </span>
-            </label>
-          </fieldset>
           <label class="login-field">
             <span class="login-label">Email</span>
             <input type="email" name="email" autocomplete="username" required placeholder="pelda@email.hu" />
@@ -155,7 +156,6 @@
             <span class="login-label">Jelszó megerősítése</span>
             <input type="password" name="password_confirm" autocomplete="new-password" required minlength="4" />
           </label>
-          <p id="register-error" class="login-error" role="alert" hidden></p>
           <button type="submit" class="site-header-btn site-header-btn--primary login-submit" disabled>Regisztráció</button>
         </form>
         <div id="register-ok" class="login-lead" hidden></div>
@@ -166,7 +166,7 @@
 
     <script src="/js/site-avatar-menu.js?v=willhabenHdr1" type="module"></script>
     <script type="module">
-      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=openAct1";
+      import { initRegisterPage, initSiteAuth } from "/js/site-auth.js?v=acctOAuth1";
       initSiteAuth();
       initRegisterPage();
     </script>
