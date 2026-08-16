@@ -883,6 +883,14 @@ body.home-page[data-site-page="auto"] .home-nav {
   gap: 0.75rem;
 }
 
+.home-stats-track--qs-only {
+  grid-template-columns: 1fr;
+}
+
+.home-stats-track--qs-only .home-stats-card--quicksearch {
+  grid-column: auto;
+}
+
 .home-stats-card {
   display: flex;
   align-items: flex-start;

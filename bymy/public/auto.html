@@ -63,7 +63,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />    <link rel="stylesheet" href="/css/hub.css?v=mobileStable2" />
 
     <link rel="stylesheet" href="/css/site-app.css?v=mobileStable2" />    <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=autoHdr1" />
+    <link rel="stylesheet" href="/css/home.css?v=autoNoStats1" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — a teljes oldal görget, külön görgetősáv nincs sehol. */
       html:has(body.home-page) {
@@ -310,74 +310,8 @@
         </div>
       </section>
 
-      <section class="home-stats-bar" aria-label="Összesítő">
-        <div class="home-stats-track">
-          <article
-            class="home-stats-card home-stats-card--filter home-stats-card--inputs"
-            id="home-stats-total-card"
-            tabindex="0"
-            role="button"
-            aria-label="Összes hirdetés a megadott körzetben"
-          >
-            <span class="home-stats-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M4 8.5h3l1.2-2.2h7.6L16 8.5h2a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 4 8.5Z" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M7.5 14.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </span>
-            <div class="home-stats-copy">
-              <p class="home-stats-label">Összes hirdetés</p>
-              <div class="home-stats-radius-fields">
-                <label class="home-stats-radius-field">
-                  <span>Irányítószám</span>
-                  <input
-                    id="home-stats-postal"
-                    class="home-stats-radius-input"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="4"
-                    placeholder="pl. 8000"
-                    autocomplete="postal-code"
-                  />
-                </label>
-                <label class="home-stats-radius-field">
-                  <span>Sugár (km)</span>
-                  <input
-                    id="home-stats-radius-km"
-                    class="home-stats-radius-input"
-                    type="number"
-                    min="1"
-                    step="1"
-                    placeholder="km"
-                  />
-                </label>
-              </div>
-              <p class="home-stats-value" id="home-stats-total-count">—</p>
-              <p class="home-stats-meta" id="home-stats-total-meta"></p>
-            </div>
-          </article>
-
-          <article
-            class="home-stats-card home-stats-card--filter"
-            id="home-stats-recent-card"
-            tabindex="0"
-            role="button"
-            aria-label="Új hirdetések az elmúlt 24 órában a megadott körzetben"
-          >
-            <span class="home-stats-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M3.5 10.5h2.4l1.4-2.6h7.2l1.4 2.6H18a1.8 1.8 0 0 1 1.8 1.8v4.4a1.8 1.8 0 0 1-1.8 1.8H3.5a1.8 1.8 0 0 1-1.8-1.8v-4.4a1.8 1.8 0 0 1 1.8-1.8Z" stroke="currentColor" stroke-width="1.5"/>
-                <circle cx="7" cy="14.5" r="1.4" fill="currentColor"/>
-                <circle cx="15" cy="14.5" r="1.4" fill="currentColor"/>
-              </svg>
-            </span>
-            <div class="home-stats-copy">
-              <p class="home-stats-label">Új hirdetések</p>
-              <p class="home-stats-value" id="home-stats-recent-count">—</p>
-              <p class="home-stats-meta" id="home-stats-recent-meta">Kattints — az első kockában megadott körzetben.</p>
-            </div>
-          </article>
-
+      <section class="home-stats-bar" aria-label="Gyorskereső">
+        <div class="home-stats-track home-stats-track--qs-only">
           <article class="home-stats-card home-stats-card--quicksearch">
             <form class="home-qs-form" id="home-qs-form">
               <p class="home-qs-status" id="home-qs-status" hidden></p>
