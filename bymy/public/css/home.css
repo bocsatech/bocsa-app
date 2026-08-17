@@ -802,6 +802,10 @@ body.home-page[data-site-page="auto"] .home-nav {
   align-items: start;
 }
 
+.home-layout.site-layout:not(:has(> [data-site-side])) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .home-info-sidebar {
   align-self: start;
 }
