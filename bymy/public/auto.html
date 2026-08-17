@@ -63,7 +63,7 @@
     <link rel="stylesheet" href="/css/style.css?v=automax20260720homelist" />    <link rel="stylesheet" href="/css/hub.css?v=mobileStable2" />
 
     <link rel="stylesheet" href="/css/site-app.css?v=mobileStable2" />    <link rel="stylesheet" href="/css/site-side.css?v=home20260725unifiedscroll" />
-    <link rel="stylesheet" href="/css/home.css?v=autoNoSide1" />
+    <link rel="stylesheet" href="/css/home.css?v=autoGlassQs1" />
     <style id="home-scroll-fix">
       /* Inline: cache-biztos — a teljes oldal görget, külön görgetősáv nincs sehol. */
       html:has(body.home-page) {
@@ -143,6 +143,92 @@
         </nav>
         </div>
       </div>
+
+        <section class="home-stats-bar home-stats-bar--glass" aria-label="Gyorskereső">
+          <div class="home-stats-track home-stats-track--qs-only">
+            <article class="home-stats-card home-stats-card--quicksearch">
+              <form class="home-qs-form" id="home-qs-form">
+                <p class="home-qs-status" id="home-qs-status" hidden></p>
+                <div class="home-qs-row">
+                  <label class="home-qs-field home-qs-field--wide">
+                    <span class="home-qs-label">Márka</span>
+                    <select class="home-qs-control" id="qs-gyartmany">
+                      <option value="">Mindegy</option>
+                    </select>
+                  </label>
+
+                  <label class="home-qs-field home-qs-field--wide">
+                    <span class="home-qs-label">Modell</span>
+                    <select class="home-qs-control" id="qs-modell">
+                      <option value="">Mindegy</option>
+                    </select>
+                  </label>
+
+                  <label class="home-qs-field home-qs-field--wide">
+                    <span class="home-qs-label">Típus</span>
+                    <select class="home-qs-control" id="qs-tipus">
+                      <option value="">Mindegy</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="home-qs-row">
+                  <label class="home-qs-field home-qs-field--wide">
+                    <span class="home-qs-label">Üzemanyag</span>
+                    <select class="home-qs-control" id="qs-uzemanyag">
+                      <option value="">Mindegy</option>
+                      <option value="benzin">Benzin</option>
+                      <option value="diesel">Diesel</option>
+                      <option value="hybrid">Hybrid</option>
+                      <option value="benzin-gaz">Benzin/Gáz</option>
+                      <option value="elektromos">Elektromos</option>
+                    </select>
+                  </label>
+
+                  <div class="home-qs-pair">
+                    <label class="home-qs-field home-qs-field--narrow">
+                      <span class="home-qs-label">Évjárat</span>
+                      <select class="home-qs-control" id="qs-ev-tol" aria-label="Évjárat -tól">
+                        <option value="">-tól</option>
+                      </select>
+                    </label>
+                    <label class="home-qs-field home-qs-field--narrow">
+                      <select class="home-qs-control" id="qs-ev-ig" aria-label="Évjárat -ig">
+                        <option value="">-ig</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="home-qs-pair">
+                    <label class="home-qs-field home-qs-field--narrow">
+                      <span class="home-qs-label">Vételár</span>
+                      <select class="home-qs-control" id="qs-ar-tol" aria-label="Vételár -tól">
+                        <option value="">-tól</option>
+                      </select>
+                      <span class="home-qs-suffix" aria-hidden="true">Ft</span>
+                    </label>
+                    <label class="home-qs-field home-qs-field--narrow">
+                      <select class="home-qs-control" id="qs-ar-ig" aria-label="Vételár -ig">
+                        <option value="">-ig</option>
+                      </select>
+                      <span class="home-qs-suffix" aria-hidden="true">Ft</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="home-qs-row home-qs-row--actions">
+                  <button type="submit" class="home-qs-submit">Keresés</button>
+                  <div class="home-qs-actions-secondary">
+                    <button type="button" class="home-qs-action home-qs-action--advanced" id="qs-reszletes">
+                      Részletes keresés
+                    </button>
+                    <button type="reset" class="home-qs-action">Visszaállítás</button>
+                  </div>
+                </div>
+              </form>
+            </article>
+          </div>
+        </section>
     </header>
 
     <section class="home-ad-strip" aria-label="Banner hirdetések">
@@ -307,92 +393,6 @@
               <span class="home-category-text"><strong>OT</strong><span>Oldtimer</span></span>
             </span>
           </button>
-        </div>
-      </section>
-
-      <section class="home-stats-bar" aria-label="Gyorskereső">
-        <div class="home-stats-track home-stats-track--qs-only">
-          <article class="home-stats-card home-stats-card--quicksearch">
-            <form class="home-qs-form" id="home-qs-form">
-              <p class="home-qs-status" id="home-qs-status" hidden></p>
-              <div class="home-qs-row">
-                <label class="home-qs-field home-qs-field--wide">
-                  <span class="home-qs-label">Márka</span>
-                  <select class="home-qs-control" id="qs-gyartmany">
-                    <option value="">Mindegy</option>
-                  </select>
-                </label>
-
-                <label class="home-qs-field home-qs-field--wide">
-                  <span class="home-qs-label">Modell</span>
-                  <select class="home-qs-control" id="qs-modell">
-                    <option value="">Mindegy</option>
-                  </select>
-                </label>
-
-                <label class="home-qs-field home-qs-field--wide">
-                  <span class="home-qs-label">Típus</span>
-                  <select class="home-qs-control" id="qs-tipus">
-                    <option value="">Mindegy</option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="home-qs-row">
-                <label class="home-qs-field home-qs-field--wide">
-                  <span class="home-qs-label">Üzemanyag</span>
-                  <select class="home-qs-control" id="qs-uzemanyag">
-                    <option value="">Mindegy</option>
-                    <option value="benzin">Benzin</option>
-                    <option value="diesel">Diesel</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="benzin-gaz">Benzin/Gáz</option>
-                    <option value="elektromos">Elektromos</option>
-                  </select>
-                </label>
-
-                <div class="home-qs-pair">
-                  <label class="home-qs-field home-qs-field--narrow">
-                    <span class="home-qs-label">Évjárat</span>
-                    <select class="home-qs-control" id="qs-ev-tol" aria-label="Évjárat -tól">
-                      <option value="">-tól</option>
-                    </select>
-                  </label>
-                  <label class="home-qs-field home-qs-field--narrow">
-                    <select class="home-qs-control" id="qs-ev-ig" aria-label="Évjárat -ig">
-                      <option value="">-ig</option>
-                    </select>
-                  </label>
-                </div>
-
-                <div class="home-qs-pair">
-                  <label class="home-qs-field home-qs-field--narrow">
-                    <span class="home-qs-label">Vételár</span>
-                    <select class="home-qs-control" id="qs-ar-tol" aria-label="Vételár -tól">
-                      <option value="">-tól</option>
-                    </select>
-                    <span class="home-qs-suffix" aria-hidden="true">Ft</span>
-                  </label>
-                  <label class="home-qs-field home-qs-field--narrow">
-                    <select class="home-qs-control" id="qs-ar-ig" aria-label="Vételár -ig">
-                      <option value="">-ig</option>
-                    </select>
-                    <span class="home-qs-suffix" aria-hidden="true">Ft</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="home-qs-row home-qs-row--actions">
-                <button type="submit" class="home-qs-submit">Keresés</button>
-                <div class="home-qs-actions-secondary">
-                  <button type="button" class="home-qs-action home-qs-action--advanced" id="qs-reszletes">
-                    Részletes keresés
-                  </button>
-                  <button type="reset" class="home-qs-action">Visszaállítás</button>
-                </div>
-              </div>
-            </form>
-          </article>
         </div>
       </section>
 

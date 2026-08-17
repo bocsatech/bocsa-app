@@ -38,3 +38,13 @@ test("auto.html: gyorskereső 3 sora a megadott mezőkkel", () => {
     "1. sorban nincs Üzemanyag (az a 2. sor)"
   );
 });
+
+test("auto.html: átlátszó gyorskereső a ragadós fejlécben", () => {
+  const html = readFileSync(join(PUBLIC, "auto.html"), "utf8");
+  const headerEnd = html.indexOf("</header>");
+  const glass = html.indexOf('home-stats-bar--glass');
+  const form = html.indexOf('id="home-qs-form"');
+  assert.ok(glass > 0 && glass < headerEnd, "üveg kereső a fejlécben");
+  assert.ok(form > glass && form < headerEnd, "home-qs-form a fejlécben marad");
+  assert.equal((html.match(/id="home-qs-form"/g) || []).length, 1, "egyszer szerepel a kereső");
+});
