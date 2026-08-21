@@ -10,7 +10,9 @@
     "atlag": "node src/atlag.mjs",
     "export-csv": "node src/export-csv.mjs",
     "chrome": "node src/start-chrome.mjs",
-    "test:parse": "node src/test-parse.mjs"
+    "test:parse": "node src/test-parse.mjs",
+    "test:clean-tipus": "node src/test-clean-tipus.mjs",
+    "clean:tipus": "node src/clean-tipus-csv.mjs"
   },
   "engines": {
     "node": ">=18"
