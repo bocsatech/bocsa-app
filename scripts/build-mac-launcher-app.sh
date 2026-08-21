@@ -17,12 +17,12 @@ case "$TARGET" in
     APP_NAME="Willhaben Pro"
     BUNDLE_ID="hu.bocsa.willhaben-pro"
     PRO_DIR="${HOME}/Downloads/willhaben pro"
-    VENDOR="$ROOT/pro-orchestrator/vendor/willhaben-pro"
-    if [ ! -d "$PRO_DIR" ] && [ -d "$VENDOR" ]; then
+    SRC="$ROOT/willhaben-pro"
+    if [ ! -d "$PRO_DIR" ] && [ -d "$SRC" ]; then
       mkdir -p "$(dirname "$PRO_DIR")"
-      cp -a "$VENDOR" "$PRO_DIR"
+      cp -a "$SRC" "$PRO_DIR"
     fi
-    LAUNCHER_DIR="$VENDOR/mac-launcher"
+    LAUNCHER_DIR="$SRC/mac-launcher"
     ;;
   hasznaltauto-pro)
     APP_NAME="Hasznaltauto Pro"

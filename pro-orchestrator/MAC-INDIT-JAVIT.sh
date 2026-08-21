@@ -11,14 +11,14 @@ HA="${HOME}/Downloads/hasznaltauto pro"
 echo "→ Indító scriptek frissítése..."
 
 mkdir -p "$WH/mac-launcher" "$HA/mac-launcher"
-curl -sf "$RAW/pro-orchestrator/vendor/willhaben-pro/mac-launcher/Inditas.command" -o "$WH/mac-launcher/Inditas.command"
+curl -sf "$RAW/willhaben-pro/mac-launcher/Inditas.command" -o "$WH/mac-launcher/Inditas.command"
 curl -sf "$RAW/hasznaltauto-pro/mac-launcher/Inditas.command" -o "$HA/mac-launcher/Inditas.command"
 chmod +x "$WH/mac-launcher/Inditas.command" "$HA/mac-launcher/Inditas.command"
 
 if [ -d "$WH/Willhaben Pro.app/Contents/MacOS" ]; then
-  curl -sf "$RAW/pro-orchestrator/vendor/willhaben-pro/Willhaben%20Pro.app/Contents/MacOS/run" \
+  curl -sf "$RAW/willhaben-pro/Willhaben%20Pro.app/Contents/MacOS/run" \
     -o "$WH/Willhaben Pro.app/Contents/MacOS/run" 2>/dev/null || \
-  curl -sf "$RAW/pro-orchestrator/vendor/willhaben-pro/mac-launcher/run.sh" -o "$WH/Willhaben Pro.app/Contents/MacOS/run"
+  curl -sf "$RAW/willhaben-pro/mac-launcher/run.sh" -o "$WH/Willhaben Pro.app/Contents/MacOS/run"
   chmod +x "$WH/Willhaben Pro.app/Contents/MacOS/run"
 fi
 

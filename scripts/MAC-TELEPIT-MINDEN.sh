@@ -142,17 +142,22 @@ if [ -d "$SOURCE/pro-orchestrator" ]; then
   echo "  ✓ $DEST_ORCH"
 fi
 
-# 3. Willhaben Pro
+# 3. Willhaben Pro (+ Willhaben Pro.app)
 echo "📁 willhaben pro"
 if [ -d "$DEST_WH" ] && [ -f "$DEST_WH/package.json" ]; then
   echo "  ✓ már van: $DEST_WH"
-elif [ -d "$SOURCE/pro-orchestrator/vendor/willhaben-pro" ]; then
-  copy_tree "$SOURCE/pro-orchestrator/vendor/willhaben-pro" "$DEST_WH"
 elif [ -d "$SOURCE/willhaben-pro" ]; then
   copy_tree "$SOURCE/willhaben-pro" "$DEST_WH"
+elif [ -d "$SOURCE/pro-orchestrator/vendor/willhaben-pro" ]; then
+  copy_tree "$SOURCE/pro-orchestrator/vendor/willhaben-pro" "$DEST_WH"
 else
   mkdir -p "$DEST_WH"
   curl -sf "$RAW/pro-orchestrator/MAC-WILLHABEN-ATHELYEZ.sh" | bash 2>/dev/null || true
+fi
+if [ -d "$DEST_WH/Willhaben Pro.app" ]; then
+  chmod +x "$DEST_WH/Willhaben Pro.app/Contents/MacOS/run" 2>/dev/null || true
+  xattr -cr "$DEST_WH/Willhaben Pro.app" 2>/dev/null || true
+  echo "  ✓ Willhaben Pro.app"
 fi
 
 # 4. Hasznaltauto Pro
